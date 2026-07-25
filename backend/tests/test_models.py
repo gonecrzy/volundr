@@ -6,6 +6,7 @@ from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.printability_profile import SavedPrintabilityProfile
 from app.models.revision import Revision
+from app.models.validation_finding import ValidationFinding
 
 
 def test_project_and_revision_tables_can_be_created() -> None:
@@ -18,6 +19,7 @@ def test_project_and_revision_tables_can_be_created() -> None:
     assert "project_messages" in inspector.get_table_names()
     assert "printability_profiles" in inspector.get_table_names()
     assert "revisions" in inspector.get_table_names()
+    assert "validation_findings" in inspector.get_table_names()
 
 
 def test_project_can_reference_active_revision() -> None:

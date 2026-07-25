@@ -15,6 +15,7 @@ from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
+from app.models.validation_finding import ValidationFinding
 from app.schemas.project import (
     GenerationCreate,
     ManualRevisionCreate,
@@ -24,15 +25,36 @@ from app.schemas.project import (
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
+    ValidationFindingRead,
+    ValidationSummaryRead,
 )
+from app.schemas.printability import PrintabilityProfile, PrintabilityResult
 from app.services.ai.provider import AiProvider, ModelGenerationRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
 from app.services.mesh.inspect import MeshMetadata
+from app.services.printability.inspector import inspect_printability
 
 DRAFT_RETENTION_DAYS = 14
 ARCHIVED_RETENTION_DAYS = 60
+AI_SOURCE_TYPES = frozenset({"ai_initial", "ai_revision", "ai_repair"})
+OPEN_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
+ACCEPTABLE_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings"})
+BLOCKING_RULE_IDS = frozenset(
+    {
+        "mesh.empty_or_zero_volume",
+        "orientation.below_build_plate",
+        "orientation.above_build_plate",
+        "profile.build_volume",
+    }
+)
+BLOCKING_CRITICAL_RULE_IDS = frozenset(
+    {
+        "feature.minimum_thickness",
+        "feature.small_features_gaps_holes",
+    }
+)
 
 
 class ProjectService:
@@ -168,6 +190,15 @@ class ProjectService:
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
 
+    def get_active_revision(self, project_id: str) -> RevisionRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None or project.active_revision_id is None:
+            return None
+        revision = self.db.get(Revision, project.active_revision_id)
+        if revision is None or revision.review_state != "accepted":
+            return None
+        return self._revision_read(revision)
+
     def list_project_messages(self, project_id: str) -> list[ProjectMessageRead] | None:
         if self.db.get(Project, project_id) is None:
             return None
@@ -226,6 +257,98 @@ class ProjectService:
             .order_by(Revision.revision_number.asc())
         )
         return [self._revision_read(revision) for revision in revisions]
+
+    def list_candidates(self, project_id: str) -> list[RevisionRead] | None:
+        if self.db.get(Project, project_id) is None:
+            return None
+        revisions = self.db.scalars(
+            select(Revision)
+            .where(
+                Revision.project_id == project_id,
+                Revision.status == "succeeded",
+                Revision.review_state.in_(OPEN_CANDIDATE_STATES),
+            )
+            .order_by(Revision.revision_number.asc())
+        )
+        return [self._revision_read(revision) for revision in revisions]
+
+    def get_candidate(self, revision_id: str) -> RevisionRead | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None or revision.review_state not in OPEN_CANDIDATE_STATES:
+            return None
+        return self._revision_read(revision)
+
+    def list_validation_findings(self, revision_id: str) -> list[ValidationFindingRead] | None:
+        if self.db.get(Revision, revision_id) is None:
+            return None
+        findings = self.db.scalars(
+            select(ValidationFinding)
+            .where(ValidationFinding.revision_id == revision_id)
+            .order_by(ValidationFinding.created_at.asc(), ValidationFinding.rule_id.asc())
+        )
+        return [ValidationFindingRead.model_validate(finding) for finding in findings]
+
+    def accept_candidate(self, revision_id: str) -> RevisionRead | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return None
+        if revision.review_state not in ACCEPTABLE_CANDIDATE_STATES:
+            raise ValueError("candidate state does not permit acceptance")
+        if self._has_blocking_findings(revision.id):
+            raise ValueError("candidate has unresolved blocking validation findings")
+        project = self.db.get(Project, revision.project_id)
+        if project is None:
+            return None
+        now = project_utcnow()
+        revision.review_state = "accepted"
+        revision.is_accepted = True
+        revision.accepted_at = now
+        project.active_revision_id = revision.id
+        self._record_message(
+            project_id=project.id,
+            revision_id=revision.id,
+            role="system_event",
+            content=f"Accepted R{revision.revision_number}",
+        )
+        self.db.commit()
+        self.db.refresh(revision)
+        return self._revision_read(revision)
+
+    def reject_candidate(self, revision_id: str) -> RevisionRead | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return None
+        if revision.review_state not in OPEN_CANDIDATE_STATES:
+            raise ValueError("candidate state does not permit rejection")
+        revision.review_state = "rejected"
+        revision.is_accepted = False
+        revision.rejected_at = project_utcnow()
+        self._record_message(
+            project_id=revision.project_id,
+            revision_id=revision.id,
+            role="system_event",
+            content=f"Rejected R{revision.revision_number}",
+        )
+        self.db.commit()
+        self.db.refresh(revision)
+        return self._revision_read(revision)
+
+    def dismiss_validation_finding(
+        self,
+        finding_id: str,
+        reason: str | None = None,
+    ) -> ValidationFindingRead | None:
+        finding = self.db.get(ValidationFinding, finding_id)
+        if finding is None:
+            return None
+        if finding.is_blocking:
+            raise ValueError("blocking validation findings cannot be dismissed")
+        finding.finding_state = "dismissed"
+        finding.dismissal_reason = reason.strip() if reason and reason.strip() else None
+        finding.dismissed_at = project_utcnow()
+        self.db.commit()
+        self.db.refresh(finding)
+        return ValidationFindingRead.model_validate(finding)
 
     async def create_manual_revision(
         self,
@@ -578,6 +701,100 @@ class ProjectService:
                 settings_payload[name] = value
         return settings_payload
 
+    def _persist_validation_findings(self, *, revision: Revision, stl_path: Path) -> None:
+        report = inspect_printability(stl_path, PrintabilityProfile())
+        for result in report.results:
+            if result.severity == "Pass":
+                continue
+            self.db.add(self._validation_finding_from_printability_result(revision.id, result))
+        self.db.flush()
+
+    def _validation_finding_from_printability_result(
+        self,
+        revision_id: str,
+        result: PrintabilityResult,
+    ) -> ValidationFinding:
+        severity = result.severity.lower()
+        metadata = {
+            "printability_profile_version": "printability-fdm-v1",
+            "affected_count": result.affected_count,
+            "affected_area_mm2": result.affected_area_mm2,
+            "highlight": result.highlight.model_dump() if result.highlight is not None else None,
+        }
+        return ValidationFinding(
+            revision_id=revision_id,
+            rule_id=result.rule_id,
+            category=result.rule_id.split(".", 1)[0],
+            severity=severity,
+            is_blocking=self._is_blocking_printability_result(result),
+            title=result.rule_id.replace(".", " ").replace("_", " ").title(),
+            explanation=result.explanation,
+            suggested_correction=result.suggested_correction,
+            detected_value=str(result.detected_value.value),
+            unit=result.detected_value.units,
+            threshold_value=None,
+            orientation_dependent=result.orientation_dependent,
+            affected_geometry_summary=self._affected_geometry_summary(result),
+            metadata_json=json.dumps(metadata, sort_keys=True),
+        )
+
+    def _is_blocking_printability_result(self, result: PrintabilityResult) -> bool:
+        if result.rule_id in BLOCKING_RULE_IDS:
+            return True
+        return result.severity == "Critical" and result.rule_id in BLOCKING_CRITICAL_RULE_IDS
+
+    def _affected_geometry_summary(self, result: PrintabilityResult) -> str | None:
+        pieces = []
+        if result.affected_count is not None:
+            pieces.append(f"affected_count={result.affected_count}")
+        if result.affected_area_mm2 is not None:
+            pieces.append(f"affected_area_mm2={result.affected_area_mm2}")
+        return ", ".join(pieces) if pieces else None
+
+    def _derive_review_state(self, revision_id: str) -> str:
+        findings = list(
+            self.db.scalars(select(ValidationFinding).where(ValidationFinding.revision_id == revision_id))
+        )
+        if any(finding.is_blocking for finding in findings):
+            return "blocked"
+        if findings:
+            return "ready_with_warnings"
+        return "ready"
+
+    def _should_auto_accept_revision(
+        self,
+        *,
+        project: Project,
+        source_type: str,
+        review_state: str,
+    ) -> bool:
+        if review_state == "blocked":
+            return False
+        if source_type in AI_SOURCE_TYPES:
+            return False
+        return project.active_revision_id is None
+
+    def _has_blocking_findings(self, revision_id: str) -> bool:
+        return (
+            self.db.scalar(
+                select(func.count(ValidationFinding.id)).where(
+                    ValidationFinding.revision_id == revision_id,
+                    ValidationFinding.is_blocking.is_(True),
+                )
+            )
+            or 0
+        ) > 0
+
+    def _validation_summary(self, revision_id: str) -> ValidationSummaryRead:
+        findings = list(
+            self.db.scalars(select(ValidationFinding).where(ValidationFinding.revision_id == revision_id))
+        )
+        return ValidationSummaryRead(
+            blocking_count=sum(1 for finding in findings if finding.is_blocking),
+            advisory_count=sum(1 for finding in findings if not finding.is_blocking),
+            dismissed_count=sum(1 for finding in findings if finding.dismissed_at is not None),
+        )
+
     def _create_failed_ai_revision(
         self,
         *,
@@ -671,11 +888,20 @@ class ProjectService:
             metadata = result.metadata
             stl_relative_path = self._relative(stl_path)
             revision.status = "succeeded"
-            revision.is_accepted = True
-            project.active_revision_id = revision.id
+            self._persist_validation_findings(revision=revision, stl_path=stl_path)
+            review_state = self._derive_review_state(revision.id)
+            if self._should_auto_accept_revision(project=project, source_type=source_type, review_state=review_state):
+                revision.review_state = "accepted"
+                revision.is_accepted = True
+                revision.accepted_at = project_utcnow()
+                project.active_revision_id = revision.id
+            else:
+                revision.review_state = review_state
+                revision.is_accepted = False
         else:
             revision.status = "failed"
             revision.is_accepted = False
+            revision.review_state = None
 
         revision.scad_source_path = self._relative(source_path)
         revision.stl_path = stl_relative_path
@@ -746,7 +972,12 @@ class ProjectService:
 
     def restore_revision(self, revision_id: str) -> Project | None:
         revision = self.db.get(Revision, revision_id)
-        if revision is None or revision.status != "succeeded":
+        if (
+            revision is None
+            or revision.status != "succeeded"
+            or revision.review_state != "accepted"
+            or self._has_blocking_findings(revision.id)
+        ):
             return None
         project = self.db.get(Project, revision.project_id)
         if project is None:
@@ -825,9 +1056,13 @@ class ProjectService:
             ai_output_path=revision.ai_output_path,
             status=revision.status,
             is_accepted=revision.is_accepted,
+            review_state=revision.review_state,
+            accepted_at=revision.accepted_at,
+            rejected_at=revision.rejected_at,
             created_at=revision.created_at,
             metadata=metadata_read,
             error_message=error_message,
+            validation_summary=self._validation_summary(revision.id),
         )
 
     def _next_revision_number(self, project_id: str) -> int:

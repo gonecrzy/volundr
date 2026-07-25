@@ -11,6 +11,7 @@ from app.models import (  # noqa: F401
     ProjectMessage,
     Revision,
     SavedPrintabilityProfile,
+    ValidationFinding,
 )
 
 config = context.config

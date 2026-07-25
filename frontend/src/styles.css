@@ -324,6 +324,7 @@ textarea {
 
 .project-card,
 .revision-panel,
+.candidate-review,
 .printability,
 .parameters,
 .source-panel,
@@ -393,6 +394,104 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.candidate-review {
+  background: #ffffff;
+  border: 1px solid #d9ded7;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.review-state {
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.review-state.ready {
+  background: #2f6e59;
+}
+
+.review-state.ready_with_warnings {
+  background: #9a6b21;
+}
+
+.review-state.blocked {
+  background: #b93232;
+}
+
+.review-state.accepted,
+.review-state.historical {
+  background: #285f72;
+}
+
+.review-state.rejected {
+  background: #6f5962;
+}
+
+.review-facts {
+  display: grid;
+  gap: 6px 10px;
+  grid-template-columns: minmax(82px, auto) 1fr;
+  margin: 10px 0 0;
+}
+
+.review-facts dt {
+  color: #647068;
+}
+
+.review-facts dd {
+  color: #27302b;
+  font-weight: 800;
+  margin: 0;
+}
+
+.blocked-reason {
+  background: #f8eeee;
+  border: 1px solid #e5c1c1;
+  border-radius: 6px;
+  color: #812c2c;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+}
+
+.candidate-findings {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.candidate-findings h3 {
+  color: #56615b;
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.candidate-finding {
+  border: 1px solid #d9ded7;
+  border-left-width: 4px;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.candidate-finding.notice {
+  border-left-color: #b29b2f;
+}
+
+.candidate-finding.warning {
+  border-left-color: #c2642e;
+}
+
+.candidate-finding.critical {
+  border-left-color: #bc3838;
 }
 
 .metadata-list {

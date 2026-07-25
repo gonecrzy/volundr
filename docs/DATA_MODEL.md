@@ -53,6 +53,9 @@ compile_log_path
 ai_output_path
 status
 is_accepted
+review_state
+accepted_at
+rejected_at
 created_at
 ```
 
@@ -76,6 +79,31 @@ failed
 rejected
 ```
 
+Suggested `review_state` values:
+
+```text
+ready
+ready_with_warnings
+blocked
+rejected
+accepted
+```
+
+Candidate state diagram:
+
+```text
+compile/mesh/validation complete
+  -> blocking findings? yes -> blocked -> rejected
+  -> advisory findings? yes -> ready_with_warnings -> accepted | rejected
+  -> no findings -> ready -> accepted | rejected
+
+accepted -> active_revision_id may point here
+blocked -> accepted is forbidden
+rejected -> accepted is forbidden
+```
+
+Manual source compilation establishes the first active accepted revision when no active design exists. Later manual compiles and AI compiles create candidates until explicitly accepted.
+
 ## GenerationAttempt
 
 Captures each AI interaction, including attempts that never became valid revisions.
@@ -98,6 +126,46 @@ error_message
 started_at
 completed_at
 ```
+
+The current implementation also persists `resulting_revision_id`, non-secret provider settings, prompt-template version, Gemini ruleset version, source/output hashes, and request/prompt/raw-output/extracted-source/design-spec/intermediate artifact paths.
+
+## ValidationFinding
+
+Represents one persisted non-pass validation result for a revision.
+
+Fields:
+
+```text
+id
+revision_id
+rule_id
+category
+severity
+is_blocking
+title
+explanation
+suggested_correction
+detected_value
+unit
+threshold_value
+orientation_dependent
+affected_geometry_summary
+metadata_json
+finding_state
+dismissal_reason
+dismissed_at
+created_at
+```
+
+Suggested `severity` values:
+
+```text
+notice
+warning
+critical
+```
+
+`is_blocking` is authoritative for acceptance. Severity alone does not decide whether a candidate can be accepted. Non-blocking findings may be dismissed, but blocking findings cannot be dismissed into acceptability.
 
 ## CadJob
 
@@ -188,7 +256,8 @@ system_event
 ## Design Rules
 
 - Revisions are immutable.
-- Restoring a revision changes `active_revision_id`; it does not delete newer revisions.
+- Restoring an accepted revision changes `active_revision_id`; it does not delete newer revisions.
+- Blocked and rejected candidates cannot be restored as active revisions.
 - Failed AI attempts remain traceable.
 - File paths are stored relative to Volundr data root.
 - Large source and log content may be stored as files rather than database blobs.

@@ -223,6 +223,8 @@ Output schema:
 }
 ```
 
+Current implementation note: staged `validation-feedback-v1` is not yet a Gemini prompt. Volundr now performs deterministic backend validation after compile and mesh inspection, persists non-pass findings, and derives candidate state before any user acceptance action.
+
 ## Context Selection
 
 Do not pass the full chat history as authoritative context. Maintain a compact project design record:
@@ -376,6 +378,18 @@ accepted
 ```
 
 `ready` means no blocking validations or unresolved assumptions. `ready_with_warnings` means advisory warnings exist. `blocked` means at least one blocking validation or unresolved clarification exists. `rejected` means the user or system rejected the candidate. `accepted` means the user accepted the candidate and it may become the active revision.
+
+Implemented transition guard:
+
+```text
+compile succeeds
+  -> mesh metadata exists
+  -> validation findings persist
+  -> review_state derived
+  -> user accepts or rejects
+```
+
+The service layer blocks `blocked -> accepted`, `rejected -> accepted`, `accepted -> rejected`, and restore of blocked or rejected candidates.
 
 ## Repair Invariants
 

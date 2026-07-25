@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+import trimesh
 
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.base import Base
@@ -136,7 +137,9 @@ class FakeCadRunner:
                 error_message="Parser error: syntax error",
             )
 
-        stl_path.write_bytes(b"solid fake\nendsolid fake\n")
+        mesh = trimesh.creation.box(extents=(10.0, 10.0, 10.0))
+        mesh.apply_translation([0.0, 0.0, 5.0])
+        mesh.export(stl_path)
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
         metadata_path.write_text('{"triangle_count": 12}', encoding="utf-8")
@@ -162,7 +165,7 @@ class FakeCadRunner:
             stderr_path=stderr_path,
             metadata_path=metadata_path,
             source_hash="fake-source-hash",
-            output_size_bytes=24,
+            output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
             error_message=None,
         )
@@ -211,6 +214,8 @@ def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
     revision = response.json()
     assert revision["source_type"] == "ai_initial"
     assert revision["status"] == "succeeded"
+    assert revision["review_state"] == "ready"
+    assert revision["is_accepted"] is False
     assert revision["metadata"]["volume_mm3"] == 1000.0
 
     revision_dir = tmp_path / "data" / "projects" / project["id"] / "revisions" / revision["id"]
@@ -218,7 +223,7 @@ def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
     assert "```scad" in (revision_dir / "ai-output.txt").read_text(encoding="utf-8")
 
     refreshed_project = client.get(f"/api/projects/{project['id']}").json()
-    assert refreshed_project["active_revision_id"] == revision["id"]
+    assert refreshed_project["active_revision_id"] is None
 
 
 def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> None:
@@ -341,12 +346,14 @@ main_model();
     assert revision["source_type"] == "ai_revision"
     assert revision["parent_revision_id"] == base_revision["id"]
     assert revision["status"] == "succeeded"
+    assert revision["review_state"] == "ready"
+    assert revision["is_accepted"] is False
     assert len(provider.requests) == 1
     assert provider.requests[0].current_source == manual_source
     assert provider.requests[0].compiler_diagnostics is None
 
     refreshed_project = client.get(f"/api/projects/{project['id']}").json()
-    assert refreshed_project["active_revision_id"] == revision["id"]
+    assert refreshed_project["active_revision_id"] == base_revision["id"]
     revisions = client.get(f"/api/projects/{project['id']}/revisions").json()
     assert [entry["source_type"] for entry in revisions] == ["manual_edit", "ai_revision"]
 

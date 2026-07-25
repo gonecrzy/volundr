@@ -26,8 +26,10 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - project API                                 │
 │ - revision API                                │
 │ - generation orchestration                    │
+│ - candidate revision review and acceptance    │
 │ - AI provider interface                       │
 │ - CAD runner interface                        │
+│ - persisted validation findings               │
 │ - asset delivery                              │
 │ - SQLite persistence                          │
 └───────────────┬───────────────────┬───────────┘
@@ -73,6 +75,8 @@ Responsibilities:
 - FastAPI application
 - SQLite access
 - project and revision orchestration
+- candidate state transitions
+- validation finding persistence and blocking/advisory enforcement
 - Gemini CLI provider
 - generation job state
 - controlled asset delivery
@@ -211,6 +215,20 @@ class CadRunner(Protocol):
     ) -> CadCompileResult:
         ...
 ```
+
+## Candidate Acceptance Flow
+
+```text
+AI or post-active manual source
+  -> source extraction / source screening
+  -> OpenSCAD compile
+  -> mesh inspection
+  -> deterministic validation findings
+  -> revision review_state: ready | ready_with_warnings | blocked
+  -> explicit accept or reject action
+```
+
+Only explicit acceptance updates `projects.active_revision_id` for generated candidates. Restore is limited to accepted revisions. Blocking findings are enforced in the backend service layer.
 
 Initial implementation:
 

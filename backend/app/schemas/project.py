@@ -71,6 +71,12 @@ class MeshMetadataRead(BaseModel):
     center_of_mass: tuple[float, float, float]
 
 
+class ValidationSummaryRead(BaseModel):
+    blocking_count: int = 0
+    advisory_count: int = 0
+    dismissed_count: int = 0
+
+
 class RevisionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -86,6 +92,38 @@ class RevisionRead(BaseModel):
     ai_output_path: str | None
     status: str
     is_accepted: bool
+    review_state: str | None = None
+    accepted_at: datetime | None = None
+    rejected_at: datetime | None = None
     created_at: datetime
     metadata: MeshMetadataRead | None = None
     error_message: str | None = None
+    validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
+
+
+class ValidationFindingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    revision_id: str
+    rule_id: str
+    category: str
+    severity: str
+    is_blocking: bool
+    title: str
+    explanation: str
+    suggested_correction: str
+    detected_value: str | None
+    unit: str | None
+    threshold_value: str | None
+    orientation_dependent: bool
+    affected_geometry_summary: str | None
+    metadata_json: str
+    finding_state: str
+    dismissal_reason: str | None
+    dismissed_at: datetime | None
+    created_at: datetime
+
+
+class ValidationFindingDismiss(BaseModel):
+    reason: str | None = Field(default=None, max_length=1000)

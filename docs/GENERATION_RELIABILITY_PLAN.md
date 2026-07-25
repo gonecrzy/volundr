@@ -158,6 +158,24 @@ Clarification evaluation must track both recall and precision so Volundr avoids 
 - Required tests: zero volume, non-watertight, below build plate, build-volume violation, critical bridge.
 - Exit criteria: validation results are persisted with severity and acceptance decision.
 
+Implemented enforcement note:
+
+- persisted validation findings now store severity, explicit blocking status, detected value, orientation dependency, dismissal state, and correction text
+- candidate state is derived after compile, mesh inspection, and validation persistence complete
+- blocking findings prevent backend acceptance and restore
+- advisory findings remain visible and may be dismissed without deleting history
+
+Current blocking rules enforced by candidate acceptance:
+
+- `mesh.empty_or_zero_volume`
+- `orientation.below_build_plate`
+- `orientation.above_build_plate`
+- `profile.build_volume`
+- critical `feature.minimum_thickness`
+- critical `feature.small_features_gaps_holes`
+
+Current advisory rules include non-watertight meshes, disconnected components, small build-plate contact, overhangs, bridges, unsupported ceilings/cavities, and non-critical feature-size findings.
+
 ### 11. Introduce candidate revision state for AI generations
 
 - Dependency: validation summary.
@@ -175,6 +193,14 @@ blocked
 rejected
 accepted
 ```
+
+Implementation policy:
+
+- AI-generated successful revisions are candidates and never become active until explicitly accepted.
+- Manual compile establishes the first active accepted revision when no accepted design exists.
+- Manual compile based on an accepted revision creates a candidate and must be explicitly accepted.
+- Accepted historical revisions can be restored.
+- Blocked and rejected candidates cannot be restored as active.
 
 ### 12. Feed validation into revision context
 

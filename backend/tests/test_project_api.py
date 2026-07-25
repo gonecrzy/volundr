@@ -590,7 +590,8 @@ def test_successful_revision_can_be_restored_as_active(tmp_path: Path) -> None:
             "user_instruction": "Wider handle.",
         },
     ).json()
-    assert second_revision["is_accepted"] is True
+    assert second_revision["is_accepted"] is False
+    assert second_revision["review_state"] == "ready"
 
     restore_response = client.post(f"/api/revisions/{first_revision['id']}/restore")
 

@@ -21,6 +21,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Store every attempt, including failures.
 - Ask for clarification before OpenSCAD generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
+- Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
 
 ### OpenSCAD Execution
 
@@ -52,6 +53,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Allow manual edits.
 - Compile manually edited source as a new revision.
 - Never overwrite the existing accepted revision.
+- After an accepted design exists, manual compiles create candidate revisions that require explicit acceptance.
 
 ### Revisions
 
@@ -60,6 +62,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Restore a prior revision by making it the active revision.
 - Preserve failed attempts without presenting them as accepted models.
 - Keep AI-generated candidates distinct from user-accepted active revisions when validation warnings or assumptions require review.
+- Prevent blocked and rejected candidates from becoming active through restore or accept actions.
 
 ### Downloads
 

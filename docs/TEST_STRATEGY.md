@@ -60,6 +60,11 @@ Test:
 - failed attempt does not replace active revision
 - restore old revision
 - manual edit creates a new revision
+- AI generation creates a candidate instead of replacing the active revision
+- ready and ready-with-warnings candidates can be accepted explicitly
+- blocked, rejected, and already accepted candidates cannot transition incorrectly
+- advisory validation findings can be dismissed without deletion
+- blocking validation findings cannot be dismissed into acceptability
 
 ## Frontend Tests
 
@@ -90,6 +95,18 @@ After Gemini integration:
 3. Receive model.
 4. Request a revision.
 5. Restore earlier revision after a failed change.
+
+Candidate stabilization workflow:
+
+1. Open a project with an accepted revision.
+2. Generate a deterministic AI candidate.
+3. Confirm the active revision remains accessible.
+4. Review advisory findings.
+5. Accept the candidate.
+6. Generate a blocked candidate.
+7. Confirm Accept is disabled with a specific blocking reason.
+8. Reject the blocked candidate.
+9. Confirm the accepted revision remains active.
 
 ## Fixture Models
 
@@ -135,3 +152,5 @@ The benchmark harness should persist provider, model, prompt version, request pa
 Prompt templates must have snapshot tests. Snapshot failures should require an intentional prompt-template version update or explicit snapshot update.
 
 Generation-attempt tests must verify that the structured requirements/design artifact can be persisted before OpenSCAD generation, even before staged requirement extraction is implemented.
+
+Candidate tests must use fake providers and deterministic STL fixtures. Live Gemini runs are not required for candidate-state, validation, or API transition changes.

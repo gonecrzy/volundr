@@ -15,6 +15,8 @@ from app.schemas.project import (
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
+    ValidationFindingDismiss,
+    ValidationFindingRead,
 )
 from app.schemas.printability import (
     PrintabilityProfile,
@@ -170,6 +172,19 @@ def list_project_messages(
     return messages
 
 
+@router.get("/projects/{project_id}/active-revision", response_model=RevisionRead)
+def get_active_revision(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    revision = service.get_active_revision(project_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="active accepted revision not found")
+    return revision
+
+
 @router.post("/projects/{project_id}/revisions", response_model=RevisionRead, status_code=201)
 async def create_manual_revision(
     project_id: str,
@@ -219,6 +234,94 @@ def list_revisions(
     if service.get_project(project_id) is None:
         raise HTTPException(status_code=404, detail="project not found")
     return service.list_revisions(project_id)
+
+
+@router.get("/projects/{project_id}/candidates", response_model=list[RevisionRead])
+def list_project_candidates(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[RevisionRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    candidates = service.list_candidates(project_id)
+    if candidates is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return candidates
+
+
+@router.get("/candidates/{revision_id}", response_model=RevisionRead)
+def get_candidate_revision(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    candidate = service.get_candidate(revision_id)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="candidate revision not found")
+    return candidate
+
+
+@router.get("/candidates/{revision_id}/findings", response_model=list[ValidationFindingRead])
+def list_candidate_validation_findings(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ValidationFindingRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    findings = service.list_validation_findings(revision_id)
+    if findings is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    return findings
+
+
+@router.post("/candidates/{revision_id}/accept", response_model=RevisionRead)
+def accept_candidate_revision(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        candidate = service.accept_candidate(revision_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="candidate revision not found")
+    return candidate
+
+
+@router.post("/candidates/{revision_id}/reject", response_model=RevisionRead)
+def reject_candidate_revision(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        candidate = service.reject_candidate(revision_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="candidate revision not found")
+    return candidate
+
+
+@router.post("/validation-findings/{finding_id}/dismiss", response_model=ValidationFindingRead)
+def dismiss_validation_finding(
+    finding_id: str,
+    payload: ValidationFindingDismiss,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ValidationFindingRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        finding = service.dismiss_validation_finding(finding_id, payload.reason)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if finding is None:
+        raise HTTPException(status_code=404, detail="validation finding not found")
+    return finding
 
 
 @router.get("/revisions/{revision_id}/source")

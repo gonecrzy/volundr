@@ -4,6 +4,16 @@ import { createRoot } from "react-dom/client";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
+import {
+  acceptDisabledReason,
+  canAcceptRevision,
+  candidateFindingBuckets,
+  revisionViewerLabel,
+  revisionWorkflowLabel,
+  type CandidateFinding,
+  type ReviewState,
+  type ValidationSummary,
+} from "./candidateView";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -48,11 +58,16 @@ type Revision = {
   source_type: string;
   status: string;
   is_accepted: boolean;
+  review_state: ReviewState | null;
+  accepted_at: string | null;
+  rejected_at: string | null;
   user_instruction: string | null;
+  stl_path: string | null;
   ai_output_path: string | null;
   created_at: string;
   metadata: MeshMetadata | null;
   error_message: string | null;
+  validation_summary: ValidationSummary;
 };
 
 type BuildVolumeProfile = {
@@ -152,6 +167,8 @@ function App() {
   const [selectedPrintabilityProfileId, setSelectedPrintabilityProfileId] = useState("");
   const [isSavingPrintabilityProfile, setIsSavingPrintabilityProfile] = useState(false);
   const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
+  const [candidateFindings, setCandidateFindings] = useState<CandidateFinding[]>([]);
+  const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [isInspectingPrintability, setIsInspectingPrintability] = useState(false);
   const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
     () => new Set(),
@@ -159,7 +176,7 @@ function App() {
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
 
   const activeMetadata = selectedRevision?.metadata ?? null;
-  const stlUrl = selectedRevision?.is_accepted
+  const stlUrl = selectedRevision?.status === "succeeded" && selectedRevision.stl_path
     ? `${API_BASE}/revisions/${selectedRevision.id}/stl`
     : null;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
@@ -175,6 +192,10 @@ function App() {
   const canSaveProject = Boolean(project) && hasProjectName;
   const workspaceTitle =
     project && !isDraftProject ? project.name : projectName.trim() || "Untitled draft";
+  const selectedViewerLabel = revisionViewerLabel(selectedRevision, project);
+  const selectedWorkflowLabel = revisionWorkflowLabel(selectedRevision);
+  const acceptReason = acceptDisabledReason(selectedRevision);
+  const canAcceptSelectedRevision = canAcceptRevision(selectedRevision);
 
   useEffect(() => {
     void refreshProjects();
@@ -250,6 +271,7 @@ function App() {
       setRevisions([]);
       setProjectMessages([]);
       setSelectedRevision(null);
+      setCandidateFindings([]);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -284,6 +306,7 @@ function App() {
       setRevisions([]);
       setProjectMessages([]);
       setSelectedRevision(null);
+      setCandidateFindings([]);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -322,6 +345,7 @@ function App() {
       const nextRevisions = [...revisions, revision];
       setRevisions(nextRevisions);
       setSelectedRevision(revision);
+      await loadCandidateFindings(revision);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
@@ -362,6 +386,7 @@ function App() {
       });
       setRevisions(nextRevisions);
       setSelectedRevision(revision);
+      await loadCandidateFindings(revision);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
@@ -387,6 +412,7 @@ function App() {
 
   async function selectRevision(revision: Revision) {
     setSelectedRevision(revision);
+    await loadCandidateFindings(revision);
     setPrintabilityReport(null);
     setDismissedPrintabilityResults(new Set());
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/source`);
@@ -422,6 +448,7 @@ function App() {
     if (activeRevision) {
       await selectRevision(activeRevision);
     } else {
+      setCandidateFindings([]);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -461,6 +488,92 @@ function App() {
     }
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/diff`);
     setRevisionDiff(response.ok ? await response.text() : null);
+  }
+
+  async function loadCandidateFindings(revision: Revision) {
+    if (!isOpenCandidate(revision)) {
+      setCandidateFindings([]);
+      return;
+    }
+    try {
+      setCandidateFindings(await request<CandidateFinding[]>(`/candidates/${revision.id}/findings`, {
+        method: "GET",
+      }));
+    } catch {
+      setCandidateFindings([]);
+    }
+  }
+
+  async function acceptSelectedCandidate() {
+    if (!selectedRevision || !canAcceptSelectedRevision) {
+      return;
+    }
+    setIsReviewActionPending(true);
+    setMessage(null);
+    try {
+      const accepted = await request<Revision>(`/candidates/${selectedRevision.id}/accept`, {
+        method: "POST",
+      });
+      setSelectedRevision(accepted);
+      setRevisions((current) =>
+        current.map((revision) => (revision.id === accepted.id ? accepted : revision)),
+      );
+      if (project) {
+        const updatedProject = { ...project, active_revision_id: accepted.id };
+        setProject(updatedProject);
+        setProjects((current) =>
+          current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)),
+        );
+        await loadProjectMessages(project.id);
+      }
+      await loadCandidateFindings(accepted);
+      setMessage(`Accepted R${accepted.revision_number}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Candidate acceptance failed");
+    } finally {
+      setIsReviewActionPending(false);
+    }
+  }
+
+  async function rejectSelectedCandidate() {
+    if (!selectedRevision || !isOpenCandidate(selectedRevision)) {
+      return;
+    }
+    setIsReviewActionPending(true);
+    setMessage(null);
+    try {
+      const rejected = await request<Revision>(`/candidates/${selectedRevision.id}/reject`, {
+        method: "POST",
+      });
+      setSelectedRevision(rejected);
+      setRevisions((current) =>
+        current.map((revision) => (revision.id === rejected.id ? rejected : revision)),
+      );
+      await loadCandidateFindings(rejected);
+      if (project) {
+        await loadProjectMessages(project.id);
+      }
+      setMessage(`Rejected R${rejected.revision_number}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Candidate rejection failed");
+    } finally {
+      setIsReviewActionPending(false);
+    }
+  }
+
+  async function dismissCandidateFinding(findingId: string) {
+    setMessage(null);
+    try {
+      const dismissed = await request<CandidateFinding>(`/validation-findings/${findingId}/dismiss`, {
+        method: "POST",
+        body: JSON.stringify({ reason: "Dismissed during candidate review" }),
+      });
+      setCandidateFindings((current) =>
+        current.map((finding) => (finding.id === dismissed.id ? dismissed : finding)),
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Finding dismissal failed");
+    }
   }
 
   async function restoreSelectedRevision() {
@@ -587,6 +700,7 @@ function App() {
     setRevisions([]);
     setProjectMessages([]);
     setSelectedRevision(null);
+    setCandidateFindings([]);
     setCompileLog(null);
     setAiOutput(null);
     setRevisionDiff(null);
@@ -607,7 +721,7 @@ function App() {
             <h1>{workspaceTitle}</h1>
             <p>
               {selectedRevision
-                ? `R${selectedRevision.revision_number} - ${selectedRevision.status}`
+                ? `${selectedViewerLabel} - R${selectedRevision.revision_number} - ${selectedWorkflowLabel}`
                 : "Draft workspace"}
             </p>
           </div>
@@ -734,11 +848,24 @@ function App() {
                     R{revision.revision_number}
                     {revision.id === project?.active_revision_id ? " active" : ""}
                   </span>
-                  <span>{revision.source_type.replace("_", " ")} - {revision.status}</span>
+                  <span>{revision.source_type.replace("_", " ")} - {revisionWorkflowLabel(revision)}</span>
                 </button>
               ))}
             </div>
           </section>
+
+          <CandidateReview
+            acceptDisabledReason={acceptReason}
+            canAccept={canAcceptSelectedRevision}
+            findings={candidateFindings}
+            isPending={isReviewActionPending}
+            revision={selectedRevision}
+            viewerLabel={selectedViewerLabel}
+            workflowLabel={selectedWorkflowLabel}
+            onAccept={() => void acceptSelectedCandidate()}
+            onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
+            onReject={() => void rejectSelectedCandidate()}
+          />
 
           <h2>Metadata</h2>
           <Metadata metadata={activeMetadata} />
@@ -792,6 +919,110 @@ function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function CandidateReview({
+  acceptDisabledReason,
+  canAccept,
+  findings,
+  isPending,
+  revision,
+  viewerLabel,
+  workflowLabel,
+  onAccept,
+  onDismissFinding,
+  onReject,
+}: {
+  acceptDisabledReason: string | null;
+  canAccept: boolean;
+  findings: CandidateFinding[];
+  isPending: boolean;
+  revision: Revision | null;
+  viewerLabel: string;
+  workflowLabel: string;
+  onAccept: () => void;
+  onDismissFinding: (findingId: string) => void;
+  onReject: () => void;
+}) {
+  if (!revision) {
+    return null;
+  }
+
+  const isCandidate = isOpenCandidate(revision);
+  const buckets = candidateFindingBuckets(findings);
+
+  return (
+    <section className="candidate-review" aria-label="Candidate review">
+      <div className="section-heading">
+        <h2>Review</h2>
+        <span className={`review-state ${revision.review_state ?? "historical"}`}>{workflowLabel}</span>
+      </div>
+      <dl className="review-facts">
+        <dt>Viewer</dt>
+        <dd>{viewerLabel}</dd>
+        <dt>Blocking</dt>
+        <dd>{revision.validation_summary.blocking_count}</dd>
+        <dt>Warnings</dt>
+        <dd>{revision.validation_summary.advisory_count}</dd>
+      </dl>
+      {isCandidate ? (
+        <div className="actions">
+          <button className="primary" disabled={!canAccept || isPending} onClick={onAccept}>
+            {isPending ? "Working" : "Accept"}
+          </button>
+          <button className="secondary" disabled={isPending} onClick={onReject}>
+            Reject
+          </button>
+        </div>
+      ) : null}
+      {isCandidate && !canAccept && acceptDisabledReason ? (
+        <p className="blocked-reason">{acceptDisabledReason}</p>
+      ) : null}
+      {buckets.blocking.length > 0 ? (
+        <FindingGroup findings={buckets.blocking} title="Blocking findings" />
+      ) : null}
+      {buckets.advisory.length > 0 ? (
+        <FindingGroup
+          findings={buckets.advisory}
+          title="Advisory warnings"
+          onDismissFinding={onDismissFinding}
+        />
+      ) : null}
+      {isCandidate && findings.length === 0 ? <p className="empty">No validation findings</p> : null}
+    </section>
+  );
+}
+
+function FindingGroup({
+  findings,
+  title,
+  onDismissFinding,
+}: {
+  findings: CandidateFinding[];
+  title: string;
+  onDismissFinding?: (findingId: string) => void;
+}) {
+  return (
+    <div className="candidate-findings">
+      <h3>{title}</h3>
+      {findings.map((finding) => (
+        <article className={`candidate-finding ${finding.severity}`} key={finding.id}>
+          <div className="result-row">
+            <span className={`severity ${finding.severity}`}>{finding.severity}</span>
+            <span className="rule-id">{finding.rule_id}</span>
+          </div>
+          <p>{finding.explanation}</p>
+          <p className="correction">{finding.suggested_correction}</p>
+          {onDismissFinding && finding.finding_state !== "dismissed" ? (
+            <button className="text-action" onClick={() => onDismissFinding(finding.id)}>
+              Dismiss
+            </button>
+          ) : null}
+          {finding.finding_state === "dismissed" ? <p className="empty">Dismissed</p> : null}
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -1147,6 +1378,10 @@ function toPrintabilityProfilePayload(profile: PrintabilityProfile): Printabilit
 
 function comparePrinterProfiles(left: SavedPrintabilityProfile, right: SavedPrintabilityProfile): number {
   return left.printer_name.localeCompare(right.printer_name);
+}
+
+function isOpenCandidate(revision: Revision): boolean {
+  return revision.review_state === "ready" || revision.review_state === "ready_with_warnings" || revision.review_state === "blocked";
 }
 
 function Diagnostics({

@@ -126,6 +126,18 @@ Next implementation boundary:
 - Priority 0 only: settings handling, failure taxonomy, generation-attempt persistence, machine-readable benchmark fixtures, deterministic benchmark harness, and prompt snapshot infrastructure.
 - Do not implement staged requirement extraction until Priority 0 is complete, tested, and committed.
 
+Priority 0 completion:
+
+- Commit `f7cadb2` completed enough observability and fixture infrastructure to support candidate stabilization work.
+
+Candidate stabilization pass:
+
+- AI-generated successful revisions now become explicit candidates instead of automatically replacing the active accepted revision.
+- Candidate states are `ready`, `ready_with_warnings`, `blocked`, `rejected`, and `accepted`.
+- Validation findings are persisted and split into blocking findings and advisory warnings.
+- Accept, reject, finding dismissal, candidate listing, candidate findings, and active accepted revision endpoints are available.
+- Staged requirement extraction and Gemini-generated Design Specifications remain deferred.
+
 ## Stage 4 — Projects and Revision History
 
 Status: Complete
@@ -134,7 +146,8 @@ Current status:
 
 - immutable revision records are persisted
 - parent revision IDs are stored for manual, AI, and repair revisions
-- active revision is updated only by successful compiles or restore
+- active revision is updated only by explicit candidate acceptance or restore of an accepted revision
+- AI-generated successful compiles create candidate revisions rather than active revisions
 - successful prior revisions can be restored
 - failed AI attempts remain visible and are not accepted
 - projects can be renamed and archived
@@ -201,7 +214,7 @@ Exit criteria:
 
 ## Stage 7 — Printability Assistance
 
-Status: In progress
+Status: In progress; validation-backed candidate acceptance implemented
 
 Goals:
 
@@ -215,8 +228,9 @@ Goals:
 
 Stabilization note:
 
-- Critical printability findings are currently advisory and user-triggered after acceptance.
-- Generation stabilization should decide which validation results block AI acceptance, which create candidate revisions, and which remain warnings.
+- AI and post-active manual compile results run deterministic validation before candidate state is exposed.
+- Build-volume, below-build-plate, floating, zero-volume, and hard feature-size findings block acceptance.
+- Support-related findings remain advisory unless future validation can prove a hard machine limit.
 
 Excluded from this increment:
 

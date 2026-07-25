@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+import trimesh
 
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.base import Base
@@ -59,7 +60,9 @@ class FakeCadRunner:
         stderr_path = job_dir / "stderr.log"
         metadata_path = job_dir / "metadata.json"
         source_path.write_text(source, encoding="utf-8")
-        stl_path.write_bytes(b"solid fake\nendsolid fake\n")
+        mesh = trimesh.creation.box(extents=(10.0, 10.0, 10.0))
+        mesh.apply_translation([0.0, 0.0, 5.0])
+        mesh.export(stl_path)
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
         metadata_path.write_text("{}", encoding="utf-8")
@@ -85,7 +88,7 @@ class FakeCadRunner:
             stderr_path=stderr_path,
             metadata_path=metadata_path,
             source_hash="fake-source-hash",
-            output_size_bytes=24,
+            output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
             error_message=None,
         )
