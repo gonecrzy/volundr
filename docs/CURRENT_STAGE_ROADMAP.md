@@ -71,7 +71,16 @@ Exit criteria:
 
 ## Stage 3 — Gemini CLI Generation
 
-Status: Not started
+Status: In progress
+
+Current status:
+
+- provider abstraction added
+- Gemini CLI subprocess adapter added
+- SCAD source extraction added
+- initial generation endpoint added
+- browser generation prompt added
+- live Gemini generation is blocked by host authentication/client eligibility
 
 Goals:
 

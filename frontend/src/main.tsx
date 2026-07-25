@@ -67,12 +67,16 @@ function App() {
   const [projectName, setProjectName] = useState("Mounting bracket");
   const [intent, setIntent] = useState("A flat mounting bracket with two bolt holes.");
   const [instruction, setInstruction] = useState("Initial manual model.");
+  const [generationPrompt, setGenerationPrompt] = useState(
+    "Create a flat mounting bracket with two bolt holes and named parameters.",
+  );
   const [source, setSource] = useState(DEFAULT_SOURCE);
   const [project, setProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
 
@@ -130,6 +134,41 @@ function App() {
       setMessage(error instanceof Error ? error.message : "Request failed");
     } finally {
       setIsCompiling(false);
+    }
+  }
+
+  async function generateSource() {
+    setIsGenerating(true);
+    setMessage(null);
+    try {
+      const currentProject =
+        project ??
+        (await request<Project>("/projects", {
+          method: "POST",
+          body: JSON.stringify({
+            name: projectName,
+            original_intent: intent,
+          }),
+        }));
+
+      if (!project) {
+        setProject(currentProject);
+        setProjects((current) => [currentProject, ...current]);
+      }
+
+      const revision = await request<Revision>(`/projects/${currentProject.id}/generate`, {
+        method: "POST",
+        body: JSON.stringify({ user_instruction: generationPrompt }),
+      });
+      setRevisions((current) => [...current, revision]);
+      setSelectedRevision(revision);
+      setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
+      setMessage(revision.status === "succeeded" ? "Generated" : revision.error_message ?? "Generation failed");
+      await selectRevision(revision);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Generation failed");
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -206,6 +245,16 @@ function App() {
           Revision
           <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
         </label>
+      </section>
+
+      <section className="generation-strip" aria-label="AI generation">
+        <label>
+          Generate
+          <input value={generationPrompt} onChange={(event) => setGenerationPrompt(event.target.value)} />
+        </label>
+        <button className="secondary" disabled={isGenerating} onClick={() => void generateSource()}>
+          {isGenerating ? "Generating" : "Generate"}
+        </button>
       </section>
 
       <section className="main-grid">
@@ -425,6 +474,11 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     },
   });
   if (!response.ok) {
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const payload = (await response.json()) as { detail?: string };
+      throw new Error(payload.detail || `Request failed with ${response.status}`);
+    }
     const detail = await response.text();
     throw new Error(detail || `Request failed with ${response.status}`);
   }

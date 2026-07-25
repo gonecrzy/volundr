@@ -27,6 +27,10 @@ class ManualRevisionCreate(BaseModel):
     user_instruction: str | None = None
 
 
+class GenerationCreate(BaseModel):
+    user_instruction: str = Field(min_length=1)
+
+
 class MeshMetadataRead(BaseModel):
     size_x_mm: float
     size_y_mm: float

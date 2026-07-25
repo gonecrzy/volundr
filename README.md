@@ -86,8 +86,23 @@ Run the V1 service skeleton with:
 docker compose up --build
 ```
 
-The frontend includes the Stage 2 manual CAD workspace. Gemini integration and
-conversational revision generation are intentionally not implemented yet.
+The frontend includes the Stage 2 manual CAD workspace. Stage 3 Gemini plumbing
+has started, but live Gemini generation requires a working Gemini CLI login in
+the API container profile.
+
+## Gemini CLI Setup
+
+The API service is the only service that mounts Gemini credentials:
+
+```text
+${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
+```
+
+Authenticate Gemini CLI for that profile before using the browser Generate
+button. The current host test with Gemini CLI `0.44.1` failed with
+`IneligibleTierError`, reporting that the current Gemini Code Assist client is no
+longer supported for the account tier. Live generation remains blocked until the
+Gemini CLI account/client is migrated or re-authenticated successfully.
 
 ## Manual Compile API
 

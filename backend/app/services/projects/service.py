@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.project import Project
 from app.models.revision import Revision
-from app.schemas.project import ManualRevisionCreate, MeshMetadataRead, ProjectCreate, RevisionRead
+from app.schemas.project import GenerationCreate, ManualRevisionCreate, MeshMetadataRead, ProjectCreate, RevisionRead
+from app.services.ai.provider import AiProvider, ModelGenerationRequest
+from app.services.ai.source_extraction import extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.mesh.inspect import MeshMetadata
 
@@ -22,10 +24,12 @@ class ProjectService:
         db: Session,
         data_dir: Path | None = None,
         cad_runner: OpenScadCliRunner | None = None,
+        ai_provider: AiProvider | None = None,
     ) -> None:
         self.db = db
         self.data_dir = data_dir or settings.data_dir
         self.cad_runner = cad_runner or OpenScadCliRunner()
+        self.ai_provider = ai_provider
 
     def create_project(self, payload: ProjectCreate) -> Project:
         project = Project(
@@ -57,6 +61,49 @@ class ProjectService:
         project_id: str,
         payload: ManualRevisionCreate,
     ) -> RevisionRead | None:
+        return await self._create_revision_from_source(
+            project_id=project_id,
+            scad_source=payload.scad_source,
+            user_instruction=payload.user_instruction,
+            source_type="manual_edit",
+        )
+
+    async def generate_initial_revision(
+        self,
+        project_id: str,
+        payload: GenerationCreate,
+    ) -> RevisionRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+
+        generation_result = await self.ai_provider.generate_model(
+            ModelGenerationRequest(
+                project_name=project.name,
+                original_intent=project.original_intent,
+                user_instruction=payload.user_instruction,
+            )
+        )
+        scad_source = extract_scad_source(generation_result.raw_output)
+        return await self._create_revision_from_source(
+            project_id=project_id,
+            scad_source=scad_source,
+            user_instruction=payload.user_instruction,
+            source_type="ai_initial",
+            raw_ai_output=generation_result.raw_output,
+        )
+
+    async def _create_revision_from_source(
+        self,
+        *,
+        project_id: str,
+        scad_source: str,
+        user_instruction: str | None,
+        source_type: str,
+        raw_ai_output: str | None = None,
+    ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
             return None
@@ -66,8 +113,8 @@ class ProjectService:
             project_id=project_id,
             parent_revision_id=project.active_revision_id,
             revision_number=revision_number,
-            source_type="manual_edit",
-            user_instruction=payload.user_instruction,
+            source_type=source_type,
+            user_instruction=user_instruction,
             scad_source_path="",
             status="compiling",
             is_accepted=False,
@@ -78,9 +125,15 @@ class ProjectService:
         revision_dir = self._revision_dir(project_id, revision.id)
         revision_dir.mkdir(parents=True, exist_ok=True)
         source_path = revision_dir / "model.scad"
-        source_path.write_text(payload.scad_source, encoding="utf-8")
+        source_path.write_text(scad_source, encoding="utf-8")
 
-        result = await self.cad_runner.compile(payload.scad_source, job_id=revision.id)
+        ai_output_relative_path: str | None = None
+        if raw_ai_output is not None:
+            ai_output_path = revision_dir / "ai-output.txt"
+            ai_output_path.write_text(raw_ai_output, encoding="utf-8")
+            ai_output_relative_path = self._relative(ai_output_path)
+
+        result = await self.cad_runner.compile(scad_source, job_id=revision.id)
 
         compile_log_path = revision_dir / "compile.log"
         compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
@@ -104,6 +157,7 @@ class ProjectService:
         revision.scad_source_path = self._relative(source_path)
         revision.stl_path = stl_relative_path
         revision.compile_log_path = self._relative(compile_log_path)
+        revision.ai_output_path = ai_output_relative_path
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision, metadata=metadata, error_message=result.error_message)

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from app.core.config import settings
+from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.cad.runner import OpenScadCliRunner
 
 
@@ -10,3 +11,7 @@ def get_data_dir() -> Path:
 
 def get_cad_runner() -> OpenScadCliRunner:
     return OpenScadCliRunner()
+
+
+def get_ai_provider() -> GeminiCliProvider:
+    return GeminiCliProvider()

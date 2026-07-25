@@ -19,6 +19,7 @@ services:
     environment:
       VOLUNDR_DATA_DIR: /app/data
       VOLUNDR_CAD_WORKSPACE_DIR: /app/data/jobs
+      VOLUNDR_GEMINI_BINARY: gemini
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}:/app/data
       - ${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini

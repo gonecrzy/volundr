@@ -4,14 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_cad_runner, get_data_dir
+from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.session import get_db
 from app.schemas.project import (
     ManualRevisionCreate,
+    GenerationCreate,
     ProjectCreate,
     ProjectRead,
     RevisionRead,
 )
+from app.services.ai.provider import AiProvider
+from app.services.ai.source_extraction import SourceExtractionError
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.projects.service import ProjectService
 
@@ -49,6 +52,32 @@ async def create_manual_revision(
 ) -> RevisionRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     revision = await service.create_manual_revision(project_id, payload)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return revision
+
+
+@router.post("/projects/{project_id}/generate", response_model=RevisionRead, status_code=201)
+async def generate_initial_revision(
+    project_id: str,
+    payload: GenerationCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> RevisionRead:
+    service = ProjectService(
+        db=db,
+        data_dir=data_dir,
+        cad_runner=cad_runner,
+        ai_provider=ai_provider,
+    )
+    try:
+        revision = await service.generate_initial_revision(project_id, payload)
+    except SourceExtractionError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
     if revision is None:
         raise HTTPException(status_code=404, detail="project not found")
     return revision

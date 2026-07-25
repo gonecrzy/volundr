@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     cad_timeout_seconds: int = Field(default=60)
     max_source_bytes: int = Field(default=500 * 1024)
     max_stl_bytes: int = Field(default=100 * 1024 * 1024)
+    gemini_binary: str = Field(default="gemini")
+    gemini_model: str | None = Field(default=None)
+    gemini_timeout_seconds: int = Field(default=120)
 
     @cached_property
     def database_url(self) -> str:
