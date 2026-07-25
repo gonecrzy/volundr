@@ -154,7 +154,9 @@ ai_assumption
 
 Clarification evaluation must track both recall and precision so Volundr avoids both missed clarifications and excessive questioning.
 
-Deferred: full structured revision planning, design-plan prompts, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
+Next foundation after the geometric invariant checkpoint: implement an immutable Parametric Product Model and `design-plan-v1` before structured revision planning. The Design Plan must describe product parameters, derived dependencies, components, component features, presets, assembly strategy, and printable outputs so complex revisions do not require Gemini to rediscover the product architecture from OpenSCAD source.
+
+Deferred until that foundation exists: full structured revision planning, component-targeted revisions, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 
 ## Priority 2: Validation And Acceptance
 
@@ -214,11 +216,13 @@ Implementation policy:
 
 ### 12. Feed validation into revision context
 
-- Dependency: persisted validation.
+- Dependency: persisted validation and the Parametric Product Model / Design Plan foundation.
 - Risk: medium.
-- Expected benefit: revisions can address printability and mesh risks explicitly.
-- Required tests: revision prompt includes latest validation summary; repair prompt does not receive broad printability warnings.
-- Exit criteria: validation-driven user revisions preserve existing intent and target named findings.
+- Expected benefit: revisions can address printability and mesh risks explicitly without redesigning unrelated components.
+- Required tests: revision planning consumes latest validation and geometric findings plus the approved Design Plan; repair prompt does not receive broad printability warnings.
+- Exit criteria: validation-driven user revisions preserve existing intent, target named findings, and update only affected Design Plan components/features.
+
+Do not implement this before `design-plan-v1`. Revision planning needs the product component graph and parameter dependency graph to determine what must update together.
 
 ## Priority 3: Product Confidence
 

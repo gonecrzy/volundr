@@ -291,6 +291,23 @@ user request
 
 Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v3` as the authoritative design source. Raw user text is included only as secondary intent.
 
+Next implementation note: `design-plan-v1` is the next required prompt/data foundation before structured revision planning. It must convert the ready Design Specification into an immutable Parametric Design Plan containing product parameters, derived dependencies, components, component-owned features, editable controls, presets, assembly strategy, and printable outputs.
+
+The target lifecycle for complex configurable products is:
+
+```text
+User requirements
+  -> Design Specification
+  -> Parametric Design Plan
+  -> Plan review and approval
+  -> OpenSCAD generation
+  -> component/output compilation
+  -> validation
+  -> candidate
+```
+
+OpenSCAD generation should eventually use the approved Design Plan as the structural authority and the Design Specification as the requirements authority.
+
 ## Revision Flow
 
 ```text
@@ -302,6 +319,8 @@ active design record + active source + user change
 ```
 
 Current implementation note: full structured revision planning is not implemented in this pass. Existing active-revision AI edits continue through the legacy revision path and attach the latest Design Specification as context when one exists.
+
+Do not implement structured revision planning before `design-plan-v1`; targeted revisions need the product parameter graph, component graph, feature ownership, and printable-output map.
 
 ## Compile-Repair Flow
 

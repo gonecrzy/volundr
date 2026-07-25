@@ -96,6 +96,10 @@ Prioritize accurate dimensions, sensible tolerances, mounting features, and edit
 
 Generated models should expose meaningful variables and reusable modules rather than burying all geometry in magic numbers.
 
+### Products before isolated solids
+
+For complex functional designs, Volundr should model the product structure before generating source: components, owned features, editable parameters, derived dependencies, presets, assembly strategy, and separate printable outputs. This keeps changes such as tray count, carrier size, retention geometry, handle position, and reinforcement layout connected instead of forcing Gemini to rediscover the design from OpenSCAD text.
+
 ### Source-controlled by design
 
 Every accepted model state is a revision. The user should never lose a working version because an AI revision failed.

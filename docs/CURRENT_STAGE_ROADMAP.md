@@ -162,10 +162,28 @@ Geometric invariant validation pass:
 - Source markers now include `@volundr-geometry` metadata for measurable features in `openscad-generation-v3`.
 - Legacy candidates without geometric analysis remain loadable and are labeled as not evaluated.
 
+Next implementation boundary:
+
+- implement the immutable Parametric Product Model and `design-plan-v1` foundation before structured revision planning
+- Design Plans must capture product parameters, derived dependencies, components, component features, presets, assembly strategy, and printable outputs
+- generation should move from Design Specification directly to OpenSCAD only on the legacy path; new complex products should flow through Design Plan review and approval first
+
+Correct trajectory from the geometric invariant checkpoint:
+
+```text
+1. Parametric Product Model and Design Plan
+2. Multi-component and multi-output generation
+3. Structured revision planning
+4. Component-targeted revisions
+5. Parameter controls and preset switching
+6. Assembly instructions and export packaging
+7. Complex real-world benchmark testing
+8. Slicer integration and deeper printability checks
+```
+
 Deferred stabilization work:
 
-- full structured revision planning
-- separate `design-plan-v1`
+- full structured revision planning after the Parametric Product Model exists
 - automatic continue policies
 - full protected-invariant geometry proof for arbitrary features
 - geometric proof that feature markers correspond to complex physical geometry such as angled holes, threads, snap fits, or internal cavities
