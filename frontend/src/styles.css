@@ -17,6 +17,7 @@ body {
 button,
 input,
 select,
+textarea,
 a {
   font: inherit;
 }
@@ -124,7 +125,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   background: #f8faf7;
   border: 1px solid #c9d1ca;
   border-radius: 6px;
@@ -132,6 +134,13 @@ select {
   min-height: 36px;
   padding: 8px 10px;
   width: 100%;
+}
+
+textarea {
+  line-height: 1.35;
+  max-height: 132px;
+  min-height: 44px;
+  resize: vertical;
 }
 
 .drawer-backdrop {
@@ -288,9 +297,14 @@ select {
 }
 
 .prompt-row {
+  align-items: end;
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.prompt-row textarea {
+  background: #ffffff;
 }
 
 .chat-log {

@@ -338,12 +338,14 @@ function App() {
   }
 
   async function generateSource() {
-    if (!canAskAi) {
+    const prompt = generationPrompt.trim();
+    if (!prompt) {
       setMessage("Enter an AI prompt before asking AI");
       return;
     }
     setIsGenerating(true);
     setMessage(null);
+    setGenerationPrompt("");
     try {
       const currentProject = project ?? (await createDraftProject());
 
@@ -353,7 +355,7 @@ function App() {
 
       const revision = await request<Revision>(`/projects/${currentProject.id}/generate`, {
         method: "POST",
-        body: JSON.stringify({ user_instruction: generationPrompt }),
+        body: JSON.stringify({ user_instruction: prompt }),
       });
       const nextRevisions = await request<Revision[]>(`/projects/${currentProject.id}/revisions`, {
         method: "GET",
@@ -370,6 +372,16 @@ function App() {
       setMessage(error instanceof Error ? error.message : "Generation failed");
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  function handlePromptKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+    event.preventDefault();
+    if (!isGenerating && generationPrompt.trim()) {
+      void generateSource();
     }
   }
 
@@ -656,17 +668,22 @@ function App() {
               <MessageList messages={projectMessages} compact />
               {message ? <p className="message">{message}</p> : null}
             </div>
-            <div className="prompt-row">
-              <input
-                aria-label="Ask AI prompt"
-                placeholder="Describe the model change for AI"
+            <form className="prompt-row" onSubmit={(event) => {
+              event.preventDefault();
+              void generateSource();
+            }}>
+              <textarea
+                aria-label="AI chat message"
+                placeholder="Message Gemini"
+                rows={2}
                 value={generationPrompt}
+                onKeyDown={handlePromptKeyDown}
                 onChange={(event) => setGenerationPrompt(event.target.value)}
               />
-              <button className="secondary" disabled={isGenerating || !canAskAi} onClick={() => void generateSource()}>
-                {isGenerating ? "Asking AI" : "Ask AI"}
+              <button className="secondary" disabled={isGenerating || !canAskAi} type="submit">
+                {isGenerating ? "Sending" : "Send"}
               </button>
-            </div>
+            </form>
           </section>
         </section>
 
