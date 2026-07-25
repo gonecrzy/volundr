@@ -70,6 +70,7 @@ Use Vitest for:
 - generation status rendering
 - error presentation
 - parameter parsing
+- printability findings and highlighted regions
 
 Use Playwright for critical workflows:
 
@@ -105,3 +106,5 @@ Maintain a small set of SCAD fixtures:
 ## Regression Policy
 
 Every AI-generated model that exposes a new compiler or extraction bug should be sanitized and added as a regression fixture when practical.
+
+Printability fixtures should cover zero-volume or empty meshes, non-watertight meshes, disconnected components, build-volume violations, Z-origin violations, low build-plate contact, thin-feature estimates, overhang angle buckets, and simple horizontal bridge spans.

@@ -39,6 +39,9 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
   - watertight status
   - connected component count
 - Provide standard views and fit-to-model.
+- Inspect printability using the current model orientation and a configurable FDM printer profile.
+- Report printability risks as Pass, Notice, Warning, or Critical findings, without a single percentage score.
+- Do not claim print success is guaranteed.
 
 ### Source Editing
 
@@ -90,6 +93,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Manufacturing drawings
 - Automatic support generation
 - Full slicer integration
+- Filament or print-time estimates
 - Model marketplace
 - Custom AI training
 - Native-host installation as a separately supported V1 deployment path

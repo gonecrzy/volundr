@@ -175,13 +175,20 @@ Exit criteria:
 
 ## Stage 7 — Printability Assistance
 
-Status: Future
+Status: In progress
 
-Possible goals:
+Goals:
 
+- orientation-aware printability inspector
+- configurable FDM printer profile
+- structured Pass, Notice, Warning, and Critical results
+- affected-geometry highlighting where practical
 - model orientation suggestions
 - basic wall-thickness warnings
 - overhang heuristics
+
+Excluded from this increment:
+
 - slicer CLI integration
 - filament and print-time estimates
 

@@ -11,6 +11,7 @@ This file explains exactly what belongs in each project document.
 | `docs/DOCKER_BASELINE.md` | Canonical service/container names, network name, volume boundaries, and Compose skeleton. |
 | `docs/ARCHITECTURE.md` | Approved V1 components, interfaces, Docker service names, runtime flow, storage, and deployment. |
 | `docs/MODEL_GENERATION_CONTRACT.md` | Rules for AI-generated OpenSCAD and revision/repair behavior. |
+| `docs/PRINTABILITY_INSPECTOR.md` | Orientation-aware printability rules, severity schema, and profile thresholds. |
 | `docs/CAD_EXECUTION_SECURITY.md` | Isolation, resource limits, source screening, logging, and failure handling. |
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, and immutability rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |

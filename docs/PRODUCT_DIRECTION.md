@@ -135,6 +135,8 @@ A model generation is considered successful when:
 - the user can request a targeted revision
 - the prior revision remains restorable
 
+Printability assistance should be advisory and orientation-aware. It should identify practical FDM risks from the current STL orientation and printer profile, but it must not replace slicer validation or claim a guaranteed successful print.
+
 ## Long-Term Direction
 
 Potential later capabilities include:
