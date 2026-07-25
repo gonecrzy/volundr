@@ -50,6 +50,13 @@ type ProjectMessage = {
   created_at: string;
 };
 
+type SourceParameter = {
+  name: string;
+  value: string;
+  type: "number" | "boolean";
+  lineIndex: number;
+};
+
 type MeshMetadata = {
   size_x_mm: number;
   size_y_mm: number;
@@ -100,6 +107,7 @@ function App() {
     ? `${API_BASE}/revisions/${selectedRevision.id}/stl`
     : null;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
+  const sourceParameters = useMemo(() => parseSourceParameters(source), [source]);
 
   useEffect(() => {
     void refreshProjects();
@@ -197,6 +205,8 @@ function App() {
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Compiled" : revision.error_message ?? "Compile failed");
       await loadCompileLog(revision);
+      await loadAiOutput(revision);
+      await loadRevisionDiff(revision);
       await loadProjectMessages(currentProject.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Request failed");
@@ -414,6 +424,10 @@ function App() {
         <section className="metadata-panel" aria-label="Metadata">
           <h2>Metadata</h2>
           <Metadata metadata={activeMetadata} />
+          <ParameterControls
+            parameters={sourceParameters}
+            onChange={(parameter, value) => setSource(updateSourceParameter(source, parameter, value))}
+          />
           <div className="actions">
             {sourceUrl ? (
               <a className="download" href={sourceUrl}>
@@ -454,6 +468,44 @@ function App() {
   );
 }
 
+function ParameterControls({
+  parameters,
+  onChange,
+}: {
+  parameters: SourceParameter[];
+  onChange: (parameter: SourceParameter, value: string) => void;
+}) {
+  if (parameters.length === 0) {
+    return null;
+  }
+  return (
+    <section className="parameters" aria-label="User parameters">
+      <h2>Parameters</h2>
+      <div className="parameter-list">
+        {parameters.map((parameter) => (
+          <label className="parameter-control" key={`${parameter.lineIndex}-${parameter.name}`}>
+            {parameter.name}
+            {parameter.type === "boolean" ? (
+              <input
+                checked={parameter.value === "true"}
+                type="checkbox"
+                onChange={(event) => onChange(parameter, event.target.checked ? "true" : "false")}
+              />
+            ) : (
+              <input
+                step="any"
+                type="number"
+                value={parameter.value}
+                onChange={(event) => onChange(parameter, event.target.value)}
+              />
+            )}
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function MessageList({ messages }: { messages: ProjectMessage[] }) {
   if (messages.length === 0) {
     return <p className="empty">No messages</p>;
@@ -468,6 +520,50 @@ function MessageList({ messages }: { messages: ProjectMessage[] }) {
       ))}
     </div>
   );
+}
+
+function parseSourceParameters(source: string): SourceParameter[] {
+  const lines = source.split("\n");
+  const sectionStart = lines.findIndex((line) => /USER PARAMETERS/i.test(line));
+  if (sectionStart === -1) {
+    return [];
+  }
+
+  const parameters: SourceParameter[] = [];
+  for (let index = sectionStart + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (/^\s*\/\/\s*=+\s*$/.test(line)) {
+      continue;
+    }
+    if (/^\s*\/\/\s*(?:=+\s*)?[A-Za-z][A-Za-z0-9 _-]*(?:\s*=+)?\s*$/.test(line)) {
+      break;
+    }
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(-?\d+(?:\.\d+)?|true|false)\s*;/);
+    if (!match) {
+      continue;
+    }
+    const value = match[2];
+    parameters.push({
+      name: match[1],
+      value,
+      type: value === "true" || value === "false" ? "boolean" : "number",
+      lineIndex: index,
+    });
+  }
+  return parameters;
+}
+
+function updateSourceParameter(source: string, parameter: SourceParameter, value: string): string {
+  const lines = source.split("\n");
+  const line = lines[parameter.lineIndex];
+  if (!line) {
+    return source;
+  }
+  lines[parameter.lineIndex] = line.replace(
+    /^(\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*)(-?\d+(?:\.\d+)?|true|false)(\s*;)/,
+    `$1${value}$3`,
+  );
+  return lines.join("\n");
 }
 
 function Diagnostics({

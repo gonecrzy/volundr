@@ -94,6 +94,9 @@ If a project has an active revision, the Generate action sends that revision's
 OpenSCAD source as context and stores the result as a follow-up AI revision.
 Child revisions expose a unified source diff against their parent in the
 diagnostics panel.
+The workspace parses simple numeric and boolean assignments in the marked
+`USER PARAMETERS` section and exposes controls that update the SCAD source for
+manual recompilation.
 Projects can be renamed or archived from the browser workspace; archived
 projects are hidden from the default project list.
 Project activity is captured as a per-project message ledger for the original

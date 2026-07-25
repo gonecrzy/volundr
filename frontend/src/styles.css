@@ -143,7 +143,8 @@ input {
 }
 
 .sidebar h2,
-.metadata-panel h2 {
+.metadata-panel h2,
+.parameters h2 {
   font-size: 0.92rem;
   letter-spacing: 0;
   margin: 0 0 12px;
@@ -239,6 +240,30 @@ input {
 .metadata-list dd {
   font-weight: 700;
   margin: 0;
+}
+
+.parameters {
+  border-top: 1px solid #d9ded7;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.parameter-list {
+  display: grid;
+  gap: 10px;
+}
+
+.parameter-control {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(84px, 112px);
+}
+
+.parameter-control input[type="checkbox"] {
+  justify-self: end;
+  min-height: 20px;
+  width: 20px;
 }
 
 .actions {

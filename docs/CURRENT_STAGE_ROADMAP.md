@@ -153,7 +153,13 @@ Exit criteria:
 
 ## Stage 6 — Parameter Controls
 
-Status: Not started
+Status: In progress
+
+Current status:
+
+- browser parses simple numeric and boolean assignments in the marked `USER PARAMETERS` section
+- parameter controls update the OpenSCAD source directly
+- existing Compile action recompiles parameter edits without AI
 
 Goals:
 
