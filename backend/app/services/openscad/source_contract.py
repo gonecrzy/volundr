@@ -58,6 +58,15 @@ class SourceOutputMapping:
 
 
 @dataclass(frozen=True)
+class SourceParameterMapping:
+    parameter_id: str
+    target_name: str
+    target_kind: str
+    line: int
+    attributes: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class SourceMetadata:
     source_hash: str
     source_size_bytes: int
@@ -70,6 +79,7 @@ class SourceMetadata:
     requirement_mappings: dict[str, SourceMapping] = field(default_factory=dict)
     feature_mappings: dict[str, SourceMapping] = field(default_factory=dict)
     component_mappings: dict[str, SourceMapping] = field(default_factory=dict)
+    parameter_mappings: dict[str, SourceParameterMapping] = field(default_factory=dict)
     dependency_mappings: list[SourceDependencyMapping] = field(default_factory=list)
     output_mappings: dict[str, SourceOutputMapping] = field(default_factory=dict)
     geometry_mappings: list[SourceGeometryMapping] = field(default_factory=list)
@@ -710,6 +720,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         requirement_markers,
         feature_markers,
         component_markers,
+        parameter_markers,
         dependency_markers,
         output_markers,
         geometry_markers,
@@ -717,6 +728,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
     requirement_mappings: dict[str, SourceMapping] = {}
     feature_mappings: dict[str, SourceMapping] = {}
     component_mappings: dict[str, SourceMapping] = {}
+    parameter_mappings: dict[str, SourceParameterMapping] = {}
     dependency_mappings: list[SourceDependencyMapping] = []
     output_mappings: dict[str, SourceOutputMapping] = {}
     brace_depth = 0
@@ -830,6 +842,15 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                             target_kind="parameter",
                             line=token.line,
                         )
+                for parameter_marker in _parameter_markers_for_line(parameter_markers, token.line):
+                    if parameter_marker["id"] not in parameter_mappings:
+                        parameter_mappings[parameter_marker["id"]] = SourceParameterMapping(
+                            parameter_id=parameter_marker["id"],
+                            target_name=token.value,
+                            target_kind="parameter",
+                            line=token.line,
+                            attributes=parameter_marker.get("attributes", {}),
+                        )
                 for dependency_marker in _dependency_markers_for_line(
                     dependency_markers,
                     token.line,
@@ -869,6 +890,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         requirement_mappings=requirement_mappings,
         feature_mappings=feature_mappings,
         component_mappings=component_mappings,
+        parameter_mappings=parameter_mappings,
         dependency_mappings=dependency_mappings,
         output_mappings=output_mappings,
         geometry_mappings=[
@@ -918,6 +940,7 @@ def _pending_markers(
     dict[int, str],
     dict[int, list[str]],
     dict[int, list[str]],
+    dict[int, list[dict[str, Any]]],
     dict[int, list[tuple[str, str]]],
     dict[int, list[dict[str, Any]]],
     dict[int, dict[str, str]],
@@ -925,6 +948,7 @@ def _pending_markers(
     requirement_markers: dict[int, str] = {}
     feature_markers: dict[int, list[str]] = {}
     component_markers: dict[int, list[str]] = {}
+    parameter_markers: dict[int, list[dict[str, Any]]] = {}
     dependency_markers: dict[int, list[tuple[str, str]]] = {}
     output_markers: dict[int, list[dict[str, Any]]] = {}
     geometry_markers: dict[int, dict[str, str]] = {}
@@ -939,6 +963,16 @@ def _pending_markers(
             comment.value,
         ):
             component_markers.setdefault(comment.line, []).append(component_match.group(1))
+        for parameter_match in re.finditer(
+            r"@volundr-parameter\s+([A-Za-z_][A-Za-z0-9_]*)(.*)",
+            comment.value,
+        ):
+            parameter_markers.setdefault(comment.line, []).append(
+                {
+                    "id": parameter_match.group(1),
+                    "attributes": _marker_attributes(parameter_match.group(2)),
+                }
+            )
         for dependency_match in re.finditer(
             r"@volundr-dependency\s+([A-Za-z0-9_.-]+)\s*->\s*([A-Za-z0-9_.-]+)",
             comment.value,
@@ -976,10 +1010,18 @@ def _pending_markers(
         requirement_markers,
         feature_markers,
         component_markers,
+        parameter_markers,
         dependency_markers,
         output_markers,
         geometry_markers,
     )
+
+
+def _marker_attributes(text: str) -> dict[str, str]:
+    return {
+        match.group(1): match.group(2)
+        for match in re.finditer(r"([A-Za-z_][A-Za-z0-9_]*)=([A-Za-z0-9_.:-]+)", text)
+    }
 
 
 def _geometry_attributes(text: str) -> dict[str, str]:
@@ -1021,6 +1063,17 @@ def _dependency_markers_for_line(
 
 
 def _output_markers_for_line(
+    markers: dict[int, list[dict[str, Any]]],
+    line: int,
+) -> list[dict[str, Any]]:
+    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 4]
+    result: list[dict[str, Any]] = []
+    for marker_line in sorted(candidates):
+        result.extend(markers[marker_line])
+    return result
+
+
+def _parameter_markers_for_line(
     markers: dict[int, list[dict[str, Any]]],
     line: int,
 ) -> list[dict[str, Any]]:

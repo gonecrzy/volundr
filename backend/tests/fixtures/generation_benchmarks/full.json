@@ -192,6 +192,16 @@
         "success_criteria": ["hole_spacing=60 mm", "plate bounds unchanged", "hole diameter unchanged"]
       },
       "protected_design_invariants": ["plate dimensions", "hole diameter", "module names"],
+      "expected_configuration": {
+        "editable_parameters": ["hole_spacing"],
+        "requested_overrides": {"hole_spacing": 60},
+        "expected_affected_parameters": ["hole_spacing", "hole_x_offset"],
+        "expected_affected_components": ["plate_body"],
+        "expected_affected_outputs": ["mounting_plate"],
+        "expected_validation_state": "configuration_ready",
+        "expected_defines": {"hole_spacing": 60},
+        "provider_call_forbidden": true
+      },
       "unacceptable_outcomes": ["plate resized", "hole diameter changed", "whole rewrite"]
     },
     {
@@ -380,6 +390,17 @@
         "required_outputs": ["organizer_body"],
         "optional_outputs": [],
         "artifact_count": 1
+      },
+      "expected_configuration": {
+        "editable_parameters": ["row_count", "column_count", "cell_width", "cell_depth"],
+        "preset_ids": ["3x4", "4x5"],
+        "selected_preset_id": "4x5",
+        "requested_overrides": {"label_tabs_enabled": true},
+        "expected_affected_parameters": ["row_count", "column_count", "overall_width", "overall_depth", "divider_positions"],
+        "expected_affected_components": ["tray_body", "divider_grid", "label_tabs"],
+        "expected_affected_outputs": ["organizer_body"],
+        "expected_validation_state": "configuration_ready",
+        "provider_call_forbidden": true
       }
     },
     {
@@ -518,6 +539,16 @@
         "required_outputs": ["rack_body"],
         "optional_outputs": [],
         "artifact_count": 1
+      },
+      "expected_configuration": {
+        "editable_parameters": ["slot_count", "slot_spacing", "base_width"],
+        "requested_overrides": {"slot_count": 16},
+        "expected_affected_parameters": ["slot_count", "rack_length", "slot_positions", "end_stop_positions"],
+        "expected_affected_components": ["base_rail", "slot_array", "end_stops"],
+        "expected_affected_outputs": ["rack_body"],
+        "expected_validation_state": "configuration_ready",
+        "expected_defines": {"slot_count": 16},
+        "provider_call_forbidden": true
       }
     }
   ]

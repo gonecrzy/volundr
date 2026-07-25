@@ -330,3 +330,14 @@ Each fixture entry must include:
 - `revision_expectation`
 - `protected_design_invariants`
 - `unacceptable_outcomes`
+
+Configuration benchmark entries should additionally include:
+
+- editable parameter IDs
+- preset IDs and values
+- requested overrides
+- expected affected parameters, components, and outputs
+- expected validation state
+- expected OpenSCAD `-D` defines
+- expected candidate state after deterministic regeneration
+- whether a provider call is forbidden

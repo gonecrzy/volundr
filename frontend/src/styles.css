@@ -846,6 +846,43 @@ textarea {
   padding: 0;
 }
 
+.configuration-panel {
+  border: 1px solid #d7ddd7;
+  border-radius: 6px;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.configuration-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.configuration-controls label {
+  display: grid;
+  gap: 5px;
+}
+
+.configuration-controls small {
+  color: #61706a;
+  font-size: 0.75rem;
+}
+
+.configuration-summary {
+  background: #f5f7f3;
+  border: 1px solid #d7ddd7;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.configuration-summary.invalid_configuration,
+.configuration-summary.requires_design_revision,
+.configuration-summary.configuration_failed {
+  background: #fff3f0;
+  border-color: #e0bbb2;
+}
+
 @media (max-width: 1080px) {
   .main-grid {
     grid-template-columns: 1fr;

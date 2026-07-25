@@ -275,6 +275,11 @@ Current status:
 - parameter controls update the OpenSCAD source directly
 - existing Compile action recompiles parameter edits without AI
 - invalid numeric edits are ignored instead of being written into source
+- approved Design Plan parameters now have a separate Configure workflow
+- configuration previews persist immutable `configuration-change-v1` records
+- configuration candidates compile from accepted source with safe OpenSCAD `-D` overrides and no Gemini call
+- project-local presets and Design Plan presets can feed configuration previews
+- configuration exports include `configuration.json` and `parameter-overrides.json`
 
 Goals:
 
@@ -286,6 +291,12 @@ Goals:
 Exit criteria:
 
 - critical dimensions can be changed without spending an AI generation request
+- accepted source remains immutable during parameter configuration
+- invalid or structural parameter changes route to structured revision planning
+
+Next implementation boundary:
+
+- component-targeted revisions using structured Revision Plans and configuration/geometric findings as context.
 
 ## Stage 7 — Printability Assistance
 

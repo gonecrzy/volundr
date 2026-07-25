@@ -57,6 +57,14 @@ class RevisionPlanReviewState(StrEnum):
     REJECTED = "rejected"
 
 
+class ConfigurationValidationState(StrEnum):
+    CONFIGURATION_READY = "configuration_ready"
+    CLARIFICATION_REQUIRED = "clarification_required"
+    INVALID_CONFIGURATION = "invalid_configuration"
+    REQUIRES_DESIGN_REVISION = "requires_design_revision"
+    CONFIGURATION_FAILED = "configuration_failed"
+
+
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     original_intent: str = Field(min_length=1)
@@ -120,6 +128,21 @@ class RevisionPlanCreate(BaseModel):
     reason: str = "user_request"
     targeted_finding_ids: list[str] = Field(default_factory=list)
     targeted_output_ids: list[str] = Field(default_factory=list)
+
+
+class ConfigurationChangeCreate(BaseModel):
+    base_revision_id: str | None = Field(default=None, min_length=1)
+    reason: str = "parameter_change"
+    selected_preset_id: str | None = Field(default=None, min_length=1)
+    parameter_values: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
+    user_overrides: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
+
+
+class ConfigurationPresetCreate(BaseModel):
+    design_plan_id: str | None = Field(default=None, min_length=1)
+    preset_id: str = Field(min_length=1, max_length=120)
+    label: str = Field(min_length=1, max_length=200)
+    parameter_values: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
 
 
 class RequirementExtractionCreate(BaseModel):
@@ -373,6 +396,78 @@ class DesignPlanRead(BaseModel):
     plan: dict[str, Any]
 
 
+class ConfigurationParameterRead(BaseModel):
+    id: str
+    label: str
+    value: float | int | str | bool | None = None
+    unit: str | None = None
+    type: str
+    editable: bool
+    protected: bool
+    component_id: str | None = None
+    source_requirement_id: str | None = None
+    description: str | None = None
+    minimum: float | int | None = None
+    maximum: float | int | None = None
+    allowed_values: list[str | int | float | bool] = Field(default_factory=list)
+    source_mapped: bool = False
+    affected_components: list[str] = Field(default_factory=list)
+    affected_outputs: list[str] = Field(default_factory=list)
+
+
+class ConfigurationPresetRead(BaseModel):
+    id: str
+    project_id: str
+    design_plan_id: str
+    preset_id: str
+    label: str
+    parameter_values: dict[str, Any] = Field(default_factory=dict)
+    source: str = "project"
+    created_at: datetime | None = None
+
+
+class ConfigurationChangeRead(BaseModel):
+    id: str
+    project_id: str
+    base_revision_id: str
+    generated_revision_id: str | None = None
+    design_specification_id: str | None = None
+    design_plan_id: str
+    schema_version: str
+    reason: str
+    selected_preset_id: str | None = None
+    validation_state: ConfigurationValidationState
+    base_source_hash: str | None = None
+    content_hash: str
+    requested_changes: dict[str, Any] = Field(default_factory=dict)
+    preset_values: dict[str, Any] = Field(default_factory=dict)
+    user_overrides: dict[str, Any] = Field(default_factory=dict)
+    resolved_parameters: dict[str, Any] = Field(default_factory=dict)
+    affected_parameters: list[str] = Field(default_factory=list)
+    affected_components: list[str] = Field(default_factory=list)
+    affected_outputs: list[str] = Field(default_factory=list)
+    validation_errors: list[dict[str, Any]] = Field(default_factory=list)
+    override_manifest_path: str | None = None
+    configuration_path: str | None = None
+    created_at: datetime
+    approved_at: datetime | None = None
+
+
+class ConfigurationOverrideManifestRead(BaseModel):
+    schema_version: str
+    configuration_change_id: str
+    base_revision_id: str
+    base_source_hash: str | None = None
+    selected_preset_id: str | None = None
+    preset_values: dict[str, Any] = Field(default_factory=dict)
+    user_overrides: dict[str, Any] = Field(default_factory=dict)
+    resolved_parameters: dict[str, Any] = Field(default_factory=dict)
+    openscad_defines: dict[str, Any] = Field(default_factory=dict)
+    affected_parameters: list[str] = Field(default_factory=list)
+    affected_components: list[str] = Field(default_factory=list)
+    affected_outputs: list[str] = Field(default_factory=list)
+
+
 class RevisionRequestedChange(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -564,6 +659,7 @@ class RevisionRead(BaseModel):
     parent_revision_id: str | None
     design_specification_id: str | None = None
     design_plan_id: str | None = None
+    configuration_change_id: str | None = None
     revision_number: int
     source_type: str
     user_instruction: str | None

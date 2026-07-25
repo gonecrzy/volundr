@@ -175,6 +175,8 @@ project-name/
 ├── README.md
 ├── design-specification.json
 ├── design-plan.json
+├── configuration.json              # present for configuration-generated revisions
+├── parameter-overrides.json        # present for configuration-generated revisions
 ├── project.scad
 ├── output-manifest.json
 ├── assembly-notes.md

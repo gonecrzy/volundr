@@ -489,3 +489,9 @@ Repair mode must preserve protected design invariants:
 - unrelated module names and behavior
 
 A repair that changes protected invariants must be rejected and classified as `repair_overreach`.
+
+## Configuration Path
+
+Direct parameter editing and preset switching do not use a Gemini prompt. The approved Design Plan and accepted OpenSCAD source are the authority. Volundr validates editable parameters, persists a `configuration-change-v1` record, then compiles with command-line `-D` overrides.
+
+If a request cannot be represented as existing editable parameter values, the product should route to structured revision planning instead of asking Gemini to improvise inside the configuration path.

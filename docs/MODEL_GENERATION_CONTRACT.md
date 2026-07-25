@@ -91,6 +91,7 @@ Generated source must map protected Design Specification requirements and approv
 
 ```scad
 // @volundr-requirement container_diameter
+// @volundr-parameter container_diameter type=number editable=true
 container_diameter = 81;
 
 // @volundr-feature mounting_method
@@ -129,7 +130,8 @@ Rules:
 11. `@volundr-dependency <from_id> -> <to_id>` must appear immediately before the derived assignment implementing each Design Plan dependency edge.
 12. For approved Design Plan source, `@volundr-output <id> module=<module_name> required=<true|false> filename=<safe_filename.stl> components=<comma_separated_component_ids>` must appear before each printable output module. The complete output-selection lifecycle is defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 13. Editable Design Plan parameters belong in `USER PARAMETERS`; derived Design Plan parameters belong in `DERIVED VALUES`.
-14. Assertions must reject impossible configurations implied by the Design Plan, such as nonpositive counts, negative clearances, invalid wall thicknesses, or derived dimensions that cannot fit their dependent features.
+14. Editable parameters must include `@volundr-parameter <id> type=<number|integer|boolean|enum> editable=<true|false>` immediately before the assignment. Direct configuration behavior is defined in `docs/PARAMETER_CONFIGURATION.md`.
+15. Assertions must reject impossible configurations implied by the Design Plan, such as nonpositive counts, negative clearances, invalid wall thicknesses, or derived dimensions that cannot fit their dependent features.
 
 ## Mandatory Rules
 

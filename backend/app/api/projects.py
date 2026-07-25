@@ -9,6 +9,12 @@ from app.db.session import get_db
 from app.schemas.project import (
     ClarificationAnswersCreate,
     ClarificationQuestionRead,
+    ConfigurationChangeCreate,
+    ConfigurationChangeRead,
+    ConfigurationOverrideManifestRead,
+    ConfigurationParameterRead,
+    ConfigurationPresetCreate,
+    ConfigurationPresetRead,
     DesignSpecificationRead,
     DesignPlanRead,
     GeometricAnalysisRead,
@@ -281,6 +287,130 @@ def get_current_revision_plan(
     if plan is None:
         raise HTTPException(status_code=404, detail="Revision Plan not found")
     return plan
+
+
+@router.get(
+    "/projects/{project_id}/configuration/parameters",
+    response_model=list[ConfigurationParameterRead],
+)
+def list_configuration_parameters(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ConfigurationParameterRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    parameters = service.list_configuration_parameters(project_id)
+    if parameters is None:
+        raise HTTPException(status_code=404, detail="configurable accepted revision not found")
+    return parameters
+
+
+@router.get(
+    "/projects/{project_id}/configuration/presets",
+    response_model=list[ConfigurationPresetRead],
+)
+def list_configuration_presets(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ConfigurationPresetRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    presets = service.list_configuration_presets(project_id)
+    if presets is None:
+        raise HTTPException(status_code=404, detail="configurable accepted revision not found")
+    return presets
+
+
+@router.post(
+    "/projects/{project_id}/configuration/presets",
+    response_model=ConfigurationPresetRead,
+    status_code=201,
+)
+def create_configuration_preset(
+    project_id: str,
+    payload: ConfigurationPresetCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ConfigurationPresetRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        preset = service.create_configuration_preset(project_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if preset is None:
+        raise HTTPException(status_code=404, detail="configurable accepted revision not found")
+    return preset
+
+
+@router.post(
+    "/projects/{project_id}/configuration/preview",
+    response_model=ConfigurationChangeRead,
+    status_code=201,
+)
+def preview_configuration_change(
+    project_id: str,
+    payload: ConfigurationChangeCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ConfigurationChangeRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    change = service.preview_configuration_change(project_id, payload)
+    if change is None:
+        raise HTTPException(status_code=404, detail="configurable accepted revision not found")
+    return change
+
+
+@router.get(
+    "/configuration-changes/{configuration_change_id}",
+    response_model=ConfigurationChangeRead,
+)
+def get_configuration_change(
+    configuration_change_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ConfigurationChangeRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    change = service.get_configuration_change(configuration_change_id)
+    if change is None:
+        raise HTTPException(status_code=404, detail="configuration change not found")
+    return change
+
+
+@router.get(
+    "/configuration-changes/{configuration_change_id}/override-manifest",
+    response_model=ConfigurationOverrideManifestRead,
+)
+def get_configuration_override_manifest(
+    configuration_change_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ConfigurationOverrideManifestRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    manifest = service.read_configuration_override_manifest(configuration_change_id)
+    if manifest is None:
+        raise HTTPException(status_code=404, detail="configuration change not found")
+    return manifest
+
+
+@router.post(
+    "/configuration-changes/{configuration_change_id}/generate",
+    response_model=RevisionRead,
+    status_code=201,
+)
+async def generate_from_configuration_change(
+    configuration_change_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+) -> RevisionRead:
+    service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
+    try:
+        revision = await service.generate_from_configuration_change(configuration_change_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if revision is None:
+        raise HTTPException(status_code=404, detail="configuration change not found")
+    return revision
 
 
 @router.get(

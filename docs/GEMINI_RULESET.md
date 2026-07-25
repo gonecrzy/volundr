@@ -223,3 +223,11 @@ Do not use:
 2. Do not silently invent critical dimensions.
 3. Do not hide assumptions in comments without matching parameters.
 4. Do not claim the model is guaranteed printable.
+
+## Configuration Support
+
+1. Place user-editable Design Plan inputs in `USER PARAMETERS`.
+2. Mark each editable input with `@volundr-parameter <id> type=<number|integer|boolean|enum> editable=true`.
+3. Keep derived parameters in `DERIVED VALUES` and preserve dependency markers.
+4. Add assertions for invalid configuration ranges and impossible derived values.
+5. Do not require Gemini for direct parameter edits or preset switching; those are deterministic `-D` override operations.

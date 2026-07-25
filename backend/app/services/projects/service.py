@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
+from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
 from app.models.design_plan import DesignPlan
 from app.models.design_specification import DesignSpecification
 from app.models.geometric_analysis_result import GeometricAnalysisResult
@@ -38,6 +39,13 @@ from app.models.validation_finding import ValidationFinding
 from app.schemas.project import (
     ClarificationAnswersCreate,
     ClarificationQuestionRead,
+    ConfigurationChangeCreate,
+    ConfigurationChangeRead,
+    ConfigurationOverrideManifestRead,
+    ConfigurationParameterRead,
+    ConfigurationPresetCreate,
+    ConfigurationPresetRead,
+    ConfigurationValidationState,
     DesignSpecificationPayload,
     DesignSpecificationRead,
     DesignPlanOutcome,
@@ -522,6 +530,7 @@ class ProjectService:
         metadata_dir: Path,
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
+        compile_defines: dict[str, str | int | float | bool] | None = None,
     ) -> None:
         started = time.perf_counter()
         output.output_state = "compiling"
@@ -533,6 +542,7 @@ class ProjectService:
             scad_source,
             job_id=job_id,
             selected_output=output.output_id,
+            defines=compile_defines,
         )
         output.compile_ms = round((time.perf_counter() - started) * 1000, 3)
         output.compile_command_json = json.dumps(result.command_args or [])
@@ -781,6 +791,206 @@ class ProjectService:
             return None
         plan = self._latest_design_plan(project_id)
         return self._design_plan_read(plan) if plan is not None else None
+
+    def list_configuration_parameters(self, project_id: str) -> list[ConfigurationParameterRead] | None:
+        context = self._configuration_context(project_id)
+        if context is None:
+            return None
+        _project, base_revision, _design_plan, design_plan_payload, source, _source_hash = context
+        metadata = SourceContractValidator().validate(
+            source,
+            design_specification=self._revision_design_specification_payload(base_revision),
+            design_plan=design_plan_payload,
+            source_type="configuration",
+        ).source_metadata
+        return [
+            self._configuration_parameter_read(parameter, design_plan_payload, metadata)
+            for parameter in design_plan_payload.get("parameters", [])
+        ]
+
+    def list_configuration_presets(self, project_id: str) -> list[ConfigurationPresetRead] | None:
+        context = self._configuration_context(project_id)
+        if context is None:
+            return None
+        _project, _base_revision, design_plan, design_plan_payload, _source, _source_hash = context
+        result: list[ConfigurationPresetRead] = []
+        for preset in design_plan_payload.get("presets", []):
+            if not isinstance(preset, dict) or not preset.get("id"):
+                continue
+            result.append(
+                ConfigurationPresetRead(
+                    id=str(preset.get("id")),
+                    project_id=project_id,
+                    design_plan_id=design_plan.id,
+                    preset_id=str(preset.get("id")),
+                    label=str(preset.get("label") or preset.get("id")),
+                    parameter_values=dict(preset.get("parameter_values") or {}),
+                    source="design_plan",
+                    created_at=None,
+                )
+            )
+        project_presets = list(
+            self.db.scalars(
+                select(ConfigurationPreset)
+                .where(ConfigurationPreset.project_id == project_id)
+                .where(ConfigurationPreset.design_plan_id == design_plan.id)
+                .order_by(ConfigurationPreset.created_at.asc(), ConfigurationPreset.preset_id.asc())
+            )
+        )
+        result.extend(self._configuration_preset_read(preset) for preset in project_presets)
+        return result
+
+    def create_configuration_preset(
+        self,
+        project_id: str,
+        payload: ConfigurationPresetCreate,
+    ) -> ConfigurationPresetRead | None:
+        context = self._configuration_context(project_id)
+        if context is None:
+            return None
+        _project, _base_revision, design_plan, design_plan_payload, source, _source_hash = context
+        if payload.design_plan_id is not None and payload.design_plan_id != design_plan.id:
+            raise ValueError("preset Design Plan does not match the active revision")
+        validation = self._resolve_configuration(
+            design_plan_payload=design_plan_payload,
+            source=source,
+            selected_preset_id=None,
+            requested_values=payload.parameter_values,
+            user_overrides={},
+        )
+        if validation["validation_state"] != ConfigurationValidationState.CONFIGURATION_READY.value:
+            raise ValueError("preset values are not a valid configuration")
+        preset = ConfigurationPreset(
+            project_id=project_id,
+            design_plan_id=design_plan.id,
+            preset_id=payload.preset_id,
+            label=payload.label,
+            parameter_values_json=json.dumps(payload.parameter_values, sort_keys=True),
+        )
+        self.db.add(preset)
+        self.db.commit()
+        self.db.refresh(preset)
+        return self._configuration_preset_read(preset)
+
+    def preview_configuration_change(
+        self,
+        project_id: str,
+        payload: ConfigurationChangeCreate,
+    ) -> ConfigurationChangeRead | None:
+        context = self._configuration_context(project_id, base_revision_id=payload.base_revision_id)
+        if context is None:
+            return None
+        _project, base_revision, design_plan, design_plan_payload, source, source_hash = context
+        resolution = self._resolve_configuration(
+            design_plan_payload=design_plan_payload,
+            source=source,
+            selected_preset_id=payload.selected_preset_id,
+            requested_values=payload.parameter_values,
+            user_overrides=payload.user_overrides,
+            project_id=project_id,
+            design_plan_id=design_plan.id,
+        )
+        change = self._persist_configuration_change(
+            project_id=project_id,
+            base_revision=base_revision,
+            design_plan=design_plan,
+            reason=payload.reason,
+            selected_preset_id=payload.selected_preset_id,
+            source_hash=source_hash,
+            resolution=resolution,
+        )
+        self.db.commit()
+        self.db.refresh(change)
+        return self._configuration_change_read(change)
+
+    def get_configuration_change(self, configuration_change_id: str) -> ConfigurationChangeRead | None:
+        change = self.db.get(ConfigurationChange, configuration_change_id)
+        return self._configuration_change_read(change) if change is not None else None
+
+    def read_configuration_override_manifest(
+        self,
+        configuration_change_id: str,
+    ) -> ConfigurationOverrideManifestRead | None:
+        change = self.db.get(ConfigurationChange, configuration_change_id)
+        if change is None:
+            return None
+        manifest = self._configuration_override_manifest(change)
+        return ConfigurationOverrideManifestRead(**manifest)
+
+    async def generate_from_configuration_change(
+        self,
+        configuration_change_id: str,
+    ) -> RevisionRead | None:
+        change = self.db.get(ConfigurationChange, configuration_change_id)
+        if change is None:
+            return None
+        if change.validation_state != ConfigurationValidationState.CONFIGURATION_READY.value:
+            raise ValueError("configuration is not ready for generation")
+        if change.generated_revision_id is not None:
+            existing = self.db.get(Revision, change.generated_revision_id)
+            if existing is not None:
+                return self._revision_read(existing)
+        base_revision = self.db.get(Revision, change.base_revision_id)
+        design_plan = self.db.get(DesignPlan, change.design_plan_id)
+        if base_revision is None or design_plan is None:
+            raise ValueError("configuration base revision or Design Plan is missing")
+        source_path = self.resolve_revision_source(base_revision.id)
+        if source_path is None:
+            raise ValueError("base revision source is missing")
+        source = source_path.read_text(encoding="utf-8")
+        source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
+        if change.base_source_hash and change.base_source_hash != source_hash:
+            raise ValueError("base source hash changed; configuration cannot be reproduced")
+        manifest = self._configuration_override_manifest(change)
+        revision = await self._create_revision_from_planned_source(
+            project_id=change.project_id,
+            scad_source=source,
+            user_instruction=f"Configuration change {change.id}",
+            source_type="configuration_change",
+            raw_ai_output=None,
+            design_specification_id=change.design_specification_id,
+            design_specification_payload=self._configured_design_specification_payload(base_revision, change),
+            design_plan_id=change.design_plan_id,
+            design_plan_payload=self._read_design_plan_payload(design_plan),
+            source_validation_result_id=None,
+            compile_defines=manifest["openscad_defines"],
+            parent_revision_id=base_revision.id,
+            configuration_change_id=change.id,
+        )
+        if revision is None:
+            return None
+        generated_revision = self.db.get(Revision, revision.id)
+        if generated_revision is not None:
+            revision_dir = self._revision_dir(generated_revision.project_id, generated_revision.id)
+            config_path = revision_dir / "configuration.json"
+            overrides_path = revision_dir / "parameter-overrides.json"
+            self._write_configuration_json(config_path, self._configuration_change_payload(change))
+            self._write_json(overrides_path, manifest)
+            change.configuration_path = self._relative(config_path)
+            change.override_manifest_path = self._relative(overrides_path)
+            change.generated_revision_id = generated_revision.id
+            change.approved_at = project_utcnow()
+            generated_revision.configuration_change_id = change.id
+            if change.configuration_path:
+                self._write_configuration_json(
+                    self.data_dir / change.configuration_path,
+                    self._configuration_change_payload(change),
+                )
+            if change.override_manifest_path:
+                self._write_json(self.data_dir / change.override_manifest_path, self._configuration_override_manifest(change))
+            generated_revision.output_manifest_path = self._relative(
+                self._write_output_manifest(generated_revision)
+            )
+            self._record_message(
+                project_id=change.project_id,
+                revision_id=generated_revision.id,
+                role="system_event",
+                content=f"Generated configuration candidate R{generated_revision.revision_number}",
+            )
+            self.db.commit()
+            self.db.refresh(generated_revision)
+            return self._revision_read(generated_revision)
+        return revision
 
     def get_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
         plan = self.db.get(RevisionPlan, revision_plan_id)
@@ -3980,6 +4190,9 @@ class ProjectService:
         design_plan_id: str,
         design_plan_payload: dict[str, Any],
         source_validation_result_id: str | None,
+        compile_defines: dict[str, str | int | float | bool] | None = None,
+        parent_revision_id: str | None = None,
+        configuration_change_id: str | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -3992,9 +4205,10 @@ class ProjectService:
         revision_number = self._next_revision_number(project_id)
         revision = Revision(
             project_id=project_id,
-            parent_revision_id=project.active_revision_id,
+            parent_revision_id=parent_revision_id or project.active_revision_id,
             design_specification_id=design_specification_id,
             design_plan_id=design_plan_id,
+            configuration_change_id=configuration_change_id,
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
@@ -4073,6 +4287,7 @@ class ProjectService:
                 metadata_dir=metadata_dir,
                 design_specification_payload=design_specification_payload,
                 design_specification_id=design_specification_id,
+                compile_defines=compile_defines,
             )
 
         self._persist_assembly_output_findings(revision)
@@ -4211,6 +4426,18 @@ class ProjectService:
                 f"{root}/output-manifest.json",
                 json.dumps(payload, indent=2, sort_keys=True),
             )
+            config_payload = self._revision_configuration_payload(revision)
+            override_payload = self._revision_override_manifest_payload(revision)
+            if config_payload is not None:
+                archive.writestr(
+                    f"{root}/configuration.json",
+                    json.dumps(config_payload, indent=2, sort_keys=True, default=str),
+                )
+            if override_payload is not None:
+                archive.writestr(
+                    f"{root}/parameter-overrides.json",
+                    json.dumps(override_payload, indent=2, sort_keys=True),
+                )
             archive.writestr(f"{root}/assembly-notes.md", self._assembly_notes(plan_payload, outputs))
             for output in outputs:
                 if output.stl_path is None:
@@ -4238,6 +4465,11 @@ class ProjectService:
             raise ValueError("Source hash changed; output retry is not safe")
 
         revision_dir = self._revision_dir(revision.project_id, revision.id)
+        compile_defines: dict[str, str | int | float | bool] | None = None
+        if revision.configuration_change_id is not None:
+            change = self.db.get(ConfigurationChange, revision.configuration_change_id)
+            if change is not None:
+                compile_defines = self._configuration_override_manifest(change)["openscad_defines"]
         await self._compile_revision_output(
             revision=revision,
             output=output,
@@ -4248,6 +4480,7 @@ class ProjectService:
             metadata_dir=revision_dir / "metadata",
             design_specification_payload=self._revision_design_specification_payload(revision),
             design_specification_id=revision.design_specification_id,
+            compile_defines=compile_defines,
         )
         self._clear_assembly_output_findings(revision.id)
         self._persist_assembly_output_findings(revision)
@@ -4284,6 +4517,500 @@ class ProjectService:
         self.db.commit()
         self.db.refresh(project)
         return project
+
+    def _configuration_context(
+        self,
+        project_id: str,
+        *,
+        base_revision_id: str | None = None,
+    ) -> tuple[Project, Revision, DesignPlan, dict[str, Any], str, str] | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        revision_id = base_revision_id or project.active_revision_id
+        if revision_id is None:
+            return None
+        base_revision = self.db.get(Revision, revision_id)
+        if (
+            base_revision is None
+            or base_revision.project_id != project.id
+            or base_revision.status != "succeeded"
+            or base_revision.design_plan_id is None
+        ):
+            return None
+        design_plan = self.db.get(DesignPlan, base_revision.design_plan_id)
+        if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
+            return None
+        source = self.read_revision_source(base_revision.id)
+        if source is None:
+            return None
+        source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
+        return (
+            project,
+            base_revision,
+            design_plan,
+            self._read_design_plan_payload(design_plan),
+            source,
+            source_hash,
+        )
+
+    def _configuration_parameter_read(
+        self,
+        parameter: dict[str, Any],
+        design_plan_payload: dict[str, Any],
+        metadata: Any,
+    ) -> ConfigurationParameterRead:
+        parameter_id = str(parameter.get("id"))
+        parameter_type = self._configuration_parameter_type(parameter)
+        minimum, maximum = self._configuration_parameter_range(parameter)
+        affected = self._configuration_impacts([parameter_id], design_plan_payload)
+        return ConfigurationParameterRead(
+            id=parameter_id,
+            label=str(parameter.get("label") or parameter_id),
+            value=parameter.get("value"),
+            unit=parameter.get("unit"),
+            type=parameter_type,
+            editable=bool(parameter.get("editable", True)),
+            protected=bool(parameter.get("protected", False)),
+            component_id=parameter.get("component_id"),
+            source_requirement_id=parameter.get("source_requirement_id"),
+            description=parameter.get("description") or parameter.get("explanation"),
+            minimum=minimum,
+            maximum=maximum,
+            allowed_values=list(parameter.get("allowed_values") or parameter.get("enum_values") or []),
+            source_mapped=self._parameter_has_source_mapping(parameter_id, metadata),
+            affected_components=affected["affected_components"],
+            affected_outputs=affected["affected_outputs"],
+        )
+
+    def _configuration_preset_read(self, preset: ConfigurationPreset) -> ConfigurationPresetRead:
+        return ConfigurationPresetRead(
+            id=preset.id,
+            project_id=preset.project_id,
+            design_plan_id=preset.design_plan_id,
+            preset_id=preset.preset_id,
+            label=preset.label,
+            parameter_values=json.loads(preset.parameter_values_json),
+            source="project",
+            created_at=preset.created_at,
+        )
+
+    def _resolve_configuration(
+        self,
+        *,
+        design_plan_payload: dict[str, Any],
+        source: str,
+        selected_preset_id: str | None,
+        requested_values: dict[str, Any],
+        user_overrides: dict[str, Any],
+        project_id: str | None = None,
+        design_plan_id: str | None = None,
+    ) -> dict[str, Any]:
+        parameter_map = {
+            str(parameter.get("id")): parameter
+            for parameter in design_plan_payload.get("parameters", [])
+            if parameter.get("id")
+        }
+        derived_ids = {
+            str(parameter.get("id"))
+            for parameter in design_plan_payload.get("derived_parameters", [])
+            if parameter.get("id")
+        }
+        preset_values = self._configuration_preset_values(
+            design_plan_payload=design_plan_payload,
+            selected_preset_id=selected_preset_id,
+            project_id=project_id,
+            design_plan_id=design_plan_id,
+        )
+        source_metadata = SourceContractValidator().validate(
+            source,
+            design_specification=None,
+            design_plan=design_plan_payload,
+            source_type="configuration",
+        ).source_metadata
+        combined: dict[str, Any] = {}
+        combined.update(preset_values)
+        combined.update(requested_values)
+        combined.update(user_overrides)
+        validation_errors: list[dict[str, Any]] = []
+        structural_errors: list[dict[str, Any]] = []
+        for parameter_id, value in combined.items():
+            if parameter_id in derived_ids:
+                structural_errors.append(
+                    self._configuration_error(
+                        "derived_parameter_not_directly_editable",
+                        parameter_id,
+                        "Derived parameters are recalculated by the OpenSCAD source and cannot be overridden directly.",
+                    )
+                )
+                continue
+            parameter = parameter_map.get(parameter_id)
+            if parameter is None:
+                structural_errors.append(
+                    self._configuration_error(
+                        "unknown_parameter",
+                        parameter_id,
+                        "The requested parameter is not part of the approved Design Plan.",
+                    )
+                )
+                continue
+            if not bool(parameter.get("editable", True)):
+                structural_errors.append(
+                    self._configuration_error(
+                        "parameter_not_editable",
+                        parameter_id,
+                        "This Design Plan parameter is not user editable.",
+                    )
+                )
+                continue
+            if not self._parameter_has_source_mapping(parameter_id, source_metadata):
+                structural_errors.append(
+                    self._configuration_error(
+                        "parameter_not_source_mapped",
+                        parameter_id,
+                        "The accepted OpenSCAD source does not expose this parameter for command-line override.",
+                    )
+                )
+                continue
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", parameter_id):
+                structural_errors.append(
+                    self._configuration_error(
+                        "parameter_id_not_openscad_identifier",
+                        parameter_id,
+                        "The parameter ID cannot be safely passed to OpenSCAD as a -D override.",
+                    )
+                )
+                continue
+            validation_errors.extend(self._configuration_value_errors(parameter, value))
+        affected_parameters = self._affected_parameters(list(combined.keys()), design_plan_payload)
+        impacts = self._configuration_impacts(affected_parameters, design_plan_payload)
+        resolved = {
+            parameter_id: parameter.get("value")
+            for parameter_id, parameter in parameter_map.items()
+        }
+        resolved.update(combined)
+        if structural_errors:
+            state = ConfigurationValidationState.REQUIRES_DESIGN_REVISION.value
+            errors = structural_errors + validation_errors
+        elif validation_errors:
+            state = ConfigurationValidationState.INVALID_CONFIGURATION.value
+            errors = validation_errors
+        else:
+            state = ConfigurationValidationState.CONFIGURATION_READY.value
+            errors = []
+        return {
+            "validation_state": state,
+            "requested_changes": dict(requested_values),
+            "preset_values": preset_values,
+            "user_overrides": dict(user_overrides),
+            "resolved_parameters": resolved,
+            "openscad_defines": combined if state == ConfigurationValidationState.CONFIGURATION_READY.value else {},
+            "affected_parameters": affected_parameters,
+            "affected_components": impacts["affected_components"],
+            "affected_outputs": impacts["affected_outputs"],
+            "validation_errors": errors,
+        }
+
+    def _configuration_value_errors(
+        self,
+        parameter: dict[str, Any],
+        value: Any,
+    ) -> list[dict[str, Any]]:
+        parameter_id = str(parameter.get("id"))
+        parameter_type = self._configuration_parameter_type(parameter)
+        errors: list[dict[str, Any]] = []
+        if parameter_type == "integer":
+            if not isinstance(value, int) or isinstance(value, bool):
+                errors.append(self._configuration_error("invalid_integer", parameter_id, "Expected an integer value."))
+                return errors
+        elif parameter_type == "number":
+            if not isinstance(value, int | float) or isinstance(value, bool):
+                errors.append(self._configuration_error("invalid_number", parameter_id, "Expected a numeric value."))
+                return errors
+        elif parameter_type == "boolean":
+            if not isinstance(value, bool):
+                errors.append(self._configuration_error("invalid_boolean", parameter_id, "Expected true or false."))
+                return errors
+        elif parameter_type == "enum":
+            allowed = list(parameter.get("allowed_values") or parameter.get("enum_values") or [])
+            if value not in allowed:
+                errors.append(
+                    self._configuration_error(
+                        "invalid_enum_value",
+                        parameter_id,
+                        "Expected one of the approved enum values.",
+                        {"allowed_values": allowed, "detected_value": value},
+                    )
+                )
+                return errors
+        else:
+            errors.append(
+                self._configuration_error(
+                    "unsupported_parameter_type",
+                    parameter_id,
+                    "This parameter type requires a structured AI revision.",
+                )
+            )
+            return errors
+        minimum, maximum = self._configuration_parameter_range(parameter)
+        if isinstance(value, int | float) and not isinstance(value, bool):
+            if minimum is not None and value < minimum:
+                errors.append(
+                    self._configuration_error(
+                        "below_minimum",
+                        parameter_id,
+                        "Value is below the approved configurable range.",
+                        {"minimum": minimum, "detected_value": value},
+                    )
+                )
+            if maximum is not None and value > maximum:
+                errors.append(
+                    self._configuration_error(
+                        "above_maximum",
+                        parameter_id,
+                        "Value is above the approved configurable range.",
+                        {"maximum": maximum, "detected_value": value},
+                    )
+                )
+        return errors
+
+    def _configuration_parameter_type(self, parameter: dict[str, Any]) -> str:
+        explicit = str(parameter.get("type") or parameter.get("parameter_type") or "").strip().lower()
+        if explicit in {"number", "integer", "boolean", "enum"}:
+            return explicit
+        value = parameter.get("value")
+        if isinstance(value, bool):
+            return "boolean"
+        if isinstance(value, int):
+            return "integer"
+        if isinstance(value, float):
+            return "number"
+        if isinstance(value, str) and (parameter.get("allowed_values") or parameter.get("enum_values")):
+            return "enum"
+        return "unsupported"
+
+    def _configuration_parameter_range(self, parameter: dict[str, Any]) -> tuple[float | int | None, float | int | None]:
+        minimum = parameter.get("minimum", parameter.get("min"))
+        maximum = parameter.get("maximum", parameter.get("max"))
+        return (
+            minimum if isinstance(minimum, int | float) and not isinstance(minimum, bool) else None,
+            maximum if isinstance(maximum, int | float) and not isinstance(maximum, bool) else None,
+        )
+
+    def _parameter_has_source_mapping(self, parameter_id: str, metadata: Any) -> bool:
+        return parameter_id in metadata.parameter_mappings or parameter_id in metadata.assignments
+
+    def _affected_parameters(
+        self,
+        changed_parameter_ids: list[str],
+        design_plan_payload: dict[str, Any],
+    ) -> list[str]:
+        affected = set(changed_parameter_ids)
+        edges = [
+            (str(edge.get("from") or edge.get("from_") or ""), str(edge.get("to") or ""))
+            for edge in design_plan_payload.get("dependency_edges", [])
+        ]
+        changed = True
+        while changed:
+            changed = False
+            for from_id, to_id in edges:
+                if from_id in affected and to_id and to_id not in affected:
+                    affected.add(to_id)
+                    changed = True
+        return sorted(affected)
+
+    def _configuration_impacts(
+        self,
+        affected_parameter_ids: list[str],
+        design_plan_payload: dict[str, Any],
+    ) -> dict[str, list[str]]:
+        affected = set(affected_parameter_ids)
+        components: set[str] = set()
+        for parameter in design_plan_payload.get("parameters", []):
+            if parameter.get("id") in affected and parameter.get("component_id"):
+                components.add(str(parameter.get("component_id")))
+        for component in design_plan_payload.get("components", []):
+            component_id = str(component.get("id"))
+            if affected.intersection(set(component.get("parameters") or [])):
+                components.add(component_id)
+        for feature in design_plan_payload.get("features", []):
+            if affected.intersection(set(feature.get("parameters") or [])) and feature.get("component_id"):
+                components.add(str(feature.get("component_id")))
+        outputs: set[str] = set()
+        for output in self._planned_printable_outputs(design_plan_payload):
+            if components.intersection(set(output["component_ids"])):
+                outputs.add(output["output_id"])
+        return {
+            "affected_components": sorted(components),
+            "affected_outputs": sorted(outputs),
+        }
+
+    def _configuration_preset_values(
+        self,
+        *,
+        design_plan_payload: dict[str, Any],
+        selected_preset_id: str | None,
+        project_id: str | None,
+        design_plan_id: str | None,
+    ) -> dict[str, Any]:
+        if not selected_preset_id:
+            return {}
+        for preset in design_plan_payload.get("presets", []):
+            if isinstance(preset, dict) and preset.get("id") == selected_preset_id:
+                return dict(preset.get("parameter_values") or {})
+        if project_id is not None and design_plan_id is not None:
+            preset = self.db.scalar(
+                select(ConfigurationPreset)
+                .where(ConfigurationPreset.project_id == project_id)
+                .where(ConfigurationPreset.design_plan_id == design_plan_id)
+                .where(ConfigurationPreset.preset_id == selected_preset_id)
+                .order_by(ConfigurationPreset.created_at.desc())
+            )
+            if preset is not None:
+                return json.loads(preset.parameter_values_json)
+        return {}
+
+    def _configuration_error(
+        self,
+        code: str,
+        parameter_id: str,
+        message: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "code": code,
+            "parameter_id": parameter_id,
+            "message": message,
+            "metadata": metadata or {},
+        }
+
+    def _persist_configuration_change(
+        self,
+        *,
+        project_id: str,
+        base_revision: Revision,
+        design_plan: DesignPlan,
+        reason: str,
+        selected_preset_id: str | None,
+        source_hash: str,
+        resolution: dict[str, Any],
+    ) -> ConfigurationChange:
+        hash_payload = {
+            "schema_version": "configuration-change-v1",
+            "project_id": project_id,
+            "base_revision_id": base_revision.id,
+            "design_specification_id": base_revision.design_specification_id,
+            "design_plan_id": design_plan.id,
+            "reason": reason,
+            "selected_preset_id": selected_preset_id,
+            "base_source_hash": source_hash,
+            **resolution,
+        }
+        content_hash = hashlib.sha256(
+            json.dumps(hash_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        change = ConfigurationChange(
+            project_id=project_id,
+            base_revision_id=base_revision.id,
+            design_specification_id=base_revision.design_specification_id,
+            design_plan_id=design_plan.id,
+            reason=reason,
+            selected_preset_id=selected_preset_id,
+            validation_state=resolution["validation_state"],
+            base_source_hash=source_hash,
+            content_hash=content_hash,
+            requested_changes_json=json.dumps(resolution["requested_changes"], sort_keys=True),
+            preset_values_json=json.dumps(resolution["preset_values"], sort_keys=True),
+            user_overrides_json=json.dumps(resolution["user_overrides"], sort_keys=True),
+            resolved_parameters_json=json.dumps(resolution["resolved_parameters"], sort_keys=True),
+            affected_parameters_json=json.dumps(resolution["affected_parameters"], sort_keys=True),
+            affected_components_json=json.dumps(resolution["affected_components"], sort_keys=True),
+            affected_outputs_json=json.dumps(resolution["affected_outputs"], sort_keys=True),
+            validation_errors_json=json.dumps(resolution["validation_errors"], sort_keys=True),
+        )
+        self.db.add(change)
+        self.db.flush()
+        config_dir = self.data_dir / "projects" / project_id / "configuration-changes" / change.id
+        config_dir.mkdir(parents=True, exist_ok=True)
+        config_path = config_dir / "configuration.json"
+        overrides_path = config_dir / "parameter-overrides.json"
+        self._write_configuration_json(config_path, self._configuration_change_payload(change))
+        self._write_json(overrides_path, self._configuration_override_manifest(change))
+        change.configuration_path = self._relative(config_path)
+        change.override_manifest_path = self._relative(overrides_path)
+        return change
+
+    def _configuration_change_read(self, change: ConfigurationChange) -> ConfigurationChangeRead:
+        return ConfigurationChangeRead(**self._configuration_change_payload(change))
+
+    def _configuration_change_payload(self, change: ConfigurationChange) -> dict[str, Any]:
+        return {
+            "id": change.id,
+            "project_id": change.project_id,
+            "base_revision_id": change.base_revision_id,
+            "generated_revision_id": change.generated_revision_id,
+            "design_specification_id": change.design_specification_id,
+            "design_plan_id": change.design_plan_id,
+            "schema_version": change.schema_version,
+            "reason": change.reason,
+            "selected_preset_id": change.selected_preset_id,
+            "validation_state": change.validation_state,
+            "base_source_hash": change.base_source_hash,
+            "content_hash": change.content_hash,
+            "requested_changes": json.loads(change.requested_changes_json),
+            "preset_values": json.loads(change.preset_values_json),
+            "user_overrides": json.loads(change.user_overrides_json),
+            "resolved_parameters": json.loads(change.resolved_parameters_json),
+            "affected_parameters": json.loads(change.affected_parameters_json),
+            "affected_components": json.loads(change.affected_components_json),
+            "affected_outputs": json.loads(change.affected_outputs_json),
+            "validation_errors": json.loads(change.validation_errors_json),
+            "override_manifest_path": change.override_manifest_path,
+            "configuration_path": change.configuration_path,
+            "created_at": change.created_at,
+            "approved_at": change.approved_at,
+        }
+
+    def _configuration_override_manifest(self, change: ConfigurationChange) -> dict[str, Any]:
+        openscad_defines = {}
+        if change.validation_state == ConfigurationValidationState.CONFIGURATION_READY.value:
+            openscad_defines.update(json.loads(change.preset_values_json))
+            openscad_defines.update(json.loads(change.requested_changes_json))
+            openscad_defines.update(json.loads(change.user_overrides_json))
+        return {
+            "schema_version": "parameter-overrides-v1",
+            "configuration_change_id": change.id,
+            "base_revision_id": change.base_revision_id,
+            "base_source_hash": change.base_source_hash,
+            "selected_preset_id": change.selected_preset_id,
+            "preset_values": json.loads(change.preset_values_json),
+            "user_overrides": json.loads(change.user_overrides_json),
+            "resolved_parameters": json.loads(change.resolved_parameters_json),
+            "openscad_defines": openscad_defines,
+            "affected_parameters": json.loads(change.affected_parameters_json),
+            "affected_components": json.loads(change.affected_components_json),
+            "affected_outputs": json.loads(change.affected_outputs_json),
+        }
+
+    def _configured_design_specification_payload(
+        self,
+        base_revision: Revision,
+        change: ConfigurationChange,
+    ) -> dict[str, Any] | None:
+        payload = self._revision_design_specification_payload(base_revision)
+        if payload is None:
+            return None
+        configured = json.loads(json.dumps(payload))
+        resolved = json.loads(change.resolved_parameters_json)
+        for key in ("critical_dimensions", "parameters"):
+            for item in configured.get(key, []):
+                item_id = item.get("id")
+                if item_id in resolved:
+                    item["value"] = resolved[item_id]
+                    item["source"] = "configuration"
+        configured["configuration_change_id"] = change.id
+        configured["configuration_base_specification_id"] = base_revision.design_specification_id
+        return configured
 
     def _record_revision_messages(
         self,
@@ -4341,6 +5068,7 @@ class ProjectService:
             parent_revision_id=revision.parent_revision_id,
             design_specification_id=revision.design_specification_id,
             design_plan_id=revision.design_plan_id,
+            configuration_change_id=revision.configuration_change_id,
             revision_number=revision.revision_number,
             source_type=revision.source_type,
             user_instruction=revision.user_instruction,
@@ -4524,6 +5252,7 @@ class ProjectService:
             "project_id": revision.project_id,
             "revision_id": revision.id,
             "design_plan_id": revision.design_plan_id,
+            "configuration_change_id": revision.configuration_change_id,
             "source": {
                 "filename": "project.scad" if revision.design_plan_id else "model.scad",
                 "sha256": source_hash,
@@ -4564,6 +5293,18 @@ class ProjectService:
         specification = self.db.get(DesignSpecification, revision.design_specification_id)
         return self._read_design_specification_payload(specification) if specification is not None else None
 
+    def _revision_configuration_payload(self, revision: Revision) -> dict[str, Any] | None:
+        if revision.configuration_change_id is None:
+            return None
+        change = self.db.get(ConfigurationChange, revision.configuration_change_id)
+        return self._configuration_change_payload(change) if change is not None else None
+
+    def _revision_override_manifest_payload(self, revision: Revision) -> dict[str, Any] | None:
+        if revision.configuration_change_id is None:
+            return None
+        change = self.db.get(ConfigurationChange, revision.configuration_change_id)
+        return self._configuration_override_manifest(change) if change is not None else None
+
     def _export_readme(
         self,
         revision: Revision,
@@ -4576,9 +5317,24 @@ class ProjectService:
             "",
             f"Revision: R{revision.revision_number} ({revision.id})",
             f"Generated: {revision.created_at.isoformat()}",
-            "",
-            "## Parameters",
         ]
+        config_payload = self._revision_configuration_payload(revision)
+        if config_payload is not None:
+            lines.extend(
+                [
+                    f"Base revision: {config_payload['base_revision_id']}",
+                    f"Selected preset: {config_payload.get('selected_preset_id') or 'none'}",
+                    "",
+                    "## Configuration Overrides",
+                ]
+            )
+            overrides = config_payload.get("user_overrides") or config_payload.get("requested_changes") or {}
+            if overrides:
+                for key, value in overrides.items():
+                    lines.append(f"- {key}: {value}")
+            else:
+                lines.append("- None.")
+        lines.extend(["", "## Parameters"])
         for parameter in (design_plan_payload or {}).get("parameters", []):
             lines.append(f"- {parameter.get('label') or parameter.get('id')}: {parameter.get('value')} {parameter.get('unit') or ''}".rstrip())
         if not (design_plan_payload or {}).get("parameters"):
@@ -4720,6 +5476,9 @@ class ProjectService:
 
     def _write_json(self, path: Path, payload: dict) -> None:
         path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+    def _write_configuration_json(self, path: Path, payload: dict) -> None:
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8")
 
     def _read_json_file(self, relative_path: str) -> dict[str, Any] | None:
         path = self.data_dir / relative_path

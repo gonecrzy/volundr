@@ -82,6 +82,16 @@
       ],
       "revision_expectation": "minimal diff changes hole_spacing only",
       "protected_design_invariants": ["plate width", "plate depth", "plate thickness", "hole diameter", "module names"],
+      "expected_configuration": {
+        "editable_parameters": ["hole_spacing"],
+        "requested_overrides": {"hole_spacing": 60},
+        "expected_affected_parameters": ["hole_spacing"],
+        "expected_affected_components": ["plate"],
+        "expected_affected_outputs": ["plate_output"],
+        "expected_validation_state": "configuration_ready",
+        "expected_defines": {"hole_spacing": 60},
+        "provider_call_forbidden": true
+      },
       "unacceptable_outcomes": ["plate resized", "hole diameter changed", "whole-model rewrite"]
     },
     {

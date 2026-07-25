@@ -46,6 +46,7 @@ project_id
 parent_revision_id
 design_specification_id
 design_plan_id
+configuration_change_id
 revision_number
 source_type
 user_instruction
@@ -75,6 +76,7 @@ ai_revision
 ai_repair
 manual_edit
 restored
+configuration_change
 ```
 
 Suggested `status` values:
@@ -113,6 +115,71 @@ rejected -> accepted is forbidden
 Manual source compilation establishes the first active accepted revision when no active design exists. Later manual compiles and AI compiles create candidates until explicitly accepted.
 
 For approved Design Plan generation, the revision represents the assembly-level candidate. Individual printable artifacts are represented by `RevisionOutput` rows. `stl_path` remains as a compatibility pointer to the first successful printable output when one exists.
+
+Configuration-generated revisions link to `configuration_change_id`. They copy the accepted source unchanged and use persisted OpenSCAD `-D` overrides during per-output compilation.
+
+## ConfigurationChange
+
+Represents an immutable previewed parameter or preset change against an accepted base revision.
+
+Fields:
+
+```text
+id
+project_id
+base_revision_id
+generated_revision_id
+design_specification_id
+design_plan_id
+schema_version
+reason
+selected_preset_id
+validation_state
+base_source_hash
+content_hash
+requested_changes_json
+preset_values_json
+user_overrides_json
+resolved_parameters_json
+affected_parameters_json
+affected_components_json
+affected_outputs_json
+validation_errors_json
+configuration_path
+override_manifest_path
+created_at
+approved_at
+```
+
+Suggested `validation_state` values:
+
+```text
+configuration_ready
+clarification_required
+invalid_configuration
+requires_design_revision
+configuration_failed
+```
+
+Only `configuration_ready` may generate a candidate revision. Generation sets `generated_revision_id` and `approved_at`; it does not mutate the base revision, Design Plan, or accepted source.
+
+## ConfigurationPreset
+
+Represents a project-local preset for an approved Design Plan.
+
+Fields:
+
+```text
+id
+project_id
+design_plan_id
+preset_id
+label
+parameter_values_json
+created_at
+```
+
+Design Plan presets remain embedded in Design Plan JSON. Project-local presets are additional user-created groups of values and do not modify the Design Plan.
 
 ## RevisionOutput
 

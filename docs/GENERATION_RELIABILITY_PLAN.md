@@ -288,6 +288,10 @@ Track per benchmark:
 - printability severity counts
 - Design Specification version count
 - OpenSCAD generation started without ready specification, which must remain zero for new initial-generation flows
+- configuration generation provider-call count, which must remain zero
+- configuration preview readiness rate
+- configuration invalid/requires-revision classification counts
+- configuration candidate validation pass rate
 
 ## Stability Exit Criteria
 
@@ -302,3 +306,4 @@ Volundr's generation pipeline is stable enough for prompt iteration when:
 - 100% vague/conflicting benchmark prompts produce clarification instead of accepted SCAD.
 - Clarification precision remains high enough that clear core-suite prompts are not over-clarified.
 - Every generation has a reproducible run record.
+- Direct parameter changes produce reproducible configuration-change records and override manifests without invoking Gemini.

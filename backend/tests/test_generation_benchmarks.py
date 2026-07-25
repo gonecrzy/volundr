@@ -127,3 +127,20 @@ def test_revision_benchmarks_cover_structured_revision_plans() -> None:
         assert plan["allowed_parameter_changes"]
         assert plan["protected_parameters"]
         assert plan["success_criteria"]
+
+
+def test_configuration_benchmarks_cover_direct_parameter_regeneration() -> None:
+    core = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    full = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    by_id = {benchmark.id: benchmark for benchmark in [*core.benchmarks, *full.benchmarks]}
+
+    for benchmark_id in (
+        "critical_dimension_revision",
+        "parametric_configurable_organizer",
+        "parametric_repeated_slot_rack",
+    ):
+        config = by_id[benchmark_id].expected_configuration
+        assert config["editable_parameters"]
+        assert config["expected_affected_outputs"]
+        assert config["expected_validation_state"] == "configuration_ready"
+        assert config["provider_call_forbidden"] is True

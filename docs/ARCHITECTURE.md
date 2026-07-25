@@ -344,6 +344,10 @@ data/
 │       │       ├── compile.log
 │       │       ├── ai-output.txt
 │       │       └── metadata.json
+│       ├── configuration-changes/
+│       │   └── <configuration-change-id>/
+│       │       ├── configuration.json
+│       │       └── parameter-overrides.json
 │       ├── generation-runs/
 │       │   └── <run-id>/
 │       │       ├── request.json
@@ -383,6 +387,14 @@ The exact visual design may evolve, but Volundr should prioritize:
 - revision confidence
 - clear generation status
 - minimal modal workflows
+
+## Deterministic Configuration Regeneration
+
+Accepted revisions with approved Design Plans expose a configuration workflow. The backend validates editable Design Plan parameters, persists a `configuration-change-v1` record, and regenerates candidates from the unchanged accepted OpenSCAD source using safe command-line `-D` overrides.
+
+This path does not call Gemini. If a requested change adds structure or touches a non-editable/derived parameter, the API returns `requires_design_revision` so the user can use structured revision planning instead.
+
+Detailed rules are in `docs/PARAMETER_CONFIGURATION.md`.
 
 ## Future Architecture Options
 

@@ -26,6 +26,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Use the approved Design Plan as product-structure authority for OpenSCAD generation.
 - Generate and persist immutable structured Revision Plans before scoped AI revisions.
 - Require explicit Revision Plan approval before AI source revision.
+- Allow direct editing of approved editable Design Plan parameters and preset switching through deterministic configuration changes without invoking Gemini.
 - Validate new AI OpenSCAD against the source contract before compilation, including security rules, required structure, protected Design Specification values, and advisory quality findings.
 - Validate revised AI source against the approved Revision Plan before compilation.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
@@ -83,6 +84,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Download one STL per Design Plan printable output.
 - Download `output-manifest.json`.
 - Download deterministic ZIP exports containing source, Design Specification, Design Plan, output manifest, assembly notes, and STL artifacts.
+- Include configuration metadata and parameter override manifests in exports for configuration-generated revisions.
 - Use clear filenames derived from the project and revision.
 
 ### Deployment
@@ -108,7 +110,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - STEP import or editing
 - CAD assemblies
 - Component-targeted AI revisions
-- Interactive parameter editing and preset switching
+- structural parameter redesign without structured revision planning
 - Organic sculpting
 - Photo-to-model generation
 - Physics simulation

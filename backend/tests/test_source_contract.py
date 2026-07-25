@@ -151,6 +151,7 @@ $fn = 48;
 
 // ===== USER PARAMETERS =====
 // @volundr-requirement hole_spacing
+// @volundr-parameter hole_spacing type=number editable=true
 // @volundr-component bracket_body
 hole_spacing = 60;
 plate_thickness = 6;
@@ -325,6 +326,8 @@ def test_scanner_extracts_design_plan_markers() -> None:
     metadata = scan_openscad_source(PLAN_SOURCE).metadata
 
     assert metadata.component_mappings["bracket_body"].target_name == "hole_spacing"
+    assert metadata.parameter_mappings["hole_spacing"].target_name == "hole_spacing"
+    assert metadata.parameter_mappings["hole_spacing"].attributes["type"] == "number"
     assert metadata.dependency_mappings[0].from_id == "hole_spacing"
     assert metadata.dependency_mappings[0].to_id == "plate_width"
     assert metadata.output_mappings["bracket_output"].component_ids == ["bracket_body"]

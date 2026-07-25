@@ -31,6 +31,15 @@ import {
   type RequirementOutcome,
 } from "./designSpecificationView";
 import {
+  canGenerateConfiguration,
+  configurationControlKind,
+  configurationImpactLabel,
+  configurationStateLabel,
+  type ConfigurationChange,
+  type ConfigurationParameter,
+  type ConfigurationPreset,
+} from "./configurationView";
+import {
   canApproveDesignPlan,
   canGenerateFromDesignPlan,
   designPlanStageLabel,
@@ -91,6 +100,7 @@ type Revision = {
   parent_revision_id: string | null;
   design_specification_id: string | null;
   design_plan_id: string | null;
+  configuration_change_id: string | null;
   revision_number: number;
   source_type: string;
   status: string;
@@ -468,6 +478,13 @@ function App() {
   const [designPlan, setDesignPlan] = useState<DesignPlan | null>(null);
   const [revisionPlan, setRevisionPlan] = useState<RevisionPlan | null>(null);
   const [revisionPlanAnswers, setRevisionPlanAnswers] = useState<Record<string, string>>({});
+  const [configurationParameters, setConfigurationParameters] = useState<ConfigurationParameter[]>([]);
+  const [configurationPresets, setConfigurationPresets] = useState<ConfigurationPreset[]>([]);
+  const [configurationDraft, setConfigurationDraft] = useState<Record<string, string | number | boolean>>({});
+  const [selectedConfigurationPresetId, setSelectedConfigurationPresetId] = useState("");
+  const [configurationPreview, setConfigurationPreview] = useState<ConfigurationChange | null>(null);
+  const [isPreviewingConfiguration, setIsPreviewingConfiguration] = useState(false);
+  const [isGeneratingConfiguration, setIsGeneratingConfiguration] = useState(false);
   const [revisionComplianceResult, setRevisionComplianceResult] =
     useState<RevisionComplianceResult | null>(null);
   const [revisionSuccessResults, setRevisionSuccessResults] = useState<RevisionSuccessResult[]>([]);
@@ -528,6 +545,8 @@ function App() {
     canApproveRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
   const canGenerateFromCurrentRevisionPlan =
     canGenerateFromRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
+  const canGenerateCurrentConfiguration =
+    canGenerateConfiguration(configurationPreview) && !isGeneratingConfiguration;
 
   useEffect(() => {
     void refreshProjects();
@@ -573,6 +592,16 @@ function App() {
     setIsGeneratingRevision(false);
   }
 
+  function resetConfigurationState() {
+    setConfigurationParameters([]);
+    setConfigurationPresets([]);
+    setConfigurationDraft({});
+    setSelectedConfigurationPresetId("");
+    setConfigurationPreview(null);
+    setIsPreviewingConfiguration(false);
+    setIsGeneratingConfiguration(false);
+  }
+
   async function loadCurrentDesignSpecification(projectId: string) {
     try {
       setDesignSpecification(
@@ -594,8 +623,33 @@ function App() {
           method: "GET",
         }),
       );
+      await loadConfigurationOptions(projectId);
     } catch {
       setDesignPlan(null);
+      resetConfigurationState();
+    }
+  }
+
+  async function loadConfigurationOptions(projectId: string) {
+    try {
+      const [parameters, presets] = await Promise.all([
+        request<ConfigurationParameter[]>(`/projects/${projectId}/configuration/parameters`, {
+          method: "GET",
+        }),
+        request<ConfigurationPreset[]>(`/projects/${projectId}/configuration/presets`, {
+          method: "GET",
+        }),
+      ]);
+      setConfigurationParameters(parameters);
+      setConfigurationPresets(presets);
+      setConfigurationDraft(
+        Object.fromEntries(
+          parameters.map((parameter) => [parameter.id, parameter.value ?? ""]),
+        ),
+      );
+      setConfigurationPreview(null);
+    } catch {
+      resetConfigurationState();
     }
   }
 
@@ -1201,6 +1255,90 @@ function App() {
     }
   }
 
+  async function previewConfiguration() {
+    if (!project) {
+      return;
+    }
+    setIsPreviewingConfiguration(true);
+    setMessage(null);
+    try {
+      const values: Record<string, string | number | boolean> = {};
+      const userOverrides: Record<string, string | number | boolean> = {};
+      const selectedPreset = configurationPresets.find(
+        (entry) => entry.preset_id === selectedConfigurationPresetId,
+      );
+      const presetValues = selectedPreset ? configurationDraftValues(selectedPreset.parameter_values) : {};
+      for (const parameter of configurationParameters) {
+        const value = configurationDraft[parameter.id];
+        if (value === "") {
+          continue;
+        }
+        const normalized = normalizeConfigurationValue(parameter, value);
+        if (selectedPreset) {
+          if (normalized !== presetValues[parameter.id]) {
+            userOverrides[parameter.id] = normalized;
+          }
+        } else if (normalized !== parameter.value) {
+          values[parameter.id] = normalized;
+        }
+      }
+      const preview = await request<ConfigurationChange>(
+        `/projects/${project.id}/configuration/preview`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            selected_preset_id: selectedConfigurationPresetId || null,
+            parameter_values: values,
+            user_overrides: userOverrides,
+          }),
+        },
+      );
+      setConfigurationPreview(preview);
+      setMessage(configurationStateLabel(preview.validation_state));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Configuration preview failed");
+    } finally {
+      setIsPreviewingConfiguration(false);
+    }
+  }
+
+  async function generateConfigurationCandidate() {
+    if (!configurationPreview) {
+      return;
+    }
+    setIsGeneratingConfiguration(true);
+    setMessage(null);
+    try {
+      const revision = await request<Revision>(
+        `/configuration-changes/${configurationPreview.id}/generate`,
+        { method: "POST" },
+      );
+      setSelectedRevision(revision);
+      setSource(await requestText(`/revisions/${revision.id}/source`, { method: "GET" }));
+      await loadRevisionOutputs(revision);
+      await loadCandidateFindings(revision);
+      await loadGeometricAnalysis(revision);
+      if (project) {
+        const refreshedProject = await request<Project>(`/projects/${project.id}`, { method: "GET" });
+        setProject(refreshedProject);
+        const nextRevisions = await request<Revision[]>(`/projects/${project.id}/revisions`, {
+          method: "GET",
+        });
+        setRevisions(nextRevisions);
+      }
+      const refreshedPreview = await request<ConfigurationChange>(
+        `/configuration-changes/${configurationPreview.id}`,
+        { method: "GET" },
+      );
+      setConfigurationPreview(refreshedPreview);
+      setMessage("Configuration candidate ready");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Configuration generation failed");
+    } finally {
+      setIsGeneratingConfiguration(false);
+    }
+  }
+
   async function loadProjectMessages(projectId: string) {
     try {
       setProjectMessages(await request<ProjectMessage[]>(`/projects/${projectId}/messages`, {
@@ -1517,6 +1655,7 @@ function App() {
     setDismissedPrintabilityResults(new Set());
     resetRequirementState();
     resetRevisionPlanState();
+    resetConfigurationState();
     setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
   }
@@ -1747,6 +1886,32 @@ function App() {
               setMessage("Revision prompt prepared from geometric finding");
             }}
             retryingOutputId={isRetryingOutputId}
+          />
+
+          <ConfigurationPanel
+            canGenerate={canGenerateCurrentConfiguration}
+            change={configurationPreview}
+            draft={configurationDraft}
+            isGenerating={isGeneratingConfiguration}
+            isPreviewing={isPreviewingConfiguration}
+            parameters={configurationParameters}
+            presets={configurationPresets}
+            selectedPresetId={selectedConfigurationPresetId}
+            onDraftChange={(parameterId, value) =>
+              setConfigurationDraft((current) => ({ ...current, [parameterId]: value }))
+            }
+            onGenerate={() => void generateConfigurationCandidate()}
+            onPresetChange={(presetId) => {
+              setSelectedConfigurationPresetId(presetId);
+              const preset = configurationPresets.find((entry) => entry.preset_id === presetId);
+              if (preset) {
+                setConfigurationDraft((current) => ({
+                  ...current,
+                  ...configurationDraftValues(preset.parameter_values),
+                }));
+              }
+            }}
+            onPreview={() => void previewConfiguration()}
           />
 
           <h2>Metadata</h2>
@@ -2270,6 +2435,130 @@ function formatUnknown(value: unknown): string {
     return JSON.stringify(value);
   }
   return String(value);
+}
+
+function ConfigurationPanel({
+  canGenerate,
+  change,
+  draft,
+  isGenerating,
+  isPreviewing,
+  parameters,
+  presets,
+  selectedPresetId,
+  onDraftChange,
+  onGenerate,
+  onPresetChange,
+  onPreview,
+}: {
+  canGenerate: boolean;
+  change: ConfigurationChange | null;
+  draft: Record<string, string | number | boolean>;
+  isGenerating: boolean;
+  isPreviewing: boolean;
+  parameters: ConfigurationParameter[];
+  presets: ConfigurationPreset[];
+  selectedPresetId: string;
+  onDraftChange: (parameterId: string, value: string | number | boolean) => void;
+  onGenerate: () => void;
+  onPresetChange: (presetId: string) => void;
+  onPreview: () => void;
+}) {
+  if (parameters.length === 0) {
+    return null;
+  }
+  return (
+    <section className="configuration-panel" aria-label="Configure parameters">
+      <div className="section-heading">
+        <div>
+          <h2>Configure</h2>
+          <p>{configurationStateLabel(change?.validation_state ?? null)}</p>
+        </div>
+      </div>
+      {presets.length > 0 ? (
+        <label>
+          Preset
+          <select value={selectedPresetId} onChange={(event) => onPresetChange(event.target.value)}>
+            <option value="">Custom</option>
+            {presets.map((preset) => (
+              <option key={`${preset.source}-${preset.preset_id}`} value={preset.preset_id}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      <div className="configuration-controls">
+        {parameters.map((parameter) => {
+          const kind = configurationControlKind(parameter);
+          const value = draft[parameter.id] ?? parameter.value ?? "";
+          return (
+            <label key={parameter.id}>
+              <span>
+                {parameter.label}
+                {parameter.unit ? ` (${parameter.unit})` : ""}
+              </span>
+              {kind === "checkbox" ? (
+                <input
+                  checked={Boolean(value)}
+                  type="checkbox"
+                  onChange={(event) => onDraftChange(parameter.id, event.target.checked)}
+                />
+              ) : kind === "select" ? (
+                <select
+                  value={String(value)}
+                  onChange={(event) => onDraftChange(parameter.id, event.target.value)}
+                >
+                  {parameter.allowed_values.map((option) => (
+                    <option key={String(option)} value={String(option)}>
+                      {String(option)}
+                    </option>
+                  ))}
+                </select>
+              ) : kind === "number" ? (
+                <input
+                  max={parameter.maximum ?? undefined}
+                  min={parameter.minimum ?? undefined}
+                  step={parameter.type === "integer" ? 1 : 0.1}
+                  type="number"
+                  value={String(value)}
+                  onChange={(event) => onDraftChange(parameter.id, event.target.value)}
+                />
+              ) : (
+                <input disabled value={String(value)} readOnly />
+              )}
+              <small>
+                {parameter.editable && parameter.source_mapped ? "Editable" : "Requires design revision"}
+                {parameter.affected_outputs.length > 0 ? ` - outputs: ${parameter.affected_outputs.join(", ")}` : ""}
+              </small>
+            </label>
+          );
+        })}
+      </div>
+      {change ? (
+        <div className={`configuration-summary ${change.validation_state}`}>
+          <p>{configurationImpactLabel(change)}</p>
+          {change.validation_errors.length > 0 ? (
+            <ul>
+              {change.validation_errors.map((error) => (
+                <li key={`${error.code}-${error.parameter_id}`}>
+                  {error.parameter_id}: {error.message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="actions">
+        <button className="secondary" disabled={isPreviewing || isGenerating} onClick={onPreview}>
+          {isPreviewing ? "Previewing" : "Preview configuration"}
+        </button>
+        <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
+          {isGenerating ? "Generating" : "Generate candidate"}
+        </button>
+      </div>
+    </section>
+  );
 }
 
 function CandidateReview({
@@ -3517,6 +3806,42 @@ async function requestEmpty(path: string, init: RequestInit): Promise<void> {
   if (!response.ok) {
     throw new Error(await responseErrorMessage(response));
   }
+}
+
+async function requestText(path: string, init: RequestInit): Promise<string> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: {},
+    ...init,
+  });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return response.text();
+}
+
+function normalizeConfigurationValue(
+  parameter: ConfigurationParameter,
+  value: string | number | boolean,
+): string | number | boolean {
+  if (parameter.type === "integer") {
+    return Number.parseInt(String(value), 10);
+  }
+  if (parameter.type === "number") {
+    return Number.parseFloat(String(value));
+  }
+  if (parameter.type === "boolean") {
+    return Boolean(value);
+  }
+  return String(value);
+}
+
+function configurationDraftValues(values: Record<string, unknown>): Record<string, string | number | boolean> {
+  return Object.fromEntries(
+    Object.entries(values).filter((entry): entry is [string, string | number | boolean] => {
+      const value = entry[1];
+      return typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+    }),
+  );
 }
 
 async function responseErrorMessage(response: Response): Promise<string> {

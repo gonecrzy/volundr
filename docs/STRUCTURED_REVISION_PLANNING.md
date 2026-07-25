@@ -200,7 +200,7 @@ Accepted legacy revisions without an approved Design Plan remain loadable. Struc
 
 ## Known Limitations
 
-- no direct parameter editing or preset switching in this pass
+- direct editable parameter changes and preset switching use the deterministic configuration workflow in `docs/PARAMETER_CONFIGURATION.md`
 - no full Design Plan regeneration loop for complex revisions
 - no automatic component-targeted partial source regeneration
 - no geometric proof that untouched outputs are physically identical
