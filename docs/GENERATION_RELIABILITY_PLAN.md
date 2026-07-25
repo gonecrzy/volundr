@@ -160,6 +160,8 @@ Implementation status update: approved Design Plan `printable_outputs` now produ
 
 Implementation status update: structured revision planning now consumes the Design Specification, approved Design Plan, output manifest, source metadata, and selected validation findings. `revision-planning-v1` produces immutable scoped plans that require explicit approval before source modification. Component-targeted structural revisions use `openscad-component-revision-v1`, return complete source, preserve active configuration context, block unauthorized protected module/shared-module/interface changes before compile, and compare protected outputs after compile. Full behavior is defined in `docs/STRUCTURED_REVISION_PLANNING.md` and `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
+Implementation status update: Volundr now has `live-benchmark-harness-v1` for controlled generation-quality evaluation. The harness writes run manifests, artifact collections, prompt-version comparisons, human scoring forms, aggregate metrics, and quota-controlled dry-run or explicitly approved Gemini runs. It does not promote prompt versions. Results should determine whether the next work belongs in prompt quality, Design Plan quality, component decomposition, parameter modeling, geometry generation, printability, revision preservation, or UX. Full behavior is defined in `docs/LIVE_GENERATION_EVALUATION.md`.
+
 ## Priority 2: Validation And Acceptance
 
 ### 10. Add automatic validation summary after compile

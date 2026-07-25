@@ -9,11 +9,13 @@ This benchmark set measures whether prompt and pipeline changes improve practica
 - Fake-provider deterministic regression: every commit.
 - Core suite: frequent smoke coverage on every prompt or pipeline change.
 - Full stability suite: all benchmark categories before declaring a prompt architecture stable.
+- Live evaluation harness: controlled artifact-producing runs using `docs/LIVE_GENERATION_EVALUATION.md`; dry-run first, then explicitly approved Gemini runs.
 - Gemini smoke suite: 1 run per core benchmark after prompt changes.
 - Gemini stability suite: 5 runs for ordinary full-suite generation benchmarks; 10 runs for clarification, conflict, and revision benchmarks.
 - Repair benchmarks: 3 runs per repair case.
 
 Prompt changes are not considered improvements unless they reduce accepted models with blocking validation failures and preserve or improve extraction/compile success.
+Live benchmark runs do not promote prompts automatically. Reviewers must score artifacts and decide whether failures point to prompt quality, Design Plan quality, component decomposition, parameter modeling, geometry generation, printability, revision preservation, or UX.
 
 ## Shared Acceptance Criteria
 
@@ -47,6 +49,8 @@ Protected design invariants include user-provided dimensions, required features,
 Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, and conflicting dimensions. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, and the remaining model categories.
 
 Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated. Fixture-generated meshes should also include expected geometric invariant assertions for supported cases: bounding dimensions, build-plate placement, cylindrical hole diameter, hole count, hole spacing, and wall-thickness estimates.
+
+Live evaluation artifacts are written under `output/live-benchmarks/` and are intentionally ignored by git. Each run stores `run-manifest.json`, prompt-version comparison, per-case reports, human scoring forms, rendered prompts, and any provider outputs collected during live mode. See `docs/LIVE_GENERATION_EVALUATION.md` for the manifest schema and quota controls.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 

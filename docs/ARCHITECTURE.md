@@ -38,6 +38,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - persisted validation findings               │
 │ - asset delivery                              │
 │ - output manifest and ZIP export              │
+│ - live benchmark artifact collection          │
 │ - SQLite persistence                          │
 └───────────────┬───────────────────┬───────────┘
                 │                   │
@@ -92,6 +93,7 @@ Responsibilities:
 - structured revision-plan persistence and compliance validation
 - per-output compile/retry orchestration
 - project export packaging
+- controlled live generation benchmark evaluation
 - validation finding persistence and blocking/advisory enforcement
 - Gemini CLI provider
 - generation job state

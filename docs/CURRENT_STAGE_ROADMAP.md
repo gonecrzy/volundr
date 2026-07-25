@@ -202,6 +202,14 @@ Next implementation boundary:
 - run real-world generation-quality testing with varied functional products before expanding revision intelligence
 - do not begin slicer integration, source-fragment generation, or automatic geometry correction
 
+Live generation-quality evaluation pass:
+
+- `live-benchmark-harness-v1` creates controlled run manifests, artifact directories, prompt-version comparisons, per-case reports, human scoring forms, aggregate metrics, and quota gates
+- dry-run mode verifies benchmark selection and artifact capture without provider calls
+- live Gemini mode requires explicit opt-in and remains bounded by run and token limits
+- prompt promotion is intentionally disabled; results must be reviewed manually to decide whether the next work belongs in prompt quality, Design Plan quality, component decomposition, parameter modeling, geometry generation, printability, revision preservation, or UX
+- full behavior is defined in `docs/LIVE_GENERATION_EVALUATION.md`
+
 Correct trajectory from the geometric invariant checkpoint:
 
 ```text
@@ -210,9 +218,10 @@ Correct trajectory from the geometric invariant checkpoint:
 3. Structured revision planning
 4. Component-targeted full-source revisions
 5. Parameter controls and preset switching
-6. Assembly instructions and export packaging
-7. Complex real-world benchmark testing
-8. Slicer integration and deeper printability checks
+6. Live generation-quality evaluation
+7. Evidence-driven prompt, planning, decomposition, parameter, geometry, printability, revision, or UX improvements
+8. Assembly instructions and export packaging
+9. Slicer integration and deeper printability checks
 ```
 
 Deferred stabilization work:

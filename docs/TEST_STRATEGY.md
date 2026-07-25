@@ -123,6 +123,17 @@ Test:
 - advisory validation findings can be dismissed without deletion
 - blocking validation findings cannot be dismissed into acceptability
 
+### Live Generation Evaluation Harness
+
+Test:
+
+- dry-run benchmark runs write `run-manifest.json`, `aggregate-metrics.json`, `prompt-version-comparison.json`, per-case reports, prompt artifacts, and human scoring forms
+- live Gemini mode is rejected unless explicitly enabled with the live-provider flag
+- total run count and estimated prompt tokens are capped before provider calls
+- repeated runs produce distinct case-run IDs
+- prompt-version comparisons are report-only and cannot promote prompts
+- run artifacts preserve benchmark input, prompt-template versions, provider settings, ruleset version, prompt hashes, status, and failure class
+
 ## Frontend Tests
 
 Use Vitest for:
