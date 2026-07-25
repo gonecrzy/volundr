@@ -102,7 +102,7 @@ Exit criteria:
 
 ## Stage 4 — Projects and Revision History
 
-Status: In progress
+Status: Complete
 
 Current status:
 
@@ -112,6 +112,7 @@ Current status:
 - successful prior revisions can be restored
 - failed AI attempts remain visible and are not accepted
 - projects can be renamed and archived
+- project messages are persisted and shown in the workspace
 
 Goals:
 

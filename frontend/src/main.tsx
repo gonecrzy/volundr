@@ -42,6 +42,14 @@ type Project = {
   active_revision_id: string | null;
 };
 
+type ProjectMessage = {
+  id: string;
+  revision_id: string | null;
+  role: string;
+  content: string;
+  created_at: string;
+};
+
 type MeshMetadata = {
   size_x_mm: number;
   size_y_mm: number;
@@ -76,6 +84,7 @@ function App() {
   const [project, setProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [projectMessages, setProjectMessages] = useState<ProjectMessage[]>([]);
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -141,6 +150,7 @@ function App() {
       setProjects((current) => current.filter((entry) => entry.id !== project.id));
       setProject(null);
       setRevisions([]);
+      setProjectMessages([]);
       setSelectedRevision(null);
       setCompileLog(null);
       setAiOutput(null);
@@ -184,6 +194,7 @@ function App() {
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Compiled" : revision.error_message ?? "Compile failed");
       await loadCompileLog(revision);
+      await loadProjectMessages(currentProject.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Request failed");
     } finally {
@@ -222,6 +233,7 @@ function App() {
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Generated" : revision.error_message ?? "Generation failed");
       await selectRevision(revision);
+      await loadProjectMessages(currentProject.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Generation failed");
     } finally {
@@ -243,6 +255,7 @@ function App() {
     setProject(nextProject);
     setProjectName(nextProject.name);
     setIntent(nextProject.original_intent);
+    await loadProjectMessages(nextProject.id);
     const nextRevisions = await request<Revision[]>(`/projects/${nextProject.id}/revisions`, {
       method: "GET",
     });
@@ -257,6 +270,16 @@ function App() {
     } else {
       setCompileLog(null);
       setAiOutput(null);
+    }
+  }
+
+  async function loadProjectMessages(projectId: string) {
+    try {
+      setProjectMessages(await request<ProjectMessage[]>(`/projects/${projectId}/messages`, {
+        method: "GET",
+      }));
+    } catch {
+      setProjectMessages([]);
     }
   }
 
@@ -365,6 +388,8 @@ function App() {
               </button>
             ))}
           </div>
+          <h2>Messages</h2>
+          <MessageList messages={projectMessages} />
           {message ? <p className="message">{message}</p> : null}
         </aside>
 
@@ -412,6 +437,22 @@ function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function MessageList({ messages }: { messages: ProjectMessage[] }) {
+  if (messages.length === 0) {
+    return <p className="empty">No messages</p>;
+  }
+  return (
+    <div className="message-list">
+      {messages.map((message) => (
+        <div className="project-message" key={message.id}>
+          <span>{message.role.replace("_", " ")}</span>
+          <p>{message.content}</p>
+        </div>
+      ))}
+    </div>
   );
 }
 

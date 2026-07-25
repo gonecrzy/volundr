@@ -200,6 +200,38 @@ def test_archived_project_is_hidden_from_default_project_list(tmp_path: Path) ->
     assert [project["id"] for project in projects] == [kept_project["id"]]
 
 
+def test_project_messages_record_project_and_revision_events(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Message ledger",
+            "original_intent": "Create a traceable project.",
+        },
+    ).json()
+
+    revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "cube([10, 20, 30]);",
+            "user_instruction": "Initial traceable model.",
+        },
+    ).json()
+
+    response = client.get(f"/api/projects/{project['id']}/messages")
+
+    assert response.status_code == 200
+    messages = response.json()
+    assert [(entry["role"], entry["content"]) for entry in messages] == [
+        ("user", "Create a traceable project."),
+        ("system_event", "Project created"),
+        ("user", "Initial traceable model."),
+        ("system_event", "Revision R1 succeeded"),
+    ]
+    assert messages[2]["revision_id"] == revision["id"]
+    assert messages[3]["revision_id"] == revision["id"]
+
+
 def test_failed_manual_revision_does_not_replace_active_revision(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     project = client.post(

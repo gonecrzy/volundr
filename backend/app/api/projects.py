@@ -10,6 +10,7 @@ from app.schemas.project import (
     ManualRevisionCreate,
     GenerationCreate,
     ProjectCreate,
+    ProjectMessageRead,
     ProjectRead,
     ProjectUpdate,
     RevisionRead,
@@ -62,6 +63,18 @@ def get_project(project_id: str, db: Session = Depends(get_db)) -> ProjectRead:
     if project is None:
         raise HTTPException(status_code=404, detail="project not found")
     return project
+
+
+@router.get("/projects/{project_id}/messages", response_model=list[ProjectMessageRead])
+def list_project_messages(
+    project_id: str,
+    db: Session = Depends(get_db),
+) -> list[ProjectMessageRead]:
+    service = ProjectService(db=db)
+    messages = service.list_project_messages(project_id)
+    if messages is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return messages
 
 
 @router.post("/projects/{project_id}/revisions", response_model=RevisionRead, status_code=201)

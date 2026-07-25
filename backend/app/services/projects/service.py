@@ -9,12 +9,14 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.project import Project, utcnow as project_utcnow
+from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.schemas.project import (
     GenerationCreate,
     ManualRevisionCreate,
     MeshMetadataRead,
     ProjectCreate,
+    ProjectMessageRead,
     ProjectUpdate,
     RevisionRead,
 )
@@ -45,6 +47,19 @@ class ProjectService:
             original_intent=payload.original_intent.strip(),
         )
         self.db.add(project)
+        self.db.flush()
+        self._record_message(
+            project_id=project.id,
+            revision_id=None,
+            role="user",
+            content=project.original_intent,
+        )
+        self._record_message(
+            project_id=project.id,
+            revision_id=None,
+            role="system_event",
+            content="Project created",
+        )
         self.db.commit()
         self.db.refresh(project)
         return project
@@ -60,6 +75,16 @@ class ProjectService:
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
+
+    def list_project_messages(self, project_id: str) -> list[ProjectMessageRead] | None:
+        if self.db.get(Project, project_id) is None:
+            return None
+        messages = self.db.scalars(
+            select(ProjectMessage)
+            .where(ProjectMessage.project_id == project_id)
+            .order_by(ProjectMessage.created_at.asc())
+        )
+        return [ProjectMessageRead.model_validate(message) for message in messages]
 
     def update_project(self, project_id: str, payload: ProjectUpdate) -> Project | None:
         project = self.db.get(Project, project_id)
@@ -82,6 +107,12 @@ class ProjectService:
             return None
         project.status = "archived"
         project.archived_at = project_utcnow()
+        self._record_message(
+            project_id=project.id,
+            revision_id=None,
+            role="system_event",
+            content="Project archived",
+        )
         self.db.commit()
         self.db.refresh(project)
         return project
@@ -231,6 +262,7 @@ class ProjectService:
         revision.scad_source_path = self._relative(source_path)
         revision.ai_output_path = self._relative(ai_output_path)
         revision.compile_log_path = self._relative(compile_log_path)
+        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision, error_message=error_message)
@@ -298,6 +330,7 @@ class ProjectService:
         revision.stl_path = stl_relative_path
         revision.compile_log_path = self._relative(compile_log_path)
         revision.ai_output_path = ai_output_relative_path
+        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision, metadata=metadata, error_message=result.error_message)
@@ -348,9 +381,53 @@ class ProjectService:
         if project is None:
             return None
         project.active_revision_id = revision.id
+        self._record_message(
+            project_id=project.id,
+            revision_id=revision.id,
+            role="system_event",
+            content=f"Restored R{revision.revision_number}",
+        )
         self.db.commit()
         self.db.refresh(project)
         return project
+
+    def _record_revision_messages(
+        self,
+        *,
+        revision: Revision,
+        user_instruction: str | None,
+    ) -> None:
+        if user_instruction:
+            self._record_message(
+                project_id=revision.project_id,
+                revision_id=revision.id,
+                role="user",
+                content=user_instruction,
+            )
+        self._record_message(
+            project_id=revision.project_id,
+            revision_id=revision.id,
+            role="system_event",
+            content=f"Revision R{revision.revision_number} {revision.status}",
+        )
+
+    def _record_message(
+        self,
+        *,
+        project_id: str,
+        revision_id: str | None,
+        role: str,
+        content: str,
+    ) -> None:
+        self.db.add(
+            ProjectMessage(
+                project_id=project_id,
+                revision_id=revision_id,
+                role=role,
+                content=content,
+                created_at=project_utcnow(),
+            )
+        )
 
     def _revision_read(
         self,

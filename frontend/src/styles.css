@@ -150,7 +150,8 @@ input {
 }
 
 .project-list,
-.revision-list {
+.revision-list,
+.message-list {
   display: grid;
   gap: 8px;
   margin-bottom: 18px;
@@ -180,6 +181,29 @@ input {
 .revision.selected {
   border-color: #2f6f6d;
   box-shadow: inset 3px 0 0 #2f6f6d;
+}
+
+.project-message {
+  background: #ffffff;
+  border: 1px solid #d9ded7;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.project-message span {
+  color: #647068;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.project-message p {
+  color: #27302b;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  margin: 0;
 }
 
 .viewer-panel {

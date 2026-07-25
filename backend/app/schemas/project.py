@@ -27,6 +27,17 @@ class ProjectRead(BaseModel):
     archived_at: datetime | None
 
 
+class ProjectMessageRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    revision_id: str | None
+    role: str
+    content: str
+    created_at: datetime
+
+
 class ManualRevisionCreate(BaseModel):
     scad_source: str = Field(min_length=1)
     user_instruction: str | None = None
