@@ -71,7 +71,7 @@ Exit criteria:
 
 ## Stage 3 — Gemini CLI Generation
 
-Status: In progress
+Status: Complete
 
 Current status:
 
@@ -102,7 +102,15 @@ Exit criteria:
 
 ## Stage 4 — Projects and Revision History
 
-Status: Not started
+Status: In progress
+
+Current status:
+
+- immutable revision records are persisted
+- parent revision IDs are stored for manual, AI, and repair revisions
+- active revision is updated only by successful compiles or restore
+- successful prior revisions can be restored
+- failed AI attempts remain visible and are not accepted
 
 Goals:
 
@@ -120,7 +128,13 @@ Exit criteria:
 
 ## Stage 5 — Conversational Revisions
 
-Status: Not started
+Status: In progress
+
+Current status:
+
+- generation uses the active revision source as current-source context
+- follow-up AI revisions are labeled `ai_revision`
+- failed follow-up generations use the same preservation and bounded repair path as initial generations
 
 Goals:
 

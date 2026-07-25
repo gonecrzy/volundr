@@ -79,10 +79,19 @@ class ProjectService:
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
 
+        current_source = None
+        source_type = "ai_initial"
+        if project.active_revision_id is not None:
+            current_source = self.read_revision_source(project.active_revision_id)
+            if current_source is None:
+                raise RuntimeError("active revision source is missing")
+            source_type = "ai_revision"
+
         generation_result = await self.ai_provider.generate_model(
             self._generation_request(
                 project=project,
                 payload=payload,
+                current_source=current_source,
             )
         )
         try:
@@ -91,7 +100,7 @@ class ProjectService:
             return self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
-                source_type="ai_initial",
+                source_type=source_type,
                 raw_ai_output=generation_result.raw_output,
                 error_message=str(exc),
             )
@@ -100,7 +109,7 @@ class ProjectService:
             project_id=project_id,
             scad_source=scad_source,
             user_instruction=payload.user_instruction,
-            source_type="ai_initial",
+            source_type=source_type,
             raw_ai_output=generation_result.raw_output,
         )
         if initial_revision is None or initial_revision.status == "succeeded":

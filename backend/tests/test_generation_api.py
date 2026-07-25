@@ -87,6 +87,26 @@ main_model();
         return ModelGenerationResult(raw_output=source, provider="fake", provider_model="fake-model")
 
 
+class ContextAwareAiProvider:
+    def __init__(self) -> None:
+        self.requests: list[ModelGenerationRequest] = []
+
+    async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        self.requests.append(request)
+        return ModelGenerationResult(
+            raw_output="""
+```scad
+module main_model() {
+  cube([20, 10, 10]);
+}
+main_model();
+```
+""",
+            provider="fake",
+            provider_model="fake-model",
+        )
+
+
 class FakeCadRunner:
     async def compile(self, source: str, job_id: str) -> CadCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-generation-jobs" / job_id
@@ -284,6 +304,51 @@ def test_generation_repairs_once_after_compile_failure(tmp_path: Path) -> None:
     assert [entry["status"] for entry in revisions] == ["failed", "succeeded"]
     assert revisions[0]["source_type"] == "ai_initial"
     assert revisions[1]["source_type"] == "ai_repair"
+
+
+def test_generation_with_active_revision_uses_current_source_context(tmp_path: Path) -> None:
+    provider = ContextAwareAiProvider()
+    client = build_client(tmp_path)
+    app.dependency_overrides[get_ai_provider] = lambda: provider
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Resize generated part",
+            "original_intent": "Create a configurable block.",
+        },
+    ).json()
+    manual_source = """
+module main_model() {
+  cube([10, 10, 10]);
+}
+main_model();
+"""
+    base_revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": manual_source,
+            "user_instruction": "Initial manual cube.",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/projects/{project['id']}/generate",
+        json={"user_instruction": "Make it 20 mm wide while preserving the other dimensions."},
+    )
+
+    assert response.status_code == 201
+    revision = response.json()
+    assert revision["source_type"] == "ai_revision"
+    assert revision["parent_revision_id"] == base_revision["id"]
+    assert revision["status"] == "succeeded"
+    assert len(provider.requests) == 1
+    assert provider.requests[0].current_source == manual_source
+    assert provider.requests[0].compiler_diagnostics is None
+
+    refreshed_project = client.get(f"/api/projects/{project['id']}").json()
+    assert refreshed_project["active_revision_id"] == revision["id"]
+    revisions = client.get(f"/api/projects/{project['id']}/revisions").json()
+    assert [entry["source_type"] for entry in revisions] == ["manual_edit", "ai_revision"]
 
 
 def test_gemini_cli_provider_uses_headless_trust_flag() -> None:

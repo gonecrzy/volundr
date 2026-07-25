@@ -90,6 +90,9 @@ The frontend includes the Stage 2 manual CAD workspace and Stage 3 Gemini
 generation path. Live generation requires Gemini CLI authentication in the API
 container profile or a `GEMINI_API_KEY` in `.env`.
 
+If a project has an active revision, the Generate action sends that revision's
+OpenSCAD source as context and stores the result as a follow-up AI revision.
+
 ## Gemini CLI Setup
 
 The API service is the only service that mounts Gemini credentials:
