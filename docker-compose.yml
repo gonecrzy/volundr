@@ -21,7 +21,7 @@ services:
       VOLUNDR_DATA_DIR: /app/data
       VOLUNDR_CAD_WORKSPACE_DIR: /app/data/jobs
       VOLUNDR_GEMINI_BINARY: gemini
-      VOLUNDR_GEMINI_MODEL: ${VOLUNDR_GEMINI_MODEL:-}
+      VOLUNDR_GEMINI_MODEL: ${VOLUNDR_GEMINI_MODEL:-gemini-3.5-flash-lite}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}:/app/data

@@ -11,6 +11,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
+from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
@@ -163,3 +164,12 @@ def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> No
 
     assert response.status_code == 502
     assert response.json()["detail"] == "Gemini CLI authentication failed"
+
+
+def test_gemini_cli_provider_uses_headless_trust_flag() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+
+    command = provider.build_command("prompt")
+
+    assert "--skip-trust" in command
+    assert command[-2:] == ["--model", "gemini-3.5-flash-lite"]

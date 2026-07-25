@@ -104,6 +104,13 @@ button. The current host test with Gemini CLI `0.44.1` failed with
 longer supported for the account tier. Live generation remains blocked until the
 Gemini CLI account/client is migrated or re-authenticated successfully.
 
+For API-key based auth, set:
+
+```bash
+GEMINI_API_KEY=<your key>
+VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
+```
+
 ## Manual Compile API
 
 Create a project:

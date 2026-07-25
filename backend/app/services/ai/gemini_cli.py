@@ -18,9 +18,7 @@ class GeminiCliProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         prompt = self._build_prompt(request)
-        command = [self.binary, "-p", prompt, "--output-format", "text"]
-        if self.model:
-            command.extend(["--model", self.model])
+        command = self.build_command(prompt)
 
         process = await asyncio.create_subprocess_exec(
             *command,
@@ -46,6 +44,12 @@ class GeminiCliProvider:
             provider="gemini_cli",
             provider_model=self.model,
         )
+
+    def build_command(self, prompt: str) -> list[str]:
+        command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]
+        if self.model:
+            command.extend(["--model", self.model])
+        return command
 
     def _build_prompt(self, request: ModelGenerationRequest) -> str:
         parts = [
