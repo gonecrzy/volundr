@@ -216,7 +216,7 @@ select {
 
 .viewer-toolbar,
 .viewer-help,
-.viewer-axis {
+.viewer-gizmo {
   position: absolute;
   z-index: 3;
 }
@@ -253,42 +253,23 @@ select {
   top: 54px;
 }
 
-.viewer-axis {
-  height: 70px;
-  right: 16px;
-  top: 16px;
-  width: 70px;
-}
-
-.axis-dot {
-  align-items: center;
+.viewer-gizmo {
+  background: rgba(248, 250, 247, 0.72);
+  border: 1px solid rgba(201, 209, 202, 0.9);
   border-radius: 999px;
-  color: #ffffff;
-  display: flex;
-  font-size: 0.68rem;
-  font-weight: 900;
-  height: 24px;
-  justify-content: center;
-  position: absolute;
-  width: 24px;
+  cursor: grab;
+  height: 86px;
+  right: 14px;
+  top: 14px;
+  width: 86px;
 }
 
-.axis-dot.x {
-  background: #cf4f5d;
-  right: 0;
-  top: 23px;
+.viewer-gizmo:active {
+  cursor: grabbing;
 }
 
-.axis-dot.y {
-  background: #79a638;
-  left: 22px;
-  top: 0;
-}
-
-.axis-dot.z {
-  background: #4d82d8;
-  bottom: 0;
-  left: 4px;
+.viewer-gizmo canvas {
+  display: block;
 }
 
 .prompt-dock {

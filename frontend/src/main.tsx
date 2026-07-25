@@ -1210,6 +1210,7 @@ function StlViewer({
   stlUrl: string | null;
 }) {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const gizmoRef = useRef<HTMLDivElement | null>(null);
   const fitViewRef = useRef<() => void>(() => undefined);
   const setViewRef = useRef<(view: ViewerCameraPreset) => void>(() => undefined);
 
@@ -1233,6 +1234,19 @@ function StlViewer({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
+
+    const gizmoMount = gizmoRef.current;
+    const gizmoRenderer = gizmoMount
+      ? new THREE.WebGLRenderer({ alpha: true, antialias: true })
+      : null;
+    const gizmoScene = createViewGizmoScene();
+    const gizmoCamera = new THREE.OrthographicCamera(-1.6, 1.6, 1.6, -1.6, 0.1, 20);
+    if (gizmoMount && gizmoRenderer) {
+      gizmoMount.replaceChildren();
+      gizmoRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      gizmoRenderer.setSize(86, 86);
+      gizmoMount.appendChild(gizmoRenderer.domElement);
+    }
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -1282,6 +1296,8 @@ function StlViewer({
     let modelGroup: THREE.Group | null = null;
     let modelBounds: THREE.Box3 | null = null;
     let disposed = false;
+    let gizmoDragging = false;
+    let lastGizmoPointer: { x: number; y: number } | null = null;
 
     const fitCameraToBounds = (preset: ViewerCameraPreset = "iso") => {
       const bounds = modelBounds ?? new THREE.Box3(
@@ -1302,6 +1318,48 @@ function StlViewer({
       camera.lookAt(center);
       controls.update();
     };
+
+    const orbitCameraFromGizmoDrag = (deltaX: number, deltaY: number) => {
+      const offset = camera.position.clone().sub(controls.target);
+      const spherical = new THREE.Spherical().setFromVector3(offset);
+      spherical.theta -= deltaX * 0.012;
+      spherical.phi = THREE.MathUtils.clamp(
+        spherical.phi - deltaY * 0.012,
+        0.08,
+        Math.PI - 0.08,
+      );
+      offset.setFromSpherical(spherical);
+      camera.position.copy(controls.target).add(offset);
+      camera.lookAt(controls.target);
+      controls.update();
+    };
+
+    const handleGizmoPointerDown = (event: PointerEvent) => {
+      gizmoDragging = true;
+      lastGizmoPointer = { x: event.clientX, y: event.clientY };
+      gizmoRenderer?.domElement.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    };
+    const handleGizmoPointerMove = (event: PointerEvent) => {
+      if (!gizmoDragging || !lastGizmoPointer) {
+        return;
+      }
+      orbitCameraFromGizmoDrag(
+        event.clientX - lastGizmoPointer.x,
+        event.clientY - lastGizmoPointer.y,
+      );
+      lastGizmoPointer = { x: event.clientX, y: event.clientY };
+      event.preventDefault();
+    };
+    const handleGizmoPointerUp = (event: PointerEvent) => {
+      gizmoDragging = false;
+      lastGizmoPointer = null;
+      gizmoRenderer?.domElement.releasePointerCapture(event.pointerId);
+    };
+    gizmoRenderer?.domElement.addEventListener("pointerdown", handleGizmoPointerDown);
+    gizmoRenderer?.domElement.addEventListener("pointermove", handleGizmoPointerMove);
+    gizmoRenderer?.domElement.addEventListener("pointerup", handleGizmoPointerUp);
+    gizmoRenderer?.domElement.addEventListener("pointercancel", handleGizmoPointerUp);
 
     fitViewRef.current = () => fitCameraToBounds("iso");
     setViewRef.current = (view: ViewerCameraPreset) => fitCameraToBounds(view);
@@ -1344,6 +1402,10 @@ function StlViewer({
       frame = requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
+      if (gizmoRenderer) {
+        updateViewGizmoCamera(gizmoCamera, camera, controls.target);
+        gizmoRenderer.render(gizmoScene, gizmoCamera);
+      }
     };
     animate();
 
@@ -1352,6 +1414,10 @@ function StlViewer({
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       controls.dispose();
+      gizmoRenderer?.domElement.removeEventListener("pointerdown", handleGizmoPointerDown);
+      gizmoRenderer?.domElement.removeEventListener("pointermove", handleGizmoPointerMove);
+      gizmoRenderer?.domElement.removeEventListener("pointerup", handleGizmoPointerUp);
+      gizmoRenderer?.domElement.removeEventListener("pointercancel", handleGizmoPointerUp);
       fitViewRef.current = () => undefined;
       setViewRef.current = () => undefined;
       scene.traverse((object) => {
@@ -1365,8 +1431,11 @@ function StlViewer({
           }
         }
       });
+      disposeObject(gizmoScene);
+      gizmoRenderer?.dispose();
       renderer.dispose();
       mount.replaceChildren();
+      gizmoMount?.replaceChildren();
     };
   }, [highlights, stlUrl]);
 
@@ -1387,11 +1456,12 @@ function StlViewer({
         </button>
       </div>
       <div className="viewer-help">Drag orbit · right drag pan · wheel zoom</div>
-      <div className="viewer-axis" aria-hidden="true">
-        <span className="axis-dot x">X</span>
-        <span className="axis-dot y">Y</span>
-        <span className="axis-dot z">Z</span>
-      </div>
+      <div
+        aria-label="Orientation gizmo"
+        className="viewer-gizmo"
+        ref={gizmoRef}
+        role="application"
+      />
       <div className="viewer" ref={mountRef} />
     </div>
   );
@@ -1437,6 +1507,74 @@ function createBuildPlateGrid(size: number) {
   return grid;
 }
 
+function createViewGizmoScene() {
+  const scene = new THREE.Scene();
+  scene.add(createGizmoAxis(new THREE.Vector3(1, 0, 0), 0xcf4f5d, "X"));
+  scene.add(createGizmoAxis(new THREE.Vector3(0, 1, 0), 0x79a638, "Y"));
+  scene.add(createGizmoAxis(new THREE.Vector3(0, 0, 1), 0x4d82d8, "Z"));
+  const origin = new THREE.Mesh(
+    new THREE.SphereGeometry(0.075, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0x6c756f }),
+  );
+  scene.add(origin);
+  return scene;
+}
+
+function createGizmoAxis(direction: THREE.Vector3, color: number, label: string) {
+  const group = new THREE.Group();
+  const material = new THREE.MeshBasicMaterial({ color });
+  const lineGeometry = new THREE.CylinderGeometry(0.022, 0.022, 0.82, 12);
+  const line = new THREE.Mesh(lineGeometry, material);
+  const midpoint = direction.clone().multiplyScalar(0.41);
+  line.position.copy(midpoint);
+  line.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+  group.add(line);
+
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.065, 0.18, 18), material);
+  head.position.copy(direction.clone().multiplyScalar(0.88));
+  head.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+  group.add(head);
+
+  const labelSprite = createGizmoLabel(label, color);
+  labelSprite.position.copy(direction.clone().multiplyScalar(1.14));
+  group.add(labelSprite);
+  return group;
+}
+
+function createGizmoLabel(label: string, color: number) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  const context = canvas.getContext("2d");
+  if (context) {
+    context.fillStyle = `#${color.toString(16).padStart(6, "0")}`;
+    context.beginPath();
+    context.arc(32, 32, 24, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = "#ffffff";
+    context.font = "bold 28px system-ui, sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(label, 32, 33);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+  sprite.scale.set(0.36, 0.36, 0.36);
+  return sprite;
+}
+
+function updateViewGizmoCamera(
+  gizmoCamera: THREE.OrthographicCamera,
+  mainCamera: THREE.PerspectiveCamera,
+  target: THREE.Vector3,
+) {
+  const direction = mainCamera.position.clone().sub(target).normalize();
+  gizmoCamera.position.copy(direction.multiplyScalar(4));
+  gizmoCamera.up.copy(mainCamera.up);
+  gizmoCamera.lookAt(0, 0, 0);
+  gizmoCamera.updateProjectionMatrix();
+}
+
 function replaceBuildPlateGrid(scene: THREE.Scene, grid: THREE.GridHelper, bounds: THREE.Box3) {
   const size = bounds.getSize(new THREE.Vector3());
   const gridSize = Math.max(256, Math.ceil(Math.max(size.x, size.y) * 1.8 / 25) * 25);
@@ -1456,6 +1594,11 @@ function disposeObject(object: THREE.Object3D) {
       } else {
         material.dispose();
       }
+    }
+    if (entry instanceof THREE.Sprite) {
+      const material = entry.material;
+      material.map?.dispose();
+      material.dispose();
     }
   });
 }
