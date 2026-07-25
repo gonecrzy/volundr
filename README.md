@@ -4,10 +4,11 @@ Volundr is a self-hosted, single-user application for generating, compiling, pre
 
 ## Status
 
-Stage 1 is complete. Stage 2 is in progress with a manual OpenSCAD workspace:
-projects can be created, SCAD can be compiled into immutable revisions, source
-and STL assets are persisted, and the browser can display metadata plus an STL
-preview. Docker Compose is the official V1 deployment method.
+Stage 1 and Stage 2 are complete. The manual OpenSCAD workspace can create
+projects, compile SCAD into immutable revisions, persist source/STL/log/metadata
+assets, show compile diagnostics, restore successful revisions, preview STL
+geometry, and download SCAD/STL outputs. Docker Compose is the official V1
+deployment method.
 
 Implementation should begin with the secure OpenSCAD execution foundation described in:
 
@@ -85,7 +86,7 @@ Run the V1 service skeleton with:
 docker compose up --build
 ```
 
-The frontend includes the first Stage 2 workspace slice. Gemini integration and
+The frontend includes the Stage 2 manual CAD workspace. Gemini integration and
 conversational revision generation are intentionally not implemented yet.
 
 ## Manual Compile API

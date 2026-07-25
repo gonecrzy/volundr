@@ -74,11 +74,13 @@ function App() {
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [compileLog, setCompileLog] = useState<string | null>(null);
 
   const activeMetadata = selectedRevision?.metadata ?? null;
   const stlUrl = selectedRevision?.is_accepted
     ? `${API_BASE}/revisions/${selectedRevision.id}/stl`
     : null;
+  const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
 
   useEffect(() => {
     void refreshProjects();
@@ -123,6 +125,7 @@ function App() {
       setSelectedRevision(revision);
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Compiled" : revision.error_message ?? "Compile failed");
+      await loadCompileLog(revision);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Request failed");
     } finally {
@@ -136,6 +139,7 @@ function App() {
     if (response.ok) {
       setSource(await response.text());
     }
+    await loadCompileLog(revision);
   }
 
   async function selectProject(nextProject: Project) {
@@ -153,7 +157,28 @@ function App() {
     setSelectedRevision(activeRevision);
     if (activeRevision) {
       await selectRevision(activeRevision);
+    } else {
+      setCompileLog(null);
     }
+  }
+
+  async function loadCompileLog(revision: Revision) {
+    const response = await fetch(`${API_BASE}/revisions/${revision.id}/compile-log`);
+    setCompileLog(response.ok ? await response.text() : null);
+  }
+
+  async function restoreSelectedRevision() {
+    if (!selectedRevision) {
+      return;
+    }
+    const restoredProject = await request<Project>(`/revisions/${selectedRevision.id}/restore`, {
+      method: "POST",
+    });
+    setProject(restoredProject);
+    setProjects((current) =>
+      current.map((entry) => (entry.id === restoredProject.id ? restoredProject : entry)),
+    );
+    setMessage(`Restored R${selectedRevision.revision_number}`);
   }
 
   return (
@@ -207,7 +232,10 @@ function App() {
                 key={revision.id}
                 onClick={() => void selectRevision(revision)}
               >
-                <span>R{revision.revision_number}</span>
+                <span>
+                  R{revision.revision_number}
+                  {revision.id === project?.active_revision_id ? " active" : ""}
+                </span>
                 <span>{revision.status}</span>
               </button>
             ))}
@@ -222,11 +250,24 @@ function App() {
         <section className="metadata-panel" aria-label="Metadata">
           <h2>Metadata</h2>
           <Metadata metadata={activeMetadata} />
-          {stlUrl ? (
-            <a className="download" href={stlUrl}>
-              Download STL
-            </a>
-          ) : null}
+          <div className="actions">
+            {sourceUrl ? (
+              <a className="download" href={sourceUrl}>
+                Download SCAD
+              </a>
+            ) : null}
+            {stlUrl ? (
+              <a className="download" href={stlUrl}>
+                Download STL
+              </a>
+            ) : null}
+            {selectedRevision?.is_accepted && selectedRevision.id !== project?.active_revision_id ? (
+              <button className="download" onClick={() => void restoreSelectedRevision()}>
+                Restore
+              </button>
+            ) : null}
+          </div>
+          <Diagnostics log={compileLog} />
         </section>
 
         <section className="editor-panel" aria-label="OpenSCAD source">
@@ -246,6 +287,18 @@ function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function Diagnostics({ log }: { log: string | null }) {
+  if (!log?.trim()) {
+    return null;
+  }
+  return (
+    <section className="diagnostics" aria-label="Compile diagnostics">
+      <h2>Diagnostics</h2>
+      <pre>{log}</pre>
+    </section>
   );
 }
 

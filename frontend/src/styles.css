@@ -15,7 +15,8 @@ body {
 }
 
 button,
-input {
+input,
+a {
   font: inherit;
 }
 
@@ -50,6 +51,7 @@ input {
 
 .primary,
 .download,
+.project-item,
 .revision {
   border: 1px solid #aeb8ae;
   border-radius: 6px;
@@ -194,12 +196,39 @@ input {
   margin: 0;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
 .download {
   background: #ffffff;
   color: #27302b;
   display: inline-flex;
-  margin-top: 18px;
+  min-height: 36px;
   padding: 9px 12px;
+}
+
+.diagnostics {
+  border-top: 1px solid #d9ded7;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.diagnostics pre {
+  background: #1f2421;
+  border-radius: 6px;
+  color: #eef3ec;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+  max-height: 210px;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .editor-panel {

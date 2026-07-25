@@ -181,3 +181,42 @@ def test_failed_manual_revision_does_not_replace_active_revision(tmp_path: Path)
 
     refreshed_project = client.get(f"/api/projects/{project['id']}").json()
     assert refreshed_project["active_revision_id"] == first_revision["id"]
+
+    log_response = client.get(f"/api/revisions/{failed_revision['id']}/compile-log")
+    assert log_response.status_code == 200
+    assert log_response.text == "Parser error"
+
+
+def test_successful_revision_can_be_restored_as_active(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Handle",
+            "original_intent": "Create a simple handle.",
+        },
+    ).json()
+    first_revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "cube([10, 10, 10]);",
+            "user_instruction": "Initial manual model.",
+        },
+    ).json()
+    second_revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "cube([20, 10, 10]);",
+            "user_instruction": "Wider handle.",
+        },
+    ).json()
+    assert second_revision["is_accepted"] is True
+
+    restore_response = client.post(f"/api/revisions/{first_revision['id']}/restore")
+
+    assert restore_response.status_code == 200
+    restored_project = restore_response.json()
+    assert restored_project["active_revision_id"] == first_revision["id"]
+
+    source_response = client.get(f"/api/revisions/{first_revision['id']}/source")
+    assert source_response.headers["content-disposition"].endswith('filename="model.scad"')

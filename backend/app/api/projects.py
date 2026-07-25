@@ -71,12 +71,25 @@ def get_revision_source(
     revision_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    source_path = service.resolve_revision_source(revision_id)
+    if source_path is None:
+        raise HTTPException(status_code=404, detail="revision source not found")
+    return FileResponse(source_path, media_type="text/plain", filename="model.scad")
+
+
+@router.get("/revisions/{revision_id}/compile-log")
+def get_revision_compile_log(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
 ) -> PlainTextResponse:
     service = ProjectService(db=db, data_dir=data_dir)
-    source = service.read_revision_source(revision_id)
-    if source is None:
-        raise HTTPException(status_code=404, detail="revision source not found")
-    return PlainTextResponse(source, media_type="text/plain")
+    compile_log = service.read_revision_compile_log(revision_id)
+    if compile_log is None:
+        raise HTTPException(status_code=404, detail="revision compile log not found")
+    return PlainTextResponse(compile_log, media_type="text/plain")
 
 
 @router.get("/revisions/{revision_id}/stl")
@@ -90,3 +103,12 @@ def get_revision_stl(
     if stl_path is None:
         raise HTTPException(status_code=404, detail="revision STL not found")
     return FileResponse(stl_path, media_type="model/stl", filename="model.stl")
+
+
+@router.post("/revisions/{revision_id}/restore", response_model=ProjectRead)
+def restore_revision(revision_id: str, db: Session = Depends(get_db)) -> ProjectRead:
+    service = ProjectService(db=db)
+    project = service.restore_revision(revision_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="successful revision not found")
+    return project

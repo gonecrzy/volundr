@@ -109,10 +109,23 @@ class ProjectService:
         return self._revision_read(revision, metadata=metadata, error_message=result.error_message)
 
     def read_revision_source(self, revision_id: str) -> str | None:
+        path = self.resolve_revision_source(revision_id)
+        if path is None:
+            return None
+        return path.read_text(encoding="utf-8")
+
+    def resolve_revision_source(self, revision_id: str) -> Path | None:
         revision = self.db.get(Revision, revision_id)
-        if revision is None:
+        if revision is None or not revision.scad_source_path:
             return None
         path = self.data_dir / revision.scad_source_path
+        return path if path.exists() else None
+
+    def read_revision_compile_log(self, revision_id: str) -> str | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None or not revision.compile_log_path:
+            return None
+        path = self.data_dir / revision.compile_log_path
         if not path.exists():
             return None
         return path.read_text(encoding="utf-8")
@@ -123,6 +136,18 @@ class ProjectService:
             return None
         path = self.data_dir / revision.stl_path
         return path if path.exists() else None
+
+    def restore_revision(self, revision_id: str) -> Project | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None or revision.status != "succeeded":
+            return None
+        project = self.db.get(Project, revision.project_id)
+        if project is None:
+            return None
+        project.active_revision_id = revision.id
+        self.db.commit()
+        self.db.refresh(project)
+        return project
 
     def _revision_read(
         self,

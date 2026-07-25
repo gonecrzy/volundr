@@ -41,14 +41,17 @@ Exit criteria:
 
 ## Stage 2 — Browser CAD Workspace
 
-Status: In progress
+Status: Complete
 
-Current slice:
+Implemented:
 
 - manual project creation API
 - manual OpenSCAD revision compile API
 - persisted source, STL, compile log, and metadata files
 - browser workspace with OpenSCAD editor, compile action, revision list, STL preview, metadata, and STL download
+- SCAD download
+- compile diagnostics display
+- active revision restore for successful manual revisions
 
 Goals:
 
