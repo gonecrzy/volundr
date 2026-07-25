@@ -6,6 +6,9 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.playwright/
+.playwright-cli/
+output/
 node_modules/
 dist/
 *.tsbuildinfo

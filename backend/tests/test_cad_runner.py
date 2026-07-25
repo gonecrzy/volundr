@@ -29,6 +29,27 @@ async def test_openscad_runner_compiles_cube_and_returns_metadata(tmp_path: Path
 
 
 @pytest.mark.asyncio
+async def test_openscad_runner_allows_comments_and_division(tmp_path: Path) -> None:
+    runner = OpenScadCliRunner(workspace_root=tmp_path, timeout_seconds=15)
+
+    result = await runner.compile(
+        """// ===== QUALITY =====
+$fn = 24;
+width = 20;
+module main_model() {
+  translate([width / 2, 0, 0])
+    cube([width, 10, 5]);
+}
+main_model();
+""",
+        job_id="commented-job",
+    )
+
+    assert result.success is True
+    assert result.error_message is None
+
+
+@pytest.mark.asyncio
 async def test_openscad_runner_returns_structured_failure_for_invalid_scad(
     tmp_path: Path,
 ) -> None:

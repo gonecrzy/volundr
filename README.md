@@ -4,10 +4,10 @@ Volundr is a self-hosted, single-user application for generating, compiling, pre
 
 ## Status
 
-Milestone 1 implementation is in progress. The repository now has a FastAPI
-backend skeleton, SQLite model foundation, secure OpenSCAD runner tests, and
-Docker Compose service definitions. Docker Compose is the official V1 deployment
-method.
+Stage 1 is complete. Stage 2 is in progress with a manual OpenSCAD workspace:
+projects can be created, SCAD can be compiled into immutable revisions, source
+and STL assets are persisted, and the browser can display metadata plus an STL
+preview. Docker Compose is the official V1 deployment method.
 
 Implementation should begin with the secure OpenSCAD execution foundation described in:
 
@@ -85,6 +85,33 @@ Run the V1 service skeleton with:
 docker compose up --build
 ```
 
-The frontend is only a Milestone 1 placeholder. Gemini integration, the CAD
-workspace UI, project APIs, revision workflows, and STL preview are intentionally
-not implemented yet.
+The frontend includes the first Stage 2 workspace slice. Gemini integration and
+conversational revision generation are intentionally not implemented yet.
+
+## Manual Compile API
+
+Create a project:
+
+```bash
+curl -X POST http://localhost:8000/api/projects \
+  -H 'content-type: application/json' \
+  -d '{"name":"Mounting bracket","original_intent":"A flat bracket with two holes."}'
+```
+
+Compile a manual revision:
+
+```bash
+curl -X POST http://localhost:8000/api/projects/<project-id>/revisions \
+  -H 'content-type: application/json' \
+  -d '{"scad_source":"cube([10, 20, 30]);","user_instruction":"Initial manual model."}'
+```
+
+Successful revision assets are stored under:
+
+```text
+data/projects/<project-id>/revisions/<revision-id>/
+├── model.scad
+├── model.stl
+├── compile.log
+└── metadata.json
+```

@@ -208,10 +208,15 @@ class OpenScadCliRunner:
             return "source is empty"
         if len(source.encode("utf-8")) > self.max_source_bytes:
             return "source exceeds size limit"
+        screened_source = self._source_without_comments(source)
         for pattern in FORBIDDEN_SOURCE_PATTERNS:
-            if pattern.search(source):
+            if pattern.search(screened_source):
                 return "source contains forbidden file access"
         return None
+
+    def _source_without_comments(self, source: str) -> str:
+        without_block_comments = re.sub(r"/\*.*?\*/", "", source, flags=re.DOTALL)
+        return "\n".join(line.split("//", 1)[0] for line in without_block_comments.splitlines())
 
     def _job_dir(self, job_id: str) -> Path:
         safe_id = re.sub(r"[^A-Za-z0-9_.-]", "-", job_id).strip(".-")

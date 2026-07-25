@@ -16,7 +16,7 @@ Status: Complete
 
 ## Stage 1 — Secure CAD Runner
 
-Status: In progress
+Status: Complete
 
 Goals:
 
@@ -41,7 +41,14 @@ Exit criteria:
 
 ## Stage 2 — Browser CAD Workspace
 
-Status: Not started
+Status: In progress
+
+Current slice:
+
+- manual project creation API
+- manual OpenSCAD revision compile API
+- persisted source, STL, compile log, and metadata files
+- browser workspace with OpenSCAD editor, compile action, revision list, STL preview, metadata, and STL download
 
 Goals:
 
