@@ -105,8 +105,11 @@ Test:
 - structured revision planning creates immutable `revision-plan-v1` records from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
 - ambiguous revision requests create revision-plan clarification questions and no source generation
 - OpenSCAD revision generation cannot begin before Revision Plan approval
-- `openscad-revision-v2` receives the approved Revision Plan as its change authority
-- revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, and output changes before compile
+- `openscad-component-revision-v1` receives the approved Revision Plan, scoped revision context, active configuration context, selected findings, output manifest, and full base source
+- revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, output, shared-module, and interface changes before compile
+- protected output preservation compares compiled output metadata after compile and blocks confirmed drift
+- configured-base component revisions preserve override manifests and compile with the same `-D` values
+- `scope-correction-v1` runs at most once after source scope compliance failure and remains separate from contract/compile repair
 - Revision Success Results persist planned success checks after candidate generation
 - generated initial candidates link back to the Design Specification that produced them
 - create initial revision
@@ -189,6 +192,17 @@ Structured revision workflow coverage:
 8. Trigger a protected-scope compliance rejection before compile.
 9. Confirm no new candidate is created and the active revision remains unchanged.
 
+Component-targeted revision workflow coverage:
+
+1. Open an accepted multi-output configured product.
+2. Request a change to one component.
+3. Review Revision Plan scope.
+4. Approve revision.
+5. Confirm Gemini returns complete source and the target output changes.
+6. Confirm protected outputs remain equivalent or warn if preservation is unverifiable.
+7. Confirm configuration overrides remain active.
+8. Confirm pre-compile rejection when generated source changes a protected component or unapproved shared module.
+
 ## Fixture Models
 
 Maintain a small set of SCAD fixtures:
@@ -255,5 +269,8 @@ Design Plan tests must use fake providers and deterministic JSON fixtures. They 
 Multi-output tests must use fake providers and deterministic STL fixtures. They must cover required and optional outputs, selected-output compiler invocation, component-scoped findings, assembly candidate classification, output manifest reproducibility, retry without provider calls, and ZIP export contents.
 
 Structured revision tests must use fake providers and deterministic source/output fixtures. They must cover plan readiness, clarification, approval gating, finding-driven planning, superseding plans from clarification answers, prompt/model/ruleset persistence, revision compliance rejection before compile, success criteria, and active-revision preservation.
+
+Component-targeted revision tests must use fake providers and deterministic source/output fixtures. They must cover full-source prompt mode, source ownership markers, normalized module fingerprints, allowed versus unapproved shared-module changes, protected module drift, output preservation blocking, interface parameter checks, component revision summaries, and active configuration preservation.
+They must also cover that scope correction runs at most once and compilation begins only after corrected source passes scope compliance.
 
 Parameter configuration tests must use deterministic accepted-source fixtures and must not call a provider. They must cover editable parameter listing, number/integer/boolean/enum validation, non-editable and derived-parameter rejection, preset preview, dependency impact expansion, `-D` override compilation, active-revision preservation, configuration-linked candidates, retry/export manifest behavior, and UI rendering for ready/invalid/requires-revision states.

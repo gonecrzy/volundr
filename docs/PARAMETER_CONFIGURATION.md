@@ -106,6 +106,15 @@ accepted source + override manifest
 
 The resulting candidate links to `configuration_change_id`. The active accepted revision remains unchanged until the user accepts the candidate.
 
+If a later component-targeted AI revision uses a configured revision as its base, Volundr preserves the configuration context:
+
+- the override manifest is included in the component revision prompt
+- revised source must still expose every active override parameter
+- output compilation uses the same OpenSCAD `-D` overrides
+- the new candidate remains linked to the configuration change
+
+The source default assignment does not need to equal the configured override; the override manifest is the active configuration authority.
+
 ## Export
 
 Configuration-generated exports include:
@@ -120,5 +129,5 @@ The README lists the base revision, selected preset, explicit overrides, and sta
 ## Current Limitations
 
 - Design Plan expressions are not evaluated by the application; dependency edges are expanded for impact reporting only.
-- Full component-targeted regeneration remains part of structured revision planning.
+- Component-targeted AI revisions preserve active configuration context but do not yet regenerate a Design Plan for new structural parameter sets.
 - Legacy source without `@volundr-parameter` markers may be edited when exact assignment IDs are present, but new generated source should include markers.

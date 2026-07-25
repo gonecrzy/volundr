@@ -241,4 +241,53 @@ class RevisionSuccessResult(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     revision_plan = relationship("RevisionPlan")
+
+
+class ComponentRevisionSummary(Base):
+    __tablename__ = "component_revision_summaries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    project_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    revision_plan_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("revision_plans.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    revision_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("revisions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    base_revision_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("revisions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    generation_attempt_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("generation_attempts.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    base_source_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    revised_source_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    equivalence_profile_version: Mapped[str] = mapped_column(
+        String(80),
+        nullable=False,
+        default="output-preservation-v1",
+    )
+    summary_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    revision_plan = relationship("RevisionPlan")
+    revision = relationship("Revision", foreign_keys=[revision_id])
+    base_revision = relationship("Revision", foreign_keys=[base_revision_id])
     generation_attempt = relationship("GenerationAttempt")

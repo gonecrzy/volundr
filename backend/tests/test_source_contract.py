@@ -333,6 +333,43 @@ def test_scanner_extracts_design_plan_markers() -> None:
     assert metadata.output_mappings["bracket_output"].component_ids == ["bracket_body"]
 
 
+def test_scanner_extracts_shared_module_markers_and_module_fingerprints() -> None:
+    source = PLAN_SOURCE.replace(
+        "module mounting_holes() {",
+        "// @volundr-shared-module mounting_holes\nmodule mounting_holes() {",
+    )
+
+    metadata = scan_openscad_source(source).metadata
+
+    assert metadata.shared_module_mappings["mounting_holes"].target_name == "mounting_holes"
+    fingerprint = metadata.module_fingerprints["mounting_holes"]
+    assert fingerprint.is_shared is True
+    assert fingerprint.feature_ids == ["mounting_holes", "mounting_method"]
+    assert "hole_spacing" in fingerprint.referenced_parameters
+
+
+def test_module_fingerprints_ignore_comments_whitespace_and_numeric_formatting() -> None:
+    first = scan_openscad_source(PLAN_SOURCE).metadata.module_fingerprints["main_model"]
+    source = PLAN_SOURCE.replace(
+        "cube([plate_width, 30, plate_thickness]);",
+        "/* harmless */\n    cube([plate_width, 30.0, plate_thickness]);",
+    )
+    second = scan_openscad_source(source).metadata.module_fingerprints["main_model"]
+
+    assert second.normalized_hash == first.normalized_hash
+
+
+def test_module_fingerprints_detect_structural_module_changes() -> None:
+    first = scan_openscad_source(PLAN_SOURCE).metadata.module_fingerprints["main_model"]
+    source = PLAN_SOURCE.replace(
+        "cube([plate_width, 30, plate_thickness]);",
+        "cube([plate_width, 40, plate_thickness]);",
+    )
+    second = scan_openscad_source(source).metadata.module_fingerprints["main_model"]
+
+    assert second.normalized_hash != first.normalized_hash
+
+
 def test_scanner_extracts_multi_component_output_marker() -> None:
     source = PLAN_SOURCE.replace(
         "// @volundr-output bracket_output components=bracket_body",

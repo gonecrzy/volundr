@@ -26,7 +26,7 @@ accepted assembly revision
   -> clarification_required | revision_conflict | unsupported_revision | planning_failed
   -> revision_ready
   -> explicit plan approval
-  -> openscad-revision-v2
+  -> openscad-component-revision-v1 for component/output-scoped structural revisions
   -> source-contract validation
   -> revision compliance validation
   -> per-output compile and validation
@@ -119,6 +119,7 @@ rejected
   "targeted_features": ["lid_lip"],
   "targeted_outputs": ["lid"],
   "targeted_findings": [],
+  "allowed_shared_modules": ["fastener_hole"],
   "allowed_parameter_changes": ["lid_thickness", "lid_lip_depth"],
   "required_dependency_changes": [
     {"parameter_id": "lid_lip_depth", "affects": ["lid_lip"]}
@@ -131,6 +132,9 @@ rejected
   "protected_components": ["body"],
   "protected_features": ["mounting_tabs"],
   "protected_outputs": ["body"],
+  "protected_interfaces": [
+    {"id": "lid_body_attachment", "parameters": ["screw_spacing", "pin_diameter"]}
+  ],
   "prohibited_changes": ["Do not change body output geometry."],
   "success_criteria": [
     {"type": "parameter_value", "target_id": "lid_thickness", "expected_value": 4, "unit": "mm"},
@@ -160,7 +164,7 @@ Questions must reference named parameters, components, outputs, or findings when
 
 ## Compliance Checks
 
-After `openscad-revision-v2` returns revised source and before compilation, Volundr compares base and revised source metadata against the approved Revision Plan.
+After `openscad-component-revision-v1` returns revised complete source and before compilation, Volundr compares base and revised source metadata against the approved Revision Plan.
 
 Blocking compliance failures include:
 
@@ -171,10 +175,17 @@ Blocking compliance failures include:
 - missing protected output marker
 - required output removed
 - undeclared output rewrite that affects protected scope
+- protected module structural change
+- unapproved shared module structural change
+- unrelated module removal or structural change
+- undeclared component or output addition
+- protected interface parameter change
 - dependency update omitted when the plan requires it
 - revision source introduces a source-contract hard violation
 
 Allowed changes are limited to approved requested changes and required dependency changes. Static comparison is conservative; if a protected invariant cannot be verified from source metadata, the generation attempt fails before compile.
+
+Component-targeted full-source revisions and post-compile output preservation are defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
 ## Success Criteria
 
@@ -202,6 +213,6 @@ Accepted legacy revisions without an approved Design Plan remain loadable. Struc
 
 - direct editable parameter changes and preset switching use the deterministic configuration workflow in `docs/PARAMETER_CONFIGURATION.md`
 - no full Design Plan regeneration loop for complex revisions
-- no automatic component-targeted partial source regeneration
-- no geometric proof that untouched outputs are physically identical
+- no automatic component-targeted partial source regeneration; Gemini returns full source and Volundr verifies scoped changes
+- no exact geometric proof that untouched outputs are physically identical
 - no automatic repair of geometric or printability violations

@@ -158,7 +158,7 @@ Implementation status update: the immutable Parametric Product Model and `design
 
 Implementation status update: approved Design Plan `printable_outputs` now produce one authoritative SCAD source, one output artifact record per printable output, component-scoped validation findings, an assembly-level candidate, an output manifest, component STL downloads, and a deterministic ZIP export. The lifecycle is defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
-Implementation status update: structured revision planning now consumes the Design Specification, approved Design Plan, output manifest, source metadata, and selected validation findings. `revision-planning-v1` produces immutable scoped plans that require explicit approval before `openscad-revision-v2` can modify source. Revision compliance validation blocks unauthorized protected changes before compile. Full behavior is defined in `docs/STRUCTURED_REVISION_PLANNING.md`.
+Implementation status update: structured revision planning now consumes the Design Specification, approved Design Plan, output manifest, source metadata, and selected validation findings. `revision-planning-v1` produces immutable scoped plans that require explicit approval before source modification. Component-targeted structural revisions use `openscad-component-revision-v1`, return complete source, preserve active configuration context, block unauthorized protected module/shared-module/interface changes before compile, and compare protected outputs after compile. Full behavior is defined in `docs/STRUCTURED_REVISION_PLANNING.md` and `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
 ## Priority 2: Validation And Acceptance
 
@@ -226,7 +226,7 @@ Implementation policy:
 
 Do not implement this before `design-plan-v1`. Revision planning needs the product component graph and parameter dependency graph to determine what must update together.
 
-Implementation status: completed for structured planning and bounded source revisions. Geometric and validation findings can seed a Revision Plan; generated source is checked against approved change scope before compile; Revision Success Results are persisted after candidate generation. Deferred: direct parameter controls over the Design Plan, preset switching, and richer geometric proof of unchanged protected outputs.
+Implementation status: completed for structured planning, bounded source revisions, component-targeted full-source revisions, and deterministic parameter configuration. Geometric and validation findings can seed a Revision Plan; generated source is checked against approved component/output scope before compile; protected outputs are compared after compile; Revision Success Results and Component Revision Summaries are persisted after candidate generation. Deferred: full real-world quality measurement, richer interface geometry proof, and automatic redesign from validation findings.
 
 ## Priority 3: Product Confidence
 

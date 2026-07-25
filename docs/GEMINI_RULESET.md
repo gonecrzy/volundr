@@ -110,6 +110,7 @@ The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md
 7. Use geometry markers for declared bounds, axis-aligned holes, hole groups, and wall-thickness regions only when the generated source implements the corresponding feature.
 8. Preserve geometry markers during source-contract repair, compile repair, and AI revisions unless the related protected requirement is explicitly changed.
 9. For `openscad-generation-v5`, add `@volundr-component`, Design Plan `@volundr-feature`, `@volundr-dependency`, and `@volundr-output` markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`.
+10. Mark intentionally reusable utility modules with `@volundr-shared-module <module_name>`.
 
 ## Requirement Source Rules
 
@@ -165,15 +166,21 @@ Ask the smallest useful set of questions. Prefer one primary question when it un
 1. `revision-planning-v1` must return JSON only and must not generate OpenSCAD.
 2. A Revision Plan must identify requested changes, targets, required dependency changes, protected parameters/components/features/outputs, prohibited changes, and success criteria.
 3. Ask revision clarification when the target, value, affected component/output, dependency scope, or selected-finding correction strategy is ambiguous.
-4. `openscad-revision-v2` must use the approved Revision Plan as the only authority for what may change.
+4. `openscad-component-revision-v1` and `openscad-revision-v2` must use the approved Revision Plan as the only authority for what may change.
 5. Preserve original functional intent.
-6. Preserve all unrelated parameters, modules, components, features, dependency markers, geometry markers, and output markers.
+6. Preserve all unrelated parameters, modules, components, features, dependency markers, geometry markers, shared-module markers, and output markers.
 7. Preserve accepted assumptions unless the approved Revision Plan changes them.
 8. Make the smallest source change that satisfies the approved plan and its required dependencies.
 9. Do not rewrite the coordinate system, origin placement, or module architecture unless the approved plan requires it.
 10. Do not remove or rename unrelated printable outputs.
 11. If the requested revision conflicts with current critical dimensions, the planning stage must return `revision_conflict` or clarification.
 12. Return the complete revised source after applying an approved plan.
+13. For component-targeted revisions, edit only targeted components, targeted features, targeted outputs, and explicitly allowed shared modules.
+14. Preserve protected component modules, protected output mappings, and protected interface parameters.
+15. Preserve active configuration override parameters and do not reset configured values to Design Plan defaults.
+16. Do not add undeclared components or outputs during a component-targeted revision.
+17. Do not return a source fragment or request that Volundr merge a module into the existing file.
+18. In `scope-correction-v1`, revert unauthorized scope changes only; do not redesign the target again or introduce new dependencies.
 
 ## Compile Repair Rules
 

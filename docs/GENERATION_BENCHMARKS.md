@@ -78,6 +78,25 @@ Structured revision fixture expectations:
 - case/carrier revision: propagate tray count/profile changes through guides, case height, retention, handle, and reinforcement without treating the fishing-tray case as schema-specific logic
 - repeated-slot rack revision: propagate slot count through rack length and slot positions while protecting sheet thickness, clearance, slot spacing, and output identity
 
+Component-targeted revision fixture expectations:
+
+- enclosure lid-only revision: target `lid` and `box_lid`, preserve `base`, body output geometry, and lid/body interface parameters
+- handle-only revision: target `carry_handle`, allow only named shared fastener helper changes, preserve carrier body and retention outputs
+- mounting bracket correction: target the bracket output's hole feature, preserve mounting envelope and unrelated features
+- retention-feature replacement: target retention component/output, preserve case body and handle interfaces
+- configured product revision: preserve active override manifest and compile revised outputs with the same `-D` values
+- unauthorized protected-output drift: source contract may pass, but output preservation must block candidate acceptance
+
+Metrics added for this phase:
+
+- targeted component preservation rate
+- protected output preservation rate
+- interface preservation rate
+- unauthorized module-change rate
+- scope-correction rate
+- configured-value preservation rate
+- component revision acceptance rate
+
 ## Suites
 
 Core suite:

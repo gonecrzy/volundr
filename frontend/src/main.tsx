@@ -49,10 +49,12 @@ import {
 import {
   canApproveRevisionPlan,
   canGenerateFromRevisionPlan,
+  componentRevisionCounts,
   revisionComplianceBuckets,
   revisionPlanStageLabel,
   revisionPlanSummaryCounts,
   revisionSuccessBuckets,
+  type ComponentRevisionSummary,
   type RevisionComplianceResult,
   type RevisionPlanOutcome,
   type RevisionPlanReviewState,
@@ -488,6 +490,8 @@ function App() {
   const [revisionComplianceResult, setRevisionComplianceResult] =
     useState<RevisionComplianceResult | null>(null);
   const [revisionSuccessResults, setRevisionSuccessResults] = useState<RevisionSuccessResult[]>([]);
+  const [componentRevisionSummary, setComponentRevisionSummary] =
+    useState<ComponentRevisionSummary | null>(null);
   const [pendingRevisionFindingIds, setPendingRevisionFindingIds] = useState<string[]>([]);
   const [clarificationAnswers, setClarificationAnswers] = useState<Record<string, string>>({});
   const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
@@ -586,6 +590,7 @@ function App() {
     setRevisionPlanAnswers({});
     setRevisionComplianceResult(null);
     setRevisionSuccessResults([]);
+    setComponentRevisionSummary(null);
     setPendingRevisionFindingIds([]);
     setIsPlanningRevision(false);
     setIsRevisionPlanActionPending(false);
@@ -684,6 +689,15 @@ function App() {
       );
     } catch {
       setRevisionSuccessResults([]);
+    }
+    try {
+      setComponentRevisionSummary(
+        await request<ComponentRevisionSummary>(`/revision-plans/${plan.id}/component-revision-summary`, {
+          method: "GET",
+        }),
+      );
+    } catch {
+      setComponentRevisionSummary(null);
     }
   }
 
@@ -1037,6 +1051,8 @@ function App() {
     setSourceContractError(null);
     setRevisionComplianceResult(null);
     setRevisionSuccessResults([]);
+    setComponentRevisionSummary(null);
+    setComponentRevisionSummary(null);
     setGenerationPrompt("");
     setMessage("Planning revision");
     try {
@@ -1206,6 +1222,7 @@ function App() {
     await loadRevisionOutputs(revision);
     await loadCandidateFindings(revision);
     await loadGeometricAnalysis(revision);
+    await loadComponentRevisionSummary(revision);
     setPrintabilityReport(null);
     setDismissedPrintabilityResults(new Set());
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/source`);
@@ -1215,6 +1232,18 @@ function App() {
     await loadCompileLog(revision);
     await loadAiOutput(revision);
     await loadRevisionDiff(revision);
+  }
+
+  async function loadComponentRevisionSummary(revision: Revision) {
+    try {
+      setComponentRevisionSummary(
+        await request<ComponentRevisionSummary>(`/revisions/${revision.id}/component-revision-summary`, {
+          method: "GET",
+        }),
+      );
+    } catch {
+      setComponentRevisionSummary(null);
+    }
   }
 
   async function createDraftProject() {
@@ -1866,6 +1895,7 @@ function App() {
             acceptDisabledReason={acceptReason}
             canAccept={canAcceptSelectedRevision}
             findings={candidateFindings}
+            componentRevisionSummary={componentRevisionSummary}
             geometricAnalysis={geometricAnalysis}
             isPending={isReviewActionPending}
             outputs={revisionOutputs}
@@ -2565,6 +2595,7 @@ function CandidateReview({
   acceptDisabledReason,
   canAccept,
   findings,
+  componentRevisionSummary,
   geometricAnalysis,
   isPending,
   outputs,
@@ -2583,6 +2614,7 @@ function CandidateReview({
   acceptDisabledReason: string | null;
   canAccept: boolean;
   findings: CandidateFinding[];
+  componentRevisionSummary: ComponentRevisionSummary | null;
   geometricAnalysis: GeometricAnalysis | null;
   isPending: boolean;
   outputs: RevisionOutput[];
@@ -2651,6 +2683,7 @@ function CandidateReview({
         findings={sourceChecks.blocking.concat(sourceChecks.advisory)}
         showPassed={isCandidate}
       />
+      <ComponentRevisionSummaryView summary={componentRevisionSummary} />
       <GeometricCheckSummary
         analysis={geometricAnalysis}
         showLegacyMessage={revision.status === "succeeded" && !geometricAnalysis}
@@ -2735,6 +2768,56 @@ function OutputReview({
       </div>
     </div>
   );
+}
+
+function ComponentRevisionSummaryView({ summary }: { summary: ComponentRevisionSummary | null }) {
+  if (!summary) {
+    return null;
+  }
+  const counts = componentRevisionCounts(summary);
+  const payload = summary.summary;
+  return (
+    <div className="candidate-findings component-revision-summary">
+      <h3>Component revision</h3>
+      <dl className="review-facts compact">
+        <dt>Targets</dt>
+        <dd>{counts.targetedOutputs}</dd>
+        <dt>Protected</dt>
+        <dd>{counts.protectedOutputs}</dd>
+        <dt>Drift</dt>
+        <dd>{counts.unexpectedProtectedChanges}</dd>
+        <dt>Interfaces</dt>
+        <dd>{counts.verifiedInterfaces}/{counts.verifiedInterfaces + counts.violatedInterfaces}</dd>
+      </dl>
+      <SummaryList
+        title="Changed"
+        items={(payload.targeted_outputs ?? []).map(
+          (output) => `${output.output_id}: ${componentTargetStateLabel(output.change_state)}`,
+        )}
+      />
+      <SummaryList
+        title="Preserved"
+        items={(payload.protected_outputs ?? []).map(
+          (output) => `${output.output_id}: ${componentPreservationStateLabel(output.preservation_state)}`,
+        )}
+      />
+      <SummaryList
+        title="Interfaces"
+        items={(payload.interfaces ?? []).map(
+          (check) =>
+            `${check.interface_id} ${check.parameter_id}: ${check.verification_state}${check.is_blocking ? " blocking" : ""}`,
+        )}
+      />
+    </div>
+  );
+}
+
+function componentTargetStateLabel(state: string): string {
+  return state.replaceAll("_", " ");
+}
+
+function componentPreservationStateLabel(state: string): string {
+  return state.replaceAll("_", " ");
 }
 
 function GeometricCheckSummary({

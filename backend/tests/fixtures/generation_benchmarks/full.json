@@ -550,6 +550,78 @@
         "expected_defines": {"slot_count": 16},
         "provider_call_forbidden": true
       }
+    },
+    {
+      "id": "component_revision_lid_only",
+      "suite": "full",
+      "input_prompt": "Revise only the electronics enclosure lid to add a finger grip while preserving the body and screw pattern.",
+      "required_dimensions": ["body envelope unchanged", "screw_spacing unchanged"],
+      "allowed_assumptions": ["finger grip may be a shallow external recess"],
+      "expected_clarification": "none",
+      "expected_modules": ["lid", "lid_grip"],
+      "expected_parameters": ["screw_spacing", "lid_thickness"],
+      "expected_printability_constraints": ["lid remains printable flat"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "body and lid outputs compile; body remains equivalent",
+      "revision_expectation": "target lid only and preserve body output",
+      "protected_design_invariants": ["body output", "screw_spacing", "lid/body interface"],
+      "unacceptable_outcomes": ["body module changes", "body output geometry drifts", "screw spacing changes"],
+      "expected_component_revision": {
+        "prompt_template_version": "openscad-component-revision-v1",
+        "targeted_components": ["lid"],
+        "targeted_outputs": ["box_lid"],
+        "protected_components": ["base"],
+        "protected_outputs": ["box_base"],
+        "protected_interfaces": [{"id": "lid_body_attachment", "parameters": ["screw_spacing"]}],
+        "expected_preservation_state": "verified_unchanged"
+      }
+    },
+    {
+      "id": "component_revision_handle_only",
+      "suite": "full",
+      "input_prompt": "Revise only the carry handle grip shape while preserving the carrier body and retention part.",
+      "required_dimensions": ["handle_mount_spacing unchanged", "handle_pin_diameter unchanged"],
+      "allowed_assumptions": ["grip may become rounded"],
+      "expected_clarification": "none",
+      "expected_modules": ["carry_handle", "handle_grip"],
+      "expected_parameters": ["handle_mount_spacing", "handle_pin_diameter"],
+      "expected_printability_constraints": ["handle layer direction warning if needed"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "all required outputs compile; only handle changes",
+      "revision_expectation": "target handle output and preserve body/retention outputs",
+      "protected_design_invariants": ["carrier_body output", "tray_retention output", "handle attachment interface"],
+      "unacceptable_outcomes": ["body or retention source changes", "mount spacing changes", "new undeclared output"],
+      "expected_component_revision": {
+        "prompt_template_version": "openscad-component-revision-v1",
+        "targeted_components": ["carry_handle"],
+        "targeted_outputs": ["carry_handle"],
+        "allowed_shared_modules": ["fastener_hole"],
+        "protected_outputs": ["carrier_body", "tray_retention"],
+        "protected_interfaces": [{"id": "handle_body_attachment", "parameters": ["handle_mount_spacing", "handle_pin_diameter"]}]
+      }
+    },
+    {
+      "id": "component_revision_unauthorized_output_drift",
+      "suite": "full",
+      "input_prompt": "Change the lid, but the generated source or compiled output unexpectedly changes the body.",
+      "required_dimensions": ["body bounds unchanged", "body volume unchanged within preservation tolerance"],
+      "allowed_assumptions": ["no new design assumptions; this benchmark simulates unauthorized drift"],
+      "expected_clarification": "none",
+      "expected_modules": ["body", "lid"],
+      "expected_parameters": ["body_width", "body_depth", "lid_thickness"],
+      "expected_printability_constraints": ["all required outputs validate independently"],
+      "compile_expectation": "source_may_compile_but_candidate_blocks",
+      "mesh_expectation": "protected output preservation detects drift",
+      "revision_expectation": "candidate blocked with revision.protected_output_unexpected_change",
+      "protected_design_invariants": ["protected body output", "body component module", "output selector mapping"],
+      "unacceptable_outcomes": ["candidate ready despite protected body drift"],
+      "expected_component_revision": {
+        "targeted_components": ["lid"],
+        "targeted_outputs": ["lid"],
+        "protected_components": ["body"],
+        "protected_outputs": ["body"],
+        "expected_blocking_rule": "revision.protected_output_unexpected_change"
+      }
     }
   ]
 }

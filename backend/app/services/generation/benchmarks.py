@@ -46,6 +46,7 @@ class GenerationBenchmark:
     expected_design_plan: dict[str, Any]
     expected_revision_plan: dict[str, Any]
     expected_configuration: dict[str, Any]
+    expected_component_revision: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -126,6 +127,7 @@ def _parse_benchmark(payload: object) -> GenerationBenchmark:
         expected_design_plan=_optional_object(payload, "expected_design_plan"),
         expected_revision_plan=_optional_object(payload, "expected_revision_plan"),
         expected_configuration=_optional_object(payload, "expected_configuration"),
+        expected_component_revision=_optional_object(payload, "expected_component_revision"),
     )
 
 

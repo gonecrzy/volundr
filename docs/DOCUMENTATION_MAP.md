@@ -15,6 +15,7 @@ This file explains exactly what belongs in each project document.
 | `docs/MULTI_OUTPUT_GENERATION.md` | Canonical output model, selected-output OpenSCAD contract, per-output compilation lifecycle, assembly classification, retry, and ZIP export behavior. |
 | `docs/PARAMETER_CONFIGURATION.md` | Direct parameter editing, preset switching, deterministic `-D` override regeneration, configuration-change persistence, and limits that escalate to revision planning. |
 | `docs/STRUCTURED_REVISION_PLANNING.md` | Immutable revision-plan lifecycle, scoped change model, compliance checks, success criteria, and finding-driven revision behavior. |
+| `docs/COMPONENT_TARGETED_REVISIONS.md` | Component-targeted full-source revision behavior, source ownership, scope compliance, output preservation, interface verification, and configuration preservation. |
 | `docs/GEOMETRIC_INVARIANT_VALIDATION.md` | Supported post-compile geometric invariant checks, marker metadata, tolerances, confidence, blocking policy, and limits. |
 | `docs/PRINTABILITY_INSPECTOR.md` | Orientation-aware printability rules, severity schema, and profile thresholds. |
 | `docs/CAD_EXECUTION_SECURITY.md` | Isolation, resource limits, source screening, logging, and failure handling. |
@@ -27,5 +28,5 @@ When information conflicts:
 1. `PRODUCT_DIRECTION.md` controls product intent.
 2. `MVP_SCOPE.md` controls V1 scope.
 3. `ARCHITECTURE.md` controls approved implementation defaults.
-4. `MODEL_GENERATION_CONTRACT.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, and `CAD_EXECUTION_SECURITY.md` control generated CAD behavior, output artifacts, deterministic configuration, scoped revisions, measured geometric invariants, and execution safety.
+4. `MODEL_GENERATION_CONTRACT.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, and `CAD_EXECUTION_SECURITY.md` control generated CAD behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, and execution safety.
 5. `CURRENT_STAGE_ROADMAP.md` controls work order.

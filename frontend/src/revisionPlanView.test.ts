@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   canApproveRevisionPlan,
   canGenerateFromRevisionPlan,
+  componentRevisionCounts,
   revisionComplianceBuckets,
   revisionPlanStageLabel,
   revisionPlanSummaryCounts,
@@ -124,5 +125,39 @@ describe("revision plan view helpers", () => {
     expect(buckets.verified).toHaveLength(1);
     expect(buckets.violated).toHaveLength(1);
     expect(buckets.unverifiable).toHaveLength(1);
+  });
+
+  it("counts component-targeted revision preservation states", () => {
+    expect(
+      componentRevisionCounts({
+        summary: {
+          targeted_outputs: [{ output_id: "lid", change_state: "changed_as_expected" }],
+          protected_outputs: [
+            { output_id: "body", preservation_state: "verified_unchanged" },
+            { output_id: "handle", preservation_state: "unexpected_change" },
+          ],
+          interfaces: [
+            {
+              interface_id: "lid_body",
+              parameter_id: "screw_spacing",
+              verification_state: "verified",
+              is_blocking: false,
+            },
+            {
+              interface_id: "hinge",
+              parameter_id: "pin_diameter",
+              verification_state: "violated",
+              is_blocking: true,
+            },
+          ],
+        },
+      }),
+    ).toEqual({
+      targetedOutputs: 1,
+      protectedOutputs: 2,
+      unexpectedProtectedChanges: 1,
+      verifiedInterfaces: 1,
+      violatedInterfaces: 1,
+    });
   });
 });

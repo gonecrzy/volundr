@@ -11,6 +11,7 @@ from app.models.printability_profile import SavedPrintabilityProfile
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
 from app.models.revision_plan import (
+    ComponentRevisionSummary,
     RevisionComplianceResult,
     RevisionPlan,
     RevisionPlanClarificationAnswer,
@@ -33,6 +34,7 @@ __all__ = [
     "ProjectMessage",
     "Revision",
     "RevisionOutput",
+    "ComponentRevisionSummary",
     "RevisionComplianceResult",
     "RevisionPlan",
     "RevisionPlanClarificationAnswer",

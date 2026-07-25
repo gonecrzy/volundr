@@ -105,6 +105,11 @@ module holder_body() {
     ...
 }
 
+// @volundr-shared-module fastener_hole
+module fastener_hole(diameter, depth) {
+    ...
+}
+
 // @volundr-dependency tray_count -> guide_count
 guide_count = tray_count + 1;
 
@@ -132,6 +137,7 @@ Rules:
 13. Editable Design Plan parameters belong in `USER PARAMETERS`; derived Design Plan parameters belong in `DERIVED VALUES`.
 14. Editable parameters must include `@volundr-parameter <id> type=<number|integer|boolean|enum> editable=<true|false>` immediately before the assignment. Direct configuration behavior is defined in `docs/PARAMETER_CONFIGURATION.md`.
 15. Assertions must reject impossible configurations implied by the Design Plan, such as nonpositive counts, negative clearances, invalid wall thicknesses, or derived dimensions that cannot fit their dependent features.
+16. Shared reusable modules must use `@volundr-shared-module <module_name>` immediately before the module declaration. Component-targeted revisions may change shared modules only when the approved Revision Plan lists them in `allowed_shared_modules`.
 
 ## Mandatory Rules
 
@@ -176,6 +182,8 @@ Where applicable:
 
 New structured AI revisions must begin with an approved `revision-plan-v1` artifact as defined in `docs/STRUCTURED_REVISION_PLANNING.md`. The free-form user request is not enough authority to change source.
 
+Component-targeted structural revisions use `openscad-component-revision-v1` and are defined in `docs/COMPONENT_TARGETED_REVISIONS.md`. Gemini may be told to edit only selected components, features, outputs, and shared modules, but it must still return the complete authoritative OpenSCAD project. Volundr does not accept source fragments or splice module replacements.
+
 When revising an existing model, the AI must:
 
 1. Read the current source before editing.
@@ -187,11 +195,13 @@ When revising an existing model, the AI must:
 7. Avoid rewriting the entire model without necessity.
 8. Preserve the accepted design record: critical dimensions, assumptions, parameter names, module names, print orientation, and unrelated validation fixes.
 9. Add or change only approved parameters, modules, features, outputs, and required dependency updates.
-10. Preserve protected component, feature, dependency, geometry, and output markers.
+10. Preserve protected component, feature, dependency, geometry, shared-module, and output markers.
 11. Preserve all unrelated printable outputs and the `selected_output` dispatcher.
 12. Do not make a geometric or printability repair through compile-repair mode.
 
-After source extraction and source-contract validation, Volundr performs revision compliance validation before compile. Unauthorized protected-value changes, removed protected markers, removed required outputs, or missing required dependency updates reject the generation attempt before OpenSCAD compilation.
+After source extraction and source-contract validation, Volundr performs revision compliance validation before compile. Unauthorized protected-value changes, removed protected markers, removed required outputs, unapproved shared-module changes, protected module drift, undeclared components/outputs, or missing required dependency updates reject the generation attempt before OpenSCAD compilation.
+
+One bounded `scope-correction-v1` attempt may be used to revert unauthorized component-scope edits. Scope correction is not source-contract repair and not compiler repair.
 
 ## Repair Prompt Rules
 

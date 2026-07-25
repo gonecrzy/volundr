@@ -28,6 +28,7 @@ from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
 from app.models.revision_plan import (
+    ComponentRevisionSummary,
     RevisionComplianceResult,
     RevisionPlan,
     RevisionPlanClarificationAnswer,
@@ -46,6 +47,7 @@ from app.schemas.project import (
     ConfigurationPresetCreate,
     ConfigurationPresetRead,
     ConfigurationValidationState,
+    ComponentRevisionSummaryRead,
     DesignSpecificationPayload,
     DesignSpecificationRead,
     DesignPlanOutcome,
@@ -1259,10 +1261,38 @@ class ProjectService:
             if design_specification is not None
             else None
         )
+        configuration_context: dict[str, Any] | None = None
+        compile_defines: dict[str, str | int | float | bool] | None = None
+        configuration_change_id: str | None = None
+        if base_revision.configuration_change_id is not None:
+            change = self.db.get(ConfigurationChange, base_revision.configuration_change_id)
+            if change is not None:
+                configuration_change_id = change.id
+                configuration_context = {
+                    "configuration_change": self._configuration_change_payload(change),
+                    "override_manifest": self._configuration_override_manifest(change),
+                }
+                compile_defines = configuration_context["override_manifest"]["openscad_defines"]
         selected_findings = self._selected_finding_payloads(
             project_id=project.id,
             revision_id=base_revision.id,
             finding_ids=revision_plan_payload.get("targeted_findings", []),
+        )
+        base_source_metadata = SourceContractValidator(
+            ruleset_version=self._gemini_ruleset_version()
+        ).validate(
+            base_source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type="ai_revision",
+        ).source_metadata.to_json()
+        scoped_revision_context = self._component_revision_scope_context(
+            revision_plan_payload=revision_plan_payload,
+            design_plan_payload=design_plan_payload,
+            source_metadata=base_source_metadata,
+            output_manifest=self.read_output_manifest(base_revision.id),
+            selected_findings=selected_findings,
+            configuration_context=configuration_context,
         )
         generation_request = self._generation_request(
             project=project,
@@ -1276,6 +1306,9 @@ class ProjectService:
             revision_plan=revision_plan_payload,
             output_manifest=self.read_output_manifest(base_revision.id),
             selected_findings=selected_findings,
+            source_metadata=base_source_metadata,
+            scoped_revision_context=scoped_revision_context,
+            configuration_context=configuration_context,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
@@ -1335,27 +1368,54 @@ class ProjectService:
             revision_plan_payload=revision_plan_payload,
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
+            configuration_context=configuration_context,
         )
         if not compliance.passed:
-            message = "Revised source rejected before compile by Revision Plan compliance"
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
                 failure_class=FailureClass.REVISION_REGRESSION,
-                error_message=message,
+                error_message="Revised source exceeded approved Revision Plan scope",
             )
-            raise ValueError(message)
+            (
+                revised_source,
+                raw_ai_output,
+                generation_attempt,
+                source_validation,
+                compliance,
+            ) = await self._attempt_scope_correction(
+                project=project,
+                base_revision=base_revision,
+                revision_plan=plan,
+                failed_source=revised_source,
+                revision_plan_payload=revision_plan_payload,
+                design_specification=design_specification,
+                design_specification_payload=design_specification_payload,
+                design_plan=design_plan,
+                design_plan_payload=design_plan_payload,
+                output_manifest=self.read_output_manifest(base_revision.id),
+                selected_findings=selected_findings,
+                scoped_revision_context=scoped_revision_context,
+                configuration_context=configuration_context,
+                compliance_findings=compliance,
+            )
+            generation_result_raw_output = raw_ai_output
+        else:
+            generation_result_raw_output = generation_result.raw_output
         candidate = await self._create_revision_from_planned_source(
             project_id=project.id,
             scad_source=revised_source,
             user_instruction=plan.user_instruction,
             source_type="ai_revision",
-            raw_ai_output=generation_result.raw_output,
+            raw_ai_output=generation_result_raw_output,
             design_specification_id=design_specification.id if design_specification else None,
             design_specification_payload=design_specification_payload,
             design_plan_id=design_plan.id,
             design_plan_payload=design_plan_payload,
             source_validation_result_id=source_validation.id,
+            compile_defines=compile_defines,
+            parent_revision_id=base_revision.id,
+            configuration_change_id=configuration_change_id,
         )
         if candidate is None:
             self._finish_generation_attempt(
@@ -1374,6 +1434,18 @@ class ProjectService:
             revision_id=candidate.id,
             source=revised_source,
             revision_plan_payload=revision_plan_payload,
+        )
+        self._persist_component_revision_summary(
+            project=project,
+            revision_plan=plan,
+            generation_attempt=generation_attempt,
+            base_revision=base_revision,
+            revision_id=candidate.id,
+            base_source=base_source,
+            revised_source=revised_source,
+            revision_plan_payload=revision_plan_payload,
+            design_plan_payload=design_plan_payload,
+            compliance_result=compliance,
         )
         self._finish_generation_attempt(
             generation_attempt,
@@ -1429,6 +1501,194 @@ class ProjectService:
             .order_by(RevisionSuccessResult.created_at.asc(), RevisionSuccessResult.target_id.asc())
         )
         return [self._revision_success_result_read(row) for row in rows]
+
+    async def _attempt_scope_correction(
+        self,
+        *,
+        project: Project,
+        base_revision: Revision,
+        revision_plan: RevisionPlan,
+        failed_source: str,
+        revision_plan_payload: dict[str, Any],
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan,
+        design_plan_payload: dict[str, Any],
+        output_manifest: dict[str, Any] | None,
+        selected_findings: list[dict[str, Any]],
+        scoped_revision_context: dict[str, Any],
+        configuration_context: dict[str, Any] | None,
+        compliance_findings: RevisionComplianceResult,
+    ) -> tuple[str, str, GenerationAttempt, SourceValidationResult, RevisionComplianceResult]:
+        payload = self._read_json_file(compliance_findings.result_path) or {}
+        correction_request = self._generation_request(
+            project=project,
+            payload=GenerationCreate(
+                user_instruction=revision_plan.user_instruction,
+                design_specification_id=design_specification.id if design_specification else None,
+            ),
+            current_source=failed_source,
+            scope_diagnostics=json.dumps(payload.get("findings", []), indent=2, sort_keys=True),
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            revision_plan=revision_plan_payload,
+            output_manifest=output_manifest,
+            selected_findings=selected_findings,
+            scoped_revision_context=scoped_revision_context,
+            configuration_context=configuration_context,
+        )
+        correction_attempt = self._start_generation_attempt(
+            project=project,
+            request=correction_request,
+            base_revision_id=base_revision.id,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        try:
+            correction_result = await self.ai_provider.generate_model(correction_request)  # type: ignore[union-attr]
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                correction_attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+        self._record_generation_result(correction_attempt, correction_result)
+        try:
+            corrected_source = extract_scad_source(correction_result.raw_output)
+        except SourceExtractionError as exc:
+            self._finish_generation_attempt(
+                correction_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                error_message=str(exc),
+            )
+            raise ValueError(str(exc)) from exc
+        self._record_generation_extracted_source(correction_attempt, corrected_source)
+        corrected_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=correction_attempt,
+            source=corrected_source,
+            source_type="ai_revision",
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
+        )
+        if not corrected_validation.passed_hard_checks:
+            message = self._source_contract_rejection_message(corrected_validation)
+            self._finish_generation_attempt(
+                correction_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+                error_message=message,
+            )
+            raise ValueError(message)
+        corrected_compliance = self._persist_revision_compliance_result(
+            project=project,
+            revision_plan=revision_plan,
+            generation_attempt=correction_attempt,
+            base_source=self.read_revision_source(base_revision.id) or "",
+            revised_source=corrected_source,
+            revision_plan_payload=revision_plan_payload,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+            configuration_context=configuration_context,
+        )
+        if not corrected_compliance.passed:
+            message = "Revised source rejected before compile by Revision Plan compliance"
+            self._finish_generation_attempt(
+                correction_attempt,
+                status="failed",
+                failure_class=FailureClass.REVISION_REGRESSION,
+                error_message=message,
+            )
+            raise ValueError(message)
+        return (
+            corrected_source,
+            correction_result.raw_output,
+            correction_attempt,
+            corrected_validation,
+            corrected_compliance,
+        )
+
+    def get_component_revision_summary_by_plan(
+        self,
+        revision_plan_id: str,
+    ) -> ComponentRevisionSummaryRead | None:
+        row = self.db.scalar(
+            select(ComponentRevisionSummary)
+            .where(ComponentRevisionSummary.revision_plan_id == revision_plan_id)
+            .order_by(ComponentRevisionSummary.created_at.desc())
+        )
+        return self._component_revision_summary_read(row) if row is not None else None
+
+    def get_component_revision_summary_by_revision(
+        self,
+        revision_id: str,
+    ) -> ComponentRevisionSummaryRead | None:
+        row = self.db.scalar(
+            select(ComponentRevisionSummary)
+            .where(ComponentRevisionSummary.revision_id == revision_id)
+            .order_by(ComponentRevisionSummary.created_at.desc())
+        )
+        return self._component_revision_summary_read(row) if row is not None else None
+
+    def get_component_revision_scope(self, revision_plan_id: str) -> dict[str, Any] | None:
+        plan = self.db.get(RevisionPlan, revision_plan_id)
+        if plan is None:
+            return None
+        base_revision = self.db.get(Revision, plan.base_revision_id)
+        design_plan = self.db.get(DesignPlan, plan.revised_design_plan_id or plan.base_design_plan_id)
+        if base_revision is None or design_plan is None:
+            return None
+        source = self.read_revision_source(base_revision.id)
+        if source is None:
+            return None
+        plan_payload = self._read_revision_plan_payload(plan)
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        metadata = SourceContractValidator().validate(
+            source,
+            design_specification=self._revision_design_specification_payload(base_revision),
+            design_plan=design_plan_payload,
+            source_type="ai_revision",
+        ).source_metadata.to_json()
+        configuration_context = None
+        if base_revision.configuration_change_id is not None:
+            change = self.db.get(ConfigurationChange, base_revision.configuration_change_id)
+            if change is not None:
+                configuration_context = {
+                    "configuration_change": self._configuration_change_payload(change),
+                    "override_manifest": self._configuration_override_manifest(change),
+                }
+        return self._component_revision_scope_context(
+            revision_plan_payload=plan_payload,
+            design_plan_payload=design_plan_payload,
+            source_metadata=metadata,
+            output_manifest=self.read_output_manifest(base_revision.id),
+            selected_findings=[],
+            configuration_context=configuration_context,
+        )
+
+    def _component_revision_summary_read(
+        self,
+        row: ComponentRevisionSummary,
+    ) -> ComponentRevisionSummaryRead:
+        payload = self._read_json_file(row.summary_path) or {}
+        return ComponentRevisionSummaryRead(
+            id=row.id,
+            project_id=row.project_id,
+            revision_plan_id=row.revision_plan_id,
+            revision_id=row.revision_id,
+            base_revision_id=row.base_revision_id,
+            generation_attempt_id=row.generation_attempt_id,
+            base_source_hash=row.base_source_hash,
+            revised_source_hash=row.revised_source_hash,
+            equivalence_profile_version=row.equivalence_profile_version,
+            created_at=row.created_at,
+            summary=payload,
+        )
 
     async def create_design_plan_from_specification(
         self,
@@ -1984,12 +2244,15 @@ class ProjectService:
         current_source: str | None = None,
         contract_diagnostics: str | None = None,
         compiler_diagnostics: str | None = None,
+        scope_diagnostics: str | None = None,
         design_specification: dict[str, Any] | None = None,
         design_plan: dict[str, Any] | None = None,
         revision_plan: dict[str, Any] | None = None,
         output_manifest: dict[str, Any] | None = None,
         selected_findings: list[dict[str, Any]] | None = None,
         source_metadata: dict[str, Any] | None = None,
+        scoped_revision_context: dict[str, Any] | None = None,
+        configuration_context: dict[str, Any] | None = None,
     ) -> ModelGenerationRequest:
         return ModelGenerationRequest(
             project_name=project.name,
@@ -1998,12 +2261,15 @@ class ProjectService:
             current_source=current_source,
             contract_diagnostics=contract_diagnostics,
             compiler_diagnostics=compiler_diagnostics,
+            scope_diagnostics=scope_diagnostics,
             design_specification=design_specification,
             design_plan=design_plan,
             revision_plan=revision_plan,
             output_manifest=output_manifest,
             selected_findings=selected_findings or [],
             source_metadata=source_metadata,
+            scoped_revision_context=scoped_revision_context,
+            configuration_context=configuration_context,
         )
 
     def _start_generation_attempt(
@@ -3279,6 +3545,7 @@ class ProjectService:
         revision_plan_payload: dict[str, Any],
         design_specification_payload: dict[str, Any] | None,
         design_plan_payload: dict[str, Any],
+        configuration_context: dict[str, Any] | None = None,
     ) -> RevisionComplianceResult:
         started = time.perf_counter()
         validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
@@ -3299,6 +3566,7 @@ class ProjectService:
             revised_scan=revised_scan,
             revision_plan_payload=revision_plan_payload,
             design_plan_payload=design_plan_payload,
+            configuration_context=configuration_context,
         )
         passed = not any(finding["is_blocking"] for finding in findings)
         result_payload = {
@@ -3313,6 +3581,16 @@ class ProjectService:
                 "revised_modules": revised_scan.module_names,
                 "base_outputs": sorted(base_scan.output_mappings),
                 "revised_outputs": sorted(revised_scan.output_mappings),
+                "base_shared_modules": sorted(base_scan.shared_module_mappings),
+                "revised_shared_modules": sorted(revised_scan.shared_module_mappings),
+                "base_module_fingerprints": {
+                    name: asdict(fingerprint)
+                    for name, fingerprint in base_scan.module_fingerprints.items()
+                },
+                "revised_module_fingerprints": {
+                    name: asdict(fingerprint)
+                    for name, fingerprint in revised_scan.module_fingerprints.items()
+                },
             },
         }
         result_dir = self._revision_plan_dir(project.id, revision_plan.id)
@@ -3340,6 +3618,7 @@ class ProjectService:
         revised_scan,
         revision_plan_payload: dict[str, Any],
         design_plan_payload: dict[str, Any],
+        configuration_context: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         findings: list[dict[str, Any]] = []
         allowed_parameters = set(revision_plan_payload.get("allowed_parameter_changes", []))
@@ -3456,6 +3735,27 @@ class ProjectService:
                         detected=revised_mapping.module_name,
                     )
                 )
+        findings.extend(
+            self._component_scope_findings(
+                base_scan=base_scan,
+                revised_scan=revised_scan,
+                revision_plan_payload=revision_plan_payload,
+                design_plan_payload=design_plan_payload,
+            )
+        )
+        findings.extend(
+            self._interface_parameter_findings(
+                base_scan=base_scan,
+                revised_scan=revised_scan,
+                revision_plan_payload=revision_plan_payload,
+            )
+        )
+        findings.extend(
+            self._configuration_preservation_findings(
+                revised_scan=revised_scan,
+                configuration_context=configuration_context,
+            )
+        )
         for dependency in revision_plan_payload.get("required_dependency_changes", []):
             changed = dependency.get("parameter_id")
             if not changed:
@@ -3479,6 +3779,283 @@ class ProjectService:
                         )
                     )
         return findings
+
+    def _component_scope_findings(
+        self,
+        *,
+        base_scan,
+        revised_scan,
+        revision_plan_payload: dict[str, Any],
+        design_plan_payload: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        findings: list[dict[str, Any]] = []
+        targeted_components = set(map(str, revision_plan_payload.get("targeted_components", [])))
+        targeted_features = set(map(str, revision_plan_payload.get("targeted_features", [])))
+        targeted_outputs = set(map(str, revision_plan_payload.get("targeted_outputs", [])))
+        allowed_shared_modules = set(map(str, revision_plan_payload.get("allowed_shared_modules", [])))
+        protected_components = set(map(str, revision_plan_payload.get("protected_components", [])))
+        protected_features = set(map(str, revision_plan_payload.get("protected_features", [])))
+        protected_outputs = set(map(str, revision_plan_payload.get("protected_outputs", [])))
+        plan_component_ids = {
+            str(component.get("id"))
+            for component in design_plan_payload.get("components", [])
+            if component.get("id")
+        }
+        plan_output_ids = {
+            str(output.get("id"))
+            for output in design_plan_payload.get("printable_outputs", [])
+            if output.get("id")
+        }
+        allowed_modules = self._modules_for_scope(
+            base_scan,
+            components=targeted_components,
+            features=targeted_features,
+            outputs=targeted_outputs,
+        ) | allowed_shared_modules
+        if targeted_outputs:
+            allowed_modules.add("render_selected_output")
+        protected_modules = self._modules_for_scope(
+            base_scan,
+            components=protected_components,
+            features=protected_features,
+            outputs=protected_outputs,
+        )
+        for component_id in sorted(set(revised_scan.component_mappings) - plan_component_ids):
+            if component_id not in targeted_components:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.undeclared_component_added",
+                        "Undeclared component added",
+                        f"Component {component_id} is not declared by the approved Design Plan.",
+                        component_id=component_id,
+                    )
+                )
+        for output_id in sorted(set(revised_scan.output_mappings) - plan_output_ids):
+            if output_id not in targeted_outputs:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.undeclared_output_added",
+                        "Undeclared output added",
+                        f"Output {output_id} is not declared by the approved Design Plan.",
+                        output_id=output_id,
+                    )
+                )
+        for module_name, base_fp in sorted(base_scan.module_fingerprints.items()):
+            revised_fp = revised_scan.module_fingerprints.get(module_name)
+            if revised_fp is None:
+                rule_id = (
+                    "revision.protected_component_removed"
+                    if module_name in protected_modules
+                    else "revision.unrelated_module_removed"
+                )
+                findings.append(
+                    self._revision_compliance_finding(
+                        rule_id,
+                        "Module removed outside revision scope",
+                        f"Module {module_name} was removed but is not an approved deletion.",
+                        detected=None,
+                        expected=module_name,
+                    )
+                )
+                continue
+            if base_fp.normalized_hash == revised_fp.normalized_hash:
+                continue
+            if module_name in allowed_modules:
+                continue
+            if base_fp.is_shared:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.shared_module_change_not_allowed",
+                        "Shared module changed without approval",
+                        f"Shared module {module_name} changed but is not listed as an allowed shared module.",
+                        expected=base_fp.normalized_hash,
+                        detected=revised_fp.normalized_hash,
+                    )
+                )
+                continue
+            if module_name in protected_modules:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.protected_module_changed",
+                        "Protected component module changed",
+                        f"Module {module_name} belongs to protected revision scope and changed structurally.",
+                        expected=base_fp.normalized_hash,
+                        detected=revised_fp.normalized_hash,
+                    )
+                )
+                continue
+            findings.append(
+                self._revision_compliance_finding(
+                    "revision.revision_scope_exceeded",
+                    "Unrelated module changed",
+                    f"Module {module_name} changed but is outside the approved target scope.",
+                    expected=base_fp.normalized_hash,
+                    detected=revised_fp.normalized_hash,
+                )
+            )
+        for module_name, revised_fp in sorted(revised_scan.module_fingerprints.items()):
+            if module_name in base_scan.module_fingerprints:
+                continue
+            owned_by_target = bool(
+                set(revised_fp.component_ids) & targeted_components
+                or set(revised_fp.feature_ids) & targeted_features
+                or set(revised_fp.output_ids) & targeted_outputs
+            )
+            if not owned_by_target and module_name not in allowed_shared_modules:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.revision_scope_exceeded",
+                        "New module outside revision scope",
+                        f"Module {module_name} was added outside the approved component or shared-module scope.",
+                        detected=module_name,
+                    )
+                )
+        return findings
+
+    def _modules_for_scope(
+        self,
+        scan,
+        *,
+        components: set[str],
+        features: set[str],
+        outputs: set[str],
+    ) -> set[str]:
+        modules: set[str] = set()
+        for module_name, fingerprint in scan.module_fingerprints.items():
+            if (
+                set(fingerprint.component_ids) & components
+                or set(fingerprint.feature_ids) & features
+                or set(fingerprint.output_ids) & outputs
+            ):
+                modules.add(module_name)
+        for component_id, mapping in scan.component_mappings.items():
+            if component_id in components and mapping.target_kind == "module":
+                modules.add(mapping.target_name)
+        for feature_id, mapping in scan.feature_mappings.items():
+            if feature_id in features and mapping.target_kind == "module":
+                modules.add(mapping.target_name)
+        for output_id, mapping in scan.output_mappings.items():
+            if output_id in outputs:
+                modules.add(mapping.module_name or mapping.target_name)
+        return modules
+
+    def _interface_parameter_findings(
+        self,
+        *,
+        base_scan,
+        revised_scan,
+        revision_plan_payload: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        findings: list[dict[str, Any]] = []
+        base_constants = _evaluate_constants(base_scan.assignments)
+        revised_constants = _evaluate_constants(revised_scan.assignments)
+        for interface in revision_plan_payload.get("protected_interfaces", []):
+            interface_id = str(interface.get("id") or "interface")
+            for parameter_id in map(str, interface.get("parameters", [])):
+                base_value = base_constants.get(parameter_id, base_scan.assignments.get(parameter_id))
+                revised_value = revised_constants.get(parameter_id, revised_scan.assignments.get(parameter_id))
+                if not self._values_equal(base_value, revised_value):
+                    findings.append(
+                        self._revision_compliance_finding(
+                            "revision.interface_parameter_changed",
+                            "Protected interface parameter changed",
+                            f"{parameter_id} changed on protected interface {interface_id}.",
+                            parameter_id=parameter_id,
+                            expected=base_value,
+                            detected=revised_value,
+                        )
+                    )
+        return findings
+
+    def _configuration_preservation_findings(
+        self,
+        *,
+        revised_scan,
+        configuration_context: dict[str, Any] | None,
+    ) -> list[dict[str, Any]]:
+        if not configuration_context:
+            return []
+        manifest = configuration_context.get("override_manifest") or {}
+        findings: list[dict[str, Any]] = []
+        for parameter_id in sorted((manifest.get("openscad_defines") or {})):
+            if parameter_id not in revised_scan.assignments:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.configured_parameter_removed",
+                        "Configured parameter removed",
+                        f"{parameter_id} is active in the current configuration but missing from revised source.",
+                        parameter_id=parameter_id,
+                    )
+                )
+        return findings
+
+    def _component_revision_scope_context(
+        self,
+        *,
+        revision_plan_payload: dict[str, Any],
+        design_plan_payload: dict[str, Any],
+        source_metadata: dict[str, Any],
+        output_manifest: dict[str, Any] | None,
+        selected_findings: list[dict[str, Any]],
+        configuration_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        targeted_components = list(map(str, revision_plan_payload.get("targeted_components", [])))
+        targeted_features = list(map(str, revision_plan_payload.get("targeted_features", [])))
+        targeted_outputs = list(map(str, revision_plan_payload.get("targeted_outputs", [])))
+        protected_components = list(map(str, revision_plan_payload.get("protected_components", [])))
+        protected_features = list(map(str, revision_plan_payload.get("protected_features", [])))
+        protected_outputs = list(map(str, revision_plan_payload.get("protected_outputs", [])))
+        allowed_shared_modules = list(map(str, revision_plan_payload.get("allowed_shared_modules", [])))
+        module_fingerprints = source_metadata.get("module_fingerprints", {})
+        def modules_for(kind: str, ids: list[str]) -> list[str]:
+            result: set[str] = set()
+            for module_name, fingerprint in module_fingerprints.items():
+                values = fingerprint.get(f"{kind}_ids", [])
+                if set(map(str, values)) & set(ids):
+                    result.add(module_name)
+            return sorted(result)
+
+        return {
+            "schema_version": "component-revision-scope-v1",
+            "targeted_components": targeted_components,
+            "targeted_features": targeted_features,
+            "targeted_outputs": targeted_outputs,
+            "target_modules": sorted(
+                set(modules_for("component", targeted_components))
+                | set(modules_for("feature", targeted_features))
+                | set(modules_for("output", targeted_outputs))
+            ),
+            "allowed_shared_modules": allowed_shared_modules,
+            "protected_components": protected_components,
+            "protected_features": protected_features,
+            "protected_outputs": protected_outputs,
+            "protected_modules": sorted(
+                set(modules_for("component", protected_components))
+                | set(modules_for("feature", protected_features))
+                | set(modules_for("output", protected_outputs))
+            ),
+            "protected_interfaces": list(revision_plan_payload.get("protected_interfaces", [])),
+            "shared_parameters_allowed_to_change": list(
+                revision_plan_payload.get("allowed_parameter_changes", [])
+            ),
+            "shared_parameters_required_unchanged": [
+                item.get("parameter_id")
+                for item in revision_plan_payload.get("protected_parameters", [])
+                if item.get("parameter_id")
+            ],
+            "output_manifest_summary": output_manifest,
+            "selected_findings": selected_findings,
+            "active_configuration": configuration_context,
+            "success_criteria": list(revision_plan_payload.get("success_criteria", [])),
+            "source_metadata_summary": {
+                "source_hash": source_metadata.get("source_hash"),
+                "modules": source_metadata.get("module_names", []),
+                "components": sorted(source_metadata.get("component_mappings", {})),
+                "features": sorted(source_metadata.get("feature_mappings", {})),
+                "outputs": sorted(source_metadata.get("output_mappings", {})),
+                "shared_modules": sorted(source_metadata.get("shared_module_mappings", {})),
+            },
+        }
 
     def _revision_compliance_finding(
         self,
@@ -3604,6 +4181,334 @@ class ProjectService:
                     )
                 )
         self.db.flush()
+
+    def _persist_component_revision_summary(
+        self,
+        *,
+        project: Project,
+        revision_plan: RevisionPlan,
+        generation_attempt: GenerationAttempt,
+        base_revision: Revision,
+        revision_id: str,
+        base_source: str,
+        revised_source: str,
+        revision_plan_payload: dict[str, Any],
+        design_plan_payload: dict[str, Any],
+        compliance_result: RevisionComplianceResult,
+    ) -> ComponentRevisionSummary:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            raise ValueError("revision candidate is missing")
+        base_outputs = {
+            output.output_id: output
+            for output in self.db.scalars(
+                select(RevisionOutput).where(RevisionOutput.revision_id == base_revision.id)
+            )
+        }
+        revised_outputs = {
+            output.output_id: output
+            for output in self.db.scalars(
+                select(RevisionOutput).where(RevisionOutput.revision_id == revision_id)
+            )
+        }
+        targeted_outputs = set(map(str, revision_plan_payload.get("targeted_outputs", [])))
+        protected_outputs = set(map(str, revision_plan_payload.get("protected_outputs", [])))
+        targeted_summary = [
+            self._targeted_output_change_summary(
+                output_id,
+                base_outputs.get(output_id),
+                revised_outputs.get(output_id),
+            )
+            for output_id in sorted(targeted_outputs)
+        ]
+        protected_summary = [
+            self._protected_output_preservation_summary(
+                revision=revision,
+                output_id=output_id,
+                base_output=base_outputs.get(output_id),
+                revised_output=revised_outputs.get(output_id),
+            )
+            for output_id in sorted(protected_outputs)
+        ]
+        interface_checks = self._component_interface_checks(
+            revision=revision,
+            base_source=base_source,
+            revised_source=revised_source,
+            revision_plan_payload=revision_plan_payload,
+        )
+        payload = {
+            "schema_version": "component-revision-summary-v1",
+            "revision_plan_id": revision_plan.id,
+            "base_revision_id": base_revision.id,
+            "revision_id": revision_id,
+            "revision_scope": {
+                "targeted_components": list(map(str, revision_plan_payload.get("targeted_components", []))),
+                "targeted_features": list(map(str, revision_plan_payload.get("targeted_features", []))),
+                "targeted_outputs": sorted(targeted_outputs),
+                "protected_components": list(map(str, revision_plan_payload.get("protected_components", []))),
+                "protected_outputs": sorted(protected_outputs),
+                "allowed_shared_modules": list(map(str, revision_plan_payload.get("allowed_shared_modules", []))),
+            },
+            "source_scope": {
+                "compliance_result_id": compliance_result.id,
+                "passed": compliance_result.passed,
+            },
+            "targeted_outputs": targeted_summary,
+            "protected_outputs": protected_summary,
+            "interfaces": interface_checks,
+            "configuration_context": {
+                "configuration_change_id": revision.configuration_change_id,
+                "override_manifest": self._revision_override_manifest_payload(revision),
+            },
+        }
+        result_dir = self._revision_plan_dir(project.id, revision_plan.id)
+        result_dir.mkdir(parents=True, exist_ok=True)
+        summary_path = result_dir / "component-revision-summary.json"
+        self._write_json(summary_path, payload)
+        row = ComponentRevisionSummary(
+            project_id=project.id,
+            revision_plan_id=revision_plan.id,
+            revision_id=revision_id,
+            base_revision_id=base_revision.id,
+            generation_attempt_id=generation_attempt.id,
+            base_source_hash=hashlib.sha256(base_source.encode("utf-8")).hexdigest(),
+            revised_source_hash=hashlib.sha256(revised_source.encode("utf-8")).hexdigest(),
+            equivalence_profile_version="output-preservation-v1",
+            summary_path=self._relative(summary_path),
+        )
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def _targeted_output_change_summary(
+        self,
+        output_id: str,
+        base_output: RevisionOutput | None,
+        revised_output: RevisionOutput | None,
+    ) -> dict[str, Any]:
+        if revised_output is None or revised_output.output_state not in OUTPUT_READY_STATES:
+            return {
+                "output_id": output_id,
+                "change_state": "changed_but_failed_validation",
+                "explanation": "The targeted output is missing or did not finish validation.",
+            }
+        comparison = self._compare_output_metadata(base_output, revised_output)
+        changed = bool(comparison.get("changed"))
+        return {
+            "output_id": output_id,
+            "change_state": "changed_as_expected" if changed else "change_not_detected",
+            "comparison": comparison,
+            "explanation": "The targeted output changed."
+            if changed
+            else "No measurable targeted output change was detected.",
+        }
+
+    def _protected_output_preservation_summary(
+        self,
+        *,
+        revision: Revision,
+        output_id: str,
+        base_output: RevisionOutput | None,
+        revised_output: RevisionOutput | None,
+    ) -> dict[str, Any]:
+        if base_output is None or revised_output is None:
+            self.db.add(
+                self._output_preservation_finding(
+                    revision.id,
+                    "revision.protected_output_missing",
+                    "Protected output missing",
+                    f"Protected output {output_id} is missing from the base or revised revision.",
+                    output_id=output_id,
+                    blocking=True,
+                )
+            )
+            return {"output_id": output_id, "preservation_state": "unexpected_change"}
+        if revised_output.output_state not in OUTPUT_READY_STATES:
+            self.db.add(
+                self._output_preservation_finding(
+                    revision.id,
+                    "revision.protected_output_failed",
+                    "Protected output failed",
+                    f"Protected output {output_id} did not compile or validate successfully.",
+                    output_id=output_id,
+                    revision_output_id=revised_output.id,
+                    blocking=True,
+                )
+            )
+            return {"output_id": output_id, "preservation_state": "unexpected_change"}
+        comparison = self._compare_output_metadata(base_output, revised_output)
+        if comparison.get("unverifiable"):
+            self.db.add(
+                self._output_preservation_finding(
+                    revision.id,
+                    "revision.protected_output_preservation_unverifiable",
+                    "Protected output preservation unverifiable",
+                    f"Volundr could not verify whether protected output {output_id} remained equivalent.",
+                    output_id=output_id,
+                    revision_output_id=revised_output.id,
+                    blocking=False,
+                )
+            )
+            return {"output_id": output_id, "preservation_state": "unverifiable", "comparison": comparison}
+        if comparison.get("beyond_tolerance"):
+            self.db.add(
+                self._output_preservation_finding(
+                    revision.id,
+                    "revision.protected_output_unexpected_change",
+                    "Protected output changed",
+                    f"Protected output {output_id} changed beyond output-preservation tolerance.",
+                    output_id=output_id,
+                    revision_output_id=revised_output.id,
+                    blocking=True,
+                    metadata=comparison,
+                )
+            )
+            return {"output_id": output_id, "preservation_state": "unexpected_change", "comparison": comparison}
+        state = "changed_within_tolerance" if comparison.get("changed") else "verified_unchanged"
+        return {"output_id": output_id, "preservation_state": state, "comparison": comparison}
+
+    def _compare_output_metadata(
+        self,
+        base_output: RevisionOutput | None,
+        revised_output: RevisionOutput | None,
+    ) -> dict[str, Any]:
+        if base_output is None or revised_output is None:
+            return {"unverifiable": True, "reason": "missing_output_record"}
+        base_meta = self._output_mesh_metadata(base_output)
+        revised_meta = self._output_mesh_metadata(revised_output)
+        if base_meta is None or revised_meta is None:
+            return {"unverifiable": True, "reason": "missing_mesh_metadata"}
+        tolerances = {"dimension_mm": 0.25, "volume_relative": 0.01}
+        dimensions: dict[str, dict[str, float]] = {}
+        beyond = False
+        changed = base_output.stl_hash != revised_output.stl_hash
+        for key in ("size_x_mm", "size_y_mm", "size_z_mm"):
+            base_value = float(base_meta.get(key, 0) or 0)
+            revised_value = float(revised_meta.get(key, 0) or 0)
+            delta = abs(revised_value - base_value)
+            dimensions[key] = {"base": base_value, "revised": revised_value, "delta": delta}
+            if delta > tolerances["dimension_mm"]:
+                beyond = True
+            if delta > 1e-6:
+                changed = True
+        base_volume = float(base_meta.get("volume_mm3", 0) or 0)
+        revised_volume = float(revised_meta.get("volume_mm3", 0) or 0)
+        volume_delta = abs(revised_volume - base_volume)
+        if base_volume > 0 and volume_delta / base_volume > tolerances["volume_relative"]:
+            beyond = True
+        if volume_delta > 1e-6:
+            changed = True
+        component_delta = int(revised_meta.get("connected_components", 0) or 0) - int(
+            base_meta.get("connected_components", 0) or 0
+        )
+        if component_delta != 0:
+            beyond = True
+            changed = True
+        return {
+            "profile_version": "output-preservation-v1",
+            "changed": changed,
+            "beyond_tolerance": beyond,
+            "dimensions": dimensions,
+            "volume_mm3": {"base": base_volume, "revised": revised_volume, "delta": volume_delta},
+            "connected_components_delta": component_delta,
+            "hash_equal": base_output.stl_hash == revised_output.stl_hash,
+            "tolerances": tolerances,
+        }
+
+    def _output_mesh_metadata(self, output: RevisionOutput) -> dict[str, Any] | None:
+        if not output.metadata_json:
+            return None
+        try:
+            return json.loads(output.metadata_json)
+        except json.JSONDecodeError:
+            return None
+
+    def _component_interface_checks(
+        self,
+        *,
+        revision: Revision,
+        base_source: str,
+        revised_source: str,
+        revision_plan_payload: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        base_scan = SourceContractValidator().validate(
+            base_source,
+            design_specification=None,
+            design_plan=None,
+            source_type="ai_revision",
+        ).source_metadata
+        revised_scan = SourceContractValidator().validate(
+            revised_source,
+            design_specification=None,
+            design_plan=None,
+            source_type="ai_revision",
+        ).source_metadata
+        base_constants = _evaluate_constants(base_scan.assignments)
+        revised_constants = _evaluate_constants(revised_scan.assignments)
+        checks: list[dict[str, Any]] = []
+        for interface in revision_plan_payload.get("protected_interfaces", []):
+            interface_id = str(interface.get("id") or "interface")
+            for parameter_id in map(str, interface.get("parameters", [])):
+                base_value = base_constants.get(parameter_id, base_scan.assignments.get(parameter_id))
+                revised_value = revised_constants.get(parameter_id, revised_scan.assignments.get(parameter_id))
+                state = "verified"
+                blocking = False
+                if not self._values_equal(base_value, revised_value):
+                    state = "violated"
+                    blocking = True
+                    self.db.add(
+                        self._output_preservation_finding(
+                            revision.id,
+                            "revision.interface_parameter_changed",
+                            "Protected interface changed",
+                            f"{parameter_id} changed on protected interface {interface_id}.",
+                            blocking=True,
+                            metadata={
+                                "interface_id": interface_id,
+                                "parameter_id": parameter_id,
+                                "base_value": base_value,
+                                "revised_value": revised_value,
+                            },
+                        )
+                    )
+                checks.append(
+                    {
+                        "interface_id": interface_id,
+                        "parameter_id": parameter_id,
+                        "verification_state": state,
+                        "is_blocking": blocking,
+                        "expected_value": base_value,
+                        "detected_value": revised_value,
+                    }
+                )
+        return checks
+
+    def _output_preservation_finding(
+        self,
+        revision_id: str,
+        rule_id: str,
+        title: str,
+        explanation: str,
+        *,
+        output_id: str | None = None,
+        revision_output_id: str | None = None,
+        blocking: bool,
+        metadata: dict[str, Any] | None = None,
+    ) -> ValidationFinding:
+        return ValidationFinding(
+            revision_id=revision_id,
+            revision_output_id=revision_output_id,
+            rule_id=rule_id,
+            category="output_preservation",
+            severity="critical" if blocking else "warning",
+            is_blocking=blocking,
+            title=title,
+            explanation=explanation,
+            suggested_correction="Create a new component-targeted revision that preserves protected outputs and interfaces.",
+            detected_value=output_id,
+            orientation_dependent=False,
+            metadata_json=json.dumps(metadata or {"output_id": output_id}, sort_keys=True),
+        )
 
     def _values_equal(self, expected: Any, detected: Any, *, tolerance: float = 1e-6) -> bool:
         if expected is None:

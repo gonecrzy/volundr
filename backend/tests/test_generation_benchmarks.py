@@ -144,3 +144,28 @@ def test_configuration_benchmarks_cover_direct_parameter_regeneration() -> None:
         assert config["expected_affected_outputs"]
         assert config["expected_validation_state"] == "configuration_ready"
         assert config["provider_call_forbidden"] is True
+
+
+def test_component_revision_benchmarks_cover_targeted_full_source_revisions() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    by_id = {benchmark.id: benchmark for benchmark in suite.benchmarks}
+
+    for benchmark_id in (
+        "component_revision_lid_only",
+        "component_revision_handle_only",
+        "component_revision_unauthorized_output_drift",
+    ):
+        component_revision = by_id[benchmark_id].expected_component_revision
+        assert component_revision["targeted_components"]
+        assert component_revision["targeted_outputs"]
+        assert component_revision["protected_outputs"]
+
+    assert (
+        by_id["component_revision_lid_only"].expected_component_revision["prompt_template_version"]
+        == "openscad-component-revision-v1"
+    )
+    assert (
+        by_id["component_revision_unauthorized_output_drift"]
+        .expected_component_revision["expected_blocking_rule"]
+        == "revision.protected_output_unexpected_change"
+    )

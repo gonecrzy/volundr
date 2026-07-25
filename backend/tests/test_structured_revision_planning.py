@@ -248,6 +248,22 @@ REVISED_SOURCE = BASE_SOURCE.replace("lid_thickness = 3;", "lid_thickness = 4;")
     "lid_lip_depth = lid_thickness + 3;",
 )
 UNAUTHORIZED_SOURCE = REVISED_SOURCE.replace("wall_thickness = 3;", "wall_thickness = 5;")
+SHARED_BASE_SOURCE = BASE_SOURCE.replace(
+    "// @volundr-feature body_and_lid",
+    """// @volundr-shared-module shared_box
+module shared_box(size_vec) {
+  cube(size_vec);
+}
+
+// @volundr-feature body_and_lid""",
+).replace(
+    "cube([body_width, body_depth, wall_thickness]);",
+    "shared_box([body_width, body_depth, wall_thickness]);",
+).replace(
+    "cube([body_width, body_depth, lid_thickness]);",
+    "shared_box([body_width, body_depth, lid_thickness]);",
+)
+SHARED_REVISED_SOURCE = SHARED_BASE_SOURCE.replace("cube(size_vec);", "cube(size_vec + [0, 0, 0]);")
 
 
 def ready_revision_plan() -> dict[str, Any]:
@@ -317,9 +333,16 @@ CLARIFICATION_PLAN = {
 
 
 class RevisionPlanningProvider:
-    def __init__(self, *, plan: dict[str, Any] | None = None, revised_source: str = REVISED_SOURCE) -> None:
+    def __init__(
+        self,
+        *,
+        plan: dict[str, Any] | None = None,
+        revised_source: str = REVISED_SOURCE,
+        correction_source: str | None = None,
+    ) -> None:
         self.plan = plan or ready_revision_plan()
         self.revised_source = revised_source
+        self.correction_source = correction_source
         self.revision_plan_requests: list[Any] = []
         self.generation_requests: list[ModelGenerationRequest] = []
 
@@ -340,6 +363,10 @@ class RevisionPlanningProvider:
         return "revision-planning-v1"
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if getattr(request, "scope_diagnostics", None):
+            return "scope-correction-v1"
+        if getattr(request, "revision_plan", None) and getattr(request, "scoped_revision_context", None):
+            return "openscad-component-revision-v1"
         if getattr(request, "revision_plan", None):
             return "openscad-revision-v2"
         return "openscad-generation-v5"
@@ -387,8 +414,9 @@ class RevisionPlanningProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.generation_requests.append(request)
+        source = self.correction_source if getattr(request, "scope_diagnostics", None) and self.correction_source else self.revised_source
         return ModelGenerationResult(
-            raw_output=f"```openscad\n{self.revised_source}\n```",
+            raw_output=f"```openscad\n{source}\n```",
             provider="fake",
             provider_model="fake-revision-model",
         )
@@ -397,6 +425,8 @@ class RevisionPlanningProvider:
 class MultiOutputCadRunner:
     def __init__(self) -> None:
         self.calls: list[dict[str, Any]] = []
+        self.body_extents: tuple[float, float, float] = (80.0, 50.0, 3.0)
+        self.lid_extents: tuple[float, float, float] | None = None
 
     async def compile(
         self,
@@ -423,7 +453,9 @@ class MultiOutputCadRunner:
         metadata_path = job_dir / "metadata.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
-        extents = (80.0, 50.0, 5.0 if output_id == "lid" else 3.0)
+        extents = self.body_extents
+        if output_id == "lid":
+            extents = self.lid_extents or (80.0, 50.0, 5.0)
         mesh = trimesh.creation.box(extents=extents)
         mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
         mesh.export(stl_path)
@@ -613,6 +645,155 @@ def test_approved_revision_plan_generates_candidate_from_revised_source(tmp_path
     assert compliance["passed"] is True
     success = client.get(f"/api/revision-plans/{approved['id']}/success-results").json()
     assert {result["criterion_type"]: result["verification_state"] for result in success}["parameter_value"] == "success_verified"
+    summary = client.get(f"/api/revision-plans/{approved['id']}/component-revision-summary").json()
+    assert summary["summary"]["revision_scope"]["targeted_outputs"] == ["lid"]
+    assert summary["summary"]["protected_outputs"][0]["preservation_state"] in {
+        "verified_unchanged",
+        "changed_within_tolerance",
+    }
+    assert provider.generation_requests[0].scoped_revision_context["targeted_components"] == ["lid"]
+    assert provider.generation_requests[0].scoped_revision_context["protected_outputs"] == ["body"]
+
+
+def test_protected_component_module_change_blocks_before_compile(tmp_path: Path) -> None:
+    source = REVISED_SOURCE.replace(
+        "cube([body_width, body_depth, wall_thickness]);",
+        "cube([body_width, body_depth + 10, wall_thickness]);",
+    )
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    provider.revised_source = source
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 409
+    assert runner.calls == []
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert any(finding["rule_id"] == "revision.protected_module_changed" for finding in compliance["findings"])
+
+
+def test_protected_output_drift_blocks_candidate_after_compile(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    runner.calls.clear()
+    runner.body_extents = (80.0, 60.0, 3.0)
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 201
+    candidate = response.json()
+    assert candidate["review_state"] == "blocked"
+    summary = client.get(f"/api/revision-plans/{approved['id']}/component-revision-summary").json()
+    assert summary["summary"]["protected_outputs"][0]["preservation_state"] == "unexpected_change"
+    findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
+    assert any(finding["rule_id"] == "revision.protected_output_unexpected_change" for finding in findings)
+
+
+def test_unapproved_shared_module_change_blocks_before_compile(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider(revised_source=SHARED_BASE_SOURCE)
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    provider.revised_source = SHARED_REVISED_SOURCE
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 409
+    assert runner.calls == []
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert any(finding["rule_id"] == "revision.shared_module_change_not_allowed" for finding in compliance["findings"])
+
+
+def test_allowed_shared_module_change_can_compile(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider(
+        plan={**ready_revision_plan(), "allowed_shared_modules": ["shared_box"]},
+        revised_source=SHARED_BASE_SOURCE,
+    )
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    provider.revised_source = SHARED_REVISED_SOURCE
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm and adjust the shared box helper.",
+            "reason": "user_request",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 201
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert compliance["passed"] is True
+    assert set(call["selected_output"] for call in runner.calls) == {"body", "lid"}
+
+
+def test_scope_correction_runs_once_before_compile(tmp_path: Path) -> None:
+    unauthorized = REVISED_SOURCE.replace(
+        "cube([body_width, body_depth, wall_thickness]);",
+        "cube([body_width, body_depth + 10, wall_thickness]);",
+    )
+    provider = RevisionPlanningProvider(correction_source=REVISED_SOURCE)
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    provider.revised_source = unauthorized
+    provider.generation_requests.clear()
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 201
+    assert [request.scope_diagnostics is not None for request in provider.generation_requests] == [False, True]
+    assert set(call["selected_output"] for call in runner.calls) == {"body", "lid"}
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert compliance["passed"] is True
 
 
 def test_unauthorized_parameter_change_blocks_before_compile(tmp_path: Path) -> None:

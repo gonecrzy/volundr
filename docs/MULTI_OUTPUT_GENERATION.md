@@ -86,6 +86,8 @@ approved Design Plan
 
 The assembly candidate is a normal revision. Component artifacts are persisted as child output records. A candidate is classified only after all required output jobs finish.
 
+Component-targeted full-source revisions use this same pipeline. After compilation, protected outputs from the approved Revision Plan are compared against the base revision using `output-preservation-v1`; see `docs/COMPONENT_TARGETED_REVISIONS.md`.
+
 ## Output States
 
 ```text
@@ -189,7 +191,7 @@ Assembly notes are derived from structured Design Plan fields. Volundr does not 
 
 ## Known Limitations
 
-- structured revision planning exists, but component-targeted AI revisions are still pending
+- component-targeted revisions can preserve and compare outputs, but do not prove assembled fit
 - no assembly collision analysis
 - no exploded assembly viewer
 - no 3MF export

@@ -67,6 +67,19 @@ class SourceParameterMapping:
 
 
 @dataclass(frozen=True)
+class SourceModuleFingerprint:
+    module_name: str
+    line: int
+    normalized_hash: str
+    called_modules: list[str] = field(default_factory=list)
+    referenced_parameters: list[str] = field(default_factory=list)
+    component_ids: list[str] = field(default_factory=list)
+    feature_ids: list[str] = field(default_factory=list)
+    output_ids: list[str] = field(default_factory=list)
+    is_shared: bool = False
+
+
+@dataclass(frozen=True)
 class SourceMetadata:
     source_hash: str
     source_size_bytes: int
@@ -82,6 +95,8 @@ class SourceMetadata:
     parameter_mappings: dict[str, SourceParameterMapping] = field(default_factory=dict)
     dependency_mappings: list[SourceDependencyMapping] = field(default_factory=list)
     output_mappings: dict[str, SourceOutputMapping] = field(default_factory=dict)
+    shared_module_mappings: dict[str, SourceMapping] = field(default_factory=dict)
+    module_fingerprints: dict[str, SourceModuleFingerprint] = field(default_factory=dict)
     geometry_mappings: list[SourceGeometryMapping] = field(default_factory=list)
     assignments: dict[str, str] = field(default_factory=dict)
     assignment_lines: dict[str, int] = field(default_factory=dict)
@@ -720,6 +735,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         requirement_markers,
         feature_markers,
         component_markers,
+        shared_module_markers,
         parameter_markers,
         dependency_markers,
         output_markers,
@@ -731,6 +747,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
     parameter_mappings: dict[str, SourceParameterMapping] = {}
     dependency_mappings: list[SourceDependencyMapping] = []
     output_mappings: dict[str, SourceOutputMapping] = {}
+    shared_module_mappings: dict[str, SourceMapping] = {}
     brace_depth = 0
     paren_depth = 0
     unbalanced_braces = False
@@ -806,6 +823,14 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                         filename=output_marker.get("filename"),
                         required=output_marker.get("required"),
                     )
+                for shared_marker in _markers_for_line(shared_module_markers, token.line):
+                    shared_module_mappings[shared_marker] = SourceMapping(
+                        requirement_id=shared_marker,
+                        marker_type="shared_module",
+                        target_name=name.value,
+                        target_kind="module",
+                        line=name.line,
+                    )
                 if name.value == "main_model":
                     pending_main_body = True
         elif lower == "function":
@@ -878,7 +903,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                 if token.value not in {"main_model", "render_selected_output", "assert", "echo"}:
                     top_level_geometry_calls.append(token.value)
         index += 1
-    return SourceMetadata(
+    metadata = SourceMetadata(
         source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
         source_size_bytes=len(source.encode("utf-8")),
         line_count=len(source.splitlines()),
@@ -893,6 +918,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         parameter_mappings=parameter_mappings,
         dependency_mappings=dependency_mappings,
         output_mappings=output_mappings,
+        shared_module_mappings=shared_module_mappings,
         geometry_mappings=[
             SourceGeometryMapping(
                 geometry_type=attributes["type"],
@@ -910,6 +936,21 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         has_unbalanced_braces=unbalanced_braces or brace_depth != 0,
         has_unbalanced_parentheses=unbalanced_parentheses or paren_depth != 0,
         main_model_body_empty="main_model" in module_names and main_body_tokens == 0,
+    )
+    return SourceMetadata(
+        **{
+            **metadata.to_json(),
+            "sections": metadata.sections,
+            "requirement_mappings": metadata.requirement_mappings,
+            "feature_mappings": metadata.feature_mappings,
+            "component_mappings": metadata.component_mappings,
+            "parameter_mappings": metadata.parameter_mappings,
+            "dependency_mappings": metadata.dependency_mappings,
+            "output_mappings": metadata.output_mappings,
+            "shared_module_mappings": metadata.shared_module_mappings,
+            "geometry_mappings": metadata.geometry_mappings,
+            "module_fingerprints": _module_fingerprints(tokens, metadata),
+        }
     )
 
 
@@ -940,6 +981,7 @@ def _pending_markers(
     dict[int, str],
     dict[int, list[str]],
     dict[int, list[str]],
+    dict[int, list[str]],
     dict[int, list[dict[str, Any]]],
     dict[int, list[tuple[str, str]]],
     dict[int, list[dict[str, Any]]],
@@ -948,6 +990,7 @@ def _pending_markers(
     requirement_markers: dict[int, str] = {}
     feature_markers: dict[int, list[str]] = {}
     component_markers: dict[int, list[str]] = {}
+    shared_module_markers: dict[int, list[str]] = {}
     parameter_markers: dict[int, list[dict[str, Any]]] = {}
     dependency_markers: dict[int, list[tuple[str, str]]] = {}
     output_markers: dict[int, list[dict[str, Any]]] = {}
@@ -963,6 +1006,11 @@ def _pending_markers(
             comment.value,
         ):
             component_markers.setdefault(comment.line, []).append(component_match.group(1))
+        for shared_match in re.finditer(
+            r"@volundr-shared-module\s+([A-Za-z_][A-Za-z0-9_]*)",
+            comment.value,
+        ):
+            shared_module_markers.setdefault(comment.line, []).append(shared_match.group(1))
         for parameter_match in re.finditer(
             r"@volundr-parameter\s+([A-Za-z_][A-Za-z0-9_]*)(.*)",
             comment.value,
@@ -1010,6 +1058,7 @@ def _pending_markers(
         requirement_markers,
         feature_markers,
         component_markers,
+        shared_module_markers,
         parameter_markers,
         dependency_markers,
         output_markers,
@@ -1082,6 +1131,146 @@ def _parameter_markers_for_line(
     for marker_line in sorted(candidates):
         result.extend(markers[marker_line])
     return result
+
+
+def _module_fingerprints(
+    tokens: list[SourceToken],
+    metadata: SourceMetadata,
+) -> dict[str, SourceModuleFingerprint]:
+    spans = _module_body_spans(tokens)
+    assignment_names = set(metadata.assignments)
+    builtins = {
+        "assert",
+        "ceil",
+        "circle",
+        "cos",
+        "cube",
+        "cylinder",
+        "difference",
+        "echo",
+        "for",
+        "hull",
+        "if",
+        "intersection",
+        "len",
+        "let",
+        "linear_extrude",
+        "max",
+        "min",
+        "minkowski",
+        "polyhedron",
+        "polygon",
+        "render",
+        "rotate",
+        "round",
+        "sin",
+        "sphere",
+        "sqrt",
+        "str",
+        "translate",
+        "union",
+    }
+    shared_module_names = {
+        mapping.target_name for mapping in metadata.shared_module_mappings.values()
+    }
+    fingerprints: dict[str, SourceModuleFingerprint] = {}
+    for module_name, (start, end, line) in spans.items():
+        body_tokens = tokens[start:end]
+        normalized = [_normalize_fingerprint_token(token) for token in body_tokens]
+        digest = hashlib.sha256(" ".join(normalized).encode("utf-8")).hexdigest()
+        calls: set[str] = set()
+        referenced_parameters: set[str] = set()
+        for index, token in enumerate(body_tokens):
+            if token.kind != "identifier":
+                continue
+            if token.value in assignment_names:
+                referenced_parameters.add(token.value)
+            next_token = body_tokens[index + 1] if index + 1 < len(body_tokens) else None
+            previous = body_tokens[index - 1] if index > 0 else None
+            if (
+                next_token is not None
+                and next_token.value == "("
+                and token.value not in builtins
+                and (previous is None or previous.value.lower() not in {"module", "function"})
+            ):
+                calls.add(token.value)
+        component_ids = sorted(
+            component_id
+            for component_id, mapping in metadata.component_mappings.items()
+            if mapping.target_kind == "module" and mapping.target_name == module_name
+        )
+        feature_ids = sorted(
+            feature_id
+            for feature_id, mapping in metadata.feature_mappings.items()
+            if mapping.target_kind == "module" and mapping.target_name == module_name
+        )
+        output_ids = sorted(
+            output_id
+            for output_id, mapping in metadata.output_mappings.items()
+            if mapping.target_kind == "module"
+            and (mapping.target_name == module_name or mapping.module_name == module_name)
+        )
+        fingerprints[module_name] = SourceModuleFingerprint(
+            module_name=module_name,
+            line=line,
+            normalized_hash=digest,
+            called_modules=sorted(calls),
+            referenced_parameters=sorted(referenced_parameters),
+            component_ids=component_ids,
+            feature_ids=feature_ids,
+            output_ids=output_ids,
+            is_shared=module_name in shared_module_names,
+        )
+    return fingerprints
+
+
+def _module_body_spans(tokens: list[SourceToken]) -> dict[str, tuple[int, int, int]]:
+    spans: dict[str, tuple[int, int, int]] = {}
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token.value.lower() != "module":
+            index += 1
+            continue
+        name = _next_identifier(tokens, index)
+        if name is None:
+            index += 1
+            continue
+        open_brace_index = None
+        search = index + 1
+        while search < len(tokens):
+            if tokens[search].value == "{":
+                open_brace_index = search
+                break
+            if tokens[search].value == ";":
+                break
+            search += 1
+        if open_brace_index is None:
+            index += 1
+            continue
+        depth = 1
+        end = open_brace_index + 1
+        while end < len(tokens) and depth > 0:
+            if tokens[end].value == "{":
+                depth += 1
+            elif tokens[end].value == "}":
+                depth -= 1
+            end += 1
+        if depth == 0:
+            spans[name.value] = (open_brace_index + 1, end - 1, name.line)
+            index = end
+            continue
+        index += 1
+    return spans
+
+
+def _normalize_fingerprint_token(token: SourceToken) -> str:
+    if token.kind == "number":
+        try:
+            return _format_number(float(token.value))
+        except ValueError:
+            return token.value
+    return token.value
 
 
 def _next_non_comment(tokens: list[SourceToken], index: int) -> SourceToken | None:

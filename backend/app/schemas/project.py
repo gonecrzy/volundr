@@ -624,6 +624,20 @@ class RevisionSuccessResultRead(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class ComponentRevisionSummaryRead(BaseModel):
+    id: str
+    project_id: str
+    revision_plan_id: str
+    revision_id: str | None
+    base_revision_id: str | None
+    generation_attempt_id: str | None
+    base_source_hash: str | None
+    revised_source_hash: str | None
+    equivalence_profile_version: str
+    created_at: datetime
+    summary: dict[str, Any] = Field(default_factory=dict)
+
+
 class ClarificationAnswerCreate(BaseModel):
     question_id: str = Field(min_length=1)
     answer: str = Field(min_length=1)

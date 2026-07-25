@@ -15,6 +15,7 @@ from app.schemas.project import (
     ConfigurationParameterRead,
     ConfigurationPresetCreate,
     ConfigurationPresetRead,
+    ComponentRevisionSummaryRead,
     DesignSpecificationRead,
     DesignPlanRead,
     GeometricAnalysisRead,
@@ -567,6 +568,69 @@ def get_revision_compliance_result(
     result = service.get_revision_compliance_result(revision_plan_id)
     if result is None:
         raise HTTPException(status_code=404, detail="revision compliance result not found")
+    return result
+
+
+@router.get("/revision-plans/{revision_plan_id}/component-scope")
+def get_revision_plan_component_scope(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    service = ProjectService(db=db, data_dir=data_dir)
+    result = service.get_component_revision_scope(revision_plan_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="component revision scope not found")
+    return result
+
+
+@router.get("/revision-plans/{revision_plan_id}/module-ownership-comparison")
+def get_revision_plan_module_ownership_comparison(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    service = ProjectService(db=db, data_dir=data_dir)
+    result = service.get_revision_compliance_result(revision_plan_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="revision compliance result not found")
+    return {
+        "revision_plan_id": revision_plan_id,
+        "base_module_fingerprints": result.metadata.get("base_module_fingerprints", {}),
+        "revised_module_fingerprints": result.metadata.get("revised_module_fingerprints", {}),
+        "findings": result.findings,
+    }
+
+
+@router.get(
+    "/revision-plans/{revision_plan_id}/component-revision-summary",
+    response_model=ComponentRevisionSummaryRead,
+)
+def get_component_revision_summary_for_plan(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ComponentRevisionSummaryRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    result = service.get_component_revision_summary_by_plan(revision_plan_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="component revision summary not found")
+    return result
+
+
+@router.get(
+    "/revisions/{revision_id}/component-revision-summary",
+    response_model=ComponentRevisionSummaryRead,
+)
+def get_component_revision_summary_for_revision(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ComponentRevisionSummaryRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    result = service.get_component_revision_summary_by_revision(revision_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="component revision summary not found")
     return result
 
 

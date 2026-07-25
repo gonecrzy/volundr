@@ -10,12 +10,15 @@ class ModelGenerationRequest:
     current_source: str | None = None
     contract_diagnostics: str | None = None
     compiler_diagnostics: str | None = None
+    scope_diagnostics: str | None = None
     design_specification: dict[str, Any] | None = None
     design_plan: dict[str, Any] | None = None
     revision_plan: dict[str, Any] | None = None
     output_manifest: dict[str, Any] | None = None
     selected_findings: list[dict[str, Any]] = field(default_factory=list)
     source_metadata: dict[str, Any] | None = None
+    scoped_revision_context: dict[str, Any] | None = None
+    configuration_context: dict[str, Any] | None = None
     generation_contract_version: str = "v1"
 
 

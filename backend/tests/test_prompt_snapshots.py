@@ -241,3 +241,61 @@ def test_structured_revision_prompt_is_bounded_by_approved_revision_plan() -> No
     assert "Retain every planned printable output" in prompt
     assert "Do not simplify away difficult features" in prompt
     assert "Increase lid thickness only" in prompt
+
+
+def test_component_revision_prompt_uses_scoped_context_and_complete_source() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Configurable enclosure",
+        original_intent="Create a two-part electronics enclosure.",
+        user_instruction="Revise the lid grip.",
+        current_source='selected_output = "lid";\nmodule body() { cube([80, 50, 20]); }\nmodule lid() { cube([80, 50, 3]); }\nrender_selected_output();',
+        design_specification={"purpose": "Hold a PCB"},
+        design_plan={"printable_outputs": [{"id": "body"}, {"id": "lid"}]},
+        revision_plan={
+            "summary": "Modify lid only",
+            "targeted_components": ["lid"],
+            "targeted_outputs": ["lid"],
+            "protected_outputs": ["body"],
+        },
+        output_manifest={"outputs": [{"output_id": "body"}, {"output_id": "lid"}]},
+        scoped_revision_context={
+            "targeted_components": ["lid"],
+            "target_modules": ["lid"],
+            "protected_outputs": ["body"],
+            "protected_modules": ["body"],
+            "allowed_shared_modules": [],
+        },
+        configuration_context={
+            "override_manifest": {"openscad_defines": {"body_width": 90}},
+        },
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "openscad-component-revision-v1"
+    assert "Return the complete authoritative SCAD source" in prompt
+    assert "Edit only targeted components" in prompt
+    assert "Preserve protected component modules" in prompt
+    assert "Active configuration context" in prompt
+    assert '"protected_modules": [' in prompt
+
+
+def test_scope_correction_prompt_is_not_compile_or_contract_repair() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Configurable enclosure",
+        original_intent="Create a two-part electronics enclosure.",
+        user_instruction="Revise the lid grip.",
+        current_source="module body() { cube([80, 60, 20]); }",
+        revision_plan={"summary": "Modify lid only", "protected_outputs": ["body"]},
+        scoped_revision_context={"protected_modules": ["body"], "target_modules": ["lid"]},
+        scope_diagnostics='[{"rule_id":"revision.protected_module_changed"}]',
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "scope-correction-v1"
+    assert "This is scope correction, not a new design revision." in prompt
+    assert "Revert unauthorized edits" in prompt
+    assert "Return complete authoritative SCAD source" in prompt

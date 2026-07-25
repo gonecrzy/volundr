@@ -152,6 +152,7 @@ Required content:
 
 - exact requested changes
 - targeted parameters, components, features, outputs, and findings
+- allowed shared modules and protected interfaces when a structural component change is needed
 - allowed parameter/component/feature changes
 - required dependency changes from the Design Plan graph
 - protected parameters, components, features, and outputs
@@ -162,9 +163,65 @@ Required content:
 
 Current implementation: `revision-planning-v1` is implemented for accepted revisions that have an approved Design Plan. A ready plan enters review and must be explicitly approved before source revision starts. Clarification answers create a superseding plan version.
 
+### `openscad-component-revision-v1`
+
+Responsibility: revise selected components, features, outputs, or approved shared modules while returning the complete authoritative OpenSCAD project.
+
+Input context:
+
+- approved Revision Plan JSON
+- scoped revision context with target modules, protected modules, allowed shared modules, protected outputs, protected interfaces, and success criteria
+- active configuration override manifest when the base revision is configured
+- current Design Specification JSON
+- current Design Plan JSON
+- current output manifest
+- selected validation findings and relevant measurements
+- full base authoritative OpenSCAD source
+
+Output:
+
+- exactly one fenced `openscad` block
+- complete source for the whole product
+- no source fragments
+- no prose outside the block
+
+Rules:
+
+- edit only approved target components/features/outputs and allowed shared modules
+- preserve protected component modules, output mappings, interface parameters, and configuration override parameters
+- retain the selected-output dispatcher for every planned output
+- do not rename unrelated modules or add undeclared components/outputs
+- do not broaden scope when a shared dependency appears necessary
+
+Current implementation: `openscad-component-revision-v1` is used for approved Revision Plans that include scoped component/output context. Source compliance, output preservation, and interface checks are defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
+
+### `scope-correction-v1`
+
+Responsibility: correct one component-scoped revision that exceeded approved source scope. This is not design revision, source-contract repair, or compiler repair.
+
+Input context:
+
+- revised source that exceeded scope
+- blocking scope findings
+- approved Revision Plan JSON
+- scoped revision context
+- active configuration context when present
+
+Output:
+
+- exactly one fenced `openscad` block
+- complete source for the whole product
+
+Rules:
+
+- revert unauthorized protected component, protected output, protected interface, unapproved shared-module, and unrelated-module edits
+- preserve the approved targeted change when it does not conflict with the findings
+- do not broaden scope or introduce new components/outputs
+- run at most once
+
 ### `openscad-revision-v2`
 
-Responsibility: return complete authoritative OpenSCAD revised only within an approved Revision Plan.
+Responsibility: return complete authoritative OpenSCAD revised only within an approved Revision Plan. This remains the broader structured revision mode for compatibility where narrow component ownership cannot be proven.
 
 Input context:
 
@@ -189,7 +246,7 @@ Rules:
 - preserve unrelated modules and unaffected output behavior where practical
 - do not redesign unrelated components or remove difficult features
 
-Current implementation: `openscad-revision-v2` is invoked only after Revision Plan approval. Volundr then runs source-contract validation, revision compliance validation, per-output compilation, geometric/printability validation, and candidate classification.
+Current implementation: `openscad-revision-v2` is superseded by `openscad-component-revision-v1` for component-targeted full-source revisions.
 
 ### `compile-repair-v1`
 
@@ -366,16 +423,17 @@ OpenSCAD generation uses the approved Design Plan as the structural authority an
 accepted design record + user change or selected finding
   -> revision-planning-v1
   -> clarification/conflict/unsupported or explicit plan approval
-  -> openscad-revision-v2
+  -> openscad-component-revision-v1
   -> source-contract validation
   -> revision compliance validation
+  -> output preservation and interface checks
   -> per-output compile and validation
   -> candidate or failed revision
 ```
 
 Current implementation note: structured revision planning is implemented for accepted revisions with approved Design Plans. Legacy active-revision AI edits remain compatibility behavior where a structured plan cannot be created.
 
-Next prompt boundary: component-targeted AI revisions can now build on the approved Revision Plan, product parameter graph, component graph, feature ownership, printable-output map, and failed-output context.
+Next prompt boundary: structured revision planning can now feed component-targeted full-source revisions. The next quality phase should use real-world generation benchmarks before expanding revision intelligence.
 
 ## Compile-Repair Flow
 

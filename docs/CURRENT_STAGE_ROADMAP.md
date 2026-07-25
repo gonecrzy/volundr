@@ -181,14 +181,26 @@ Structured revision planning pass:
 
 - `revision-planning-v1` now creates immutable scoped plans from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
 - revision-plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
-- revision source generation uses `openscad-revision-v2` only after explicit plan approval
+- revision source generation uses the approved Revision Plan only after explicit plan approval
 - revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, and output changes before compile
 - success criteria are persisted as Revision Success Results after candidate generation
 
+Component-targeted revision pass:
+
+- approved Revision Plans now feed `openscad-component-revision-v1`
+- Gemini still returns the complete authoritative SCAD project; Volundr does not splice source fragments
+- source metadata now includes shared-module ownership and normalized module fingerprints
+- protected component modules, output mappings, interface parameters, and shared modules are checked before compile
+- one bounded `scope-correction-v1` attempt can revert unauthorized source-scope changes before compilation
+- active configuration override manifests are preserved through component AI revisions
+- all required outputs compile through the canonical multi-output pipeline
+- protected outputs are compared with `output-preservation-v1` after compile; confirmed drift blocks candidates and unverifiable preservation warns
+- candidate review now exposes component revision summaries
+
 Next implementation boundary:
 
-- implement component-targeted revisions that use the approved Revision Plan to constrain Gemini to specific components/outputs where practical
-- do not begin direct parameter editing, preset switching, or full Design Plan regeneration until component-targeted revision behavior is stable
+- run real-world generation-quality testing with varied functional products before expanding revision intelligence
+- do not begin slicer integration, source-fragment generation, or automatic geometry correction
 
 Correct trajectory from the geometric invariant checkpoint:
 
@@ -196,7 +208,7 @@ Correct trajectory from the geometric invariant checkpoint:
 1. Parametric Product Model and Design Plan
 2. Multi-component and multi-output generation
 3. Structured revision planning
-4. Component-targeted revisions
+4. Component-targeted full-source revisions
 5. Parameter controls and preset switching
 6. Assembly instructions and export packaging
 7. Complex real-world benchmark testing
@@ -205,14 +217,14 @@ Correct trajectory from the geometric invariant checkpoint:
 
 Deferred stabilization work:
 
-- component-targeted AI revisions after structured revision planning exists
+- source-fragment revisions and AST module splicing
 - automatic continue policies
 - full protected-invariant geometry proof for arbitrary features
 - geometric proof that feature markers correspond to complex physical geometry such as angled holes, threads, snap fits, or internal cavities
 
 ## Stage 4 — Projects and Revision History
 
-Status: Complete for legacy revisions; structured revision planning implemented; component-targeted revisions pending
+Status: Complete for legacy revisions, structured revision planning, deterministic configuration, and component-targeted full-source revisions
 
 Current status:
 

@@ -575,7 +575,7 @@ approved
 rejected
 ```
 
-Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. OpenSCAD revision generation requires a `revision_ready` plan in `approved` state.
+Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. OpenSCAD revision generation requires a `revision_ready` plan in `approved` state. Component-targeted full-source revision behavior is defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
 ## RevisionPlanClarificationQuestion
 
@@ -785,6 +785,28 @@ created_at
 ```
 
 `result_path` stores blocking and advisory compliance findings. `revision_id` is nullable because failed compliance stops before compile and candidate creation.
+
+## ComponentRevisionSummary
+
+Represents the persisted comparison summary for a component-targeted full-source revision.
+
+Fields:
+
+```text
+id
+project_id
+revision_plan_id
+revision_id
+base_revision_id
+generation_attempt_id
+base_source_hash
+revised_source_hash
+equivalence_profile_version
+summary_path
+created_at
+```
+
+`summary_path` stores `component-revision-summary-v1` JSON containing targeted output change states, protected output preservation states, interface verification results, source compliance linkage, and configuration context linkage. Legacy revisions may have no component revision summary.
 
 ## RevisionSuccessResult
 

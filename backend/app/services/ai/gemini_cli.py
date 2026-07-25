@@ -21,6 +21,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
 PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v5"
 STRUCTURED_REVISION_PROMPT_VERSION = "openscad-revision-v2"
+COMPONENT_REVISION_PROMPT_VERSION = "openscad-component-revision-v1"
+SCOPE_CORRECTION_PROMPT_VERSION = "scope-correction-v1"
 LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
@@ -171,8 +173,12 @@ class GeminiCliProvider:
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if request.contract_diagnostics:
             return CONTRACT_REPAIR_PROMPT_VERSION
+        if request.scope_diagnostics:
+            return SCOPE_CORRECTION_PROMPT_VERSION
         if request.compiler_diagnostics:
             return LEGACY_COMPILE_REPAIR_PROMPT_VERSION
+        if request.revision_plan and request.scoped_revision_context:
+            return COMPONENT_REVISION_PROMPT_VERSION
         if request.revision_plan:
             return STRUCTURED_REVISION_PROMPT_VERSION
         if request.current_source:
@@ -216,6 +222,10 @@ class GeminiCliProvider:
     def _build_prompt(self, request: ModelGenerationRequest) -> str:
         if request.contract_diagnostics:
             return self._build_contract_repair_prompt(request)
+        if request.scope_diagnostics:
+            return self._build_scope_correction_prompt(request)
+        if request.revision_plan and request.current_source and request.scoped_revision_context:
+            return self._build_component_revision_prompt(request)
         if request.revision_plan and request.current_source:
             return self._build_structured_revision_prompt(request)
         if request.design_specification and request.design_plan and not request.current_source:
@@ -608,6 +618,79 @@ class GeminiCliProvider:
                 json.dumps(request.selected_findings, indent=2, sort_keys=True),
                 "",
                 "Base authoritative OpenSCAD source:",
+                request.current_source or "",
+            ]
+        )
+
+    def _build_component_revision_prompt(self, request: ModelGenerationRequest) -> str:
+        return "\n".join(
+            [
+                "Revise this Volundr OpenSCAD project using the approved component-scoped Revision Plan.",
+                "Return only a single fenced openscad block. Do not include prose outside the block.",
+                "Return the complete authoritative SCAD source for the whole product; do not return a source fragment.",
+                "Edit only targeted components, targeted features, targeted outputs, and explicitly allowed shared modules.",
+                "Preserve protected component modules, protected feature markers, protected output mappings, protected interface parameters, and protected parameter values.",
+                "Preserve selected_output and render_selected_output behavior for every planned printable output.",
+                "Preserve active configuration compatibility: all configured override parameters must remain exposed and must not be reset to Design Plan defaults.",
+                "Do not rename unrelated modules, remove difficult features, add undeclared outputs/components, or broaden the revision scope.",
+                "If an unplanned shared dependency appears necessary, keep the source unchanged in that area and let Volundr reject or re-plan the revision.",
+                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User revision request: {request.user_instruction}",
+                "",
+                "Scoped revision context:",
+                json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
+                "",
+                "Active configuration context:",
+                json.dumps(request.configuration_context, indent=2, sort_keys=True),
+                "",
+                "Approved Revision Plan JSON:",
+                json.dumps(request.revision_plan, indent=2, sort_keys=True),
+                "",
+                "Current Design Specification JSON:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Current Design Plan JSON:",
+                json.dumps(request.design_plan, indent=2, sort_keys=True),
+                "",
+                "Current output manifest:",
+                json.dumps(request.output_manifest, indent=2, sort_keys=True),
+                "",
+                "Selected findings:",
+                json.dumps(request.selected_findings, indent=2, sort_keys=True),
+                "",
+                "Base authoritative OpenSCAD source:",
+                request.current_source or "",
+            ]
+        )
+
+    def _build_scope_correction_prompt(self, request: ModelGenerationRequest) -> str:
+        return "\n".join(
+            [
+                "Correct this revised Volundr OpenSCAD source so it satisfies the approved component revision scope.",
+                "Return only a single fenced openscad block. Do not include prose outside the block.",
+                "This is scope correction, not a new design revision.",
+                "Return complete authoritative SCAD source for the whole product; do not return a fragment.",
+                "Revert unauthorized edits to protected components, protected outputs, protected interface parameters, unapproved shared modules, and unrelated modules.",
+                "Preserve the approved targeted change where it does not conflict with the scope findings.",
+                "Do not broaden the revision, add undeclared outputs/components, or rename unrelated modules.",
+                "Preserve active configuration compatibility and every output selector mapping.",
+                "",
+                f"Project name: {request.project_name}",
+                f"User revision request: {request.user_instruction}",
+                "",
+                "Approved Revision Plan JSON:",
+                json.dumps(request.revision_plan, indent=2, sort_keys=True),
+                "",
+                "Scoped revision context:",
+                json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
+                "",
+                "Scope findings to correct:",
+                request.scope_diagnostics or "",
+                "",
+                "Current revised source that exceeded scope:",
                 request.current_source or "",
             ]
         )

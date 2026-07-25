@@ -34,6 +34,7 @@ export type RevisionPlanSummary = {
     targeted_features?: string[];
     targeted_outputs?: string[];
     targeted_findings?: string[];
+    allowed_shared_modules?: string[];
     protected_parameters?: Array<{
       parameter_id: string;
       expected_value?: number | string | boolean | null;
@@ -42,6 +43,10 @@ export type RevisionPlanSummary = {
     protected_components?: string[];
     protected_features?: string[];
     protected_outputs?: string[];
+    protected_interfaces?: Array<{
+      id: string;
+      parameters?: string[];
+    }>;
     prohibited_changes?: string[];
     success_criteria?: Array<{
       type: string;
@@ -89,6 +94,41 @@ export type RevisionSuccessResult = {
   is_blocking: boolean;
   explanation: string;
   metadata: Record<string, unknown>;
+};
+
+export type ComponentRevisionSummary = {
+  summary: {
+    revision_scope?: {
+      targeted_components?: string[];
+      targeted_features?: string[];
+      targeted_outputs?: string[];
+      protected_components?: string[];
+      protected_outputs?: string[];
+      allowed_shared_modules?: string[];
+    };
+    targeted_outputs?: Array<{
+      output_id: string;
+      change_state: "changed_as_expected" | "change_not_detected" | "changed_but_failed_validation" | "unverifiable";
+      explanation?: string;
+    }>;
+    protected_outputs?: Array<{
+      output_id: string;
+      preservation_state:
+        | "verified_unchanged"
+        | "changed_within_tolerance"
+        | "unexpected_change"
+        | "unverifiable";
+      explanation?: string;
+    }>;
+    interfaces?: Array<{
+      interface_id: string;
+      parameter_id: string;
+      verification_state: "verified" | "violated" | "unverifiable";
+      is_blocking: boolean;
+      expected_value?: unknown;
+      detected_value?: unknown;
+    }>;
+  };
 };
 
 export function revisionPlanStageLabel(plan: RevisionPlanSummary | null): string {
@@ -155,5 +195,26 @@ export function revisionSuccessBuckets(results: RevisionSuccessResult[]): {
     verified: results.filter((result) => result.verification_state === "success_verified"),
     violated: results.filter((result) => result.verification_state === "success_violated"),
     unverifiable: results.filter((result) => result.verification_state === "success_unverifiable"),
+  };
+}
+
+export function componentRevisionCounts(summary: ComponentRevisionSummary | null): {
+  targetedOutputs: number;
+  protectedOutputs: number;
+  unexpectedProtectedChanges: number;
+  verifiedInterfaces: number;
+  violatedInterfaces: number;
+} {
+  const payload = summary?.summary;
+  const protectedOutputs = payload?.protected_outputs ?? [];
+  const interfaces = payload?.interfaces ?? [];
+  return {
+    targetedOutputs: payload?.targeted_outputs?.length ?? 0,
+    protectedOutputs: protectedOutputs.length,
+    unexpectedProtectedChanges: protectedOutputs.filter(
+      (output) => output.preservation_state === "unexpected_change",
+    ).length,
+    verifiedInterfaces: interfaces.filter((check) => check.verification_state === "verified").length,
+    violatedInterfaces: interfaces.filter((check) => check.verification_state === "violated").length,
   };
 }

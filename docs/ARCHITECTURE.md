@@ -320,14 +320,15 @@ Structured AI revision flow:
 accepted revision
   -> revision-planning-v1 from Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
   -> clarification/conflict/unsupported or explicit revision-plan approval
-  -> openscad-revision-v2
+  -> openscad-component-revision-v1 full-source revision
   -> source-contract validation
-  -> revision compliance validation against approved plan
+  -> source scope compliance against approved plan
   -> multi-output compile and validation
+  -> protected output preservation and interface checks
   -> candidate review
 ```
 
-The legacy endpoint may still generate from a ready Design Specification for compatibility. The new initial frontend flow uses an approved Design Plan. Initial generation, Design Plan creation, structured revision planning, bounded revision generation, source-contract repair, and compiler repair use separate prompt stages and persisted prompt versions.
+The legacy endpoint may still generate from a ready Design Specification for compatibility. The new initial frontend flow uses an approved Design Plan. Initial generation, Design Plan creation, structured revision planning, component-targeted source revision, source-contract repair, and compiler repair use separate prompt stages and persisted prompt versions.
 
 ## File Layout
 
@@ -393,6 +394,8 @@ The exact visual design may evolve, but Volundr should prioritize:
 Accepted revisions with approved Design Plans expose a configuration workflow. The backend validates editable Design Plan parameters, persists a `configuration-change-v1` record, and regenerates candidates from the unchanged accepted OpenSCAD source using safe command-line `-D` overrides.
 
 This path does not call Gemini. If a requested change adds structure or touches a non-editable/derived parameter, the API returns `requires_design_revision` so the user can use structured revision planning instead.
+
+If a component-targeted AI revision is created from a configured revision, the backend preserves the configuration override manifest, verifies configured parameters still exist in source, and compiles all outputs with the same `-D` overrides.
 
 Detailed rules are in `docs/PARAMETER_CONFIGURATION.md`.
 
