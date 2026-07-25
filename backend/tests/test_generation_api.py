@@ -358,3 +358,19 @@ def test_gemini_cli_provider_uses_headless_trust_flag() -> None:
 
     assert "--skip-trust" in command
     assert command[-2:] == ["--model", "gemini-3.5-flash-lite"]
+
+
+def test_gemini_initial_prompt_sets_functional_cad_ground_rules() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+
+    prompt = provider._build_prompt(
+        ModelGenerationRequest(
+            project_name="Draft",
+            original_intent="",
+            user_instruction="Build a tackle tray carrier.",
+        )
+    )
+
+    assert "Do not add decorative cutouts, lightening holes, pass-through holes" in prompt
+    assert "Every subtraction must directly serve the user's requested function" in prompt
+    assert "Preserve load-bearing walls, tray support surfaces, retention features, and handles" in prompt
