@@ -18,56 +18,11 @@ Input context:
 - latest user instruction
 - active design record, when revising
 
-Output schema:
+Output: valid JSON matching the Design Specification schema in `docs/DATA_MODEL.md`.
 
-```json
-{
-  "stage": "requirements-v1",
-  "design_specification_version": "design-spec-v1",
-  "part_category": "mounting_plate|holder|box|spacer|adapter|tool_holder|t_track|handle|other",
-  "purpose": "string",
-  "success_conditions": [
-    {"text": "mounts with two M4 screws", "source": "user|calculated|profile_default|ai_assumption"}
-  ],
-  "critical_dimensions": [
-    {
-      "name": "plate_width",
-      "value_mm": 80,
-      "source": "user|calculated|profile_default|ai_assumption",
-      "tolerance_mm": 0.5,
-      "why_critical": "controls mounting fit"
-    }
-  ],
-  "mating_parts": [
-    {
-      "name": "M4 screw",
-      "known_dimensions": {"shaft_diameter_mm": 4},
-      "clearance_mm": 0.5
-    }
-  ],
-  "functional_requirements": [
-    {"text": "must retain the tray during carrying", "source": "user"}
-  ],
-  "load_requirements": {
-    "known": false,
-    "direction": null,
-    "notes": "unknown load"
-  },
-  "print_requirements": {
-    "process": "FDM",
-    "orientation": "unknown",
-    "support_expectation": "avoid|required|unknown"
-  },
-  "missing_required_info": ["string"],
-  "conflicts": ["string"],
-  "assumptions": [
-    {"name": "wall_thickness", "value_mm": 3, "source": "ai_assumption", "reason": "ordinary FDM functional wall"}
-  ],
-  "blocked_assumptions": ["string"]
-}
-```
+Every dimension and requirement must identify one source from `user`, `clarification`, `calculated`, `printer_profile`, `product_default`, or `ai_assumption`. The structured Design Specification must be persisted and associated with the requirement-extraction generation attempt before OpenSCAD generation starts.
 
-Every dimension and requirement must identify one source from `user`, `calculated`, `profile_default`, or `ai_assumption`. The structured Design Specification must be persisted and associated with the generation attempt before OpenSCAD generation starts.
+Current implementation: `requirements-v1` is implemented for new initial AI generations. Invalid JSON is classified as `design_spec_invalid`, raw output is preserved, and one bounded schema-repair extraction attempt is allowed.
 
 ### `clarification-v1`
 
@@ -277,6 +232,7 @@ Persist per attempt:
 - failure class
 - elapsed time
 - source hash and output hash
+- Design Specification id and content hash when generation uses one
 - benchmark id, when applicable
 
 ## Initial Generation Flow
@@ -284,28 +240,30 @@ Persist per attempt:
 ```text
 user request
   -> requirements-v1
-  -> persist Design Specification
-  -> clarification-v1
-  -> if clarify: return questions, no revision
-  -> design-plan-v1
+  -> persist immutable Design Specification
+  -> if clarify/conflict/unsupported: return state, no revision
+  -> user reviews ready Design Specification
+  -> explicit Continue to generation
   -> openscad-generation-v1
   -> source contract validation
   -> compile
   -> mesh and printability validation
-  -> accept, candidate review, repair, or reject
+  -> candidate review, repair, or failed attempt
 ```
+
+Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v1` as the authoritative design source. Raw user text is included only as secondary intent.
 
 ## Revision Flow
 
 ```text
 active design record + active source + user change
-  -> requirements-v1 scoped to revision
-  -> clarification-v1 if critical ambiguity exists
-  -> revision-v1 affected-objects plan
+  -> revision-v1 legacy path
   -> complete revised OpenSCAD
   -> compile and validation
-  -> candidate or accepted revision
+  -> candidate or failed revision
 ```
+
+Current implementation note: full structured revision planning is not implemented in this pass. Existing active-revision AI edits continue through the legacy revision path and attach the latest Design Specification as context when one exists.
 
 ## Compile-Repair Flow
 

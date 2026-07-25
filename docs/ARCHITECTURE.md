@@ -25,6 +25,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │                                               │
 │ - project API                                 │
 │ - revision API                                │
+│ - requirement extraction and clarification    │
 │ - generation orchestration                    │
 │ - candidate revision review and acceptance    │
 │ - AI provider interface                       │
@@ -241,13 +242,22 @@ OpenScadCliRunner
 Generation jobs should use explicit states:
 
 ```text
-queued
-generating
-extracting_source
+requirements_queued
+requirements_extracting
+clarification_required
+requirements_ready
+generation_queued
+generating_scad
+extracting_scad
+contract_validating
 compiling
 inspecting
+validating
+candidate_ready
+candidate_blocked
+unsupported
+requirements_conflict
 repairing
-succeeded
 failed
 cancelled
 ```
@@ -260,10 +270,10 @@ Recommended staged AI flow:
 
 ```text
 request
-  -> requirements
-  -> clarification decision
-  -> design plan
-  -> OpenSCAD generation
+  -> requirements-v1
+  -> persist Design Specification
+  -> clarification/conflict/unsupported or explicit Continue
+  -> OpenSCAD generation from Design Specification
   -> source validation
   -> compile
   -> mesh validation
@@ -293,8 +303,10 @@ data/
 │       │       ├── request.json
 │       │       ├── prompt.txt
 │       │       ├── raw-output.txt
+│       │       ├── parsed-design-spec.json
+│       │       ├── design-spec.json
 │       │       ├── extracted-source.scad
-│       │       └── validation.json
+│       │       └── chain.json
 │       └── thumbnails/
 └── jobs/
 ```

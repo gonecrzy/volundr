@@ -136,7 +136,21 @@ Candidate stabilization pass:
 - Candidate states are `ready`, `ready_with_warnings`, `blocked`, `rejected`, and `accepted`.
 - Validation findings are persisted and split into blocking findings and advisory warnings.
 - Accept, reject, finding dismissal, candidate listing, candidate findings, and active accepted revision endpoints are available.
-- Staged requirement extraction and Gemini-generated Design Specifications remain deferred.
+
+Requirement extraction pass:
+
+- New initial AI generations now pass through `requirements-v1` before OpenSCAD generation.
+- Design Specifications are immutable, versioned, persisted, and linked to requirement-extraction attempts and generated revisions.
+- Clarification, conflicting requirements, and unsupported requests are normal states rather than failed generation revisions.
+- A ready Design Specification must be explicitly continued before OpenSCAD generation starts.
+- Legacy active-revision AI edits remain supported during the transition and attach the latest Design Specification as context when available.
+
+Deferred stabilization work:
+
+- full structured revision planning
+- separate `design-plan-v1`
+- automatic continue policies
+- advanced protected-invariant geometry comparison
 
 ## Stage 4 — Projects and Revision History
 

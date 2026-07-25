@@ -55,6 +55,13 @@ Test:
 
 Test:
 
+- complete initial AI request creates a ready Design Specification before OpenSCAD generation
+- missing mating dimensions create clarification questions and no candidate
+- conflicting dimensions and unsupported requests do not generate SCAD
+- clarification answers create a new immutable Design Specification version
+- invalid requirement-extraction JSON is persisted and gets at most one schema-repair attempt
+- OpenSCAD generation cannot begin before a Design Specification is ready
+- generated initial candidates link back to the Design Specification that produced them
 - create initial revision
 - create child revision
 - failed attempt does not replace active revision
@@ -154,3 +161,5 @@ Prompt templates must have snapshot tests. Snapshot failures should require an i
 Generation-attempt tests must verify that the structured requirements/design artifact can be persisted before OpenSCAD generation, even before staged requirement extraction is implemented.
 
 Candidate tests must use fake providers and deterministic STL fixtures. Live Gemini runs are not required for candidate-state, validation, or API transition changes.
+
+Requirement-extraction tests must use fake providers and deterministic JSON fixtures. They must assert that clarification is not represented as a failed revision and that no candidate exists before explicit Continue to generation.

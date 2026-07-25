@@ -11,13 +11,28 @@ from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
-from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
+from app.services.ai.provider import (
+    ModelGenerationRequest,
+    ModelGenerationResult,
+    RequirementExtractionRequest,
+    RequirementExtractionResult,
+)
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
 
 class FakeAiProvider:
+    async def extract_requirements(
+        self,
+        request: RequirementExtractionRequest,
+    ) -> RequirementExtractionResult:
+        return RequirementExtractionResult(
+            raw_output=ready_spec_json(request.user_instruction),
+            provider="fake",
+            provider_model="fake-model",
+        )
+
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         return ModelGenerationResult(
             raw_output=f"""
@@ -195,6 +210,55 @@ def teardown_function() -> None:
     app.dependency_overrides.clear()
 
 
+def ready_spec_json(instruction: str) -> str:
+    return f"""{{
+  "schema_version": "1.0",
+  "object_type": "calibration_cube",
+  "purpose": {instruction!r},
+  "units": "mm",
+  "supported_scope": true,
+  "critical_dimensions": [
+    {{
+      "id": "width",
+      "label": "Width",
+      "value": 10,
+      "unit": "mm",
+      "tolerance": null,
+      "source": "user",
+      "importance": "critical",
+      "protected": true
+    }}
+  ],
+  "parameters": [],
+  "functional_requirements": [
+    {{
+      "id": "simple_block",
+      "description": "Create a simple block",
+      "source": "user",
+      "importance": "critical",
+      "protected": true
+    }}
+  ],
+  "print_requirements": {{}},
+  "assumptions": [],
+  "conflicts": [],
+  "missing_requirements": [],
+  "clarification_required": false,
+  "clarification_questions": [],
+  "generation_ready": true,
+  "outcome": "generation_ready"
+}}""".replace("'", '"')
+
+
+def create_ready_spec(client: TestClient, project_id: str, instruction: str) -> dict:
+    response = client.post(
+        f"/api/projects/{project_id}/requirements",
+        json={"user_instruction": instruction},
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
 def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     project = client.post(
@@ -204,11 +268,9 @@ def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
             "original_intent": "Create a calibration cube.",
         },
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a 10mm cube with named parameters.")
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a 10mm cube with named parameters."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 201
     revision = response.json()
@@ -228,7 +290,6 @@ def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
 
 def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> None:
     client = build_client(tmp_path)
-    app.dependency_overrides[get_ai_provider] = lambda: FailingAiProvider()
     project = client.post(
         "/api/projects",
         json={
@@ -236,11 +297,10 @@ def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> No
             "original_intent": "Create a generated part.",
         },
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a cube.")
+    app.dependency_overrides[get_ai_provider] = lambda: FailingAiProvider()
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a cube."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 502
     assert response.json()["detail"] == "Gemini CLI authentication failed"
@@ -248,7 +308,6 @@ def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> No
 
 def test_generation_extraction_failure_is_preserved_as_failed_revision(tmp_path: Path) -> None:
     client = build_client(tmp_path)
-    app.dependency_overrides[get_ai_provider] = lambda: InvalidSourceAiProvider()
     project = client.post(
         "/api/projects",
         json={
@@ -256,11 +315,10 @@ def test_generation_extraction_failure_is_preserved_as_failed_revision(tmp_path:
             "original_intent": "Create a generated part.",
         },
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a cube.")
+    app.dependency_overrides[get_ai_provider] = lambda: InvalidSourceAiProvider()
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a cube."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 201
     revision = response.json()
@@ -283,7 +341,6 @@ def test_generation_extraction_failure_is_preserved_as_failed_revision(tmp_path:
 def test_generation_repairs_once_after_compile_failure(tmp_path: Path) -> None:
     provider = RepairingAiProvider()
     client = build_client(tmp_path)
-    app.dependency_overrides[get_ai_provider] = lambda: provider
     project = client.post(
         "/api/projects",
         json={
@@ -291,11 +348,10 @@ def test_generation_repairs_once_after_compile_failure(tmp_path: Path) -> None:
             "original_intent": "Create a generated part.",
         },
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a cube.")
+    app.dependency_overrides[get_ai_provider] = lambda: provider
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a cube."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 201
     revision = response.json()

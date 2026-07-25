@@ -14,6 +14,13 @@ import {
   type ReviewState,
   type ValidationSummary,
 } from "./candidateView";
+import {
+  assumptionBuckets,
+  canContinueGeneration,
+  protectedRequirementCount,
+  requirementStageLabel,
+  type RequirementOutcome,
+} from "./designSpecificationView";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -54,6 +61,7 @@ type MeshMetadata = {
 type Revision = {
   id: string;
   parent_revision_id: string | null;
+  design_specification_id: string | null;
   revision_number: number;
   source_type: string;
   status: string;
@@ -68,6 +76,78 @@ type Revision = {
   metadata: MeshMetadata | null;
   error_message: string | null;
   validation_summary: ValidationSummary;
+};
+
+type ClarificationQuestion = {
+  id: string;
+  project_id: string;
+  design_specification_id: string;
+  requirement_id: string | null;
+  question: string;
+  reason: string | null;
+  display_order: number;
+  created_at: string;
+};
+
+type DesignSpecification = {
+  id: string;
+  project_id: string;
+  generation_attempt_id: string | null;
+  superseded_specification_id: string | null;
+  version_number: number;
+  schema_version: string;
+  prompt_template_version: string;
+  gemini_ruleset_version: string;
+  provider: string;
+  provider_model: string | null;
+  user_instruction: string;
+  raw_response_path: string | null;
+  specification_path: string;
+  content_hash: string;
+  outcome: RequirementOutcome;
+  supported_scope: boolean;
+  clarification_required: boolean;
+  generation_ready: boolean;
+  created_at: string;
+  specification: {
+    purpose?: string;
+    critical_dimensions?: Array<{
+      id: string;
+      label: string;
+      value: number | string | boolean | null;
+      unit?: string | null;
+      source: string;
+      importance?: string;
+      protected?: boolean;
+    }>;
+    parameters?: Array<{
+      id: string;
+      label: string;
+      value: number | string | boolean | null;
+      unit?: string | null;
+      source: string;
+      importance?: string;
+      protected?: boolean;
+      explanation?: string | null;
+    }>;
+    functional_requirements?: Array<{
+      id: string;
+      description: string;
+      source: string;
+      importance?: string;
+      protected?: boolean;
+    }>;
+    print_requirements?: Record<string, unknown>;
+    assumptions?: Array<{
+      id: string;
+      description: string;
+      source: string;
+      requires_approval?: boolean;
+    }>;
+    conflicts?: Array<{ id?: string; description?: string }>;
+    missing_requirements?: Array<{ id?: string; label?: string; reason?: string }>;
+  };
+  clarification_questions: ClarificationQuestion[];
 };
 
 type BuildVolumeProfile = {
@@ -169,6 +249,10 @@ function App() {
   const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
   const [candidateFindings, setCandidateFindings] = useState<CandidateFinding[]>([]);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
+  const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
+  const [clarificationAnswers, setClarificationAnswers] = useState<Record<string, string>>({});
+  const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
+  const [isContinuingGeneration, setIsContinuingGeneration] = useState(false);
   const [isInspectingPrintability, setIsInspectingPrintability] = useState(false);
   const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
     () => new Set(),
@@ -196,6 +280,9 @@ function App() {
   const selectedWorkflowLabel = revisionWorkflowLabel(selectedRevision);
   const acceptReason = acceptDisabledReason(selectedRevision);
   const canAcceptSelectedRevision = canAcceptRevision(selectedRevision);
+  const currentRequirementStage = requirementStageLabel(designSpecification);
+  const canContinueFromSpecification =
+    canContinueGeneration(designSpecification) && !isGenerating && !isContinuingGeneration;
 
   useEffect(() => {
     void refreshProjects();
@@ -217,6 +304,26 @@ function App() {
       );
     } catch {
       setSavedPrintabilityProfiles([]);
+    }
+  }
+
+  function resetRequirementState() {
+    setDesignSpecification(null);
+    setClarificationAnswers({});
+    setIsSubmittingClarification(false);
+    setIsContinuingGeneration(false);
+  }
+
+  async function loadCurrentDesignSpecification(projectId: string) {
+    try {
+      setDesignSpecification(
+        await request<DesignSpecification>(`/projects/${projectId}/design-specification`, {
+          method: "GET",
+        }),
+      );
+      setClarificationAnswers({});
+    } catch {
+      resetRequirementState();
     }
   }
 
@@ -277,6 +384,7 @@ function App() {
       setCompileLog(null);
       setAiOutput(null);
       setRevisionDiff(null);
+      resetRequirementState();
       setMessage("Project archived");
       setIsProjectDrawerOpen(false);
     } catch (error) {
@@ -312,6 +420,7 @@ function App() {
       setCompileLog(null);
       setAiOutput(null);
       setRevisionDiff(null);
+      resetRequirementState();
       setMessage("Project deleted");
       setIsProjectDrawerOpen(false);
     } catch (error) {
@@ -377,11 +486,77 @@ function App() {
         setProject(currentProject);
       }
 
-      const revision = await request<Revision>(`/projects/${currentProject.id}/generate`, {
+      setMessage("Understanding request");
+      const specification = await request<DesignSpecification>(`/projects/${currentProject.id}/requirements`, {
         method: "POST",
         body: JSON.stringify({ user_instruction: prompt }),
       });
-      const nextRevisions = await request<Revision[]>(`/projects/${currentProject.id}/revisions`, {
+      setDesignSpecification(specification);
+      setClarificationAnswers({});
+      if (specification.outcome === "generation_ready") {
+        setMessage("Requirements ready");
+      } else if (specification.outcome === "clarification_required") {
+        setMessage("Waiting for clarification");
+      } else if (specification.outcome === "requirements_conflict") {
+        setMessage("Requirements conflict");
+      } else if (specification.outcome === "unsupported_request") {
+        setMessage("Unsupported request");
+      } else {
+        setMessage("Requirement extraction failed");
+      }
+      await loadProjectMessages(currentProject.id);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Requirement extraction failed");
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  async function submitClarificationAnswers() {
+    if (!designSpecification) {
+      return;
+    }
+    setIsSubmittingClarification(true);
+    setMessage("Understanding request");
+    try {
+      const specification = await request<DesignSpecification>(
+        `/design-specifications/${designSpecification.id}/clarification-answers`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            answers: designSpecification.clarification_questions.map((question) => ({
+              question_id: question.id,
+              answer: clarificationAnswers[question.id] ?? "",
+            })),
+          }),
+        },
+      );
+      setDesignSpecification(specification);
+      setClarificationAnswers({});
+      setMessage(specification.outcome === "generation_ready" ? "Requirements ready" : requirementStageLabel(specification));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Clarification failed");
+    } finally {
+      setIsSubmittingClarification(false);
+    }
+  }
+
+  async function continueGenerationFromSpecification() {
+    if (!project) {
+      setMessage("Save or create a project before generation");
+      return;
+    }
+    if (!designSpecification || !canContinueGeneration(designSpecification)) {
+      setMessage("Requirements must be ready before generation");
+      return;
+    }
+    setIsContinuingGeneration(true);
+    setMessage("Generating model");
+    try {
+      const revision = await request<Revision>(`/design-specifications/${designSpecification.id}/generate`, {
+        method: "POST",
+      });
+      const nextRevisions = await request<Revision[]>(`/projects/${project.id}/revisions`, {
         method: "GET",
       });
       setRevisions(nextRevisions);
@@ -389,14 +564,14 @@ function App() {
       await loadCandidateFindings(revision);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
-      setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
-      setMessage(revision.status === "succeeded" ? "Generated" : revision.error_message ?? "Generation failed");
+      setProject({ ...project, active_revision_id: revision.is_accepted ? revision.id : project.active_revision_id });
+      setMessage(revision.status === "succeeded" ? "Candidate ready" : revision.error_message ?? "Generation failed");
       await selectRevision(revision);
-      await loadProjectMessages(currentProject.id);
+      await loadProjectMessages(project.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Generation failed");
     } finally {
-      setIsGenerating(false);
+      setIsContinuingGeneration(false);
     }
   }
 
@@ -435,6 +610,7 @@ function App() {
     setProject(nextProject);
     setProjectName(nextProject.name);
     setIntent(nextProject.original_intent);
+    await loadCurrentDesignSpecification(nextProject.id);
     await loadProjectMessages(nextProject.id);
     const nextRevisions = await request<Revision[]>(`/projects/${nextProject.id}/revisions`, {
       method: "GET",
@@ -706,6 +882,7 @@ function App() {
     setRevisionDiff(null);
     setPrintabilityReport(null);
     setDismissedPrintabilityResults(new Set());
+    resetRequirementState();
     setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
   }
@@ -835,6 +1012,19 @@ function App() {
           </section>
 
           <section className="revision-panel" aria-label="Revisions">
+            <DesignSpecificationReview
+              answers={clarificationAnswers}
+              canContinue={canContinueFromSpecification}
+              isContinuing={isContinuingGeneration}
+              isSubmittingAnswers={isSubmittingClarification}
+              specification={designSpecification}
+              stageLabel={currentRequirementStage}
+              onAnswerChange={(questionId, answer) =>
+                setClarificationAnswers((current) => ({ ...current, [questionId]: answer }))
+              }
+              onContinue={() => void continueGenerationFromSpecification()}
+              onSubmitAnswers={() => void submitClarificationAnswers()}
+            />
             <h2>Revisions</h2>
             <div className="revision-list">
               {revisions.length === 0 ? <p className="empty">No revisions</p> : null}
@@ -919,6 +1109,138 @@ function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function DesignSpecificationReview({
+  answers,
+  canContinue,
+  isContinuing,
+  isSubmittingAnswers,
+  specification,
+  stageLabel,
+  onAnswerChange,
+  onContinue,
+  onSubmitAnswers,
+}: {
+  answers: Record<string, string>;
+  canContinue: boolean;
+  isContinuing: boolean;
+  isSubmittingAnswers: boolean;
+  specification: DesignSpecification | null;
+  stageLabel: string;
+  onAnswerChange: (questionId: string, answer: string) => void;
+  onContinue: () => void;
+  onSubmitAnswers: () => void;
+}) {
+  if (!specification) {
+    return null;
+  }
+
+  const buckets = assumptionBuckets(specification);
+  const criticalDimensions = specification.specification.critical_dimensions ?? [];
+  const requirements = specification.specification.functional_requirements ?? [];
+  const questions = specification.clarification_questions;
+  const allAnswersPresent =
+    questions.length > 0 && questions.every((question) => (answers[question.id] ?? "").trim().length > 0);
+
+  return (
+    <section className="requirements-review" aria-label="Requirements">
+      <div className="section-heading">
+        <h2>Requirements</h2>
+        <span className={`requirement-state ${specification.outcome}`}>{stageLabel}</span>
+      </div>
+      <dl className="review-facts">
+        <dt>Purpose</dt>
+        <dd>{specification.specification.purpose ?? "Unknown"}</dd>
+        <dt>Protected</dt>
+        <dd>{protectedRequirementCount(specification)}</dd>
+        <dt>Version</dt>
+        <dd>{specification.version_number}</dd>
+      </dl>
+
+      {specification.outcome === "clarification_required" ? (
+        <div className="clarification-list">
+          {questions.map((question) => (
+            <label key={question.id}>
+              {question.question}
+              {question.reason ? <span className="field-note">{question.reason}</span> : null}
+              <input
+                value={answers[question.id] ?? ""}
+                onChange={(event) => onAnswerChange(question.id, event.target.value)}
+              />
+            </label>
+          ))}
+          <div className="actions">
+            <button
+              className="primary"
+              disabled={!allAnswersPresent || isSubmittingAnswers}
+              onClick={onSubmitAnswers}
+            >
+              {isSubmittingAnswers ? "Submitting" : "Submit answers"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {specification.outcome === "generation_ready" ? (
+        <>
+          <SummaryList
+            title="Critical dimensions"
+            items={criticalDimensions.map((dimension) =>
+              `${dimension.label}: ${dimension.value ?? "unset"}${dimension.unit ? ` ${dimension.unit}` : ""} (${dimension.source})`,
+            )}
+          />
+          <SummaryList
+            title="Protected requirements"
+            items={requirements
+              .filter((requirement) => requirement.protected)
+              .map((requirement) => `${requirement.description} (${requirement.source})`)}
+          />
+          <SummaryList title="Defaults" items={buckets.defaults} />
+          <SummaryList title="AI assumptions" items={buckets.aiAssumptions} />
+          <div className="actions">
+            <button className="primary" disabled={!canContinue} onClick={onContinue}>
+              {isContinuing ? "Generating" : "Continue to generation"}
+            </button>
+          </div>
+        </>
+      ) : null}
+
+      {specification.outcome === "requirements_conflict" ? (
+        <SummaryList
+          title="Conflicts"
+          items={(specification.specification.conflicts ?? []).map(
+            (conflict) => conflict.description ?? conflict.id ?? "Unspecified conflict",
+          )}
+        />
+      ) : null}
+
+      {specification.outcome === "unsupported_request" ? (
+        <SummaryList
+          title="Unsupported"
+          items={(specification.specification.missing_requirements ?? []).map(
+            (missing) => missing.reason ?? missing.label ?? missing.id ?? "Outside current scope",
+          )}
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function SummaryList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <div className="summary-list">
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

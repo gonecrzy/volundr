@@ -6,17 +6,26 @@ import shutil
 from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
+from typing import Any
 
+from pydantic import ValidationError
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.models.clarification_answer import ClarificationAnswer
+from app.models.clarification_question import ClarificationQuestion
+from app.models.design_specification import DesignSpecification
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.validation_finding import ValidationFinding
 from app.schemas.project import (
+    ClarificationAnswersCreate,
+    ClarificationQuestionRead,
+    DesignSpecificationPayload,
+    DesignSpecificationRead,
     GenerationCreate,
     ManualRevisionCreate,
     MeshMetadataRead,
@@ -27,9 +36,11 @@ from app.schemas.project import (
     RevisionRead,
     ValidationFindingRead,
     ValidationSummaryRead,
+    RequirementExtractionCreate,
+    RequirementOutcome,
 )
 from app.schemas.printability import PrintabilityProfile, PrintabilityResult
-from app.services.ai.provider import AiProvider, ModelGenerationRequest
+from app.services.ai.provider import AiProvider, ModelGenerationRequest, RequirementExtractionRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
@@ -55,6 +66,20 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
         "feature.small_features_gaps_holes",
     }
 )
+REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
+DESIGN_SPEC_SCHEMA_VERSION = "1.0"
+DEFAULT_REQUIREMENT_PROFILE = {
+    "version": "volundr-defaults-v1",
+    "units": "mm",
+    "default_nozzle_diameter_mm": 0.4,
+    "default_layer_height_mm": 0.2,
+    "general_functional_wall_thickness_mm": 3.0,
+    "minimum_preferred_functional_wall_thickness_mm": 1.6,
+    "general_removable_fit_clearance_per_side_mm": [0.30, 0.50],
+    "general_close_fit_clearance_per_side_mm": [0.15, 0.25],
+    "default_small_edge_chamfer_mm": [0.5, 1.0],
+    "supports_assumed_allowed": False,
+}
 
 
 class ProjectService:
@@ -350,6 +375,122 @@ class ProjectService:
         self.db.refresh(finding)
         return ValidationFindingRead.model_validate(finding)
 
+    async def extract_requirements(
+        self,
+        project_id: str,
+        payload: RequirementExtractionCreate,
+    ) -> DesignSpecificationRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+        request = RequirementExtractionRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=payload.user_instruction,
+            defaults=DEFAULT_REQUIREMENT_PROFILE,
+        )
+        return await self._run_requirement_extraction(project=project, request=request)
+
+    def get_current_design_specification(self, project_id: str) -> DesignSpecificationRead | None:
+        if self.db.get(Project, project_id) is None:
+            return None
+        specification = self._latest_design_specification(project_id)
+        return self._design_specification_read(specification) if specification is not None else None
+
+    def get_design_specification(self, specification_id: str) -> DesignSpecificationRead | None:
+        specification = self.db.get(DesignSpecification, specification_id)
+        return self._design_specification_read(specification) if specification is not None else None
+
+    def list_clarification_questions(
+        self,
+        specification_id: str,
+    ) -> list[ClarificationQuestionRead] | None:
+        if self.db.get(DesignSpecification, specification_id) is None:
+            return None
+        questions = self.db.scalars(
+            select(ClarificationQuestion)
+            .where(ClarificationQuestion.design_specification_id == specification_id)
+            .order_by(ClarificationQuestion.display_order.asc())
+        )
+        return [ClarificationQuestionRead.model_validate(question) for question in questions]
+
+    async def submit_clarification_answers(
+        self,
+        specification_id: str,
+        payload: ClarificationAnswersCreate,
+    ) -> DesignSpecificationRead | None:
+        specification = self.db.get(DesignSpecification, specification_id)
+        if specification is None:
+            return None
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+
+        previous_payload = self._read_design_specification_payload(specification)
+        answers: list[dict[str, Any]] = []
+        for answer_payload in payload.answers:
+            question = self.db.get(ClarificationQuestion, answer_payload.question_id)
+            if question is None or question.design_specification_id != specification.id:
+                raise ValueError("clarification question not found for specification")
+            answer = ClarificationAnswer(
+                project_id=specification.project_id,
+                question_id=question.id,
+                design_specification_id=specification.id,
+                related_requirement_id=question.requirement_id,
+                question_text=question.question,
+                answer=answer_payload.answer.strip(),
+            )
+            self.db.add(answer)
+            answers.append(
+                {
+                    "question_id": question.id,
+                    "related_requirement_id": question.requirement_id,
+                    "question": question.question,
+                    "answer": answer.answer,
+                }
+            )
+        self.db.commit()
+
+        project = self.db.get(Project, specification.project_id)
+        if project is None:
+            return None
+        request = RequirementExtractionRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=specification.user_instruction,
+            previous_specification=previous_payload,
+            clarification_questions=[
+                {
+                    "id": question.id,
+                    "related_requirement_id": question.requirement_id,
+                    "question": question.question,
+                    "reason": question.reason,
+                }
+                for question in specification.clarification_questions
+            ],
+            clarification_answers=answers,
+            defaults=DEFAULT_REQUIREMENT_PROFILE,
+        )
+        return await self._run_requirement_extraction(
+            project=project,
+            request=request,
+            superseded_specification_id=specification.id,
+        )
+
+    async def generate_from_design_specification(
+        self,
+        specification_id: str,
+    ) -> RevisionRead | None:
+        specification = self.db.get(DesignSpecification, specification_id)
+        if specification is None:
+            return None
+        payload = GenerationCreate(
+            user_instruction=specification.user_instruction,
+            design_specification_id=specification.id,
+        )
+        return await self.generate_initial_revision(specification.project_id, payload)
+
     async def create_manual_revision(
         self,
         project_id: str,
@@ -375,21 +516,43 @@ class ProjectService:
 
         current_source = None
         source_type = "ai_initial"
+        design_specification = None
+        design_specification_payload = None
+        if payload.design_specification_id is not None:
+            design_specification = self.db.get(DesignSpecification, payload.design_specification_id)
+            if design_specification is None or design_specification.project_id != project.id:
+                raise ValueError("Design Specification not found for project")
+            if design_specification.outcome != RequirementOutcome.GENERATION_READY.value:
+                raise ValueError("Design Specification must be generation_ready before OpenSCAD generation")
+            if self._has_newer_design_specification(design_specification):
+                raise ValueError("Design Specification has been superseded")
+            design_specification_payload = self._read_design_specification_payload(design_specification)
         if project.active_revision_id is not None:
             current_source = self.read_revision_source(project.active_revision_id)
             if current_source is None:
                 raise RuntimeError("active revision source is missing")
             source_type = "ai_revision"
+            if design_specification_payload is None:
+                latest_specification = self._latest_design_specification(project.id)
+                if latest_specification is not None:
+                    design_specification = latest_specification
+                    design_specification_payload = self._read_design_specification_payload(
+                        latest_specification
+                    )
+        elif design_specification is None:
+            raise ValueError("Design Specification is required before initial AI generation")
 
         generation_request = self._generation_request(
             project=project,
             payload=payload,
             current_source=current_source,
+            design_specification=design_specification_payload,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
             request=generation_request,
             base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
         )
         try:
             generation_result = await self.ai_provider.generate_model(generation_request)
@@ -429,6 +592,7 @@ class ProjectService:
             user_instruction=payload.user_instruction,
             source_type=source_type,
             raw_ai_output=generation_result.raw_output,
+            design_specification_id=design_specification.id if design_specification else None,
         )
         if initial_revision is None or initial_revision.status == "succeeded":
             self._finish_generation_attempt(
@@ -454,11 +618,13 @@ class ProjectService:
             payload=payload,
             current_source=scad_source,
             compiler_diagnostics=initial_revision.error_message,
+            design_specification=design_specification_payload,
         )
         repair_attempt = self._start_generation_attempt(
             project=project,
             request=repair_request,
             base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
         )
         try:
             repair_result = await self.ai_provider.generate_model(repair_request)
@@ -498,6 +664,7 @@ class ProjectService:
             user_instruction=payload.user_instruction,
             source_type="ai_repair",
             raw_ai_output=repair_result.raw_output,
+            design_specification_id=design_specification.id if design_specification else None,
         )
         self._finish_generation_attempt(
             repair_attempt,
@@ -519,6 +686,7 @@ class ProjectService:
         payload: GenerationCreate,
         current_source: str | None = None,
         compiler_diagnostics: str | None = None,
+        design_specification: dict[str, Any] | None = None,
     ) -> ModelGenerationRequest:
         return ModelGenerationRequest(
             project_name=project.name,
@@ -526,6 +694,7 @@ class ProjectService:
             user_instruction=payload.user_instruction,
             current_source=current_source,
             compiler_diagnostics=compiler_diagnostics,
+            design_specification=design_specification,
         )
 
     def _start_generation_attempt(
@@ -534,6 +703,7 @@ class ProjectService:
         project: Project,
         request: ModelGenerationRequest,
         base_revision_id: str | None,
+        design_specification_payload: dict[str, Any] | None = None,
     ) -> GenerationAttempt:
         attempt = GenerationAttempt(
             project_id=project.id,
@@ -561,7 +731,10 @@ class ProjectService:
 
         self._write_json(request_path, asdict(request))
         prompt_path.write_text(self._render_prompt(request), encoding="utf-8")
-        self._write_json(design_spec_path, self._legacy_design_spec(request))
+        self._write_json(
+            design_spec_path,
+            design_specification_payload or self._legacy_design_spec(request),
+        )
         self._write_json(chain_path, self._attempt_chain(attempt, status="started"))
 
         attempt.request_payload_path = self._relative(request_path)
@@ -609,6 +782,211 @@ class ProjectService:
         attempt.completed_at = project_utcnow()
         self._update_attempt_chain(attempt, status=status, error_message=error_message)
         self.db.commit()
+
+    async def _run_requirement_extraction(
+        self,
+        *,
+        project: Project,
+        request: RequirementExtractionRequest,
+        superseded_specification_id: str | None = None,
+    ) -> DesignSpecificationRead:
+        attempt = self._start_requirement_attempt(project=project, request=request)
+        try:
+            extractor = getattr(self.ai_provider, "extract_requirements")
+            extraction_result = await extractor(request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(attempt, extraction_result)
+        try:
+            parsed_payload = self._parse_design_specification_payload(
+                extraction_result.raw_output,
+                project_id=project.id,
+                generation_attempt_id=attempt.id,
+            )
+        except (ValueError, ValidationError) as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.DESIGN_SPEC_INVALID,
+                error_message=str(exc),
+            )
+            if request.schema_repair_of_raw_output is not None:
+                raise RuntimeError("requirement extraction returned invalid Design Specification") from exc
+            repair_request = RequirementExtractionRequest(
+                project_name=request.project_name,
+                original_intent=request.original_intent,
+                user_instruction=request.user_instruction,
+                previous_specification=request.previous_specification,
+                clarification_questions=request.clarification_questions,
+                clarification_answers=request.clarification_answers,
+                schema_repair_of_raw_output=extraction_result.raw_output,
+                schema_validation_error=str(exc),
+                defaults=request.defaults,
+            )
+            return await self._run_requirement_extraction(
+                project=project,
+                request=repair_request,
+                superseded_specification_id=superseded_specification_id,
+            )
+
+        specification = self._persist_design_specification(
+            project=project,
+            attempt=attempt,
+            request=request,
+            payload=parsed_payload,
+            raw_response_path=attempt.raw_output_path,
+            superseded_specification_id=superseded_specification_id,
+        )
+        self._finish_generation_attempt(
+            attempt,
+            status="succeeded",
+            failure_class=FailureClass.NONE,
+        )
+        return self._design_specification_read(specification)
+
+    def _start_requirement_attempt(
+        self,
+        *,
+        project: Project,
+        request: RequirementExtractionRequest,
+    ) -> GenerationAttempt:
+        attempt = GenerationAttempt(
+            project_id=project.id,
+            base_revision_id=project.active_revision_id,
+            attempt_number=self._next_generation_attempt_number(project.id),
+            provider=self._provider_name(),
+            provider_model=self._provider_model(),
+            provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            prompt_template_version=self._requirement_prompt_template_version(),
+            gemini_ruleset_version=self._gemini_ruleset_version(),
+            request_payload_path="",
+            prompt_path="",
+            status="started",
+            failure_class=FailureClass.NONE.value,
+        )
+        self.db.add(attempt)
+        self.db.flush()
+
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        request_path = run_dir / "request.json"
+        prompt_path = run_dir / "prompt.txt"
+        chain_path = run_dir / "chain.json"
+
+        self._write_json(request_path, asdict(request))
+        prompt_path.write_text(self._render_requirement_prompt(request), encoding="utf-8")
+        self._write_json(chain_path, self._attempt_chain(attempt, status="started"))
+
+        attempt.request_payload_path = self._relative(request_path)
+        attempt.prompt_path = self._relative(prompt_path)
+        attempt.intermediate_artifacts_path = self._relative(chain_path)
+        self._update_attempt_chain(attempt, status="started")
+        self.db.commit()
+        self.db.refresh(attempt)
+        return attempt
+
+    def _parse_design_specification_payload(
+        self,
+        raw_output: str,
+        *,
+        project_id: str,
+        generation_attempt_id: str,
+    ) -> dict[str, Any]:
+        json_text = self._extract_json_response(raw_output)
+        payload = json.loads(json_text)
+        payload["project_id"] = project_id
+        payload["generation_attempt_id"] = generation_attempt_id
+        if "schema_version" not in payload:
+            payload["schema_version"] = DESIGN_SPEC_SCHEMA_VERSION
+        validated = DesignSpecificationPayload.model_validate(payload)
+        normalized = validated.model_dump(mode="json")
+        outcome = self._derive_requirement_outcome(normalized)
+        normalized["outcome"] = outcome.value
+        normalized["clarification_required"] = outcome == RequirementOutcome.CLARIFICATION_REQUIRED
+        normalized["generation_ready"] = outcome == RequirementOutcome.GENERATION_READY
+        if outcome == RequirementOutcome.UNSUPPORTED_REQUEST:
+            normalized["supported_scope"] = False
+        return normalized
+
+    def _extract_json_response(self, raw_output: str) -> str:
+        stripped = raw_output.strip()
+        fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", stripped, flags=re.DOTALL)
+        return fenced.group(1).strip() if fenced else stripped
+
+    def _derive_requirement_outcome(self, payload: dict[str, Any]) -> RequirementOutcome:
+        explicit = payload.get("outcome")
+        if explicit:
+            return RequirementOutcome(explicit)
+        if not payload.get("supported_scope", True):
+            return RequirementOutcome.UNSUPPORTED_REQUEST
+        if payload.get("conflicts"):
+            return RequirementOutcome.REQUIREMENTS_CONFLICT
+        if payload.get("clarification_required") or payload.get("clarification_questions"):
+            return RequirementOutcome.CLARIFICATION_REQUIRED
+        if payload.get("generation_ready"):
+            return RequirementOutcome.GENERATION_READY
+        return RequirementOutcome.EXTRACTION_FAILED
+
+    def _persist_design_specification(
+        self,
+        *,
+        project: Project,
+        attempt: GenerationAttempt,
+        request: RequirementExtractionRequest,
+        payload: dict[str, Any],
+        raw_response_path: str | None,
+        superseded_specification_id: str | None,
+    ) -> DesignSpecification:
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        spec_path = run_dir / "parsed-design-spec.json"
+        self._write_json(spec_path, payload)
+        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
+        attempt.design_spec_path = self._relative(spec_path)
+        specification = DesignSpecification(
+            project_id=project.id,
+            generation_attempt_id=attempt.id,
+            superseded_specification_id=superseded_specification_id,
+            version_number=self._next_design_specification_version(project.id),
+            schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
+            prompt_template_version=attempt.prompt_template_version,
+            gemini_ruleset_version=attempt.gemini_ruleset_version,
+            provider=attempt.provider,
+            provider_model=attempt.provider_model,
+            user_instruction=request.user_instruction,
+            raw_response_path=raw_response_path,
+            specification_path=self._relative(spec_path),
+            content_hash=content_hash,
+            outcome=str(payload["outcome"]),
+            supported_scope=bool(payload.get("supported_scope", True)),
+            clarification_required=bool(payload.get("clarification_required", False)),
+            generation_ready=bool(payload.get("generation_ready", False)),
+        )
+        self.db.add(specification)
+        self.db.flush()
+        for index, question_payload in enumerate(payload.get("clarification_questions", [])):
+            self.db.add(
+                ClarificationQuestion(
+                    project_id=project.id,
+                    design_specification_id=specification.id,
+                    requirement_id=question_payload.get("related_requirement_id")
+                    or question_payload.get("id"),
+                    question=question_payload["question"],
+                    reason=question_payload.get("reason"),
+                    display_order=index,
+                )
+            )
+        self.db.flush()
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+        self.db.refresh(specification)
+        return specification
 
     def _update_attempt_chain(
         self,
@@ -658,7 +1036,14 @@ class ProjectService:
         return {
             "design_specification_version": "legacy-design-spec-placeholder-v1",
             "artifact_status": "placeholder_until_staged_requirements",
-            "sources": ["user", "calculated", "profile_default", "ai_assumption"],
+            "sources": [
+                "user",
+                "clarification",
+                "calculated",
+                "printer_profile",
+                "product_default",
+                "ai_assumption",
+            ],
             "project_name": {"value": request.project_name, "source": "user"},
             "original_intent": {"value": request.original_intent, "source": "user"},
             "user_instruction": {"value": request.user_instruction, "source": "user"},
@@ -666,6 +1051,12 @@ class ProjectService:
 
     def _render_prompt(self, request: ModelGenerationRequest) -> str:
         build_prompt = getattr(self.ai_provider, "build_prompt", None)
+        if callable(build_prompt):
+            return build_prompt(request)
+        return ""
+
+    def _render_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
+        build_prompt = getattr(self.ai_provider, "build_requirement_prompt", None)
         if callable(build_prompt):
             return build_prompt(request)
         return ""
@@ -678,7 +1069,15 @@ class ProjectService:
             return "legacy-compile-repair-v1"
         if request.current_source:
             return "legacy-revision-v1"
+        if request.design_specification:
+            return "openscad-generation-v1"
         return "legacy-initial-v1"
+
+    def _requirement_prompt_template_version(self) -> str:
+        version = getattr(self.ai_provider, "requirement_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return REQUIREMENTS_PROMPT_VERSION
 
     def _gemini_ruleset_version(self) -> str:
         return str(getattr(self.ai_provider, "gemini_ruleset_version", "gemini-ruleset-v1"))
@@ -700,6 +1099,65 @@ class ProjectService:
             if value is not None:
                 settings_payload[name] = value
         return settings_payload
+
+    def _latest_design_specification(self, project_id: str) -> DesignSpecification | None:
+        return self.db.scalar(
+            select(DesignSpecification)
+            .where(DesignSpecification.project_id == project_id)
+            .order_by(DesignSpecification.version_number.desc())
+        )
+
+    def _has_newer_design_specification(self, specification: DesignSpecification) -> bool:
+        latest_version = self.db.scalar(
+            select(func.max(DesignSpecification.version_number)).where(
+                DesignSpecification.project_id == specification.project_id
+            )
+        )
+        return latest_version is not None and int(latest_version) > specification.version_number
+
+    def _read_design_specification_payload(
+        self,
+        specification: DesignSpecification,
+    ) -> dict[str, Any]:
+        path = self.data_dir / specification.specification_path
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def _design_specification_read(
+        self,
+        specification: DesignSpecification,
+    ) -> DesignSpecificationRead:
+        questions = list(
+            self.db.scalars(
+                select(ClarificationQuestion)
+                .where(ClarificationQuestion.design_specification_id == specification.id)
+                .order_by(ClarificationQuestion.display_order.asc())
+            )
+        )
+        return DesignSpecificationRead(
+            id=specification.id,
+            project_id=specification.project_id,
+            generation_attempt_id=specification.generation_attempt_id,
+            superseded_specification_id=specification.superseded_specification_id,
+            version_number=specification.version_number,
+            schema_version=specification.schema_version,
+            prompt_template_version=specification.prompt_template_version,
+            gemini_ruleset_version=specification.gemini_ruleset_version,
+            provider=specification.provider,
+            provider_model=specification.provider_model,
+            user_instruction=specification.user_instruction,
+            raw_response_path=specification.raw_response_path,
+            specification_path=specification.specification_path,
+            content_hash=specification.content_hash,
+            outcome=RequirementOutcome(specification.outcome),
+            supported_scope=specification.supported_scope,
+            clarification_required=specification.clarification_required,
+            generation_ready=specification.generation_ready,
+            created_at=specification.created_at,
+            specification=self._read_design_specification_payload(specification),
+            clarification_questions=[
+                ClarificationQuestionRead.model_validate(question) for question in questions
+            ],
+        )
 
     def _persist_validation_findings(self, *, revision: Revision, stl_path: Path) -> None:
         report = inspect_printability(stl_path, PrintabilityProfile())
@@ -843,6 +1301,7 @@ class ProjectService:
         user_instruction: str | None,
         source_type: str,
         raw_ai_output: str | None = None,
+        design_specification_id: str | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -852,6 +1311,7 @@ class ProjectService:
         revision = Revision(
             project_id=project_id,
             parent_revision_id=project.active_revision_id,
+            design_specification_id=design_specification_id,
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
@@ -1047,6 +1507,7 @@ class ProjectService:
             id=revision.id,
             project_id=revision.project_id,
             parent_revision_id=revision.parent_revision_id,
+            design_specification_id=revision.design_specification_id,
             revision_number=revision.revision_number,
             source_type=revision.source_type,
             user_instruction=revision.user_instruction,
@@ -1075,6 +1536,14 @@ class ProjectService:
         current = self.db.scalar(
             select(func.max(GenerationAttempt.attempt_number)).where(
                 GenerationAttempt.project_id == project_id
+            )
+        )
+        return int(current or 0) + 1
+
+    def _next_design_specification_version(self, project_id: str) -> int:
+        current = self.db.scalar(
+            select(func.max(DesignSpecification.version_number)).where(
+                DesignSpecification.project_id == project_id
             )
         )
         return int(current or 0) + 1

@@ -43,4 +43,9 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan",
     )
+    design_specifications = relationship(
+        "DesignSpecification",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     active_revision = relationship("Revision", foreign_keys=[active_revision_id], post_update=True)

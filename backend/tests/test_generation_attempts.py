@@ -13,12 +13,27 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.generation_attempt import GenerationAttempt
-from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
+from app.services.ai.provider import (
+    ModelGenerationRequest,
+    ModelGenerationResult,
+    RequirementExtractionRequest,
+    RequirementExtractionResult,
+)
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
 
 class SuccessfulAiProvider:
+    async def extract_requirements(
+        self,
+        request: RequirementExtractionRequest,
+    ) -> RequirementExtractionResult:
+        return RequirementExtractionResult(
+            raw_output=ready_spec_json(request.user_instruction),
+            provider="fake",
+            provider_model="fake-model",
+        )
+
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         return ModelGenerationResult(
             raw_output="""
@@ -118,25 +133,80 @@ def teardown_function() -> None:
     app.dependency_overrides.clear()
 
 
+def ready_spec_json(instruction: str) -> str:
+    return json.dumps(
+        {
+            "schema_version": "1.0",
+            "object_type": "calibration_cube",
+            "purpose": instruction,
+            "units": "mm",
+            "supported_scope": True,
+            "critical_dimensions": [
+                {
+                    "id": "width",
+                    "label": "Width",
+                    "value": 10,
+                    "unit": "mm",
+                    "tolerance": None,
+                    "source": "user",
+                    "importance": "critical",
+                    "protected": True,
+                }
+            ],
+            "parameters": [],
+            "functional_requirements": [
+                {
+                    "id": "simple_block",
+                    "description": "Create a simple block",
+                    "source": "user",
+                    "importance": "critical",
+                    "protected": True,
+                }
+            ],
+            "print_requirements": {},
+            "assumptions": [],
+            "conflicts": [],
+            "missing_requirements": [],
+            "clarification_required": False,
+            "clarification_questions": [],
+            "generation_ready": True,
+            "outcome": "generation_ready",
+        }
+    )
+
+
+def create_ready_spec(client: TestClient, project_id: str, instruction: str) -> dict:
+    response = client.post(
+        f"/api/projects/{project_id}/requirements",
+        json={"user_instruction": instruction},
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
 def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -> None:
     client, SessionLocal = build_client(tmp_path, SuccessfulAiProvider())
     project = client.post(
         "/api/projects",
         json={"name": "Generated cube", "original_intent": "Create a calibration cube."},
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a 10mm cube with named parameters.")
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a 10mm cube with named parameters."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 201
     with SessionLocal() as session:
-        attempt = session.scalar(select(GenerationAttempt))
-        assert attempt is not None
+        attempts = list(
+            session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number))
+        )
+        assert len(attempts) == 2
+        requirement_attempt, attempt = attempts
+        assert requirement_attempt.status == "succeeded"
+        assert requirement_attempt.prompt_template_version == "requirements-v1"
+        assert requirement_attempt.design_spec_path is not None
         assert attempt.status == "succeeded"
         assert attempt.failure_class == "none"
-        assert attempt.prompt_template_version == "legacy-initial-v1"
+        assert attempt.prompt_template_version == "openscad-generation-v1"
         assert attempt.gemini_ruleset_version == "gemini-ruleset-v1"
         assert attempt.provider == "fake"
         assert attempt.provider_model == "fake-model"
@@ -151,26 +221,27 @@ def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -
     assert (run_dir / "raw-output.txt").exists()
     assert (run_dir / "extracted-source.scad").exists()
     design_spec = json.loads((run_dir / "design-spec.json").read_text(encoding="utf-8"))
-    assert design_spec["design_specification_version"] == "legacy-design-spec-placeholder-v1"
-    assert design_spec["user_instruction"]["source"] == "user"
-    assert chain["stages"][0]["prompt_template_version"] == "legacy-initial-v1"
+    assert design_spec["outcome"] == "generation_ready"
+    assert design_spec["critical_dimensions"][0]["source"] == "user"
+    assert chain["stages"][0]["prompt_template_version"] == "openscad-generation-v1"
 
 
 def test_provider_failure_persists_failed_attempt_without_revision(tmp_path: Path) -> None:
-    client, SessionLocal = build_client(tmp_path, FailingAiProvider())
+    client, SessionLocal = build_client(tmp_path, SuccessfulAiProvider())
     project = client.post(
         "/api/projects",
         json={"name": "Blocked generation", "original_intent": "Create a generated part."},
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a cube.")
+    app.dependency_overrides[get_ai_provider] = lambda: FailingAiProvider()
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a cube."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 502
     with SessionLocal() as session:
-        attempt = session.scalar(select(GenerationAttempt))
+        attempt = list(
+            session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number))
+        )[-1]
         assert attempt is not None
         assert attempt.status == "failed"
         assert attempt.failure_class == "provider_failure"
@@ -179,20 +250,21 @@ def test_provider_failure_persists_failed_attempt_without_revision(tmp_path: Pat
 
 
 def test_extraction_failure_persists_raw_output_and_failure_class(tmp_path: Path) -> None:
-    client, SessionLocal = build_client(tmp_path, InvalidSourceAiProvider())
+    client, SessionLocal = build_client(tmp_path, SuccessfulAiProvider())
     project = client.post(
         "/api/projects",
         json={"name": "Bad output", "original_intent": "Create a generated part."},
     ).json()
+    spec = create_ready_spec(client, project["id"], "Create a cube.")
+    app.dependency_overrides[get_ai_provider] = lambda: InvalidSourceAiProvider()
 
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Create a cube."},
-    )
+    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
 
     assert response.status_code == 201
     with SessionLocal() as session:
-        attempt = session.scalar(select(GenerationAttempt))
+        attempt = list(
+            session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number))
+        )[-1]
         assert attempt is not None
         assert attempt.status == "failed"
         assert attempt.failure_class == "source_extraction_failure"

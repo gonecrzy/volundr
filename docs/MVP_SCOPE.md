@@ -20,6 +20,8 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Limit automatic repair attempts.
 - Store every attempt, including failures.
 - Ask for clarification before OpenSCAD generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
+- Persist a versioned Design Specification before new initial OpenSCAD generation.
+- Require an explicit Continue action from a ready Design Specification during stabilization.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
 - Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
 
@@ -62,6 +64,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Restore a prior revision by making it the active revision.
 - Preserve failed attempts without presenting them as accepted models.
 - Keep AI-generated candidates distinct from user-accepted active revisions when validation warnings or assumptions require review.
+- Keep requirement extraction, clarification, and unsupported-request states distinct from failed model revisions.
 - Prevent blocked and rejected candidates from becoming active through restore or accept actions.
 
 ### Downloads

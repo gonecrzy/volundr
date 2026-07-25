@@ -71,6 +71,13 @@ main_model();
 6. Preserve parameter names during revisions unless a rename is required to correct ambiguity.
 7. Add new parameters only when a revision introduces a new user-controllable dimension or feature.
 
+## Requirement Source Rules
+
+1. In requirement-extraction stages, every dimension and requirement must use exactly one source: `user`, `clarification`, `calculated`, `printer_profile`, `product_default`, or `ai_assumption`.
+2. User-supplied and clarification-supplied critical values are protected by default.
+3. Product defaults may fill ordinary non-critical FDM choices, but they must be disclosed in the Design Specification.
+4. AI assumptions may cover cosmetic or minor nonfunctional choices only. They must not replace missing critical fit, fastener, load, orientation, or mating-geometry data.
+
 ## OpenSCAD Code Rules
 
 1. Define `$fn` once in `QUALITY`, normally 32 to 64. Use 96 only when a circular mating surface requires it.
@@ -155,4 +162,3 @@ Do not use:
 2. Do not silently invent critical dimensions.
 3. Do not hide assumptions in comments without matching parameters.
 4. Do not claim the model is guaranteed printable.
-

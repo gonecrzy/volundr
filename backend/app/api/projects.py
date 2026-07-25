@@ -7,6 +7,9 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.session import get_db
 from app.schemas.project import (
+    ClarificationAnswersCreate,
+    ClarificationQuestionRead,
+    DesignSpecificationRead,
     ManualRevisionCreate,
     GenerationCreate,
     ProjectCreate,
@@ -17,6 +20,7 @@ from app.schemas.project import (
     RevisionRead,
     ValidationFindingDismiss,
     ValidationFindingRead,
+    RequirementExtractionCreate,
 )
 from app.schemas.printability import (
     PrintabilityProfile,
@@ -185,6 +189,129 @@ def get_active_revision(
     return revision
 
 
+@router.post(
+    "/projects/{project_id}/requirements",
+    response_model=DesignSpecificationRead,
+    status_code=201,
+)
+async def extract_project_requirements(
+    project_id: str,
+    payload: RequirementExtractionCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> DesignSpecificationRead:
+    service = ProjectService(db=db, data_dir=data_dir, ai_provider=ai_provider)
+    try:
+        specification = await service.extract_requirements(project_id, payload)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    if specification is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return specification
+
+
+@router.get(
+    "/projects/{project_id}/design-specification",
+    response_model=DesignSpecificationRead,
+)
+def get_current_design_specification(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> DesignSpecificationRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    specification = service.get_current_design_specification(project_id)
+    if specification is None:
+        raise HTTPException(status_code=404, detail="Design Specification not found")
+    return specification
+
+
+@router.get(
+    "/design-specifications/{specification_id}",
+    response_model=DesignSpecificationRead,
+)
+def get_design_specification(
+    specification_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> DesignSpecificationRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    specification = service.get_design_specification(specification_id)
+    if specification is None:
+        raise HTTPException(status_code=404, detail="Design Specification not found")
+    return specification
+
+
+@router.get(
+    "/design-specifications/{specification_id}/clarification-questions",
+    response_model=list[ClarificationQuestionRead],
+)
+def list_clarification_questions(
+    specification_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ClarificationQuestionRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    questions = service.list_clarification_questions(specification_id)
+    if questions is None:
+        raise HTTPException(status_code=404, detail="Design Specification not found")
+    return questions
+
+
+@router.post(
+    "/design-specifications/{specification_id}/clarification-answers",
+    response_model=DesignSpecificationRead,
+    status_code=201,
+)
+async def submit_clarification_answers(
+    specification_id: str,
+    payload: ClarificationAnswersCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> DesignSpecificationRead:
+    service = ProjectService(db=db, data_dir=data_dir, ai_provider=ai_provider)
+    try:
+        specification = await service.submit_clarification_answers(specification_id, payload)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if specification is None:
+        raise HTTPException(status_code=404, detail="Design Specification not found")
+    return specification
+
+
+@router.post(
+    "/design-specifications/{specification_id}/generate",
+    response_model=RevisionRead,
+    status_code=201,
+)
+async def generate_from_design_specification(
+    specification_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> RevisionRead:
+    service = ProjectService(
+        db=db,
+        data_dir=data_dir,
+        cad_runner=cad_runner,
+        ai_provider=ai_provider,
+    )
+    try:
+        revision = await service.generate_from_design_specification(specification_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if revision is None:
+        raise HTTPException(status_code=404, detail="Design Specification not found")
+    return revision
+
+
 @router.post("/projects/{project_id}/revisions", response_model=RevisionRead, status_code=201)
 async def create_manual_revision(
     project_id: str,
@@ -219,6 +346,8 @@ async def generate_initial_revision(
         revision = await service.generate_initial_revision(project_id, payload)
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if revision is None:
         raise HTTPException(status_code=404, detail="project not found")
     return revision

@@ -44,6 +44,7 @@ Fields:
 id
 project_id
 parent_revision_id
+design_specification_id
 revision_number
 source_type
 user_instruction
@@ -104,6 +105,170 @@ rejected -> accepted is forbidden
 
 Manual source compilation establishes the first active accepted revision when no active design exists. Later manual compiles and AI compiles create candidates until explicitly accepted.
 
+## DesignSpecification
+
+Represents an immutable structured interpretation of a user request before OpenSCAD generation. New initial AI generations require a ready Design Specification. Clarification answers create a new specification version rather than mutating the prior one.
+
+Fields:
+
+```text
+id
+project_id
+generation_attempt_id
+superseded_specification_id
+version_number
+schema_version
+prompt_template_version
+gemini_ruleset_version
+provider
+provider_model
+user_instruction
+raw_response_path
+specification_path
+content_hash
+outcome
+supported_scope
+clarification_required
+generation_ready
+created_at
+```
+
+Suggested `outcome` values:
+
+```text
+generation_ready
+clarification_required
+requirements_conflict
+unsupported_request
+extraction_failed
+```
+
+The JSON stored at `specification_path` uses schema version `1.0`:
+
+```json
+{
+  "schema_version": "1.0",
+  "project_id": "uuid",
+  "generation_attempt_id": "uuid",
+  "object_type": "wall_mounted_cylindrical_holder",
+  "purpose": "Hold an 81 mm container on a vertical surface",
+  "units": "mm",
+  "supported_scope": true,
+  "critical_dimensions": [
+    {
+      "id": "container_diameter",
+      "label": "Container diameter",
+      "value": 81.0,
+      "unit": "mm",
+      "tolerance": null,
+      "source": "user",
+      "importance": "critical",
+      "protected": true
+    }
+  ],
+  "parameters": [
+    {
+      "id": "fit_clearance",
+      "label": "Fit clearance",
+      "value": 0.8,
+      "unit": "mm",
+      "source": "product_default",
+      "importance": "important",
+      "protected": false,
+      "editable": true,
+      "explanation": "General removable fit for an FDM-printed holder"
+    }
+  ],
+  "functional_requirements": [
+    {
+      "id": "mounting_method",
+      "description": "Mount to a vertical wall using two screws",
+      "source": "user",
+      "importance": "critical",
+      "protected": true
+    }
+  ],
+  "print_requirements": {
+    "printer_profile_id": "default-fdm-256",
+    "nozzle_diameter_mm": 0.4,
+    "layer_height_mm": 0.2,
+    "material": null,
+    "supports_allowed": null,
+    "preferred_orientation": null
+  },
+  "assumptions": [
+    {
+      "id": "default_wall",
+      "description": "Use a 3 mm wall thickness",
+      "source": "product_default",
+      "requires_approval": false
+    }
+  ],
+  "conflicts": [],
+  "missing_requirements": [],
+  "clarification_required": false,
+  "clarification_questions": [],
+  "generation_ready": true,
+  "outcome": "generation_ready"
+}
+```
+
+Dimension and requirement sources are:
+
+```text
+user
+clarification
+calculated
+printer_profile
+product_default
+ai_assumption
+```
+
+Importance values are:
+
+```text
+critical
+important
+optional
+cosmetic
+```
+
+Protected by default: user or clarification supplied critical dimensions, explicit hole count, explicit spacing, mating dimensions, required features, maximum envelope constraints, and selected printer build-volume constraints.
+
+## ClarificationQuestion
+
+Represents one specific question attached to a non-ready Design Specification.
+
+Fields:
+
+```text
+id
+project_id
+design_specification_id
+requirement_id
+question
+reason
+display_order
+created_at
+```
+
+## ClarificationAnswer
+
+Represents the user's answer to a persisted clarification question. Answers are retained as history and used as structured context for the next requirement-extraction run.
+
+Fields:
+
+```text
+id
+project_id
+question_id
+design_specification_id
+related_requirement_id
+question_text
+answer
+created_at
+```
+
 ## GenerationAttempt
 
 Captures each AI interaction, including attempts that never became valid revisions.
@@ -128,6 +293,8 @@ completed_at
 ```
 
 The current implementation also persists `resulting_revision_id`, non-secret provider settings, prompt-template version, Gemini ruleset version, source/output hashes, and request/prompt/raw-output/extracted-source/design-spec/intermediate artifact paths.
+
+Requirement-extraction attempts store parsed Design Specifications at `parsed-design-spec.json`. OpenSCAD generation attempts store the authoritative Design Specification snapshot at `design-spec.json`.
 
 ## ValidationFinding
 

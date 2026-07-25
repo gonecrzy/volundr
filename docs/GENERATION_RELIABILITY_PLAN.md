@@ -137,16 +137,22 @@ Missing assertions alone should create a quality finding unless paired with inva
 - Required tests: vague, conflicting, fit-critical, fastener-missing, and inaccessible-cavity benchmarks return clarification.
 - Exit criteria: 100% benchmark clarification cases avoid SCAD generation.
 
+Implementation status: completed for new initial AI generations. Initial requests now create a persisted immutable Design Specification through `requirements-v1`; `clarification_required`, `requirements_conflict`, and `unsupported_request` do not create revisions or candidates; `generation_ready` requires an explicit user Continue action before OpenSCAD generation starts.
+
 Requirement extraction must produce a structured Design Specification. Every dimension and requirement must identify its source:
 
 ```text
 user
+clarification
 calculated
-profile_default
+printer_profile
+product_default
 ai_assumption
 ```
 
 Clarification evaluation must track both recall and precision so Volundr avoids both missed clarifications and excessive questioning.
+
+Deferred: full structured revision planning, design-plan prompts, automatic generation after ready specifications, and advanced geometric invariant comparison.
 
 ## Priority 2: Validation And Acceptance
 
@@ -241,6 +247,10 @@ Implementation policy:
 Track per benchmark:
 
 - extraction pass rate
+- extraction schema repair rate
+- requirements-ready rate
+- unsupported-request rate
+- average clarification question count
 - compile pass rate before repair
 - compile pass rate after repair
 - repair invocation rate
@@ -256,6 +266,8 @@ Track per benchmark:
 - source size
 - triangle count
 - printability severity counts
+- Design Specification version count
+- OpenSCAD generation started without ready specification, which must remain zero for new initial-generation flows
 
 ## Stability Exit Criteria
 

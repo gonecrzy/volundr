@@ -36,3 +36,32 @@ def test_deterministic_benchmark_contract_check_passes_fixtures() -> None:
     assert len(results) == len(suite.benchmarks)
     assert all(result.passed for result in results)
     assert {result.failure_class for result in results} == {"none"}
+
+
+def test_requirement_stage_benchmarks_cover_ready_clarification_and_conflict_cases() -> None:
+    core = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    full = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    core_by_id = {benchmark.id: benchmark for benchmark in core.benchmarks}
+    full_by_id = {benchmark.id: benchmark for benchmark in full.benchmarks}
+
+    assert core_by_id["simple_mounting_plate"].expected_clarification == "none"
+    assert core_by_id["cylindrical_holder"].expected_clarification == "none"
+    assert core_by_id["vague_clarification"].expected_clarification == "required"
+    assert core_by_id["conflicting_dimensions"].expected_clarification == "required"
+
+    for benchmark_id in (
+        "vague_clarification",
+        "conflicting_dimensions",
+        "hose_adapter",
+        "wall_tool_holder",
+        "inaccessible_internal_cavity",
+    ):
+        benchmark = full_by_id[benchmark_id]
+        assert benchmark.expected_clarification in {"required", "optional"}
+        assert benchmark.compile_expectation in {
+            "no_scad_generated",
+            "no_scad_until_fasteners_clarified",
+            "no_scad_until_vent_or_split_decision",
+            "success_without_repair",
+            "success_after_clarification_or_defaults",
+        }

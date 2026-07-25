@@ -18,6 +18,8 @@ The backend may extract source from a fenced `scad` or `openscad` block, but pro
 
 Clarification-capable stages must not return OpenSCAD when critical information is missing. They must return the structured clarification response defined in `docs/GEMINI_PROMPT_ARCHITECTURE.md`.
 
+For new initial AI generations, OpenSCAD must be generated from a persisted `generation_ready` Design Specification. The raw user request may be included as secondary intent, but the Design Specification controls protected dimensions, required features, defaults, and assumptions.
+
 ## Required Source Structure
 
 Every generated model should follow this pattern:

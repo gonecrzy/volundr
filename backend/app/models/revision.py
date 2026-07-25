@@ -26,6 +26,12 @@ class Revision(Base):
         ForeignKey("revisions.id"),
         nullable=True,
     )
+    design_specification_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("design_specifications.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
     source_type: Mapped[str] = mapped_column(String(40), nullable=False)
     user_instruction: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -42,6 +48,7 @@ class Revision(Base):
 
     project = relationship("Project", back_populates="revisions", foreign_keys=[project_id])
     parent_revision = relationship("Revision", remote_side=[id])
+    design_specification = relationship("DesignSpecification")
     validation_findings = relationship(
         "ValidationFinding",
         back_populates="revision",
