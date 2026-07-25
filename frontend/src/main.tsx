@@ -185,6 +185,11 @@ function App() {
     () => printabilityReport?.highlights ?? [],
     [printabilityReport],
   );
+  const hasRequiredProjectFields = projectName.trim().length > 0 && intent.trim().length > 0;
+  const canCompileDraft = Boolean(project) || hasRequiredProjectFields;
+  const canAskAi = canCompileDraft && generationPrompt.trim().length > 0;
+  const canSaveProject = Boolean(project) && hasRequiredProjectFields;
+  const workspaceTitle = project ? project.name : projectName.trim() || "Untitled draft";
 
   useEffect(() => {
     void refreshProjects();
@@ -199,7 +204,8 @@ function App() {
   }
 
   async function saveProject() {
-    if (!project) {
+    if (!project || !hasRequiredProjectFields) {
+      setMessage("Name and intent are required before saving");
       return;
     }
     setIsSavingProject(true);
@@ -236,6 +242,11 @@ function App() {
       });
       setProjects((current) => current.filter((entry) => entry.id !== project.id));
       setProject(null);
+      setProjectName("");
+      setIntent("");
+      setInstruction("");
+      setGenerationPrompt("");
+      setSource(DEFAULT_SOURCE);
       setRevisions([]);
       setProjectMessages([]);
       setSelectedRevision(null);
@@ -254,6 +265,10 @@ function App() {
   }
 
   async function compileSource() {
+    if (!canCompileDraft) {
+      setMessage("Name and intent are required before compiling a new workspace");
+      return;
+    }
     setIsCompiling(true);
     setMessage(null);
     try {
@@ -298,6 +313,10 @@ function App() {
   }
 
   async function generateSource() {
+    if (!canAskAi) {
+      setMessage("Name, intent, and an AI prompt are required before asking AI");
+      return;
+    }
     setIsGenerating(true);
     setMessage(null);
     try {
@@ -463,10 +482,10 @@ function App() {
 
   function startNewProject() {
     setProject(null);
-    setProjectName("Mounting bracket");
-    setIntent("A flat mounting bracket with two bolt holes.");
-    setInstruction("Initial manual model.");
-    setGenerationPrompt("Create a flat mounting bracket with two bolt holes and named parameters.");
+    setProjectName("");
+    setIntent("");
+    setInstruction("");
+    setGenerationPrompt("");
     setSource(DEFAULT_SOURCE);
     setRevisions([]);
     setProjectMessages([]);
@@ -476,7 +495,7 @@ function App() {
     setRevisionDiff(null);
     setPrintabilityReport(null);
     setDismissedPrintabilityResults(new Set());
-    setMessage(null);
+    setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
   }
 
@@ -488,7 +507,7 @@ function App() {
             Projects
           </button>
           <div>
-            <h1>{project ? project.name : projectName}</h1>
+            <h1>{workspaceTitle}</h1>
             <p>
               {selectedRevision
                 ? `R${selectedRevision.revision_number} - ${selectedRevision.status}`
@@ -507,7 +526,7 @@ function App() {
               STL
             </a>
           ) : null}
-          <button className="primary" disabled={isCompiling} onClick={compileSource}>
+          <button className="primary" disabled={isCompiling || !canCompileDraft} onClick={compileSource}>
             {isCompiling ? "Compiling" : "Compile"}
           </button>
         </div>
@@ -555,10 +574,11 @@ function App() {
             <div className="prompt-row">
               <input
                 aria-label="Ask AI prompt"
+                placeholder="Describe the model change for AI"
                 value={generationPrompt}
                 onChange={(event) => setGenerationPrompt(event.target.value)}
               />
-              <button className="secondary" disabled={isGenerating} onClick={() => void generateSource()}>
+              <button className="secondary" disabled={isGenerating || !canAskAi} onClick={() => void generateSource()}>
                 {isGenerating ? "Asking AI" : "Ask AI"}
               </button>
             </div>
@@ -570,7 +590,7 @@ function App() {
             <div className="section-heading">
               <h2>Project</h2>
               <div className="mini-actions">
-                <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void saveProject()}>
+                <button className="secondary compact" disabled={!canSaveProject || isSavingProject} onClick={() => void saveProject()}>
                   {isSavingProject ? "Saving" : "Save"}
                 </button>
                 <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
@@ -580,16 +600,19 @@ function App() {
             </div>
             <label>
               Name
-              <input value={projectName} onChange={(event) => setProjectName(event.target.value)} />
+              <input required value={projectName} onChange={(event) => setProjectName(event.target.value)} />
             </label>
             <label>
               Intent
-              <input value={intent} onChange={(event) => setIntent(event.target.value)} />
+              <input required value={intent} onChange={(event) => setIntent(event.target.value)} />
             </label>
             <label>
               Manual compile note
               <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
             </label>
+            {!canCompileDraft ? (
+              <p className="empty">Name and intent are required before creating this workspace.</p>
+            ) : null}
           </section>
 
           <section className="revision-panel" aria-label="Revisions">
