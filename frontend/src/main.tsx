@@ -55,9 +55,11 @@ type MeshMetadata = {
 type Revision = {
   id: string;
   revision_number: number;
+  source_type: string;
   status: string;
   is_accepted: boolean;
   user_instruction: string | null;
+  ai_output_path: string | null;
   created_at: string;
   metadata: MeshMetadata | null;
   error_message: string | null;
@@ -79,6 +81,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
+  const [aiOutput, setAiOutput] = useState<string | null>(null);
 
   const activeMetadata = selectedRevision?.metadata ?? null;
   const stlUrl = selectedRevision?.is_accepted
@@ -160,7 +163,10 @@ function App() {
         method: "POST",
         body: JSON.stringify({ user_instruction: generationPrompt }),
       });
-      setRevisions((current) => [...current, revision]);
+      const nextRevisions = await request<Revision[]>(`/projects/${currentProject.id}/revisions`, {
+        method: "GET",
+      });
+      setRevisions(nextRevisions);
       setSelectedRevision(revision);
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Generated" : revision.error_message ?? "Generation failed");
@@ -179,6 +185,7 @@ function App() {
       setSource(await response.text());
     }
     await loadCompileLog(revision);
+    await loadAiOutput(revision);
   }
 
   async function selectProject(nextProject: Project) {
@@ -198,12 +205,22 @@ function App() {
       await selectRevision(activeRevision);
     } else {
       setCompileLog(null);
+      setAiOutput(null);
     }
   }
 
   async function loadCompileLog(revision: Revision) {
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/compile-log`);
     setCompileLog(response.ok ? await response.text() : null);
+  }
+
+  async function loadAiOutput(revision: Revision) {
+    if (!revision.ai_output_path) {
+      setAiOutput(null);
+      return;
+    }
+    const response = await fetch(`${API_BASE}/revisions/${revision.id}/ai-output`);
+    setAiOutput(response.ok ? await response.text() : null);
   }
 
   async function restoreSelectedRevision() {
@@ -285,7 +302,7 @@ function App() {
                   R{revision.revision_number}
                   {revision.id === project?.active_revision_id ? " active" : ""}
                 </span>
-                <span>{revision.status}</span>
+                <span>{revision.source_type.replace("_", " ")} - {revision.status}</span>
               </button>
             ))}
           </div>
@@ -316,7 +333,7 @@ function App() {
               </button>
             ) : null}
           </div>
-          <Diagnostics log={compileLog} />
+          <Diagnostics compileLog={compileLog} aiOutput={aiOutput} />
         </section>
 
         <section className="editor-panel" aria-label="OpenSCAD source">
@@ -339,14 +356,31 @@ function App() {
   );
 }
 
-function Diagnostics({ log }: { log: string | null }) {
-  if (!log?.trim()) {
+function Diagnostics({
+  compileLog,
+  aiOutput,
+}: {
+  compileLog: string | null;
+  aiOutput: string | null;
+}) {
+  if (!compileLog?.trim() && !aiOutput?.trim()) {
     return null;
   }
   return (
     <section className="diagnostics" aria-label="Compile diagnostics">
       <h2>Diagnostics</h2>
-      <pre>{log}</pre>
+      {compileLog?.trim() ? (
+        <>
+          <h3>Compile</h3>
+          <pre>{compileLog}</pre>
+        </>
+      ) : null}
+      {aiOutput?.trim() ? (
+        <>
+          <h3>AI Output</h3>
+          <pre>{aiOutput}</pre>
+        </>
+      ) : null}
     </section>
   );
 }

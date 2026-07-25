@@ -246,6 +246,14 @@ input {
   word-break: break-word;
 }
 
+.diagnostics h3 {
+  color: #56615b;
+  font-size: 0.76rem;
+  letter-spacing: 0;
+  margin: 12px 0 6px;
+  text-transform: uppercase;
+}
+
 .editor-panel {
   grid-column: 2 / 4;
 }

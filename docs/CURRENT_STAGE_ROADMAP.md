@@ -80,7 +80,9 @@ Current status:
 - SCAD source extraction added
 - initial generation endpoint added
 - browser generation prompt added
-- live Gemini generation is blocked by host authentication/client eligibility
+- live generation works with API-key based Gemini CLI authentication
+- failed extraction and compile attempts are preserved as failed revisions
+- compile failures trigger one bounded AI repair attempt
 
 Goals:
 
@@ -90,7 +92,7 @@ Goals:
 - SCAD extraction
 - initial model generation
 - error display
-- one or two bounded repair attempts
+- one bounded repair attempt
 
 Exit criteria:
 

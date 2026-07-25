@@ -12,7 +12,7 @@ from app.models.project import Project
 from app.models.revision import Revision
 from app.schemas.project import GenerationCreate, ManualRevisionCreate, MeshMetadataRead, ProjectCreate, RevisionRead
 from app.services.ai.provider import AiProvider, ModelGenerationRequest
-from app.services.ai.source_extraction import extract_scad_source
+from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.mesh.inspect import MeshMetadata
 
@@ -80,20 +80,113 @@ class ProjectService:
             raise RuntimeError("AI provider is not configured")
 
         generation_result = await self.ai_provider.generate_model(
-            ModelGenerationRequest(
-                project_name=project.name,
-                original_intent=project.original_intent,
-                user_instruction=payload.user_instruction,
+            self._generation_request(
+                project=project,
+                payload=payload,
             )
         )
-        scad_source = extract_scad_source(generation_result.raw_output)
-        return await self._create_revision_from_source(
+        try:
+            scad_source = extract_scad_source(generation_result.raw_output)
+        except SourceExtractionError as exc:
+            return self._create_failed_ai_revision(
+                project=project,
+                user_instruction=payload.user_instruction,
+                source_type="ai_initial",
+                raw_ai_output=generation_result.raw_output,
+                error_message=str(exc),
+            )
+
+        initial_revision = await self._create_revision_from_source(
             project_id=project_id,
             scad_source=scad_source,
             user_instruction=payload.user_instruction,
             source_type="ai_initial",
             raw_ai_output=generation_result.raw_output,
         )
+        if initial_revision is None or initial_revision.status == "succeeded":
+            return initial_revision
+
+        repair_result = await self.ai_provider.generate_model(
+            self._generation_request(
+                project=project,
+                payload=payload,
+                current_source=scad_source,
+                compiler_diagnostics=initial_revision.error_message,
+            )
+        )
+        try:
+            repaired_source = extract_scad_source(repair_result.raw_output)
+        except SourceExtractionError as exc:
+            return self._create_failed_ai_revision(
+                project=project,
+                user_instruction=payload.user_instruction,
+                source_type="ai_repair",
+                raw_ai_output=repair_result.raw_output,
+                error_message=str(exc),
+            )
+
+        return await self._create_revision_from_source(
+            project_id=project_id,
+            scad_source=repaired_source,
+            user_instruction=payload.user_instruction,
+            source_type="ai_repair",
+            raw_ai_output=repair_result.raw_output,
+        )
+
+    def _generation_request(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        current_source: str | None = None,
+        compiler_diagnostics: str | None = None,
+    ) -> ModelGenerationRequest:
+        return ModelGenerationRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=payload.user_instruction,
+            current_source=current_source,
+            compiler_diagnostics=compiler_diagnostics,
+        )
+
+    def _create_failed_ai_revision(
+        self,
+        *,
+        project: Project,
+        user_instruction: str,
+        source_type: str,
+        raw_ai_output: str,
+        error_message: str,
+    ) -> RevisionRead:
+        revision_number = self._next_revision_number(project.id)
+        revision = Revision(
+            project_id=project.id,
+            parent_revision_id=project.active_revision_id,
+            revision_number=revision_number,
+            source_type=source_type,
+            user_instruction=user_instruction,
+            scad_source_path="",
+            status="failed",
+            is_accepted=False,
+        )
+        self.db.add(revision)
+        self.db.flush()
+
+        revision_dir = self._revision_dir(project.id, revision.id)
+        revision_dir.mkdir(parents=True, exist_ok=True)
+        source_path = revision_dir / "model.scad"
+        source_path.write_text("", encoding="utf-8")
+        ai_output_path = revision_dir / "ai-output.txt"
+        ai_output_path.write_text(raw_ai_output, encoding="utf-8")
+        compile_log_path = revision_dir / "compile.log"
+        compile_log_path.write_text(error_message, encoding="utf-8")
+
+        revision.scad_source_path = self._relative(source_path)
+        revision.ai_output_path = self._relative(ai_output_path)
+        revision.compile_log_path = self._relative(compile_log_path)
+        self.db.commit()
+        self.db.refresh(revision)
+        return self._revision_read(revision, error_message=error_message)
 
     async def _create_revision_from_source(
         self,
@@ -180,6 +273,15 @@ class ProjectService:
         if revision is None or not revision.compile_log_path:
             return None
         path = self.data_dir / revision.compile_log_path
+        if not path.exists():
+            return None
+        return path.read_text(encoding="utf-8")
+
+    def read_revision_ai_output(self, revision_id: str) -> str | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None or not revision.ai_output_path:
+            return None
+        path = self.data_dir / revision.ai_output_path
         if not path.exists():
             return None
         return path.read_text(encoding="utf-8")

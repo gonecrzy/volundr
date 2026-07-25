@@ -14,7 +14,6 @@ from app.schemas.project import (
     RevisionRead,
 )
 from app.services.ai.provider import AiProvider
-from app.services.ai.source_extraction import SourceExtractionError
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.projects.service import ProjectService
 
@@ -74,8 +73,6 @@ async def generate_initial_revision(
     )
     try:
         revision = await service.generate_initial_revision(project_id, payload)
-    except SourceExtractionError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     if revision is None:
@@ -119,6 +116,19 @@ def get_revision_compile_log(
     if compile_log is None:
         raise HTTPException(status_code=404, detail="revision compile log not found")
     return PlainTextResponse(compile_log, media_type="text/plain")
+
+
+@router.get("/revisions/{revision_id}/ai-output")
+def get_revision_ai_output(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> PlainTextResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    ai_output = service.read_revision_ai_output(revision_id)
+    if ai_output is None:
+        raise HTTPException(status_code=404, detail="revision AI output not found")
+    return PlainTextResponse(ai_output, media_type="text/plain")
 
 
 @router.get("/revisions/{revision_id}/stl")

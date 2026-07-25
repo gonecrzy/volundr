@@ -51,6 +51,42 @@ class FailingAiProvider:
         raise RuntimeError("Gemini CLI authentication failed")
 
 
+class InvalidSourceAiProvider:
+    async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        return ModelGenerationResult(
+            raw_output="I cannot produce OpenSCAD for that.",
+            provider="fake",
+            provider_model="fake-model",
+        )
+
+
+class RepairingAiProvider:
+    def __init__(self) -> None:
+        self.requests: list[ModelGenerationRequest] = []
+
+    async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        self.requests.append(request)
+        if len(self.requests) == 1:
+            source = """
+```scad
+module main_model() {
+  broken(
+}
+main_model();
+```
+"""
+        else:
+            source = """
+```scad
+module main_model() {
+  cube([10, 10, 10]);
+}
+main_model();
+```
+"""
+        return ModelGenerationResult(raw_output=source, provider="fake", provider_model="fake-model")
+
+
 class FakeCadRunner:
     async def compile(self, source: str, job_id: str) -> CadCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-generation-jobs" / job_id
@@ -61,6 +97,25 @@ class FakeCadRunner:
         stderr_path = job_dir / "stderr.log"
         metadata_path = job_dir / "metadata.json"
         source_path.write_text(source, encoding="utf-8")
+        if "broken(" in source:
+            stdout_path.write_text("", encoding="utf-8")
+            stderr_path.write_text("Parser error: syntax error", encoding="utf-8")
+            return CadCompileResult(
+                job_id=job_id,
+                success=False,
+                timed_out=False,
+                exit_code=1,
+                source_path=source_path,
+                stl_path=None,
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                metadata_path=None,
+                source_hash="fake-source-hash",
+                output_size_bytes=0,
+                metadata=None,
+                error_message="Parser error: syntax error",
+            )
+
         stl_path.write_bytes(b"solid fake\nendsolid fake\n")
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
@@ -164,6 +219,71 @@ def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> No
 
     assert response.status_code == 502
     assert response.json()["detail"] == "Gemini CLI authentication failed"
+
+
+def test_generation_extraction_failure_is_preserved_as_failed_revision(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    app.dependency_overrides[get_ai_provider] = lambda: InvalidSourceAiProvider()
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Bad output",
+            "original_intent": "Create a generated part.",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/projects/{project['id']}/generate",
+        json={"user_instruction": "Create a cube."},
+    )
+
+    assert response.status_code == 201
+    revision = response.json()
+    assert revision["source_type"] == "ai_initial"
+    assert revision["status"] == "failed"
+    assert revision["is_accepted"] is False
+    assert "OpenSCAD source" in revision["error_message"]
+
+    revision_dir = tmp_path / "data" / "projects" / project["id"] / "revisions" / revision["id"]
+    assert (revision_dir / "ai-output.txt").read_text(encoding="utf-8") == "I cannot produce OpenSCAD for that."
+    assert (revision_dir / "compile.log").exists()
+    ai_output_response = client.get(f"/api/revisions/{revision['id']}/ai-output")
+    assert ai_output_response.status_code == 200
+    assert ai_output_response.text == "I cannot produce OpenSCAD for that."
+
+    refreshed_project = client.get(f"/api/projects/{project['id']}").json()
+    assert refreshed_project["active_revision_id"] is None
+
+
+def test_generation_repairs_once_after_compile_failure(tmp_path: Path) -> None:
+    provider = RepairingAiProvider()
+    client = build_client(tmp_path)
+    app.dependency_overrides[get_ai_provider] = lambda: provider
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Repairable output",
+            "original_intent": "Create a generated part.",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/projects/{project['id']}/generate",
+        json={"user_instruction": "Create a cube."},
+    )
+
+    assert response.status_code == 201
+    revision = response.json()
+    assert revision["source_type"] == "ai_repair"
+    assert revision["status"] == "succeeded"
+    assert len(provider.requests) == 2
+    assert provider.requests[1].current_source is not None
+    assert provider.requests[1].compiler_diagnostics == "Parser error: syntax error"
+
+    revisions = client.get(f"/api/projects/{project['id']}/revisions").json()
+    assert [entry["status"] for entry in revisions] == ["failed", "succeeded"]
+    assert revisions[0]["source_type"] == "ai_initial"
+    assert revisions[1]["source_type"] == "ai_repair"
 
 
 def test_gemini_cli_provider_uses_headless_trust_flag() -> None:
