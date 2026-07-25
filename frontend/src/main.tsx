@@ -173,6 +173,7 @@ function App() {
   const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
     () => new Set(),
   );
+  const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
 
   const activeMetadata = selectedRevision?.metadata ?? null;
   const stlUrl = selectedRevision?.is_accepted
@@ -244,6 +245,7 @@ function App() {
       setAiOutput(null);
       setRevisionDiff(null);
       setMessage("Project archived");
+      setIsProjectDrawerOpen(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Project archive failed");
     } finally {
@@ -350,6 +352,7 @@ function App() {
   }
 
   async function selectProject(nextProject: Project) {
+    setIsProjectDrawerOpen(false);
     setProject(nextProject);
     setProjectName(nextProject.name);
     setIntent(nextProject.original_intent);
@@ -458,93 +461,157 @@ function App() {
     });
   }
 
+  function startNewProject() {
+    setProject(null);
+    setProjectName("Mounting bracket");
+    setIntent("A flat mounting bracket with two bolt holes.");
+    setInstruction("Initial manual model.");
+    setGenerationPrompt("Create a flat mounting bracket with two bolt holes and named parameters.");
+    setSource(DEFAULT_SOURCE);
+    setRevisions([]);
+    setProjectMessages([]);
+    setSelectedRevision(null);
+    setCompileLog(null);
+    setAiOutput(null);
+    setRevisionDiff(null);
+    setPrintabilityReport(null);
+    setDismissedPrintabilityResults(new Set());
+    setMessage(null);
+    setIsProjectDrawerOpen(false);
+  }
+
   return (
     <main className="workspace">
       <header className="topbar">
-        <div>
-          <h1>Volundr</h1>
-          <p>{project ? project.name : "Manual OpenSCAD workspace"}</p>
+        <div className="topbar-left">
+          <button className="icon-button" onClick={() => setIsProjectDrawerOpen(true)}>
+            Projects
+          </button>
+          <div>
+            <h1>{project ? project.name : projectName}</h1>
+            <p>
+              {selectedRevision
+                ? `R${selectedRevision.revision_number} - ${selectedRevision.status}`
+                : "Draft workspace"}
+            </p>
+          </div>
         </div>
-        <button className="primary" disabled={isCompiling} onClick={compileSource}>
-          {isCompiling ? "Compiling" : "Compile"}
-        </button>
+        <div className="topbar-actions">
+          {sourceUrl ? (
+            <a className="download compact-action" href={sourceUrl}>
+              SCAD
+            </a>
+          ) : null}
+          {stlUrl ? (
+            <a className="download compact-action" href={stlUrl}>
+              STL
+            </a>
+          ) : null}
+          <button className="primary" disabled={isCompiling} onClick={compileSource}>
+            {isCompiling ? "Compiling" : "Compile"}
+          </button>
+        </div>
       </header>
 
-      <section className="project-strip" aria-label="Project">
-        <label>
-          Name
-          <input value={projectName} onChange={(event) => setProjectName(event.target.value)} />
-        </label>
-        <label>
-          Intent
-          <input value={intent} onChange={(event) => setIntent(event.target.value)} />
-        </label>
-        <label>
-          Revision
-          <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
-        </label>
-        <div className="project-actions" aria-label="Project actions">
-          <button className="secondary" disabled={!project || isSavingProject} onClick={() => void saveProject()}>
-            {isSavingProject ? "Saving" : "Save"}
-          </button>
-          <button className="secondary" disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
-            Archive
-          </button>
+      {isProjectDrawerOpen ? (
+        <div className="drawer-backdrop" onClick={() => setIsProjectDrawerOpen(false)}>
+          <aside className="project-drawer" aria-label="Projects" onClick={(event) => event.stopPropagation()}>
+            <div className="drawer-heading">
+              <div>
+                <h2>Projects</h2>
+                <p>{projects.length} active</p>
+              </div>
+              <button className="text-action" onClick={() => setIsProjectDrawerOpen(false)}>
+                Close
+              </button>
+            </div>
+            <button className="secondary full-width" onClick={startNewProject}>
+              New workspace
+            </button>
+            <div className="project-list">
+              {projects.length === 0 ? <p className="empty">No projects</p> : null}
+              {projects.map((entry) => (
+                <button
+                  className={entry.id === project?.id ? "project-item selected" : "project-item"}
+                  key={entry.id}
+                  onClick={() => void selectProject(entry)}
+                >
+                  {entry.name}
+                </button>
+              ))}
+            </div>
+          </aside>
         </div>
-      </section>
-
-      <section className="generation-strip" aria-label="AI generation">
-        <label>
-          Generate
-          <input value={generationPrompt} onChange={(event) => setGenerationPrompt(event.target.value)} />
-        </label>
-        <button className="secondary" disabled={isGenerating} onClick={() => void generateSource()}>
-          {isGenerating ? "Generating" : "Generate"}
-        </button>
-      </section>
+      ) : null}
 
       <section className="main-grid">
-        <aside className="sidebar" aria-label="Revisions">
-          <h2>Projects</h2>
-          <div className="project-list">
-            {projects.length === 0 ? <p className="empty">No projects</p> : null}
-            {projects.map((entry) => (
-              <button
-                className={entry.id === project?.id ? "project-item selected" : "project-item"}
-                key={entry.id}
-                onClick={() => void selectProject(entry)}
-              >
-                {entry.name}
-              </button>
-            ))}
-          </div>
-          <h2>Revisions</h2>
-          <div className="revision-list">
-            {revisions.length === 0 ? <p className="empty">No revisions</p> : null}
-            {revisions.map((revision) => (
-              <button
-                className={revision.id === selectedRevision?.id ? "revision selected" : "revision"}
-                key={revision.id}
-                onClick={() => void selectRevision(revision)}
-              >
-                <span>
-                  R{revision.revision_number}
-                  {revision.id === project?.active_revision_id ? " active" : ""}
-                </span>
-                <span>{revision.source_type.replace("_", " ")} - {revision.status}</span>
-              </button>
-            ))}
-          </div>
-          <h2>Messages</h2>
-          <MessageList messages={projectMessages} />
-          {message ? <p className="message">{message}</p> : null}
-        </aside>
-
         <section className="viewer-panel" aria-label="STL preview">
           <StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />
+          <section className="prompt-dock" aria-label="Prompt chat">
+            <div className="chat-log">
+              <MessageList messages={projectMessages} compact />
+              {message ? <p className="message">{message}</p> : null}
+            </div>
+            <div className="prompt-row">
+              <input
+                aria-label="Generate prompt"
+                value={generationPrompt}
+                onChange={(event) => setGenerationPrompt(event.target.value)}
+              />
+              <button className="secondary" disabled={isGenerating} onClick={() => void generateSource()}>
+                {isGenerating ? "Generating" : "Generate"}
+              </button>
+            </div>
+          </section>
         </section>
 
-        <section className="metadata-panel" aria-label="Metadata">
+        <section className="metadata-panel" aria-label="Workspace details">
+          <section className="project-card" aria-label="Project setup">
+            <div className="section-heading">
+              <h2>Project</h2>
+              <div className="mini-actions">
+                <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void saveProject()}>
+                  {isSavingProject ? "Saving" : "Save"}
+                </button>
+                <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
+                  Archive
+                </button>
+              </div>
+            </div>
+            <label>
+              Name
+              <input value={projectName} onChange={(event) => setProjectName(event.target.value)} />
+            </label>
+            <label>
+              Intent
+              <input value={intent} onChange={(event) => setIntent(event.target.value)} />
+            </label>
+            <label>
+              Revision note
+              <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
+            </label>
+          </section>
+
+          <section className="revision-panel" aria-label="Revisions">
+            <h2>Revisions</h2>
+            <div className="revision-list">
+              {revisions.length === 0 ? <p className="empty">No revisions</p> : null}
+              {revisions.map((revision) => (
+                <button
+                  className={revision.id === selectedRevision?.id ? "revision selected" : "revision"}
+                  key={revision.id}
+                  onClick={() => void selectRevision(revision)}
+                >
+                  <span>
+                    R{revision.revision_number}
+                    {revision.id === project?.active_revision_id ? " active" : ""}
+                  </span>
+                  <span>{revision.source_type.replace("_", " ")} - {revision.status}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
           <h2>Metadata</h2>
           <Metadata metadata={activeMetadata} />
           <PrintabilityInspector
@@ -561,40 +628,32 @@ function App() {
             parameters={sourceParameters}
             onChange={(parameter, value) => setSource(updateSourceParameter(source, parameter, value))}
           />
-          <div className="actions">
-            {sourceUrl ? (
-              <a className="download" href={sourceUrl}>
-                Download SCAD
-              </a>
-            ) : null}
-            {stlUrl ? (
-              <a className="download" href={stlUrl}>
-                Download STL
-              </a>
-            ) : null}
-            {selectedRevision?.is_accepted && selectedRevision.id !== project?.active_revision_id ? (
+          {selectedRevision?.is_accepted && selectedRevision.id !== project?.active_revision_id ? (
+            <div className="actions">
               <button className="download" onClick={() => void restoreSelectedRevision()}>
-                Restore
+                Restore revision
               </button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
+          <section className="source-panel" aria-label="OpenSCAD source">
+            <div className="section-heading">
+              <h2>Source</h2>
+            </div>
+            <Editor
+              defaultLanguage="scad"
+              height="320px"
+              options={{
+                minimap: { enabled: false },
+                fontSize: 13,
+                wordWrap: "on",
+                scrollBeyondLastLine: false,
+              }}
+              theme="vs-dark"
+              value={source}
+              onChange={(value) => setSource(value ?? "")}
+            />
+          </section>
           <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
-        </section>
-
-        <section className="editor-panel" aria-label="OpenSCAD source">
-          <Editor
-            defaultLanguage="scad"
-            height="100%"
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              wordWrap: "on",
-              scrollBeyondLastLine: false,
-            }}
-            theme="vs-dark"
-            value={source}
-            onChange={(value) => setSource(value ?? "")}
-          />
         </section>
       </section>
     </main>
@@ -809,13 +868,13 @@ function ParameterControls({
   );
 }
 
-function MessageList({ messages }: { messages: ProjectMessage[] }) {
+function MessageList({ compact = false, messages }: { compact?: boolean; messages: ProjectMessage[] }) {
   if (messages.length === 0) {
     return <p className="empty">No messages</p>;
   }
   return (
-    <div className="message-list">
-      {messages.map((message) => (
+    <div className={compact ? "message-list compact-chat" : "message-list"}>
+      {messages.slice(compact ? -5 : 0).map((message) => (
         <div className="project-message" key={message.id}>
           <span>{message.role.replace("_", " ")}</span>
           <p>{message.content}</p>
@@ -986,6 +1045,17 @@ function StlViewer({
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     mount.appendChild(renderer.domElement);
+    const resizeObserver = new ResizeObserver(() => {
+      const nextWidth = mount.clientWidth;
+      const nextHeight = mount.clientHeight;
+      if (nextWidth <= 0 || nextHeight <= 0) {
+        return;
+      }
+      camera.aspect = nextWidth / nextHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nextWidth, nextHeight);
+    });
+    resizeObserver.observe(mount);
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0x879083, 2.4));
     const grid = new THREE.GridHelper(180, 18, 0x93a19a, 0xd0d6cf);
@@ -1038,6 +1108,7 @@ function StlViewer({
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
           object.geometry.dispose();
