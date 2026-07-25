@@ -7,6 +7,9 @@ import {
   revisionWorkflowLabel,
   sourceCheckFindings,
   sourceCheckSummary,
+  geometricFindingBuckets,
+  revisionPromptFromGeometricFinding,
+  type GeometricFinding,
   type CandidateFinding,
   type CandidateRevision,
   type ProjectState,
@@ -43,6 +46,28 @@ function finding(overrides: Partial<CandidateFinding>): CandidateFinding {
     explanation: "The STL contains disconnected components.",
     suggested_correction: "Confirm this separation is desired.",
     finding_state: "open",
+    ...overrides,
+  };
+}
+
+function geometricFinding(overrides: Partial<GeometricFinding>): GeometricFinding {
+  return {
+    validation_finding_id: null,
+    rule_id: "geometry.protected_overall_dimension",
+    requirement_id: "part_width",
+    verification_state: "verified",
+    expected_value: 80,
+    detected_value: 80.1,
+    unit: "mm",
+    tolerance: 0.2,
+    confidence: 0.99,
+    severity: "notice",
+    is_blocking: false,
+    title: "Overall width",
+    explanation: "Overall width matches.",
+    suggested_correction: "No correction is needed.",
+    feature_id: null,
+    metadata: {},
     ...overrides,
   };
 }
@@ -135,5 +160,35 @@ describe("candidate view helpers", () => {
     expect(summary.blocking.map((entry) => entry.id)).toEqual(["mismatch"]);
     expect(summary.advisory.map((entry) => entry.id)).toEqual(["quality"]);
     expect(summary.passedProtectedDimensions).toBe(false);
+  });
+
+  it("groups geometric findings by verification state", () => {
+    const buckets = geometricFindingBuckets([
+      geometricFinding({ rule_id: "geometry.protected_overall_dimension" }),
+      geometricFinding({ verification_state: "violated", rule_id: "geometry.protected_hole_spacing" }),
+      geometricFinding({ verification_state: "unverifiable", rule_id: "geometry.protected_wall_thickness" }),
+    ]);
+
+    expect(buckets.verified).toHaveLength(1);
+    expect(buckets.violated).toHaveLength(1);
+    expect(buckets.unverifiable).toHaveLength(1);
+  });
+
+  it("builds revision prompt context from linked geometric finding", () => {
+    const prompt = revisionPromptFromGeometricFinding(
+      geometricFinding({
+        validation_finding_id: "finding-123",
+        rule_id: "geometry.protected_hole_spacing",
+        expected_value: 50,
+        detected_value: 60,
+        tolerance: 0.25,
+        confidence: 0.96,
+      }),
+    );
+
+    expect(prompt).toContain("finding-123");
+    expect(prompt).toContain("geometry.protected_hole_spacing");
+    expect(prompt).toContain("expected 50");
+    expect(prompt).toContain("detected 60");
   });
 });

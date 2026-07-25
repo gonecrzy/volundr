@@ -167,7 +167,7 @@ class StagedAiProvider:
         return {"model": "fake-requirements-model"}
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v2" if request.design_specification else "legacy-initial-v1"
+        return "openscad-generation-v3" if request.design_specification else "legacy-initial-v1"
 
     def requirement_prompt_template_version(self) -> str:
         return "requirements-v1"
@@ -504,7 +504,7 @@ def test_generation_from_ready_spec_uses_specification_as_prompt_authority(tmp_p
     candidate = response.json()
     assert candidate["source_type"] == "ai_initial"
     assert candidate["status"] == "succeeded"
-    assert candidate["review_state"] == "ready"
+    assert candidate["review_state"] == "ready_with_warnings"
     assert candidate["is_accepted"] is False
     assert len(provider.generation_requests) == 1
     assert provider.generation_requests[0].design_specification["purpose"] == READY_SPEC["purpose"]
@@ -516,7 +516,7 @@ def test_generation_from_ready_spec_uses_specification_as_prompt_authority(tmp_p
         )
         assert revision is not None
         assert attempts[-1].resulting_revision_id == revision.id
-        assert attempts[-1].prompt_template_version == "openscad-generation-v2"
+        assert attempts[-1].prompt_template_version == "openscad-generation-v3"
         assert attempts[-1].design_spec_path is not None
     assert client.get(f"/api/projects/{project['id']}").json()["active_revision_id"] is None
 

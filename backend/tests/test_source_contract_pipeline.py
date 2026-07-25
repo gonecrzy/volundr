@@ -140,11 +140,11 @@ class ContractAiProvider:
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if request.contract_diagnostics:
-            return "contract-repair-v1"
+            return "contract-repair-v2"
         if request.compiler_diagnostics:
             return "legacy-compile-repair-v1"
         if request.design_specification:
-            return "openscad-generation-v2"
+            return "openscad-generation-v3"
         return "legacy-revision-v1"
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
@@ -279,8 +279,8 @@ def test_hard_contract_failure_prevents_compile_and_creates_no_candidate(tmp_pat
         )
         assert [attempt.prompt_template_version for attempt in attempts] == [
             "requirements-v1",
-            "openscad-generation-v2",
-            "contract-repair-v1",
+            "openscad-generation-v3",
+            "contract-repair-v2",
         ]
         assert attempts[-1].failure_class == "source_contract_hard_rejection"
         findings = list(session.scalars(select(ValidationFinding)))
@@ -336,8 +336,8 @@ def test_contract_repair_success_compiles_once_after_hard_failure(tmp_path: Path
         )
         assert [attempt.prompt_template_version for attempt in attempts] == [
             "requirements-v1",
-            "openscad-generation-v2",
-            "contract-repair-v1",
+            "openscad-generation-v3",
+            "contract-repair-v2",
         ]
         assert attempts[-1].status == "succeeded"
 

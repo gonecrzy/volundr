@@ -151,16 +151,56 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
         ],
       });
     }
+    if (request.method() === "GET" && path === "/candidates/rev-warning/geometric-analysis") {
+      return route.fulfill({
+        json: geometricAnalysis("rev-warning", [
+          geometricFinding({
+            rule_id: "geometry.protected_hole_spacing",
+            verification_state: "verified",
+            expected_value: 50,
+            detected_value: 49.95,
+            tolerance: 0.25,
+            confidence: 0.97,
+            severity: "notice",
+            is_blocking: false,
+            title: "Hole spacing",
+            explanation: "Detected protected hole spacing matches the Design Specification.",
+            suggested_correction: "No correction is needed.",
+          }),
+        ]),
+      });
+    }
     if (request.method() === "GET" && path === "/candidates/rev-blocked/findings") {
       return route.fulfill({
         json: [
           finding({
-            id: "finding-blocked",
-            rule_id: "profile.build_volume",
+            id: "finding-hole-spacing",
+            rule_id: "geometry.protected_hole_spacing",
+            category: "geometry",
             severity: "critical",
             is_blocking: true,
           }),
         ],
+      });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-blocked/geometric-analysis") {
+      return route.fulfill({
+        json: geometricAnalysis("rev-blocked", [
+          geometricFinding({
+            validation_finding_id: "finding-hole-spacing",
+            rule_id: "geometry.protected_hole_spacing",
+            verification_state: "violated",
+            expected_value: 50,
+            detected_value: 60,
+            tolerance: 0.25,
+            confidence: 0.96,
+            severity: "critical",
+            is_blocking: true,
+            title: "Hole spacing",
+            explanation: "Detected protected hole spacing differs from the Design Specification.",
+            suggested_correction: "Revise the hole centers to match the protected spacing.",
+          }),
+        ]),
       });
     }
     if (request.method() === "POST" && path === "/candidates/rev-warning/accept") {
@@ -202,6 +242,8 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await expect(
     page.getByLabel("Candidate review").getByText("source_parameterization.missing_assertions", { exact: true }).first(),
   ).toBeVisible();
+  await expect(page.getByText("Geometric checks")).toBeVisible();
+  await expect(page.getByText("1 verified, 0 violated, 0 unable to verify")).toBeVisible();
   await expect(page.getByText("Advisory warnings")).toBeVisible();
   await expect(page.getByText("mesh.disconnected_components", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeEnabled();
@@ -215,10 +257,15 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByText("Candidate - R3 - Blocked candidate")).toBeVisible();
-  await expect(page.getByText("Blocking findings")).toBeVisible();
-  await expect(page.getByText("profile.build_volume", { exact: true })).toBeVisible();
+  await expect(page.getByText("Source checks")).toBeVisible();
+  await expect(page.getByText("Passed required structure and protected dimensions")).toBeVisible();
+  await expect(page.getByText("0 verified, 1 violated, 0 unable to verify")).toBeVisible();
+  await expect(page.getByText("geometry.protected_hole_spacing", { exact: true })).toBeVisible();
+  await expect(page.getByText("Expected 50 mm. Detected 60 mm. Tolerance 0.25 mm. Confidence 96%.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeDisabled();
   await expect(page.getByText("Resolve 1 blocking finding with a new revision before accepting.")).toBeVisible();
+  await page.getByRole("button", { name: "Revise from finding" }).click();
+  await expect(page.getByLabel("AI chat message")).toHaveValue(/finding-hole-spacing/);
 
   await page.getByRole("button", { name: "Reject" }).click();
   await expect(page.getByText("Historical revision - R3 - Rejected candidate")).toBeVisible();
@@ -369,6 +416,7 @@ function readySpec(id: string) {
 function finding(overrides: {
   id: string;
   rule_id: string;
+  category?: string;
   severity: "warning" | "critical";
   is_blocking: boolean;
 }) {
@@ -388,6 +436,45 @@ function finding(overrides: {
     dismissal_reason: null,
     dismissed_at: null,
     created_at: "2026-07-25T13:00:00Z",
+    ...overrides,
+  };
+}
+
+function geometricAnalysis(revisionId: string, findings: ReturnType<typeof geometricFinding>[]) {
+  return {
+    id: `analysis-${revisionId}`,
+    revision_id: revisionId,
+    design_specification_id: "spec-ready-1",
+    analysis_version: "geometric-invariants-v1",
+    tolerance_profile_version: "geometry-tolerance-v1",
+    mesh_hash: `mesh-${revisionId}`,
+    source_hash: `source-${revisionId}`,
+    analysis_ms: 12.5,
+    created_at: "2026-07-25T13:00:00Z",
+    findings,
+  };
+}
+
+function geometricFinding(overrides: {
+  validation_finding_id?: string | null;
+  rule_id: string;
+  verification_state: "verified" | "violated" | "unverifiable" | "not_applicable";
+  expected_value: number | string | null;
+  detected_value: number | string | null;
+  tolerance: number | null;
+  confidence: number;
+  severity: "notice" | "warning" | "critical";
+  is_blocking: boolean;
+  title: string;
+  explanation: string;
+  suggested_correction: string;
+}) {
+  return {
+    validation_finding_id: null,
+    requirement_id: "mount_hole_spacing",
+    unit: "mm",
+    feature_id: "mounting_holes",
+    metadata: {},
     ...overrides,
   };
 }

@@ -40,6 +40,7 @@ eps = 0.01;
 
 // ===== FEATURE MODULES =====
 // @volundr-feature protected_feature_id
+// @volundr-geometry type=bounds x=width_parameter y=depth_parameter z=height_parameter
 
 // ===== FINAL MODEL =====
 module main_model() {
@@ -83,6 +84,9 @@ The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md
 3. Do not invent marker IDs. Use Design Specification requirement IDs exactly.
 4. Preserve unrelated markers during revisions and repairs.
 5. A marker is a static declaration of implementation intent; do not claim it proves physical geometry.
+6. For newly generated measurable features, add `@volundr-geometry` markers as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
+7. Use geometry markers for declared bounds, axis-aligned holes, hole groups, and wall-thickness regions only when the generated source implements the corresponding feature.
+8. Preserve geometry markers during source-contract repair, compile repair, and AI revisions unless the related protected requirement is explicitly changed.
 
 ## Requirement Source Rules
 
@@ -153,6 +157,7 @@ Contract repair may only:
 3. Remove prohibited constructs.
 4. Make protected values statically verifiable without changing their specified values.
 5. Restore a removed protected parameter, marker, or required feature.
+6. Preserve or restore required `@volundr-geometry` markers without claiming unsupported feature metadata.
 
 Contract repair must not redesign geometry, alter protected dimensions, remove unrelated modules, or respond to compiler diagnostics.
 

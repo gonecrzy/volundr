@@ -342,7 +342,7 @@ def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
     revision = response.json()
     assert revision["source_type"] == "ai_initial"
     assert revision["status"] == "succeeded"
-    assert revision["review_state"] == "ready"
+    assert revision["review_state"] == "ready_with_warnings"
     assert revision["is_accepted"] is False
     assert revision["metadata"]["volume_mm3"] == 1000.0
 

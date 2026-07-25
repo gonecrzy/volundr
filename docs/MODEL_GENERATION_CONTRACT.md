@@ -22,6 +22,8 @@ For new initial AI generations, OpenSCAD must be generated from a persisted `gen
 
 New AI-generated OpenSCAD is statically validated against `source-contract-v1` before OpenSCAD compilation. Hard source-contract or protected Design Specification violations stop before compile and do not create a candidate revision. Quality findings are persisted as advisory validation findings and may produce a `ready_with_warnings` candidate.
 
+After successful compile and mesh inspection, Volundr runs `geometric-invariants-v1` for selected measurable protected invariants. The supported checks, tolerances, confidence behavior, and blocking policy are defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
+
 ## Required Source Structure
 
 Every generated model should follow this pattern:
@@ -60,6 +62,8 @@ assert(part_width > 0, "part_width must be positive");
 assert(wall_thickness >= 1.2, "wall_thickness is too small");
 
 // ===== MODULES =====
+// @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
+
 // @volundr-feature main_body
 module main_body() {
     cube([part_width, part_depth, part_height]);
@@ -82,9 +86,14 @@ Generated source must map protected Design Specification requirements to OpenSCA
 container_diameter = 81;
 
 // @volundr-feature mounting_method
+// @volundr-geometry type=hole_group count=2 diameter=mount_hole_diameter spacing=mount_hole_spacing axis=z
 module mounting_holes() {
     ...
 }
+
+// @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
+
+// @volundr-geometry type=wall_thickness value=wall_thickness region=main_body
 ```
 
 Rules:
@@ -95,6 +104,8 @@ Rules:
 4. Protected numeric values must be statically verifiable as simple constants or safe arithmetic over previously defined constants.
 5. Revisions and repairs must preserve unrelated requirement and feature markers.
 6. Marker presence records implementation intent only. It does not prove the geometry physically satisfies the feature.
+7. `@volundr-geometry` markers are required in new AI source for measurable bounds, hole, hole-group, and wall-thickness invariants introduced in `openscad-generation-v3`.
+8. Geometry marker attributes must reference named parameters where values are protected by the Design Specification.
 
 ## Mandatory Rules
 

@@ -151,16 +151,24 @@ Source-contract validation pass:
 - Security, hard source structure, and protected Design Specification compliance violations block compilation and persist as generation-attempt findings.
 - Quality issues such as missing assertions, missing print notes, excessive `$fn`, and repeated magic numbers remain advisory and attach to candidates after successful compile/validation.
 - Generated source now uses `source-contract-v1` markers documented in `docs/MODEL_GENERATION_CONTRACT.md`.
-- Contract repair is a bounded `contract-repair-v1` mode and remains separate from compile repair.
+- Contract repair is a bounded `contract-repair-v2` mode and remains separate from compile repair.
 - Legacy accepted source remains usable and is not retroactively rejected.
+
+Geometric invariant validation pass:
+
+- Compiled AI candidates with Design Specifications now run `geometric-invariants-v1` after mesh inspection and before candidate classification.
+- Supported checks include protected overall bounds, build-plate placement, common axis-aligned cylindrical holes, hole count, two-hole spacing, and coarse wall thickness.
+- Confirmed high-confidence protected invariant violations block acceptance; unverifiable protected features create warnings for human review.
+- Source markers now include `@volundr-geometry` metadata for measurable features in `openscad-generation-v3`.
+- Legacy candidates without geometric analysis remain loadable and are labeled as not evaluated.
 
 Deferred stabilization work:
 
 - full structured revision planning
 - separate `design-plan-v1`
 - automatic continue policies
-- advanced protected-invariant geometry comparison
-- geometric proof that feature markers correspond to physical holes, counts, walls, or bounding dimensions
+- full protected-invariant geometry proof for arbitrary features
+- geometric proof that feature markers correspond to complex physical geometry such as angled holes, threads, snap fits, or internal cavities
 
 ## Stage 4 — Projects and Revision History
 

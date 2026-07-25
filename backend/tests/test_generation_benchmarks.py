@@ -65,3 +65,25 @@ def test_requirement_stage_benchmarks_cover_ready_clarification_and_conflict_cas
             "success_without_repair",
             "success_after_clarification_or_defaults",
         }
+
+
+def test_geometric_invariant_benchmarks_cover_supported_measurements() -> None:
+    core = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    full = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    by_id = {benchmark.id: benchmark for benchmark in [*core.benchmarks, *full.benchmarks]}
+
+    for benchmark_id in (
+        "simple_mounting_plate",
+        "cylindrical_holder",
+        "spacer_bushing",
+        "critical_dimension_revision",
+        "countersunk_holes",
+    ):
+        assert by_id[benchmark_id].expected_geometric_invariants
+
+    invariant_types = {
+        invariant["type"]
+        for benchmark in by_id.values()
+        for invariant in benchmark.expected_geometric_invariants
+    }
+    assert {"bounds", "build_plate", "hole", "hole_group", "wall_thickness"} <= invariant_types

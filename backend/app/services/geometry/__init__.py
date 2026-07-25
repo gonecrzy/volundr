@@ -1,0 +1,1 @@
+"""Geometric invariant validation services."""

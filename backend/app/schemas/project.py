@@ -290,3 +290,35 @@ class ValidationFindingRead(BaseModel):
 
 class ValidationFindingDismiss(BaseModel):
     reason: str | None = Field(default=None, max_length=1000)
+
+
+class GeometricFindingRead(BaseModel):
+    validation_finding_id: str | None = None
+    rule_id: str
+    requirement_id: str | None
+    verification_state: str
+    expected_value: float | int | str | None
+    detected_value: float | int | str | None
+    unit: str | None
+    tolerance: float | None
+    confidence: float
+    severity: str
+    is_blocking: bool
+    title: str
+    explanation: str
+    suggested_correction: str
+    feature_id: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class GeometricAnalysisRead(BaseModel):
+    id: str
+    revision_id: str
+    design_specification_id: str | None
+    analysis_version: str
+    tolerance_profile_version: str
+    mesh_hash: str
+    source_hash: str | None
+    analysis_ms: float
+    created_at: datetime
+    findings: list[GeometricFindingRead]

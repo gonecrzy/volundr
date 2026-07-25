@@ -10,6 +10,7 @@ from app.schemas.project import (
     ClarificationAnswersCreate,
     ClarificationQuestionRead,
     DesignSpecificationRead,
+    GeometricAnalysisRead,
     ManualRevisionCreate,
     GenerationCreate,
     ProjectCreate,
@@ -402,6 +403,19 @@ def list_candidate_validation_findings(
     if findings is None:
         raise HTTPException(status_code=404, detail="revision not found")
     return findings
+
+
+@router.get("/candidates/{revision_id}/geometric-analysis", response_model=GeometricAnalysisRead)
+def get_candidate_geometric_analysis(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> GeometricAnalysisRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    analysis = service.get_geometric_analysis(revision_id)
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="geometric analysis not found")
+    return analysis
 
 
 @router.post("/candidates/{revision_id}/accept", response_model=RevisionRead)

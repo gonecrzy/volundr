@@ -8,6 +8,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+import trimesh
 from pydantic import ValidationError
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -16,6 +17,7 @@ from app.core.config import settings
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.design_specification import DesignSpecification
+from app.models.geometric_analysis_result import GeometricAnalysisResult
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
@@ -28,6 +30,8 @@ from app.schemas.project import (
     DesignSpecificationPayload,
     DesignSpecificationRead,
     GenerationCreate,
+    GeometricAnalysisRead,
+    GeometricFindingRead,
     ManualRevisionCreate,
     MeshMetadataRead,
     ProjectCreate,
@@ -45,7 +49,13 @@ from app.services.ai.provider import AiProvider, ModelGenerationRequest, Require
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
-from app.services.mesh.inspect import MeshMetadata
+from app.services.geometry.invariants import (
+    GeometricAnalysisContext,
+    GeometricFinding,
+    GeometryAnalyzerRegistry,
+    mesh_hash,
+)
+from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.openscad.source_contract import (
     SourceContractFinding,
     SourceContractResult,
@@ -337,6 +347,34 @@ class ProjectService:
         )
         return [ValidationFindingRead.model_validate(finding) for finding in findings]
 
+    def get_geometric_analysis(self, revision_id: str) -> GeometricAnalysisRead | None:
+        result = self.db.scalar(
+            select(GeometricAnalysisResult)
+            .where(GeometricAnalysisResult.revision_id == revision_id)
+            .order_by(GeometricAnalysisResult.created_at.desc())
+        )
+        if result is None:
+            return None
+        result_path = self.data_dir / result.result_path
+        if not result_path.exists():
+            return None
+        payload = json.loads(result_path.read_text(encoding="utf-8"))
+        return GeometricAnalysisRead(
+            id=result.id,
+            revision_id=result.revision_id,
+            design_specification_id=result.design_specification_id,
+            analysis_version=result.analysis_version,
+            tolerance_profile_version=result.tolerance_profile_version,
+            mesh_hash=result.mesh_hash,
+            source_hash=result.source_hash,
+            analysis_ms=result.analysis_ms,
+            created_at=result.created_at,
+            findings=[
+                GeometricFindingRead.model_validate(finding)
+                for finding in payload.get("findings", [])
+            ],
+        )
+
     def accept_candidate(self, revision_id: str) -> RevisionRead | None:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
@@ -610,6 +648,7 @@ class ProjectService:
             source_type=source_type,
             raw_ai_output=raw_ai_output,
             design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
             source_validation_result_id=source_validation.id,
         )
         if initial_revision is None or initial_revision.status == "succeeded":
@@ -700,6 +739,7 @@ class ProjectService:
             source_type="ai_repair",
             raw_ai_output=repair_result.raw_output,
             design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
             source_validation_result_id=repair_source_validation.id,
         )
         self._finish_generation_attempt(
@@ -1226,13 +1266,13 @@ class ProjectService:
         if callable(version_for):
             return str(version_for(request))
         if request.contract_diagnostics:
-            return "contract-repair-v1"
+            return "contract-repair-v2"
         if request.compiler_diagnostics:
             return "legacy-compile-repair-v1"
         if request.current_source:
             return "legacy-revision-v1"
         if request.design_specification:
-            return "openscad-generation-v2"
+            return "openscad-generation-v3"
         return "legacy-initial-v1"
 
     def _requirement_prompt_template_version(self) -> str:
@@ -1447,6 +1487,156 @@ class ProjectService:
             finding.revision_id = revision_id
         self.db.flush()
 
+    def _persist_geometric_analysis(
+        self,
+        *,
+        revision: Revision,
+        stl_path: Path,
+        scad_source: str,
+        design_specification_payload: dict[str, Any] | None,
+        design_specification_id: str | None,
+    ) -> None:
+        if design_specification_payload is None:
+            return
+        loaded = trimesh.load(stl_path, force="mesh")
+        mesh = _as_mesh(loaded)
+        source_metadata = SourceContractValidator().validate(
+            scad_source,
+            design_specification=design_specification_payload,
+            source_type=revision.source_type,
+        ).source_metadata
+        context = GeometricAnalysisContext(
+            mesh=mesh,
+            design_specification=design_specification_payload,
+            source_metadata=source_metadata,
+            source_hash=source_metadata.source_hash,
+            mesh_hash=mesh_hash(mesh),
+        )
+        result = GeometryAnalyzerRegistry.default().analyze(context)
+        if not source_metadata.geometry_mappings and self._has_protected_design_invariants(
+            design_specification_payload
+        ):
+            result.findings.append(
+                GeometricFinding(
+                    rule_id="geometry.missing_geometry_markers",
+                    requirement_id=None,
+                    verification_state="unverifiable",
+                    expected_value="protected geometry metadata",
+                    detected_value=None,
+                    unit=None,
+                    tolerance=None,
+                    confidence=0.0,
+                    severity="warning",
+                    is_blocking=False,
+                    title="Geometric invariants not verified",
+                    explanation="The compiled model has protected Design Specification values, but the source did not include parseable geometry markers for supported invariant checks.",
+                    suggested_correction="Review the model manually or revise the source to add geometry markers for measurable protected bounds, holes, hole groups, or wall thickness.",
+                    metadata={"marker_format": "@volundr-geometry"},
+                )
+            )
+        revision_dir = self._revision_dir(revision.project_id, revision.id)
+        result_path = revision_dir / "geometry-analysis.json"
+        result_payload = result.to_json()
+
+        persisted = GeometricAnalysisResult(
+            revision_id=revision.id,
+            design_specification_id=design_specification_id,
+            analysis_version=result.analysis_version,
+            tolerance_profile_version=result.tolerance_profile_version,
+            mesh_hash=result.mesh_hash,
+            source_hash=result.source_hash,
+            result_path=self._relative(result_path),
+            analysis_ms=result.analysis_ms,
+        )
+        self.db.add(persisted)
+        self.db.flush()
+        for index, finding in enumerate(result.findings):
+            if finding.verification_state in {"violated", "unverifiable"}:
+                validation_finding = self._validation_finding_from_geometric_result(
+                    finding,
+                    revision_id=revision.id,
+                    design_specification_id=design_specification_id,
+                    analysis_result_id=persisted.id,
+                    analysis_version=result.analysis_version,
+                    tolerance_profile_version=result.tolerance_profile_version,
+                    mesh_hash_value=result.mesh_hash,
+                    source_hash_value=result.source_hash,
+                )
+                self.db.add(validation_finding)
+                self.db.flush()
+                result_payload["findings"][index]["validation_finding_id"] = validation_finding.id
+            else:
+                result_payload["findings"][index]["validation_finding_id"] = None
+        self._write_json(result_path, result_payload)
+
+    def _validation_finding_from_geometric_result(
+        self,
+        finding: GeometricFinding,
+        *,
+        revision_id: str,
+        design_specification_id: str | None,
+        analysis_result_id: str,
+        analysis_version: str,
+        tolerance_profile_version: str,
+        mesh_hash_value: str,
+        source_hash_value: str | None,
+    ) -> ValidationFinding:
+        metadata = dict(finding.metadata)
+        metadata.update(
+            {
+                "finding_origin": "geometric_invariant",
+                "analysis_result_id": analysis_result_id,
+                "analysis_version": analysis_version,
+                "tolerance_profile_version": tolerance_profile_version,
+                "mesh_hash": mesh_hash_value,
+                "source_hash": source_hash_value,
+                "requirement_id": finding.requirement_id,
+                "feature_id": finding.feature_id,
+                "verification_state": finding.verification_state,
+                "confidence": finding.confidence,
+                "expected_value": finding.expected_value,
+                "detected_value": finding.detected_value,
+                "tolerance": finding.tolerance,
+            }
+        )
+        return ValidationFinding(
+            revision_id=revision_id,
+            design_specification_id=design_specification_id,
+            rule_id=finding.rule_id,
+            category="geometry",
+            severity=finding.severity,
+            is_blocking=finding.is_blocking,
+            title=finding.title,
+            explanation=finding.explanation,
+            suggested_correction=finding.suggested_correction,
+            detected_value=self._format_finding_value(finding.detected_value),
+            unit=finding.unit,
+            threshold_value=self._format_finding_value(finding.expected_value),
+            orientation_dependent=finding.rule_id.startswith("geometry.build_plate"),
+            affected_geometry_summary=f"feature={finding.feature_id}"
+            if finding.feature_id
+            else None,
+            metadata_json=json.dumps(metadata, sort_keys=True),
+        )
+
+    def _format_finding_value(self, value: float | int | str | None) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, float):
+            return f"{value:.3f}".rstrip("0").rstrip(".")
+        return str(value)
+
+    def _has_protected_design_invariants(self, payload: dict[str, Any]) -> bool:
+        return any(
+            entry.get("protected")
+            for entry in [
+                *payload.get("critical_dimensions", []),
+                *payload.get("parameters", []),
+                *payload.get("functional_requirements", []),
+            ]
+            if isinstance(entry, dict)
+        )
+
     def _persist_validation_findings(self, *, revision: Revision, stl_path: Path) -> None:
         report = inspect_printability(stl_path, PrintabilityProfile())
         for result in report.results:
@@ -1590,6 +1780,7 @@ class ProjectService:
         source_type: str,
         raw_ai_output: str | None = None,
         design_specification_id: str | None = None,
+        design_specification_payload: dict[str, Any] | None = None,
         source_validation_result_id: str | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
@@ -1642,6 +1833,13 @@ class ProjectService:
             metadata = result.metadata
             stl_relative_path = self._relative(stl_path)
             revision.status = "succeeded"
+            self._persist_geometric_analysis(
+                revision=revision,
+                stl_path=stl_path,
+                scad_source=scad_source,
+                design_specification_payload=design_specification_payload,
+                design_specification_id=design_specification_id,
+            )
             self._persist_validation_findings(revision=revision, stl_path=stl_path)
             review_state = self._derive_review_state(revision.id)
             if self._should_auto_accept_revision(project=project, source_type=source_type, review_state=review_state):

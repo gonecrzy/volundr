@@ -8,10 +8,14 @@ import {
   acceptDisabledReason,
   canAcceptRevision,
   candidateFindingBuckets,
+  geometricFindingBuckets,
   revisionViewerLabel,
   revisionWorkflowLabel,
+  revisionPromptFromGeometricFinding,
   sourceCheckSummary,
   type CandidateFinding,
+  type GeometricAnalysis,
+  type GeometricFinding,
   type ReviewState,
   type ValidationSummary,
 } from "./candidateView";
@@ -249,6 +253,7 @@ function App() {
   const [isSavingPrintabilityProfile, setIsSavingPrintabilityProfile] = useState(false);
   const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
   const [candidateFindings, setCandidateFindings] = useState<CandidateFinding[]>([]);
+  const [geometricAnalysis, setGeometricAnalysis] = useState<GeometricAnalysis | null>(null);
   const [sourceContractError, setSourceContractError] = useState<string | null>(null);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
@@ -381,6 +386,7 @@ function App() {
       setProjectMessages([]);
       setSelectedRevision(null);
       setCandidateFindings([]);
+      setGeometricAnalysis(null);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -417,6 +423,7 @@ function App() {
       setProjectMessages([]);
       setSelectedRevision(null);
       setCandidateFindings([]);
+      setGeometricAnalysis(null);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -457,6 +464,7 @@ function App() {
       setRevisions(nextRevisions);
       setSelectedRevision(revision);
       await loadCandidateFindings(revision);
+      await loadGeometricAnalysis(revision);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
@@ -567,6 +575,7 @@ function App() {
       setRevisions(nextRevisions);
       setSelectedRevision(revision);
       await loadCandidateFindings(revision);
+      await loadGeometricAnalysis(revision);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setProject({ ...project, active_revision_id: revision.is_accepted ? revision.id : project.active_revision_id });
@@ -599,6 +608,7 @@ function App() {
   async function selectRevision(revision: Revision) {
     setSelectedRevision(revision);
     await loadCandidateFindings(revision);
+    await loadGeometricAnalysis(revision);
     setPrintabilityReport(null);
     setDismissedPrintabilityResults(new Set());
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/source`);
@@ -636,6 +646,7 @@ function App() {
       await selectRevision(activeRevision);
     } else {
       setCandidateFindings([]);
+      setGeometricAnalysis(null);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -691,6 +702,22 @@ function App() {
     }
   }
 
+  async function loadGeometricAnalysis(revision: Revision) {
+    if (revision.status !== "succeeded" || !revision.stl_path) {
+      setGeometricAnalysis(null);
+      return;
+    }
+    try {
+      setGeometricAnalysis(
+        await request<GeometricAnalysis>(`/candidates/${revision.id}/geometric-analysis`, {
+          method: "GET",
+        }),
+      );
+    } catch {
+      setGeometricAnalysis(null);
+    }
+  }
+
   async function acceptSelectedCandidate() {
     if (!selectedRevision || !canAcceptSelectedRevision) {
       return;
@@ -714,6 +741,7 @@ function App() {
         await loadProjectMessages(project.id);
       }
       await loadCandidateFindings(accepted);
+      await loadGeometricAnalysis(accepted);
       setMessage(`Accepted R${accepted.revision_number}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Candidate acceptance failed");
@@ -737,6 +765,7 @@ function App() {
         current.map((revision) => (revision.id === rejected.id ? rejected : revision)),
       );
       await loadCandidateFindings(rejected);
+      await loadGeometricAnalysis(rejected);
       if (project) {
         await loadProjectMessages(project.id);
       }
@@ -888,6 +917,7 @@ function App() {
     setProjectMessages([]);
     setSelectedRevision(null);
     setCandidateFindings([]);
+    setGeometricAnalysis(null);
     setCompileLog(null);
     setAiOutput(null);
     setRevisionDiff(null);
@@ -1060,6 +1090,7 @@ function App() {
             acceptDisabledReason={acceptReason}
             canAccept={canAcceptSelectedRevision}
             findings={candidateFindings}
+            geometricAnalysis={geometricAnalysis}
             isPending={isReviewActionPending}
             revision={selectedRevision}
             viewerLabel={selectedViewerLabel}
@@ -1067,6 +1098,10 @@ function App() {
             onAccept={() => void acceptSelectedCandidate()}
             onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
             onReject={() => void rejectSelectedCandidate()}
+            onReviseFromGeometricFinding={(finding) => {
+              setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
+              setMessage("Revision prompt prepared from geometric finding");
+            }}
           />
 
           <h2>Metadata</h2>
@@ -1260,6 +1295,7 @@ function CandidateReview({
   acceptDisabledReason,
   canAccept,
   findings,
+  geometricAnalysis,
   isPending,
   revision,
   viewerLabel,
@@ -1267,10 +1303,12 @@ function CandidateReview({
   onAccept,
   onDismissFinding,
   onReject,
+  onReviseFromGeometricFinding,
 }: {
   acceptDisabledReason: string | null;
   canAccept: boolean;
   findings: CandidateFinding[];
+  geometricAnalysis: GeometricAnalysis | null;
   isPending: boolean;
   revision: Revision | null;
   viewerLabel: string;
@@ -1278,13 +1316,15 @@ function CandidateReview({
   onAccept: () => void;
   onDismissFinding: (findingId: string) => void;
   onReject: () => void;
+  onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
 }) {
   if (!revision) {
     return null;
   }
 
   const isCandidate = isOpenCandidate(revision);
-  const buckets = candidateFindingBuckets(findings);
+  const nonGeometricFindings = findings.filter((finding) => finding.category !== "geometry");
+  const buckets = candidateFindingBuckets(nonGeometricFindings);
   const sourceChecks = sourceCheckSummary(findings);
 
   return (
@@ -1318,6 +1358,11 @@ function CandidateReview({
         findings={sourceChecks.blocking.concat(sourceChecks.advisory)}
         showPassed={isCandidate}
       />
+      <GeometricCheckSummary
+        analysis={geometricAnalysis}
+        showLegacyMessage={revision.status === "succeeded" && !geometricAnalysis}
+        onReviseFromFinding={onReviseFromGeometricFinding}
+      />
       {buckets.blocking.length > 0 ? (
         <FindingGroup findings={buckets.blocking} title="Blocking findings" />
       ) : null}
@@ -1328,8 +1373,98 @@ function CandidateReview({
           onDismissFinding={onDismissFinding}
         />
       ) : null}
-      {isCandidate && findings.length === 0 ? <p className="empty">No validation findings</p> : null}
+      {isCandidate && findings.length === 0 && !geometricAnalysis ? (
+        <p className="empty">No validation findings</p>
+      ) : null}
     </section>
+  );
+}
+
+function GeometricCheckSummary({
+  analysis,
+  showLegacyMessage,
+  onReviseFromFinding,
+}: {
+  analysis: GeometricAnalysis | null;
+  showLegacyMessage: boolean;
+  onReviseFromFinding: (finding: GeometricFinding) => void;
+}) {
+  if (!analysis) {
+    if (!showLegacyMessage) {
+      return null;
+    }
+    return (
+      <div className="candidate-findings geometric-checks">
+        <h3>Geometric checks</h3>
+        <p className="empty">Geometric invariants not evaluated</p>
+      </div>
+    );
+  }
+
+  const buckets = geometricFindingBuckets(analysis.findings);
+  return (
+    <div className="candidate-findings geometric-checks">
+      <h3>Geometric checks</h3>
+      <p className="empty">
+        {`${buckets.verified.length} verified, ${buckets.violated.length} violated, ${buckets.unverifiable.length} unable to verify`}
+      </p>
+      <GeometricFindingGroup
+        findings={buckets.verified}
+        title="Verified"
+        onReviseFromFinding={onReviseFromFinding}
+      />
+      <GeometricFindingGroup
+        findings={buckets.violated}
+        title="Violated"
+        onReviseFromFinding={onReviseFromFinding}
+      />
+      <GeometricFindingGroup
+        findings={buckets.unverifiable}
+        title="Unable to verify"
+        onReviseFromFinding={onReviseFromFinding}
+      />
+    </div>
+  );
+}
+
+function GeometricFindingGroup({
+  findings,
+  title,
+  onReviseFromFinding,
+}: {
+  findings: GeometricFinding[];
+  title: string;
+  onReviseFromFinding: (finding: GeometricFinding) => void;
+}) {
+  if (findings.length === 0) {
+    return null;
+  }
+  return (
+    <div className="geometry-group">
+      <h4>{title}</h4>
+      {findings.map((finding) => (
+        <article className={`candidate-finding ${finding.severity}`} key={`${finding.rule_id}-${finding.requirement_id ?? finding.feature_id ?? finding.title}`}>
+          <div className="result-row">
+            <span className={`severity ${finding.severity}`}>{finding.verification_state}</span>
+            <span className="rule-id">{finding.rule_id}</span>
+          </div>
+          <p>{finding.explanation}</p>
+          <p className="correction">
+            {finding.requirement_id ? `${finding.requirement_id}. ` : ""}
+            {finding.expected_value !== null ? `Expected ${formatGeometryValue(finding.expected_value, finding.unit)}. ` : ""}
+            {finding.detected_value !== null ? `Detected ${formatGeometryValue(finding.detected_value, finding.unit)}. ` : ""}
+            {finding.tolerance !== null ? `Tolerance ${formatGeometryValue(finding.tolerance, finding.unit)}. ` : ""}
+            Confidence {Math.round(finding.confidence * 100)}%.
+          </p>
+          {finding.suggested_correction ? <p className="correction">{finding.suggested_correction}</p> : null}
+          {finding.validation_finding_id ? (
+            <button className="text-action" onClick={() => onReviseFromFinding(finding)}>
+              Revise from finding
+            </button>
+          ) : null}
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -1767,6 +1902,11 @@ function severityRank(severity: PrintabilitySeverity): number {
 function formatDetectedValue(value: number | string, units: string): string {
   const formattedValue = typeof value === "number" ? value.toFixed(3).replace(/\.?0+$/, "") : value;
   return `${formattedValue} ${units}`;
+}
+
+function formatGeometryValue(value: number | string, unit: string | null): string {
+  const formatted = typeof value === "number" ? value.toFixed(3).replace(/\.?0+$/, "") : value;
+  return `${formatted}${unit ? ` ${unit}` : ""}`;
 }
 
 function toPrintabilityProfilePayload(profile: PrintabilityProfile): PrintabilityProfile {

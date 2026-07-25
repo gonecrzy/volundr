@@ -29,6 +29,14 @@ class SourceMapping:
 
 
 @dataclass(frozen=True)
+class SourceGeometryMapping:
+    geometry_type: str
+    attributes: dict[str, str]
+    line: int
+    feature_id: str | None = None
+
+
+@dataclass(frozen=True)
 class SourceMetadata:
     source_hash: str
     source_size_bytes: int
@@ -40,6 +48,7 @@ class SourceMetadata:
     top_level_geometry_calls: list[str] = field(default_factory=list)
     requirement_mappings: dict[str, SourceMapping] = field(default_factory=dict)
     feature_mappings: dict[str, SourceMapping] = field(default_factory=dict)
+    geometry_mappings: list[SourceGeometryMapping] = field(default_factory=list)
     assignments: dict[str, str] = field(default_factory=dict)
     assignment_lines: dict[str, int] = field(default_factory=dict)
     sections: set[str] = field(default_factory=set)
@@ -512,7 +521,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
     assignments: dict[str, str] = {}
     assignment_lines: dict[str, int] = {}
     sections = _sections(comments)
-    requirement_markers, feature_markers = _pending_markers(comments)
+    requirement_markers, feature_markers, geometry_markers = _pending_markers(comments)
     requirement_mappings: dict[str, SourceMapping] = {}
     feature_mappings: dict[str, SourceMapping] = {}
     brace_depth = 0
@@ -623,6 +632,16 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         top_level_geometry_calls=top_level_geometry_calls,
         requirement_mappings=requirement_mappings,
         feature_mappings=feature_mappings,
+        geometry_mappings=[
+            SourceGeometryMapping(
+                geometry_type=attributes["type"],
+                attributes=attributes,
+                line=line,
+                feature_id=_marker_for_line(feature_markers, line),
+            )
+            for line, attributes in sorted(geometry_markers.items())
+            if "type" in attributes
+        ],
         assignments=assignments,
         assignment_lines=assignment_lines,
         sections=sections,
@@ -654,9 +673,12 @@ def _sections(comments: list[SourceToken]) -> set[str]:
     return sections
 
 
-def _pending_markers(comments: list[SourceToken]) -> tuple[dict[int, str], dict[int, str]]:
+def _pending_markers(
+    comments: list[SourceToken],
+) -> tuple[dict[int, str], dict[int, str], dict[int, dict[str, str]]]:
     requirement_markers: dict[int, str] = {}
     feature_markers: dict[int, str] = {}
+    geometry_markers: dict[int, dict[str, str]] = {}
     for comment in comments:
         requirement_match = re.search(r"@volundr-requirement\s+([A-Za-z0-9_.-]+)", comment.value)
         if requirement_match:
@@ -664,7 +686,17 @@ def _pending_markers(comments: list[SourceToken]) -> tuple[dict[int, str], dict[
         feature_match = re.search(r"@volundr-feature\s+([A-Za-z0-9_.-]+)", comment.value)
         if feature_match:
             feature_markers[comment.line] = feature_match.group(1)
-    return requirement_markers, feature_markers
+        geometry_match = re.search(r"@volundr-geometry\s+(.+)", comment.value)
+        if geometry_match:
+            geometry_markers[comment.line] = _geometry_attributes(geometry_match.group(1))
+    return requirement_markers, feature_markers, geometry_markers
+
+
+def _geometry_attributes(text: str) -> dict[str, str]:
+    attributes: dict[str, str] = {}
+    for key, value in re.findall(r"([A-Za-z_][A-Za-z0-9_-]*)=([^,\s]+)", text):
+        attributes[key] = value.strip().strip('"')
+    return attributes
 
 
 def _marker_for_line(markers: dict[int, str], line: int) -> str | None:

@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from app.services.generation.failure_taxonomy import FailureClass
 
@@ -41,6 +42,7 @@ class GenerationBenchmark:
     revision_expectation: str
     protected_design_invariants: list[str]
     unacceptable_outcomes: list[str]
+    expected_geometric_invariants: list[dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -117,6 +119,7 @@ def _parse_benchmark(payload: object) -> GenerationBenchmark:
         revision_expectation=_required_text(payload, "revision_expectation"),
         protected_design_invariants=_required_text_list(payload, "protected_design_invariants"),
         unacceptable_outcomes=_required_text_list(payload, "unacceptable_outcomes"),
+        expected_geometric_invariants=_optional_object_list(payload, "expected_geometric_invariants"),
     )
 
 
@@ -133,3 +136,9 @@ def _required_text_list(payload: dict[str, object], key: str) -> list[str]:
         raise ValueError(f"{key} must be a non-empty text list")
     return value
 
+
+def _optional_object_list(payload: dict[str, object], key: str) -> list[dict[str, Any]]:
+    value = payload.get(key, [])
+    if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        raise ValueError(f"{key} must be an object list")
+    return value

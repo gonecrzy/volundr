@@ -9,6 +9,7 @@ from app.models import (  # noqa: F401
     ClarificationAnswer,
     ClarificationQuestion,
     DesignSpecification,
+    GeometricAnalysisResult,
     GenerationAttempt,
     Project,
     ProjectMessage,

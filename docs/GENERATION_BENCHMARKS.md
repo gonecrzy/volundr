@@ -30,6 +30,8 @@ All generated OpenSCAD benchmarks must:
 - expose required parameters in `USER PARAMETERS`
 - map every protected critical dimension with `@volundr-requirement`
 - map every protected functional requirement with `@volundr-feature`
+- include `@volundr-geometry` markers for supported protected bounds, hole, hole-group, and wall-thickness invariants
+- verify supported protected geometric invariants according to `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - avoid unrequested decorative or weight-reduction features
 - classify assumptions and warnings
 - preserve protected design invariants during repair and revision
@@ -40,7 +42,7 @@ Protected design invariants include user-provided dimensions, required features,
 
 Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, and conflicting dimensions. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, and the remaining model categories.
 
-Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated.
+Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated. Fixture-generated meshes should also include expected geometric invariant assertions for supported cases: bounding dimensions, build-plate placement, cylindrical hole diameter, hole count, hole spacing, and wall-thickness estimates.
 
 ## Suites
 
@@ -69,6 +71,7 @@ Full stability suite:
 - Printability constraints: flat on Z=0, no supports.
 - Compile expectations: success without repair.
 - Mesh expectations: watertight, nonzero volume, one component.
+- Geometric invariant expectations: protected 80 x 35 x 6 mm bounds, two-hole count, 4.5 mm hole diameter, 55 mm hole spacing, and Z=0 placement verify.
 - Revision expectations: changing `hole_spacing` alters only hole locations.
 - Unacceptable outcomes: missing holes, wrong spacing, geometry below Z=0, no parameters.
 
@@ -82,6 +85,7 @@ Full stability suite:
 - Printability constraints: open top, no unsupported internal ceiling.
 - Compile expectations: success.
 - Mesh expectations: watertight holder body.
+- Geometric invariant expectations: protected height, declared wall thickness, open top height where represented by bounds metadata, and Z=0 placement verify or produce non-blocking unverifiable findings.
 - Revision expectations: changing cup diameter preserves wall and base.
 - Unacceptable outcomes: closed cup cavity, unsupported top cap, no clearance.
 
@@ -108,6 +112,7 @@ Full stability suite:
 - Printability constraints: vertical cylinder on Z=0.
 - Compile expectations: success.
 - Mesh expectations: watertight ring, one component.
+- Geometric invariant expectations: protected height, inner through-hole diameter, and Z=0 placement verify; outer diameter remains future exterior-cylinder verification unless represented by bounds metadata.
 - Revision expectations: changing height preserves diameters.
 - Unacceptable outcomes: solid cylinder with no hole, non-centered hole.
 

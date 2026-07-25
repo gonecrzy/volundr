@@ -47,6 +47,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Provide standard views and fit-to-model.
 - Inspect printability using the current model orientation and a configurable FDM printer profile.
 - Report printability risks as Pass, Notice, Warning, or Critical findings, without a single percentage score.
+- Verify selected measurable protected geometric invariants after compile, including bounds, build-plate placement, simple axis-aligned holes, hole spacing, hole count, and coarse wall thickness.
 - Do not claim print success is guaranteed.
 - Use blocking validation findings to prevent automatic acceptance of unsafe or invalid AI-generated candidates.
 

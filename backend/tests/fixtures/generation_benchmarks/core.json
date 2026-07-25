@@ -13,6 +13,11 @@
       "expected_printability_constraints": ["flat on Z=0", "no supports expected"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight one component with nonzero volume",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "x_mm": 80, "y_mm": 35, "z_mm": 6, "verification": "verified"},
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 2, "diameter_mm": 4.5, "spacing_mm": 55, "axis": "z", "verification": "verified"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "hole spacing revision changes only hole locations",
       "protected_design_invariants": ["plate width", "plate depth", "plate thickness", "hole diameter", "Z=0 placement"],
       "unacceptable_outcomes": ["missing holes", "wrong spacing", "geometry below Z=0", "unparameterized dimensions"]
@@ -29,6 +34,11 @@
       "expected_printability_constraints": ["open top", "no unsupported internal ceiling"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight holder body",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "z_mm": 69, "verification": "verified_or_unverifiable"},
+        {"type": "wall_thickness", "value_mm": 3, "verification": "verified_or_warning"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "cup diameter revision preserves wall and base thickness",
       "protected_design_invariants": ["base thickness", "wall thickness", "open top", "Z=0 placement"],
       "unacceptable_outcomes": ["closed cup cavity", "unsupported top cap", "missing clearance"]
@@ -45,6 +55,11 @@
       "expected_printability_constraints": ["vertical cylinder on Z=0"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight ring with one component",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "z_mm": 12, "verification": "verified"},
+        {"type": "hole", "diameter_mm": 4.2, "axis": "z", "verification": "verified"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "height revision preserves diameters",
       "protected_design_invariants": ["outer diameter", "inner diameter", "centered through hole"],
       "unacceptable_outcomes": ["solid cylinder with no hole", "off-center hole"]
@@ -61,6 +76,10 @@
       "expected_printability_constraints": ["unchanged flat plate orientation"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "same plate bounds after revision",
+      "expected_geometric_invariants": [
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 2, "spacing_mm": 60, "axis": "z", "verification": "verified"},
+        {"type": "bounds", "x_mm": 80, "y_mm": 35, "z_mm": 6, "verification": "verified"}
+      ],
       "revision_expectation": "minimal diff changes hole_spacing only",
       "protected_design_invariants": ["plate width", "plate depth", "plate thickness", "hole diameter", "module names"],
       "unacceptable_outcomes": ["plate resized", "hole diameter changed", "whole-model rewrite"]
@@ -77,6 +96,7 @@
       "expected_printability_constraints": ["not applicable until clarified"],
       "compile_expectation": "no_scad_generated",
       "mesh_expectation": "none",
+      "expected_geometric_invariants": [],
       "revision_expectation": "not applicable",
       "protected_design_invariants": ["no accepted SCAD before clarification"],
       "unacceptable_outcomes": ["generic bracket accepted", "silent load assumption"]
@@ -93,6 +113,7 @@
       "expected_printability_constraints": ["not applicable until clarified"],
       "compile_expectation": "no_scad_generated",
       "mesh_expectation": "none",
+      "expected_geometric_invariants": [],
       "revision_expectation": "not applicable",
       "protected_design_invariants": ["conflict must not be silently resolved"],
       "unacceptable_outcomes": ["choosing either width silently", "accepted SCAD"]

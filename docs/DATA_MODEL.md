@@ -363,6 +363,27 @@ critical
 
 `is_blocking` is authoritative for acceptance. Severity alone does not decide whether a candidate can be accepted. Non-blocking findings may be dismissed, but blocking findings cannot be dismissed into acceptability.
 
+## GeometricAnalysisResult
+
+Represents one deterministic post-compile geometric invariant analysis for a revision.
+
+Fields:
+
+```text
+id
+revision_id
+design_specification_id
+analysis_version
+tolerance_profile_version
+mesh_hash
+source_hash
+result_path
+analysis_ms
+created_at
+```
+
+`result_path` points to the full JSON result, including verification state, confidence, expected value, detected value, tolerance, source/feature metadata, analyzer version, and linked `validation_finding_id` for persisted non-pass findings. New AI candidates with Design Specifications receive this analysis before candidate state is derived. Existing legacy revisions may have no geometric analysis.
+
 ## CadJob
 
 Captures CAD execution details.

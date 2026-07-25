@@ -35,6 +35,44 @@ export type CandidateFinding = {
   finding_state: string;
 };
 
+export type GeometricVerificationState =
+  | "verified"
+  | "violated"
+  | "unverifiable"
+  | "not_applicable";
+
+export type GeometricFinding = {
+  validation_finding_id: string | null;
+  rule_id: string;
+  requirement_id: string | null;
+  verification_state: GeometricVerificationState;
+  expected_value: number | string | null;
+  detected_value: number | string | null;
+  unit: string | null;
+  tolerance: number | null;
+  confidence: number;
+  severity: "notice" | "warning" | "critical";
+  is_blocking: boolean;
+  title: string;
+  explanation: string;
+  suggested_correction: string;
+  feature_id: string | null;
+  metadata: Record<string, unknown>;
+};
+
+export type GeometricAnalysis = {
+  id: string;
+  revision_id: string;
+  design_specification_id: string | null;
+  analysis_version: string;
+  tolerance_profile_version: string;
+  mesh_hash: string;
+  source_hash: string | null;
+  analysis_ms: number;
+  created_at: string;
+  findings: GeometricFinding[];
+};
+
 export function revisionViewerLabel(
   revision: CandidateRevision | null,
   project: ProjectState | null,
@@ -138,4 +176,49 @@ export function sourceCheckSummary(findings: CandidateFinding[]): {
       (finding) => finding.category === "specification_compliance",
     ),
   };
+}
+
+export function geometricFindingBuckets(findings: GeometricFinding[]): {
+  verified: GeometricFinding[];
+  violated: GeometricFinding[];
+  unverifiable: GeometricFinding[];
+  notApplicable: GeometricFinding[];
+} {
+  return {
+    verified: findings.filter((finding) => finding.verification_state === "verified"),
+    violated: findings.filter((finding) => finding.verification_state === "violated"),
+    unverifiable: findings.filter((finding) => finding.verification_state === "unverifiable"),
+    notApplicable: findings.filter((finding) => finding.verification_state === "not_applicable"),
+  };
+}
+
+export function revisionPromptFromGeometricFinding(finding: GeometricFinding): string {
+  const expected = formatMaybeValue(finding.expected_value, finding.unit);
+  const detected = formatMaybeValue(finding.detected_value, finding.unit);
+  const tolerance =
+    finding.tolerance === null || finding.tolerance === undefined
+      ? "unspecified tolerance"
+      : `tolerance ${finding.tolerance}${finding.unit ? ` ${finding.unit}` : ""}`;
+  const findingReference = finding.validation_finding_id
+    ? `validation finding ${finding.validation_finding_id}`
+    : `rule ${finding.rule_id}`;
+  return [
+    `Revise the candidate to resolve ${findingReference}.`,
+    `Rule: ${finding.rule_id}.`,
+    finding.requirement_id ? `Requirement: ${finding.requirement_id}.` : null,
+    finding.feature_id ? `Feature: ${finding.feature_id}.` : null,
+    `expected ${expected}; detected ${detected}; ${tolerance}; confidence ${finding.confidence}.`,
+    finding.explanation,
+    finding.suggested_correction,
+    "Preserve unrelated protected requirements, dimensions, markers, modules, and accepted design intent.",
+  ]
+    .filter((line): line is string => Boolean(line))
+    .join("\n");
+}
+
+function formatMaybeValue(value: number | string | null, unit: string | null): string {
+  if (value === null || value === undefined || value === "") {
+    return "unverified";
+  }
+  return `${value}${unit ? ` ${unit}` : ""}`;
 }

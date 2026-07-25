@@ -29,6 +29,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - generation orchestration                    │
 │ - candidate revision review and acceptance    │
 │ - pre-compile OpenSCAD source-contract checks │
+│ - post-compile geometric invariant checks     │
 │ - AI provider interface                       │
 │ - CAD runner interface                        │
 │ - persisted validation findings               │
@@ -47,6 +48,11 @@ The technologies and boundaries in this document are approved V1 defaults. They 
                             ┌──────▼───────────┐
                             │ Mesh Inspection │
                             │ trimesh          │
+                            └──────────────────┘
+                                   │
+                            ┌──────▼───────────┐
+                            │ Geometry Checks  │
+                            │ invariant analyzers │
                             └──────────────────┘
 ```
 
@@ -231,6 +237,7 @@ AI or post-active manual source
   -> OpenSCAD compile
   -> if compile failure: optional one compile repair after source-contract validation passes
   -> mesh inspection
+  -> geometric invariant analysis for supported protected values
   -> deterministic validation findings
   -> revision review_state: ready | ready_with_warnings | blocked
   -> explicit accept or reject action
@@ -283,7 +290,8 @@ request
   -> OpenSCAD generation from Design Specification
   -> source validation
   -> compile
-  -> mesh validation
+  -> mesh inspection
+  -> geometric invariant validation
   -> printability validation
   -> repair, candidate review, or acceptance
 ```

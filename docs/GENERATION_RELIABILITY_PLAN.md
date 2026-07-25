@@ -129,7 +129,7 @@ Split source-contract results into:
 
 Missing assertions alone should create a quality finding unless paired with invalid or unsafe dimensions.
 
-Implementation status: completed for new AI source. Volundr now extracts SCAD, runs lightweight OpenSCAD tokenization/scanning, persists a `source-contract-v1` validation result, blocks compile for hard security/structure/specification violations, and attaches non-blocking source-quality findings to successful candidates. Contract repair is a distinct bounded attempt (`contract-repair-v1`) and runs before compile repair. The machine-readable marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md`.
+Implementation status: completed for new AI source. Volundr now extracts SCAD, runs lightweight OpenSCAD tokenization/scanning, persists a `source-contract-v1` validation result, blocks compile for hard security/structure/specification violations, and attaches non-blocking source-quality findings to successful candidates. Contract repair is a distinct bounded attempt (`contract-repair-v2`) and runs before compile repair. The machine-readable marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md`.
 
 ### 9. Add requirement extraction and clarification decision
 
@@ -154,7 +154,7 @@ ai_assumption
 
 Clarification evaluation must track both recall and precision so Volundr avoids both missed clarifications and excessive questioning.
 
-Deferred: full structured revision planning, design-plan prompts, automatic generation after ready specifications, and advanced geometric invariant comparison.
+Deferred: full structured revision planning, design-plan prompts, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 
 ## Priority 2: Validation And Acceptance
 
@@ -183,6 +183,8 @@ Current blocking rules enforced by candidate acceptance:
 - critical `feature.small_features_gaps_holes`
 
 Current advisory rules include non-watertight meshes, disconnected components, small build-plate contact, overhangs, bridges, unsupported ceilings/cavities, and non-critical feature-size findings.
+
+Implementation status update: `geometric-invariants-v1` now runs after mesh inspection and before candidate classification for new AI candidates with Design Specifications. It verifies selected protected bounds, build-plate placement, common axis-aligned holes, two-hole spacing, hole count, and coarse wall thickness where analyzer confidence is sufficient. Confirmed high-confidence protected violations block acceptance; unverifiable checks remain advisory. Full behavior is defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 
 ### 11. Introduce candidate revision state for AI generations
 
@@ -262,6 +264,14 @@ Track per benchmark:
 - prohibited feature violation rate
 - clarification precision and recall
 - protected design invariant preservation
+- bounding-dimension verification rate
+- protected hole detection rate
+- hole-count verification rate
+- hole-spacing verification rate
+- wall-thickness verification rate
+- geometric analyzer unverifiable rate
+- false-positive geometric blocking rate
+- geometric analyzer latency
 - revision preservation score
 - median provider latency
 - median compile time

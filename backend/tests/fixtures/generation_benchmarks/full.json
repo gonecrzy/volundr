@@ -13,6 +13,11 @@
       "expected_printability_constraints": ["flat on Z=0", "no supports"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight one component",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "x_mm": 80, "y_mm": 35, "z_mm": 6, "verification": "verified"},
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 2, "diameter_mm": 4.5, "spacing_mm": 55, "axis": "z", "verification": "verified"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "hole spacing revision preserves all other dimensions",
       "protected_design_invariants": ["plate dimensions", "hole diameter", "Z=0 placement"],
       "unacceptable_outcomes": ["missing holes", "wrong spacing", "geometry below Z=0"]
@@ -29,6 +34,11 @@
       "expected_printability_constraints": ["open top", "no unsupported ceiling"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight holder body",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "z_mm": 69, "verification": "verified_or_unverifiable"},
+        {"type": "wall_thickness", "value_mm": 3, "verification": "verified_or_warning"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "cup diameter revision preserves wall/base",
       "protected_design_invariants": ["base thickness", "wall thickness", "open top"],
       "unacceptable_outcomes": ["closed cavity", "unsupported top cap", "missing clearance"]
@@ -61,6 +71,11 @@
       "expected_printability_constraints": ["vertical cylinder on Z=0"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight ring",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "z_mm": 12, "verification": "verified"},
+        {"type": "hole", "diameter_mm": 4.2, "axis": "z", "verification": "verified"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "height revision preserves diameters",
       "protected_design_invariants": ["outer diameter", "inner diameter", "centered through hole"],
       "unacceptable_outcomes": ["solid cylinder", "off-center hole"]
@@ -141,6 +156,11 @@
       "expected_printability_constraints": ["flat plate", "countersinks on top"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "watertight with through holes",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "x_mm": 60, "y_mm": 30, "z_mm": 5, "verification": "verified"},
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 2, "diameter_mm": 3.4, "spacing_mm": 40, "axis": "z", "verification": "verified_or_unverifiable"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
       "revision_expectation": "head diameter revision preserves shaft holes",
       "protected_design_invariants": ["plate dimensions", "hole spacing", "through holes"],
       "unacceptable_outcomes": ["blind holes", "wrong countersink side"]
@@ -157,6 +177,10 @@
       "expected_printability_constraints": ["flat plate orientation unchanged"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "same plate bounds after revision",
+      "expected_geometric_invariants": [
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 2, "spacing_mm": 60, "axis": "z", "verification": "verified"},
+        {"type": "bounds", "x_mm": 80, "y_mm": 35, "z_mm": 6, "verification": "verified"}
+      ],
       "revision_expectation": "minimal diff changes hole_spacing only",
       "protected_design_invariants": ["plate dimensions", "hole diameter", "module names"],
       "unacceptable_outcomes": ["plate resized", "hole diameter changed", "whole rewrite"]

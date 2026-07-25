@@ -98,10 +98,11 @@ def test_staged_openscad_prompt_uses_design_specification_as_authority() -> None
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "openscad-generation-v2"
+    assert provider.prompt_template_version_for(request) == "openscad-generation-v3"
     assert "The Design Specification is the authoritative design source" in prompt
     assert "@volundr-requirement <design_spec_requirement_id>" in prompt
     assert "@volundr-feature <design_spec_requirement_id>" in prompt
+    assert "@volundr-geometry type=hole_group" in prompt
     assert "Secondary raw user request" in prompt
     assert "hole_spacing" in prompt
 
@@ -118,7 +119,8 @@ def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:
     )
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "contract-repair-v1"
+    assert provider.prompt_template_version_for(request) == "contract-repair-v2"
     assert "contract repair, not design revision" in prompt
     assert "@volundr-requirement <id>" in prompt
+    assert "@volundr-geometry markers" in prompt
     assert "Protected value changed" in prompt

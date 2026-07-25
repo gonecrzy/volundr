@@ -12,10 +12,10 @@ from app.services.ai.provider import (
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
-OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v2"
+OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
 LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
-CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v1"
+CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
 LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
 
 
@@ -188,6 +188,12 @@ class GeminiCliProvider:
                 "// @volundr-requirement <design_spec_requirement_id>",
                 "Every protected functional requirement must have a machine-readable feature marker immediately before the implementing module or statement:",
                 "// @volundr-feature <design_spec_requirement_id>",
+                "Add machine-readable geometry markers for measurable protected geometry immediately after the related feature marker or before the related module:",
+                "// @volundr-geometry type=bounds x=<width_parameter> y=<depth_parameter> z=<height_parameter>",
+                "// @volundr-geometry type=hole_group count=<integer> diameter=<diameter_parameter> spacing=<spacing_parameter> axis=x|y|z",
+                "// @volundr-geometry type=hole diameter=<diameter_parameter> axis=x|y|z",
+                "// @volundr-geometry type=wall_thickness value=<wall_thickness_parameter> region=<short_region_id>",
+                "Use geometry markers only for dimensions or features represented by named parameters in the source.",
                 "Disclose product defaults and AI assumptions in source comments.",
                 "Do not add undocumented critical dimensions.",
                 "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
@@ -227,6 +233,8 @@ class GeminiCliProvider:
                 "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
                 "Ensure protected dimensions use // @volundr-requirement <id> immediately before the parameter assignment.",
                 "Ensure protected features use // @volundr-feature <id> immediately before the implementing module or statement.",
+                "Preserve and repair // @volundr-geometry markers for bounds, hole groups, holes, and wall thickness when those features exist.",
+                "Do not add geometry markers that claim a feature or dimension the source does not implement.",
                 "Ensure module main_model() exists and the file ends with exactly one top-level main_model(); call.",
                 "",
                 f"Project name: {request.project_name}",

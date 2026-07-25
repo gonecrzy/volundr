@@ -223,7 +223,7 @@ def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -
         assert requirement_attempt.design_spec_path is not None
         assert attempt.status == "succeeded"
         assert attempt.failure_class == "none"
-        assert attempt.prompt_template_version == "openscad-generation-v2"
+        assert attempt.prompt_template_version == "openscad-generation-v3"
         assert attempt.gemini_ruleset_version == "gemini-ruleset-v1"
         assert attempt.provider == "fake"
         assert attempt.provider_model == "fake-model"
@@ -240,7 +240,7 @@ def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -
     design_spec = json.loads((run_dir / "design-spec.json").read_text(encoding="utf-8"))
     assert design_spec["outcome"] == "generation_ready"
     assert design_spec["critical_dimensions"][0]["source"] == "user"
-    assert chain["stages"][0]["prompt_template_version"] == "openscad-generation-v2"
+    assert chain["stages"][0]["prompt_template_version"] == "openscad-generation-v3"
     assert chain["stages"][0]["source_contract_result_path"] is not None
     assert chain["stages"][0]["source_contract_passed_hard_checks"] is True
 

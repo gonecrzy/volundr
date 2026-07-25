@@ -86,7 +86,7 @@ Output schema:
 }
 ```
 
-### `openscad-generation-v2`
+### `openscad-generation-v3`
 
 Responsibility: produce only source-contract-compliant OpenSCAD from an approved Design Specification and ruleset.
 
@@ -105,9 +105,10 @@ Output:
 - no prose outside the block
 - strict source skeleton from `docs/GEMINI_RULESET.md`
 - protected requirement markers and feature markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`
+- source-assisted geometry markers for measurable bounds, holes, hole groups, and wall-thickness regions as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - protected values copied exactly from the Design Specification and exposed as named parameters
 
-Current implementation: `openscad-generation-v2` is implemented for ready initial Design Specifications. `design-plan-v1` remains deferred.
+Current implementation: `openscad-generation-v3` is implemented for ready initial Design Specifications. `design-plan-v1` remains deferred.
 
 ### `revision-v1`
 
@@ -165,7 +166,7 @@ Prohibited changes:
 - reorienting the part
 - redesigning geometry
 
-### `contract-repair-v1`
+### `contract-repair-v2`
 
 Responsibility: repair static source-contract failures before OpenSCAD compilation. This is separate from compiler repair and must not respond to mesh or printability validation.
 
@@ -180,6 +181,7 @@ Allowed changes:
 
 - add missing skeleton sections
 - add missing requirement or feature markers
+- add or preserve required geometry markers when the source already implements the measurable feature
 - remove prohibited source constructs
 - make protected constants statically verifiable without changing their specified values
 - restore removed protected parameters or markers
@@ -244,8 +246,10 @@ clarification-v1
 design-plan-v1
 openscad-generation-v1
 openscad-generation-v2
+openscad-generation-v3
 revision-v1
 contract-repair-v1
+contract-repair-v2
 compile-repair-v1
 validation-feedback-v1
 ```
@@ -277,15 +281,15 @@ user request
   -> if clarify/conflict/unsupported: return state, no revision
   -> user reviews ready Design Specification
   -> explicit Continue to generation
-  -> openscad-generation-v2
+  -> openscad-generation-v3
   -> source contract validation
-  -> if hard source/spec violation: contract-repair-v1 once, then revalidate or fail attempt
+  -> if hard source/spec violation: contract-repair-v2 once, then revalidate or fail attempt
   -> compile
-  -> mesh and printability validation
+  -> mesh inspection, geometric invariant analysis, and printability validation
   -> candidate review, repair, or failed attempt
 ```
 
-Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v2` as the authoritative design source. Raw user text is included only as secondary intent.
+Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v3` as the authoritative design source. Raw user text is included only as secondary intent.
 
 ## Revision Flow
 

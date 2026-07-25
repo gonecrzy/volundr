@@ -65,6 +65,21 @@ Test:
 - extreme dimensions
 - excessive triangle count warning
 
+### Geometric invariant validation
+
+Test:
+
+- exact protected bounds verify against mesh AABB
+- absolute and relative dimension tolerance boundaries
+- protected bounds, hole diameter, hole count, and hole spacing violations block only when confidence is high
+- unverifiable protected holes warn rather than block
+- build-plate violations remain blocking
+- wall-thickness estimates use representative evidence or bounded approximations instead of a single noisy minimum
+- analyzer failures become unverifiable findings and do not crash candidate creation
+- geometric result artifacts persist analyzer version, tolerance-profile version, mesh hash, source hash, and linked validation findings
+- geometric findings are available to candidate review and revision-from-finding context
+- legacy candidates without analysis remain loadable
+
 ### Revisions
 
 Test:
@@ -97,6 +112,8 @@ Use Vitest for:
 - error presentation
 - parameter parsing
 - printability findings and highlighted regions
+- geometric check grouping for verified, violated, and unverifiable invariants
+- blocked Accept reason when a geometric invariant blocks acceptance
 
 Use Playwright for critical workflows:
 
@@ -125,9 +142,10 @@ Candidate stabilization workflow:
 4. Review advisory findings.
 5. Accept the candidate.
 6. Generate a blocked candidate.
-7. Confirm Accept is disabled with a specific blocking reason.
-8. Reject the blocked candidate.
-9. Confirm the accepted revision remains active.
+7. Confirm source checks pass but geometric hole spacing blocks acceptance.
+8. Start a revision from the geometric finding.
+9. Reject the blocked candidate.
+10. Confirm the accepted revision remains active.
 
 ## Fixture Models
 
@@ -170,6 +188,10 @@ Track at minimum:
 - source-contract hard pass rate
 - protected parameter mapping compliance
 - required feature mapping compliance
+- geometric invariant verification rates by supported invariant type
+- geometric analyzer latency
+- false-positive geometric blocking rate
+- geometric unverifiable rate
 - quality finding counts by rule
 
 The benchmark harness should persist provider, model, prompt version, request payload, raw output, extracted source, hashes, timing, validation results, and failure class for every run.
