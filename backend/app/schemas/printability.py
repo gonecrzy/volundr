@@ -1,6 +1,8 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 PRINTABILITY_PROFILE_VERSION = "printability-fdm-v1"
 
@@ -21,6 +23,22 @@ class PrintabilityProfile(BaseModel):
     build_volume: BuildVolumeProfile = Field(default_factory=BuildVolumeProfile)
     nozzle_diameter_mm: float = Field(default=0.4, gt=0)
     default_layer_height_mm: float = Field(default=0.2, gt=0)
+
+    @field_validator("printer_name", "process", "material_behavior")
+    @classmethod
+    def require_non_blank_text(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("value cannot be blank")
+        return stripped
+
+
+class SavedPrintabilityProfileRead(PrintabilityProfile):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class PrintabilityDetectedValue(BaseModel):

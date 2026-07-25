@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ProjectCreate(BaseModel):
@@ -46,6 +46,13 @@ class ProjectMessageRead(BaseModel):
 class ManualRevisionCreate(BaseModel):
     scad_source: str = Field(min_length=1)
     user_instruction: str | None = None
+
+    @field_validator("scad_source")
+    @classmethod
+    def require_non_blank_source(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("OpenSCAD source cannot be blank")
+        return value
 
 
 class GenerationCreate(BaseModel):

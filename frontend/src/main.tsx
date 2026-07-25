@@ -6,34 +6,6 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import "./styles.css";
 
 const API_BASE = "/api";
-const DEFAULT_SOURCE = `// ===== QUALITY =====
-$fn = 48;
-
-// ===== USER PARAMETERS =====
-part_width = 80;
-part_depth = 35;
-part_height = 8;
-hole_diameter = 5;
-hole_spacing = 55;
-
-// ===== MODULES =====
-module main_body() {
-  difference() {
-    cube([part_width, part_depth, part_height], center = true);
-    translate([-hole_spacing / 2, 0, 0])
-      cylinder(h = part_height + 2, d = hole_diameter, center = true);
-    translate([hole_spacing / 2, 0, 0])
-      cylinder(h = part_height + 2, d = hole_diameter, center = true);
-  }
-}
-
-module main_model() {
-  translate([0, 0, part_height / 2])
-    main_body();
-}
-
-main_model();
-`;
 
 type Project = {
   id: string;
@@ -98,6 +70,12 @@ type PrintabilityProfile = {
   default_layer_height_mm: number;
 };
 
+type SavedPrintabilityProfile = PrintabilityProfile & {
+  id: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type PrintabilitySeverity = "Pass" | "Notice" | "Warning" | "Critical";
 
 type PrintabilityHighlight = {
@@ -147,13 +125,11 @@ const DEFAULT_PRINTABILITY_PROFILE: PrintabilityProfile = {
 };
 
 function App() {
-  const [projectName, setProjectName] = useState("Mounting bracket");
-  const [intent, setIntent] = useState("A flat mounting bracket with two bolt holes.");
-  const [instruction, setInstruction] = useState("Initial manual model.");
-  const [generationPrompt, setGenerationPrompt] = useState(
-    "Create a flat mounting bracket with two bolt holes and named parameters.",
-  );
-  const [source, setSource] = useState(DEFAULT_SOURCE);
+  const [projectName, setProjectName] = useState("");
+  const [intent, setIntent] = useState("");
+  const [instruction, setInstruction] = useState("");
+  const [generationPrompt, setGenerationPrompt] = useState("");
+  const [source, setSource] = useState("");
   const [project, setProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
@@ -169,6 +145,11 @@ function App() {
   const [printabilityProfile, setPrintabilityProfile] = useState<PrintabilityProfile>(
     DEFAULT_PRINTABILITY_PROFILE,
   );
+  const [savedPrintabilityProfiles, setSavedPrintabilityProfiles] = useState<
+    SavedPrintabilityProfile[]
+  >([]);
+  const [selectedPrintabilityProfileId, setSelectedPrintabilityProfileId] = useState("");
+  const [isSavingPrintabilityProfile, setIsSavingPrintabilityProfile] = useState(false);
   const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
   const [isInspectingPrintability, setIsInspectingPrintability] = useState(false);
   const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
@@ -188,6 +169,7 @@ function App() {
   );
   const hasProjectName = projectName.trim().length > 0;
   const isDraftProject = project?.status === "draft";
+  const canCompileSource = source.trim().length > 0;
   const canAskAi = generationPrompt.trim().length > 0;
   const canSaveProject = Boolean(project) && hasProjectName;
   const workspaceTitle =
@@ -195,6 +177,7 @@ function App() {
 
   useEffect(() => {
     void refreshProjects();
+    void refreshPrintabilityProfiles();
   }, []);
 
   async function refreshProjects() {
@@ -202,6 +185,16 @@ function App() {
       setProjects(await request<Project[]>("/projects", { method: "GET" }));
     } catch {
       setProjects([]);
+    }
+  }
+
+  async function refreshPrintabilityProfiles() {
+    try {
+      setSavedPrintabilityProfiles(
+        await request<SavedPrintabilityProfile[]>("/printability-profiles", { method: "GET" }),
+      );
+    } catch {
+      setSavedPrintabilityProfiles([]);
     }
   }
 
@@ -252,7 +245,7 @@ function App() {
       setIntent("");
       setInstruction("");
       setGenerationPrompt("");
-      setSource(DEFAULT_SOURCE);
+      setSource("");
       setRevisions([]);
       setProjectMessages([]);
       setSelectedRevision(null);
@@ -271,6 +264,10 @@ function App() {
   }
 
   async function compileSource() {
+    if (!canCompileSource) {
+      setMessage("Enter OpenSCAD source before compiling");
+      return;
+    }
     setIsCompiling(true);
     setMessage(null);
     try {
@@ -462,6 +459,69 @@ function App() {
     setDismissedPrintabilityResults(new Set());
   }
 
+  function selectPrintabilityProfile(profileId: string) {
+    setSelectedPrintabilityProfileId(profileId);
+    const savedProfile = savedPrintabilityProfiles.find((entry) => entry.id === profileId);
+    updatePrintabilityProfile(savedProfile ?? DEFAULT_PRINTABILITY_PROFILE);
+  }
+
+  function startNewPrintabilityProfile() {
+    setSelectedPrintabilityProfileId("");
+    updatePrintabilityProfile(DEFAULT_PRINTABILITY_PROFILE);
+  }
+
+  async function savePrintabilityProfile() {
+    setIsSavingPrintabilityProfile(true);
+    setMessage(null);
+    try {
+      const path = selectedPrintabilityProfileId
+        ? `/printability-profiles/${selectedPrintabilityProfileId}`
+        : "/printability-profiles";
+      const savedProfile = await request<SavedPrintabilityProfile>(path, {
+        method: selectedPrintabilityProfileId ? "PATCH" : "POST",
+        body: JSON.stringify(toPrintabilityProfilePayload(printabilityProfile)),
+      });
+      setSelectedPrintabilityProfileId(savedProfile.id);
+      setPrintabilityProfile(savedProfile);
+      setSavedPrintabilityProfiles((current) => {
+        const existing = current.some((entry) => entry.id === savedProfile.id);
+        if (!existing) {
+          return [...current, savedProfile].sort(comparePrinterProfiles);
+        }
+        return current
+          .map((entry) => (entry.id === savedProfile.id ? savedProfile : entry))
+          .sort(comparePrinterProfiles);
+      });
+      setMessage("Printer profile saved");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Printer profile save failed");
+    } finally {
+      setIsSavingPrintabilityProfile(false);
+    }
+  }
+
+  async function deletePrintabilityProfile() {
+    if (!selectedPrintabilityProfileId) {
+      return;
+    }
+    setIsSavingPrintabilityProfile(true);
+    setMessage(null);
+    try {
+      await requestEmpty(`/printability-profiles/${selectedPrintabilityProfileId}`, {
+        method: "DELETE",
+      });
+      setSavedPrintabilityProfiles((current) =>
+        current.filter((entry) => entry.id !== selectedPrintabilityProfileId),
+      );
+      startNewPrintabilityProfile();
+      setMessage("Printer profile deleted");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Printer profile delete failed");
+    } finally {
+      setIsSavingPrintabilityProfile(false);
+    }
+  }
+
   function dismissPrintabilityResult(ruleId: string) {
     setDismissedPrintabilityResults((current) => {
       const next = new Set(current);
@@ -476,7 +536,7 @@ function App() {
     setIntent("");
     setInstruction("");
     setGenerationPrompt("");
-    setSource(DEFAULT_SOURCE);
+    setSource("");
     setRevisions([]);
     setProjectMessages([]);
     setSelectedRevision(null);
@@ -516,7 +576,7 @@ function App() {
               STL
             </a>
           ) : null}
-          <button className="primary" disabled={isCompiling} onClick={compileSource}>
+          <button className="primary" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
             {isCompiling ? "Compiling" : "Compile"}
           </button>
         </div>
@@ -631,11 +691,18 @@ function App() {
             canInspect={Boolean(selectedRevision?.is_accepted)}
             dismissedRuleIds={dismissedPrintabilityResults}
             isInspecting={isInspectingPrintability}
+            isSavingProfile={isSavingPrintabilityProfile}
             profile={printabilityProfile}
             report={printabilityReport}
+            savedProfiles={savedPrintabilityProfiles}
+            selectedProfileId={selectedPrintabilityProfileId}
+            onDeleteProfile={() => void deletePrintabilityProfile()}
             onDismiss={dismissPrintabilityResult}
             onInspect={() => void inspectSelectedRevisionPrintability()}
+            onNewProfile={startNewPrintabilityProfile}
             onProfileChange={updatePrintabilityProfile}
+            onProfileSelect={selectPrintabilityProfile}
+            onSaveProfile={() => void savePrintabilityProfile()}
           />
           <ParameterControls
             parameters={sourceParameters}
@@ -677,20 +744,34 @@ function PrintabilityInspector({
   canInspect,
   dismissedRuleIds,
   isInspecting,
+  isSavingProfile,
   profile,
   report,
+  savedProfiles,
+  selectedProfileId,
+  onDeleteProfile,
   onDismiss,
   onInspect,
+  onNewProfile,
   onProfileChange,
+  onProfileSelect,
+  onSaveProfile,
 }: {
   canInspect: boolean;
   dismissedRuleIds: Set<string>;
   isInspecting: boolean;
+  isSavingProfile: boolean;
   profile: PrintabilityProfile;
   report: PrintabilityReport | null;
+  savedProfiles: SavedPrintabilityProfile[];
+  selectedProfileId: string;
+  onDeleteProfile: () => void;
   onDismiss: (ruleId: string) => void;
   onInspect: () => void;
+  onNewProfile: () => void;
   onProfileChange: (profile: PrintabilityProfile) => void;
+  onProfileSelect: (profileId: string) => void;
+  onSaveProfile: () => void;
 }) {
   function setNumber(path: keyof PrintabilityProfile, value: string) {
     const parsed = Number(value);
@@ -733,6 +814,37 @@ function PrintabilityInspector({
         </button>
       </div>
       <div className="printer-profile">
+        <div className="profile-actions">
+          <label>
+            Saved profile
+            <select
+              value={selectedProfileId}
+              onChange={(event) => onProfileSelect(event.target.value)}
+            >
+              <option value="">Unsaved profile</option>
+              {savedProfiles.map((savedProfile) => (
+                <option key={savedProfile.id} value={savedProfile.id}>
+                  {savedProfile.printer_name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="mini-actions profile-buttons">
+            <button className="secondary compact" disabled={isSavingProfile} onClick={onNewProfile}>
+              New
+            </button>
+            <button className="secondary compact" disabled={isSavingProfile} onClick={onSaveProfile}>
+              {isSavingProfile ? "Saving" : "Save"}
+            </button>
+            <button
+              className="secondary compact"
+              disabled={!selectedProfileId || isSavingProfile}
+              onClick={onDeleteProfile}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
         <label>
           Printer
           <input
@@ -962,6 +1074,26 @@ function formatDetectedValue(value: number | string, units: string): string {
   return `${formattedValue} ${units}`;
 }
 
+function toPrintabilityProfilePayload(profile: PrintabilityProfile): PrintabilityProfile {
+  return {
+    profile_version: profile.profile_version,
+    printer_name: profile.printer_name,
+    process: profile.process,
+    material_behavior: profile.material_behavior,
+    build_volume: {
+      x_mm: profile.build_volume.x_mm,
+      y_mm: profile.build_volume.y_mm,
+      z_mm: profile.build_volume.z_mm,
+    },
+    nozzle_diameter_mm: profile.nozzle_diameter_mm,
+    default_layer_height_mm: profile.default_layer_height_mm,
+  };
+}
+
+function comparePrinterProfiles(left: SavedPrintabilityProfile, right: SavedPrintabilityProfile): number {
+  return left.printer_name.localeCompare(right.printer_name);
+}
+
 function Diagnostics({
   compileLog,
   aiOutput,
@@ -1179,6 +1311,25 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     throw new Error(detail || `Request failed with ${response.status}`);
   }
   return response.json() as Promise<T>;
+}
+
+async function requestEmpty(path: string, init: RequestInit): Promise<void> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...init.headers,
+    },
+  });
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const payload = (await response.json()) as { detail?: string };
+      throw new Error(payload.detail || `Request failed with ${response.status}`);
+    }
+    const detail = await response.text();
+    throw new Error(detail || `Request failed with ${response.status}`);
+  }
 }
 
 createRoot(document.getElementById("root")!).render(

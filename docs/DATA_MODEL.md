@@ -135,6 +135,29 @@ center_of_mass_json
 warnings_json
 ```
 
+## SavedPrintabilityProfile
+
+Represents a reusable single-user printer preset for printability inspection.
+
+Fields:
+
+```text
+id
+profile_version
+printer_name
+process
+material_behavior
+build_volume_x_mm
+build_volume_y_mm
+build_volume_z_mm
+nozzle_diameter_mm
+default_layer_height_mm
+created_at
+updated_at
+```
+
+Saved printability profiles use the same profile values sent to the inspector. They are global presets for the local instance, not slicer profiles, and do not add filament or print-time estimates.
+
 ## ProjectMessage
 
 Optional V1 structure for preserving conversation without treating the chat transcript as the source of truth.

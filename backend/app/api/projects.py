@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import FileResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 
@@ -16,10 +16,15 @@ from app.schemas.project import (
     ProjectUpdate,
     RevisionRead,
 )
-from app.schemas.printability import PrintabilityProfile, PrintabilityReport
+from app.schemas.printability import (
+    PrintabilityProfile,
+    PrintabilityReport,
+    SavedPrintabilityProfileRead,
+)
 from app.services.ai.provider import AiProvider
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.printability.inspector import inspect_printability
+from app.services.printability.profiles import PrintabilityProfileService
 from app.services.projects.service import ProjectService
 
 router = APIRouter(prefix="/api", tags=["projects"])
@@ -35,6 +40,54 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
 def list_projects(db: Session = Depends(get_db)) -> list[ProjectRead]:
     service = ProjectService(db=db)
     return service.list_projects()
+
+
+@router.get("/printability-profiles", response_model=list[SavedPrintabilityProfileRead])
+def list_printability_profiles(
+    db: Session = Depends(get_db),
+) -> list[SavedPrintabilityProfileRead]:
+    service = PrintabilityProfileService(db=db)
+    return service.list_profiles()
+
+
+@router.post(
+    "/printability-profiles",
+    response_model=SavedPrintabilityProfileRead,
+    status_code=201,
+)
+def create_printability_profile(
+    payload: PrintabilityProfile,
+    db: Session = Depends(get_db),
+) -> SavedPrintabilityProfileRead:
+    service = PrintabilityProfileService(db=db)
+    return service.create_profile(payload)
+
+
+@router.patch(
+    "/printability-profiles/{profile_id}",
+    response_model=SavedPrintabilityProfileRead,
+)
+def update_printability_profile(
+    profile_id: str,
+    payload: PrintabilityProfile,
+    db: Session = Depends(get_db),
+) -> SavedPrintabilityProfileRead:
+    service = PrintabilityProfileService(db=db)
+    profile = service.update_profile(profile_id, payload)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="printability profile not found")
+    return profile
+
+
+@router.delete("/printability-profiles/{profile_id}", status_code=204)
+def delete_printability_profile(
+    profile_id: str,
+    db: Session = Depends(get_db),
+) -> Response:
+    service = PrintabilityProfileService(db=db)
+    if not service.delete_profile(profile_id):
+        raise HTTPException(status_code=404, detail="printability profile not found")
+    return Response(status_code=204)
 
 
 @router.post("/projects/draft", response_model=ProjectRead, status_code=201)

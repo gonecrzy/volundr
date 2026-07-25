@@ -293,6 +293,21 @@ def test_draft_project_is_hidden_from_project_list_and_can_compile(tmp_path: Pat
     assert revision["status"] == "succeeded"
 
 
+def test_manual_revision_rejects_blank_source(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    draft = client.post("/api/projects/draft").json()
+
+    response = client.post(
+        f"/api/projects/{draft['id']}/revisions",
+        json={
+            "scad_source": "   \n\t",
+            "user_instruction": None,
+        },
+    )
+
+    assert response.status_code == 422
+
+
 def test_draft_project_can_be_saved_as_active_project(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     draft = client.post("/api/projects/draft").json()
@@ -338,6 +353,66 @@ def test_old_draft_projects_are_cleaned_after_fourteen_days(tmp_path: Path) -> N
     with next(app.dependency_overrides[get_db]()) as session:
         assert session.get(Project, old_draft_id) is None
         assert session.get(Project, current_draft["id"]) is not None
+
+
+def test_printability_profiles_can_be_saved_updated_listed_and_deleted(
+    tmp_path: Path,
+) -> None:
+    client = build_client(tmp_path)
+
+    create_response = client.post(
+        "/api/printability-profiles",
+        json={
+            "profile_version": "printability-fdm-v1",
+            "printer_name": "Bambu Lab H2C",
+            "process": "FDM",
+            "material_behavior": "general PLA/PETG",
+            "build_volume": {
+                "x_mm": 325,
+                "y_mm": 320,
+                "z_mm": 320,
+            },
+            "nozzle_diameter_mm": 0.4,
+            "default_layer_height_mm": 0.2,
+        },
+    )
+
+    assert create_response.status_code == 201
+    created = create_response.json()
+    assert created["id"]
+    assert created["printer_name"] == "Bambu Lab H2C"
+    assert created["build_volume"]["x_mm"] == 325
+
+    list_response = client.get("/api/printability-profiles")
+    assert list_response.status_code == 200
+    assert [profile["id"] for profile in list_response.json()] == [created["id"]]
+
+    update_response = client.patch(
+        f"/api/printability-profiles/{created['id']}",
+        json={
+            "profile_version": "printability-fdm-v1",
+            "printer_name": "Bambu Lab H2C 0.6",
+            "process": "FDM",
+            "material_behavior": "general PLA/PETG",
+            "build_volume": {
+                "x_mm": 325,
+                "y_mm": 320,
+                "z_mm": 320,
+            },
+            "nozzle_diameter_mm": 0.6,
+            "default_layer_height_mm": 0.24,
+        },
+    )
+
+    assert update_response.status_code == 200
+    updated = update_response.json()
+    assert updated["printer_name"] == "Bambu Lab H2C 0.6"
+    assert updated["nozzle_diameter_mm"] == 0.6
+
+    delete_response = client.delete(f"/api/printability-profiles/{created['id']}")
+
+    assert delete_response.status_code == 204
+    assert client.get("/api/printability-profiles").json() == []
 
 
 def test_project_messages_record_project_and_revision_events(tmp_path: Path) -> None:

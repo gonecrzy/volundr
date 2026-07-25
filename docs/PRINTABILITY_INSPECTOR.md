@@ -33,6 +33,8 @@ nozzle_diameter_mm: 0.4
 default_layer_height_mm: 0.2
 ```
 
+The app may persist named printer profiles as reusable local presets for a single-user instance. Saved profiles make repeated inspection easier, but they remain advisory inspector inputs and are not slicer profiles.
+
 ## Result Severities
 
 Every rule returns one of:

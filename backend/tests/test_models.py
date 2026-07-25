@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.base import Base
 from app.models.project import Project
 from app.models.project_message import ProjectMessage
+from app.models.printability_profile import SavedPrintabilityProfile
 from app.models.revision import Revision
 
 
@@ -15,6 +16,7 @@ def test_project_and_revision_tables_can_be_created() -> None:
     inspector = inspect(engine)
     assert "projects" in inspector.get_table_names()
     assert "project_messages" in inspector.get_table_names()
+    assert "printability_profiles" in inspector.get_table_names()
     assert "revisions" in inspector.get_table_names()
 
 
