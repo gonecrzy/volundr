@@ -1649,13 +1649,7 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     },
   });
   if (!response.ok) {
-    const contentType = response.headers.get("content-type") ?? "";
-    if (contentType.includes("application/json")) {
-      const payload = (await response.json()) as { detail?: string };
-      throw new Error(payload.detail || `Request failed with ${response.status}`);
-    }
-    const detail = await response.text();
-    throw new Error(detail || `Request failed with ${response.status}`);
+    throw new Error(await responseErrorMessage(response));
   }
   return response.json() as Promise<T>;
 }
@@ -1669,14 +1663,26 @@ async function requestEmpty(path: string, init: RequestInit): Promise<void> {
     },
   });
   if (!response.ok) {
-    const contentType = response.headers.get("content-type") ?? "";
-    if (contentType.includes("application/json")) {
-      const payload = (await response.json()) as { detail?: string };
-      throw new Error(payload.detail || `Request failed with ${response.status}`);
-    }
-    const detail = await response.text();
-    throw new Error(detail || `Request failed with ${response.status}`);
+    throw new Error(await responseErrorMessage(response));
   }
+}
+
+async function responseErrorMessage(response: Response): Promise<string> {
+  if (response.status === 504) {
+    return "Request timed out while waiting for the server. The model generation may still be running.";
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    const payload = (await response.json()) as { detail?: string };
+    return payload.detail || `Request failed with ${response.status}`;
+  }
+
+  const detail = (await response.text()).trim();
+  if (!detail || contentType.includes("text/html") || detail.startsWith("<!DOCTYPE") || detail.startsWith("<html")) {
+    return `Request failed with ${response.status}`;
+  }
+  return detail;
 }
 
 createRoot(document.getElementById("root")!).render(
