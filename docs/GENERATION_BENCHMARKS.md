@@ -74,6 +74,8 @@ Multi-output fixture expectations:
 - multi-part hinged box: body, lid, and hinge pin when planned as printable
 - repeated-slot rack: one or more outputs with quantity represented on the artifact rather than duplicate rows
 
+The case/carrier benchmark now explicitly covers the July 25, 2026 tackle-tray failure mode: an open top must be an intentional design decision, carry handles must have a real attachment/load path, hinge-like handle features must either be functional or clearly modeled as fixed attachments, tray retention must constrain tray removal, and exposed handle sizing must come from the user, a documented default, or a calculated ergonomic rule.
+
 Structured revision fixture expectations:
 
 - critical-dimension revision: target only the changed dimension and derived hole-position parameters while protecting plate bounds and hole diameter

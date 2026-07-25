@@ -169,3 +169,18 @@ def test_component_revision_benchmarks_cover_targeted_full_source_revisions() ->
         .expected_component_revision["expected_blocking_rule"]
         == "revision.protected_output_unexpected_change"
     )
+
+
+def test_case_carrier_benchmark_covers_recent_tackle_box_failure_modes() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    case = {benchmark.id: benchmark for benchmark in suite.benchmarks}["parametric_case_carrier"]
+
+    assert "handle attachment load path" in case.protected_design_invariants
+    assert "tray retention constrains forward tray removal" in case.protected_design_invariants
+    assert "attached top bridge or explicit open-top decision" in case.protected_design_invariants
+    assert "handle sizing source is user, default, or calculated" in case.protected_design_invariants
+
+    assert "handle visually present but disconnected from load-bearing body" in case.unacceptable_outcomes
+    assert "cosmetic hinge blocks without functional hinge or fixed attachment decision" in case.unacceptable_outcomes
+    assert "open top created without explicit open-top requirement or retention plan" in case.unacceptable_outcomes
+    assert "handle size exposed as arbitrary user parameter without ergonomic/default source" in case.unacceptable_outcomes

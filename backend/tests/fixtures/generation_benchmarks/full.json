@@ -446,8 +446,24 @@
       "compile_expectation": "success_after_clarification_or_defaults",
       "mesh_expectation": "carrier body or declared split outputs",
       "revision_expectation": "changing to eight 3700 trays updates guides, height, retention, handle, and reinforcement",
-      "protected_design_invariants": ["tray count", "tray profile", "guide count dependency", "handle load path"],
-      "unacceptable_outcomes": ["single fixed tray slot", "tray_count not driving case height", "decorative handle only"],
+      "protected_design_invariants": [
+        "tray count",
+        "tray profile",
+        "guide count dependency",
+        "handle attachment load path",
+        "tray retention constrains forward tray removal",
+        "attached top bridge or explicit open-top decision",
+        "handle sizing source is user, default, or calculated"
+      ],
+      "unacceptable_outcomes": [
+        "single fixed tray slot",
+        "tray_count not driving case height",
+        "decorative handle only",
+        "handle visually present but disconnected from load-bearing body",
+        "cosmetic hinge blocks without functional hinge or fixed attachment decision",
+        "open top created without explicit open-top requirement or retention plan",
+        "handle size exposed as arbitrary user parameter without ergonomic/default source"
+      ],
       "expected_revision_plan": {
         "targeted_components": ["case_shell", "tray_guides", "handle", "retention_lip", "reinforcement"],
         "targeted_outputs": ["carrier_body"],

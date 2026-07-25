@@ -86,6 +86,16 @@ Run the V1 service skeleton with:
 docker compose up --build
 ```
 
+After pulling implementation changes, rebuild the API image and apply migrations before judging generation quality:
+
+```bash
+docker compose build volundr-api volundr-web
+cd backend
+VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
+```
+
+The API container and local database must be on the current migration head. A stale runtime can continue using the legacy one-step Gemini prompt and bypass the staged Design Specification, Design Plan, source-contract, candidate, and validation gates.
+
 The frontend includes the Stage 2 manual CAD workspace and Stage 3 Gemini
 generation path. Live generation requires Gemini CLI authentication in the API
 container profile or a `GEMINI_API_KEY` in `.env`.
