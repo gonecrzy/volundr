@@ -129,6 +129,8 @@ Split source-contract results into:
 
 Missing assertions alone should create a quality finding unless paired with invalid or unsafe dimensions.
 
+Implementation status: completed for new AI source. Volundr now extracts SCAD, runs lightweight OpenSCAD tokenization/scanning, persists a `source-contract-v1` validation result, blocks compile for hard security/structure/specification violations, and attaches non-blocking source-quality findings to successful candidates. Contract repair is a distinct bounded attempt (`contract-repair-v1`) and runs before compile repair. The machine-readable marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md`.
+
 ### 9. Add requirement extraction and clarification decision
 
 - Dependency: generation attempt records.

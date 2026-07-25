@@ -447,59 +447,80 @@ def cube_mesh(extents: tuple[float, float, float], *, z_min: float) -> trimesh.T
 
 
 def clean_source() -> str:
-    return """
+    return contract_source("""
 module main_model() {
-  cube([10, 10, 10]);
+  cube([width, width, width]);
 }
-main_model();
-"""
+""")
 
 
 def advisory_source() -> str:
-    return """
+    return contract_source("""
 module main_model() {
   advisory_components = true;
-  cube([10, 10, 10]);
+  cube([width, width, width]);
 }
-main_model();
-"""
+""")
 
 
 def below_plate_source() -> str:
-    return """
+    return contract_source("""
 module main_model() {
   below_plate = true;
-  cube([10, 10, 10]);
+  cube([width, width, width]);
 }
-main_model();
-"""
+""")
 
 
 def oversized_source() -> str:
-    return """
+    return contract_source(
+        """
 module main_model() {
   oversized = true;
-  cube([300, 10, 10]);
+  cube([width, 10, 10]);
 }
-main_model();
-"""
+""",
+        width=300,
+    )
 
 
 def zero_volume_source() -> str:
-    return """
+    return contract_source("""
 module main_model() {
   zero_volume = true;
   polygon(points=[[0,0],[10,0],[0,10]]);
 }
-main_model();
-"""
+""")
 
 
 def compile_fail_source() -> str:
-    return """
+    return contract_source("""
 module main_model() {
   compile_fail = true;
-  broken(
+  broken();
 }
+""")
+
+
+def contract_source(body: str, *, width: int = 10) -> str:
+    return f"""
+/*
+Project: Candidate fixture
+Units: millimeters
+Purpose: Test candidate classification
+Assumptions: Simple deterministic fixture geometry.
+Print notes: Print flat on the build plate.
+*/
+// ===== QUALITY =====
+$fn = 32;
+// ===== USER PARAMETERS =====
+width = {width};
+// ===== DERIVED VALUES =====
+half_width = width / 2;
+// ===== VALIDATION =====
+assert(width > 0);
+// ===== MODULES =====
+{body.strip()}
+// ===== FINAL MODEL =====
 main_model();
 """

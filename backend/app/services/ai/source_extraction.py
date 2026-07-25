@@ -1,5 +1,7 @@
 import re
 
+from app.services.openscad.source_contract import scan_openscad_source
+
 
 class SourceExtractionError(ValueError):
     pass
@@ -35,8 +37,9 @@ def _contains_scad_syntax(source: str) -> bool:
 
 
 def _validate_source(source: str) -> None:
-    if "module main_model" not in source:
+    scan = scan_openscad_source(source)
+    if "main_model" not in scan.metadata.module_names:
         raise SourceExtractionError("OpenSCAD source must define main_model")
-    call_count = len(re.findall(r"(?<!module\s)\bmain_model\s*\(\s*\)\s*;", source))
+    call_count = scan.metadata.top_level_calls.count("main_model")
     if call_count != 1:
         raise SourceExtractionError("OpenSCAD source must contain exactly one main_model(); call")

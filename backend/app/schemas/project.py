@@ -263,7 +263,10 @@ class ValidationFindingRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    revision_id: str
+    revision_id: str | None
+    generation_attempt_id: str | None = None
+    design_specification_id: str | None = None
+    source_validation_result_id: str | None = None
     rule_id: str
     category: str
     severity: str
@@ -274,6 +277,8 @@ class ValidationFindingRead(BaseModel):
     detected_value: str | None
     unit: str | None
     threshold_value: str | None
+    source_line_start: int | None = None
+    source_line_end: int | None = None
     orientation_dependent: bool
     affected_geometry_summary: str | None
     metadata_json: str

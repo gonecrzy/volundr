@@ -28,6 +28,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - requirement extraction and clarification    │
 │ - generation orchestration                    │
 │ - candidate revision review and acceptance    │
+│ - pre-compile OpenSCAD source-contract checks │
 │ - AI provider interface                       │
 │ - CAD runner interface                        │
 │ - persisted validation findings               │
@@ -187,6 +188,8 @@ The request should include:
 - current source, when revising
 - new user instruction
 - compiler diagnostics, when repairing
+- source-contract diagnostics, when contract-repairing
+- Design Specification, when available
 - mesh metadata, when available
 - generation contract version
 
@@ -222,7 +225,11 @@ class CadRunner(Protocol):
 ```text
 AI or post-active manual source
   -> source extraction / source screening
+  -> source-contract validation
+  -> if hard violation: failed generation attempt, optional one contract repair, no candidate
+  -> if quality findings only: continue and persist findings
   -> OpenSCAD compile
+  -> if compile failure: optional one compile repair after source-contract validation passes
   -> mesh inspection
   -> deterministic validation findings
   -> revision review_state: ready | ready_with_warnings | blocked

@@ -41,6 +41,20 @@ Test AI responses containing:
 - no valid source
 - truncated source
 
+### Source-contract validation
+
+Test:
+
+- tokenizer ignores prohibited-looking text inside comments and strings
+- real `import()`, `surface()`, `include`, `use`, suspicious paths, oversized source, missing `main_model`, missing final call, top-level geometry, unbalanced braces/parentheses, and empty `main_model` body block before compile
+- new initial AI source requires the contract skeleton and Design Specification requirement/feature markers
+- protected numeric values are statically verified with safe constant arithmetic
+- unverifiable or mismatched protected values block before compile
+- missing assertions, missing print notes, high `$fn`, repeated magic numbers, and unclear parameterization create quality findings rather than universal hard rejections
+- contract repair is attempted at most once and remains distinct from compile repair
+- compile repair starts only after source-contract hard checks pass
+- source-contract failures create generation-attempt findings and no candidate
+
 ### Mesh inspection
 
 Test:
@@ -153,6 +167,10 @@ Track at minimum:
 - revision preservation
 - protected design invariant preservation
 - repair boundedness
+- source-contract hard pass rate
+- protected parameter mapping compliance
+- required feature mapping compliance
+- quality finding counts by rule
 
 The benchmark harness should persist provider, model, prompt version, request payload, raw output, extracted source, hashes, timing, validation results, and failure class for every run.
 

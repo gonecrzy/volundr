@@ -20,6 +20,7 @@ from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
+from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
 from app.schemas.project import (
     ClarificationAnswersCreate,
@@ -45,6 +46,11 @@ from app.services.ai.source_extraction import SourceExtractionError, extract_sca
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
 from app.services.mesh.inspect import MeshMetadata
+from app.services.openscad.source_contract import (
+    SourceContractFinding,
+    SourceContractResult,
+    SourceContractValidator,
+)
 from app.services.printability.inspector import inspect_printability
 
 DRAFT_RETENTION_DAYS = 14
@@ -80,6 +86,11 @@ DEFAULT_REQUIREMENT_PROFILE = {
     "default_small_edge_chamfer_mm": [0.5, 1.0],
     "supports_assumed_allowed": False,
 }
+
+
+class _StoppedWithRevision(Exception):
+    def __init__(self, revision: RevisionRead) -> None:
+        self.revision = revision
 
 
 class ProjectService:
@@ -309,6 +320,19 @@ class ProjectService:
         findings = self.db.scalars(
             select(ValidationFinding)
             .where(ValidationFinding.revision_id == revision_id)
+            .order_by(ValidationFinding.created_at.asc(), ValidationFinding.rule_id.asc())
+        )
+        return [ValidationFindingRead.model_validate(finding) for finding in findings]
+
+    def list_generation_attempt_findings(
+        self,
+        attempt_id: str,
+    ) -> list[ValidationFindingRead] | None:
+        if self.db.get(GenerationAttempt, attempt_id) is None:
+            return None
+        findings = self.db.scalars(
+            select(ValidationFinding)
+            .where(ValidationFinding.generation_attempt_id == attempt_id)
             .order_by(ValidationFinding.created_at.asc(), ValidationFinding.rule_id.asc())
         )
         return [ValidationFindingRead.model_validate(finding) for finding in findings]
@@ -565,38 +589,32 @@ class ProjectService:
             )
             raise
 
-        self._record_generation_result(generation_attempt, generation_result)
         try:
-            scad_source = extract_scad_source(generation_result.raw_output)
-        except SourceExtractionError as exc:
-            failed_revision = self._create_failed_ai_revision(
-                project=project,
-                user_instruction=payload.user_instruction,
-                source_type=source_type,
-                raw_ai_output=generation_result.raw_output,
-                error_message=str(exc),
+            scad_source, raw_ai_output, active_attempt, source_validation = (
+                await self._extract_validate_or_repair_source(
+                    project=project,
+                    payload=payload,
+                    generation_attempt=generation_attempt,
+                    generation_result=generation_result,
+                    source_type=source_type,
+                    design_specification=design_specification,
+                    design_specification_payload=design_specification_payload,
+                )
             )
-            self._finish_generation_attempt(
-                generation_attempt,
-                status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
-                error_message=str(exc),
-                resulting_revision_id=failed_revision.id,
-            )
-            return failed_revision
-
-        self._record_generation_extracted_source(generation_attempt, scad_source)
+        except _StoppedWithRevision as exc:
+            return exc.revision
         initial_revision = await self._create_revision_from_source(
             project_id=project_id,
             scad_source=scad_source,
             user_instruction=payload.user_instruction,
             source_type=source_type,
-            raw_ai_output=generation_result.raw_output,
+            raw_ai_output=raw_ai_output,
             design_specification_id=design_specification.id if design_specification else None,
+            source_validation_result_id=source_validation.id,
         )
         if initial_revision is None or initial_revision.status == "succeeded":
             self._finish_generation_attempt(
-                generation_attempt,
+                active_attempt,
                 status="succeeded" if initial_revision is not None else "failed",
                 failure_class=FailureClass.NONE
                 if initial_revision is not None
@@ -606,7 +624,7 @@ class ProjectService:
             return initial_revision
 
         self._finish_generation_attempt(
-            generation_attempt,
+            active_attempt,
             status="failed",
             failure_class=FailureClass.OPENSCAD_COMPILE_FAILURE,
             error_message=initial_revision.error_message,
@@ -658,6 +676,23 @@ class ProjectService:
             return failed_repair
 
         self._record_generation_extracted_source(repair_attempt, repaired_source)
+        repair_source_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=repair_attempt,
+            source=repaired_source,
+            source_type="ai_repair",
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+        )
+        if not repair_source_validation.passed_hard_checks:
+            error_message = self._source_contract_rejection_message(repair_source_validation)
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+                error_message=error_message,
+            )
+            return initial_revision
         repair_revision = await self._create_revision_from_source(
             project_id=project_id,
             scad_source=repaired_source,
@@ -665,6 +700,7 @@ class ProjectService:
             source_type="ai_repair",
             raw_ai_output=repair_result.raw_output,
             design_specification_id=design_specification.id if design_specification else None,
+            source_validation_result_id=repair_source_validation.id,
         )
         self._finish_generation_attempt(
             repair_attempt,
@@ -679,12 +715,121 @@ class ProjectService:
         )
         return repair_revision
 
+    async def _extract_validate_or_repair_source(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        generation_attempt: GenerationAttempt,
+        generation_result,
+        source_type: str,
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+    ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
+        self._record_generation_result(generation_attempt, generation_result)
+        try:
+            scad_source = extract_scad_source(generation_result.raw_output)
+        except SourceExtractionError as exc:
+            failed_revision = self._create_failed_ai_revision(
+                project=project,
+                user_instruction=payload.user_instruction,
+                source_type=source_type,
+                raw_ai_output=generation_result.raw_output,
+                error_message=str(exc),
+            )
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                error_message=str(exc),
+                resulting_revision_id=failed_revision.id,
+            )
+            raise _StoppedWithRevision(failed_revision) from exc
+
+        self._record_generation_extracted_source(generation_attempt, scad_source)
+        source_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=generation_attempt,
+            source=scad_source,
+            source_type=source_type,
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+        )
+        if source_validation.passed_hard_checks:
+            return scad_source, generation_result.raw_output, generation_attempt, source_validation
+
+        contract_diagnostics = self._source_contract_rejection_message(source_validation)
+        self._finish_generation_attempt(
+            generation_attempt,
+            status="failed",
+            failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+            error_message=contract_diagnostics,
+        )
+
+        repair_request = self._generation_request(
+            project=project,
+            payload=payload,
+            current_source=scad_source,
+            contract_diagnostics=contract_diagnostics,
+            design_specification=design_specification_payload,
+        )
+        repair_attempt = self._start_generation_attempt(
+            project=project,
+            request=repair_request,
+            base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
+        )
+        try:
+            repair_result = await self.ai_provider.generate_model(repair_request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(repair_attempt, repair_result)
+        try:
+            repaired_source = extract_scad_source(repair_result.raw_output)
+        except SourceExtractionError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                error_message=str(exc),
+            )
+            raise ValueError(str(exc)) from exc
+
+        self._record_generation_extracted_source(repair_attempt, repaired_source)
+        repaired_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=repair_attempt,
+            source=repaired_source,
+            source_type="ai_repair",
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+        )
+        if not repaired_validation.passed_hard_checks:
+            error_message = self._source_contract_rejection_message(repaired_validation)
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+                error_message=error_message,
+            )
+            raise ValueError(error_message)
+
+        return repaired_source, repair_result.raw_output, repair_attempt, repaired_validation
+
     def _generation_request(
         self,
         *,
         project: Project,
         payload: GenerationCreate,
         current_source: str | None = None,
+        contract_diagnostics: str | None = None,
         compiler_diagnostics: str | None = None,
         design_specification: dict[str, Any] | None = None,
     ) -> ModelGenerationRequest:
@@ -693,6 +838,7 @@ class ProjectService:
             original_intent=project.original_intent,
             user_instruction=payload.user_instruction,
             current_source=current_source,
+            contract_diagnostics=contract_diagnostics,
             compiler_diagnostics=compiler_diagnostics,
             design_specification=design_specification,
         )
@@ -1010,6 +1156,11 @@ class ProjectService:
         status: str,
         error_message: str | None = None,
     ) -> dict:
+        source_validation = self.db.scalar(
+            select(SourceValidationResult)
+            .where(SourceValidationResult.generation_attempt_id == attempt.id)
+            .order_by(SourceValidationResult.created_at.desc())
+        )
         return {
             "chain_version": "generation-chain-v1",
             "attempt_id": attempt.id,
@@ -1026,6 +1177,15 @@ class ProjectService:
                     "raw_output_path": attempt.raw_output_path,
                     "extracted_source_path": attempt.extracted_source_path,
                     "design_spec_path": attempt.design_spec_path,
+                    "source_contract_result_path": source_validation.result_path
+                    if source_validation is not None
+                    else None,
+                    "source_contract_version": source_validation.contract_version
+                    if source_validation is not None
+                    else None,
+                    "source_contract_passed_hard_checks": source_validation.passed_hard_checks
+                    if source_validation is not None
+                    else None,
                     "source_hash": attempt.source_hash,
                     "output_hash": attempt.output_hash,
                 }
@@ -1065,12 +1225,14 @@ class ProjectService:
         version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
         if callable(version_for):
             return str(version_for(request))
+        if request.contract_diagnostics:
+            return "contract-repair-v1"
         if request.compiler_diagnostics:
             return "legacy-compile-repair-v1"
         if request.current_source:
             return "legacy-revision-v1"
         if request.design_specification:
-            return "openscad-generation-v1"
+            return "openscad-generation-v2"
         return "legacy-initial-v1"
 
     def _requirement_prompt_template_version(self) -> str:
@@ -1158,6 +1320,132 @@ class ProjectService:
                 ClarificationQuestionRead.model_validate(question) for question in questions
             ],
         )
+
+    def _persist_source_contract_validation(
+        self,
+        *,
+        project: Project,
+        attempt: GenerationAttempt,
+        source: str,
+        source_type: str,
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+    ) -> SourceValidationResult:
+        validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
+        result = validator.validate(
+            source,
+            design_specification=design_specification_payload,
+            source_type=source_type,
+        )
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        result_path = run_dir / "source-contract.json"
+        self._write_json(result_path, result.to_json())
+
+        source_validation = SourceValidationResult(
+            project_id=project.id,
+            generation_attempt_id=attempt.id,
+            design_specification_id=design_specification.id if design_specification else None,
+            contract_version=result.contract_version,
+            ruleset_version=result.ruleset_version,
+            validator_version=result.validator_version,
+            source_hash=result.source_metadata.source_hash,
+            result_path=self._relative(result_path),
+            passed_hard_checks=result.passed_hard_checks,
+            validation_ms=result.validation_ms,
+        )
+        self.db.add(source_validation)
+        self.db.flush()
+
+        for finding in (
+            result.hard_violations + result.specification_findings + result.quality_findings
+        ):
+            self.db.add(
+                self._validation_finding_from_source_contract(
+                    finding,
+                    generation_attempt_id=attempt.id,
+                    design_specification_id=design_specification.id if design_specification else None,
+                    source_validation_result_id=source_validation.id,
+                )
+            )
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+        self.db.refresh(source_validation)
+        return source_validation
+
+    def _validation_finding_from_source_contract(
+        self,
+        finding: SourceContractFinding,
+        *,
+        generation_attempt_id: str,
+        design_specification_id: str | None,
+        source_validation_result_id: str,
+    ) -> ValidationFinding:
+        metadata = dict(finding.metadata)
+        metadata["finding_origin"] = "source_contract"
+        return ValidationFinding(
+            revision_id=None,
+            generation_attempt_id=generation_attempt_id,
+            design_specification_id=design_specification_id,
+            source_validation_result_id=source_validation_result_id,
+            rule_id=finding.rule_id,
+            category=finding.category,
+            severity=finding.severity,
+            is_blocking=finding.is_blocking,
+            title=finding.title,
+            explanation=finding.explanation,
+            suggested_correction=finding.suggested_correction,
+            detected_value=finding.detected_value,
+            unit=finding.unit,
+            threshold_value=finding.threshold_value,
+            source_line_start=finding.source_line_start,
+            source_line_end=finding.source_line_end,
+            orientation_dependent=False,
+            affected_geometry_summary=None,
+            metadata_json=json.dumps(metadata, sort_keys=True),
+        )
+
+    def _source_contract_rejection_message(self, source_validation: SourceValidationResult) -> str:
+        findings = list(
+            self.db.scalars(
+                select(ValidationFinding)
+                .where(ValidationFinding.source_validation_result_id == source_validation.id)
+                .where(ValidationFinding.is_blocking.is_(True))
+                .order_by(ValidationFinding.created_at.asc(), ValidationFinding.rule_id.asc())
+            )
+        )
+        if not findings:
+            return "Model source rejected before compile"
+        lines = ["Model source rejected before compile"]
+        for finding in findings[:8]:
+            detail = finding.title
+            if finding.detected_value is not None or finding.threshold_value is not None:
+                detail += (
+                    f": expected {finding.threshold_value or 'n/a'}, "
+                    f"detected {finding.detected_value or 'n/a'}"
+                )
+            if finding.source_line_start is not None:
+                detail += f" (line {finding.source_line_start})"
+            lines.append(f"- {detail}")
+        if len(findings) > 8:
+            lines.append(f"- {len(findings) - 8} additional blocking findings")
+        return "\n".join(lines)
+
+    def _attach_source_validation_to_revision(
+        self,
+        *,
+        source_validation_result_id: str,
+        revision_id: str,
+    ) -> None:
+        source_validation = self.db.get(SourceValidationResult, source_validation_result_id)
+        if source_validation is not None:
+            source_validation.revision_id = revision_id
+        for finding in self.db.scalars(
+            select(ValidationFinding).where(
+                ValidationFinding.source_validation_result_id == source_validation_result_id
+            )
+        ):
+            finding.revision_id = revision_id
+        self.db.flush()
 
     def _persist_validation_findings(self, *, revision: Revision, stl_path: Path) -> None:
         report = inspect_printability(stl_path, PrintabilityProfile())
@@ -1302,6 +1590,7 @@ class ProjectService:
         source_type: str,
         raw_ai_output: str | None = None,
         design_specification_id: str | None = None,
+        source_validation_result_id: str | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -1321,6 +1610,11 @@ class ProjectService:
         )
         self.db.add(revision)
         self.db.flush()
+        if source_validation_result_id is not None:
+            self._attach_source_validation_to_revision(
+                source_validation_result_id=source_validation_result_id,
+                revision_id=revision.id,
+            )
 
         revision_dir = self._revision_dir(project_id, revision.id)
         revision_dir.mkdir(parents=True, exist_ok=True)

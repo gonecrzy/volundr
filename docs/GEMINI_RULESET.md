@@ -10,6 +10,7 @@ This is an implementation-ready ruleset for Gemini-generated functional OpenSCAD
 2. Do not include prose outside the code block.
 3. Do not return STL, binary data, base64, shell commands, file paths, or instructions to run commands.
 4. If required information is missing and the stage allows clarification, return the required clarification JSON instead of OpenSCAD.
+5. For source-contract repair, return complete corrected OpenSCAD only and do not provide design rationale.
 
 ## Required Source Skeleton
 
@@ -29,6 +30,7 @@ $fn = 48;
 eps = 0.01;
 
 // ===== USER PARAMETERS =====
+// @volundr-requirement protected_requirement_id
 
 // ===== DERIVED VALUES =====
 
@@ -37,6 +39,7 @@ eps = 0.01;
 // ===== PRIMITIVE HELPERS =====
 
 // ===== FEATURE MODULES =====
+// @volundr-feature protected_feature_id
 
 // ===== FINAL MODEL =====
 module main_model() {
@@ -70,6 +73,16 @@ main_model();
 5. Keep ordinary functional FDM walls at or above 1.6 mm for a 0.4 mm nozzle unless the user explicitly requests a thinner non-structural feature.
 6. Preserve parameter names during revisions unless a rename is required to correct ambiguity.
 7. Add new parameters only when a revision introduces a new user-controllable dimension or feature.
+
+## Requirement Marker Rules
+
+The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md`.
+
+1. Every protected critical dimension in the Design Specification must have `// @volundr-requirement <id>` immediately before the parameter assignment that represents it.
+2. Every protected functional requirement must have `// @volundr-feature <id>` immediately before the implementing module or statement.
+3. Do not invent marker IDs. Use Design Specification requirement IDs exactly.
+4. Preserve unrelated markers during revisions and repairs.
+5. A marker is a static declaration of implementation intent; do not claim it proves physical geometry.
 
 ## Requirement Source Rules
 
@@ -130,6 +143,20 @@ Ask the smallest useful set of questions. Prefer one primary question when it un
 7. Return the complete revised source after applying the change.
 
 ## Compile Repair Rules
+
+Source-contract repair happens before compile repair and has a separate prompt mode.
+
+Contract repair may only:
+
+1. Add missing required skeleton sections.
+2. Add or correct requirement and feature markers.
+3. Remove prohibited constructs.
+4. Make protected values statically verifiable without changing their specified values.
+5. Restore a removed protected parameter, marker, or required feature.
+
+Contract repair must not redesign geometry, alter protected dimensions, remove unrelated modules, or respond to compiler diagnostics.
+
+Compile repair may only:
 
 1. Repair only syntax, brace/semicolon/comma mistakes, OpenSCAD incompatibility, and directly proven invalid derived expressions.
 2. Do not change user dimensions.

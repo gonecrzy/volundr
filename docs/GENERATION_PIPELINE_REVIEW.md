@@ -105,7 +105,7 @@ request
   -> requirements-v1
   -> clarification-v1
   -> design-plan-v1
-  -> openscad-generation-v1
+  -> openscad-generation-v2
   -> source-contract validation
   -> compile
   -> mesh validation
@@ -187,4 +187,3 @@ Keep raw AI output, prompt payloads, and compiler logs in diagnostics. They are 
 - Existing generated runtime examples are useful evidence, but are not a controlled benchmark suite.
 - STL-based printability inspection is necessarily heuristic for wall thickness, bridge spans, and inaccessible cavities.
 - Some decisions need product policy: auto-accept vs candidate revisions, build-volume profile defaults, and which warnings are user-overridable.
-

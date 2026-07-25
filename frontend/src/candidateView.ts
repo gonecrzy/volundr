@@ -23,11 +23,15 @@ export type CandidateRevision = {
 export type CandidateFinding = {
   id: string;
   rule_id: string;
+  category?: string;
   severity: "notice" | "warning" | "critical";
   is_blocking: boolean;
   title: string;
   explanation: string;
   suggested_correction: string;
+  detected_value?: string | null;
+  threshold_value?: string | null;
+  source_line_start?: number | null;
   finding_state: string;
 };
 
@@ -107,5 +111,31 @@ export function candidateFindingBuckets(findings: CandidateFinding[]): {
   return {
     blocking: findings.filter((finding) => finding.is_blocking),
     advisory: findings.filter((finding) => !finding.is_blocking),
+  };
+}
+
+export function sourceCheckFindings(findings: CandidateFinding[]): CandidateFinding[] {
+  return findings.filter((finding) => {
+    const category = finding.category ?? finding.rule_id.split(".", 1)[0];
+    return category.startsWith("source_") || category === "specification_compliance";
+  });
+}
+
+export function sourceCheckSummary(findings: CandidateFinding[]): {
+  blocking: CandidateFinding[];
+  advisory: CandidateFinding[];
+  passedRequiredStructure: boolean;
+  passedProtectedDimensions: boolean;
+} {
+  const sourceFindings = sourceCheckFindings(findings);
+  const blocking = sourceFindings.filter((finding) => finding.is_blocking);
+  const advisory = sourceFindings.filter((finding) => !finding.is_blocking);
+  return {
+    blocking,
+    advisory,
+    passedRequiredStructure: !blocking.some((finding) => finding.category === "source_structure"),
+    passedProtectedDimensions: !blocking.some(
+      (finding) => finding.category === "specification_compliance",
+    ),
   };
 }

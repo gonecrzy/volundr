@@ -296,15 +296,42 @@ The current implementation also persists `resulting_revision_id`, non-secret pro
 
 Requirement-extraction attempts store parsed Design Specifications at `parsed-design-spec.json`. OpenSCAD generation attempts store the authoritative Design Specification snapshot at `design-spec.json`.
 
+## SourceValidationResult
+
+Represents one deterministic static validation of extracted OpenSCAD source before compilation.
+
+Fields:
+
+```text
+id
+project_id
+generation_attempt_id
+design_specification_id
+revision_id
+contract_version
+ruleset_version
+validator_version
+source_hash
+result_path
+passed_hard_checks
+validation_ms
+created_at
+```
+
+`result_path` points to the full JSON result, including source metadata, hard violations, quality findings, specification findings, module names, parameter names, requirement mappings, feature mappings, and timing. `revision_id` is nullable because hard source-contract failures stop before a revision or candidate exists.
+
 ## ValidationFinding
 
-Represents one persisted non-pass validation result for a revision.
+Represents one persisted non-pass validation result. Findings may belong to a revision/candidate after compile, or only to a generation attempt when source-contract validation fails before compile.
 
 Fields:
 
 ```text
 id
 revision_id
+generation_attempt_id
+design_specification_id
+source_validation_result_id
 rule_id
 category
 severity
@@ -315,6 +342,8 @@ suggested_correction
 detected_value
 unit
 threshold_value
+source_line_start
+source_line_end
 orientation_dependent
 affected_geometry_summary
 metadata_json

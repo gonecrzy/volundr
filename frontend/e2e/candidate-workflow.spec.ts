@@ -101,6 +101,15 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     }
     if (request.method() === "POST" && path.startsWith("/design-specifications/spec-ready-")) {
       generatedCandidateCount += 1;
+      if (generatedCandidateCount === 3) {
+        return route.fulfill({
+          status: 409,
+          json: {
+            detail:
+              "Model source rejected before compile\n- Protected value does not match Design Specification: expected 81, detected 90 (line 12)",
+          },
+        });
+      }
       const next =
         generatedCandidateCount === 1
           ? revision({
@@ -127,6 +136,12 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     if (request.method() === "GET" && path === "/candidates/rev-warning/findings") {
       return route.fulfill({
         json: [
+          finding({
+            id: "finding-source-warning",
+            rule_id: "source_parameterization.missing_assertions",
+            severity: "warning",
+            is_blocking: false,
+          }),
           finding({
             id: "finding-warning",
             rule_id: "mesh.disconnected_components",
@@ -183,6 +198,10 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await expect(page.getByText("Use a 3 mm wall thickness")).toBeVisible();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByText("Candidate - R2 - Ready with warnings")).toBeVisible();
+  await expect(page.getByText("Source checks")).toBeVisible();
+  await expect(
+    page.getByLabel("Candidate review").getByText("source_parameterization.missing_assertions", { exact: true }).first(),
+  ).toBeVisible();
   await expect(page.getByText("Advisory warnings")).toBeVisible();
   await expect(page.getByText("mesh.disconnected_components", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeEnabled();
@@ -203,6 +222,14 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
 
   await page.getByRole("button", { name: "Reject" }).click();
   await expect(page.getByText("Historical revision - R3 - Rejected candidate")).toBeVisible();
+  await expect(page.getByText("R2 active")).toBeVisible();
+
+  await page.getByLabel("AI chat message").fill("Generate source with mismatched protected diameter");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
+  await page.getByRole("button", { name: "Continue to generation" }).click();
+  await expect(page.getByLabel("Source checks").getByText("Rejected", { exact: true })).toBeVisible();
+  await expect(page.getByText("Protected value does not match Design Specification")).toBeVisible();
   await expect(page.getByText("R2 active")).toBeVisible();
 });
 

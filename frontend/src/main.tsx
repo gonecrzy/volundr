@@ -10,6 +10,7 @@ import {
   candidateFindingBuckets,
   revisionViewerLabel,
   revisionWorkflowLabel,
+  sourceCheckSummary,
   type CandidateFinding,
   type ReviewState,
   type ValidationSummary,
@@ -248,6 +249,7 @@ function App() {
   const [isSavingPrintabilityProfile, setIsSavingPrintabilityProfile] = useState(false);
   const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
   const [candidateFindings, setCandidateFindings] = useState<CandidateFinding[]>([]);
+  const [sourceContractError, setSourceContractError] = useState<string | null>(null);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
   const [clarificationAnswers, setClarificationAnswers] = useState<Record<string, string>>({});
@@ -478,6 +480,7 @@ function App() {
     }
     setIsGenerating(true);
     setMessage(null);
+    setSourceContractError(null);
     setGenerationPrompt("");
     try {
       const currentProject = project ?? (await createDraftProject());
@@ -517,6 +520,7 @@ function App() {
       return;
     }
     setIsSubmittingClarification(true);
+    setSourceContractError(null);
     setMessage("Understanding request");
     try {
       const specification = await request<DesignSpecification>(
@@ -551,6 +555,7 @@ function App() {
       return;
     }
     setIsContinuingGeneration(true);
+    setSourceContractError(null);
     setMessage("Generating model");
     try {
       const revision = await request<Revision>(`/design-specifications/${designSpecification.id}/generate`, {
@@ -569,7 +574,13 @@ function App() {
       await selectRevision(revision);
       await loadProjectMessages(project.id);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Generation failed");
+      const message = error instanceof Error ? error.message : "Generation failed";
+      if (message.startsWith("Model source rejected before compile")) {
+        setSourceContractError(message);
+        setMessage("Model source rejected before compile");
+      } else {
+        setMessage(message);
+      }
     } finally {
       setIsContinuingGeneration(false);
     }
@@ -1025,6 +1036,7 @@ function App() {
               onContinue={() => void continueGenerationFromSpecification()}
               onSubmitAnswers={() => void submitClarificationAnswers()}
             />
+            <SourceContractRejection message={sourceContractError} />
             <h2>Revisions</h2>
             <div className="revision-list">
               {revisions.length === 0 ? <p className="empty">No revisions</p> : null}
@@ -1273,6 +1285,7 @@ function CandidateReview({
 
   const isCandidate = isOpenCandidate(revision);
   const buckets = candidateFindingBuckets(findings);
+  const sourceChecks = sourceCheckSummary(findings);
 
   return (
     <section className="candidate-review" aria-label="Candidate review">
@@ -1301,6 +1314,10 @@ function CandidateReview({
       {isCandidate && !canAccept && acceptDisabledReason ? (
         <p className="blocked-reason">{acceptDisabledReason}</p>
       ) : null}
+      <SourceCheckSummary
+        findings={sourceChecks.blocking.concat(sourceChecks.advisory)}
+        showPassed={isCandidate}
+      />
       {buckets.blocking.length > 0 ? (
         <FindingGroup findings={buckets.blocking} title="Blocking findings" />
       ) : null}
@@ -1313,6 +1330,76 @@ function CandidateReview({
       ) : null}
       {isCandidate && findings.length === 0 ? <p className="empty">No validation findings</p> : null}
     </section>
+  );
+}
+
+function SourceContractRejection({ message }: { message: string | null }) {
+  if (!message) {
+    return null;
+  }
+  const lines = message.split("\n").filter(Boolean);
+  return (
+    <section className="candidate-review source-checks" aria-label="Source checks">
+      <div className="section-heading">
+        <h2>Source checks</h2>
+        <span className="review-state blocked">Rejected</span>
+      </div>
+      <p className="blocked-reason">{lines[0]}</p>
+      {lines.length > 1 ? (
+        <ul className="source-check-list">
+          {lines.slice(1).map((line) => (
+            <li key={line}>{line.replace(/^- /, "")}</li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
+function SourceCheckSummary({
+  findings,
+  showPassed,
+}: {
+  findings: CandidateFinding[];
+  showPassed: boolean;
+}) {
+  if (findings.length === 0) {
+    if (!showPassed) {
+      return null;
+    }
+    return (
+      <div className="candidate-findings source-checks">
+        <h3>Source checks</h3>
+        <p className="empty">Passed required structure and protected dimensions</p>
+      </div>
+    );
+  }
+  const blockingCount = findings.filter((finding) => finding.is_blocking).length;
+  return (
+    <div className="candidate-findings source-checks">
+      <h3>Source checks</h3>
+      <p className="empty">
+        {blockingCount > 0
+          ? `${blockingCount} blocking source ${blockingCount === 1 ? "finding" : "findings"}`
+          : `${findings.length} quality ${findings.length === 1 ? "finding" : "findings"}`}
+      </p>
+      {findings.map((finding) => (
+        <article className={`candidate-finding ${finding.severity}`} key={finding.id}>
+          <div className="result-row">
+            <span className={`severity ${finding.severity}`}>{finding.severity}</span>
+            <span className="rule-id">{finding.rule_id}</span>
+          </div>
+          <p>{finding.explanation}</p>
+          {finding.threshold_value || finding.detected_value || finding.source_line_start ? (
+            <p className="correction">
+              {finding.threshold_value ? `Expected ${finding.threshold_value}. ` : ""}
+              {finding.detected_value ? `Detected ${finding.detected_value}. ` : ""}
+              {finding.source_line_start ? `Line ${finding.source_line_start}.` : ""}
+            </p>
+          ) : null}
+        </article>
+      ))}
+    </div>
   );
 }
 

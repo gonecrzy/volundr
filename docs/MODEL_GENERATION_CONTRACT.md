@@ -20,6 +20,8 @@ Clarification-capable stages must not return OpenSCAD when critical information 
 
 For new initial AI generations, OpenSCAD must be generated from a persisted `generation_ready` Design Specification. The raw user request may be included as secondary intent, but the Design Specification controls protected dimensions, required features, defaults, and assumptions.
 
+New AI-generated OpenSCAD is statically validated against `source-contract-v1` before OpenSCAD compilation. Hard source-contract or protected Design Specification violations stop before compile and do not create a candidate revision. Quality findings are persisted as advisory validation findings and may produce a `ready_with_warnings` candidate.
+
 ## Required Source Structure
 
 Every generated model should follow this pattern:
@@ -43,6 +45,7 @@ Print notes:
 $fn = 64;
 
 // ===== USER PARAMETERS =====
+// @volundr-requirement part_width
 part_width = 80;
 part_depth = 40;
 part_height = 20;
@@ -57,6 +60,7 @@ assert(part_width > 0, "part_width must be positive");
 assert(wall_thickness >= 1.2, "wall_thickness is too small");
 
 // ===== MODULES =====
+// @volundr-feature main_body
 module main_body() {
     cube([part_width, part_depth, part_height]);
 }
@@ -69,6 +73,29 @@ module main_model() {
 main_model();
 ```
 
+## Machine-Readable Requirement Markers
+
+Generated source must map protected Design Specification requirements to OpenSCAD source with simple comment markers. This is the authoritative marker format for Volundr:
+
+```scad
+// @volundr-requirement container_diameter
+container_diameter = 81;
+
+// @volundr-feature mounting_method
+module mounting_holes() {
+    ...
+}
+```
+
+Rules:
+
+1. `@volundr-requirement <id>` must appear immediately before the named parameter assignment representing that Design Specification requirement.
+2. `@volundr-feature <id>` must appear immediately before the module or statement implementing that protected functional requirement.
+3. Marker IDs must exactly match Design Specification requirement IDs.
+4. Protected numeric values must be statically verifiable as simple constants or safe arithmetic over previously defined constants.
+5. Revisions and repairs must preserve unrelated requirement and feature markers.
+6. Marker presence records implementation intent only. It does not prove the geometry physically satisfies the feature.
+
 ## Mandatory Rules
 
 1. Use millimeters.
@@ -78,7 +105,7 @@ main_model();
 5. Put repeated or conceptually distinct geometry into modules.
 6. Include a `main_model()` module.
 7. End with exactly one top-level call to `main_model();`.
-8. Use assertions for clearly invalid parameter combinations.
+8. Use assertions for clearly invalid parameter combinations. Missing assertions are normally a quality finding, not a universal hard rejection.
 9. Keep `$fn` reasonable, normally between 32 and 96.
 10. Add comments for assumptions and print orientation.
 11. Preserve existing parameter and module names during revisions unless renaming is required.
@@ -123,6 +150,13 @@ When revising an existing model, the AI must:
 
 ## Repair Prompt Rules
 
+When repairing a source-contract failure:
+
+- fix only source-contract violations, missing markers, prohibited constructs, skeleton omissions, or protected-value verifiability failures
+- preserve geometry, protected dimensions, required features, and unrelated modules
+- do not compile-repair or redesign the part in this mode
+- stop after the bounded contract-repair attempt
+
 When repairing a compile failure:
 
 - prioritize syntax and compatibility corrections
@@ -150,5 +184,7 @@ The backend should reject or flag output when:
 - geometry is below the build plate
 - an ordinary functional part is non-watertight
 - generated source violates the ruleset skeleton or required assertion/parameter sections
+- protected Design Specification values are missing, changed, or statically unverifiable
+- required protected feature markers are missing
 
 Printability findings that depend on user preference, orientation, printer profile, or support strategy may create a candidate revision requiring user review instead of immediate rejection. Blocking and warning policy is defined in `docs/GENERATION_RELIABILITY_PLAN.md`.

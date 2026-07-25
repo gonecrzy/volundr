@@ -41,19 +41,30 @@ class FakeAiProvider:
 Project: {request.project_name}
 Units: millimeters
 Purpose: {request.user_instruction}
+Assumptions: Simple rectangular calibration block.
+Print notes: Print flat on the build plate.
 */
 
 // ===== QUALITY =====
 $fn = 32;
 
 // ===== USER PARAMETERS =====
+// @volundr-requirement width
 width = 10;
 
+// ===== DERIVED VALUES =====
+half_width = width / 2;
+
+// ===== VALIDATION =====
+assert(width > 0);
+
 // ===== MODULES =====
+// @volundr-feature simple_block
 module main_model() {{
   cube([width, 10, 10]);
 }}
 
+// ===== FINAL MODEL =====
 main_model();
 ```
 """,
@@ -85,18 +96,56 @@ class RepairingAiProvider:
         if len(self.requests) == 1:
             source = """
 ```scad
+/*
+Project: Repairable output
+Units: millimeters
+Purpose: Create a cube
+Assumptions: Simple calibration block.
+Print notes: Print flat on the build plate.
+*/
+// ===== QUALITY =====
+$fn = 32;
+// ===== USER PARAMETERS =====
+// @volundr-requirement width
+width = 10;
+// ===== DERIVED VALUES =====
+half_width = width / 2;
+// ===== VALIDATION =====
+assert(width > 0);
+// ===== MODULES =====
+// @volundr-feature simple_block
 module main_model() {
-  broken(
+  broken();
 }
+// ===== FINAL MODEL =====
 main_model();
 ```
 """
         else:
             source = """
 ```scad
+/*
+Project: Repairable output
+Units: millimeters
+Purpose: Create a cube
+Assumptions: Simple calibration block.
+Print notes: Print flat on the build plate.
+*/
+// ===== QUALITY =====
+$fn = 32;
+// ===== USER PARAMETERS =====
+// @volundr-requirement width
+width = 10;
+// ===== DERIVED VALUES =====
+half_width = width / 2;
+// ===== VALIDATION =====
+assert(width > 0);
+// ===== MODULES =====
+// @volundr-feature simple_block
 module main_model() {
-  cube([10, 10, 10]);
+  cube([width, 10, 10]);
 }
+// ===== FINAL MODEL =====
 main_model();
 ```
 """
@@ -112,9 +161,26 @@ class ContextAwareAiProvider:
         return ModelGenerationResult(
             raw_output="""
 ```scad
+/*
+Project: Resize generated part
+Units: millimeters
+Purpose: Resize block
+Assumptions: Preserve rectangular block geometry.
+Print notes: Print flat on the build plate.
+*/
+// ===== QUALITY =====
+$fn = 32;
+// ===== USER PARAMETERS =====
+width = 20;
+// ===== DERIVED VALUES =====
+half_width = width / 2;
+// ===== VALIDATION =====
+assert(width > 0);
+// ===== MODULES =====
 module main_model() {
-  cube([20, 10, 10]);
+  cube([width, 10, 10]);
 }
+// ===== FINAL MODEL =====
 main_model();
 ```
 """,

@@ -15,10 +15,28 @@ class ValidationFinding(Base):
     __tablename__ = "validation_findings"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    revision_id: Mapped[str] = mapped_column(
+    revision_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("revisions.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+        index=True,
+    )
+    generation_attempt_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("generation_attempts.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    design_specification_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("design_specifications.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    source_validation_result_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("source_validation_results.id", ondelete="CASCADE"),
+        nullable=True,
         index=True,
     )
     rule_id: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
@@ -31,6 +49,8 @@ class ValidationFinding(Base):
     detected_value: Mapped[str | None] = mapped_column(String(120), nullable=True)
     unit: Mapped[str | None] = mapped_column(String(40), nullable=True)
     threshold_value: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    source_line_start: Mapped[int | None] = mapped_column(nullable=True)
+    source_line_end: Mapped[int | None] = mapped_column(nullable=True)
     orientation_dependent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     affected_geometry_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
@@ -40,3 +60,6 @@ class ValidationFinding(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     revision = relationship("Revision", back_populates="validation_findings")
+    generation_attempt = relationship("GenerationAttempt")
+    design_specification = relationship("DesignSpecification")
+    source_validation_result = relationship("SourceValidationResult")

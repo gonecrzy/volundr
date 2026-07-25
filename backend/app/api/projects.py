@@ -453,6 +453,22 @@ def dismiss_validation_finding(
     return finding
 
 
+@router.get(
+    "/generation-attempts/{attempt_id}/findings",
+    response_model=list[ValidationFindingRead],
+)
+def list_generation_attempt_findings(
+    attempt_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ValidationFindingRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    findings = service.list_generation_attempt_findings(attempt_id)
+    if findings is None:
+        raise HTTPException(status_code=404, detail="generation attempt not found")
+    return findings
+
+
 @router.get("/revisions/{revision_id}/source")
 def get_revision_source(
     revision_id: str,

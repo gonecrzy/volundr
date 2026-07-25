@@ -20,6 +20,7 @@ Prompt changes are not considered improvements unless they reduce accepted model
 All generated OpenSCAD benchmarks must:
 
 - follow `gemini-ruleset-v1`
+- pass `source-contract-v1` hard checks before compile
 - extract cleanly
 - compile within timeout
 - produce one intended printable part unless multiple parts are explicitly requested
@@ -27,6 +28,8 @@ All generated OpenSCAD benchmarks must:
 - be watertight for ordinary functional parts
 - stay at or above Z=0
 - expose required parameters in `USER PARAMETERS`
+- map every protected critical dimension with `@volundr-requirement`
+- map every protected functional requirement with `@volundr-feature`
 - avoid unrequested decorative or weight-reduction features
 - classify assumptions and warnings
 - preserve protected design invariants during repair and revision
@@ -36,6 +39,8 @@ Clarification benchmarks must not generate SCAD.
 Protected design invariants include user-provided dimensions, required features, mating geometry, fastener geometry, print orientation, and unrelated modules.
 
 Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, and conflicting dimensions. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, and the remaining model categories.
+
+Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated.
 
 ## Suites
 

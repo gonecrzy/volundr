@@ -145,12 +145,22 @@ Requirement extraction pass:
 - A ready Design Specification must be explicitly continued before OpenSCAD generation starts.
 - Legacy active-revision AI edits remain supported during the transition and attach the latest Design Specification as context when available.
 
+Source-contract validation pass:
+
+- New AI source is statically checked before OpenSCAD compilation.
+- Security, hard source structure, and protected Design Specification compliance violations block compilation and persist as generation-attempt findings.
+- Quality issues such as missing assertions, missing print notes, excessive `$fn`, and repeated magic numbers remain advisory and attach to candidates after successful compile/validation.
+- Generated source now uses `source-contract-v1` markers documented in `docs/MODEL_GENERATION_CONTRACT.md`.
+- Contract repair is a bounded `contract-repair-v1` mode and remains separate from compile repair.
+- Legacy accepted source remains usable and is not retroactively rejected.
+
 Deferred stabilization work:
 
 - full structured revision planning
 - separate `design-plan-v1`
 - automatic continue policies
 - advanced protected-invariant geometry comparison
+- geometric proof that feature markers correspond to physical holes, counts, walls, or bounding dimensions
 
 ## Stage 4 — Projects and Revision History
 

@@ -22,6 +22,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Ask for clarification before OpenSCAD generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
 - Persist a versioned Design Specification before new initial OpenSCAD generation.
 - Require an explicit Continue action from a ready Design Specification during stabilization.
+- Validate new AI OpenSCAD against the source contract before compilation, including security rules, required structure, protected Design Specification values, and advisory quality findings.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
 - Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
 

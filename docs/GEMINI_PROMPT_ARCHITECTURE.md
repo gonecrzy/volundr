@@ -86,9 +86,9 @@ Output schema:
 }
 ```
 
-### `openscad-generation-v1`
+### `openscad-generation-v2`
 
-Responsibility: produce only OpenSCAD from an approved plan and ruleset.
+Responsibility: produce only source-contract-compliant OpenSCAD from an approved Design Specification and ruleset.
 
 Input context:
 
@@ -104,6 +104,10 @@ Output:
 - exactly one fenced `openscad` block
 - no prose outside the block
 - strict source skeleton from `docs/GEMINI_RULESET.md`
+- protected requirement markers and feature markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`
+- protected values copied exactly from the Design Specification and exposed as named parameters
+
+Current implementation: `openscad-generation-v2` is implemented for ready initial Design Specifications. `design-plan-v1` remains deferred.
 
 ### `revision-v1`
 
@@ -161,6 +165,33 @@ Prohibited changes:
 - reorienting the part
 - redesigning geometry
 
+### `contract-repair-v1`
+
+Responsibility: repair static source-contract failures before OpenSCAD compilation. This is separate from compiler repair and must not respond to mesh or printability validation.
+
+Input context:
+
+- failed source
+- persisted source-contract findings
+- protected Design Specification requirement and feature IDs
+- instruction to preserve geometry, protected dimensions, required features, and unrelated modules
+
+Allowed changes:
+
+- add missing skeleton sections
+- add missing requirement or feature markers
+- remove prohibited source constructs
+- make protected constants statically verifiable without changing their specified values
+- restore removed protected parameters or markers
+
+Prohibited changes:
+
+- redesigning the model
+- changing protected values
+- removing unrelated modules
+- fixing compiler diagnostics unless they are also listed source-contract failures
+- recursive repair attempts
+
 ### `validation-feedback-v1`
 
 Responsibility: classify compile, mesh, and printability results.
@@ -212,7 +243,9 @@ requirements-v1
 clarification-v1
 design-plan-v1
 openscad-generation-v1
+openscad-generation-v2
 revision-v1
+contract-repair-v1
 compile-repair-v1
 validation-feedback-v1
 ```
@@ -244,14 +277,15 @@ user request
   -> if clarify/conflict/unsupported: return state, no revision
   -> user reviews ready Design Specification
   -> explicit Continue to generation
-  -> openscad-generation-v1
+  -> openscad-generation-v2
   -> source contract validation
+  -> if hard source/spec violation: contract-repair-v1 once, then revalidate or fail attempt
   -> compile
   -> mesh and printability validation
   -> candidate review, repair, or failed attempt
 ```
 
-Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v1` as the authoritative design source. Raw user text is included only as secondary intent.
+Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v2` as the authoritative design source. Raw user text is included only as secondary intent.
 
 ## Revision Flow
 
@@ -269,6 +303,7 @@ Current implementation note: full structured revision planning is not implemente
 
 ```text
 failed source + compiler diagnostics
+  -> source contract validation must already have passed
   -> compile-repair-v1
   -> source contract validation
   -> compile once
@@ -276,6 +311,21 @@ failed source + compiler diagnostics
 ```
 
 Repair failure should remain a failed attempt. It should not trigger an unbounded design rewrite.
+
+## Source-Contract Validation Flow
+
+```text
+Gemini raw response
+  -> SCAD extraction
+  -> source normalization
+  -> security validation
+  -> hard contract validation
+  -> protected Design Specification compliance validation
+  -> quality analysis
+  -> compile only if hard checks pass
+```
+
+Hard violations are persisted on the generation attempt and block compilation. Quality findings are persisted and, after successful compile/mesh validation, are attached to the candidate for review.
 
 ## Validation Feedback Flow
 

@@ -98,7 +98,27 @@ def test_staged_openscad_prompt_uses_design_specification_as_authority() -> None
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "openscad-generation-v1"
+    assert provider.prompt_template_version_for(request) == "openscad-generation-v2"
     assert "The Design Specification is the authoritative design source" in prompt
+    assert "@volundr-requirement <design_spec_requirement_id>" in prompt
+    assert "@volundr-feature <design_spec_requirement_id>" in prompt
     assert "Secondary raw user request" in prompt
     assert "hole_spacing" in prompt
+
+
+def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Repair source contract",
+        original_intent="Create a mounting plate.",
+        user_instruction="Create a plate with holes.",
+        current_source="module main_model() {\n  cube([10, 10, 2]);\n}\nmain_model();\n",
+        contract_diagnostics="Protected value changed: expected 60, detected 55",
+        design_specification={"critical_dimensions": [{"id": "hole_spacing", "value": 60, "protected": True}]},
+    )
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "contract-repair-v1"
+    assert "contract repair, not design revision" in prompt
+    assert "@volundr-requirement <id>" in prompt
+    assert "Protected value changed" in prompt

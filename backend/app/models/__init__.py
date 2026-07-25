@@ -6,6 +6,7 @@ from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.printability_profile import SavedPrintabilityProfile
 from app.models.revision import Revision
+from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "ProjectMessage",
     "Revision",
     "SavedPrintabilityProfile",
+    "SourceValidationResult",
     "ValidationFinding",
 ]

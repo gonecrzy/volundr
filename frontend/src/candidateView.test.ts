@@ -5,6 +5,8 @@ import {
   candidateFindingBuckets,
   revisionViewerLabel,
   revisionWorkflowLabel,
+  sourceCheckFindings,
+  sourceCheckSummary,
   type CandidateFinding,
   type CandidateRevision,
   type ProjectState,
@@ -98,5 +100,40 @@ describe("candidate view helpers", () => {
 
     expect(buckets.blocking.map((entry) => entry.id)).toEqual(["blocking"]);
     expect(buckets.advisory.map((entry) => entry.id)).toEqual(["advisory"]);
+  });
+
+  it("extracts source-contract findings for source check display", () => {
+    const findings = [
+      finding({ id: "mesh", category: "mesh", rule_id: "mesh.empty_or_zero_volume" }),
+      finding({ id: "source", category: "source_structure", rule_id: "source_structure.missing_main_model_module" }),
+      finding({
+        id: "spec",
+        category: "specification_compliance",
+        rule_id: "specification_compliance.protected_value_mismatch",
+      }),
+    ];
+
+    expect(sourceCheckFindings(findings).map((entry) => entry.id)).toEqual(["source", "spec"]);
+  });
+
+  it("summarizes blocking source checks separately from quality findings", () => {
+    const summary = sourceCheckSummary([
+      finding({
+        id: "quality",
+        category: "source_parameterization",
+        rule_id: "source_parameterization.missing_assertions",
+      }),
+      finding({
+        id: "mismatch",
+        category: "specification_compliance",
+        is_blocking: true,
+        rule_id: "specification_compliance.protected_value_mismatch",
+        severity: "critical",
+      }),
+    ]);
+
+    expect(summary.blocking.map((entry) => entry.id)).toEqual(["mismatch"]);
+    expect(summary.advisory.map((entry) => entry.id)).toEqual(["quality"]);
+    expect(summary.passedProtectedDimensions).toBe(false);
   });
 });

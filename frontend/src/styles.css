@@ -484,6 +484,13 @@ textarea {
   margin-top: 12px;
 }
 
+.source-check-list {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
 .candidate-findings h3,
 .summary-list h3 {
   color: #56615b;

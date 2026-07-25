@@ -167,7 +167,7 @@ class StagedAiProvider:
         return {"model": "fake-requirements-model"}
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v1" if request.design_specification else "legacy-initial-v1"
+        return "openscad-generation-v2" if request.design_specification else "legacy-initial-v1"
 
     def requirement_prompt_template_version(self) -> str:
         return "requirements-v1"
@@ -196,12 +196,36 @@ class StagedAiProvider:
         return ModelGenerationResult(
             raw_output="""
 ```scad
-// Volundr OpenSCAD v1
+/*
+Project: Mounting plate
+Units: millimeters
+Purpose: Mount a controller
+Assumptions: Use rectangular plate geometry.
+Print notes: Print flat on the build plate.
+*/
+// ===== QUALITY =====
+$fn = 32;
 // ===== USER PARAMETERS =====
-width = 20;
-module main_model() {
-  cube([width, 10, 10]);
+// @volundr-requirement hole_spacing
+hole_spacing = 60;
+plate_width = 90;
+// ===== DERIVED VALUES =====
+half_spacing = hole_spacing / 2;
+// ===== VALIDATION =====
+assert(hole_spacing == 60);
+// ===== MODULES =====
+// @volundr-feature mounting_method
+module mounting_holes() {
+  translate([-half_spacing, 0, -0.5]) cylinder(h = 4, d = 4.5);
+  translate([half_spacing, 0, -0.5]) cylinder(h = 4, d = 4.5);
 }
+module main_model() {
+  difference() {
+    cube([plate_width, 40, 3], center = true);
+    mounting_holes();
+  }
+}
+// ===== FINAL MODEL =====
 main_model();
 ```
 """,
@@ -492,7 +516,7 @@ def test_generation_from_ready_spec_uses_specification_as_prompt_authority(tmp_p
         )
         assert revision is not None
         assert attempts[-1].resulting_revision_id == revision.id
-        assert attempts[-1].prompt_template_version == "openscad-generation-v1"
+        assert attempts[-1].prompt_template_version == "openscad-generation-v2"
         assert attempts[-1].design_spec_path is not None
     assert client.get(f"/api/projects/{project['id']}").json()["active_revision_id"] is None
 

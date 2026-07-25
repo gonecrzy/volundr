@@ -38,11 +38,28 @@ class SuccessfulAiProvider:
         return ModelGenerationResult(
             raw_output="""
 ```scad
+/*
+Project: Generated cube
+Units: millimeters
+Purpose: Calibration cube
+Assumptions: None
+Print notes: Print flat on the build plate.
+*/
+// ===== QUALITY =====
+$fn = 32;
 // ===== USER PARAMETERS =====
+// @volundr-requirement width
 width = 10;
+// ===== DERIVED VALUES =====
+half_width = width / 2;
+// ===== VALIDATION =====
+assert(width > 0);
+// ===== MODULES =====
+// @volundr-feature simple_block
 module main_model() {
   cube([width, 10, 10]);
 }
+// ===== FINAL MODEL =====
 main_model();
 ```
 """,
@@ -206,7 +223,7 @@ def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -
         assert requirement_attempt.design_spec_path is not None
         assert attempt.status == "succeeded"
         assert attempt.failure_class == "none"
-        assert attempt.prompt_template_version == "openscad-generation-v1"
+        assert attempt.prompt_template_version == "openscad-generation-v2"
         assert attempt.gemini_ruleset_version == "gemini-ruleset-v1"
         assert attempt.provider == "fake"
         assert attempt.provider_model == "fake-model"
@@ -223,7 +240,9 @@ def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -
     design_spec = json.loads((run_dir / "design-spec.json").read_text(encoding="utf-8"))
     assert design_spec["outcome"] == "generation_ready"
     assert design_spec["critical_dimensions"][0]["source"] == "user"
-    assert chain["stages"][0]["prompt_template_version"] == "openscad-generation-v1"
+    assert chain["stages"][0]["prompt_template_version"] == "openscad-generation-v2"
+    assert chain["stages"][0]["source_contract_result_path"] is not None
+    assert chain["stages"][0]["source_contract_passed_hard_checks"] is True
 
 
 def test_provider_failure_persists_failed_attempt_without_revision(tmp_path: Path) -> None:

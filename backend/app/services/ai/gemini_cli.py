@@ -12,9 +12,10 @@ from app.services.ai.provider import (
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
-OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v1"
+OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v2"
 LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
+CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v1"
 LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
 
 
@@ -102,6 +103,8 @@ class GeminiCliProvider:
         return GEMINI_RULESET_VERSION
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if request.contract_diagnostics:
+            return CONTRACT_REPAIR_PROMPT_VERSION
         if request.compiler_diagnostics:
             return LEGACY_COMPILE_REPAIR_PROMPT_VERSION
         if request.current_source:
@@ -129,6 +132,8 @@ class GeminiCliProvider:
         return self._build_requirement_prompt(request)
 
     def _build_prompt(self, request: ModelGenerationRequest) -> str:
+        if request.contract_diagnostics:
+            return self._build_contract_repair_prompt(request)
         if request.design_specification and not request.current_source:
             return self._build_design_spec_openscad_prompt(request)
         parts = [
@@ -179,11 +184,27 @@ class GeminiCliProvider:
                 "The Design Specification is the authoritative design source. The raw user request is secondary intent only.",
                 "Preserve every protected value and required feature exactly.",
                 "Expose important dimensions as named user parameters.",
+                "Every protected critical dimension must have a machine-readable mapping comment immediately before its parameter assignment:",
+                "// @volundr-requirement <design_spec_requirement_id>",
+                "Every protected functional requirement must have a machine-readable feature marker immediately before the implementing module or statement:",
+                "// @volundr-feature <design_spec_requirement_id>",
                 "Disclose product defaults and AI assumptions in source comments.",
                 "Do not add undocumented critical dimensions.",
                 "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
                 "Define module main_model() and end with exactly one top-level main_model(); call.",
                 "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                "Use this recognizable section skeleton:",
+                "/* Project: ...",
+                "Units: millimeters",
+                "Purpose: ...",
+                "Assumptions: ...",
+                "Print notes: ... */",
+                "// ===== QUALITY =====",
+                "// ===== USER PARAMETERS =====",
+                "// ===== DERIVED VALUES =====",
+                "// ===== VALIDATION =====",
+                "// ===== MODULES =====",
+                "// ===== FINAL MODEL =====",
                 "",
                 f"Project name: {request.project_name}",
                 f"Original intent: {request.original_intent}",
@@ -191,6 +212,35 @@ class GeminiCliProvider:
                 "",
                 "Approved Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
+            ]
+        )
+
+    def _build_contract_repair_prompt(self, request: ModelGenerationRequest) -> str:
+        return "\n".join(
+            [
+                "Repair OpenSCAD source so it satisfies Volundr source-contract validation.",
+                "Return only a single fenced openscad block. Do not include prose outside the block.",
+                "This is contract repair, not design revision.",
+                "Preserve geometry, all user dimensions, protected Design Specification values, required features, unrelated modules, and working Boolean structure.",
+                "Only fix the listed contract violations, marker omissions, section omissions, prohibited constructs, or verifiability issues.",
+                "Do not change protected parameter values unless the diagnostics explicitly say the current value is wrong and the Design Specification value is provided.",
+                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                "Ensure protected dimensions use // @volundr-requirement <id> immediately before the parameter assignment.",
+                "Ensure protected features use // @volundr-feature <id> immediately before the implementing module or statement.",
+                "Ensure module main_model() exists and the file ends with exactly one top-level main_model(); call.",
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User instruction: {request.user_instruction}",
+                "",
+                "Source-contract diagnostics:",
+                request.contract_diagnostics or "",
+                "",
+                "Authoritative Design Specification JSON:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Source to repair:",
+                request.current_source or "",
             ]
         )
 

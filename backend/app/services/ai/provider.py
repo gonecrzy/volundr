@@ -8,6 +8,7 @@ class ModelGenerationRequest:
     original_intent: str
     user_instruction: str
     current_source: str | None = None
+    contract_diagnostics: str | None = None
     compiler_diagnostics: str | None = None
     design_specification: dict[str, Any] | None = None
     generation_contract_version: str = "v1"
