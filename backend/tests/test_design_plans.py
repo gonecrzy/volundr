@@ -209,7 +209,7 @@ class PlanningAiProvider:
         return "design-plan-v1"
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v4" if request.design_plan else "openscad-generation-v3"
+        return "openscad-generation-v5" if request.design_plan else "openscad-generation-v3"
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return "requirements prompt"
@@ -254,6 +254,7 @@ Print notes: flat
 */
 // ===== QUALITY =====
 $fn = 32;
+selected_output = "bracket_body_output";
 // ===== USER PARAMETERS =====
 // @volundr-requirement mount_hole_spacing
 // @volundr-component bracket_body
@@ -271,13 +272,20 @@ assert(mount_hole_spacing > 0);
 module mounting_holes() {}
 // @volundr-feature reinforcement_ribs
 module reinforcement_ribs() {}
-// @volundr-output bracket_body_output components=bracket_body
-module main_model() {
+// @volundr-output bracket_body_output module=bracket_body required=true filename=bracket_body.stl components=bracket_body
+module bracket_body() {
   cube([80, plate_height, plate_thickness]);
   reinforcement_ribs();
 }
 // ===== FINAL MODEL =====
-main_model();
+module render_selected_output() {
+  if (selected_output == "bracket_body_output") {
+    bracket_body();
+  } else {
+    assert(false, str("Unknown selected_output: ", selected_output));
+  }
+}
+render_selected_output();
 ```
 """,
             provider="fake",
@@ -286,7 +294,14 @@ main_model();
 
 
 class FakeCadRunner:
-    async def compile(self, source: str, job_id: str) -> CadCompileResult:
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        selected_output: str | None = None,
+        defines: dict[str, str | int | float | bool] | None = None,
+    ) -> CadCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-plan-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
         source_path = job_dir / "model.scad"
@@ -450,7 +465,7 @@ def test_approved_design_plan_generates_candidate_from_plan_authority(tmp_path: 
 
     with SessionLocal() as session:
         attempts = list(session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)))
-        assert attempts[-1].prompt_template_version == "openscad-generation-v4"
+        assert attempts[-1].prompt_template_version == "openscad-generation-v5"
         assert attempts[-1].design_plan_path is not None
 
 

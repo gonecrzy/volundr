@@ -12,11 +12,15 @@ import {
   revisionViewerLabel,
   revisionWorkflowLabel,
   revisionPromptFromGeometricFinding,
+  outputDimensionsLabel,
+  outputStateLabel,
+  canRetryOutput,
   sourceCheckSummary,
   type CandidateFinding,
   type GeometricAnalysis,
   type GeometricFinding,
   type ReviewState,
+  type RevisionOutput,
   type ValidationSummary,
 } from "./candidateView";
 import {
@@ -74,6 +78,7 @@ type Revision = {
   id: string;
   parent_revision_id: string | null;
   design_specification_id: string | null;
+  design_plan_id: string | null;
   revision_number: number;
   source_type: string;
   status: string;
@@ -84,6 +89,12 @@ type Revision = {
   user_instruction: string | null;
   stl_path: string | null;
   ai_output_path: string | null;
+  output_manifest_path: string | null;
+  expected_output_count: number | null;
+  required_output_count: number | null;
+  successful_output_count: number | null;
+  blocked_output_count: number | null;
+  failed_output_count: number | null;
   created_at: string;
   metadata: MeshMetadata | null;
   error_message: string | null;
@@ -351,6 +362,9 @@ function App() {
   const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
   const [candidateFindings, setCandidateFindings] = useState<CandidateFinding[]>([]);
   const [geometricAnalysis, setGeometricAnalysis] = useState<GeometricAnalysis | null>(null);
+  const [revisionOutputs, setRevisionOutputs] = useState<RevisionOutput[]>([]);
+  const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
+  const [isRetryingOutputId, setIsRetryingOutputId] = useState<string | null>(null);
   const [sourceContractError, setSourceContractError] = useState<string | null>(null);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
@@ -366,11 +380,18 @@ function App() {
   );
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
 
-  const activeMetadata = selectedRevision?.metadata ?? null;
-  const stlUrl = selectedRevision?.status === "succeeded" && selectedRevision.stl_path
-    ? `${API_BASE}/revisions/${selectedRevision.id}/stl`
-    : null;
+  const selectedOutput =
+    revisionOutputs.find((output) => output.id === selectedOutputId) ?? revisionOutputs[0] ?? null;
+  const selectedOutputIsPersisted = Boolean(selectedOutput && !selectedOutput.id.startsWith("legacy-"));
+  const activeMetadata = selectedOutput?.metadata ?? selectedRevision?.metadata ?? null;
+  const stlUrl = selectedOutput?.stl_path && selectedOutputIsPersisted
+    ? `${API_BASE}/revision-outputs/${selectedOutput.id}/stl`
+    : selectedRevision?.status === "succeeded" && selectedRevision.stl_path
+      ? `${API_BASE}/revisions/${selectedRevision.id}/stl`
+      : null;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
+  const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
+  const exportUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/export.zip` : null;
   const sourceParameters = useMemo(() => parseSourceParameters(source), [source]);
   const printabilityHighlights = useMemo(
     () => printabilityReport?.highlights ?? [],
@@ -800,6 +821,7 @@ function App() {
 
   async function selectRevision(revision: Revision) {
     setSelectedRevision(revision);
+    await loadRevisionOutputs(revision);
     await loadCandidateFindings(revision);
     await loadGeometricAnalysis(revision);
     setPrintabilityReport(null);
@@ -840,6 +862,8 @@ function App() {
     } else {
       setCandidateFindings([]);
       setGeometricAnalysis(null);
+      setRevisionOutputs([]);
+      setSelectedOutputId(null);
       setPrintabilityReport(null);
       setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
@@ -892,6 +916,24 @@ function App() {
       }));
     } catch {
       setCandidateFindings([]);
+    }
+  }
+
+  async function loadRevisionOutputs(revision: Revision) {
+    try {
+      const outputs = await request<RevisionOutput[]>(`/revisions/${revision.id}/outputs`, {
+        method: "GET",
+      });
+      setRevisionOutputs(outputs);
+      setSelectedOutputId((current) => {
+        if (current && outputs.some((output) => output.id === current)) {
+          return current;
+        }
+        return outputs.find((output) => output.stl_path)?.id ?? outputs[0]?.id ?? null;
+      });
+    } catch {
+      setRevisionOutputs([]);
+      setSelectedOutputId(null);
     }
   }
 
@@ -967,6 +1009,34 @@ function App() {
       setMessage(error instanceof Error ? error.message : "Candidate rejection failed");
     } finally {
       setIsReviewActionPending(false);
+    }
+  }
+
+  async function retryOutput(output: RevisionOutput) {
+    setIsRetryingOutputId(output.id);
+    setMessage(null);
+    try {
+      const retried = await request<RevisionOutput>(`/revision-outputs/${output.id}/retry`, {
+        method: "POST",
+      });
+      setRevisionOutputs((current) =>
+        current.map((entry) => (entry.id === retried.id ? retried : entry)),
+      );
+      if (selectedRevision) {
+        const refreshed = await request<Revision>(`/candidates/${selectedRevision.id}`, {
+          method: "GET",
+        });
+        setSelectedRevision(refreshed);
+        setRevisions((current) =>
+          current.map((revision) => (revision.id === refreshed.id ? refreshed : revision)),
+        );
+        await loadCandidateFindings(refreshed);
+      }
+      setMessage(`Retried ${retried.label}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Output retry failed");
+    } finally {
+      setIsRetryingOutputId(null);
     }
   }
 
@@ -1148,6 +1218,16 @@ function App() {
               STL
             </a>
           ) : null}
+          {manifestUrl && selectedRevision?.output_manifest_path ? (
+            <a className="download compact-action" href={manifestUrl}>
+              Manifest
+            </a>
+          ) : null}
+          {exportUrl && selectedRevision?.output_manifest_path ? (
+            <a className="download compact-action" href={exportUrl}>
+              ZIP
+            </a>
+          ) : null}
           <button className="primary" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
             {isCompiling ? "Compiling" : "Compile"}
           </button>
@@ -1296,16 +1376,21 @@ function App() {
             findings={candidateFindings}
             geometricAnalysis={geometricAnalysis}
             isPending={isReviewActionPending}
+            outputs={revisionOutputs}
             revision={selectedRevision}
+            selectedOutputId={selectedOutputId}
             viewerLabel={selectedViewerLabel}
             workflowLabel={selectedWorkflowLabel}
             onAccept={() => void acceptSelectedCandidate()}
             onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
+            onRetryOutput={(output) => void retryOutput(output)}
             onReject={() => void rejectSelectedCandidate()}
+            onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
             onReviseFromGeometricFinding={(finding) => {
               setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
               setMessage("Revision prompt prepared from geometric finding");
             }}
+            retryingOutputId={isRetryingOutputId}
           />
 
           <h2>Metadata</h2>
@@ -1624,26 +1709,36 @@ function CandidateReview({
   findings,
   geometricAnalysis,
   isPending,
+  outputs,
   revision,
+  selectedOutputId,
   viewerLabel,
   workflowLabel,
   onAccept,
   onDismissFinding,
+  onRetryOutput,
   onReject,
+  onSelectOutput,
   onReviseFromGeometricFinding,
+  retryingOutputId,
 }: {
   acceptDisabledReason: string | null;
   canAccept: boolean;
   findings: CandidateFinding[];
   geometricAnalysis: GeometricAnalysis | null;
   isPending: boolean;
+  outputs: RevisionOutput[];
   revision: Revision | null;
+  selectedOutputId: string | null;
   viewerLabel: string;
   workflowLabel: string;
   onAccept: () => void;
   onDismissFinding: (findingId: string) => void;
+  onRetryOutput: (output: RevisionOutput) => void;
   onReject: () => void;
+  onSelectOutput: (outputId: string) => void;
   onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
+  retryingOutputId: string | null;
 }) {
   if (!revision) {
     return null;
@@ -1663,11 +1758,24 @@ function CandidateReview({
       <dl className="review-facts">
         <dt>Viewer</dt>
         <dd>{viewerLabel}</dd>
+        {revision.expected_output_count ? (
+          <>
+            <dt>Outputs</dt>
+            <dd>{revision.successful_output_count ?? 0}/{revision.expected_output_count}</dd>
+          </>
+        ) : null}
         <dt>Blocking</dt>
         <dd>{revision.validation_summary.blocking_count}</dd>
         <dt>Warnings</dt>
         <dd>{revision.validation_summary.advisory_count}</dd>
       </dl>
+      <OutputReview
+        outputs={outputs}
+        selectedOutputId={selectedOutputId}
+        onRetryOutput={onRetryOutput}
+        onSelectOutput={onSelectOutput}
+        retryingOutputId={retryingOutputId}
+      />
       {isCandidate ? (
         <div className="actions">
           <button className="primary" disabled={!canAccept || isPending} onClick={onAccept}>
@@ -1704,6 +1812,70 @@ function CandidateReview({
         <p className="empty">No validation findings</p>
       ) : null}
     </section>
+  );
+}
+
+function OutputReview({
+  outputs,
+  selectedOutputId,
+  onRetryOutput,
+  onSelectOutput,
+  retryingOutputId,
+}: {
+  outputs: RevisionOutput[];
+  selectedOutputId: string | null;
+  onRetryOutput: (output: RevisionOutput) => void;
+  onSelectOutput: (outputId: string) => void;
+  retryingOutputId: string | null;
+}) {
+  if (outputs.length === 0) {
+    return null;
+  }
+  return (
+    <div className="candidate-findings output-review">
+      <h3>Printable outputs</h3>
+      <div className="output-list">
+        {outputs.map((output) => (
+          <article
+            className={output.id === selectedOutputId ? "output-card selected" : "output-card"}
+            key={output.id}
+          >
+            <button className="output-select" onClick={() => onSelectOutput(output.id)}>
+              <span>{output.label}</span>
+              <span className={`review-state ${output.output_state}`}>{outputStateLabel(output)}</span>
+            </button>
+            <dl className="review-facts compact">
+              <dt>Quantity</dt>
+              <dd>{output.quantity}</dd>
+              <dt>Need</dt>
+              <dd>{output.required ? "Required" : "Optional"}</dd>
+              <dt>Size</dt>
+              <dd>{outputDimensionsLabel(output)}</dd>
+              <dt>Warnings</dt>
+              <dd>{output.validation_summary.advisory_count}</dd>
+            </dl>
+            {output.compile_error ? <p className="blocked-reason">{output.compile_error}</p> : null}
+            <div className="actions">
+              {output.stl_path && !output.id.startsWith("legacy-") ? (
+                <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/stl`}>
+                  STL
+                </a>
+              ) : null}
+              {output.compile_log_path && !output.id.startsWith("legacy-") ? (
+                <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/compile-log`}>
+                  Log
+                </a>
+              ) : null}
+              {canRetryOutput(output) ? (
+                <button className="secondary compact" disabled={retryingOutputId === output.id} onClick={() => onRetryOutput(output)}>
+                  {retryingOutputId === output.id ? "Retrying" : "Retry"}
+                </button>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
   );
 }
 

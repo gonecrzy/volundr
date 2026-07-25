@@ -21,6 +21,12 @@ class GeometricAnalysisResult(Base):
         nullable=False,
         index=True,
     )
+    revision_output_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("revision_outputs.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     design_specification_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("design_specifications.id", ondelete="SET NULL"),
@@ -36,4 +42,5 @@ class GeometricAnalysisResult(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     revision = relationship("Revision")
+    revision_output = relationship("RevisionOutput")
     design_specification = relationship("DesignSpecification")

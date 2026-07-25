@@ -182,6 +182,71 @@ main_model();
 """
 
 
+SELECTED_OUTPUT_PLAN_SOURCE = """
+/*
+Project: Two part box
+Units: millimeters
+Purpose: electronics enclosure
+Assumptions:
+- none
+Print notes:
+- print outputs flat on Z=0
+*/
+
+// ===== QUALITY =====
+$fn = 48;
+selected_output = "body";
+
+// ===== USER PARAMETERS =====
+// @volundr-requirement hole_spacing
+// @volundr-component bracket_body
+hole_spacing = 60;
+plate_thickness = 6;
+
+// ===== DERIVED VALUES =====
+// @volundr-dependency hole_spacing -> plate_width
+plate_width = hole_spacing + 30;
+
+// ===== VALIDATION =====
+assert(selected_output == "body" || selected_output == "lid", "Unknown output");
+assert(hole_spacing > 0, "hole_spacing must be positive");
+
+// ===== MODULES =====
+// @volundr-feature mounting_method
+// @volundr-feature mounting_holes
+module mounting_holes() {
+  translate([hole_spacing / 2, 0, 0]) cylinder(h=6, d=4.5);
+}
+
+// @volundr-component bracket_body
+// @volundr-output bracket_output module=bracket_body required=true filename=bracket.stl components=bracket_body
+module bracket_body() {
+  difference() {
+    cube([plate_width, 30, plate_thickness]);
+    mounting_holes();
+  }
+}
+
+// @volundr-output lid_output module=lid required=false filename=lid.stl components=bracket_body
+module lid() {
+  cube([plate_width, 30, 2]);
+}
+
+// ===== FINAL MODEL =====
+module render_selected_output() {
+  if (selected_output == "bracket_output") {
+    bracket_body();
+  } else if (selected_output == "lid_output") {
+    lid();
+  } else {
+    assert(false, str("Unknown selected_output: ", selected_output));
+  }
+}
+
+render_selected_output();
+"""
+
+
 def test_scanner_ignores_prohibited_text_in_comments_and_strings() -> None:
     source = VALID_SOURCE.replace(
         "eps = 0.01;",
@@ -276,6 +341,88 @@ def test_scanner_extracts_multi_component_output_marker() -> None:
     assert metadata.output_mappings["bracket_output"].component_ids == ["base", "lid"]
 
 
+def test_scanner_extracts_output_marker_module_filename_and_required_flag() -> None:
+    metadata = scan_openscad_source(SELECTED_OUTPUT_PLAN_SOURCE).metadata
+
+    mapping = metadata.output_mappings["bracket_output"]
+    assert mapping.module_name == "bracket_body"
+    assert mapping.filename == "bracket.stl"
+    assert mapping.required is True
+    assert metadata.top_level_calls == ["render_selected_output"]
+
+
+def test_selected_output_design_plan_source_passes_without_main_model() -> None:
+    plan = {
+        **DESIGN_PLAN,
+        "printable_outputs": [
+            {
+                "id": "bracket_output",
+                "label": "Bracket",
+                "component_ids": ["bracket_body"],
+                "module_name": "bracket_body",
+                "filename": "bracket.stl",
+                "quantity": 1,
+                "required": True,
+                "output_type": "printable_component",
+            },
+            {
+                "id": "lid_output",
+                "label": "Lid",
+                "component_ids": ["bracket_body"],
+                "module_name": "lid",
+                "filename": "lid.stl",
+                "quantity": 1,
+                "required": False,
+                "output_type": "optional_printable_component",
+            },
+        ],
+    }
+
+    result = SourceContractValidator().validate(
+        SELECTED_OUTPUT_PLAN_SOURCE,
+        design_specification=DESIGN_SPEC,
+        design_plan=plan,
+        source_type="ai_initial",
+    )
+
+    assert result.passed_hard_checks is True
+    assert result.hard_violations == []
+
+
+def test_selected_output_design_plan_requires_existing_output_module() -> None:
+    source = SELECTED_OUTPUT_PLAN_SOURCE.replace(
+        "module=bracket_body",
+        "module=missing_body",
+    )
+
+    result = SourceContractValidator().validate(
+        source,
+        design_specification=DESIGN_SPEC,
+        design_plan=DESIGN_PLAN,
+        source_type="ai_initial",
+    )
+
+    assert "design_plan_compliance.output_module_missing" in {
+        finding.rule_id for finding in result.specification_findings
+    }
+    assert result.passed_hard_checks is False
+
+
+def test_selected_output_design_plan_requires_render_selector() -> None:
+    source = SELECTED_OUTPUT_PLAN_SOURCE.replace("render_selected_output();", "// render_selected_output();")
+
+    result = SourceContractValidator().validate(
+        source,
+        design_specification=DESIGN_SPEC,
+        design_plan=DESIGN_PLAN,
+        source_type="ai_initial",
+    )
+
+    assert "source_structure.missing_final_render_selected_output_call" in {
+        finding.rule_id for finding in result.hard_violations
+    }
+
+
 def test_design_plan_markers_are_required_when_plan_is_present() -> None:
     source = PLAN_SOURCE.replace("// @volundr-output bracket_output components=bracket_body\n", "")
 
@@ -293,10 +440,35 @@ def test_design_plan_markers_are_required_when_plan_is_present() -> None:
 
 
 def test_valid_design_plan_source_passes_hard_checks() -> None:
+    plan = {
+        **DESIGN_PLAN,
+        "printable_outputs": [
+            {
+                "id": "bracket_output",
+                "label": "Bracket",
+                "component_ids": ["bracket_body"],
+                "module_name": "bracket_body",
+                "filename": "bracket.stl",
+                "quantity": 1,
+                "required": True,
+                "output_type": "printable_component",
+            },
+            {
+                "id": "lid_output",
+                "label": "Lid",
+                "component_ids": ["bracket_body"],
+                "module_name": "lid",
+                "filename": "lid.stl",
+                "quantity": 1,
+                "required": False,
+                "output_type": "optional_printable_component",
+            },
+        ],
+    }
     result = SourceContractValidator().validate(
-        PLAN_SOURCE,
+        SELECTED_OUTPUT_PLAN_SOURCE,
         design_specification=DESIGN_SPEC,
-        design_plan=DESIGN_PLAN,
+        design_plan=plan,
         source_type="ai_initial",
     )
 

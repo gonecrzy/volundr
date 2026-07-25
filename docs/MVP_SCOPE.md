@@ -75,6 +75,9 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 
 - Download `.scad`.
 - Download `.stl`.
+- Download one STL per Design Plan printable output.
+- Download `output-manifest.json`.
+- Download deterministic ZIP exports containing source, Design Specification, Design Plan, output manifest, assembly notes, and STL artifacts.
 - Use clear filenames derived from the project and revision.
 
 ### Deployment
@@ -99,7 +102,6 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Arbitrary STL editing
 - STEP import or editing
 - CAD assemblies
-- Full multi-output compilation/export packaging from one Design Plan
 - Structured revision planning
 - Component-targeted AI revisions
 - Interactive parameter editing and preset switching

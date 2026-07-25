@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 import shutil
+import time
+import zipfile
 from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
@@ -23,6 +25,7 @@ from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
+from app.models.revision_output import RevisionOutput
 from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
 from app.schemas.project import (
@@ -44,6 +47,7 @@ from app.schemas.project import (
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
+    RevisionOutputRead,
     ValidationFindingRead,
     ValidationSummaryRead,
     RequirementExtractionCreate,
@@ -73,6 +77,11 @@ ARCHIVED_RETENTION_DAYS = 60
 AI_SOURCE_TYPES = frozenset({"ai_initial", "ai_revision", "ai_repair"})
 OPEN_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
 ACCEPTABLE_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings"})
+OUTPUT_READY_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
+PRINTABLE_OUTPUT_TYPES = frozenset(
+    {"printable_component", "repeated_printable_component", "optional_printable_component"}
+)
+RETRYABLE_OUTPUT_ERRORS = frozenset({"openscad_process", "openscad_timeout", "worker_failure", "artifact_write"})
 BLOCKING_RULE_IDS = frozenset(
     {
         "mesh.empty_or_zero_volume",
@@ -90,6 +99,7 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
+PLANNED_OPENSCAD_PROMPT_VERSION = "openscad-generation-v5"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 DEFAULT_REQUIREMENT_PROFILE = {
     "version": "volundr-defaults-v1",
@@ -341,6 +351,40 @@ class ProjectService:
         )
         return [ValidationFindingRead.model_validate(finding) for finding in findings]
 
+    def list_revision_outputs(self, revision_id: str) -> list[RevisionOutputRead] | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return None
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision_id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        if not outputs and revision.stl_path is not None:
+            return [self._legacy_revision_output_read(revision)]
+        return [self._revision_output_read(output) for output in outputs]
+
+    def get_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
+        output = self.db.get(RevisionOutput, output_artifact_id)
+        if output is None:
+            return None
+        return self._revision_output_read(output)
+
+    def list_revision_output_findings(
+        self,
+        output_artifact_id: str,
+    ) -> list[ValidationFindingRead] | None:
+        if self.db.get(RevisionOutput, output_artifact_id) is None:
+            return None
+        findings = self.db.scalars(
+            select(ValidationFinding)
+            .where(ValidationFinding.revision_output_id == output_artifact_id)
+            .order_by(ValidationFinding.created_at.asc(), ValidationFinding.rule_id.asc())
+        )
+        return [ValidationFindingRead.model_validate(finding) for finding in findings]
+
     def list_generation_attempt_findings(
         self,
         attempt_id: str,
@@ -369,6 +413,39 @@ class ProjectService:
         return GeometricAnalysisRead(
             id=result.id,
             revision_id=result.revision_id,
+            revision_output_id=result.revision_output_id,
+            design_specification_id=result.design_specification_id,
+            analysis_version=result.analysis_version,
+            tolerance_profile_version=result.tolerance_profile_version,
+            mesh_hash=result.mesh_hash,
+            source_hash=result.source_hash,
+            analysis_ms=result.analysis_ms,
+            created_at=result.created_at,
+            findings=[
+                GeometricFindingRead.model_validate(finding)
+                for finding in payload.get("findings", [])
+            ],
+        )
+
+    def get_revision_output_geometric_analysis(
+        self,
+        output_artifact_id: str,
+    ) -> GeometricAnalysisRead | None:
+        result = self.db.scalar(
+            select(GeometricAnalysisResult)
+            .where(GeometricAnalysisResult.revision_output_id == output_artifact_id)
+            .order_by(GeometricAnalysisResult.created_at.desc())
+        )
+        if result is None:
+            return None
+        result_path = self.data_dir / result.result_path
+        if not result_path.exists():
+            return None
+        payload = json.loads(result_path.read_text(encoding="utf-8"))
+        return GeometricAnalysisRead(
+            id=result.id,
+            revision_id=result.revision_id,
+            revision_output_id=result.revision_output_id,
             design_specification_id=result.design_specification_id,
             analysis_version=result.analysis_version,
             tolerance_profile_version=result.tolerance_profile_version,
@@ -407,6 +484,204 @@ class ProjectService:
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision)
+
+    async def _compile_revision_output(
+        self,
+        *,
+        revision: Revision,
+        output: RevisionOutput,
+        scad_source: str,
+        source_hash: str,
+        stl_dir: Path,
+        log_dir: Path,
+        metadata_dir: Path,
+        design_specification_payload: dict[str, Any] | None,
+        design_specification_id: str | None,
+    ) -> None:
+        started = time.perf_counter()
+        output.output_state = "compiling"
+        output.updated_at = project_utcnow()
+        self.db.flush()
+
+        job_id = f"{revision.id}-{output.output_id}"
+        result = await self.cad_runner.compile(
+            scad_source,
+            job_id=job_id,
+            selected_output=output.output_id,
+        )
+        output.compile_ms = round((time.perf_counter() - started) * 1000, 3)
+        output.compile_command_json = json.dumps(result.command_args or [])
+
+        compile_log_path = log_dir / f"{self._safe_stem(output.output_id)}.log"
+        compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
+        output.compile_log_path = self._relative(compile_log_path)
+        output.compile_error = result.error_message
+        output.source_hash = source_hash
+
+        if not result.success or result.stl_path is None or result.metadata is None:
+            output.output_state = "failed"
+            output.updated_at = project_utcnow()
+            output.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
+            self.db.flush()
+            return
+
+        output.output_state = "validating"
+        stl_path = stl_dir / output.filename
+        shutil.copyfile(result.stl_path, stl_path)
+        metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.json"
+        metadata_path.write_text(json.dumps(asdict(result.metadata), indent=2), encoding="utf-8")
+        output.stl_path = self._relative(stl_path)
+        output.stl_hash = self._file_sha256(stl_path)
+        output.metadata_json = json.dumps(asdict(result.metadata), sort_keys=True)
+
+        self._persist_geometric_analysis(
+            revision=revision,
+            stl_path=stl_path,
+            scad_source=scad_source,
+            design_specification_payload=design_specification_payload,
+            design_specification_id=design_specification_id,
+            revision_output=output,
+        )
+        self._persist_validation_findings(revision=revision, stl_path=stl_path, revision_output=output)
+        output.output_state = self._derive_output_state(output.id)
+        output.validation_summary_json = json.dumps(
+            self._validation_summary(output.revision_id, revision_output_id=output.id).model_dump()
+        )
+        output.updated_at = project_utcnow()
+        self.db.flush()
+
+    def _persist_assembly_output_findings(self, revision: Revision) -> None:
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        output_ids = [output.output_id for output in outputs]
+        if len(output_ids) != len(set(output_ids)):
+            self.db.add(
+                self._assembly_finding(
+                    revision.id,
+                    rule_id="assembly.duplicate_output_id",
+                    severity="critical",
+                    blocking=True,
+                    title="Duplicate printable output ID",
+                    explanation="The Design Plan produced duplicate printable output IDs.",
+                    suggested_correction="Regenerate the Design Plan with unique output IDs.",
+                )
+            )
+        for output in outputs:
+            if output.required and output.output_state == "failed":
+                self.db.add(
+                    self._assembly_finding(
+                        revision.id,
+                        rule_id="assembly.required_output_failed",
+                        severity="critical",
+                        blocking=True,
+                        title=f"Required output failed: {output.label}",
+                        explanation="A required printable output did not compile successfully.",
+                        suggested_correction="Retry the output if the failure is transient, or create a new generation/revision.",
+                        detected_value=output.output_id,
+                    )
+                )
+            elif not output.required and output.output_state == "failed":
+                self.db.add(
+                    self._assembly_finding(
+                        revision.id,
+                        rule_id="assembly.optional_output_failed",
+                        severity="warning",
+                        blocking=False,
+                        title=f"Optional output failed: {output.label}",
+                        explanation="An optional printable output did not compile successfully.",
+                        suggested_correction="Retry the output if needed, or continue without this optional artifact.",
+                        detected_value=output.output_id,
+                    )
+                )
+        self.db.flush()
+
+    def _assembly_finding(
+        self,
+        revision_id: str,
+        *,
+        rule_id: str,
+        severity: str,
+        blocking: bool,
+        title: str,
+        explanation: str,
+        suggested_correction: str,
+        detected_value: str | None = None,
+    ) -> ValidationFinding:
+        return ValidationFinding(
+            revision_id=revision_id,
+            rule_id=rule_id,
+            category="assembly",
+            severity=severity,
+            is_blocking=blocking,
+            title=title,
+            explanation=explanation,
+            suggested_correction=suggested_correction,
+            detected_value=detected_value,
+            unit=None,
+            threshold_value=None,
+            orientation_dependent=False,
+            affected_geometry_summary=None,
+            metadata_json=json.dumps({"finding_origin": "assembly_output"}),
+        )
+
+    def _refresh_revision_output_counts(self, revision: Revision) -> None:
+        outputs = list(
+            self.db.scalars(select(RevisionOutput).where(RevisionOutput.revision_id == revision.id))
+        )
+        revision.expected_output_count = len(outputs)
+        revision.required_output_count = sum(1 for output in outputs if output.required)
+        revision.successful_output_count = sum(1 for output in outputs if output.output_state in OUTPUT_READY_STATES)
+        revision.blocked_output_count = sum(1 for output in outputs if output.output_state == "blocked")
+        revision.failed_output_count = sum(1 for output in outputs if output.output_state == "failed")
+        self.db.flush()
+
+    def _derive_output_state(self, output_artifact_id: str) -> str:
+        findings = list(
+            self.db.scalars(
+                select(ValidationFinding).where(
+                    ValidationFinding.revision_output_id == output_artifact_id
+                )
+            )
+        )
+        if any(finding.is_blocking for finding in findings):
+            return "blocked"
+        if findings:
+            return "ready_with_warnings"
+        return "ready"
+
+    def _first_successful_output_stl(self, revision: Revision) -> str | None:
+        output = self.db.scalar(
+            select(RevisionOutput)
+            .where(
+                RevisionOutput.revision_id == revision.id,
+                RevisionOutput.output_state.in_(OUTPUT_READY_STATES),
+                RevisionOutput.stl_path.is_not(None),
+            )
+            .order_by(RevisionOutput.required.desc(), RevisionOutput.created_at.asc())
+        )
+        return output.stl_path if output is not None else None
+
+    def _write_assembly_compile_log(self, revision: Revision, log_dir: Path) -> Path:
+        path = log_dir.parent / "compile.log"
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        lines = ["Multi-output compilation summary"]
+        for output in outputs:
+            lines.append(f"{output.output_id}: {output.output_state}")
+            if output.compile_error:
+                lines.append(output.compile_error)
+        path.write_text("\n".join(lines), encoding="utf-8")
+        return path
 
     def reject_candidate(self, revision_id: str) -> RevisionRead | None:
         revision = self.db.get(Revision, revision_id)
@@ -766,16 +1041,30 @@ class ProjectService:
             )
         except _StoppedWithRevision as exc:
             return exc.revision
-        initial_revision = await self._create_revision_from_source(
-            project_id=project_id,
-            scad_source=scad_source,
-            user_instruction=payload.user_instruction,
-            source_type=source_type,
-            raw_ai_output=raw_ai_output,
-            design_specification_id=design_specification.id if design_specification else None,
-            design_specification_payload=design_specification_payload,
-            source_validation_result_id=source_validation.id,
-        )
+        if design_plan is not None and design_plan_payload is not None:
+            initial_revision = await self._create_revision_from_planned_source(
+                project_id=project_id,
+                scad_source=scad_source,
+                user_instruction=payload.user_instruction,
+                source_type=source_type,
+                raw_ai_output=raw_ai_output,
+                design_specification_id=design_specification.id if design_specification else None,
+                design_specification_payload=design_specification_payload,
+                design_plan_id=design_plan.id,
+                design_plan_payload=design_plan_payload,
+                source_validation_result_id=source_validation.id,
+            )
+        else:
+            initial_revision = await self._create_revision_from_source(
+                project_id=project_id,
+                scad_source=scad_source,
+                user_instruction=payload.user_instruction,
+                source_type=source_type,
+                raw_ai_output=raw_ai_output,
+                design_specification_id=design_specification.id if design_specification else None,
+                design_specification_payload=design_specification_payload,
+                source_validation_result_id=source_validation.id,
+            )
         if initial_revision is None or initial_revision.status == "succeeded":
             self._finish_generation_attempt(
                 active_attempt,
@@ -861,16 +1150,30 @@ class ProjectService:
                 error_message=error_message,
             )
             return initial_revision
-        repair_revision = await self._create_revision_from_source(
-            project_id=project_id,
-            scad_source=repaired_source,
-            user_instruction=payload.user_instruction,
-            source_type="ai_repair",
-            raw_ai_output=repair_result.raw_output,
-            design_specification_id=design_specification.id if design_specification else None,
-            design_specification_payload=design_specification_payload,
-            source_validation_result_id=repair_source_validation.id,
-        )
+        if design_plan is not None and design_plan_payload is not None:
+            repair_revision = await self._create_revision_from_planned_source(
+                project_id=project_id,
+                scad_source=repaired_source,
+                user_instruction=payload.user_instruction,
+                source_type="ai_repair",
+                raw_ai_output=repair_result.raw_output,
+                design_specification_id=design_specification.id if design_specification else None,
+                design_specification_payload=design_specification_payload,
+                design_plan_id=design_plan.id,
+                design_plan_payload=design_plan_payload,
+                source_validation_result_id=repair_source_validation.id,
+            )
+        else:
+            repair_revision = await self._create_revision_from_source(
+                project_id=project_id,
+                scad_source=repaired_source,
+                user_instruction=payload.user_instruction,
+                source_type="ai_repair",
+                raw_ai_output=repair_result.raw_output,
+                design_specification_id=design_specification.id if design_specification else None,
+                design_specification_payload=design_specification_payload,
+                source_validation_result_id=repair_source_validation.id,
+            )
         self._finish_generation_attempt(
             repair_attempt,
             status="succeeded" if repair_revision and repair_revision.status == "succeeded" else "failed",
@@ -1621,7 +1924,7 @@ class ProjectService:
         if request.current_source:
             return "legacy-revision-v1"
         if request.design_plan:
-            return "openscad-generation-v4"
+            return PLANNED_OPENSCAD_PROMPT_VERSION
         if request.design_specification:
             return "openscad-generation-v3"
         return "legacy-initial-v1"
@@ -1911,6 +2214,7 @@ class ProjectService:
         scad_source: str,
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
+        revision_output: RevisionOutput | None = None,
     ) -> None:
         if design_specification_payload is None:
             return
@@ -1951,11 +2255,17 @@ class ProjectService:
                 )
             )
         revision_dir = self._revision_dir(revision.project_id, revision.id)
-        result_path = revision_dir / "geometry-analysis.json"
+        result_path = (
+            revision_dir / "geometry-analysis.json"
+            if revision_output is None
+            else revision_dir / "geometry" / f"{self._safe_stem(revision_output.output_id)}.json"
+        )
+        result_path.parent.mkdir(parents=True, exist_ok=True)
         result_payload = result.to_json()
 
         persisted = GeometricAnalysisResult(
             revision_id=revision.id,
+            revision_output_id=revision_output.id if revision_output is not None else None,
             design_specification_id=design_specification_id,
             analysis_version=result.analysis_version,
             tolerance_profile_version=result.tolerance_profile_version,
@@ -1971,6 +2281,7 @@ class ProjectService:
                 validation_finding = self._validation_finding_from_geometric_result(
                     finding,
                     revision_id=revision.id,
+                    revision_output_id=revision_output.id if revision_output is not None else None,
                     design_specification_id=design_specification_id,
                     analysis_result_id=persisted.id,
                     analysis_version=result.analysis_version,
@@ -1990,6 +2301,7 @@ class ProjectService:
         finding: GeometricFinding,
         *,
         revision_id: str,
+        revision_output_id: str | None = None,
         design_specification_id: str | None,
         analysis_result_id: str,
         analysis_version: str,
@@ -2017,6 +2329,7 @@ class ProjectService:
         )
         return ValidationFinding(
             revision_id=revision_id,
+            revision_output_id=revision_output_id,
             design_specification_id=design_specification_id,
             rule_id=finding.rule_id,
             category="geometry",
@@ -2053,18 +2366,32 @@ class ProjectService:
             if isinstance(entry, dict)
         )
 
-    def _persist_validation_findings(self, *, revision: Revision, stl_path: Path) -> None:
+    def _persist_validation_findings(
+        self,
+        *,
+        revision: Revision,
+        stl_path: Path,
+        revision_output: RevisionOutput | None = None,
+    ) -> None:
         report = inspect_printability(stl_path, PrintabilityProfile())
         for result in report.results:
             if result.severity == "Pass":
                 continue
-            self.db.add(self._validation_finding_from_printability_result(revision.id, result))
+            self.db.add(
+                self._validation_finding_from_printability_result(
+                    revision.id,
+                    result,
+                    revision_output_id=revision_output.id if revision_output is not None else None,
+                )
+            )
         self.db.flush()
 
     def _validation_finding_from_printability_result(
         self,
         revision_id: str,
         result: PrintabilityResult,
+        *,
+        revision_output_id: str | None = None,
     ) -> ValidationFinding:
         severity = result.severity.lower()
         metadata = {
@@ -2075,6 +2402,7 @@ class ProjectService:
         }
         return ValidationFinding(
             revision_id=revision_id,
+            revision_output_id=revision_output_id,
             rule_id=result.rule_id,
             category=result.rule_id.split(".", 1)[0],
             severity=severity,
@@ -2137,10 +2465,16 @@ class ProjectService:
             or 0
         ) > 0
 
-    def _validation_summary(self, revision_id: str) -> ValidationSummaryRead:
-        findings = list(
-            self.db.scalars(select(ValidationFinding).where(ValidationFinding.revision_id == revision_id))
-        )
+    def _validation_summary(
+        self,
+        revision_id: str,
+        *,
+        revision_output_id: str | None = None,
+    ) -> ValidationSummaryRead:
+        query = select(ValidationFinding).where(ValidationFinding.revision_id == revision_id)
+        if revision_output_id is not None:
+            query = query.where(ValidationFinding.revision_output_id == revision_output_id)
+        findings = list(self.db.scalars(query))
         return ValidationSummaryRead(
             blocking_count=sum(1 for finding in findings if finding.is_blocking),
             advisory_count=sum(1 for finding in findings if not finding.is_blocking),
@@ -2280,6 +2614,130 @@ class ProjectService:
         self.db.refresh(revision)
         return self._revision_read(revision, metadata=metadata, error_message=result.error_message)
 
+    async def _create_revision_from_planned_source(
+        self,
+        *,
+        project_id: str,
+        scad_source: str,
+        user_instruction: str | None,
+        source_type: str,
+        raw_ai_output: str | None,
+        design_specification_id: str | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_id: str,
+        design_plan_payload: dict[str, Any],
+        source_validation_result_id: str | None,
+    ) -> RevisionRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+
+        outputs = self._planned_printable_outputs(design_plan_payload)
+        if not outputs:
+            raise ValueError("Design Plan has no printable outputs")
+
+        revision_number = self._next_revision_number(project_id)
+        revision = Revision(
+            project_id=project_id,
+            parent_revision_id=project.active_revision_id,
+            design_specification_id=design_specification_id,
+            design_plan_id=design_plan_id,
+            revision_number=revision_number,
+            source_type=source_type,
+            user_instruction=user_instruction,
+            scad_source_path="",
+            status="compiling",
+            is_accepted=False,
+            expected_output_count=len(outputs),
+            required_output_count=sum(1 for output in outputs if output["required"]),
+            successful_output_count=0,
+            blocked_output_count=0,
+            failed_output_count=0,
+        )
+        self.db.add(revision)
+        self.db.flush()
+        if source_validation_result_id is not None:
+            self._attach_source_validation_to_revision(
+                source_validation_result_id=source_validation_result_id,
+                revision_id=revision.id,
+            )
+
+        revision_dir = self._revision_dir(project_id, revision.id)
+        revision_dir.mkdir(parents=True, exist_ok=True)
+        stl_dir = revision_dir / "stl"
+        log_dir = revision_dir / "logs"
+        metadata_dir = revision_dir / "metadata"
+        stl_dir.mkdir(parents=True, exist_ok=True)
+        log_dir.mkdir(parents=True, exist_ok=True)
+        metadata_dir.mkdir(parents=True, exist_ok=True)
+
+        source_path = revision_dir / "project.scad"
+        source_path.write_text(scad_source, encoding="utf-8")
+        source_hash = hashlib.sha256(scad_source.encode("utf-8")).hexdigest()
+
+        ai_output_relative_path: str | None = None
+        if raw_ai_output is not None:
+            ai_output_path = revision_dir / "ai-output.txt"
+            ai_output_path.write_text(raw_ai_output, encoding="utf-8")
+            ai_output_relative_path = self._relative(ai_output_path)
+
+        used_filenames: set[str] = set()
+        output_records: list[RevisionOutput] = []
+        for output in outputs:
+            filename = self._safe_output_filename(output["output_id"], output["filename"], used_filenames)
+            used_filenames.add(filename.lower())
+            record = RevisionOutput(
+                revision_id=revision.id,
+                design_plan_id=design_plan_id,
+                design_specification_id=design_specification_id,
+                output_id=output["output_id"],
+                component_id=output["component_id"],
+                component_ids_json=json.dumps(output["component_ids"]),
+                output_state="queued",
+                output_type=output["output_type"],
+                label=output["label"],
+                filename=filename,
+                quantity=output["quantity"],
+                required=output["required"],
+                module_name=output["module_name"],
+                source_hash=source_hash,
+                preferred_orientation_json=json.dumps(output["preferred_orientation"])
+                if output["preferred_orientation"] is not None
+                else None,
+            )
+            self.db.add(record)
+            output_records.append(record)
+        self.db.flush()
+
+        for output_record in output_records:
+            await self._compile_revision_output(
+                revision=revision,
+                output=output_record,
+                scad_source=scad_source,
+                source_hash=source_hash,
+                stl_dir=stl_dir,
+                log_dir=log_dir,
+                metadata_dir=metadata_dir,
+                design_specification_payload=design_specification_payload,
+                design_specification_id=design_specification_id,
+            )
+
+        self._persist_assembly_output_findings(revision)
+        self._refresh_revision_output_counts(revision)
+        revision.status = "succeeded"
+        revision.scad_source_path = self._relative(source_path)
+        revision.ai_output_path = ai_output_relative_path
+        revision.compile_log_path = self._relative(self._write_assembly_compile_log(revision, log_dir))
+        revision.stl_path = self._first_successful_output_stl(revision)
+        revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
+        revision.review_state = self._derive_review_state(revision.id)
+        revision.is_accepted = False
+
+        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+        self.db.commit()
+        self.db.refresh(revision)
+        return self._revision_read(revision)
+
     def read_revision_source(self, revision_id: str) -> str | None:
         path = self.resolve_revision_source(revision_id)
         if path is None:
@@ -2337,6 +2795,119 @@ class ProjectService:
             return None
         path = self.data_dir / revision.stl_path
         return path if path.exists() else None
+
+    def resolve_revision_output_stl(self, output_artifact_id: str) -> Path | None:
+        output = self.db.get(RevisionOutput, output_artifact_id)
+        if output is None or output.stl_path is None:
+            return None
+        path = self.data_dir / output.stl_path
+        return path if path.exists() else None
+
+    def read_revision_output_compile_log(self, output_artifact_id: str) -> str | None:
+        output = self.db.get(RevisionOutput, output_artifact_id)
+        if output is None or output.compile_log_path is None:
+            return None
+        path = self.data_dir / output.compile_log_path
+        if not path.exists():
+            return None
+        return path.read_text(encoding="utf-8")
+
+    def read_output_manifest(self, revision_id: str) -> dict[str, Any] | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return None
+        if revision.output_manifest_path:
+            path = self.data_dir / revision.output_manifest_path
+            if path.exists():
+                return json.loads(path.read_text(encoding="utf-8"))
+        return self._output_manifest_payload(revision)
+
+    def build_revision_export(self, revision_id: str) -> Path | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return None
+        revision_dir = self._revision_dir(revision.project_id, revision.id)
+        revision_dir.mkdir(parents=True, exist_ok=True)
+        export_path = revision_dir / "project-export.zip"
+        payload = self._output_manifest_payload(revision)
+        project = self.db.get(Project, revision.project_id)
+        root = self._safe_stem(project.slug if project else f"revision-{revision.revision_number}")
+        plan_payload = self._revision_design_plan_payload(revision)
+        spec_payload = self._revision_design_specification_payload(revision)
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        with zipfile.ZipFile(export_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr(f"{root}/README.md", self._export_readme(revision, outputs, plan_payload))
+            archive.writestr(
+                f"{root}/design-specification.json",
+                json.dumps(spec_payload or {}, indent=2, sort_keys=True),
+            )
+            archive.writestr(
+                f"{root}/design-plan.json",
+                json.dumps(plan_payload or {}, indent=2, sort_keys=True),
+            )
+            source_path = self.resolve_revision_source(revision.id)
+            if source_path is not None:
+                archive.write(source_path, f"{root}/project.scad")
+            archive.writestr(
+                f"{root}/output-manifest.json",
+                json.dumps(payload, indent=2, sort_keys=True),
+            )
+            archive.writestr(f"{root}/assembly-notes.md", self._assembly_notes(plan_payload, outputs))
+            for output in outputs:
+                if output.stl_path is None:
+                    continue
+                stl_path = self.data_dir / output.stl_path
+                if stl_path.exists():
+                    archive.write(stl_path, f"{root}/stl/{output.filename}")
+        return export_path
+
+    async def retry_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
+        output = self.db.get(RevisionOutput, output_artifact_id)
+        if output is None:
+            return None
+        if output.output_state != "failed":
+            raise ValueError("Only failed outputs can be retried")
+        revision = self.db.get(Revision, output.revision_id)
+        if revision is None:
+            return None
+        source_path = self.resolve_revision_source(revision.id)
+        if source_path is None:
+            raise ValueError("Revision source is missing")
+        source = source_path.read_text(encoding="utf-8")
+        expected_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
+        if output.source_hash and output.source_hash != expected_hash:
+            raise ValueError("Source hash changed; output retry is not safe")
+
+        revision_dir = self._revision_dir(revision.project_id, revision.id)
+        await self._compile_revision_output(
+            revision=revision,
+            output=output,
+            scad_source=source,
+            source_hash=expected_hash,
+            stl_dir=revision_dir / "stl",
+            log_dir=revision_dir / "logs",
+            metadata_dir=revision_dir / "metadata",
+            design_specification_payload=self._revision_design_specification_payload(revision),
+            design_specification_id=revision.design_specification_id,
+        )
+        self._clear_assembly_output_findings(revision.id)
+        self._persist_assembly_output_findings(revision)
+        self._refresh_revision_output_counts(revision)
+        revision.stl_path = self._first_successful_output_stl(revision)
+        revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
+        revision.compile_log_path = self._relative(
+            self._write_assembly_compile_log(revision, revision_dir / "logs")
+        )
+        revision.review_state = self._derive_review_state(revision.id)
+        self.db.commit()
+        self.db.refresh(output)
+        return self._revision_output_read(output)
 
     def restore_revision(self, revision_id: str) -> Project | None:
         revision = self.db.get(Revision, revision_id)
@@ -2416,6 +2987,7 @@ class ProjectService:
             project_id=revision.project_id,
             parent_revision_id=revision.parent_revision_id,
             design_specification_id=revision.design_specification_id,
+            design_plan_id=revision.design_plan_id,
             revision_number=revision.revision_number,
             source_type=revision.source_type,
             user_instruction=revision.user_instruction,
@@ -2423,6 +2995,12 @@ class ProjectService:
             stl_path=revision.stl_path,
             compile_log_path=revision.compile_log_path,
             ai_output_path=revision.ai_output_path,
+            output_manifest_path=revision.output_manifest_path,
+            expected_output_count=revision.expected_output_count,
+            required_output_count=revision.required_output_count,
+            successful_output_count=revision.successful_output_count,
+            blocked_output_count=revision.blocked_output_count,
+            failed_output_count=revision.failed_output_count,
             status=revision.status,
             is_accepted=revision.is_accepted,
             review_state=revision.review_state,
@@ -2433,6 +3011,309 @@ class ProjectService:
             error_message=error_message,
             validation_summary=self._validation_summary(revision.id),
         )
+
+    def _revision_output_read(self, output: RevisionOutput) -> RevisionOutputRead:
+        metadata = MeshMetadataRead(**json.loads(output.metadata_json)) if output.metadata_json else None
+        preferred_orientation = (
+            json.loads(output.preferred_orientation_json)
+            if output.preferred_orientation_json
+            else None
+        )
+        return RevisionOutputRead(
+            id=output.id,
+            revision_id=output.revision_id,
+            design_plan_id=output.design_plan_id,
+            design_specification_id=output.design_specification_id,
+            output_id=output.output_id,
+            component_id=output.component_id,
+            component_ids=json.loads(output.component_ids_json),
+            output_state=output.output_state,
+            output_type=output.output_type,
+            label=output.label,
+            filename=output.filename,
+            quantity=output.quantity,
+            required=output.required,
+            module_name=output.module_name,
+            source_hash=output.source_hash,
+            stl_path=output.stl_path,
+            stl_hash=output.stl_hash,
+            compile_log_path=output.compile_log_path,
+            compile_ms=output.compile_ms,
+            compile_error=output.compile_error,
+            compile_command=json.loads(output.compile_command_json),
+            metadata=metadata,
+            validation_summary=self._validation_summary(
+                output.revision_id,
+                revision_output_id=output.id,
+            ),
+            preferred_orientation=preferred_orientation,
+            created_at=output.created_at,
+            updated_at=output.updated_at,
+        )
+
+    def _legacy_revision_output_read(self, revision: Revision) -> RevisionOutputRead:
+        metadata = self._read_revision_metadata(revision)
+        return RevisionOutputRead(
+            id=f"legacy-{revision.id}",
+            revision_id=revision.id,
+            design_plan_id=revision.design_plan_id,
+            design_specification_id=revision.design_specification_id,
+            output_id="model",
+            component_id=None,
+            component_ids=[],
+            output_state="ready" if revision.status == "succeeded" else revision.status,
+            output_type="printable_component",
+            label="Model",
+            filename="model.stl",
+            quantity=1,
+            required=True,
+            module_name="main_model",
+            source_hash=None,
+            stl_path=revision.stl_path,
+            stl_hash=None,
+            compile_log_path=revision.compile_log_path,
+            compile_ms=None,
+            compile_error=None,
+            compile_command=[],
+            metadata=metadata,
+            validation_summary=self._validation_summary(revision.id),
+            preferred_orientation=None,
+            created_at=revision.created_at,
+            updated_at=revision.created_at,
+        )
+
+    def _planned_printable_outputs(self, design_plan_payload: dict[str, Any]) -> list[dict[str, Any]]:
+        outputs: list[dict[str, Any]] = []
+        for output in design_plan_payload.get("printable_outputs", []):
+            if not isinstance(output, dict):
+                continue
+            output_type = str(output.get("output_type") or "printable_component")
+            if output_type not in PRINTABLE_OUTPUT_TYPES:
+                continue
+            output_id = str(output.get("id") or "").strip()
+            if not output_id:
+                continue
+            component_ids = [
+                str(component_id)
+                for component_id in (
+                    output.get("component_ids")
+                    or ([output.get("component_id")] if output.get("component_id") else [])
+                )
+                if component_id
+            ]
+            component_id = str(output.get("component_id") or (component_ids[0] if component_ids else ""))
+            module_name = str(output.get("module_name") or output.get("module") or output_id).strip()
+            required = bool(output.get("required", output_type != "optional_printable_component"))
+            preferred_orientation = output.get("preferred_orientation") or output.get("orientation")
+            outputs.append(
+                {
+                    "output_id": output_id,
+                    "label": str(output.get("label") or output_id),
+                    "component_id": component_id or None,
+                    "component_ids": component_ids,
+                    "module_name": module_name,
+                    "filename": str(output.get("filename") or f"{output_id}.stl"),
+                    "quantity": int(output.get("quantity") or 1),
+                    "required": required,
+                    "output_type": output_type,
+                    "preferred_orientation": preferred_orientation,
+                }
+            )
+        return outputs
+
+    def _safe_output_filename(self, output_id: str, requested: str | None, used: set[str]) -> str:
+        raw = requested or f"{output_id}.stl"
+        name = re.sub(r"[\x00-\x1f/\\:]+", "-", raw).strip(". -")
+        if not name or name in {".", ".."} or ".." in name:
+            name = f"{output_id}.stl"
+        if not name.lower().endswith(".stl"):
+            name = f"{name}.stl"
+        reserved = {"con", "prn", "aux", "nul", "com1", "com2", "lpt1", "lpt2"}
+        stem = Path(name).stem
+        if stem.lower() in reserved:
+            name = f"{output_id}.stl"
+            stem = Path(name).stem
+        suffix = Path(name).suffix or ".stl"
+        candidate = name
+        index = 2
+        while candidate.lower() in used:
+            candidate = f"{stem}-{index}{suffix}"
+            index += 1
+        return candidate
+
+    def _safe_stem(self, value: str) -> str:
+        return re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip(".-") or "artifact"
+
+    def _file_sha256(self, path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def _write_output_manifest(self, revision: Revision) -> Path:
+        manifest_path = self._revision_dir(revision.project_id, revision.id) / "output-manifest.json"
+        self._write_json(manifest_path, self._output_manifest_payload(revision))
+        return manifest_path
+
+    def _output_manifest_payload(self, revision: Revision) -> dict[str, Any]:
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        source_path = self.resolve_revision_source(revision.id)
+        source_hash = self._file_sha256(source_path) if source_path is not None else None
+        return {
+            "schema_version": "output-manifest-v1",
+            "project_id": revision.project_id,
+            "revision_id": revision.id,
+            "design_plan_id": revision.design_plan_id,
+            "source": {
+                "filename": "project.scad" if revision.design_plan_id else "model.scad",
+                "sha256": source_hash,
+            },
+            "outputs": [self._output_manifest_entry(output) for output in outputs],
+        }
+
+    def _output_manifest_entry(self, output: RevisionOutput) -> dict[str, Any]:
+        metadata = json.loads(output.metadata_json) if output.metadata_json else None
+        dimensions = None
+        if metadata is not None:
+            dimensions = {
+                "x": metadata.get("size_x_mm"),
+                "y": metadata.get("size_y_mm"),
+                "z": metadata.get("size_z_mm"),
+            }
+        return {
+            "output_id": output.output_id,
+            "component_id": output.component_id,
+            "component_ids": json.loads(output.component_ids_json),
+            "filename": output.filename,
+            "quantity": output.quantity,
+            "required": output.required,
+            "state": output.output_state,
+            "sha256": output.stl_hash,
+            "dimensions_mm": dimensions,
+        }
+
+    def _revision_design_plan_payload(self, revision: Revision) -> dict[str, Any] | None:
+        if revision.design_plan_id is None:
+            return None
+        plan = self.db.get(DesignPlan, revision.design_plan_id)
+        return self._read_design_plan_payload(plan) if plan is not None else None
+
+    def _revision_design_specification_payload(self, revision: Revision) -> dict[str, Any] | None:
+        if revision.design_specification_id is None:
+            return None
+        specification = self.db.get(DesignSpecification, revision.design_specification_id)
+        return self._read_design_specification_payload(specification) if specification is not None else None
+
+    def _export_readme(
+        self,
+        revision: Revision,
+        outputs: list[RevisionOutput],
+        design_plan_payload: dict[str, Any] | None,
+    ) -> str:
+        project = self.db.get(Project, revision.project_id)
+        lines = [
+            f"# {project.name if project else 'Volundr Project'}",
+            "",
+            f"Revision: R{revision.revision_number} ({revision.id})",
+            f"Generated: {revision.created_at.isoformat()}",
+            "",
+            "## Parameters",
+        ]
+        for parameter in (design_plan_payload or {}).get("parameters", []):
+            lines.append(f"- {parameter.get('label') or parameter.get('id')}: {parameter.get('value')} {parameter.get('unit') or ''}".rstrip())
+        if not (design_plan_payload or {}).get("parameters"):
+            lines.append("- No structured parameters were available.")
+        lines.extend(["", "## Printable Outputs"])
+        for output in outputs:
+            lines.append(
+                f"- {output.label}: {output.filename}, quantity {output.quantity}, state {output.output_state}"
+            )
+        lines.extend(
+            [
+                "",
+                "## Known Warnings",
+            ]
+        )
+        findings = list(
+            self.db.scalars(
+                select(ValidationFinding)
+                .where(ValidationFinding.revision_id == revision.id)
+                .where(ValidationFinding.is_blocking.is_(False))
+                .order_by(ValidationFinding.rule_id.asc())
+            )
+        )
+        if findings:
+            for finding in findings:
+                lines.append(f"- {finding.title}: {finding.explanation}")
+        else:
+            lines.append("- None recorded.")
+        lines.extend(
+            [
+                "",
+                "## Assembly Disclaimer",
+                "Volundr validates printable artifacts, but this export does not prove assembled fit, fastener compatibility, or load capacity.",
+                "",
+                "## Regeneration",
+                "Regenerate from the included Design Specification, Design Plan, and project.scad to reproduce these outputs.",
+            ]
+        )
+        return "\n".join(lines) + "\n"
+
+    def _assembly_notes(
+        self,
+        design_plan_payload: dict[str, Any] | None,
+        outputs: list[RevisionOutput],
+    ) -> str:
+        plan = design_plan_payload or {}
+        assembly = plan.get("assembly_strategy", {})
+        lines = ["# Assembly Notes", "", "## Components"]
+        for output in outputs:
+            lines.append(f"- {output.label}: quantity {output.quantity}")
+        lines.extend(["", "## Relationships"])
+        relationships = assembly.get("relationships") or assembly.get("instructions") or []
+        if relationships:
+            for relationship in relationships:
+                if isinstance(relationship, dict):
+                    lines.append(
+                        f"- {relationship.get('from_component_id') or relationship.get('from') or 'component'} "
+                        f"{relationship.get('relationship') or relationship.get('type') or 'relates to'} "
+                        f"{relationship.get('to_component_id') or relationship.get('to') or 'component'}"
+                    )
+                else:
+                    lines.append(f"- {relationship}")
+        else:
+            lines.append("- No detailed assembly relationships were provided by the Design Plan.")
+        hardware = assembly.get("hardware") or plan.get("purchased_hardware") or []
+        lines.extend(["", "## Purchased Hardware"])
+        if hardware:
+            for item in hardware:
+                lines.append(f"- {item}")
+        else:
+            lines.append("- None listed.")
+        lines.extend(["", "## Risks"])
+        risks = plan.get("risks", [])
+        if risks:
+            for risk in risks:
+                lines.append(f"- {risk.get('description') or risk}")
+        else:
+            lines.append("- No structured risks were listed.")
+        return "\n".join(lines) + "\n"
+
+    def _clear_assembly_output_findings(self, revision_id: str) -> None:
+        self.db.execute(
+            delete(ValidationFinding).where(
+                ValidationFinding.revision_id == revision_id,
+                ValidationFinding.category == "assembly",
+            )
+        )
+        self.db.flush()
 
     def _next_revision_number(self, project_id: str) -> int:
         current = self.db.scalar(
@@ -2484,7 +3365,17 @@ class ProjectService:
             return None
         metadata_path = (self.data_dir / revision.scad_source_path).parent / "metadata.json"
         if not metadata_path.exists():
-            return None
+            output = self.db.scalar(
+                select(RevisionOutput)
+                .where(
+                    RevisionOutput.revision_id == revision.id,
+                    RevisionOutput.metadata_json.is_not(None),
+                )
+                .order_by(RevisionOutput.required.desc(), RevisionOutput.created_at.asc())
+            )
+            if output is None or output.metadata_json is None:
+                return None
+            return MeshMetadataRead(**json.loads(output.metadata_json))
         payload = json.loads(metadata_path.read_text(encoding="utf-8"))
         return MeshMetadataRead(**payload)
 

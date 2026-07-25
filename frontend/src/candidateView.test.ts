@@ -9,10 +9,14 @@ import {
   sourceCheckSummary,
   geometricFindingBuckets,
   revisionPromptFromGeometricFinding,
+  outputDimensionsLabel,
+  outputStateLabel,
+  canRetryOutput,
   type GeometricFinding,
   type CandidateFinding,
   type CandidateRevision,
   type ProjectState,
+  type RevisionOutput,
 } from "./candidateView";
 
 const project: ProjectState = {
@@ -68,6 +72,40 @@ function geometricFinding(overrides: Partial<GeometricFinding>): GeometricFindin
     suggested_correction: "No correction is needed.",
     feature_id: null,
     metadata: {},
+    ...overrides,
+  };
+}
+
+function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
+  return {
+    id: "output-1",
+    revision_id: "candidate-revision",
+    output_id: "body",
+    component_id: "body",
+    component_ids: ["body"],
+    output_state: "ready",
+    output_type: "printable_component",
+    label: "Body",
+    filename: "body.stl",
+    quantity: 1,
+    required: true,
+    module_name: "body",
+    stl_path: "projects/example/body.stl",
+    stl_hash: "hash",
+    compile_log_path: "projects/example/body.log",
+    compile_error: null,
+    metadata: {
+      size_x_mm: 80,
+      size_y_mm: 50,
+      size_z_mm: 6,
+      volume_mm3: 24000,
+      triangle_count: 12,
+      connected_components: 1,
+      is_watertight: true,
+      is_winding_consistent: true,
+      center_of_mass: [40, 25, 3],
+    },
+    validation_summary: { blocking_count: 0, advisory_count: 0, dismissed_count: 0 },
     ...overrides,
   };
 }
@@ -190,5 +228,20 @@ describe("candidate view helpers", () => {
     expect(prompt).toContain("geometry.protected_hole_spacing");
     expect(prompt).toContain("expected 50");
     expect(prompt).toContain("detected 60");
+  });
+
+  it("labels output states and dimensions", () => {
+    expect(outputStateLabel(revisionOutput({ output_state: "ready_with_warnings" }))).toBe(
+      "Ready with warnings",
+    );
+    expect(outputStateLabel(revisionOutput({ output_state: "blocked" }))).toBe("Blocked");
+    expect(outputDimensionsLabel(revisionOutput({}))).toBe("80 x 50 x 6 mm");
+    expect(outputDimensionsLabel(revisionOutput({ metadata: null }))).toBe("Dimensions unavailable");
+  });
+
+  it("shows retry only for failed outputs", () => {
+    expect(canRetryOutput(revisionOutput({ output_state: "failed" }))).toBe(true);
+    expect(canRetryOutput(revisionOutput({ output_state: "blocked" }))).toBe(false);
+    expect(canRetryOutput(revisionOutput({ output_state: "ready" }))).toBe(false);
   });
 });

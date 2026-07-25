@@ -28,6 +28,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - requirement extraction and clarification    │
 │ - parametric Design Plan generation/review    │
 │ - generation orchestration                    │
+│ - multi-output artifact orchestration         │
 │ - candidate revision review and acceptance    │
 │ - pre-compile OpenSCAD source-contract checks │
 │ - post-compile geometric invariant checks     │
@@ -35,6 +36,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - CAD runner interface                        │
 │ - persisted validation findings               │
 │ - asset delivery                              │
+│ - output manifest and ZIP export              │
 │ - SQLite persistence                          │
 └───────────────┬───────────────────┬───────────┘
                 │                   │
@@ -85,6 +87,9 @@ Responsibilities:
 - SQLite access
 - project and revision orchestration
 - candidate state transitions
+- Design Plan output manifest resolution
+- per-output compile/retry orchestration
+- project export packaging
 - validation finding persistence and blocking/advisory enforcement
 - Gemini CLI provider
 - generation job state

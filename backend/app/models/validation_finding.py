@@ -21,6 +21,12 @@ class ValidationFinding(Base):
         nullable=True,
         index=True,
     )
+    revision_output_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("revision_outputs.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     generation_attempt_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("generation_attempts.id", ondelete="CASCADE"),
@@ -60,6 +66,7 @@ class ValidationFinding(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     revision = relationship("Revision", back_populates="validation_findings")
+    revision_output = relationship("RevisionOutput")
     generation_attempt = relationship("GenerationAttempt")
     design_specification = relationship("DesignSpecification")
     source_validation_result = relationship("SourceValidationResult")

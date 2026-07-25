@@ -32,6 +32,12 @@ class Revision(Base):
         nullable=True,
         index=True,
     )
+    design_plan_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("design_plans.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
     source_type: Mapped[str] = mapped_column(String(40), nullable=False)
     user_instruction: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -39,6 +45,12 @@ class Revision(Base):
     stl_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     compile_log_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     ai_output_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    output_manifest_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    expected_output_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    required_output_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    successful_output_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    blocked_output_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    failed_output_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     status: Mapped[str] = mapped_column(String(40), nullable=False, default="pending")
     is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     review_state: Mapped[str | None] = mapped_column(String(40), nullable=True)
@@ -49,8 +61,14 @@ class Revision(Base):
     project = relationship("Project", back_populates="revisions", foreign_keys=[project_id])
     parent_revision = relationship("Revision", remote_side=[id])
     design_specification = relationship("DesignSpecification")
+    design_plan = relationship("DesignPlan")
     validation_findings = relationship(
         "ValidationFinding",
+        back_populates="revision",
+        cascade="all, delete-orphan",
+    )
+    outputs = relationship(
+        "RevisionOutput",
         back_populates="revision",
         cascade="all, delete-orphan",
     )

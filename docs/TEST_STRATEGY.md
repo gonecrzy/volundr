@@ -46,7 +46,7 @@ Test AI responses containing:
 Test:
 
 - tokenizer ignores prohibited-looking text inside comments and strings
-- real `import()`, `surface()`, `include`, `use`, suspicious paths, oversized source, missing `main_model`, missing final call, top-level geometry, unbalanced braces/parentheses, and empty `main_model` body block before compile
+- real `import()`, `surface()`, `include`, `use`, suspicious paths, oversized source, missing legacy `main_model` or planned `render_selected_output`, missing final call, top-level geometry, unbalanced braces/parentheses, and empty final-output body block before compile
 - new initial AI source requires the contract skeleton and Design Specification requirement/feature markers
 - protected numeric values are statically verified with safe constant arithmetic
 - unverifiable or mismatched protected values block before compile
@@ -95,6 +95,13 @@ Test:
 - invalid Design Plan JSON is persisted and repaired at most once
 - OpenSCAD generation from the new initial flow cannot begin before the Design Plan is approved
 - planned generation uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
+- approved Design Plan printable outputs compile through the canonical multi-output pipeline in `docs/MULTI_OUTPUT_GENERATION.md`
+- single-output plans produce one output artifact through the same pipeline
+- multi-output plans persist one output artifact per declared printable output
+- failed required outputs block the assembly candidate while preserving successful component artifacts
+- failed optional outputs create advisory assembly findings when required outputs remain usable
+- output retry recompiles the same source hash and does not call the provider
+- output manifests match persisted artifacts and exports include only the selected revision's files
 - generated initial candidates link back to the Design Specification that produced them
 - create initial revision
 - create child revision
@@ -224,4 +231,6 @@ Candidate tests must use fake providers and deterministic STL fixtures. Live Gem
 
 Requirement-extraction tests must use fake providers and deterministic JSON fixtures. They must assert that clarification is not represented as a failed revision and that no candidate exists before explicit Continue to generation.
 
-Design Plan tests must use fake providers and deterministic JSON fixtures. They must assert immutable persistence, supersession, approval/rejection, prompt/model/ruleset metadata, plan artifact hashes, and `openscad-generation-v4` prompt context.
+Design Plan tests must use fake providers and deterministic JSON fixtures. They must assert immutable persistence, supersession, approval/rejection, prompt/model/ruleset metadata, plan artifact hashes, and `openscad-generation-v5` prompt context.
+
+Multi-output tests must use fake providers and deterministic STL fixtures. They must cover required and optional outputs, selected-output compiler invocation, component-scoped findings, assembly candidate classification, output manifest reproducibility, retry without provider calls, and ZIP export contents.

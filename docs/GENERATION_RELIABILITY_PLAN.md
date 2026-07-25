@@ -119,12 +119,12 @@ This Priority 0 item only implements storage and tests for the artifact shape. I
 - Dependency: `docs/GEMINI_RULESET.md`.
 - Risk: medium.
 - Expected benefit: missing skeleton sections, forbidden constructs, missing assertions, and top-level geometry fail before expensive compile.
-- Required tests: malformed AI outputs, comments containing `main_model();`, missing `USER PARAMETERS`, missing assertions, forbidden constructs.
+- Required tests: malformed AI outputs, comments containing final output calls, missing `USER PARAMETERS`, missing assertions, forbidden constructs.
 - Exit criteria: contract failures become classified failed attempts, not accepted revisions.
 
 Split source-contract results into:
 
-- hard rejections: unsafe constructs, no valid source, empty source, no `main_model()`, multiple top-level model calls, top-level geometry outside `main_model()`, forbidden file access, source over size limit
+- hard rejections: unsafe constructs, no valid source, empty source, no valid final output dispatcher for the applicable contract, multiple top-level model calls, top-level geometry outside the dispatcher, forbidden file access, source over size limit
 - quality findings: missing assertions, missing print notes, weak parameter names, sparse assumptions, poor module boundaries, advisory `$fn` issues
 
 Missing assertions alone should create a quality finding unless paired with invalid or unsafe dimensions.
@@ -154,9 +154,11 @@ ai_assumption
 
 Clarification evaluation must track both recall and precision so Volundr avoids both missed clarifications and excessive questioning.
 
-Implementation status update: the immutable Parametric Product Model and `design-plan-v1` foundation is now implemented. Design Plans are generated from ready Design Specifications, persisted immutably with raw and parsed provider artifacts, supersede older plan versions, require explicit approval, and then act as the product-structure authority for `openscad-generation-v4`. The Design Plan schema is defined in `docs/DATA_MODEL.md`.
+Implementation status update: the immutable Parametric Product Model and `design-plan-v1` foundation is now implemented. Design Plans are generated from ready Design Specifications, persisted immutably with raw and parsed provider artifacts, supersede older plan versions, require explicit approval, and then act as the product-structure authority for `openscad-generation-v5`. The Design Plan schema is defined in `docs/DATA_MODEL.md`.
 
-Next dependency before structured revision planning: implement multi-component and multi-output generation/compilation/export so Design Plan `printable_outputs` can produce traceable artifacts. Deferred: full structured revision planning, component-targeted revisions, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
+Implementation status update: approved Design Plan `printable_outputs` now produce one authoritative SCAD source, one output artifact record per printable output, component-scoped validation findings, an assembly-level candidate, an output manifest, component STL downloads, and a deterministic ZIP export. The lifecycle is defined in `docs/MULTI_OUTPUT_GENERATION.md`.
+
+Next dependency before component-targeted revisions: implement structured revision planning that consumes the Design Specification, approved Design Plan, output manifest, and validation findings. Deferred: component-targeted revisions, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 
 ## Priority 2: Validation And Acceptance
 

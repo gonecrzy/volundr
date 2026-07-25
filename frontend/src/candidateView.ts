@@ -20,6 +20,48 @@ export type CandidateRevision = {
   validation_summary: ValidationSummary;
 };
 
+export type RevisionOutputState =
+  | "queued"
+  | "compiling"
+  | "compiled"
+  | "validating"
+  | "ready"
+  | "ready_with_warnings"
+  | "blocked"
+  | "failed"
+  | "skipped";
+
+export type RevisionOutput = {
+  id: string;
+  revision_id: string;
+  output_id: string;
+  component_id: string | null;
+  component_ids: string[];
+  output_state: RevisionOutputState;
+  output_type: string;
+  label: string;
+  filename: string;
+  quantity: number;
+  required: boolean;
+  module_name: string;
+  stl_path: string | null;
+  stl_hash: string | null;
+  compile_log_path: string | null;
+  compile_error: string | null;
+  metadata: {
+    size_x_mm: number;
+    size_y_mm: number;
+    size_z_mm: number;
+    volume_mm3: number;
+    triangle_count: number;
+    connected_components: number;
+    is_watertight: boolean;
+    is_winding_consistent: boolean;
+    center_of_mass: [number, number, number];
+  } | null;
+  validation_summary: ValidationSummary;
+};
+
 export type CandidateFinding = {
   id: string;
   rule_id: string;
@@ -110,6 +152,41 @@ export function revisionWorkflowLabel(revision: CandidateRevision | null): strin
     default:
       return revision.status;
   }
+}
+
+export function outputStateLabel(output: RevisionOutput): string {
+  switch (output.output_state) {
+    case "ready":
+      return "Ready";
+    case "ready_with_warnings":
+      return "Ready with warnings";
+    case "blocked":
+      return "Blocked";
+    case "failed":
+      return "Failed";
+    case "validating":
+      return "Validating";
+    case "compiling":
+      return "Compiling";
+    case "queued":
+      return "Queued";
+    case "skipped":
+      return "Skipped";
+    default:
+      return output.output_state;
+  }
+}
+
+export function outputDimensionsLabel(output: RevisionOutput): string {
+  if (!output.metadata) {
+    return "Dimensions unavailable";
+  }
+  const { size_x_mm, size_y_mm, size_z_mm } = output.metadata;
+  return `${formatDimension(size_x_mm)} x ${formatDimension(size_y_mm)} x ${formatDimension(size_z_mm)} mm`;
+}
+
+export function canRetryOutput(output: RevisionOutput): boolean {
+  return output.output_state === "failed";
 }
 
 export function canAcceptRevision(revision: CandidateRevision | null): boolean {
@@ -221,4 +298,8 @@ function formatMaybeValue(value: number | string | null, unit: string | null): s
     return "unverified";
   }
   return `${value}${unit ? ` ${unit}` : ""}`;
+}
+
+function formatDimension(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }

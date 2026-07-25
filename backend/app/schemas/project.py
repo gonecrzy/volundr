@@ -286,8 +286,15 @@ class DesignPlanPrintableOutput(BaseModel):
     id: str = Field(min_length=1)
     label: str = Field(min_length=1)
     component_ids: list[str] = Field(min_length=1)
+    component_id: str | None = None
+    module_name: str | None = None
+    filename: str | None = None
     quantity: int = Field(default=1, ge=1)
+    required: bool = True
+    output_type: str = "printable_component"
     orientation: str | None = None
+    preferred_orientation: str | None = None
+    notes: str | None = None
 
 
 class DesignPlanPayload(BaseModel):
@@ -377,6 +384,7 @@ class RevisionRead(BaseModel):
     project_id: str
     parent_revision_id: str | None
     design_specification_id: str | None = None
+    design_plan_id: str | None = None
     revision_number: int
     source_type: str
     user_instruction: str | None
@@ -384,6 +392,12 @@ class RevisionRead(BaseModel):
     stl_path: str | None
     compile_log_path: str | None
     ai_output_path: str | None
+    output_manifest_path: str | None = None
+    expected_output_count: int | None = None
+    required_output_count: int | None = None
+    successful_output_count: int | None = None
+    blocked_output_count: int | None = None
+    failed_output_count: int | None = None
     status: str
     is_accepted: bool
     review_state: str | None = None
@@ -395,11 +409,43 @@ class RevisionRead(BaseModel):
     validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
 
 
+class RevisionOutputRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    revision_id: str
+    design_plan_id: str | None = None
+    design_specification_id: str | None = None
+    output_id: str
+    component_id: str | None = None
+    component_ids: list[str] = Field(default_factory=list)
+    output_state: str
+    output_type: str
+    label: str
+    filename: str
+    quantity: int
+    required: bool
+    module_name: str
+    source_hash: str | None = None
+    stl_path: str | None = None
+    stl_hash: str | None = None
+    compile_log_path: str | None = None
+    compile_ms: float | None = None
+    compile_error: str | None = None
+    compile_command: list[str] = Field(default_factory=list)
+    metadata: MeshMetadataRead | None = None
+    validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
+    preferred_orientation: dict[str, Any] | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
 class ValidationFindingRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     revision_id: str | None
+    revision_output_id: str | None = None
     generation_attempt_id: str | None = None
     design_specification_id: str | None = None
     source_validation_result_id: str | None = None
@@ -450,6 +496,7 @@ class GeometricFindingRead(BaseModel):
 class GeometricAnalysisRead(BaseModel):
     id: str
     revision_id: str
+    revision_output_id: str | None = None
     design_specification_id: str | None
     analysis_version: str
     tolerance_profile_version: str

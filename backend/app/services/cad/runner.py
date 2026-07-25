@@ -34,6 +34,7 @@ class CadCompileResult:
     output_size_bytes: int
     metadata: MeshMetadata | None
     error_message: str | None
+    command_args: list[str] | None = None
 
 
 class OpenScadCliRunner:
@@ -52,7 +53,14 @@ class OpenScadCliRunner:
         self.max_source_bytes = max_source_bytes or settings.max_source_bytes
         self.max_stl_bytes = max_stl_bytes or settings.max_stl_bytes
 
-    async def compile(self, source: str, job_id: str) -> CadCompileResult:
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        selected_output: str | None = None,
+        defines: dict[str, str | int | float | bool] | None = None,
+    ) -> CadCompileResult:
         source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
         rejection = self._screen_source(source)
         if rejection is not None:
@@ -71,11 +79,16 @@ class OpenScadCliRunner:
         metadata_path = job_dir / "metadata.json"
         source_path.write_text(source, encoding="utf-8")
 
-        process = await asyncio.create_subprocess_exec(
+        command_args = [
             self.openscad_binary,
+            *self._define_args(selected_output=selected_output, defines=defines),
             "-o",
             str(stl_path),
             str(source_path),
+        ]
+
+        process = await asyncio.create_subprocess_exec(
+            *command_args,
             cwd=job_dir,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -112,6 +125,7 @@ class OpenScadCliRunner:
                 output_size_bytes=self._file_size(stl_path),
                 metadata=None,
                 error_message=f"OpenSCAD timed out after {self.timeout_seconds} seconds",
+                command_args=self._safe_command_args(command_args),
             )
 
         if exit_code != 0:
@@ -129,6 +143,7 @@ class OpenScadCliRunner:
                 output_size_bytes=self._file_size(stl_path),
                 metadata=None,
                 error_message=self._diagnostic(stderr, "OpenSCAD failed"),
+                command_args=self._safe_command_args(command_args),
             )
 
         output_size = self._file_size(stl_path)
@@ -147,6 +162,7 @@ class OpenScadCliRunner:
                 output_size_bytes=0,
                 metadata=None,
                 error_message="OpenSCAD did not produce an STL",
+                command_args=self._safe_command_args(command_args),
             )
         if output_size > self.max_stl_bytes:
             stl_path.unlink(missing_ok=True)
@@ -164,6 +180,7 @@ class OpenScadCliRunner:
                 output_size_bytes=output_size,
                 metadata=None,
                 error_message="generated STL exceeds size limit",
+                command_args=self._safe_command_args(command_args),
             )
 
         try:
@@ -183,6 +200,7 @@ class OpenScadCliRunner:
                 output_size_bytes=output_size,
                 metadata=None,
                 error_message=str(exc),
+                command_args=self._safe_command_args(command_args),
             )
 
         metadata_path.write_text(json.dumps(asdict(metadata), indent=2), encoding="utf-8")
@@ -201,6 +219,7 @@ class OpenScadCliRunner:
             output_size_bytes=output_size,
             metadata=metadata,
             error_message=None,
+            command_args=self._safe_command_args(command_args),
         )
 
     def _screen_source(self, source: str) -> str | None:
@@ -248,7 +267,40 @@ class OpenScadCliRunner:
             output_size_bytes=0,
             metadata=None,
             error_message=error_message,
+            command_args=None,
         )
+
+    def _define_args(
+        self,
+        *,
+        selected_output: str | None,
+        defines: dict[str, str | int | float | bool] | None,
+    ) -> list[str]:
+        values = dict(defines or {})
+        if selected_output is not None:
+            values["selected_output"] = selected_output
+        args: list[str] = []
+        for key, value in sorted(values.items()):
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
+                continue
+            if isinstance(value, bool):
+                rendered = "true" if value else "false"
+            elif isinstance(value, int | float):
+                rendered = str(value)
+            else:
+                rendered = json.dumps(str(value))
+            args.extend(["-D", f"{key}={rendered}"])
+        return args
+
+    def _safe_command_args(self, args: list[str]) -> list[str]:
+        safe: list[str] = []
+        for arg in args:
+            path = Path(arg)
+            if path.is_absolute():
+                safe.append(path.name)
+            else:
+                safe.append(arg)
+        return safe
 
     def _terminate_process_group(self, pid: int) -> None:
         try:

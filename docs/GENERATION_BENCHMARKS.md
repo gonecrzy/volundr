@@ -32,6 +32,8 @@ All generated OpenSCAD benchmarks must:
 - map every protected functional requirement with `@volundr-feature`
 - include `@volundr-geometry` markers for supported protected bounds, hole, hole-group, and wall-thickness invariants
 - when an approved Design Plan is present, map its components, features, dependency edges, and printable outputs with the markers defined in `docs/MODEL_GENERATION_CONTRACT.md`
+- when an approved Design Plan is present, use the selected-output contract and artifact lifecycle in `docs/MULTI_OUTPUT_GENERATION.md`
+- compile every required printable output, persist component-scoped validation results, and produce a reproducible `output-manifest.json`
 - verify supported protected geometric invariants according to `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - avoid unrequested decorative or weight-reduction features
 - classify assumptions and warnings
@@ -56,6 +58,16 @@ The full machine-readable suite also includes parametric-product Design Plan exp
 - repeated-slot rack
 
 These cases assert generic plan shape: parameters, derived dependencies, components, features, presets where useful, assembly strategy, printable outputs, risks, and design level. The case/carrier benchmark includes a fishing-tray carrier as one acceptance case, not as a schema template.
+
+Multi-output fixture expectations:
+
+- simple bracket: one output through the canonical output pipeline
+- electronics enclosure: body and lid outputs
+- configurable organizer: repeated printable output quantity where applicable
+- adapter: one output unless the approved plan declares separate fittings
+- case/carrier: body plus handle or retention output when planned separately
+- multi-part hinged box: body, lid, and hinge pin when planned as printable
+- repeated-slot rack: one or more outputs with quantity represented on the artifact rather than duplicate rows
 
 ## Suites
 

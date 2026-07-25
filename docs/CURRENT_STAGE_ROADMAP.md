@@ -170,13 +170,15 @@ Completed in this pass:
 - Design Plans capture product parameters, derived parameters, dependency edges, components, component features, presets, assembly strategy, printable outputs, risks, and design level
 - plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
 - the frontend now creates a Design Plan from ready requirements, presents it for review, requires explicit approval, and generates OpenSCAD from the approved plan
-- `openscad-generation-v4` uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
+- `openscad-generation-v5` uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
 - source metadata now recognizes `@volundr-component`, `@volundr-dependency`, and `@volundr-output` markers in addition to requirement, feature, and geometry markers
+- approved Design Plan printable outputs now compile into per-output STL artifacts through the selector contract in `docs/MULTI_OUTPUT_GENERATION.md`
+- the candidate review workflow now exposes assembly status, component output states, per-output downloads, SCAD download, manifest download, ZIP export, and safe retry for failed outputs
 
 Next implementation boundary:
 
-- implement multi-component and multi-output generation/compilation/export using the approved Design Plan printable outputs
-- do not begin structured revision planning until multi-output artifacts can be represented and validated cleanly
+- implement structured revision planning using the approved Design Plan, output manifest, and validation findings
+- do not begin component-targeted AI revisions until structured revision plans can name affected parameters, features, components, and outputs
 
 Correct trajectory from the geometric invariant checkpoint:
 
@@ -193,7 +195,7 @@ Correct trajectory from the geometric invariant checkpoint:
 
 Deferred stabilization work:
 
-- full structured revision planning after the Parametric Product Model exists
+- component-targeted AI revisions after structured revision planning exists
 - automatic continue policies
 - full protected-invariant geometry proof for arbitrary features
 - geometric proof that feature markers correspond to complex physical geometry such as angled holes, threads, snap fits, or internal cavities

@@ -151,11 +151,13 @@ def test_planned_openscad_prompt_uses_approved_design_plan_as_authority() -> Non
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "openscad-generation-v4"
+    assert provider.prompt_template_version_for(request) == "openscad-generation-v5"
     assert "approved Parametric Design Plan" in prompt
     assert "@volundr-component <design_plan_component_id>" in prompt
     assert "@volundr-dependency <from_parameter_id> -> <to_parameter_id>" in prompt
-    assert "@volundr-output <output_id> components=<comma_separated_component_ids>" in prompt
+    assert "@volundr-output <output_id> module=<module_name>" in prompt
+    assert "selected_output" in prompt
+    assert "render_selected_output();" in prompt
     assert "assertions for invalid configurations" in prompt
 
 

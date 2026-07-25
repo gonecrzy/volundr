@@ -43,11 +43,22 @@ eps = 0.01;
 // @volundr-geometry type=bounds x=width_parameter y=depth_parameter z=height_parameter
 
 // ===== FINAL MODEL =====
-module main_model() {
-    // final assembly
+selected_output = "body_output";
+
+// @volundr-output body_output module=body_output required=true filename=body.stl components=main_body
+module body_output() {
+    main_body();
 }
 
-main_model();
+module render_selected_output() {
+    if (selected_output == "body_output") {
+        body_output();
+    } else {
+        assert(false, str("Unknown selected_output: ", selected_output));
+    }
+}
+
+render_selected_output();
 ```
 
 ## Functional CAD Rules
@@ -82,7 +93,7 @@ main_model();
 3. A Design Plan must be generic: use parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and `design_level`; do not encode product-specific schema fields.
 4. Every derived parameter must list its dependencies and have a corresponding dependency edge when that relationship affects component size, feature count, output layout, or assembly.
 5. Every component must list the features and parameters it owns.
-6. Every printable output must list component IDs and quantity, even when the current implementation emits a single `main_model()`.
+6. Every printable output must list component IDs and quantity; OpenSCAD generation uses the selected-output contract in `docs/MULTI_OUTPUT_GENERATION.md` even when there is one output.
 7. Ask plan clarification when component structure, output separation, assembly strategy, or configuration dependencies cannot be chosen safely.
 8. A ready Design Plan must enter review and be explicitly approved before OpenSCAD generation.
 
@@ -98,7 +109,7 @@ The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md
 6. For newly generated measurable features, add `@volundr-geometry` markers as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 7. Use geometry markers for declared bounds, axis-aligned holes, hole groups, and wall-thickness regions only when the generated source implements the corresponding feature.
 8. Preserve geometry markers during source-contract repair, compile repair, and AI revisions unless the related protected requirement is explicitly changed.
-9. For `openscad-generation-v4`, add `@volundr-component`, Design Plan `@volundr-feature`, `@volundr-dependency`, and `@volundr-output` markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`.
+9. For `openscad-generation-v5`, add `@volundr-component`, Design Plan `@volundr-feature`, `@volundr-dependency`, and `@volundr-output` markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`.
 
 ## Requirement Source Rules
 
@@ -113,13 +124,14 @@ The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md
 2. Define `eps = 0.01` and use it for cutters and intentional overlaps.
 3. Use `center=false` by default.
 4. Keep the model near the XY origin and entirely at or above Z=0.
-5. End with exactly one top-level `main_model();` call.
-6. Do not emit top-level geometry outside `main_model();`.
-7. Use modules for repeated or conceptually distinct features.
-8. Use derived values instead of repeated arithmetic literals.
-9. Avoid exact coplanar Boolean boundaries. Cutters should extend past target faces by `eps`; joined parts should overlap by at least `eps`.
-10. Avoid zero-thickness contact. Tangent or face-only contact is not a structural connection.
-11. Avoid unbounded loops, recursion, excessive nested Booleans, and high polygon counts.
+5. For approved Design Plan source, end with exactly one top-level `render_selected_output();` call.
+6. For legacy/manual source, end with exactly one top-level `main_model();` call.
+7. Do not emit top-level geometry outside the final output dispatcher.
+8. Use modules for repeated or conceptually distinct features.
+9. Use derived values instead of repeated arithmetic literals.
+10. Avoid exact coplanar Boolean boundaries. Cutters should extend past target faces by `eps`; joined parts should overlap by at least `eps`.
+11. Avoid zero-thickness contact. Tangent or face-only contact is not a structural connection.
+12. Avoid unbounded loops, recursion, excessive nested Booleans, and high polygon counts.
 
 ## Printability Rules
 

@@ -287,6 +287,12 @@
         "dependency_edges": ["leg_length -> hole_margin", "thickness -> gusset_size"],
         "presets": ["light_duty", "heavy_duty"],
         "printable_outputs": ["bracket"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["bracket"],
+        "optional_outputs": [],
+        "artifact_count": 1
       }
     },
     {
@@ -311,6 +317,12 @@
         "dependency_edges": ["pcb_width -> enclosure_width", "pcb_depth -> enclosure_depth", "wall_thickness -> lid_outer_size"],
         "presets": ["vented", "sealed_without_gasket_claim"],
         "printable_outputs": ["base", "lid"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["base", "lid"],
+        "optional_outputs": [],
+        "artifact_count": 2
       }
     },
     {
@@ -335,6 +347,12 @@
         "dependency_edges": ["row_count -> overall_depth", "column_count -> overall_width", "cell_width -> divider_positions"],
         "presets": ["3x4", "4x5"],
         "printable_outputs": ["organizer_body"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["organizer_body"],
+        "optional_outputs": [],
+        "artifact_count": 1
       }
     },
     {
@@ -359,6 +377,12 @@
         "dependency_edges": ["round_diameter -> round_outer_diameter", "wall_thickness -> all_outer_profiles", "transition_length -> overhang_risk"],
         "presets": ["short", "support_friendly"],
         "printable_outputs": ["adapter_body"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["adapter_body"],
+        "optional_outputs": [],
+        "artifact_count": 1
       }
     },
     {
@@ -383,6 +407,12 @@
         "dependency_edges": ["tray_count -> guide_count", "guide_count -> case_height", "tray_family -> tray_dimensions", "case_height -> handle_position"],
         "presets": ["3600_six_tray", "3700_eight_tray"],
         "printable_outputs": ["carrier_body"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["carrier_body"],
+        "optional_outputs": ["carry_handle", "retention_component"],
+        "artifact_count": "plan_dependent"
       }
     },
     {
@@ -407,6 +437,12 @@
         "dependency_edges": ["internal_width -> base_outer_width", "wall_thickness -> lid_fit", "hinge_pin_diameter -> hinge_knuckle_outer_diameter"],
         "presets": ["loose_fit", "snug_fit"],
         "printable_outputs": ["box_base", "box_lid"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["box_base", "box_lid"],
+        "optional_outputs": ["hinge_pin"],
+        "artifact_count": "2_or_3_by_plan"
       }
     },
     {
@@ -431,6 +467,12 @@
         "dependency_edges": ["slot_count -> rack_length", "sheet_thickness -> slot_width", "slot_spacing -> slot_positions"],
         "presets": ["short_8_slot", "standard_12_slot"],
         "printable_outputs": ["rack_body"]
+      },
+      "expected_output_manifest": {
+        "schema_version": "output-manifest-v1",
+        "required_outputs": ["rack_body"],
+        "optional_outputs": [],
+        "artifact_count": 1
       }
     }
   ]

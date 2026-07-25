@@ -16,7 +16,7 @@ GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
-PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v4"
+PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v5"
 LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
@@ -277,10 +277,16 @@ class GeminiCliProvider:
                 "Every component must use // @volundr-component <design_plan_component_id> near the parameter/module that implements it.",
                 "Every feature must use // @volundr-feature <design_plan_feature_id> immediately before the implementing module or statement.",
                 "Every dependency edge must use // @volundr-dependency <from_parameter_id> -> <to_parameter_id> immediately before the derived assignment.",
-                "Every printable output must use // @volundr-output <output_id> components=<comma_separated_component_ids> before the output module or main assembly.",
+                "Generate one authoritative OpenSCAD source for the complete product.",
+                "Every printable output must have one implementation module and one marker immediately before that module:",
+                "// @volundr-output <output_id> module=<module_name> required=<true|false> filename=<safe_filename.stl> components=<comma_separated_component_ids>",
+                "Define selected_output = \"<first_output_id>\" as a USER PARAMETERS value.",
+                "Define module render_selected_output() that dispatches to the output module matching selected_output and asserts false for unknown output IDs.",
+                "End with exactly one top-level render_selected_output(); call.",
                 "Add @volundr-geometry markers for supported measurable bounds, holes, hole groups, and wall thickness.",
                 "Include assertions for invalid configurations and dependencies, such as impossible counts, negative clearances, too-thin walls, or outputs that exceed derived bounds.",
-                "Do not create full multi-output packaging unless the plan explicitly requires it; for this pass, a single main_model() is acceptable when the plan has one output.",
+                "Use this same selected-output contract for single-output plans.",
+                "Do not require source-file edits between component compiles; Volundr will compile each output with a command-line selected_output override.",
                 "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
                 "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
                 "",

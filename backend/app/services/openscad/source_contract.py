@@ -52,6 +52,9 @@ class SourceOutputMapping:
     target_name: str
     target_kind: str
     line: int
+    module_name: str | None = None
+    filename: str | None = None
+    required: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -161,7 +164,7 @@ class SourceContractValidator:
         started = time.perf_counter()
         scan = scan_openscad_source(source)
         metadata = scan.metadata
-        hard = self._hard_findings(source, scan, source_type=source_type)
+        hard = self._hard_findings(source, scan, source_type=source_type, design_plan=design_plan)
         spec_findings = self._specification_findings(
             scan,
             design_specification=design_specification,
@@ -188,6 +191,7 @@ class SourceContractValidator:
         scan: SourceScanResult,
         *,
         source_type: str,
+        design_plan: dict[str, Any] | None = None,
     ) -> list[SourceContractFinding]:
         findings: list[SourceContractFinding] = []
         metadata = scan.metadata
@@ -258,7 +262,36 @@ class SourceContractValidator:
                     "Unbalanced parentheses",
                 )
             )
-        if "main_model" not in metadata.module_names:
+        requires_output_selector = _requires_output_selector(design_plan)
+        expected_final_call = "render_selected_output" if requires_output_selector else "main_model"
+        if requires_output_selector:
+            if "selected_output" not in metadata.assignments:
+                findings.append(
+                    _finding(
+                        "source_structure.missing_selected_output_parameter",
+                        "source_structure",
+                        "Missing selected_output parameter",
+                    )
+                )
+            if "render_selected_output" not in metadata.module_names:
+                findings.append(
+                    _finding(
+                        "source_structure.missing_render_selected_output_module",
+                        "source_structure",
+                        "Missing render_selected_output module",
+                    )
+                )
+            if metadata.top_level_calls.count("render_selected_output") != 1:
+                findings.append(
+                    _finding(
+                        "source_structure.missing_final_render_selected_output_call",
+                        "source_structure",
+                        "Missing final render_selected_output() call",
+                        detected_value=str(metadata.top_level_calls.count("render_selected_output")),
+                        threshold_value="1",
+                    )
+                )
+        elif "main_model" not in metadata.module_names:
             findings.append(
                 _finding(
                     "source_structure.missing_main_model_module",
@@ -266,7 +299,7 @@ class SourceContractValidator:
                     "Missing main_model module",
                 )
             )
-        if metadata.top_level_calls.count("main_model") != 1:
+        if not requires_output_selector and metadata.top_level_calls.count("main_model") != 1:
             findings.append(
                 _finding(
                     "source_structure.missing_final_main_model_call",
@@ -276,16 +309,19 @@ class SourceContractValidator:
                     threshold_value="1",
                 )
             )
-        if metadata.top_level_geometry_calls:
+        unintended_top_level = [
+            call for call in metadata.top_level_geometry_calls if call != expected_final_call
+        ]
+        if unintended_top_level:
             findings.append(
                 _finding(
                     "source_structure.unintended_top_level_call",
                     "source_structure",
                     "Unintended top-level geometry call",
-                    detected_value=", ".join(metadata.top_level_geometry_calls),
+                    detected_value=", ".join(unintended_top_level),
                 )
             )
-        if metadata.main_model_body_empty:
+        if not requires_output_selector and metadata.main_model_body_empty:
             findings.append(
                 _finding(
                     "source_structure.empty_main_model_body",
@@ -464,13 +500,41 @@ class SourceContractValidator:
                 )
         for output in design_plan.get("printable_outputs", []):
             output_id = str(output.get("id"))
-            if output_id and output_id not in scan.metadata.output_mappings:
+            if not output_id:
+                continue
+            mapping = scan.metadata.output_mappings.get(output_id)
+            if mapping is None:
                 findings.append(
                     _finding(
                         "design_plan_compliance.missing_output_marker",
                         "specification_compliance",
                         "Missing Design Plan printable output marker",
                         threshold_value=output_id,
+                    )
+                )
+                continue
+            expected_module = str(output.get("module_name") or output.get("module") or "").strip()
+            marker_module = mapping.module_name or mapping.target_name
+            if expected_module and marker_module != expected_module:
+                findings.append(
+                    _finding(
+                        "design_plan_compliance.output_module_mismatch",
+                        "specification_compliance",
+                        "Printable output marker references the wrong module",
+                        detected_value=marker_module,
+                        threshold_value=expected_module,
+                        line=mapping.line,
+                    )
+                )
+            if marker_module not in scan.metadata.module_names:
+                findings.append(
+                    _finding(
+                        "design_plan_compliance.output_module_missing",
+                        "specification_compliance",
+                        "Printable output marker references a missing module",
+                        detected_value=marker_module,
+                        threshold_value=output_id,
+                        line=mapping.line,
                     )
                 )
         return findings
@@ -726,6 +790,9 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                         target_name=name.value,
                         target_kind="module",
                         line=name.line,
+                        module_name=output_marker.get("module_name"),
+                        filename=output_marker.get("filename"),
+                        required=output_marker.get("required"),
                     )
                 if name.value == "main_model":
                     pending_main_body = True
@@ -787,7 +854,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
             ):
                 if token.value not in {"assert", "echo"}:
                     top_level_calls.append(token.value)
-                if token.value not in {"main_model", "assert", "echo"}:
+                if token.value not in {"main_model", "render_selected_output", "assert", "echo"}:
                     top_level_geometry_calls.append(token.value)
         index += 1
     return SourceMetadata(
@@ -885,13 +952,22 @@ def _pending_markers(
                 r"components=([A-Za-z0-9_.-]+(?:,[A-Za-z0-9_.-]+)*)",
                 remainder,
             )
+            module_match = re.search(r"module=([A-Za-z_][A-Za-z0-9_]*)", remainder)
+            filename_match = re.search(r"filename=([A-Za-z0-9_.-]+)", remainder)
+            required_match = re.search(r"required=(true|false)", remainder, flags=re.IGNORECASE)
             component_ids = [
                 component_id.strip()
                 for component_id in (components_match.group(1) if components_match else "").split(",")
                 if component_id.strip()
             ]
             output_markers.setdefault(comment.line, []).append(
-                {"id": output_match.group(1), "component_ids": component_ids}
+                {
+                    "id": output_match.group(1),
+                    "component_ids": component_ids,
+                    "module_name": module_match.group(1) if module_match else None,
+                    "filename": filename_match.group(1) if filename_match else None,
+                    "required": _bool_text(required_match.group(1)) if required_match else None,
+                }
             )
         geometry_match = re.search(r"@volundr-geometry\s+(.+)", comment.value)
         if geometry_match:
@@ -1073,6 +1149,17 @@ def _repeated_numeric_literals(source: str) -> list[str]:
 
 def _format_number(value: float) -> str:
     return str(int(value)) if value.is_integer() else str(value)
+
+
+def _bool_text(value: str) -> bool:
+    return value.strip().lower() == "true"
+
+
+def _requires_output_selector(design_plan: dict[str, Any] | None) -> bool:
+    if design_plan is None:
+        return False
+    outputs = design_plan.get("printable_outputs", [])
+    return any(isinstance(output, dict) and output.get("id") for output in outputs)
 
 
 def _finding(

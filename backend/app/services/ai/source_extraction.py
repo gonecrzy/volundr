@@ -29,7 +29,12 @@ def extract_scad_source(raw_output: str) -> str:
 
 
 def _looks_like_scad(source: str) -> bool:
-    return "module main_model" in source or "main_model();" in source
+    return (
+        "module main_model" in source
+        or "main_model();" in source
+        or "module render_selected_output" in source
+        or "render_selected_output();" in source
+    )
 
 
 def _contains_scad_syntax(source: str) -> bool:
@@ -38,8 +43,12 @@ def _contains_scad_syntax(source: str) -> bool:
 
 def _validate_source(source: str) -> None:
     scan = scan_openscad_source(source)
-    if "main_model" not in scan.metadata.module_names:
-        raise SourceExtractionError("OpenSCAD source must define main_model")
-    call_count = scan.metadata.top_level_calls.count("main_model")
+    if "main_model" in scan.metadata.module_names:
+        expected_call = "main_model"
+    elif "render_selected_output" in scan.metadata.module_names:
+        expected_call = "render_selected_output"
+    else:
+        raise SourceExtractionError("OpenSCAD source must define main_model or render_selected_output")
+    call_count = scan.metadata.top_level_calls.count(expected_call)
     if call_count != 1:
-        raise SourceExtractionError("OpenSCAD source must contain exactly one main_model(); call")
+        raise SourceExtractionError(f"OpenSCAD source must contain exactly one {expected_call}(); call")

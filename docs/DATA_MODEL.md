@@ -45,6 +45,7 @@ id
 project_id
 parent_revision_id
 design_specification_id
+design_plan_id
 revision_number
 source_type
 user_instruction
@@ -52,6 +53,12 @@ scad_source_path
 stl_path
 compile_log_path
 ai_output_path
+output_manifest_path
+expected_output_count
+required_output_count
+successful_output_count
+blocked_output_count
+failed_output_count
 status
 is_accepted
 review_state
@@ -104,6 +111,59 @@ rejected -> accepted is forbidden
 ```
 
 Manual source compilation establishes the first active accepted revision when no active design exists. Later manual compiles and AI compiles create candidates until explicitly accepted.
+
+For approved Design Plan generation, the revision represents the assembly-level candidate. Individual printable artifacts are represented by `RevisionOutput` rows. `stl_path` remains as a compatibility pointer to the first successful printable output when one exists.
+
+## RevisionOutput
+
+Represents one printable artifact produced from a Design Plan output selector.
+
+Fields:
+
+```text
+id
+revision_id
+design_plan_id
+design_specification_id
+output_id
+component_id
+component_ids_json
+output_state
+output_type
+label
+filename
+quantity
+required
+module_name
+source_hash
+stl_path
+stl_hash
+compile_log_path
+compile_ms
+compile_error
+compile_command_json
+metadata_json
+validation_summary_json
+preferred_orientation_json
+created_at
+updated_at
+```
+
+Suggested `output_state` values:
+
+```text
+queued
+compiling
+compiled
+validating
+ready
+ready_with_warnings
+blocked
+failed
+skipped
+```
+
+Output artifacts are immutable product evidence for a candidate revision except when a failed output is explicitly retried from the same authoritative source hash and output selector. Output retry does not call Gemini.
 
 ## DesignSpecification
 
@@ -237,7 +297,7 @@ Protected by default: user or clarification supplied critical dimensions, explic
 
 ## DesignPlan
 
-Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before OpenSCAD generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial OpenSCAD generation should use an approved Design Plan when one exists.
+Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before OpenSCAD generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial OpenSCAD generation should use an approved Design Plan when one exists. Printable output semantics are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
 Fields:
 
@@ -482,6 +542,7 @@ Fields:
 ```text
 id
 revision_id
+revision_output_id
 generation_attempt_id
 design_specification_id
 source_validation_result_id
@@ -516,15 +577,18 @@ critical
 
 `is_blocking` is authoritative for acceptance. Severity alone does not decide whether a candidate can be accepted. Non-blocking findings may be dismissed, but blocking findings cannot be dismissed into acceptability.
 
+`revision_output_id` is set for component-level mesh, geometric, and printability findings. Assembly-level findings leave it null and attach only to `revision_id`.
+
 ## GeometricAnalysisResult
 
-Represents one deterministic post-compile geometric invariant analysis for a revision.
+Represents one deterministic post-compile geometric invariant analysis for a revision or a specific printable output.
 
 Fields:
 
 ```text
 id
 revision_id
+revision_output_id
 design_specification_id
 analysis_version
 tolerance_profile_version
@@ -535,7 +599,7 @@ analysis_ms
 created_at
 ```
 
-`result_path` points to the full JSON result, including verification state, confidence, expected value, detected value, tolerance, source/feature metadata, analyzer version, and linked `validation_finding_id` for persisted non-pass findings. New AI candidates with Design Specifications receive this analysis before candidate state is derived. Existing legacy revisions may have no geometric analysis.
+`result_path` points to the full JSON result, including verification state, confidence, expected value, detected value, tolerance, source/feature metadata, analyzer version, and linked `validation_finding_id` for persisted non-pass findings. New AI candidates with Design Specifications receive this analysis before candidate state is derived. Multi-output candidates receive output-scoped results. Existing legacy revisions may have no geometric analysis.
 
 ## CadJob
 

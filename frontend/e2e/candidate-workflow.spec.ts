@@ -4,6 +4,7 @@ type Revision = {
   id: string;
   parent_revision_id: string | null;
   design_specification_id: string | null;
+  design_plan_id: string | null;
   revision_number: number;
   source_type: string;
   status: string;
@@ -14,6 +15,12 @@ type Revision = {
   user_instruction: string | null;
   stl_path: string | null;
   ai_output_path: string | null;
+  output_manifest_path: string | null;
+  expected_output_count: number | null;
+  required_output_count: number | null;
+  successful_output_count: number | null;
+  blocked_output_count: number | null;
+  failed_output_count: number | null;
   created_at: string;
   metadata: {
     size_x_mm: number;
@@ -55,6 +62,7 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   let requirementCount = 0;
   let designPlanCount = 0;
   const designPlans = new Map<string, ReturnType<typeof designPlan>>();
+  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>();
 
   await page.route("**/api/**", async (route) => {
     const request = route.request();
@@ -79,6 +87,26 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     if (request.method() === "GET" && path === "/projects/project-1/revisions") {
       return route.fulfill({ json: revisions });
     }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/outputs$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({ json: outputsByRevision.get(revisionId) ?? [] });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/output-manifest$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({
+        json: {
+          schema_version: "output-manifest-v1",
+          project_id: "project-1",
+          revision_id: revisionId,
+          design_plan_id: "plan-1",
+          source: { filename: "project.scad", sha256: "source-hash" },
+          outputs: outputsByRevision.get(revisionId) ?? [],
+        },
+      });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/export\.zip$/.test(path)) {
+      return route.fulfill({ body: "PK", contentType: "application/zip" });
+    }
     if (request.method() === "GET" && path.endsWith("/source")) {
       return route.fulfill({ body: source, contentType: "text/plain" });
     }
@@ -90,6 +118,9 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     }
     if (request.method() === "GET" && path.endsWith("/stl")) {
       return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
+      return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
     }
     if (request.method() === "POST" && path === "/projects/project-1/requirements") {
       requirementCount += 1;
@@ -138,6 +169,11 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
               source_type: "ai_revision",
               review_state: "ready_with_warnings",
               validation_summary: { blocking_count: 0, advisory_count: 1, dismissed_count: 0 },
+              design_plan_id: "plan-1",
+              output_manifest_path: "projects/project-1/revisions/rev-warning/output-manifest.json",
+              expected_output_count: 2,
+              required_output_count: 2,
+              successful_output_count: 2,
             })
           : revision({
               id: "rev-blocked",
@@ -147,8 +183,35 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
               source_type: "ai_revision",
               review_state: "blocked",
               validation_summary: { blocking_count: 1, advisory_count: 0, dismissed_count: 0 },
+              design_plan_id: "plan-2",
+              output_manifest_path: "projects/project-1/revisions/rev-blocked/output-manifest.json",
+              expected_output_count: 2,
+              required_output_count: 2,
+              successful_output_count: 1,
+              failed_output_count: 1,
             });
       revisions.push(next);
+      outputsByRevision.set(
+        next.id,
+        next.id === "rev-warning"
+          ? [
+              revisionOutput({ id: "out-body", revision_id: next.id, output_id: "holder_body", label: "Holder body" }),
+              revisionOutput({ id: "out-lip", revision_id: next.id, output_id: "retention_lip", label: "Retention lip", quantity: 2 }),
+            ]
+          : [
+              revisionOutput({ id: "out-blocked-body", revision_id: next.id, output_id: "holder_body", label: "Holder body" }),
+              revisionOutput({
+                id: "out-blocked-lip",
+                revision_id: next.id,
+                output_id: "retention_lip",
+                label: "Retention lip",
+                output_state: "failed",
+                stl_path: null,
+                stl_hash: null,
+                compile_error: "OpenSCAD failed for retention_lip",
+              }),
+            ],
+      );
       return route.fulfill({ status: 201, json: next });
     }
     if (request.method() === "GET" && path === "/candidates/rev-warning/findings") {
@@ -261,6 +324,13 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await expect(page.getByLabel("Design Plan").getByText("Plan approved")).toBeVisible();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByText("Candidate - R2 - Ready with warnings")).toBeVisible();
+  await expect(page.getByText("Printable outputs")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Holder body/ })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Retention lip/ })).toBeVisible();
+  await page.getByLabel("Candidate review").getByRole("button", { name: /Retention lip/ }).click();
+  await expect(page.getByLabel("Candidate review").getByText("Quantity").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "ZIP" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Manifest" })).toBeVisible();
   await expect(page.getByText("Source checks")).toBeVisible();
   await expect(
     page.getByLabel("Candidate review").getByText("source_parameterization.missing_assertions", { exact: true }).first(),
@@ -283,6 +353,7 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await page.getByRole("button", { name: "Approve plan" }).click();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByText("Candidate - R3 - Blocked candidate")).toBeVisible();
+  await expect(page.getByText("OpenSCAD failed for retention_lip")).toBeVisible();
   await expect(page.getByText("Source checks")).toBeVisible();
   await expect(page.getByText("Passed required structure and protected dimensions")).toBeVisible();
   await expect(page.getByText("0 verified, 1 violated, 0 unable to verify")).toBeVisible();
@@ -314,6 +385,7 @@ function revision(overrides: Partial<Revision>): Revision {
     id: "revision",
     parent_revision_id: null,
     design_specification_id: null,
+    design_plan_id: null,
     revision_number: 1,
     source_type: "ai_revision",
     status: "succeeded",
@@ -324,6 +396,12 @@ function revision(overrides: Partial<Revision>): Revision {
     user_instruction: "Generated",
     stl_path: "model.stl",
     ai_output_path: null,
+    output_manifest_path: null,
+    expected_output_count: null,
+    required_output_count: null,
+    successful_output_count: null,
+    blocked_output_count: null,
+    failed_output_count: null,
     created_at: "2026-07-25T13:00:00Z",
     metadata: {
       size_x_mm: 10,
@@ -340,6 +418,52 @@ function revision(overrides: Partial<Revision>): Revision {
       advisory_count: 0,
       dismissed_count: 0,
     },
+    ...overrides,
+  };
+}
+
+function revisionOutput(overrides: Record<string, unknown>) {
+  return {
+    id: "output",
+    revision_id: "revision",
+    design_plan_id: "plan-1",
+    design_specification_id: "spec-ready-1",
+    output_id: "holder_body",
+    component_id: "holder_body",
+    component_ids: ["holder_body"],
+    output_state: "ready",
+    output_type: "printable_component",
+    label: "Holder body",
+    filename: "holder_body.stl",
+    quantity: 1,
+    required: true,
+    module_name: "holder_body",
+    source_hash: "source-hash",
+    stl_path: "projects/project-1/revisions/revision/stl/holder_body.stl",
+    stl_hash: "stl-hash",
+    compile_log_path: "projects/project-1/revisions/revision/logs/holder_body.log",
+    compile_ms: 25,
+    compile_error: null,
+    compile_command: ["openscad", "-D", "selected_output=\"holder_body\""],
+    metadata: {
+      size_x_mm: 80,
+      size_y_mm: 50,
+      size_z_mm: 6,
+      volume_mm3: 24000,
+      triangle_count: 12,
+      connected_components: 1,
+      is_watertight: true,
+      is_winding_consistent: true,
+      center_of_mass: [40, 25, 3],
+    },
+    validation_summary: {
+      blocking_count: 0,
+      advisory_count: 0,
+      dismissed_count: 0,
+    },
+    preferred_orientation: null,
+    created_at: "2026-07-25T13:00:00Z",
+    updated_at: "2026-07-25T13:00:00Z",
     ...overrides,
   };
 }

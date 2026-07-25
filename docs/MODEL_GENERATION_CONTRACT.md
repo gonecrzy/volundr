@@ -47,6 +47,7 @@ Print notes:
 $fn = 64;
 
 // ===== USER PARAMETERS =====
+selected_output = "body_output";
 // @volundr-requirement part_width
 // @volundr-component main_body
 part_width = 80;
@@ -67,17 +68,21 @@ assert(wall_thickness >= 1.2, "wall_thickness is too small");
 // @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
 
 // @volundr-feature main_body
+// @volundr-output body_output module=main_body required=true filename=body.stl components=main_body
 module main_body() {
     cube([part_width, part_depth, part_height]);
 }
 
 // ===== FINAL MODEL =====
-// @volundr-output body_output components=main_body
-module main_model() {
-    main_body();
+module render_selected_output() {
+    if (selected_output == "body_output") {
+        main_body();
+    } else {
+        assert(false, str("Unknown selected_output: ", selected_output));
+    }
 }
 
-main_model();
+render_selected_output();
 ```
 
 ## Machine-Readable Requirement Markers
@@ -102,10 +107,7 @@ module holder_body() {
 // @volundr-dependency tray_count -> guide_count
 guide_count = tray_count + 1;
 
-// @volundr-output holder_output components=holder_body
-module main_model() {
-    holder_body();
-}
+// @volundr-output holder_output module=holder_body required=true filename=holder.stl components=holder_body
 
 // @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
 
@@ -125,7 +127,7 @@ Rules:
 9. `@volundr-component <id>` must map every Design Plan component to a nearby parameter, module, or statement.
 10. `@volundr-feature <id>` must also map every Design Plan feature, not only protected Design Specification functional requirements.
 11. `@volundr-dependency <from_id> -> <to_id>` must appear immediately before the derived assignment implementing each Design Plan dependency edge.
-12. `@volundr-output <id> components=<comma_separated_component_ids>` must appear before the module or assembly statement for each printable output. In this pass, one output may still compile through `main_model()`.
+12. For approved Design Plan source, `@volundr-output <id> module=<module_name> required=<true|false> filename=<safe_filename.stl> components=<comma_separated_component_ids>` must appear before each printable output module. The complete output-selection lifecycle is defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 13. Editable Design Plan parameters belong in `USER PARAMETERS`; derived Design Plan parameters belong in `DERIVED VALUES`.
 14. Assertions must reject impossible configurations implied by the Design Plan, such as nonpositive counts, negative clearances, invalid wall thicknesses, or derived dimensions that cannot fit their dependent features.
 
@@ -136,8 +138,8 @@ Rules:
 3. Give meaningful parameter names.
 4. Avoid unexplained magic numbers.
 5. Put repeated or conceptually distinct geometry into modules.
-6. Include a `main_model()` module.
-7. End with exactly one top-level call to `main_model();`.
+6. For legacy/manual single-output source, include `main_model()` and end with exactly one top-level `main_model();` call.
+7. For approved Design Plan source, include `selected_output`, output modules, `render_selected_output()`, and exactly one top-level `render_selected_output();` call.
 8. Use assertions for clearly invalid parameter combinations. Missing assertions are normally a quality finding, not a universal hard rejection.
 9. Keep `$fn` reasonable, normally between 32 and 96.
 10. Add comments for assumptions and print orientation.
@@ -151,7 +153,7 @@ Rules:
 18. Avoid geometry located extremely far from the origin.
 19. Prefer the model near the XY origin with Z at or above zero.
 20. Avoid excessive polygon counts.
-21. For `openscad-generation-v4`, preserve all approved Design Plan components, features, dependency edges, parameters, presets that affect parameters, and printable outputs.
+21. For `openscad-generation-v5`, preserve all approved Design Plan components, features, dependency edges, parameters, presets that affect parameters, and printable outputs.
 
 ## Functional Design Guidelines
 
@@ -209,7 +211,7 @@ The backend should reject or flag output when:
 - source is empty
 - source exceeds configured size limits
 - forbidden calls are present
-- no `main_model()` exists
+- no valid final output call exists for the applicable contract
 - top-level structure is obviously incomplete
 - OpenSCAD times out
 - no STL is produced

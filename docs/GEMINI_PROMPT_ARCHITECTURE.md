@@ -106,7 +106,7 @@ Output:
 
 Current implementation: `openscad-generation-v3` remains the legacy ready-Design-Specification generation path.
 
-### `openscad-generation-v4`
+### `openscad-generation-v5`
 
 Responsibility: produce source-contract-compliant OpenSCAD from both an approved Design Specification and an approved Parametric Design Plan.
 
@@ -123,12 +123,13 @@ Output additions compared with `openscad-generation-v3`:
 - `@volundr-component <design_plan_component_id>` markers
 - `@volundr-feature <design_plan_feature_id>` markers
 - `@volundr-dependency <from_parameter_id> -> <to_parameter_id>` markers for derived assignments
-- `@volundr-output <output_id> components=<component_ids>` markers
+- `@volundr-output <output_id> module=<module_name> required=<true|false> filename=<safe_filename.stl> components=<component_ids>` markers
+- `selected_output` and `render_selected_output();` dispatch for every printable output, including single-output designs
 - editable Design Plan parameters in `USER PARAMETERS`
 - derived Design Plan parameters in `DERIVED VALUES`
 - assertions for invalid configurations, impossible counts, negative clearances, and too-thin walls
 
-Current implementation: `openscad-generation-v4` is used by the dedicated Design Plan generation endpoint after explicit plan approval.
+Current implementation: `openscad-generation-v5` is used by the dedicated Design Plan generation endpoint after explicit plan approval. Output selection, compilation, retry, and export behavior are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
 ### `revision-v1`
 
@@ -267,7 +268,7 @@ design-plan-v1
 openscad-generation-v1
 openscad-generation-v2
 openscad-generation-v3
-openscad-generation-v4
+openscad-generation-v5
 revision-v1
 contract-repair-v1
 contract-repair-v2
@@ -312,7 +313,7 @@ user request
 
 Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v3` as the authoritative design source. Raw user text is included only as secondary intent.
 
-Next implementation note: `design-plan-v1` is the next required prompt/data foundation before structured revision planning. It must convert the ready Design Specification into an immutable Parametric Design Plan containing product parameters, derived dependencies, components, component-owned features, editable controls, presets, assembly strategy, and printable outputs.
+Current implementation note: `design-plan-v1` exists and feeds `openscad-generation-v5`. The remaining prompt work before component-targeted AI edits is structured revision planning over the approved Design Plan, output manifest, and validation findings.
 
 The target lifecycle for complex configurable products is:
 
@@ -341,7 +342,7 @@ active design record + active source + user change
 
 Current implementation note: full structured revision planning is not implemented in this pass. Existing active-revision AI edits continue through the legacy revision path and attach the latest Design Specification as context when one exists.
 
-Do not implement structured revision planning before `design-plan-v1`; targeted revisions need the product parameter graph, component graph, feature ownership, and printable-output map.
+Do not implement component-targeted AI revisions before structured revision planning; targeted revisions need the product parameter graph, component graph, feature ownership, printable-output map, and failed-output context.
 
 ## Compile-Repair Flow
 

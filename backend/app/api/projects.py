@@ -20,6 +20,7 @@ from app.schemas.project import (
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
+    RevisionOutputRead,
     ValidationFindingDismiss,
     ValidationFindingRead,
     RequirementExtractionCreate,
@@ -522,6 +523,81 @@ def list_candidate_validation_findings(
     return findings
 
 
+@router.get("/revisions/{revision_id}/outputs", response_model=list[RevisionOutputRead])
+def list_revision_outputs(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[RevisionOutputRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    outputs = service.list_revision_outputs(revision_id)
+    if outputs is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    return outputs
+
+
+@router.get("/revision-outputs/{output_artifact_id}", response_model=RevisionOutputRead)
+def get_revision_output(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionOutputRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    output = service.get_revision_output(output_artifact_id)
+    if output is None:
+        raise HTTPException(status_code=404, detail="revision output not found")
+    return output
+
+
+@router.get(
+    "/revision-outputs/{output_artifact_id}/findings",
+    response_model=list[ValidationFindingRead],
+)
+def list_revision_output_findings(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ValidationFindingRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    findings = service.list_revision_output_findings(output_artifact_id)
+    if findings is None:
+        raise HTTPException(status_code=404, detail="revision output not found")
+    return findings
+
+
+@router.get(
+    "/revision-outputs/{output_artifact_id}/geometric-analysis",
+    response_model=GeometricAnalysisRead,
+)
+def get_revision_output_geometric_analysis(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> GeometricAnalysisRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    analysis = service.get_revision_output_geometric_analysis(output_artifact_id)
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="geometric analysis not found")
+    return analysis
+
+
+@router.post("/revision-outputs/{output_artifact_id}/retry", response_model=RevisionOutputRead)
+async def retry_revision_output(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+) -> RevisionOutputRead:
+    service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
+    try:
+        output = await service.retry_revision_output(output_artifact_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if output is None:
+        raise HTTPException(status_code=404, detail="revision output not found")
+    return output
+
+
 @router.get("/candidates/{revision_id}/geometric-analysis", response_model=GeometricAnalysisRead)
 def get_candidate_geometric_analysis(
     revision_id: str,
@@ -663,6 +739,59 @@ def get_revision_stl(
     if stl_path is None:
         raise HTTPException(status_code=404, detail="revision STL not found")
     return FileResponse(stl_path, media_type="model/stl", filename="model.stl")
+
+
+@router.get("/revision-outputs/{output_artifact_id}/stl")
+def get_revision_output_stl(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    output = service.get_revision_output(output_artifact_id)
+    stl_path = service.resolve_revision_output_stl(output_artifact_id)
+    if output is None or stl_path is None:
+        raise HTTPException(status_code=404, detail="revision output STL not found")
+    return FileResponse(stl_path, media_type="model/stl", filename=output.filename)
+
+
+@router.get("/revision-outputs/{output_artifact_id}/compile-log")
+def get_revision_output_compile_log(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> PlainTextResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    compile_log = service.read_revision_output_compile_log(output_artifact_id)
+    if compile_log is None:
+        raise HTTPException(status_code=404, detail="revision output compile log not found")
+    return PlainTextResponse(compile_log, media_type="text/plain")
+
+
+@router.get("/revisions/{revision_id}/output-manifest")
+def get_revision_output_manifest(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    service = ProjectService(db=db, data_dir=data_dir)
+    manifest = service.read_output_manifest(revision_id)
+    if manifest is None:
+        raise HTTPException(status_code=404, detail="revision output manifest not found")
+    return manifest
+
+
+@router.get("/revisions/{revision_id}/export.zip")
+def get_revision_export_zip(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    export_path = service.build_revision_export(revision_id)
+    if export_path is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    return FileResponse(export_path, media_type="application/zip", filename="volundr-project.zip")
 
 
 @router.post("/revisions/{revision_id}/printability", response_model=PrintabilityReport)

@@ -492,6 +492,45 @@ textarea {
   margin-top: 12px;
 }
 
+.output-review {
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+  padding-top: 12px;
+}
+
+.output-list {
+  display: grid;
+  gap: 10px;
+}
+
+.output-card {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.output-card.selected {
+  border-color: rgba(59, 130, 246, 0.72);
+}
+
+.output-select {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: flex;
+  font: inherit;
+  justify-content: space-between;
+  padding: 0;
+  text-align: left;
+}
+
+.review-facts.compact {
+  grid-template-columns: max-content 1fr;
+  margin: 0;
+}
+
 .source-check-list {
   display: grid;
   gap: 5px;
