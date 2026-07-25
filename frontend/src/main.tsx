@@ -554,12 +554,12 @@ function App() {
             </div>
             <div className="prompt-row">
               <input
-                aria-label="Generate prompt"
+                aria-label="Ask AI prompt"
                 value={generationPrompt}
                 onChange={(event) => setGenerationPrompt(event.target.value)}
               />
               <button className="secondary" disabled={isGenerating} onClick={() => void generateSource()}>
-                {isGenerating ? "Generating" : "Generate"}
+                {isGenerating ? "Asking AI" : "Ask AI"}
               </button>
             </div>
           </section>
@@ -587,7 +587,7 @@ function App() {
               <input value={intent} onChange={(event) => setIntent(event.target.value)} />
             </label>
             <label>
-              Revision note
+              Manual compile note
               <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
             </label>
           </section>
