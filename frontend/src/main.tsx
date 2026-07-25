@@ -62,6 +62,7 @@ type MeshMetadata = {
 
 type Revision = {
   id: string;
+  parent_revision_id: string | null;
   revision_number: number;
   source_type: string;
   status: string;
@@ -92,6 +93,7 @@ function App() {
   const [message, setMessage] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState<string | null>(null);
+  const [revisionDiff, setRevisionDiff] = useState<string | null>(null);
 
   const activeMetadata = selectedRevision?.metadata ?? null;
   const stlUrl = selectedRevision?.is_accepted
@@ -154,6 +156,7 @@ function App() {
       setSelectedRevision(null);
       setCompileLog(null);
       setAiOutput(null);
+      setRevisionDiff(null);
       setMessage("Project archived");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Project archive failed");
@@ -249,6 +252,7 @@ function App() {
     }
     await loadCompileLog(revision);
     await loadAiOutput(revision);
+    await loadRevisionDiff(revision);
   }
 
   async function selectProject(nextProject: Project) {
@@ -270,6 +274,7 @@ function App() {
     } else {
       setCompileLog(null);
       setAiOutput(null);
+      setRevisionDiff(null);
     }
   }
 
@@ -295,6 +300,15 @@ function App() {
     }
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/ai-output`);
     setAiOutput(response.ok ? await response.text() : null);
+  }
+
+  async function loadRevisionDiff(revision: Revision) {
+    if (!revision.parent_revision_id) {
+      setRevisionDiff(null);
+      return;
+    }
+    const response = await fetch(`${API_BASE}/revisions/${revision.id}/diff`);
+    setRevisionDiff(response.ok ? await response.text() : null);
   }
 
   async function restoreSelectedRevision() {
@@ -417,7 +431,7 @@ function App() {
               </button>
             ) : null}
           </div>
-          <Diagnostics compileLog={compileLog} aiOutput={aiOutput} />
+          <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
         </section>
 
         <section className="editor-panel" aria-label="OpenSCAD source">
@@ -459,11 +473,13 @@ function MessageList({ messages }: { messages: ProjectMessage[] }) {
 function Diagnostics({
   compileLog,
   aiOutput,
+  revisionDiff,
 }: {
   compileLog: string | null;
   aiOutput: string | null;
+  revisionDiff: string | null;
 }) {
-  if (!compileLog?.trim() && !aiOutput?.trim()) {
+  if (!compileLog?.trim() && !aiOutput?.trim() && !revisionDiff?.trim()) {
     return null;
   }
   return (
@@ -479,6 +495,12 @@ function Diagnostics({
         <>
           <h3>AI Output</h3>
           <pre>{aiOutput}</pre>
+        </>
+      ) : null}
+      {revisionDiff?.trim() ? (
+        <>
+          <h3>Diff</h3>
+          <pre>{revisionDiff}</pre>
         </>
       ) : null}
     </section>

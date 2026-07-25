@@ -304,3 +304,42 @@ def test_successful_revision_can_be_restored_as_active(tmp_path: Path) -> None:
 
     source_response = client.get(f"/api/revisions/{first_revision['id']}/source")
     assert source_response.headers["content-disposition"].endswith('filename="model.scad"')
+
+
+def test_revision_diff_compares_revision_to_parent(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Diffable",
+            "original_intent": "Create a diffable model.",
+        },
+    ).json()
+    first_revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "module main_model() {\n  cube([10, 10, 10]);\n}\nmain_model();\n",
+            "user_instruction": "Initial cube.",
+        },
+    ).json()
+    second_revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "module main_model() {\n  cube([20, 10, 10]);\n}\nmain_model();\n",
+            "user_instruction": "Make it wider.",
+        },
+    ).json()
+
+    response = client.get(f"/api/revisions/{second_revision['id']}/diff")
+
+    assert response.status_code == 200
+    assert response.text.splitlines() == [
+        f"--- R{first_revision['revision_number']}",
+        f"+++ R{second_revision['revision_number']}",
+        "@@ -1,4 +1,4 @@",
+        " module main_model() {",
+        "-  cube([10, 10, 10]);",
+        "+  cube([20, 10, 10]);",
+        " }",
+        " main_model();",
+    ]

@@ -130,13 +130,14 @@ Exit criteria:
 
 ## Stage 5 — Conversational Revisions
 
-Status: In progress
+Status: Complete
 
 Current status:
 
 - generation uses the active revision source as current-source context
 - follow-up AI revisions are labeled `ai_revision`
 - failed follow-up generations use the same preservation and bounded repair path as initial generations
+- selected child revisions show a unified source diff against their parent
 
 Goals:
 

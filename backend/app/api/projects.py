@@ -167,6 +167,19 @@ def get_revision_ai_output(
     return PlainTextResponse(ai_output, media_type="text/plain")
 
 
+@router.get("/revisions/{revision_id}/diff")
+def get_revision_diff(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> PlainTextResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    diff = service.read_revision_diff(revision_id)
+    if diff is None:
+        raise HTTPException(status_code=404, detail="revision diff not found")
+    return PlainTextResponse(diff, media_type="text/plain")
+
+
 @router.get("/revisions/{revision_id}/stl")
 def get_revision_stl(
     revision_id: str,

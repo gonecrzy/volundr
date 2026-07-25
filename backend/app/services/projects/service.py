@@ -1,3 +1,4 @@
+import difflib
 import json
 import re
 import shutil
@@ -365,6 +366,26 @@ class ProjectService:
         if not path.exists():
             return None
         return path.read_text(encoding="utf-8")
+
+    def read_revision_diff(self, revision_id: str) -> str | None:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None or revision.parent_revision_id is None:
+            return None
+        parent_revision = self.db.get(Revision, revision.parent_revision_id)
+        if parent_revision is None:
+            return None
+        parent_path = self.resolve_revision_source(parent_revision.id)
+        revision_path = self.resolve_revision_source(revision.id)
+        if parent_path is None or revision_path is None:
+            return None
+        diff_lines = difflib.unified_diff(
+            parent_path.read_text(encoding="utf-8").splitlines(),
+            revision_path.read_text(encoding="utf-8").splitlines(),
+            fromfile=f"R{parent_revision.revision_number}",
+            tofile=f"R{revision.revision_number}",
+            lineterm="",
+        )
+        return "\n".join(diff_lines)
 
     def resolve_revision_stl(self, revision_id: str) -> Path | None:
         revision = self.db.get(Revision, revision_id)
