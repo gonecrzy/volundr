@@ -2,6 +2,7 @@ import Editor from "@monaco-editor/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import "./styles.css";
 
@@ -1209,6 +1210,8 @@ function StlViewer({
   stlUrl: string | null;
 }) {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const fitViewRef = useRef<() => void>(() => undefined);
+  const setViewRef = useRef<(view: ViewerCameraPreset) => void>(() => undefined);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -1217,19 +1220,39 @@ function StlViewer({
     }
 
     mount.replaceChildren();
-    const width = mount.clientWidth;
-    const height = mount.clientHeight;
+    const width = Math.max(1, mount.clientWidth);
+    const height = Math.max(1, mount.clientHeight);
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf4f6f2);
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 5000);
-    camera.position.set(120, -140, 90);
+    scene.background = new THREE.Color(0xf5f7f4);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 10000);
+    camera.up.set(0, 0, 1);
+    camera.position.set(180, -220, 135);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = true;
+    controls.enableZoom = true;
+    controls.screenSpacePanning = true;
+    controls.mouseButtons = {
+      LEFT: THREE.MOUSE.ROTATE,
+      MIDDLE: THREE.MOUSE.DOLLY,
+      RIGHT: THREE.MOUSE.PAN,
+    };
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_PAN,
+    };
+
     const resizeObserver = new ResizeObserver(() => {
-      const nextWidth = mount.clientWidth;
-      const nextHeight = mount.clientHeight;
+      const nextWidth = Math.max(1, mount.clientWidth);
+      const nextHeight = Math.max(1, mount.clientHeight);
       if (nextWidth <= 0 || nextHeight <= 0) {
         return;
       }
@@ -1239,13 +1262,50 @@ function StlViewer({
     });
     resizeObserver.observe(mount);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x879083, 2.4));
-    const grid = new THREE.GridHelper(180, 18, 0x93a19a, 0xd0d6cf);
+    const ambient = new THREE.HemisphereLight(0xffffff, 0x9aa39c, 2.0);
+    scene.add(ambient);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    keyLight.position.set(180, -220, 260);
+    keyLight.castShadow = true;
+    scene.add(keyLight);
+    const fillLight = new THREE.DirectionalLight(0xdde8ea, 0.9);
+    fillLight.position.set(-160, 140, 140);
+    scene.add(fillLight);
+
+    const grid = createBuildPlateGrid(256);
     scene.add(grid);
+    const axes = new THREE.AxesHelper(42);
+    axes.position.set(0, 0, 0.4);
+    scene.add(axes);
 
     let frame = 0;
     let modelGroup: THREE.Group | null = null;
+    let modelBounds: THREE.Box3 | null = null;
     let disposed = false;
+
+    const fitCameraToBounds = (preset: ViewerCameraPreset = "iso") => {
+      const bounds = modelBounds ?? new THREE.Box3(
+        new THREE.Vector3(-80, -80, 0),
+        new THREE.Vector3(80, 80, 80),
+      );
+      const center = bounds.getCenter(new THREE.Vector3());
+      const size = bounds.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z, 80);
+      const fov = THREE.MathUtils.degToRad(camera.fov);
+      const distance = Math.max(140, (maxDim / (2 * Math.tan(fov / 2))) * 1.55);
+      const direction = cameraPresetDirection(preset);
+      controls.target.copy(center);
+      camera.near = Math.max(0.1, distance / 1000);
+      camera.far = Math.max(2000, distance * 10);
+      camera.position.copy(center).add(direction.multiplyScalar(distance));
+      camera.updateProjectionMatrix();
+      camera.lookAt(center);
+      controls.update();
+    };
+
+    fitViewRef.current = () => fitCameraToBounds("iso");
+    setViewRef.current = (view: ViewerCameraPreset) => fitCameraToBounds(view);
+    fitCameraToBounds("iso");
 
     if (stlUrl) {
       new STLLoader().load(stlUrl, (geometry) => {
@@ -1253,14 +1313,16 @@ function StlViewer({
           geometry.dispose();
           return;
         }
-        geometry.center();
+        orientGeometryOnBuildPlate(geometry);
         geometry.computeBoundingSphere();
         const material = new THREE.MeshStandardMaterial({
-          color: 0x2f6f6d,
-          roughness: 0.55,
-          metalness: 0.08,
+          color: 0x6f8f3c,
+          roughness: 0.58,
+          metalness: 0.04,
         });
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         modelGroup = new THREE.Group();
         modelGroup.add(mesh);
         geometry.computeBoundingBox();
@@ -1272,17 +1334,15 @@ function StlViewer({
           modelGroup.add(helper);
         }
         scene.add(modelGroup);
-        const radius = geometry.boundingSphere?.radius ?? 80;
-        camera.position.set(radius * 1.8, -radius * 2.0, radius * 1.25);
-        camera.lookAt(0, 0, 0);
+        modelBounds = new THREE.Box3().setFromObject(modelGroup);
+        replaceBuildPlateGrid(scene, grid, modelBounds);
+        fitCameraToBounds("iso");
       });
     }
 
     const animate = () => {
       frame = requestAnimationFrame(animate);
-      if (modelGroup) {
-        modelGroup.rotation.z += 0.004;
-      }
+      controls.update();
       renderer.render(scene, camera);
     };
     animate();
@@ -1291,6 +1351,9 @@ function StlViewer({
       disposed = true;
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
+      controls.dispose();
+      fitViewRef.current = () => undefined;
+      setViewRef.current = () => undefined;
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
           object.geometry.dispose();
@@ -1307,7 +1370,94 @@ function StlViewer({
     };
   }, [highlights, stlUrl]);
 
-  return <div className="viewer" ref={mountRef} />;
+  return (
+    <div className="viewer-shell">
+      <div className="viewer-toolbar" aria-label="Viewer controls">
+        <button type="button" onClick={() => fitViewRef.current()}>
+          Fit
+        </button>
+        <button type="button" onClick={() => setViewRef.current("front")}>
+          Front
+        </button>
+        <button type="button" onClick={() => setViewRef.current("top")}>
+          Top
+        </button>
+        <button type="button" onClick={() => setViewRef.current("iso")}>
+          Iso
+        </button>
+      </div>
+      <div className="viewer-help">Drag orbit · right drag pan · wheel zoom</div>
+      <div className="viewer-axis" aria-hidden="true">
+        <span className="axis-dot x">X</span>
+        <span className="axis-dot y">Y</span>
+        <span className="axis-dot z">Z</span>
+      </div>
+      <div className="viewer" ref={mountRef} />
+    </div>
+  );
+}
+
+type ViewerCameraPreset = "front" | "iso" | "top";
+
+function orientGeometryOnBuildPlate(geometry: THREE.BufferGeometry) {
+  geometry.computeBoundingBox();
+  const bounds = geometry.boundingBox;
+  if (!bounds) {
+    return;
+  }
+  const center = bounds.getCenter(new THREE.Vector3());
+  geometry.translate(-center.x, -center.y, -bounds.min.z);
+}
+
+function cameraPresetDirection(preset: ViewerCameraPreset) {
+  if (preset === "front") {
+    return new THREE.Vector3(0, -1, 0.28).normalize();
+  }
+  if (preset === "top") {
+    return new THREE.Vector3(0, -0.001, 1).normalize();
+  }
+  return new THREE.Vector3(1.15, -1.35, 0.82).normalize();
+}
+
+function createBuildPlateGrid(size: number) {
+  const divisions = Math.max(16, Math.round(size / 5));
+  const grid = new THREE.GridHelper(size, divisions, 0x9aa49f, 0xd7deda);
+  grid.rotation.x = Math.PI / 2;
+  grid.position.z = 0;
+  const material = grid.material;
+  if (Array.isArray(material)) {
+    material.forEach((entry) => {
+      entry.transparent = true;
+      entry.opacity = 0.58;
+    });
+  } else {
+    material.transparent = true;
+    material.opacity = 0.58;
+  }
+  return grid;
+}
+
+function replaceBuildPlateGrid(scene: THREE.Scene, grid: THREE.GridHelper, bounds: THREE.Box3) {
+  const size = bounds.getSize(new THREE.Vector3());
+  const gridSize = Math.max(256, Math.ceil(Math.max(size.x, size.y) * 1.8 / 25) * 25);
+  const nextGrid = createBuildPlateGrid(gridSize);
+  scene.remove(grid);
+  disposeObject(grid);
+  scene.add(nextGrid);
+}
+
+function disposeObject(object: THREE.Object3D) {
+  object.traverse((entry) => {
+    if (entry instanceof THREE.Mesh || entry instanceof THREE.LineSegments) {
+      entry.geometry.dispose();
+      const material = entry.material;
+      if (Array.isArray(material)) {
+        material.forEach((item) => item.dispose());
+      } else {
+        material.dispose();
+      }
+    }
+  });
 }
 
 function highestHighlightSeverity(highlights: PrintabilityHighlight[]): PrintabilitySeverity | null {

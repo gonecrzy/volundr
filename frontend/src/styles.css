@@ -193,6 +193,14 @@ select {
   position: relative;
 }
 
+.viewer-shell {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
 .viewer {
   height: 100%;
   min-height: 0;
@@ -204,6 +212,83 @@ select {
   display: block;
   max-height: 100%;
   max-width: 100%;
+}
+
+.viewer-toolbar,
+.viewer-help,
+.viewer-axis {
+  position: absolute;
+  z-index: 3;
+}
+
+.viewer-toolbar {
+  display: flex;
+  gap: 6px;
+  left: 14px;
+  top: 14px;
+}
+
+.viewer-toolbar button {
+  background: rgba(248, 250, 247, 0.94);
+  border: 1px solid #c9d1ca;
+  border-radius: 6px;
+  color: #27302b;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 900;
+  min-height: 32px;
+  min-width: 46px;
+  padding: 6px 9px;
+}
+
+.viewer-help {
+  background: rgba(248, 250, 247, 0.9);
+  border: 1px solid #d4dbd4;
+  border-radius: 6px;
+  color: #56615b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  left: 14px;
+  padding: 6px 9px;
+  top: 54px;
+}
+
+.viewer-axis {
+  height: 70px;
+  right: 16px;
+  top: 16px;
+  width: 70px;
+}
+
+.axis-dot {
+  align-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  display: flex;
+  font-size: 0.68rem;
+  font-weight: 900;
+  height: 24px;
+  justify-content: center;
+  position: absolute;
+  width: 24px;
+}
+
+.axis-dot.x {
+  background: #cf4f5d;
+  right: 0;
+  top: 23px;
+}
+
+.axis-dot.y {
+  background: #79a638;
+  left: 22px;
+  top: 0;
+}
+
+.axis-dot.z {
+  background: #4d82d8;
+  bottom: 0;
+  left: 4px;
 }
 
 .prompt-dock {
