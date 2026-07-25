@@ -6,7 +6,7 @@ from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -29,6 +29,7 @@ from app.services.cad.runner import OpenScadCliRunner
 from app.services.mesh.inspect import MeshMetadata
 
 DRAFT_RETENTION_DAYS = 14
+ARCHIVED_RETENTION_DAYS = 60
 
 
 class ProjectService:
@@ -110,7 +111,7 @@ class ProjectService:
         return project
 
     def list_projects(self) -> list[Project]:
-        self.cleanup_expired_drafts()
+        self.cleanup_expired_projects()
         return list(
             self.db.scalars(
                 select(Project)
@@ -118,6 +119,9 @@ class ProjectService:
                 .order_by(Project.created_at.desc())
             )
         )
+
+    def cleanup_expired_projects(self) -> int:
+        return self.cleanup_expired_drafts() + self.cleanup_expired_archived_projects()
 
     def cleanup_expired_drafts(self) -> int:
         cutoff = project_utcnow() - timedelta(days=DRAFT_RETENTION_DAYS)
@@ -129,14 +133,34 @@ class ProjectService:
                 )
             )
         )
+        expired_draft_ids = [project.id for project in expired_drafts]
         for project in expired_drafts:
-            project_dir = self.data_dir / "projects" / project.id
-            if project_dir.exists():
-                shutil.rmtree(project_dir)
-            self.db.delete(project)
+            self._delete_project_records(project)
         if expired_drafts:
             self.db.commit()
+            for project_id in expired_draft_ids:
+                self._delete_project_files(project_id)
         return len(expired_drafts)
+
+    def cleanup_expired_archived_projects(self) -> int:
+        cutoff = project_utcnow() - timedelta(days=ARCHIVED_RETENTION_DAYS)
+        expired_archived_projects = list(
+            self.db.scalars(
+                select(Project).where(
+                    Project.status == "archived",
+                    Project.archived_at.is_not(None),
+                    Project.archived_at < cutoff,
+                )
+            )
+        )
+        expired_project_ids = [project.id for project in expired_archived_projects]
+        for project in expired_archived_projects:
+            self._delete_project_records(project)
+        if expired_archived_projects:
+            self.db.commit()
+            for project_id in expired_project_ids:
+                self._delete_project_files(project_id)
+        return len(expired_archived_projects)
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
@@ -181,6 +205,16 @@ class ProjectService:
         self.db.commit()
         self.db.refresh(project)
         return project
+
+    def delete_project(self, project_id: str) -> bool:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return False
+        deleted_project_id = project.id
+        self._delete_project_records(project)
+        self.db.commit()
+        self._delete_project_files(deleted_project_id)
+        return True
 
     def list_revisions(self, project_id: str) -> list[RevisionRead]:
         revisions = self.db.scalars(
@@ -578,6 +612,18 @@ class ProjectService:
 
     def _next_draft_id(self) -> str:
         return project_utcnow().strftime("%Y%m%d%H%M%S%f")
+
+    def _delete_project_files(self, project_id: str) -> None:
+        project_dir = self.data_dir / "projects" / project_id
+        if project_dir.exists():
+            shutil.rmtree(project_dir)
+
+    def _delete_project_records(self, project: Project) -> None:
+        project.active_revision_id = None
+        self.db.flush()
+        self.db.execute(delete(ProjectMessage).where(ProjectMessage.project_id == project.id))
+        self.db.execute(delete(Revision).where(Revision.project_id == project.id))
+        self.db.delete(project)
 
     def _compile_log(self, result) -> str:
         parts: list[str] = []

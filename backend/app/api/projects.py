@@ -37,8 +37,11 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
 
 
 @router.get("/projects", response_model=list[ProjectRead])
-def list_projects(db: Session = Depends(get_db)) -> list[ProjectRead]:
-    service = ProjectService(db=db)
+def list_projects(
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ProjectRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
     return service.list_projects()
 
 
@@ -132,6 +135,18 @@ def archive_project(project_id: str, db: Session = Depends(get_db)) -> ProjectRe
     if project is None:
         raise HTTPException(status_code=404, detail="project not found")
     return project
+
+
+@router.delete("/projects/{project_id}", status_code=204)
+def delete_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> Response:
+    service = ProjectService(db=db, data_dir=data_dir)
+    if not service.delete_project(project_id):
+        raise HTTPException(status_code=404, detail="project not found")
+    return Response(status_code=204)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectRead)

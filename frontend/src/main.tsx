@@ -263,6 +263,40 @@ function App() {
     }
   }
 
+  async function deleteProject() {
+    if (!project || !window.confirm("Delete this project permanently?")) {
+      return;
+    }
+    setIsSavingProject(true);
+    setMessage(null);
+    try {
+      await requestEmpty(`/projects/${project.id}`, {
+        method: "DELETE",
+      });
+      setProjects((current) => current.filter((entry) => entry.id !== project.id));
+      setProject(null);
+      setProjectName("");
+      setIntent("");
+      setInstruction("");
+      setGenerationPrompt("");
+      setSource("");
+      setRevisions([]);
+      setProjectMessages([]);
+      setSelectedRevision(null);
+      setPrintabilityReport(null);
+      setDismissedPrintabilityResults(new Set());
+      setCompileLog(null);
+      setAiOutput(null);
+      setRevisionDiff(null);
+      setMessage("Project deleted");
+      setIsProjectDrawerOpen(false);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Project delete failed");
+    } finally {
+      setIsSavingProject(false);
+    }
+  }
+
   async function compileSource() {
     if (!canCompileSource) {
       setMessage("Enter OpenSCAD source before compiling");
@@ -645,6 +679,9 @@ function App() {
                 </button>
                 <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
                   Archive
+                </button>
+                <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void deleteProject()}>
+                  Delete
                 </button>
               </div>
             </div>

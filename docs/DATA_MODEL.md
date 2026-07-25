@@ -30,6 +30,10 @@ archived
 
 Draft projects support unnamed short-lived workspaces. They are hidden from the default project list, can own revisions, and become normal active projects when saved with a user-visible name. Draft projects older than 14 days may be deleted during opportunistic cleanup.
 
+Archived projects are hidden from the default project list but remain recoverable until removed. Archived projects older than 60 days may be permanently deleted during opportunistic cleanup, including their revisions, messages, and project files.
+
+Permanent project deletion removes the project database row, dependent revisions and messages, and the project asset directory under `data/projects`.
+
 ## Revision
 
 Represents one immutable model state.

@@ -13,6 +13,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.project import Project, utcnow
+from app.models.revision import Revision
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
@@ -333,26 +334,106 @@ def test_draft_project_can_be_saved_as_active_project(tmp_path: Path) -> None:
 def test_old_draft_projects_are_cleaned_after_fourteen_days(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     current_draft = client.post("/api/projects/draft").json()
+    old_draft = client.post("/api/projects/draft").json()
+    old_draft_revision = client.post(
+        f"/api/projects/{old_draft['id']}/revisions",
+        json={
+            "scad_source": "cube([10, 20, 30]);",
+            "user_instruction": None,
+        },
+    ).json()
 
     with next(app.dependency_overrides[get_db]()) as session:
-        old_draft = Project(
-            name="Draft old",
-            slug="draft-old",
-            original_intent="",
-            status="draft",
-            created_at=utcnow() - timedelta(days=15),
-            updated_at=utcnow() - timedelta(days=15),
-        )
-        session.add(old_draft)
+        stored_old_draft = session.get(Project, old_draft["id"])
+        assert stored_old_draft is not None
+        stored_old_draft.created_at = utcnow() - timedelta(days=15)
+        stored_old_draft.updated_at = utcnow() - timedelta(days=15)
         session.commit()
-        old_draft_id = old_draft.id
+        old_draft_id = stored_old_draft.id
+    old_project_dir = tmp_path / "data" / "projects" / old_draft_id
+
+    assert old_project_dir.exists()
 
     list_response = client.get("/api/projects")
 
     assert list_response.status_code == 200
     with next(app.dependency_overrides[get_db]()) as session:
         assert session.get(Project, old_draft_id) is None
+        assert session.get(Revision, old_draft_revision["id"]) is None
         assert session.get(Project, current_draft["id"]) is not None
+    assert not old_project_dir.exists()
+
+
+def test_project_can_be_deleted_permanently_with_files(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Temporary bracket",
+            "original_intent": "Delete this test project.",
+        },
+    ).json()
+    revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "cube([10, 20, 30]);",
+            "user_instruction": None,
+        },
+    ).json()
+    project_dir = tmp_path / "data" / "projects" / project["id"]
+
+    assert project_dir.exists()
+
+    delete_response = client.delete(f"/api/projects/{project['id']}")
+
+    assert delete_response.status_code == 204
+    assert not project_dir.exists()
+    assert client.get(f"/api/projects/{project['id']}").status_code == 404
+    with next(app.dependency_overrides[get_db]()) as session:
+        assert session.get(Project, project["id"]) is None
+        assert session.get(Revision, revision["id"]) is None
+
+
+def test_old_archived_projects_are_cleaned_after_sixty_days(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+
+    with next(app.dependency_overrides[get_db]()) as session:
+        old_archived = Project(
+            name="Archived old",
+            slug="archived-old",
+            original_intent="Old archived project.",
+            status="archived",
+            archived_at=utcnow() - timedelta(days=61),
+            created_at=utcnow() - timedelta(days=61),
+            updated_at=utcnow() - timedelta(days=61),
+        )
+        recent_archived = Project(
+            name="Archived recent",
+            slug="archived-recent",
+            original_intent="Recent archived project.",
+            status="archived",
+            archived_at=utcnow() - timedelta(days=30),
+            created_at=utcnow() - timedelta(days=30),
+            updated_at=utcnow() - timedelta(days=30),
+        )
+        session.add_all([old_archived, recent_archived])
+        session.commit()
+        old_archived_id = old_archived.id
+        recent_archived_id = recent_archived.id
+
+    old_project_dir = tmp_path / "data" / "projects" / old_archived_id
+    recent_project_dir = tmp_path / "data" / "projects" / recent_archived_id
+    old_project_dir.mkdir(parents=True)
+    recent_project_dir.mkdir(parents=True)
+
+    list_response = client.get("/api/projects")
+
+    assert list_response.status_code == 200
+    with next(app.dependency_overrides[get_db]()) as session:
+        assert session.get(Project, old_archived_id) is None
+        assert session.get(Project, recent_archived_id) is not None
+    assert not old_project_dir.exists()
+    assert recent_project_dir.exists()
 
 
 def test_printability_profiles_can_be_saved_updated_listed_and_deleted(
