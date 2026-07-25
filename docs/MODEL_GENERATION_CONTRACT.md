@@ -18,7 +18,7 @@ The backend may extract source from a fenced `scad` or `openscad` block, but pro
 
 Clarification-capable stages must not return OpenSCAD when critical information is missing. They must return the structured clarification response defined in `docs/GEMINI_PROMPT_ARCHITECTURE.md`.
 
-For new initial AI generations, OpenSCAD must be generated from a persisted `generation_ready` Design Specification. The raw user request may be included as secondary intent, but the Design Specification controls protected dimensions, required features, defaults, and assumptions.
+For new initial AI generations, OpenSCAD must be generated from a persisted `generation_ready` Design Specification. When an approved Design Plan exists, OpenSCAD must also be generated from that approved plan. The raw user request may be included as secondary intent, but the Design Specification controls protected requirements and the Design Plan controls product structure.
 
 New AI-generated OpenSCAD is statically validated against `source-contract-v1` before OpenSCAD compilation. Hard source-contract or protected Design Specification violations stop before compile and do not create a candidate revision. Quality findings are persisted as advisory validation findings and may produce a `ready_with_warnings` candidate.
 
@@ -48,6 +48,7 @@ $fn = 64;
 
 // ===== USER PARAMETERS =====
 // @volundr-requirement part_width
+// @volundr-component main_body
 part_width = 80;
 part_depth = 40;
 part_height = 20;
@@ -55,6 +56,7 @@ wall_thickness = 3;
 fit_clearance = 0.6;
 
 // ===== DERIVED VALUES =====
+// @volundr-dependency part_width -> inner_width
 inner_width = part_width - (2 * wall_thickness);
 
 // ===== VALIDATION =====
@@ -70,6 +72,7 @@ module main_body() {
 }
 
 // ===== FINAL MODEL =====
+// @volundr-output body_output components=main_body
 module main_model() {
     main_body();
 }
@@ -79,7 +82,7 @@ main_model();
 
 ## Machine-Readable Requirement Markers
 
-Generated source must map protected Design Specification requirements to OpenSCAD source with simple comment markers. This is the authoritative marker format for Volundr:
+Generated source must map protected Design Specification requirements and approved Design Plan structure to OpenSCAD source with simple comment markers. This is the authoritative marker format for Volundr:
 
 ```scad
 // @volundr-requirement container_diameter
@@ -89,6 +92,19 @@ container_diameter = 81;
 // @volundr-geometry type=hole_group count=2 diameter=mount_hole_diameter spacing=mount_hole_spacing axis=z
 module mounting_holes() {
     ...
+}
+
+// @volundr-component holder_body
+module holder_body() {
+    ...
+}
+
+// @volundr-dependency tray_count -> guide_count
+guide_count = tray_count + 1;
+
+// @volundr-output holder_output components=holder_body
+module main_model() {
+    holder_body();
 }
 
 // @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
@@ -106,6 +122,12 @@ Rules:
 6. Marker presence records implementation intent only. It does not prove the geometry physically satisfies the feature.
 7. `@volundr-geometry` markers are required in new AI source for measurable bounds, hole, hole-group, and wall-thickness invariants introduced in `openscad-generation-v3`.
 8. Geometry marker attributes must reference named parameters where values are protected by the Design Specification.
+9. `@volundr-component <id>` must map every Design Plan component to a nearby parameter, module, or statement.
+10. `@volundr-feature <id>` must also map every Design Plan feature, not only protected Design Specification functional requirements.
+11. `@volundr-dependency <from_id> -> <to_id>` must appear immediately before the derived assignment implementing each Design Plan dependency edge.
+12. `@volundr-output <id> components=<comma_separated_component_ids>` must appear before the module or assembly statement for each printable output. In this pass, one output may still compile through `main_model()`.
+13. Editable Design Plan parameters belong in `USER PARAMETERS`; derived Design Plan parameters belong in `DERIVED VALUES`.
+14. Assertions must reject impossible configurations implied by the Design Plan, such as nonpositive counts, negative clearances, invalid wall thicknesses, or derived dimensions that cannot fit their dependent features.
 
 ## Mandatory Rules
 
@@ -129,6 +151,7 @@ Rules:
 18. Avoid geometry located extremely far from the origin.
 19. Prefer the model near the XY origin with Z at or above zero.
 20. Avoid excessive polygon counts.
+21. For `openscad-generation-v4`, preserve all approved Design Plan components, features, dependency edges, parameters, presets that affect parameters, and printable outputs.
 
 ## Functional Design Guidelines
 

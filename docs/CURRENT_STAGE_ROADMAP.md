@@ -164,9 +164,19 @@ Geometric invariant validation pass:
 
 Next implementation boundary:
 
-- implement the immutable Parametric Product Model and `design-plan-v1` foundation before structured revision planning
-- Design Plans must capture product parameters, derived dependencies, components, component features, presets, assembly strategy, and printable outputs
-- generation should move from Design Specification directly to OpenSCAD only on the legacy path; new complex products should flow through Design Plan review and approval first
+Completed in this pass:
+
+- immutable `design-plan-v1` records are persisted and linked to ready Design Specifications and planning generation attempts
+- Design Plans capture product parameters, derived parameters, dependency edges, components, component features, presets, assembly strategy, printable outputs, risks, and design level
+- plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
+- the frontend now creates a Design Plan from ready requirements, presents it for review, requires explicit approval, and generates OpenSCAD from the approved plan
+- `openscad-generation-v4` uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
+- source metadata now recognizes `@volundr-component`, `@volundr-dependency`, and `@volundr-output` markers in addition to requirement, feature, and geometry markers
+
+Next implementation boundary:
+
+- implement multi-component and multi-output generation/compilation/export using the approved Design Plan printable outputs
+- do not begin structured revision planning until multi-output artifacts can be represented and validated cleanly
 
 Correct trajectory from the geometric invariant checkpoint:
 

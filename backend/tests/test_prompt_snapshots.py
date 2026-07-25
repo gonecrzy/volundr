@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from app.services.ai.gemini_cli import GeminiCliProvider
-from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest
+from app.services.ai.provider import DesignPlanRequest, ModelGenerationRequest, RequirementExtractionRequest
 
 
 SNAPSHOT_DIR = Path(__file__).parent / "fixtures" / "prompt_snapshots"
@@ -105,6 +105,58 @@ def test_staged_openscad_prompt_uses_design_specification_as_authority() -> None
     assert "@volundr-geometry type=hole_group" in prompt
     assert "Secondary raw user request" in prompt
     assert "hole_spacing" in prompt
+
+
+def test_design_plan_prompt_is_json_only_and_product_model_aware() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = DesignPlanRequest(
+        project_name="Configurable bracket",
+        original_intent="Create functional products.",
+        user_instruction="Create a configurable L bracket.",
+        design_specification={
+            "purpose": "Configurable bracket",
+            "critical_dimensions": [{"id": "leg_length", "value": 60, "protected": True}],
+        },
+        defaults={"units": "mm"},
+    )
+
+    prompt = provider.build_design_plan_prompt(request)
+
+    assert provider.design_plan_prompt_template_version() == "design-plan-v1"
+    assert "Return JSON only. Do not generate OpenSCAD." in prompt
+    assert "parameters, derived parameters, dependency edges, components, features, presets" in prompt
+    assert "printable_outputs" in prompt
+    assert "design_level" in prompt
+
+
+def test_planned_openscad_prompt_uses_approved_design_plan_as_authority() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Planned bracket",
+        original_intent="Create functional products.",
+        user_instruction="Raw text is secondary.",
+        design_specification={
+            "purpose": "Configurable bracket",
+            "critical_dimensions": [{"id": "leg_length", "value": 60, "protected": True}],
+        },
+        design_plan={
+            "design_level": "product",
+            "parameters": [{"id": "leg_length", "editable": True, "protected": True}],
+            "dependency_edges": [{"from": "leg_length", "to": "hole_margin", "relationship": "margin"}],
+            "components": [{"id": "bracket_body"}],
+            "features": [{"id": "mounting_holes"}],
+            "printable_outputs": [{"id": "bracket_output", "component_ids": ["bracket_body"]}],
+        },
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "openscad-generation-v4"
+    assert "approved Parametric Design Plan" in prompt
+    assert "@volundr-component <design_plan_component_id>" in prompt
+    assert "@volundr-dependency <from_parameter_id> -> <to_parameter_id>" in prompt
+    assert "@volundr-output <output_id> components=<comma_separated_component_ids>" in prompt
+    assert "assertions for invalid configurations" in prompt
 
 
 def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:

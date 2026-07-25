@@ -75,6 +75,17 @@ main_model();
 6. Preserve parameter names during revisions unless a rename is required to correct ambiguity.
 7. Add new parameters only when a revision introduces a new user-controllable dimension or feature.
 
+## Design Plan Rules
+
+1. `design-plan-v1` must return JSON only and must not generate OpenSCAD.
+2. The Design Specification is the requirements authority; the Design Plan must not weaken, omit, or contradict protected Design Specification values.
+3. A Design Plan must be generic: use parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and `design_level`; do not encode product-specific schema fields.
+4. Every derived parameter must list its dependencies and have a corresponding dependency edge when that relationship affects component size, feature count, output layout, or assembly.
+5. Every component must list the features and parameters it owns.
+6. Every printable output must list component IDs and quantity, even when the current implementation emits a single `main_model()`.
+7. Ask plan clarification when component structure, output separation, assembly strategy, or configuration dependencies cannot be chosen safely.
+8. A ready Design Plan must enter review and be explicitly approved before OpenSCAD generation.
+
 ## Requirement Marker Rules
 
 The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md`.
@@ -87,6 +98,7 @@ The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md
 6. For newly generated measurable features, add `@volundr-geometry` markers as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 7. Use geometry markers for declared bounds, axis-aligned holes, hole groups, and wall-thickness regions only when the generated source implements the corresponding feature.
 8. Preserve geometry markers during source-contract repair, compile repair, and AI revisions unless the related protected requirement is explicitly changed.
+9. For `openscad-generation-v4`, add `@volundr-component`, Design Plan `@volundr-feature`, `@volundr-dependency`, and `@volundr-output` markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`.
 
 ## Requirement Source Rules
 

@@ -154,9 +154,9 @@ ai_assumption
 
 Clarification evaluation must track both recall and precision so Volundr avoids both missed clarifications and excessive questioning.
 
-Next foundation after the geometric invariant checkpoint: implement an immutable Parametric Product Model and `design-plan-v1` before structured revision planning. The Design Plan must describe product parameters, derived dependencies, components, component features, presets, assembly strategy, and printable outputs so complex revisions do not require Gemini to rediscover the product architecture from OpenSCAD source.
+Implementation status update: the immutable Parametric Product Model and `design-plan-v1` foundation is now implemented. Design Plans are generated from ready Design Specifications, persisted immutably with raw and parsed provider artifacts, supersede older plan versions, require explicit approval, and then act as the product-structure authority for `openscad-generation-v4`. The Design Plan schema is defined in `docs/DATA_MODEL.md`.
 
-Deferred until that foundation exists: full structured revision planning, component-targeted revisions, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
+Next dependency before structured revision planning: implement multi-component and multi-output generation/compilation/export so Design Plan `printable_outputs` can produce traceable artifacts. Deferred: full structured revision planning, component-targeted revisions, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
 
 ## Priority 2: Validation And Acceptance
 

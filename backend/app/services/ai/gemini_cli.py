@@ -4,6 +4,8 @@ from typing import Any
 
 from app.core.config import settings
 from app.services.ai.provider import (
+    DesignPlanRequest,
+    DesignPlanResult,
     ModelGenerationRequest,
     ModelGenerationResult,
     RequirementExtractionRequest,
@@ -12,7 +14,9 @@ from app.services.ai.provider import (
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
+PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v4"
 LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
@@ -92,6 +96,35 @@ class GeminiCliProvider:
             provider_model=self.model,
         )
 
+    async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
+        prompt = self.build_design_plan_prompt(request)
+        command = self.build_command(prompt)
+
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=self.timeout_seconds,
+            )
+        except TimeoutError as exc:
+            process.kill()
+            await process.communicate()
+            raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
+
+        if process.returncode != 0:
+            diagnostic = stderr.decode("utf-8", errors="replace").strip()
+            raise RuntimeError(diagnostic or "Gemini CLI failed")
+
+        return DesignPlanResult(
+            raw_output=stdout.decode("utf-8", errors="replace"),
+            provider="gemini_cli",
+            provider_model=self.model,
+        )
+
     def build_command(self, prompt: str) -> list[str]:
         command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]
         if self.model:
@@ -109,12 +142,17 @@ class GeminiCliProvider:
             return LEGACY_COMPILE_REPAIR_PROMPT_VERSION
         if request.current_source:
             return LEGACY_REVISION_PROMPT_VERSION
+        if request.design_plan:
+            return PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION
         if request.design_specification:
             return OPENSCAD_GENERATION_PROMPT_VERSION
         return LEGACY_INITIAL_PROMPT_VERSION
 
     def requirement_prompt_template_version(self) -> str:
         return REQUIREMENTS_PROMPT_VERSION
+
+    def design_plan_prompt_template_version(self) -> str:
+        return DESIGN_PLAN_PROMPT_VERSION
 
     def provider_settings(self) -> dict[str, Any]:
         return {
@@ -131,9 +169,14 @@ class GeminiCliProvider:
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return self._build_requirement_prompt(request)
 
+    def build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
+        return self._build_design_plan_prompt(request)
+
     def _build_prompt(self, request: ModelGenerationRequest) -> str:
         if request.contract_diagnostics:
             return self._build_contract_repair_prompt(request)
+        if request.design_specification and request.design_plan and not request.current_source:
+            return self._build_planned_openscad_prompt(request)
         if request.design_specification and not request.current_source:
             return self._build_design_spec_openscad_prompt(request)
         parts = [
@@ -218,6 +261,169 @@ class GeminiCliProvider:
                 "",
                 "Approved Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
+            ]
+        )
+
+    def _build_planned_openscad_prompt(self, request: ModelGenerationRequest) -> str:
+        return "\n".join(
+            [
+                "You generate OpenSCAD for Volundr from an approved Parametric Design Plan.",
+                "Return only a single fenced openscad block. Do not include prose outside the block.",
+                "The Design Specification is the requirements authority. The approved Design Plan is the product-structure authority.",
+                "Preserve every protected requirement, Design Plan parameter, dependency edge, component, feature, preset-relevant parameter, and printable output.",
+                "Expose editable Design Plan parameters in USER PARAMETERS.",
+                "Place derived Design Plan parameters in DERIVED VALUES and preserve dependency relationships.",
+                "Every protected requirement must use // @volundr-requirement <design_spec_requirement_id> immediately before its parameter assignment.",
+                "Every component must use // @volundr-component <design_plan_component_id> near the parameter/module that implements it.",
+                "Every feature must use // @volundr-feature <design_plan_feature_id> immediately before the implementing module or statement.",
+                "Every dependency edge must use // @volundr-dependency <from_parameter_id> -> <to_parameter_id> immediately before the derived assignment.",
+                "Every printable output must use // @volundr-output <output_id> components=<comma_separated_component_ids> before the output module or main assembly.",
+                "Add @volundr-geometry markers for supported measurable bounds, holes, hole groups, and wall thickness.",
+                "Include assertions for invalid configurations and dependencies, such as impossible counts, negative clearances, too-thin walls, or outputs that exceed derived bounds.",
+                "Do not create full multi-output packaging unless the plan explicitly requires it; for this pass, a single main_model() is acceptable when the plan has one output.",
+                "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
+                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"Secondary raw user request: {request.user_instruction}",
+                "",
+                "Approved Design Specification JSON:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Approved Parametric Design Plan JSON:",
+                json.dumps(request.design_plan, indent=2, sort_keys=True),
+            ]
+        )
+
+    def _build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
+        if request.schema_repair_of_raw_output is not None:
+            task = [
+                "Repair this Parametric Design Plan response into valid JSON for the required schema.",
+                "Do not generate OpenSCAD. Do not invent new critical requirements.",
+                "Preserve the original planning intent and return JSON only.",
+                "",
+                "Schema validation error:",
+                request.schema_validation_error or "unknown schema error",
+                "",
+                "Invalid raw output:",
+                request.schema_repair_of_raw_output,
+            ]
+        else:
+            task = [
+                "Create a generic Parametric Design Plan for Volundr from the approved Design Specification.",
+                "Return JSON only. Do not generate OpenSCAD.",
+                "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
+                "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
+                "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
+            ]
+        schema = {
+            "schema_version": "1.0",
+            "design_level": "single_part|product|assembly",
+            "product_type": "string",
+            "purpose": "string",
+            "units": "mm",
+            "parameters": [
+                {
+                    "id": "string",
+                    "label": "string",
+                    "value": 0,
+                    "unit": "mm",
+                    "source_requirement_id": "string|null",
+                    "editable": True,
+                    "protected": False,
+                    "component_id": "string|null",
+                }
+            ],
+            "derived_parameters": [
+                {
+                    "id": "string",
+                    "label": "string",
+                    "expression": "string",
+                    "unit": "mm",
+                    "depends_on": ["parameter_id"],
+                }
+            ],
+            "dependency_edges": [
+                {
+                    "from": "source_parameter_id",
+                    "to": "dependent_parameter_or_feature_id",
+                    "relationship": "string",
+                }
+            ],
+            "components": [
+                {
+                    "id": "string",
+                    "label": "string",
+                    "description": "string",
+                    "features": ["feature_id"],
+                    "parameters": ["parameter_id"],
+                }
+            ],
+            "features": [
+                {
+                    "id": "string",
+                    "component_id": "component_id",
+                    "type": "hole_group|wall|rib|shell|lid|slot|adapter|handle|other",
+                    "description": "string",
+                    "parameters": ["parameter_id"],
+                    "protected": False,
+                }
+            ],
+            "presets": [
+                {
+                    "id": "string",
+                    "label": "string",
+                    "parameter_values": {"parameter_id": 0},
+                }
+            ],
+            "assembly_strategy": {"type": "single_part|multi_part|assembly", "instructions": ["string"]},
+            "printable_outputs": [
+                {
+                    "id": "string",
+                    "label": "string",
+                    "component_ids": ["component_id"],
+                    "quantity": 1,
+                    "orientation": "string",
+                }
+            ],
+            "risks": [
+                {
+                    "id": "string",
+                    "severity": "notice|warning|critical",
+                    "description": "string",
+                    "mitigation": "string",
+                }
+            ],
+            "clarification_required": False,
+            "clarification_questions": [],
+            "plan_ready": True,
+            "outcome": "plan_ready|plan_clarification_required|plan_failed",
+        }
+        return "\n".join(
+            task
+            + [
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User request: {request.user_instruction}",
+                "",
+                "Approved Design Specification JSON:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Previous Design Plan:",
+                json.dumps(request.previous_design_plan, indent=2, sort_keys=True)
+                if request.previous_design_plan
+                else "None",
+                "",
+                "Clarification answers:",
+                json.dumps(request.clarification_answers, indent=2, sort_keys=True),
+                "",
+                "Versioned defaults:",
+                json.dumps(request.defaults, indent=2, sort_keys=True),
+                "",
+                "Required JSON shape:",
+                json.dumps(schema, indent=2, sort_keys=True),
             ]
         )
 

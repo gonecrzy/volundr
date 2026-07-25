@@ -26,6 +26,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - project API                                 │
 │ - revision API                                │
 │ - requirement extraction and clarification    │
+│ - parametric Design Plan generation/review    │
 │ - generation orchestration                    │
 │ - candidate revision review and acceptance    │
 │ - pre-compile OpenSCAD source-contract checks │
@@ -196,6 +197,7 @@ The request should include:
 - compiler diagnostics, when repairing
 - source-contract diagnostics, when contract-repairing
 - Design Specification, when available
+- approved Design Plan, when available
 - mesh metadata, when available
 - generation contract version
 
@@ -260,6 +262,10 @@ requirements_queued
 requirements_extracting
 clarification_required
 requirements_ready
+planning
+plan_clarification_required
+plan_ready
+plan_approved
 generation_queued
 generating_scad
 extracting_scad
@@ -286,8 +292,11 @@ Recommended staged AI flow:
 request
   -> requirements-v1
   -> persist Design Specification
-  -> clarification/conflict/unsupported or explicit Continue
-  -> OpenSCAD generation from Design Specification
+  -> clarification/conflict/unsupported or explicit plan creation
+  -> design-plan-v1
+  -> persist immutable Design Plan
+  -> plan clarification or explicit plan approval
+  -> OpenSCAD generation from approved Design Plan
   -> source validation
   -> compile
   -> mesh inspection
@@ -296,7 +305,7 @@ request
   -> repair, candidate review, or acceptance
 ```
 
-Initial generation, design revision, and compiler repair should use separate prompt stages and persisted prompt versions.
+The legacy endpoint may still generate from a ready Design Specification for compatibility. The new initial frontend flow uses an approved Design Plan. Initial generation, Design Plan creation, design revision, source-contract repair, and compiler repair use separate prompt stages and persisted prompt versions.
 
 ## File Layout
 
@@ -319,7 +328,9 @@ data/
 │       │       ├── prompt.txt
 │       │       ├── raw-output.txt
 │       │       ├── parsed-design-spec.json
+│       │       ├── parsed-design-plan.json
 │       │       ├── design-spec.json
+│       │       ├── design-plan.json
 │       │       ├── extracted-source.scad
 │       │       └── chain.json
 │       └── thumbnails/

@@ -55,36 +55,32 @@ Output schema:
 
 ### `design-plan-v1`
 
-Responsibility: create a bounded CAD plan from approved requirements and assumptions. Do not generate OpenSCAD.
+Responsibility: create a generic immutable Parametric Design Plan from an approved Design Specification. Do not generate OpenSCAD.
 
-Output schema:
+Input context:
 
-```json
-{
-  "stage": "design-plan-v1",
-  "design_summary": "string",
-  "parameter_plan": [
-    {
-      "name": "wall_thickness",
-      "value_mm": 3,
-      "role": "critical|assumption|editable",
-      "bounds": {"min_mm": 1.6, "max_mm": 8}
-    }
-  ],
-  "module_plan": [
-    {"name": "main_body", "responsibility": "solid base plate"},
-    {"name": "mounting_holes", "responsibility": "two M4 clearance holes"}
-  ],
-  "geometry_strategy": ["string"],
-  "print_strategy": {
-    "orientation": "largest flat face on Z=0",
-    "supports": "avoid",
-    "layer_strength_notes": ["string"]
-  },
-  "validation_plan": ["string"],
-  "prohibited_features": ["unrequested vents", "decorative cutouts"]
-}
-```
+- approved Design Specification JSON
+- original request as secondary intent
+- versioned product and printer defaults
+- previous Design Plan when replanning
+- clarification questions and answers when the plan stage requested them
+
+Output: valid JSON matching the Design Plan schema in `docs/DATA_MODEL.md`.
+
+Required content:
+
+- user-editable parameters and protected parameters
+- derived parameters expressed from other parameters
+- dependency edges showing what must update when a configuration changes
+- components and the features that belong to each component
+- presets for common configurations when useful
+- assembly strategy
+- printable outputs, even when there is only one output in this pass
+- risks and mitigations
+- `design_level` as `single_part`, `product`, or `assembly`
+- `plan_ready`, `clarification_required`, and `outcome`
+
+Current implementation: `design-plan-v1` is implemented for ready initial Design Specifications. Invalid JSON is classified as `design_plan_invalid`, raw output is preserved, and one bounded schema-repair planning attempt is allowed. A ready plan enters `pending_review`; the user must approve it before OpenSCAD generation can start.
 
 ### `openscad-generation-v3`
 
@@ -108,7 +104,31 @@ Output:
 - source-assisted geometry markers for measurable bounds, holes, hole groups, and wall-thickness regions as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - protected values copied exactly from the Design Specification and exposed as named parameters
 
-Current implementation: `openscad-generation-v3` is implemented for ready initial Design Specifications. `design-plan-v1` remains deferred.
+Current implementation: `openscad-generation-v3` remains the legacy ready-Design-Specification generation path.
+
+### `openscad-generation-v4`
+
+Responsibility: produce source-contract-compliant OpenSCAD from both an approved Design Specification and an approved Parametric Design Plan.
+
+Input context:
+
+- Design Specification JSON as requirements authority
+- approved Design Plan JSON as product-structure authority
+- Gemini ruleset and source contract
+- printer profile/default context
+- raw user request as secondary intent only
+
+Output additions compared with `openscad-generation-v3`:
+
+- `@volundr-component <design_plan_component_id>` markers
+- `@volundr-feature <design_plan_feature_id>` markers
+- `@volundr-dependency <from_parameter_id> -> <to_parameter_id>` markers for derived assignments
+- `@volundr-output <output_id> components=<component_ids>` markers
+- editable Design Plan parameters in `USER PARAMETERS`
+- derived Design Plan parameters in `DERIVED VALUES`
+- assertions for invalid configurations, impossible counts, negative clearances, and too-thin walls
+
+Current implementation: `openscad-generation-v4` is used by the dedicated Design Plan generation endpoint after explicit plan approval.
 
 ### `revision-v1`
 
@@ -247,6 +267,7 @@ design-plan-v1
 openscad-generation-v1
 openscad-generation-v2
 openscad-generation-v3
+openscad-generation-v4
 revision-v1
 contract-repair-v1
 contract-repair-v2

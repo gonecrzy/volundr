@@ -1,6 +1,6 @@
 # Volundr Data Model
 
-This document defines the persistent entities and invariants needed for projects, immutable revisions, AI attempts, CAD jobs, mesh metadata, and project conversation history.
+This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, AI attempts, CAD jobs, mesh metadata, and project conversation history.
 
 ## Project
 
@@ -234,6 +234,159 @@ cosmetic
 ```
 
 Protected by default: user or clarification supplied critical dimensions, explicit hole count, explicit spacing, mating dimensions, required features, maximum envelope constraints, and selected printer build-volume constraints.
+
+## DesignPlan
+
+Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before OpenSCAD generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial OpenSCAD generation should use an approved Design Plan when one exists.
+
+Fields:
+
+```text
+id
+project_id
+design_specification_id
+generation_attempt_id
+superseded_design_plan_id
+version_number
+schema_version
+prompt_template_version
+gemini_ruleset_version
+provider
+provider_model
+raw_response_path
+plan_path
+content_hash
+outcome
+review_state
+clarification_required
+plan_ready
+approved_at
+rejected_at
+created_at
+```
+
+Suggested `outcome` values:
+
+```text
+plan_ready
+plan_clarification_required
+plan_failed
+```
+
+Suggested `review_state` values:
+
+```text
+clarification_required
+pending_review
+approved
+rejected
+```
+
+Design Plan lifecycle:
+
+```text
+Design Specification generation_ready
+  -> design-plan-v1 extraction
+  -> plan_clarification_required -> rejected | replanned after user input
+  -> plan_ready -> pending_review -> approved | rejected
+  -> approved -> OpenSCAD generation may start
+
+Design Plans are immutable. Replanning creates a new version with superseded_design_plan_id set.
+```
+
+The JSON stored at `plan_path` uses schema version `1.0`:
+
+```json
+{
+  "schema_version": "1.0",
+  "project_id": "uuid",
+  "design_specification_id": "uuid",
+  "generation_attempt_id": "uuid",
+  "design_level": "product",
+  "product_type": "configurable_bracket",
+  "purpose": "Mount a small electronics module to a wall",
+  "units": "mm",
+  "parameters": [
+    {
+      "id": "mount_hole_spacing",
+      "label": "Mount hole spacing",
+      "value": 60,
+      "unit": "mm",
+      "source_requirement_id": "mount_hole_spacing",
+      "editable": true,
+      "protected": true,
+      "component_id": "bracket_body"
+    }
+  ],
+  "derived_parameters": [
+    {
+      "id": "plate_height",
+      "label": "Plate height",
+      "expression": "mount_hole_spacing + 20",
+      "unit": "mm",
+      "depends_on": ["mount_hole_spacing"]
+    }
+  ],
+  "dependency_edges": [
+    {
+      "from": "mount_hole_spacing",
+      "to": "plate_height",
+      "relationship": "spacing controls minimum plate height"
+    }
+  ],
+  "components": [
+    {
+      "id": "bracket_body",
+      "label": "Bracket body",
+      "description": "Main printable bracket",
+      "features": ["mounting_holes"],
+      "parameters": ["mount_hole_spacing"]
+    }
+  ],
+  "features": [
+    {
+      "id": "mounting_holes",
+      "component_id": "bracket_body",
+      "type": "hole_group",
+      "description": "Two wall mounting holes",
+      "parameters": ["mount_hole_spacing"],
+      "protected": true
+    }
+  ],
+  "presets": [
+    {
+      "id": "default",
+      "label": "Default",
+      "parameter_values": {"mount_hole_spacing": 60}
+    }
+  ],
+  "assembly_strategy": {
+    "type": "single_part",
+    "instructions": ["Print flat with wall face on the build plate."]
+  },
+  "printable_outputs": [
+    {
+      "id": "bracket_body_output",
+      "label": "Bracket body",
+      "component_ids": ["bracket_body"],
+      "quantity": 1,
+      "orientation": "wall face on Z=0"
+    }
+  ],
+  "risks": [
+    {
+      "id": "layer_strength",
+      "severity": "warning",
+      "description": "Wall loads should be carried by ribs, not a thin flat plate.",
+      "mitigation": "Use triangular ribs behind the mounting face."
+    }
+  ],
+  "clarification_required": false,
+  "clarification_questions": [],
+  "plan_ready": true,
+  "outcome": "plan_ready"
+}
+```
 
 ## ClarificationQuestion
 

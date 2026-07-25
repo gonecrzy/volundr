@@ -29,6 +29,19 @@ class RequirementOutcome(StrEnum):
     EXTRACTION_FAILED = "extraction_failed"
 
 
+class DesignPlanOutcome(StrEnum):
+    PLAN_READY = "plan_ready"
+    PLAN_CLARIFICATION_REQUIRED = "plan_clarification_required"
+    PLAN_FAILED = "plan_failed"
+
+
+class DesignPlanReviewState(StrEnum):
+    CLARIFICATION_REQUIRED = "clarification_required"
+    PENDING_REVIEW = "pending_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     original_intent: str = Field(min_length=1)
@@ -205,6 +218,129 @@ class DesignSpecificationRead(BaseModel):
     created_at: datetime
     specification: dict[str, Any]
     clarification_questions: list[ClarificationQuestionRead] = Field(default_factory=list)
+
+
+class DesignPlanParameter(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    value: float | int | str | bool | None = None
+    unit: str | None = None
+    editable: bool = True
+    protected: bool = False
+    component_id: str | None = None
+    source_requirement_id: str | None = None
+
+
+class DesignPlanDerivedParameter(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    expression: str = Field(min_length=1)
+    unit: str | None = None
+    depends_on: list[str] = Field(default_factory=list)
+
+
+class DesignPlanDependencyEdge(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    from_: str = Field(alias="from", min_length=1)
+    to: str = Field(min_length=1)
+    relationship: str = Field(min_length=1)
+
+
+class DesignPlanComponent(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    features: list[str] = Field(default_factory=list)
+    parameters: list[str] = Field(default_factory=list)
+
+
+class DesignPlanFeature(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    component_id: str = Field(min_length=1)
+    type: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    parameters: list[str] = Field(default_factory=list)
+    protected: bool = False
+
+
+class DesignPlanPreset(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    parameter_values: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
+
+
+class DesignPlanPrintableOutput(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    component_ids: list[str] = Field(min_length=1)
+    quantity: int = Field(default=1, ge=1)
+    orientation: str | None = None
+
+
+class DesignPlanPayload(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    schema_version: str = "1.0"
+    project_id: str | None = None
+    design_specification_id: str | None = None
+    generation_attempt_id: str | None = None
+    design_level: str = Field(min_length=1)
+    product_type: str = Field(min_length=1)
+    purpose: str = Field(min_length=1)
+    units: str = "mm"
+    parameters: list[DesignPlanParameter] = Field(default_factory=list)
+    derived_parameters: list[DesignPlanDerivedParameter] = Field(default_factory=list)
+    dependency_edges: list[DesignPlanDependencyEdge] = Field(default_factory=list)
+    components: list[DesignPlanComponent] = Field(default_factory=list)
+    features: list[DesignPlanFeature] = Field(default_factory=list)
+    presets: list[DesignPlanPreset] = Field(default_factory=list)
+    assembly_strategy: dict[str, Any] = Field(default_factory=dict)
+    printable_outputs: list[DesignPlanPrintableOutput] = Field(default_factory=list)
+    risks: list[dict[str, Any]] = Field(default_factory=list)
+    clarification_required: bool = False
+    clarification_questions: list[dict[str, Any]] = Field(default_factory=list)
+    plan_ready: bool = False
+    outcome: DesignPlanOutcome | None = None
+
+
+class DesignPlanRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    design_specification_id: str
+    generation_attempt_id: str | None
+    superseded_design_plan_id: str | None
+    version_number: int
+    schema_version: str
+    prompt_template_version: str
+    gemini_ruleset_version: str
+    provider: str
+    provider_model: str | None
+    raw_response_path: str | None
+    plan_path: str
+    content_hash: str
+    outcome: DesignPlanOutcome
+    review_state: DesignPlanReviewState
+    clarification_required: bool
+    plan_ready: bool
+    approved_at: datetime | None
+    rejected_at: datetime | None
+    created_at: datetime
+    plan: dict[str, Any]
 
 
 class ClarificationAnswerCreate(BaseModel):

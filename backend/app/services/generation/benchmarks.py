@@ -43,6 +43,7 @@ class GenerationBenchmark:
     protected_design_invariants: list[str]
     unacceptable_outcomes: list[str]
     expected_geometric_invariants: list[dict[str, Any]]
+    expected_design_plan: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -120,6 +121,7 @@ def _parse_benchmark(payload: object) -> GenerationBenchmark:
         protected_design_invariants=_required_text_list(payload, "protected_design_invariants"),
         unacceptable_outcomes=_required_text_list(payload, "unacceptable_outcomes"),
         expected_geometric_invariants=_optional_object_list(payload, "expected_geometric_invariants"),
+        expected_design_plan=_optional_object(payload, "expected_design_plan"),
     )
 
 
@@ -141,4 +143,11 @@ def _optional_object_list(payload: dict[str, object], key: str) -> list[dict[str
     value = payload.get(key, [])
     if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
         raise ValueError(f"{key} must be an object list")
+    return value
+
+
+def _optional_object(payload: dict[str, object], key: str) -> dict[str, Any]:
+    value = payload.get(key, {})
+    if not isinstance(value, dict):
+        raise ValueError(f"{key} must be an object")
     return value

@@ -87,3 +87,24 @@ def test_geometric_invariant_benchmarks_cover_supported_measurements() -> None:
         for invariant in benchmark.expected_geometric_invariants
     }
     assert {"bounds", "build_plate", "hole", "hole_group", "wall_thickness"} <= invariant_types
+
+
+def test_parametric_product_benchmarks_cover_generic_plan_shapes() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    by_id = {benchmark.id: benchmark for benchmark in suite.benchmarks}
+
+    for benchmark_id in (
+        "parametric_simple_bracket",
+        "parametric_electronics_enclosure",
+        "parametric_configurable_organizer",
+        "parametric_adapter",
+        "parametric_case_carrier",
+        "parametric_multi_part_hinged_box",
+        "parametric_repeated_slot_rack",
+    ):
+        plan = by_id[benchmark_id].expected_design_plan
+        assert plan["design_level"] in {"single_part", "product", "assembly"}
+        assert plan["components"]
+        assert plan["features"]
+        assert plan["printable_outputs"]
+        assert plan["dependency_edges"]

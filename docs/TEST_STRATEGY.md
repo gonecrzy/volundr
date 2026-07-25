@@ -90,6 +90,11 @@ Test:
 - clarification answers create a new immutable Design Specification version
 - invalid requirement-extraction JSON is persisted and gets at most one schema-repair attempt
 - OpenSCAD generation cannot begin before a Design Specification is ready
+- ready Design Specifications can create immutable `design-plan-v1` records
+- plan clarification is represented as a planning state, not a failed revision
+- invalid Design Plan JSON is persisted and repaired at most once
+- OpenSCAD generation from the new initial flow cannot begin before the Design Plan is approved
+- planned generation uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
 - generated initial candidates link back to the Design Specification that produced them
 - create initial revision
 - create child revision
@@ -114,6 +119,7 @@ Use Vitest for:
 - printability findings and highlighted regions
 - geometric check grouping for verified, violated, and unverifiable invariants
 - blocked Accept reason when a geometric invariant blocks acceptance
+- Design Plan stage labels, approval gating, and generic product-model summary counts
 
 Use Playwright for critical workflows:
 
@@ -146,6 +152,16 @@ Candidate stabilization workflow:
 8. Start a revision from the geometric finding.
 9. Reject the blocked candidate.
 10. Confirm the accepted revision remains active.
+
+Design Plan workflow coverage:
+
+1. Extract requirements from an incomplete prompt.
+2. Answer clarification and reach `requirements_ready`.
+3. Create a Design Plan.
+4. Review parameters, derived dependencies, components, printable outputs, and risks.
+5. Approve the Design Plan.
+6. Continue to OpenSCAD generation from the approved plan.
+7. Confirm the resulting candidate does not replace the active accepted revision until accepted.
 
 ## Fixture Models
 
@@ -193,6 +209,10 @@ Track at minimum:
 - false-positive geometric blocking rate
 - geometric unverifiable rate
 - quality finding counts by rule
+- Design Plan schema success rate
+- Design Plan repair rate
+- approved-plan-to-generation rate
+- OpenSCAD generation attempts started without an approved Design Plan in the new flow
 
 The benchmark harness should persist provider, model, prompt version, request payload, raw output, extracted source, hashes, timing, validation results, and failure class for every run.
 
@@ -203,3 +223,5 @@ Generation-attempt tests must verify that the structured requirements/design art
 Candidate tests must use fake providers and deterministic STL fixtures. Live Gemini runs are not required for candidate-state, validation, or API transition changes.
 
 Requirement-extraction tests must use fake providers and deterministic JSON fixtures. They must assert that clarification is not represented as a failed revision and that no candidate exists before explicit Continue to generation.
+
+Design Plan tests must use fake providers and deterministic JSON fixtures. They must assert immutable persistence, supersession, approval/rejection, prompt/model/ruleset metadata, plan artifact hashes, and `openscad-generation-v4` prompt context.

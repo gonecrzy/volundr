@@ -1,6 +1,7 @@
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.design_specification import DesignSpecification
+from app.models.design_plan import DesignPlan
 from app.models.geometric_analysis_result import GeometricAnalysisResult
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
@@ -14,6 +15,7 @@ __all__ = [
     "ClarificationAnswer",
     "ClarificationQuestion",
     "DesignSpecification",
+    "DesignPlan",
     "GeometricAnalysisResult",
     "GenerationAttempt",
     "Project",

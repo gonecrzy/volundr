@@ -44,6 +44,7 @@ class GenerationAttempt(Base):
     extracted_source_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     intermediate_artifacts_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     design_spec_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    design_plan_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(String(40), nullable=False, default="started")
     failure_class: Mapped[str] = mapped_column(
         String(80),
@@ -59,4 +60,3 @@ class GenerationAttempt(Base):
     project = relationship("Project", back_populates="generation_attempts")
     base_revision = relationship("Revision", foreign_keys=[base_revision_id])
     resulting_revision = relationship("Revision", foreign_keys=[resulting_revision_id])
-

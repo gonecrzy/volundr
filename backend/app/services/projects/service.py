@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
+from app.models.design_plan import DesignPlan
 from app.models.design_specification import DesignSpecification
 from app.models.geometric_analysis_result import GeometricAnalysisResult
 from app.models.generation_attempt import GenerationAttempt
@@ -29,6 +30,10 @@ from app.schemas.project import (
     ClarificationQuestionRead,
     DesignSpecificationPayload,
     DesignSpecificationRead,
+    DesignPlanOutcome,
+    DesignPlanPayload,
+    DesignPlanRead,
+    DesignPlanReviewState,
     GenerationCreate,
     GeometricAnalysisRead,
     GeometricFindingRead,
@@ -45,7 +50,7 @@ from app.schemas.project import (
     RequirementOutcome,
 )
 from app.schemas.printability import PrintabilityProfile, PrintabilityResult
-from app.services.ai.provider import AiProvider, ModelGenerationRequest, RequirementExtractionRequest
+from app.services.ai.provider import AiProvider, DesignPlanRequest, ModelGenerationRequest, RequirementExtractionRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
@@ -84,6 +89,8 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
 )
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
+DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 DEFAULT_REQUIREMENT_PROFILE = {
     "version": "volundr-defaults-v1",
     "units": "mm",
@@ -465,6 +472,113 @@ class ProjectService:
         specification = self.db.get(DesignSpecification, specification_id)
         return self._design_specification_read(specification) if specification is not None else None
 
+    def get_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
+        plan = self.db.get(DesignPlan, design_plan_id)
+        return self._design_plan_read(plan) if plan is not None else None
+
+    def get_current_design_plan(self, project_id: str) -> DesignPlanRead | None:
+        if self.db.get(Project, project_id) is None:
+            return None
+        plan = self._latest_design_plan(project_id)
+        return self._design_plan_read(plan) if plan is not None else None
+
+    async def create_design_plan_from_specification(
+        self,
+        specification_id: str,
+    ) -> DesignPlanRead | None:
+        specification = self.db.get(DesignSpecification, specification_id)
+        if specification is None:
+            return None
+        if specification.outcome != RequirementOutcome.GENERATION_READY.value:
+            raise ValueError("Design Specification must be generation_ready before planning")
+        if self._has_newer_design_specification(specification):
+            raise ValueError("Design Specification has been superseded")
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+        project = self.db.get(Project, specification.project_id)
+        if project is None:
+            return None
+
+        superseded_plan = self._latest_design_plan(project.id, specification_id=specification.id)
+        request = DesignPlanRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=specification.user_instruction,
+            design_specification=self._read_design_specification_payload(specification),
+            defaults=DEFAULT_REQUIREMENT_PROFILE,
+        )
+        return await self._run_design_planning(
+            project=project,
+            specification=specification,
+            request=request,
+            superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
+        )
+
+    def approve_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
+        plan = self.db.get(DesignPlan, design_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state != DesignPlanReviewState.PENDING_REVIEW.value:
+            raise ValueError("Only pending Design Plans can be approved")
+        if self._has_newer_design_plan(plan):
+            raise ValueError("Design Plan has been superseded")
+        plan.review_state = DesignPlanReviewState.APPROVED.value
+        plan.approved_at = project_utcnow()
+        self._record_message(
+            project_id=plan.project_id,
+            revision_id=None,
+            role="system_event",
+            content=f"Design Plan v{plan.version_number} approved",
+        )
+        self.db.commit()
+        self.db.refresh(plan)
+        return self._design_plan_read(plan)
+
+    def reject_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
+        plan = self.db.get(DesignPlan, design_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state not in {
+            DesignPlanReviewState.PENDING_REVIEW.value,
+            DesignPlanReviewState.CLARIFICATION_REQUIRED.value,
+        }:
+            raise ValueError("Only pending or clarification Design Plans can be rejected")
+        plan.review_state = DesignPlanReviewState.REJECTED.value
+        plan.rejected_at = project_utcnow()
+        self._record_message(
+            project_id=plan.project_id,
+            revision_id=None,
+            role="system_event",
+            content=f"Design Plan v{plan.version_number} rejected",
+        )
+        self.db.commit()
+        self.db.refresh(plan)
+        return self._design_plan_read(plan)
+
+    async def generate_from_design_plan(
+        self,
+        design_plan_id: str,
+    ) -> RevisionRead | None:
+        plan = self.db.get(DesignPlan, design_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state != DesignPlanReviewState.APPROVED.value:
+            raise ValueError("Design Plan must be approved before OpenSCAD generation")
+        if self._has_newer_design_plan(plan):
+            raise ValueError("Design Plan has been superseded")
+        specification = self.db.get(DesignSpecification, plan.design_specification_id)
+        if specification is None:
+            raise ValueError("Design Specification not found for Design Plan")
+        payload = GenerationCreate(
+            user_instruction=specification.user_instruction,
+            design_specification_id=specification.id,
+        )
+        return await self.generate_initial_revision(
+            specification.project_id,
+            payload,
+            design_plan=plan,
+        )
+
     def list_clarification_questions(
         self,
         specification_id: str,
@@ -569,6 +683,8 @@ class ProjectService:
         self,
         project_id: str,
         payload: GenerationCreate,
+        *,
+        design_plan: DesignPlan | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -580,6 +696,7 @@ class ProjectService:
         source_type = "ai_initial"
         design_specification = None
         design_specification_payload = None
+        design_plan_payload = None
         if payload.design_specification_id is not None:
             design_specification = self.db.get(DesignSpecification, payload.design_specification_id)
             if design_specification is None or design_specification.project_id != project.id:
@@ -589,6 +706,10 @@ class ProjectService:
             if self._has_newer_design_specification(design_specification):
                 raise ValueError("Design Specification has been superseded")
             design_specification_payload = self._read_design_specification_payload(design_specification)
+            if design_plan is not None:
+                if design_plan.design_specification_id != design_specification.id:
+                    raise ValueError("Design Plan does not belong to Design Specification")
+                design_plan_payload = self._read_design_plan_payload(design_plan)
         if project.active_revision_id is not None:
             current_source = self.read_revision_source(project.active_revision_id)
             if current_source is None:
@@ -609,12 +730,14 @@ class ProjectService:
             payload=payload,
             current_source=current_source,
             design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
             request=generation_request,
             base_revision_id=project.active_revision_id,
             design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
         )
         try:
             generation_result = await self.ai_provider.generate_model(generation_request)
@@ -637,6 +760,8 @@ class ProjectService:
                     source_type=source_type,
                     design_specification=design_specification,
                     design_specification_payload=design_specification_payload,
+                    design_plan=design_plan,
+                    design_plan_payload=design_plan_payload,
                 )
             )
         except _StoppedWithRevision as exc:
@@ -676,12 +801,14 @@ class ProjectService:
             current_source=scad_source,
             compiler_diagnostics=initial_revision.error_message,
             design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
         )
         repair_attempt = self._start_generation_attempt(
             project=project,
             request=repair_request,
             base_revision_id=project.active_revision_id,
             design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
         )
         try:
             repair_result = await self.ai_provider.generate_model(repair_request)
@@ -722,6 +849,8 @@ class ProjectService:
             source_type="ai_repair",
             design_specification=design_specification,
             design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
         )
         if not repair_source_validation.passed_hard_checks:
             error_message = self._source_contract_rejection_message(repair_source_validation)
@@ -765,6 +894,8 @@ class ProjectService:
         source_type: str,
         design_specification: DesignSpecification | None,
         design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan | None = None,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
         try:
@@ -794,6 +925,8 @@ class ProjectService:
             source_type=source_type,
             design_specification=design_specification,
             design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
         )
         if source_validation.passed_hard_checks:
             return scad_source, generation_result.raw_output, generation_attempt, source_validation
@@ -812,12 +945,14 @@ class ProjectService:
             current_source=scad_source,
             contract_diagnostics=contract_diagnostics,
             design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
         )
         repair_attempt = self._start_generation_attempt(
             project=project,
             request=repair_request,
             base_revision_id=project.active_revision_id,
             design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
         )
         try:
             repair_result = await self.ai_provider.generate_model(repair_request)
@@ -850,6 +985,8 @@ class ProjectService:
             source_type="ai_repair",
             design_specification=design_specification,
             design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
         )
         if not repaired_validation.passed_hard_checks:
             error_message = self._source_contract_rejection_message(repaired_validation)
@@ -872,6 +1009,7 @@ class ProjectService:
         contract_diagnostics: str | None = None,
         compiler_diagnostics: str | None = None,
         design_specification: dict[str, Any] | None = None,
+        design_plan: dict[str, Any] | None = None,
     ) -> ModelGenerationRequest:
         return ModelGenerationRequest(
             project_name=project.name,
@@ -881,6 +1019,7 @@ class ProjectService:
             contract_diagnostics=contract_diagnostics,
             compiler_diagnostics=compiler_diagnostics,
             design_specification=design_specification,
+            design_plan=design_plan,
         )
 
     def _start_generation_attempt(
@@ -890,6 +1029,7 @@ class ProjectService:
         request: ModelGenerationRequest,
         base_revision_id: str | None,
         design_specification_payload: dict[str, Any] | None = None,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> GenerationAttempt:
         attempt = GenerationAttempt(
             project_id=project.id,
@@ -913,6 +1053,7 @@ class ProjectService:
         request_path = run_dir / "request.json"
         prompt_path = run_dir / "prompt.txt"
         design_spec_path = run_dir / "design-spec.json"
+        design_plan_path = run_dir / "design-plan.json"
         chain_path = run_dir / "chain.json"
 
         self._write_json(request_path, asdict(request))
@@ -921,11 +1062,14 @@ class ProjectService:
             design_spec_path,
             design_specification_payload or self._legacy_design_spec(request),
         )
+        if design_plan_payload is not None:
+            self._write_json(design_plan_path, design_plan_payload)
         self._write_json(chain_path, self._attempt_chain(attempt, status="started"))
 
         attempt.request_payload_path = self._relative(request_path)
         attempt.prompt_path = self._relative(prompt_path)
         attempt.design_spec_path = self._relative(design_spec_path)
+        attempt.design_plan_path = self._relative(design_plan_path) if design_plan_payload is not None else None
         attempt.intermediate_artifacts_path = self._relative(chain_path)
         self._update_attempt_chain(attempt, status="started")
         self.db.commit()
@@ -1037,6 +1181,122 @@ class ProjectService:
         )
         return self._design_specification_read(specification)
 
+    async def _run_design_planning(
+        self,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        request: DesignPlanRequest,
+        superseded_design_plan_id: str | None = None,
+    ) -> DesignPlanRead:
+        attempt = self._start_design_plan_attempt(project=project, request=request)
+        try:
+            planner = getattr(self.ai_provider, "create_design_plan")
+            planning_result = await planner(request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(attempt, planning_result)
+        try:
+            parsed_payload = self._parse_design_plan_payload(
+                planning_result.raw_output,
+                project_id=project.id,
+                design_specification_id=specification.id,
+                generation_attempt_id=attempt.id,
+            )
+        except (ValueError, ValidationError) as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                error_message=str(exc),
+            )
+            if request.schema_repair_of_raw_output is not None:
+                raise RuntimeError("planning returned invalid Design Plan") from exc
+            repair_request = DesignPlanRequest(
+                project_name=request.project_name,
+                original_intent=request.original_intent,
+                user_instruction=request.user_instruction,
+                design_specification=request.design_specification,
+                previous_design_plan=request.previous_design_plan,
+                clarification_questions=request.clarification_questions,
+                clarification_answers=request.clarification_answers,
+                schema_repair_of_raw_output=planning_result.raw_output,
+                schema_validation_error=str(exc),
+                defaults=request.defaults,
+            )
+            return await self._run_design_planning(
+                project=project,
+                specification=specification,
+                request=repair_request,
+                superseded_design_plan_id=superseded_design_plan_id,
+            )
+
+        plan = self._persist_design_plan(
+            project=project,
+            specification=specification,
+            attempt=attempt,
+            payload=parsed_payload,
+            raw_response_path=attempt.raw_output_path,
+            superseded_design_plan_id=superseded_design_plan_id,
+        )
+        self._finish_generation_attempt(
+            attempt,
+            status="succeeded",
+            failure_class=FailureClass.NONE,
+        )
+        return self._design_plan_read(plan)
+
+    def _start_design_plan_attempt(
+        self,
+        *,
+        project: Project,
+        request: DesignPlanRequest,
+    ) -> GenerationAttempt:
+        attempt = GenerationAttempt(
+            project_id=project.id,
+            base_revision_id=project.active_revision_id,
+            attempt_number=self._next_generation_attempt_number(project.id),
+            provider=self._provider_name(),
+            provider_model=self._provider_model(),
+            provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            prompt_template_version=self._design_plan_prompt_template_version(),
+            gemini_ruleset_version=self._gemini_ruleset_version(),
+            request_payload_path="",
+            prompt_path="",
+            status="started",
+            failure_class=FailureClass.NONE.value,
+        )
+        self.db.add(attempt)
+        self.db.flush()
+
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        request_path = run_dir / "request.json"
+        prompt_path = run_dir / "prompt.txt"
+        design_spec_path = run_dir / "design-spec.json"
+        chain_path = run_dir / "chain.json"
+
+        self._write_json(request_path, asdict(request))
+        prompt_path.write_text(self._render_design_plan_prompt(request), encoding="utf-8")
+        self._write_json(design_spec_path, request.design_specification)
+        self._write_json(chain_path, self._attempt_chain(attempt, status="started"))
+
+        attempt.request_payload_path = self._relative(request_path)
+        attempt.prompt_path = self._relative(prompt_path)
+        attempt.design_spec_path = self._relative(design_spec_path)
+        attempt.intermediate_artifacts_path = self._relative(chain_path)
+        self._update_attempt_chain(attempt, status="started")
+        self.db.commit()
+        self.db.refresh(attempt)
+        return attempt
+
     def _start_requirement_attempt(
         self,
         *,
@@ -1120,6 +1380,41 @@ class ProjectService:
             return RequirementOutcome.GENERATION_READY
         return RequirementOutcome.EXTRACTION_FAILED
 
+    def _parse_design_plan_payload(
+        self,
+        raw_output: str,
+        *,
+        project_id: str,
+        design_specification_id: str,
+        generation_attempt_id: str,
+    ) -> dict[str, Any]:
+        json_text = self._extract_json_response(raw_output)
+        payload = json.loads(json_text)
+        payload["project_id"] = project_id
+        payload["design_specification_id"] = design_specification_id
+        payload["generation_attempt_id"] = generation_attempt_id
+        if "schema_version" not in payload:
+            payload["schema_version"] = DESIGN_PLAN_SCHEMA_VERSION
+        validated = DesignPlanPayload.model_validate(payload)
+        normalized = validated.model_dump(mode="json", by_alias=True)
+        outcome = self._derive_design_plan_outcome(normalized)
+        normalized["outcome"] = outcome.value
+        normalized["clarification_required"] = (
+            outcome == DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED
+        )
+        normalized["plan_ready"] = outcome == DesignPlanOutcome.PLAN_READY
+        return normalized
+
+    def _derive_design_plan_outcome(self, payload: dict[str, Any]) -> DesignPlanOutcome:
+        explicit = payload.get("outcome")
+        if explicit:
+            return DesignPlanOutcome(explicit)
+        if payload.get("clarification_required") or payload.get("clarification_questions"):
+            return DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED
+        if payload.get("plan_ready"):
+            return DesignPlanOutcome.PLAN_READY
+        return DesignPlanOutcome.PLAN_FAILED
+
     def _persist_design_specification(
         self,
         *,
@@ -1174,6 +1469,53 @@ class ProjectService:
         self.db.refresh(specification)
         return specification
 
+    def _persist_design_plan(
+        self,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        attempt: GenerationAttempt,
+        payload: dict[str, Any],
+        raw_response_path: str | None,
+        superseded_design_plan_id: str | None,
+    ) -> DesignPlan:
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        plan_path = run_dir / "parsed-design-plan.json"
+        self._write_json(plan_path, payload)
+        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
+        attempt.design_plan_path = self._relative(plan_path)
+        if payload["outcome"] == DesignPlanOutcome.PLAN_READY.value:
+            review_state = DesignPlanReviewState.PENDING_REVIEW
+        elif payload["outcome"] == DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED.value:
+            review_state = DesignPlanReviewState.CLARIFICATION_REQUIRED
+        else:
+            review_state = DesignPlanReviewState.REJECTED
+        plan = DesignPlan(
+            project_id=project.id,
+            design_specification_id=specification.id,
+            generation_attempt_id=attempt.id,
+            superseded_design_plan_id=superseded_design_plan_id,
+            version_number=self._next_design_plan_version(project.id),
+            schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
+            prompt_template_version=attempt.prompt_template_version,
+            gemini_ruleset_version=attempt.gemini_ruleset_version,
+            provider=attempt.provider,
+            provider_model=attempt.provider_model,
+            raw_response_path=raw_response_path,
+            plan_path=self._relative(plan_path),
+            content_hash=content_hash,
+            outcome=str(payload["outcome"]),
+            review_state=review_state.value,
+            clarification_required=bool(payload.get("clarification_required", False)),
+            plan_ready=bool(payload.get("plan_ready", False)),
+        )
+        self.db.add(plan)
+        self.db.flush()
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+        self.db.refresh(plan)
+        return plan
+
     def _update_attempt_chain(
         self,
         attempt: GenerationAttempt,
@@ -1217,6 +1559,7 @@ class ProjectService:
                     "raw_output_path": attempt.raw_output_path,
                     "extracted_source_path": attempt.extracted_source_path,
                     "design_spec_path": attempt.design_spec_path,
+                    "design_plan_path": attempt.design_plan_path,
                     "source_contract_result_path": source_validation.result_path
                     if source_validation is not None
                     else None,
@@ -1261,6 +1604,12 @@ class ProjectService:
             return build_prompt(request)
         return ""
 
+    def _render_design_plan_prompt(self, request: DesignPlanRequest) -> str:
+        build_prompt = getattr(self.ai_provider, "build_design_plan_prompt", None)
+        if callable(build_prompt):
+            return build_prompt(request)
+        return ""
+
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
         version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
         if callable(version_for):
@@ -1271,6 +1620,8 @@ class ProjectService:
             return "legacy-compile-repair-v1"
         if request.current_source:
             return "legacy-revision-v1"
+        if request.design_plan:
+            return "openscad-generation-v4"
         if request.design_specification:
             return "openscad-generation-v3"
         return "legacy-initial-v1"
@@ -1280,6 +1631,12 @@ class ProjectService:
         if callable(version):
             return str(version())
         return REQUIREMENTS_PROMPT_VERSION
+
+    def _design_plan_prompt_template_version(self) -> str:
+        version = getattr(self.ai_provider, "design_plan_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return DESIGN_PLAN_PROMPT_VERSION
 
     def _gemini_ruleset_version(self) -> str:
         return str(getattr(self.ai_provider, "gemini_ruleset_version", "gemini-ruleset-v1"))
@@ -1309,6 +1666,17 @@ class ProjectService:
             .order_by(DesignSpecification.version_number.desc())
         )
 
+    def _latest_design_plan(
+        self,
+        project_id: str,
+        *,
+        specification_id: str | None = None,
+    ) -> DesignPlan | None:
+        query = select(DesignPlan).where(DesignPlan.project_id == project_id)
+        if specification_id is not None:
+            query = query.where(DesignPlan.design_specification_id == specification_id)
+        return self.db.scalar(query.order_by(DesignPlan.version_number.desc()))
+
     def _has_newer_design_specification(self, specification: DesignSpecification) -> bool:
         latest_version = self.db.scalar(
             select(func.max(DesignSpecification.version_number)).where(
@@ -1317,11 +1685,27 @@ class ProjectService:
         )
         return latest_version is not None and int(latest_version) > specification.version_number
 
+    def _has_newer_design_plan(self, plan: DesignPlan) -> bool:
+        latest_version = self.db.scalar(
+            select(func.max(DesignPlan.version_number)).where(
+                DesignPlan.project_id == plan.project_id,
+                DesignPlan.design_specification_id == plan.design_specification_id,
+            )
+        )
+        return latest_version is not None and int(latest_version) > plan.version_number
+
     def _read_design_specification_payload(
         self,
         specification: DesignSpecification,
     ) -> dict[str, Any]:
         path = self.data_dir / specification.specification_path
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def _read_design_plan_payload(
+        self,
+        plan: DesignPlan,
+    ) -> dict[str, Any]:
+        path = self.data_dir / plan.plan_path
         return json.loads(path.read_text(encoding="utf-8"))
 
     def _design_specification_read(
@@ -1361,6 +1745,35 @@ class ProjectService:
             ],
         )
 
+    def _design_plan_read(
+        self,
+        plan: DesignPlan,
+    ) -> DesignPlanRead:
+        return DesignPlanRead(
+            id=plan.id,
+            project_id=plan.project_id,
+            design_specification_id=plan.design_specification_id,
+            generation_attempt_id=plan.generation_attempt_id,
+            superseded_design_plan_id=plan.superseded_design_plan_id,
+            version_number=plan.version_number,
+            schema_version=plan.schema_version,
+            prompt_template_version=plan.prompt_template_version,
+            gemini_ruleset_version=plan.gemini_ruleset_version,
+            provider=plan.provider,
+            provider_model=plan.provider_model,
+            raw_response_path=plan.raw_response_path,
+            plan_path=plan.plan_path,
+            content_hash=plan.content_hash,
+            outcome=DesignPlanOutcome(plan.outcome),
+            review_state=DesignPlanReviewState(plan.review_state),
+            clarification_required=plan.clarification_required,
+            plan_ready=plan.plan_ready,
+            approved_at=plan.approved_at,
+            rejected_at=plan.rejected_at,
+            created_at=plan.created_at,
+            plan=self._read_design_plan_payload(plan),
+        )
+
     def _persist_source_contract_validation(
         self,
         *,
@@ -1370,11 +1783,14 @@ class ProjectService:
         source_type: str,
         design_specification: DesignSpecification | None,
         design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan | None = None,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> SourceValidationResult:
         validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
         result = validator.validate(
             source,
             design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
             source_type=source_type,
         )
         run_dir = self._generation_attempt_dir(project.id, attempt.id)
@@ -2036,6 +2452,14 @@ class ProjectService:
         current = self.db.scalar(
             select(func.max(DesignSpecification.version_number)).where(
                 DesignSpecification.project_id == project_id
+            )
+        )
+        return int(current or 0) + 1
+
+    def _next_design_plan_version(self, project_id: str) -> int:
+        current = self.db.scalar(
+            select(func.max(DesignPlan.version_number)).where(
+                DesignPlan.project_id == project_id
             )
         )
         return int(current or 0) + 1

@@ -31,6 +31,7 @@ All generated OpenSCAD benchmarks must:
 - map every protected critical dimension with `@volundr-requirement`
 - map every protected functional requirement with `@volundr-feature`
 - include `@volundr-geometry` markers for supported protected bounds, hole, hole-group, and wall-thickness invariants
+- when an approved Design Plan is present, map its components, features, dependency edges, and printable outputs with the markers defined in `docs/MODEL_GENERATION_CONTRACT.md`
 - verify supported protected geometric invariants according to `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - avoid unrequested decorative or weight-reduction features
 - classify assumptions and warnings
@@ -43,6 +44,18 @@ Protected design invariants include user-provided dimensions, required features,
 Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, and conflicting dimensions. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, and the remaining model categories.
 
 Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated. Fixture-generated meshes should also include expected geometric invariant assertions for supported cases: bounding dimensions, build-plate placement, cylindrical hole diameter, hole count, hole spacing, and wall-thickness estimates.
+
+The full machine-readable suite also includes parametric-product Design Plan expectations for:
+
+- simple bracket
+- electronics enclosure
+- configurable organizer
+- adapter
+- case/carrier
+- multi-part hinged box
+- repeated-slot rack
+
+These cases assert generic plan shape: parameters, derived dependencies, components, features, presets where useful, assembly strategy, printable outputs, risks, and design level. The case/carrier benchmark includes a fishing-tray carrier as one acceptance case, not as a schema template.
 
 ## Suites
 
@@ -57,7 +70,7 @@ Core suite:
 
 Full stability suite:
 
-- all 15 benchmarks in this document
+- all 15 original reliability benchmarks plus parametric-product Design Plan cases in the machine-readable fixture
 
 ## Benchmarks
 

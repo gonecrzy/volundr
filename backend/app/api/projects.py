@@ -10,6 +10,7 @@ from app.schemas.project import (
     ClarificationAnswersCreate,
     ClarificationQuestionRead,
     DesignSpecificationRead,
+    DesignPlanRead,
     GeometricAnalysisRead,
     ManualRevisionCreate,
     GenerationCreate,
@@ -245,6 +246,93 @@ def get_design_specification(
 
 
 @router.get(
+    "/projects/{project_id}/design-plan",
+    response_model=DesignPlanRead,
+)
+def get_current_design_plan(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> DesignPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    plan = service.get_current_design_plan(project_id)
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
+    return plan
+
+
+@router.get(
+    "/design-plans/{design_plan_id}",
+    response_model=DesignPlanRead,
+)
+def get_design_plan(
+    design_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> DesignPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    plan = service.get_design_plan(design_plan_id)
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
+    return plan
+
+
+@router.post(
+    "/design-specifications/{specification_id}/design-plan",
+    response_model=DesignPlanRead,
+    status_code=201,
+)
+async def create_design_plan_from_specification(
+    specification_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> DesignPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir, ai_provider=ai_provider)
+    try:
+        plan = await service.create_design_plan_from_specification(specification_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Design Specification not found")
+    return plan
+
+
+@router.post("/design-plans/{design_plan_id}/approve", response_model=DesignPlanRead)
+def approve_design_plan(
+    design_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> DesignPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        plan = service.approve_design_plan(design_plan_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
+    return plan
+
+
+@router.post("/design-plans/{design_plan_id}/reject", response_model=DesignPlanRead)
+def reject_design_plan(
+    design_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> DesignPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        plan = service.reject_design_plan(design_plan_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
+    return plan
+
+
+@router.get(
     "/design-specifications/{specification_id}/clarification-questions",
     response_model=list[ClarificationQuestionRead],
 )
@@ -310,6 +398,35 @@ async def generate_from_design_specification(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if revision is None:
         raise HTTPException(status_code=404, detail="Design Specification not found")
+    return revision
+
+
+@router.post(
+    "/design-plans/{design_plan_id}/generate",
+    response_model=RevisionRead,
+    status_code=201,
+)
+async def generate_from_design_plan(
+    design_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> RevisionRead:
+    service = ProjectService(
+        db=db,
+        data_dir=data_dir,
+        cad_runner=cad_runner,
+        ai_provider=ai_provider,
+    )
+    try:
+        revision = await service.generate_from_design_plan(design_plan_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if revision is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
     return revision
 
 

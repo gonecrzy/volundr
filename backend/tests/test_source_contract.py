@@ -69,6 +69,119 @@ DESIGN_SPEC = {
 }
 
 
+DESIGN_PLAN = {
+    "schema_version": "1.0",
+    "parameters": [
+        {
+            "id": "hole_spacing",
+            "label": "Hole spacing",
+            "value": 60,
+            "unit": "mm",
+            "editable": True,
+            "protected": True,
+            "source_requirement_id": "hole_spacing",
+        },
+        {
+            "id": "plate_thickness",
+            "label": "Plate thickness",
+            "value": 6,
+            "unit": "mm",
+            "editable": True,
+            "protected": False,
+        },
+    ],
+    "derived_parameters": [
+        {
+            "id": "plate_width",
+            "label": "Plate width",
+            "expression": "hole_spacing + 30",
+            "depends_on": ["hole_spacing"],
+        }
+    ],
+    "dependency_edges": [
+        {
+            "from": "hole_spacing",
+            "to": "plate_width",
+            "relationship": "spacing drives bracket width",
+        }
+    ],
+    "components": [
+        {
+            "id": "bracket_body",
+            "label": "Bracket body",
+            "description": "Main bracket",
+            "features": ["mounting_holes"],
+            "parameters": ["hole_spacing", "plate_thickness"],
+        }
+    ],
+    "features": [
+        {
+            "id": "mounting_holes",
+            "component_id": "bracket_body",
+            "type": "hole_group",
+            "description": "Two mounting holes",
+            "parameters": ["hole_spacing"],
+            "protected": True,
+        }
+    ],
+    "printable_outputs": [
+        {
+            "id": "bracket_output",
+            "label": "Bracket",
+            "component_ids": ["bracket_body"],
+            "quantity": 1,
+        }
+    ],
+}
+
+
+PLAN_SOURCE = """
+/*
+Project: Mounting plate
+Units: millimeters
+Purpose: Mount a controller
+Assumptions:
+- none
+Print notes:
+- flat on Z=0
+*/
+
+// ===== QUALITY =====
+$fn = 48;
+
+// ===== USER PARAMETERS =====
+// @volundr-requirement hole_spacing
+// @volundr-component bracket_body
+hole_spacing = 60;
+plate_thickness = 6;
+
+// ===== DERIVED VALUES =====
+// @volundr-dependency hole_spacing -> plate_width
+plate_width = hole_spacing + 30;
+
+// ===== VALIDATION =====
+assert(hole_spacing > 0, "hole_spacing must be positive");
+
+// ===== MODULES =====
+// @volundr-feature mounting_method
+// @volundr-feature mounting_holes
+module mounting_holes() {
+  translate([hole_spacing / 2, 0, 0]) cylinder(h=6, d=4.5);
+}
+
+// ===== FINAL MODEL =====
+// @volundr-output bracket_output components=bracket_body
+module main_model() {
+  difference() {
+    cube([plate_width, 30, plate_thickness]);
+    mounting_holes();
+  }
+}
+
+main_model();
+"""
+
+
 def test_scanner_ignores_prohibited_text_in_comments_and_strings() -> None:
     source = VALID_SOURCE.replace(
         "eps = 0.01;",
@@ -141,6 +254,54 @@ def test_scanner_extracts_assignments_and_markers() -> None:
     assert metadata.requirement_mappings["hole_spacing"].target_name == "hole_spacing"
     assert metadata.feature_mappings["mounting_method"].target_name == "mounting_holes"
     assert metadata.has_unbalanced_parentheses is False
+
+
+def test_scanner_extracts_design_plan_markers() -> None:
+    metadata = scan_openscad_source(PLAN_SOURCE).metadata
+
+    assert metadata.component_mappings["bracket_body"].target_name == "hole_spacing"
+    assert metadata.dependency_mappings[0].from_id == "hole_spacing"
+    assert metadata.dependency_mappings[0].to_id == "plate_width"
+    assert metadata.output_mappings["bracket_output"].component_ids == ["bracket_body"]
+
+
+def test_scanner_extracts_multi_component_output_marker() -> None:
+    source = PLAN_SOURCE.replace(
+        "// @volundr-output bracket_output components=bracket_body",
+        "// @volundr-output bracket_output components=base,lid",
+    )
+
+    metadata = scan_openscad_source(source).metadata
+
+    assert metadata.output_mappings["bracket_output"].component_ids == ["base", "lid"]
+
+
+def test_design_plan_markers_are_required_when_plan_is_present() -> None:
+    source = PLAN_SOURCE.replace("// @volundr-output bracket_output components=bracket_body\n", "")
+
+    result = SourceContractValidator().validate(
+        source,
+        design_specification=DESIGN_SPEC,
+        design_plan=DESIGN_PLAN,
+        source_type="ai_initial",
+    )
+
+    assert "design_plan_compliance.missing_output_marker" in {
+        finding.rule_id for finding in result.specification_findings
+    }
+    assert result.passed_hard_checks is False
+
+
+def test_valid_design_plan_source_passes_hard_checks() -> None:
+    result = SourceContractValidator().validate(
+        PLAN_SOURCE,
+        design_specification=DESIGN_SPEC,
+        design_plan=DESIGN_PLAN,
+        source_type="ai_initial",
+    )
+
+    assert result.passed_hard_checks is True
+    assert result.specification_findings == []
 
 
 def test_valid_complete_source_passes_hard_checks() -> None:

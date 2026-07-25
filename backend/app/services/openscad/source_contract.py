@@ -37,6 +37,24 @@ class SourceGeometryMapping:
 
 
 @dataclass(frozen=True)
+class SourceDependencyMapping:
+    from_id: str
+    to_id: str
+    target_name: str
+    target_kind: str
+    line: int
+
+
+@dataclass(frozen=True)
+class SourceOutputMapping:
+    output_id: str
+    component_ids: list[str]
+    target_name: str
+    target_kind: str
+    line: int
+
+
+@dataclass(frozen=True)
 class SourceMetadata:
     source_hash: str
     source_size_bytes: int
@@ -48,6 +66,9 @@ class SourceMetadata:
     top_level_geometry_calls: list[str] = field(default_factory=list)
     requirement_mappings: dict[str, SourceMapping] = field(default_factory=dict)
     feature_mappings: dict[str, SourceMapping] = field(default_factory=dict)
+    component_mappings: dict[str, SourceMapping] = field(default_factory=dict)
+    dependency_mappings: list[SourceDependencyMapping] = field(default_factory=list)
+    output_mappings: dict[str, SourceOutputMapping] = field(default_factory=dict)
     geometry_mappings: list[SourceGeometryMapping] = field(default_factory=list)
     assignments: dict[str, str] = field(default_factory=dict)
     assignment_lines: dict[str, int] = field(default_factory=dict)
@@ -134,6 +155,7 @@ class SourceContractValidator:
         source: str,
         *,
         design_specification: dict[str, Any] | None,
+        design_plan: dict[str, Any] | None = None,
         source_type: str,
     ) -> SourceContractResult:
         started = time.perf_counter()
@@ -143,6 +165,7 @@ class SourceContractValidator:
         spec_findings = self._specification_findings(
             scan,
             design_specification=design_specification,
+            design_plan=design_plan,
             source_type=source_type,
         )
         quality = self._quality_findings(source, scan)
@@ -285,12 +308,38 @@ class SourceContractValidator:
         scan: SourceScanResult,
         *,
         design_specification: dict[str, Any] | None,
+        design_plan: dict[str, Any] | None,
         source_type: str,
     ) -> list[SourceContractFinding]:
-        if design_specification is None or source_type not in {"ai_initial", "ai_revision", "ai_repair"}:
+        if source_type not in {"ai_initial", "ai_revision", "ai_repair"}:
             return []
         findings: list[SourceContractFinding] = []
         constants = _evaluate_constants(scan.metadata.assignments)
+        if design_specification is not None:
+            findings.extend(
+                self._design_specification_findings(
+                    scan,
+                    design_specification=design_specification,
+                    constants=constants,
+                )
+            )
+        if design_plan is not None:
+            findings.extend(
+                self._design_plan_findings(
+                    scan,
+                    design_plan=design_plan,
+                )
+            )
+        return findings
+
+    def _design_specification_findings(
+        self,
+        scan: SourceScanResult,
+        *,
+        design_specification: dict[str, Any],
+        constants: dict[str, float],
+    ) -> list[SourceContractFinding]:
+        findings: list[SourceContractFinding] = []
         for dimension in design_specification.get("critical_dimensions", []):
             if not dimension.get("protected"):
                 continue
@@ -350,6 +399,78 @@ class SourceContractValidator:
                         "specification_compliance",
                         "Missing required feature marker",
                         related_requirement_id=requirement_id,
+                    )
+                )
+        return findings
+
+    def _design_plan_findings(
+        self,
+        scan: SourceScanResult,
+        *,
+        design_plan: dict[str, Any],
+    ) -> list[SourceContractFinding]:
+        findings: list[SourceContractFinding] = []
+        for parameter in design_plan.get("parameters", []):
+            parameter_id = str(parameter.get("id"))
+            if not parameter_id:
+                continue
+            if parameter.get("protected") or parameter.get("editable", False):
+                if parameter_id not in scan.metadata.assignments:
+                    findings.append(
+                        _finding(
+                            "design_plan_compliance.missing_plan_parameter",
+                            "specification_compliance",
+                            "Missing Design Plan parameter",
+                            related_requirement_id=parameter.get("source_requirement_id"),
+                            threshold_value=parameter_id,
+                        )
+                    )
+        for component in design_plan.get("components", []):
+            component_id = str(component.get("id"))
+            if component_id and component_id not in scan.metadata.component_mappings:
+                findings.append(
+                    _finding(
+                        "design_plan_compliance.missing_component_marker",
+                        "specification_compliance",
+                        "Missing Design Plan component marker",
+                        threshold_value=component_id,
+                    )
+                )
+        for feature in design_plan.get("features", []):
+            feature_id = str(feature.get("id"))
+            if feature_id and feature_id not in scan.metadata.feature_mappings:
+                findings.append(
+                    _finding(
+                        "design_plan_compliance.missing_feature_marker",
+                        "specification_compliance",
+                        "Missing Design Plan feature marker",
+                        threshold_value=feature_id,
+                    )
+                )
+        dependency_pairs = {
+            (mapping.from_id, mapping.to_id) for mapping in scan.metadata.dependency_mappings
+        }
+        for edge in design_plan.get("dependency_edges", []):
+            from_id = str(edge.get("from") or edge.get("from_") or "")
+            to_id = str(edge.get("to") or "")
+            if from_id and to_id and (from_id, to_id) not in dependency_pairs:
+                findings.append(
+                    _finding(
+                        "design_plan_compliance.missing_dependency_marker",
+                        "specification_compliance",
+                        "Missing Design Plan dependency marker",
+                        detected_value=f"{from_id} -> {to_id}",
+                    )
+                )
+        for output in design_plan.get("printable_outputs", []):
+            output_id = str(output.get("id"))
+            if output_id and output_id not in scan.metadata.output_mappings:
+                findings.append(
+                    _finding(
+                        "design_plan_compliance.missing_output_marker",
+                        "specification_compliance",
+                        "Missing Design Plan printable output marker",
+                        threshold_value=output_id,
                     )
                 )
         return findings
@@ -521,9 +642,19 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
     assignments: dict[str, str] = {}
     assignment_lines: dict[str, int] = {}
     sections = _sections(comments)
-    requirement_markers, feature_markers, geometry_markers = _pending_markers(comments)
+    (
+        requirement_markers,
+        feature_markers,
+        component_markers,
+        dependency_markers,
+        output_markers,
+        geometry_markers,
+    ) = _pending_markers(comments)
     requirement_mappings: dict[str, SourceMapping] = {}
     feature_mappings: dict[str, SourceMapping] = {}
+    component_mappings: dict[str, SourceMapping] = {}
+    dependency_mappings: list[SourceDependencyMapping] = []
+    output_mappings: dict[str, SourceOutputMapping] = {}
     brace_depth = 0
     paren_depth = 0
     unbalanced_braces = False
@@ -571,11 +702,27 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
             name = _next_identifier(tokens, index)
             if name:
                 module_names.append(name.value)
-                marker = _marker_for_line(feature_markers, token.line)
-                if marker:
+                for marker in _markers_for_line(feature_markers, token.line):
                     feature_mappings[marker] = SourceMapping(
                         requirement_id=marker,
                         marker_type="feature",
+                        target_name=name.value,
+                        target_kind="module",
+                        line=name.line,
+                    )
+                for marker in _markers_for_line(component_markers, token.line):
+                    if marker not in component_mappings:
+                        component_mappings[marker] = SourceMapping(
+                            requirement_id=marker,
+                            marker_type="component",
+                            target_name=name.value,
+                            target_kind="module",
+                            line=name.line,
+                        )
+                for output_marker in _output_markers_for_line(output_markers, token.line):
+                    output_mappings[output_marker["id"]] = SourceOutputMapping(
+                        output_id=output_marker["id"],
+                        component_ids=output_marker.get("component_ids", []),
                         target_name=name.value,
                         target_kind="module",
                         line=name.line,
@@ -607,6 +754,28 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                         target_kind="parameter",
                         line=token.line,
                     )
+                for component_marker in _markers_for_line(component_markers, token.line):
+                    if component_marker not in component_mappings:
+                        component_mappings[component_marker] = SourceMapping(
+                            requirement_id=component_marker,
+                            marker_type="component",
+                            target_name=token.value,
+                            target_kind="parameter",
+                            line=token.line,
+                        )
+                for dependency_marker in _dependency_markers_for_line(
+                    dependency_markers,
+                    token.line,
+                ):
+                    dependency_mappings.append(
+                        SourceDependencyMapping(
+                            from_id=dependency_marker[0],
+                            to_id=dependency_marker[1],
+                            target_name=token.value,
+                            target_kind="parameter",
+                            line=token.line,
+                        )
+                    )
                 index = end_index
                 continue
             if (
@@ -632,12 +801,15 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
         top_level_geometry_calls=top_level_geometry_calls,
         requirement_mappings=requirement_mappings,
         feature_mappings=feature_mappings,
+        component_mappings=component_mappings,
+        dependency_mappings=dependency_mappings,
+        output_mappings=output_mappings,
         geometry_mappings=[
             SourceGeometryMapping(
                 geometry_type=attributes["type"],
                 attributes=attributes,
                 line=line,
-                feature_id=_marker_for_line(feature_markers, line),
+                feature_id=_last_marker_for_line(feature_markers, line),
             )
             for line, attributes in sorted(geometry_markers.items())
             if "type" in attributes
@@ -675,21 +847,63 @@ def _sections(comments: list[SourceToken]) -> set[str]:
 
 def _pending_markers(
     comments: list[SourceToken],
-) -> tuple[dict[int, str], dict[int, str], dict[int, dict[str, str]]]:
+) -> tuple[
+    dict[int, str],
+    dict[int, list[str]],
+    dict[int, list[str]],
+    dict[int, list[tuple[str, str]]],
+    dict[int, list[dict[str, Any]]],
+    dict[int, dict[str, str]],
+]:
     requirement_markers: dict[int, str] = {}
-    feature_markers: dict[int, str] = {}
+    feature_markers: dict[int, list[str]] = {}
+    component_markers: dict[int, list[str]] = {}
+    dependency_markers: dict[int, list[tuple[str, str]]] = {}
+    output_markers: dict[int, list[dict[str, Any]]] = {}
     geometry_markers: dict[int, dict[str, str]] = {}
     for comment in comments:
         requirement_match = re.search(r"@volundr-requirement\s+([A-Za-z0-9_.-]+)", comment.value)
         if requirement_match:
             requirement_markers[comment.line] = requirement_match.group(1)
-        feature_match = re.search(r"@volundr-feature\s+([A-Za-z0-9_.-]+)", comment.value)
-        if feature_match:
-            feature_markers[comment.line] = feature_match.group(1)
+        for feature_match in re.finditer(r"@volundr-feature\s+([A-Za-z0-9_.-]+)", comment.value):
+            feature_markers.setdefault(comment.line, []).append(feature_match.group(1))
+        for component_match in re.finditer(
+            r"@volundr-component\s+([A-Za-z0-9_.-]+)",
+            comment.value,
+        ):
+            component_markers.setdefault(comment.line, []).append(component_match.group(1))
+        for dependency_match in re.finditer(
+            r"@volundr-dependency\s+([A-Za-z0-9_.-]+)\s*->\s*([A-Za-z0-9_.-]+)",
+            comment.value,
+        ):
+            dependency_markers.setdefault(comment.line, []).append(
+                (dependency_match.group(1), dependency_match.group(2))
+            )
+        for output_match in re.finditer(r"@volundr-output\s+([A-Za-z0-9_.-]+)(.*)", comment.value):
+            remainder = output_match.group(2)
+            components_match = re.search(
+                r"components=([A-Za-z0-9_.-]+(?:,[A-Za-z0-9_.-]+)*)",
+                remainder,
+            )
+            component_ids = [
+                component_id.strip()
+                for component_id in (components_match.group(1) if components_match else "").split(",")
+                if component_id.strip()
+            ]
+            output_markers.setdefault(comment.line, []).append(
+                {"id": output_match.group(1), "component_ids": component_ids}
+            )
         geometry_match = re.search(r"@volundr-geometry\s+(.+)", comment.value)
         if geometry_match:
             geometry_markers[comment.line] = _geometry_attributes(geometry_match.group(1))
-    return requirement_markers, feature_markers, geometry_markers
+    return (
+        requirement_markers,
+        feature_markers,
+        component_markers,
+        dependency_markers,
+        output_markers,
+        geometry_markers,
+    )
 
 
 def _geometry_attributes(text: str) -> dict[str, str]:
@@ -700,8 +914,45 @@ def _geometry_attributes(text: str) -> dict[str, str]:
 
 
 def _marker_for_line(markers: dict[int, str], line: int) -> str | None:
-    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 2]
+    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 4]
     return markers[max(candidates)] if candidates else None
+
+
+def _markers_for_line(markers: dict[int, list[str]], line: int) -> list[str]:
+    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 4]
+    if not candidates:
+        return []
+    result: list[str] = []
+    for marker_line in sorted(candidates):
+        result.extend(markers[marker_line])
+    return result
+
+
+def _last_marker_for_line(markers: dict[int, list[str]], line: int) -> str | None:
+    candidates = _markers_for_line(markers, line)
+    return candidates[-1] if candidates else None
+
+
+def _dependency_markers_for_line(
+    markers: dict[int, list[tuple[str, str]]],
+    line: int,
+) -> list[tuple[str, str]]:
+    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 4]
+    result: list[tuple[str, str]] = []
+    for marker_line in sorted(candidates):
+        result.extend(markers[marker_line])
+    return result
+
+
+def _output_markers_for_line(
+    markers: dict[int, list[dict[str, Any]]],
+    line: int,
+) -> list[dict[str, Any]]:
+    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 4]
+    result: list[dict[str, Any]] = []
+    for marker_line in sorted(candidates):
+        result.extend(markers[marker_line])
+    return result
 
 
 def _next_non_comment(tokens: list[SourceToken], index: int) -> SourceToken | None:

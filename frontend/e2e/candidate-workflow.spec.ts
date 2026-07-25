@@ -53,6 +53,8 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   ];
   let generatedCandidateCount = 0;
   let requirementCount = 0;
+  let designPlanCount = 0;
+  const designPlans = new Map<string, ReturnType<typeof designPlan>>();
 
   await page.route("**/api/**", async (route) => {
     const request = route.request();
@@ -69,6 +71,9 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
       return route.fulfill({ json: [] });
     }
     if (request.method() === "GET" && path === "/projects/project-1/design-specification") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-plan") {
       return route.fulfill({ status: 404, json: { detail: "not found" } });
     }
     if (request.method() === "GET" && path === "/projects/project-1/revisions") {
@@ -99,7 +104,20 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     ) {
       return route.fulfill({ status: 201, json: readySpec("spec-ready-1") });
     }
-    if (request.method() === "POST" && path.startsWith("/design-specifications/spec-ready-")) {
+    if (request.method() === "POST" && /^\/design-specifications\/spec-ready-\d+\/design-plan$/.test(path)) {
+      designPlanCount += 1;
+      const specificationId = path.split("/")[2];
+      const nextPlan = designPlan(`plan-${designPlanCount}`, specificationId);
+      designPlans.set(nextPlan.id, nextPlan);
+      return route.fulfill({ status: 201, json: nextPlan });
+    }
+    if (request.method() === "POST" && /^\/design-plans\/plan-\d+\/approve$/.test(path)) {
+      const planId = path.split("/")[2];
+      const approved = { ...designPlans.get(planId)!, review_state: "approved", approved_at: "2026-07-25T13:02:00Z" };
+      designPlans.set(planId, approved);
+      return route.fulfill({ json: approved });
+    }
+    if (request.method() === "POST" && /^\/design-plans\/plan-\d+\/generate$/.test(path)) {
       generatedCandidateCount += 1;
       if (generatedCandidateCount === 3) {
         return route.fulfill({
@@ -236,6 +254,11 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
   await expect(page.getByText("Container diameter: 81 mm (clarification)")).toBeVisible();
   await expect(page.getByText("Use a 3 mm wall thickness")).toBeVisible();
+  await page.getByRole("button", { name: "Create Design Plan" }).click();
+  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
+  await expect(page.getByText("Container holder body (holder_body)")).toBeVisible();
+  await page.getByRole("button", { name: "Approve plan" }).click();
+  await expect(page.getByLabel("Design Plan").getByText("Plan approved")).toBeVisible();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByText("Candidate - R2 - Ready with warnings")).toBeVisible();
   await expect(page.getByText("Source checks")).toBeVisible();
@@ -255,6 +278,9 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await page.getByLabel("AI chat message").fill("Generate a blocked candidate");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
+  await page.getByRole("button", { name: "Create Design Plan" }).click();
+  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
+  await page.getByRole("button", { name: "Approve plan" }).click();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByText("Candidate - R3 - Blocked candidate")).toBeVisible();
   await expect(page.getByText("Source checks")).toBeVisible();
@@ -267,13 +293,16 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
   await page.getByRole("button", { name: "Revise from finding" }).click();
   await expect(page.getByLabel("AI chat message")).toHaveValue(/finding-hole-spacing/);
 
-  await page.getByRole("button", { name: "Reject" }).click();
+  await page.getByLabel("Candidate review").getByRole("button", { name: "Reject" }).click();
   await expect(page.getByText("Historical revision - R3 - Rejected candidate")).toBeVisible();
   await expect(page.getByText("R2 active")).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Generate source with mismatched protected diameter");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
+  await page.getByRole("button", { name: "Create Design Plan" }).click();
+  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
+  await page.getByRole("button", { name: "Approve plan" }).click();
   await page.getByRole("button", { name: "Continue to generation" }).click();
   await expect(page.getByLabel("Source checks").getByText("Rejected", { exact: true })).toBeVisible();
   await expect(page.getByText("Protected value does not match Design Specification")).toBeVisible();
@@ -410,6 +439,127 @@ function readySpec(id: string) {
       missing_requirements: [],
     },
     clarification_questions: [],
+  };
+}
+
+function designPlan(id: string, specificationId: string) {
+  return {
+    id,
+    project_id: "project-1",
+    design_specification_id: specificationId,
+    generation_attempt_id: `attempt-${id}`,
+    superseded_design_plan_id: null,
+    version_number: Number(id.replace("plan-", "")),
+    schema_version: "1.0",
+    prompt_template_version: "design-plan-v1",
+    gemini_ruleset_version: "gemini-ruleset-v1",
+    provider: "fake",
+    provider_model: "fake-model",
+    raw_response_path: null,
+    plan_path: `projects/project-1/generation-runs/attempt-${id}/parsed-design-plan.json`,
+    content_hash: `hash-${id}`,
+    outcome: "plan_ready",
+    review_state: "pending_review",
+    clarification_required: false,
+    plan_ready: true,
+    approved_at: null,
+    rejected_at: null,
+    created_at: "2026-07-25T13:01:00Z",
+    plan: {
+      schema_version: "1.0",
+      design_level: "product",
+      product_type: "wall_mounted_cylindrical_holder",
+      purpose: "Hold an 81 mm container on a vertical wall",
+      units: "mm",
+      parameters: [
+        {
+          id: "container_diameter",
+          label: "Container diameter",
+          value: 81,
+          unit: "mm",
+          editable: true,
+          protected: true,
+          component_id: "holder_body",
+        },
+        {
+          id: "wall_thickness",
+          label: "Wall thickness",
+          value: 3,
+          unit: "mm",
+          editable: true,
+          protected: false,
+          component_id: "holder_body",
+        },
+      ],
+      derived_parameters: [
+        {
+          id: "holder_inside_diameter",
+          label: "Holder inside diameter",
+          expression: "container_diameter + 1.0",
+          depends_on: ["container_diameter"],
+        },
+      ],
+      dependency_edges: [
+        {
+          from: "container_diameter",
+          to: "holder_inside_diameter",
+          relationship: "container size controls holder opening",
+        },
+      ],
+      components: [
+        {
+          id: "holder_body",
+          label: "Container holder body",
+          description: "Single printable wall holder",
+          features: ["mounting_holes", "retention_lip"],
+          parameters: ["container_diameter", "wall_thickness"],
+        },
+      ],
+      features: [
+        {
+          id: "mounting_holes",
+          component_id: "holder_body",
+          type: "hole_group",
+          description: "Two wall mounting holes",
+          parameters: ["mount_hole_spacing"],
+          protected: true,
+        },
+        {
+          id: "retention_lip",
+          component_id: "holder_body",
+          type: "retention",
+          description: "Front lip prevents container sliding out",
+          parameters: ["wall_thickness"],
+          protected: false,
+        },
+      ],
+      presets: [],
+      assembly_strategy: {
+        type: "single_part",
+        instructions: ["Print with the wall face on the build plate."],
+      },
+      printable_outputs: [
+        {
+          id: "holder_body_output",
+          label: "Holder body",
+          component_ids: ["holder_body"],
+          quantity: 1,
+          orientation: "wall face on Z=0",
+        },
+      ],
+      risks: [
+        {
+          id: "support_access",
+          severity: "warning",
+          description: "Deep holder geometry may need local support depending on lip shape.",
+          mitigation: "Keep the lip shallow and chamfered.",
+        },
+      ],
+      clarification_required: false,
+      clarification_questions: [],
+      plan_ready: true,
+      outcome: "plan_ready",
+    },
   };
 }
 

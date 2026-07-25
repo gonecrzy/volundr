@@ -325,6 +325,7 @@ textarea {
 .project-card,
 .revision-panel,
 .requirements-review,
+.design-plan-review,
 .candidate-review,
 .printability,
 .parameters,
@@ -398,6 +399,7 @@ textarea {
 }
 
 .requirements-review,
+.design-plan-review,
 .candidate-review {
   background: #ffffff;
   border: 1px solid #d9ded7;
@@ -423,6 +425,11 @@ textarea {
   background: #2f6e59;
 }
 
+.requirement-state.pending_review,
+.requirement-state.approved {
+  background: #2f6e59;
+}
+
 .review-state.ready_with_warnings {
   background: #9a6b21;
 }
@@ -437,7 +444,8 @@ textarea {
 
 .requirement-state.requirements_conflict,
 .requirement-state.unsupported_request,
-.requirement-state.extraction_failed {
+.requirement-state.extraction_failed,
+.requirement-state.rejected {
   background: #b93232;
 }
 

@@ -26,6 +26,13 @@ import {
   requirementStageLabel,
   type RequirementOutcome,
 } from "./designSpecificationView";
+import {
+  canApproveDesignPlan,
+  canGenerateFromDesignPlan,
+  designPlanStageLabel,
+  designPlanSummaryCounts,
+  type DesignPlanReviewState,
+} from "./designPlanView";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -155,6 +162,96 @@ type DesignSpecification = {
   clarification_questions: ClarificationQuestion[];
 };
 
+type DesignPlan = {
+  id: string;
+  project_id: string;
+  design_specification_id: string;
+  generation_attempt_id: string | null;
+  superseded_design_plan_id: string | null;
+  version_number: number;
+  schema_version: string;
+  prompt_template_version: string;
+  gemini_ruleset_version: string;
+  provider: string;
+  provider_model: string | null;
+  raw_response_path: string | null;
+  plan_path: string;
+  content_hash: string;
+  outcome: "plan_ready" | "plan_clarification_required" | "plan_failed";
+  review_state: DesignPlanReviewState;
+  clarification_required: boolean;
+  plan_ready: boolean;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+  plan: {
+    purpose?: string;
+    design_level?: string;
+    product_type?: string;
+    parameters?: Array<{
+      id: string;
+      label: string;
+      value: number | string | boolean | null;
+      unit?: string | null;
+      editable?: boolean;
+      protected?: boolean;
+      component_id?: string | null;
+    }>;
+    derived_parameters?: Array<{
+      id: string;
+      label: string;
+      expression: string;
+      unit?: string | null;
+      depends_on?: string[];
+    }>;
+    dependency_edges?: Array<{
+      from: string;
+      to: string;
+      relationship: string;
+    }>;
+    components?: Array<{
+      id: string;
+      label: string;
+      description?: string;
+      features?: string[];
+      parameters?: string[];
+    }>;
+    features?: Array<{
+      id: string;
+      component_id: string;
+      type: string;
+      description: string;
+      parameters?: string[];
+      protected?: boolean;
+    }>;
+    presets?: Array<{
+      id: string;
+      label: string;
+      parameter_values?: Record<string, unknown>;
+    }>;
+    assembly_strategy?: { type?: string; instructions?: string[] };
+    printable_outputs?: Array<{
+      id: string;
+      label: string;
+      component_ids: string[];
+      quantity: number;
+      orientation?: string | null;
+    }>;
+    risks?: Array<{
+      id?: string;
+      severity?: string;
+      description?: string;
+      mitigation?: string;
+    }>;
+    clarification_questions?: Array<{
+      id?: string;
+      question?: string;
+      reason?: string;
+      related_plan_field?: string;
+    }>;
+  };
+};
+
 type BuildVolumeProfile = {
   x_mm: number;
   y_mm: number;
@@ -257,8 +354,11 @@ function App() {
   const [sourceContractError, setSourceContractError] = useState<string | null>(null);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
+  const [designPlan, setDesignPlan] = useState<DesignPlan | null>(null);
   const [clarificationAnswers, setClarificationAnswers] = useState<Record<string, string>>({});
   const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
+  const [isCreatingDesignPlan, setIsCreatingDesignPlan] = useState(false);
+  const [isDesignPlanActionPending, setIsDesignPlanActionPending] = useState(false);
   const [isContinuingGeneration, setIsContinuingGeneration] = useState(false);
   const [isInspectingPrintability, setIsInspectingPrintability] = useState(false);
   const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
@@ -288,8 +388,13 @@ function App() {
   const acceptReason = acceptDisabledReason(selectedRevision);
   const canAcceptSelectedRevision = canAcceptRevision(selectedRevision);
   const currentRequirementStage = requirementStageLabel(designSpecification);
+  const currentDesignPlanStage = designPlanStageLabel(designPlan);
   const canContinueFromSpecification =
-    canContinueGeneration(designSpecification) && !isGenerating && !isContinuingGeneration;
+    canContinueGeneration(designSpecification) && !isGenerating && !isCreatingDesignPlan;
+  const canApproveCurrentDesignPlan =
+    canApproveDesignPlan(designPlan) && !isDesignPlanActionPending && !isContinuingGeneration;
+  const canGenerateFromCurrentDesignPlan =
+    canGenerateFromDesignPlan(designPlan) && !isDesignPlanActionPending && !isContinuingGeneration;
 
   useEffect(() => {
     void refreshProjects();
@@ -316,8 +421,11 @@ function App() {
 
   function resetRequirementState() {
     setDesignSpecification(null);
+    setDesignPlan(null);
     setClarificationAnswers({});
     setIsSubmittingClarification(false);
+    setIsCreatingDesignPlan(false);
+    setIsDesignPlanActionPending(false);
     setIsContinuingGeneration(false);
   }
 
@@ -329,8 +437,21 @@ function App() {
         }),
       );
       setClarificationAnswers({});
+      await loadCurrentDesignPlan(projectId);
     } catch {
       resetRequirementState();
+    }
+  }
+
+  async function loadCurrentDesignPlan(projectId: string) {
+    try {
+      setDesignPlan(
+        await request<DesignPlan>(`/projects/${projectId}/design-plan`, {
+          method: "GET",
+        }),
+      );
+    } catch {
+      setDesignPlan(null);
     }
   }
 
@@ -503,6 +624,7 @@ function App() {
         body: JSON.stringify({ user_instruction: prompt }),
       });
       setDesignSpecification(specification);
+      setDesignPlan(null);
       setClarificationAnswers({});
       if (specification.outcome === "generation_ready") {
         setMessage("Requirements ready");
@@ -544,6 +666,7 @@ function App() {
         },
       );
       setDesignSpecification(specification);
+      setDesignPlan(null);
       setClarificationAnswers({});
       setMessage(specification.outcome === "generation_ready" ? "Requirements ready" : requirementStageLabel(specification));
     } catch (error) {
@@ -553,20 +676,90 @@ function App() {
     }
   }
 
-  async function continueGenerationFromSpecification() {
+  async function createDesignPlanFromSpecification() {
+    if (!project) {
+      setMessage("Save or create a project before planning");
+      return;
+    }
+    if (!designSpecification || !canContinueGeneration(designSpecification)) {
+      setMessage("Requirements must be ready before planning");
+      return;
+    }
+    setIsCreatingDesignPlan(true);
+    setSourceContractError(null);
+    setMessage("Planning product model");
+    try {
+      const plan = await request<DesignPlan>(`/design-specifications/${designSpecification.id}/design-plan`, {
+        method: "POST",
+      });
+      setDesignPlan(plan);
+      setMessage(plan.review_state === "pending_review" ? "Plan review" : designPlanStageLabel(plan));
+      await loadProjectMessages(project.id);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Design planning failed");
+    } finally {
+      setIsCreatingDesignPlan(false);
+    }
+  }
+
+  async function approveDesignPlan() {
+    if (!designPlan || !canApproveDesignPlan(designPlan)) {
+      return;
+    }
+    setIsDesignPlanActionPending(true);
+    setMessage(null);
+    try {
+      const approved = await request<DesignPlan>(`/design-plans/${designPlan.id}/approve`, {
+        method: "POST",
+      });
+      setDesignPlan(approved);
+      setMessage("Plan approved");
+      if (project) {
+        await loadProjectMessages(project.id);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Design Plan approval failed");
+    } finally {
+      setIsDesignPlanActionPending(false);
+    }
+  }
+
+  async function rejectDesignPlan() {
+    if (!designPlan) {
+      return;
+    }
+    setIsDesignPlanActionPending(true);
+    setMessage(null);
+    try {
+      const rejected = await request<DesignPlan>(`/design-plans/${designPlan.id}/reject`, {
+        method: "POST",
+      });
+      setDesignPlan(rejected);
+      setMessage("Plan rejected");
+      if (project) {
+        await loadProjectMessages(project.id);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Design Plan rejection failed");
+    } finally {
+      setIsDesignPlanActionPending(false);
+    }
+  }
+
+  async function continueGenerationFromDesignPlan() {
     if (!project) {
       setMessage("Save or create a project before generation");
       return;
     }
-    if (!designSpecification || !canContinueGeneration(designSpecification)) {
-      setMessage("Requirements must be ready before generation");
+    if (!designPlan || !canGenerateFromDesignPlan(designPlan)) {
+      setMessage("Design Plan must be approved before generation");
       return;
     }
     setIsContinuingGeneration(true);
     setSourceContractError(null);
     setMessage("Generating model");
     try {
-      const revision = await request<Revision>(`/design-specifications/${designSpecification.id}/generate`, {
+      const revision = await request<Revision>(`/design-plans/${designPlan.id}/generate`, {
         method: "POST",
       });
       const nextRevisions = await request<Revision[]>(`/projects/${project.id}/revisions`, {
@@ -1056,15 +1249,26 @@ function App() {
             <DesignSpecificationReview
               answers={clarificationAnswers}
               canContinue={canContinueFromSpecification}
-              isContinuing={isContinuingGeneration}
+              isContinuing={isCreatingDesignPlan}
               isSubmittingAnswers={isSubmittingClarification}
               specification={designSpecification}
               stageLabel={currentRequirementStage}
               onAnswerChange={(questionId, answer) =>
                 setClarificationAnswers((current) => ({ ...current, [questionId]: answer }))
               }
-              onContinue={() => void continueGenerationFromSpecification()}
+              onContinue={() => void createDesignPlanFromSpecification()}
               onSubmitAnswers={() => void submitClarificationAnswers()}
+            />
+            <DesignPlanReview
+              canApprove={canApproveCurrentDesignPlan}
+              canGenerate={canGenerateFromCurrentDesignPlan}
+              isActionPending={isDesignPlanActionPending}
+              isGenerating={isContinuingGeneration}
+              plan={designPlan}
+              stageLabel={currentDesignPlanStage}
+              onApprove={() => void approveDesignPlan()}
+              onGenerate={() => void continueGenerationFromDesignPlan()}
+              onReject={() => void rejectDesignPlan()}
             />
             <SourceContractRejection message={sourceContractError} />
             <h2>Revisions</h2>
@@ -1248,7 +1452,7 @@ function DesignSpecificationReview({
           <SummaryList title="AI assumptions" items={buckets.aiAssumptions} />
           <div className="actions">
             <button className="primary" disabled={!canContinue} onClick={onContinue}>
-              {isContinuing ? "Generating" : "Continue to generation"}
+              {isContinuing ? "Planning" : "Create Design Plan"}
             </button>
           </div>
         </>
@@ -1271,6 +1475,129 @@ function DesignSpecificationReview({
           )}
         />
       ) : null}
+    </section>
+  );
+}
+
+function DesignPlanReview({
+  canApprove,
+  canGenerate,
+  isActionPending,
+  isGenerating,
+  plan,
+  stageLabel,
+  onApprove,
+  onGenerate,
+  onReject,
+}: {
+  canApprove: boolean;
+  canGenerate: boolean;
+  isActionPending: boolean;
+  isGenerating: boolean;
+  plan: DesignPlan | null;
+  stageLabel: string;
+  onApprove: () => void;
+  onGenerate: () => void;
+  onReject: () => void;
+}) {
+  if (!plan) {
+    return null;
+  }
+
+  const counts = designPlanSummaryCounts(plan);
+  const parameters = plan.plan.parameters ?? [];
+  const derived = plan.plan.derived_parameters ?? [];
+  const components = plan.plan.components ?? [];
+  const features = plan.plan.features ?? [];
+  const outputs = plan.plan.printable_outputs ?? [];
+  const risks = plan.plan.risks ?? [];
+  const questions = plan.plan.clarification_questions ?? [];
+
+  return (
+    <section className="design-plan-review" aria-label="Design Plan">
+      <div className="section-heading">
+        <h2>Design Plan</h2>
+        <span className={`requirement-state ${plan.review_state}`}>{stageLabel}</span>
+      </div>
+      <dl className="review-facts">
+        <dt>Level</dt>
+        <dd>{plan.plan.design_level ?? "Unknown"}</dd>
+        <dt>Components</dt>
+        <dd>{counts.components}</dd>
+        <dt>Outputs</dt>
+        <dd>{counts.outputs}</dd>
+        <dt>Version</dt>
+        <dd>{plan.version_number}</dd>
+      </dl>
+
+      {plan.review_state === "clarification_required" ? (
+        <SummaryList
+          title="Planning questions"
+          items={questions.map((question) =>
+            [question.question ?? "Clarification needed", question.reason].filter(Boolean).join(" - "),
+          )}
+        />
+      ) : null}
+
+      <SummaryList
+        title="Editable parameters"
+        items={parameters
+          .filter((parameter) => parameter.editable !== false)
+          .map((parameter) =>
+            `${parameter.label}: ${parameter.value ?? "unset"}${parameter.unit ? ` ${parameter.unit}` : ""}${
+              parameter.protected ? " (protected)" : ""
+            }`,
+          )}
+      />
+      <SummaryList
+        title="Derived parameters"
+        items={derived.map((parameter) => `${parameter.label}: ${parameter.expression}`)}
+      />
+      <SummaryList
+        title="Dependencies"
+        items={(plan.plan.dependency_edges ?? []).map(
+          (edge) => `${edge.from} -> ${edge.to}: ${edge.relationship}`,
+        )}
+      />
+      <SummaryList
+        title="Components"
+        items={components.map((component) => `${component.label} (${component.id})`)}
+      />
+      <SummaryList
+        title="Features"
+        items={features.map((feature) => `${feature.description} (${feature.type})`)}
+      />
+      <SummaryList
+        title="Printable outputs"
+        items={outputs.map(
+          (output) => `${output.label}: ${output.component_ids.join(", ")} x${output.quantity}`,
+        )}
+      />
+      <SummaryList
+        title="Risks"
+        items={risks.map((risk) =>
+          [risk.severity ?? "notice", risk.description ?? risk.id ?? "Risk"].join(": "),
+        )}
+      />
+
+      <div className="actions">
+        <button
+          className="secondary"
+          disabled={
+            isActionPending ||
+            !["pending_review", "clarification_required"].includes(plan.review_state)
+          }
+          onClick={onReject}
+        >
+          Reject
+        </button>
+        <button className="primary" disabled={!canApprove} onClick={onApprove}>
+          {isActionPending ? "Approving" : "Approve plan"}
+        </button>
+        <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
+          {isGenerating ? "Generating" : "Continue to generation"}
+        </button>
+      </div>
     </section>
   );
 }

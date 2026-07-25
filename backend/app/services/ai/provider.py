@@ -11,6 +11,7 @@ class ModelGenerationRequest:
     contract_diagnostics: str | None = None
     compiler_diagnostics: str | None = None
     design_specification: dict[str, Any] | None = None
+    design_plan: dict[str, Any] | None = None
     generation_contract_version: str = "v1"
 
 
@@ -41,6 +42,27 @@ class RequirementExtractionResult:
     provider_model: str | None = None
 
 
+@dataclass(frozen=True)
+class DesignPlanRequest:
+    project_name: str
+    original_intent: str
+    user_instruction: str
+    design_specification: dict[str, Any]
+    previous_design_plan: dict[str, Any] | None = None
+    clarification_questions: list[dict[str, Any]] = field(default_factory=list)
+    clarification_answers: list[dict[str, Any]] = field(default_factory=list)
+    schema_repair_of_raw_output: str | None = None
+    schema_validation_error: str | None = None
+    defaults: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class DesignPlanResult:
+    raw_output: str
+    provider: str
+    provider_model: str | None = None
+
+
 class AiProvider(Protocol):
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         ...
@@ -49,4 +71,7 @@ class AiProvider(Protocol):
         self,
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
+        ...
+
+    async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
         ...

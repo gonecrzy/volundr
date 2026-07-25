@@ -20,6 +20,7 @@ class FailureClass(StrEnum):
     UNSAFE_ASSUMPTION = "unsafe_assumption"
     DESIGN_SPEC_MISSING = "design_spec_missing"
     DESIGN_SPEC_INVALID = "design_spec_invalid"
+    DESIGN_PLAN_INVALID = "design_plan_invalid"
     REVISION_REGRESSION = "revision_regression"
     REPAIR_OVERREACH = "repair_overreach"
     BENCHMARK_FIXTURE_INVALID = "benchmark_fixture_invalid"
@@ -34,4 +35,3 @@ def require_failure_class(value: str) -> str:
     if value not in FAILURE_CLASSES:
         raise ValueError(f"unknown failure class: {value}")
     return value
-
