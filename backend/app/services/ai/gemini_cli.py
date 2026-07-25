@@ -10,13 +10,17 @@ from app.services.ai.provider import (
     ModelGenerationResult,
     RequirementExtractionRequest,
     RequirementExtractionResult,
+    RevisionPlanRequest,
+    RevisionPlanResult,
 )
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
+REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
 PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v5"
+STRUCTURED_REVISION_PROMPT_VERSION = "openscad-revision-v2"
 LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
@@ -125,6 +129,35 @@ class GeminiCliProvider:
             provider_model=self.model,
         )
 
+    async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
+        prompt = self.build_revision_plan_prompt(request)
+        command = self.build_command(prompt)
+
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=self.timeout_seconds,
+            )
+        except TimeoutError as exc:
+            process.kill()
+            await process.communicate()
+            raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
+
+        if process.returncode != 0:
+            diagnostic = stderr.decode("utf-8", errors="replace").strip()
+            raise RuntimeError(diagnostic or "Gemini CLI failed")
+
+        return RevisionPlanResult(
+            raw_output=stdout.decode("utf-8", errors="replace"),
+            provider="gemini_cli",
+            provider_model=self.model,
+        )
+
     def build_command(self, prompt: str) -> list[str]:
         command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]
         if self.model:
@@ -140,6 +173,8 @@ class GeminiCliProvider:
             return CONTRACT_REPAIR_PROMPT_VERSION
         if request.compiler_diagnostics:
             return LEGACY_COMPILE_REPAIR_PROMPT_VERSION
+        if request.revision_plan:
+            return STRUCTURED_REVISION_PROMPT_VERSION
         if request.current_source:
             return LEGACY_REVISION_PROMPT_VERSION
         if request.design_plan:
@@ -153,6 +188,9 @@ class GeminiCliProvider:
 
     def design_plan_prompt_template_version(self) -> str:
         return DESIGN_PLAN_PROMPT_VERSION
+
+    def revision_plan_prompt_template_version(self) -> str:
+        return REVISION_PLAN_PROMPT_VERSION
 
     def provider_settings(self) -> dict[str, Any]:
         return {
@@ -172,9 +210,14 @@ class GeminiCliProvider:
     def build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
         return self._build_design_plan_prompt(request)
 
+    def build_revision_plan_prompt(self, request: RevisionPlanRequest) -> str:
+        return self._build_revision_plan_prompt(request)
+
     def _build_prompt(self, request: ModelGenerationRequest) -> str:
         if request.contract_diagnostics:
             return self._build_contract_repair_prompt(request)
+        if request.revision_plan and request.current_source:
+            return self._build_structured_revision_prompt(request)
         if request.design_specification and request.design_plan and not request.current_source:
             return self._build_planned_openscad_prompt(request)
         if request.design_specification and not request.current_source:
@@ -430,6 +473,142 @@ class GeminiCliProvider:
                 "",
                 "Required JSON shape:",
                 json.dumps(schema, indent=2, sort_keys=True),
+            ]
+        )
+
+    def _build_revision_plan_prompt(self, request: RevisionPlanRequest) -> str:
+        if request.schema_repair_of_raw_output is not None:
+            task = [
+                "Repair this structured Revision Plan response into valid JSON for the required schema.",
+                "Do not generate OpenSCAD. Do not broaden the revision scope.",
+                "Preserve the original revision intent and return JSON only.",
+                "",
+                "Schema validation error:",
+                request.schema_validation_error or "unknown schema error",
+                "",
+                "Invalid raw output:",
+                request.schema_repair_of_raw_output,
+            ]
+        else:
+            task = [
+                "Create a structured Volundr Revision Plan.",
+                "Return JSON only. Do not generate OpenSCAD.",
+                "Identify the exact requested change, affected component/feature/output/parameter, required dependency changes, protected unaffected areas, validation findings addressed, versioning decision, success criteria, and prohibited changes.",
+                "Use the Design Plan dependency graph to allow required dependent changes. Do not authorize broad redesign from source alone.",
+                "Ask clarification when the target, value, strategy, base revision, or supported complexity is ambiguous.",
+            ]
+        schema = {
+            "schema_version": "revision-plan-v1",
+            "reason": "user_request|geometric_finding|printability_finding|source_quality_finding|assembly_finding|output_failure|parameter_change|preset_change|configuration_change",
+            "summary": "string",
+            "requested_changes": [
+                {
+                    "target_type": "product_parameter|derived_parameter|component|feature|printable_output|requirement|assembly_relationship|preset|validation_finding",
+                    "target_id": "string",
+                    "current_value": 0,
+                    "requested_value": 0,
+                    "change_type": "replace|add|remove|adjust",
+                    "source": "user|finding|calculated",
+                }
+            ],
+            "targeted_components": ["component_id"],
+            "targeted_features": ["feature_id"],
+            "targeted_outputs": ["output_id"],
+            "targeted_findings": ["finding_id"],
+            "allowed_parameter_changes": ["parameter_id"],
+            "required_dependency_changes": [
+                {"parameter_id": "parameter_id", "affects": ["dependent_id"]}
+            ],
+            "allowed_component_changes": ["component_id"],
+            "allowed_feature_changes": ["feature_id"],
+            "protected_parameters": [
+                {"parameter_id": "parameter_id", "expected_value": 0, "unit": "mm"}
+            ],
+            "protected_components": ["component_id"],
+            "protected_features": ["feature_id"],
+            "protected_outputs": ["output_id"],
+            "prohibited_changes": ["string"],
+            "success_criteria": [
+                {"type": "parameter_value", "target_id": "parameter_id", "expected_value": 0}
+            ],
+            "requires_design_specification_version": False,
+            "requires_design_plan_version": False,
+            "clarification_questions": [],
+            "outcome": "revision_ready|clarification_required|revision_conflict|unsupported_revision|planning_failed",
+        }
+        return "\n".join(
+            task
+            + [
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"Revision reason: {request.reason}",
+                f"User revision request: {request.user_instruction}",
+                f"Base revision id: {request.base_revision_id}",
+                "",
+                "Design Specification JSON:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Approved Design Plan JSON:",
+                json.dumps(request.design_plan, indent=2, sort_keys=True),
+                "",
+                "Output manifest:",
+                json.dumps(request.output_manifest, indent=2, sort_keys=True),
+                "",
+                "Source metadata:",
+                json.dumps(request.source_metadata, indent=2, sort_keys=True),
+                "",
+                "Selected findings:",
+                json.dumps(request.selected_findings, indent=2, sort_keys=True),
+                "",
+                "Clarification answers:",
+                json.dumps(request.clarification_answers, indent=2, sort_keys=True),
+                "",
+                "Previous Revision Plan:",
+                json.dumps(request.previous_revision_plan, indent=2, sort_keys=True)
+                if request.previous_revision_plan
+                else "None",
+                "",
+                "Required JSON shape:",
+                json.dumps(schema, indent=2, sort_keys=True),
+            ]
+        )
+
+    def _build_structured_revision_prompt(self, request: ModelGenerationRequest) -> str:
+        return "\n".join(
+            [
+                "Revise this Volundr OpenSCAD project from an approved structured Revision Plan.",
+                "Return only a single fenced openscad block. Do not include prose outside the block.",
+                "The Revision Plan is the only authority for what may change.",
+                "Return complete authoritative OpenSCAD source for the whole product.",
+                "Change only approved targets and dependency changes.",
+                "Preserve all protected requirement, component, feature, dependency, geometry, and output markers.",
+                "Retain every planned printable output and the selected_output/render_selected_output contract.",
+                "Preserve unrelated modules and unaffected output behavior where practical.",
+                "Do not simplify away difficult features, remove outputs, or redesign unrelated components.",
+                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User revision request: {request.user_instruction}",
+                "",
+                "Approved Revision Plan JSON:",
+                json.dumps(request.revision_plan, indent=2, sort_keys=True),
+                "",
+                "Current Design Specification JSON:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Current Design Plan JSON:",
+                json.dumps(request.design_plan, indent=2, sort_keys=True),
+                "",
+                "Current output manifest:",
+                json.dumps(request.output_manifest, indent=2, sort_keys=True),
+                "",
+                "Selected findings:",
+                json.dumps(request.selected_findings, indent=2, sort_keys=True),
+                "",
+                "Base authoritative OpenSCAD source:",
+                request.current_source or "",
             ]
         )
 

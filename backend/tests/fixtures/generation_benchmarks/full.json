@@ -182,6 +182,15 @@
         {"type": "bounds", "x_mm": 80, "y_mm": 35, "z_mm": 6, "verification": "verified"}
       ],
       "revision_expectation": "minimal diff changes hole_spacing only",
+      "expected_revision_plan": {
+        "targeted_components": ["plate_body"],
+        "targeted_outputs": ["mounting_plate"],
+        "allowed_parameter_changes": ["hole_spacing", "hole_x_offset"],
+        "required_dependency_changes": [{"parameter_id": "hole_x_offset", "affects": ["mounting_holes"]}],
+        "protected_parameters": ["plate_width", "plate_depth", "plate_thickness", "hole_diameter"],
+        "protected_outputs": ["mounting_plate"],
+        "success_criteria": ["hole_spacing=60 mm", "plate bounds unchanged", "hole diameter unchanged"]
+      },
       "protected_design_invariants": ["plate dimensions", "hole diameter", "module names"],
       "unacceptable_outcomes": ["plate resized", "hole diameter changed", "whole rewrite"]
     },
@@ -198,6 +207,15 @@
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "one component",
       "revision_expectation": "new hole added without moving original holes",
+      "expected_revision_plan": {
+        "targeted_components": ["template_plate"],
+        "targeted_outputs": ["drill_template"],
+        "allowed_parameter_changes": ["hanging_hole_diameter", "hanging_hole_edge_offset"],
+        "required_dependency_changes": [{"parameter_id": "hanging_hole_edge_offset", "affects": ["hanging_hole_position"]}],
+        "protected_parameters": ["plate_width", "plate_depth", "plate_thickness", "original_hole_diameter", "original_hole_spacing"],
+        "protected_outputs": ["drill_template"],
+        "success_criteria": ["hanging_hole_diameter=10 mm", "hanging_hole_edge_offset=8 mm", "original holes unchanged"]
+      },
       "protected_design_invariants": ["original hole size", "original hole spacing", "plate size"],
       "unacceptable_outcomes": ["moving original holes", "decorative slots"]
     },
@@ -310,6 +328,15 @@
       "revision_expectation": "changing PCB size updates shell, lid, and standoff layout",
       "protected_design_invariants": ["PCB envelope", "standoff count", "separate lid/base outputs"],
       "unacceptable_outcomes": ["sealed box", "standoffs omitted", "single fused lid"],
+      "expected_revision_plan": {
+        "targeted_components": ["base_shell", "snap_lid", "standoffs"],
+        "targeted_outputs": ["base", "lid"],
+        "allowed_parameter_changes": ["pcb_width", "pcb_depth", "enclosure_width", "enclosure_depth", "standoff_positions"],
+        "required_dependency_changes": [{"parameter_id": "pcb_width", "affects": ["enclosure_width", "lid_outer_size", "standoff_positions"]}],
+        "protected_parameters": ["wall_thickness", "lid_clearance", "standoff_hole"],
+        "protected_outputs": ["base", "lid"],
+        "success_criteria": ["pcb envelope updated", "standoff_count unchanged", "base and lid outputs still exist"]
+      },
       "expected_design_plan": {
         "design_level": "assembly",
         "components": ["base_shell", "snap_lid", "standoffs"],
@@ -400,6 +427,15 @@
       "revision_expectation": "changing to eight 3700 trays updates guides, height, retention, handle, and reinforcement",
       "protected_design_invariants": ["tray count", "tray profile", "guide count dependency", "handle load path"],
       "unacceptable_outcomes": ["single fixed tray slot", "tray_count not driving case height", "decorative handle only"],
+      "expected_revision_plan": {
+        "targeted_components": ["case_shell", "tray_guides", "handle", "retention_lip", "reinforcement"],
+        "targeted_outputs": ["carrier_body"],
+        "allowed_parameter_changes": ["tray_count", "tray_family", "tray_width", "tray_depth", "tray_height", "guide_count", "case_height", "handle_position"],
+        "required_dependency_changes": [{"parameter_id": "tray_count", "affects": ["guide_count", "case_height", "retention_lip", "reinforcement"]}],
+        "protected_parameters": ["wall_thickness", "clearance", "handle_grip_diameter"],
+        "protected_outputs": ["carrier_body"],
+        "success_criteria": ["tray_count=8", "tray_family=3700", "guide_count follows tray_count", "handle remains present"]
+      },
       "expected_design_plan": {
         "design_level": "product",
         "components": ["case_shell", "tray_guides", "handle", "retention_lip", "reinforcement"],
@@ -460,6 +496,15 @@
       "revision_expectation": "slot_count changes update length and repeated cuts",
       "protected_design_invariants": ["slot count", "sheet thickness", "slot spacing", "open slot direction"],
       "unacceptable_outcomes": ["decorative grooves only", "fixed slot count", "closed slots"],
+      "expected_revision_plan": {
+        "targeted_components": ["base_rail", "slot_array"],
+        "targeted_outputs": ["rack_body"],
+        "allowed_parameter_changes": ["slot_count", "rack_length", "slot_positions"],
+        "required_dependency_changes": [{"parameter_id": "slot_count", "affects": ["rack_length", "slot_positions", "end_stop_positions"]}],
+        "protected_parameters": ["sheet_thickness", "slot_clearance", "slot_spacing", "base_width"],
+        "protected_outputs": ["rack_body"],
+        "success_criteria": ["slot_count updated", "slot spacing unchanged", "slots remain open upward"]
+      },
       "expected_design_plan": {
         "design_level": "product",
         "components": ["base_rail", "slot_array", "end_stops"],

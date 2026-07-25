@@ -158,7 +158,7 @@ Implementation status update: the immutable Parametric Product Model and `design
 
 Implementation status update: approved Design Plan `printable_outputs` now produce one authoritative SCAD source, one output artifact record per printable output, component-scoped validation findings, an assembly-level candidate, an output manifest, component STL downloads, and a deterministic ZIP export. The lifecycle is defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
-Next dependency before component-targeted revisions: implement structured revision planning that consumes the Design Specification, approved Design Plan, output manifest, and validation findings. Deferred: component-targeted revisions, automatic generation after ready specifications, and advanced arbitrary geometric invariant comparison beyond the supported checks in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`.
+Implementation status update: structured revision planning now consumes the Design Specification, approved Design Plan, output manifest, source metadata, and selected validation findings. `revision-planning-v1` produces immutable scoped plans that require explicit approval before `openscad-revision-v2` can modify source. Revision compliance validation blocks unauthorized protected changes before compile. Full behavior is defined in `docs/STRUCTURED_REVISION_PLANNING.md`.
 
 ## Priority 2: Validation And Acceptance
 
@@ -225,6 +225,8 @@ Implementation policy:
 - Exit criteria: validation-driven user revisions preserve existing intent, target named findings, and update only affected Design Plan components/features.
 
 Do not implement this before `design-plan-v1`. Revision planning needs the product component graph and parameter dependency graph to determine what must update together.
+
+Implementation status: completed for structured planning and bounded source revisions. Geometric and validation findings can seed a Revision Plan; generated source is checked against approved change scope before compile; Revision Success Results are persisted after candidate generation. Deferred: direct parameter controls over the Design Plan, preset switching, and richer geometric proof of unchanged protected outputs.
 
 ## Priority 3: Product Confidence
 

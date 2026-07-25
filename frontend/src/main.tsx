@@ -37,6 +37,18 @@ import {
   designPlanSummaryCounts,
   type DesignPlanReviewState,
 } from "./designPlanView";
+import {
+  canApproveRevisionPlan,
+  canGenerateFromRevisionPlan,
+  revisionComplianceBuckets,
+  revisionPlanStageLabel,
+  revisionPlanSummaryCounts,
+  revisionSuccessBuckets,
+  type RevisionComplianceResult,
+  type RevisionPlanOutcome,
+  type RevisionPlanReviewState,
+  type RevisionSuccessResult,
+} from "./revisionPlanView";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -263,6 +275,91 @@ type DesignPlan = {
   };
 };
 
+type RevisionPlanClarificationQuestion = {
+  id: string;
+  project_id: string;
+  revision_plan_id: string;
+  requirement_id: string | null;
+  question: string;
+  reason: string | null;
+  display_order: number;
+  created_at: string;
+};
+
+type RevisionPlan = {
+  id: string;
+  project_id: string;
+  base_revision_id: string;
+  base_design_specification_id: string | null;
+  base_design_plan_id: string | null;
+  generation_attempt_id: string | null;
+  superseded_revision_plan_id: string | null;
+  generated_revision_id: string | null;
+  revised_design_specification_id: string | null;
+  revised_design_plan_id: string | null;
+  version_number: number;
+  schema_version: string;
+  prompt_template_version: string;
+  gemini_ruleset_version: string;
+  provider: string;
+  provider_model: string | null;
+  user_instruction: string;
+  reason: string;
+  raw_response_path: string | null;
+  plan_path: string;
+  content_hash: string;
+  base_source_hash: string | null;
+  base_output_manifest_hash: string | null;
+  base_design_specification_hash: string | null;
+  base_design_plan_hash: string | null;
+  outcome: RevisionPlanOutcome;
+  review_state: RevisionPlanReviewState;
+  clarification_required: boolean;
+  revision_ready: boolean;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+  revision_plan: {
+    summary?: string;
+    requested_changes?: Array<{
+      target_type: string;
+      target_id: string;
+      current_value?: number | string | boolean | null;
+      requested_value?: number | string | boolean | null;
+      change_type?: string;
+      source?: string;
+    }>;
+    required_dependency_changes?: Array<{ parameter_id: string; affects?: string[] }>;
+    targeted_components?: string[];
+    targeted_features?: string[];
+    targeted_outputs?: string[];
+    targeted_findings?: string[];
+    allowed_parameter_changes?: string[];
+    protected_parameters?: Array<{
+      parameter_id: string;
+      expected_value?: number | string | boolean | null;
+      unit?: string | null;
+    }>;
+    protected_components?: string[];
+    protected_features?: string[];
+    protected_outputs?: string[];
+    prohibited_changes?: string[];
+    success_criteria?: Array<{
+      type: string;
+      target_id: string;
+      expected_value?: number | string | boolean | null;
+      unit?: string | null;
+    }>;
+    clarification_questions?: Array<{
+      id?: string;
+      question?: string;
+      reason?: string;
+      related_requirement_id?: string;
+    }>;
+  };
+  clarification_questions: RevisionPlanClarificationQuestion[];
+};
+
 type BuildVolumeProfile = {
   x_mm: number;
   y_mm: number;
@@ -369,11 +466,20 @@ function App() {
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
   const [designPlan, setDesignPlan] = useState<DesignPlan | null>(null);
+  const [revisionPlan, setRevisionPlan] = useState<RevisionPlan | null>(null);
+  const [revisionPlanAnswers, setRevisionPlanAnswers] = useState<Record<string, string>>({});
+  const [revisionComplianceResult, setRevisionComplianceResult] =
+    useState<RevisionComplianceResult | null>(null);
+  const [revisionSuccessResults, setRevisionSuccessResults] = useState<RevisionSuccessResult[]>([]);
+  const [pendingRevisionFindingIds, setPendingRevisionFindingIds] = useState<string[]>([]);
   const [clarificationAnswers, setClarificationAnswers] = useState<Record<string, string>>({});
   const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
   const [isCreatingDesignPlan, setIsCreatingDesignPlan] = useState(false);
   const [isDesignPlanActionPending, setIsDesignPlanActionPending] = useState(false);
   const [isContinuingGeneration, setIsContinuingGeneration] = useState(false);
+  const [isPlanningRevision, setIsPlanningRevision] = useState(false);
+  const [isRevisionPlanActionPending, setIsRevisionPlanActionPending] = useState(false);
+  const [isGeneratingRevision, setIsGeneratingRevision] = useState(false);
   const [isInspectingPrintability, setIsInspectingPrintability] = useState(false);
   const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
     () => new Set(),
@@ -416,6 +522,12 @@ function App() {
     canApproveDesignPlan(designPlan) && !isDesignPlanActionPending && !isContinuingGeneration;
   const canGenerateFromCurrentDesignPlan =
     canGenerateFromDesignPlan(designPlan) && !isDesignPlanActionPending && !isContinuingGeneration;
+  const currentRevisionPlanStage = revisionPlanStageLabel(revisionPlan);
+  const hasAcceptedBaseRevision = Boolean(project?.active_revision_id);
+  const canApproveCurrentRevisionPlan =
+    canApproveRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
+  const canGenerateFromCurrentRevisionPlan =
+    canGenerateFromRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
 
   useEffect(() => {
     void refreshProjects();
@@ -450,6 +562,17 @@ function App() {
     setIsContinuingGeneration(false);
   }
 
+  function resetRevisionPlanState() {
+    setRevisionPlan(null);
+    setRevisionPlanAnswers({});
+    setRevisionComplianceResult(null);
+    setRevisionSuccessResults([]);
+    setPendingRevisionFindingIds([]);
+    setIsPlanningRevision(false);
+    setIsRevisionPlanActionPending(false);
+    setIsGeneratingRevision(false);
+  }
+
   async function loadCurrentDesignSpecification(projectId: string) {
     try {
       setDesignSpecification(
@@ -473,6 +596,40 @@ function App() {
       );
     } catch {
       setDesignPlan(null);
+    }
+  }
+
+  async function loadCurrentRevisionPlan(projectId: string) {
+    try {
+      const plan = await request<RevisionPlan>(`/projects/${projectId}/revision-plan`, {
+        method: "GET",
+      });
+      setRevisionPlan(plan);
+      setRevisionPlanAnswers({});
+      await loadRevisionPlanResults(plan);
+    } catch {
+      resetRevisionPlanState();
+    }
+  }
+
+  async function loadRevisionPlanResults(plan: RevisionPlan) {
+    try {
+      setRevisionComplianceResult(
+        await request<RevisionComplianceResult>(`/revision-plans/${plan.id}/compliance-result`, {
+          method: "GET",
+        }),
+      );
+    } catch {
+      setRevisionComplianceResult(null);
+    }
+    try {
+      setRevisionSuccessResults(
+        await request<RevisionSuccessResult[]>(`/revision-plans/${plan.id}/success-results`, {
+          method: "GET",
+        }),
+      );
+    } catch {
+      setRevisionSuccessResults([]);
     }
   }
 
@@ -535,6 +692,7 @@ function App() {
       setAiOutput(null);
       setRevisionDiff(null);
       resetRequirementState();
+      resetRevisionPlanState();
       setMessage("Project archived");
       setIsProjectDrawerOpen(false);
     } catch (error) {
@@ -572,6 +730,7 @@ function App() {
       setAiOutput(null);
       setRevisionDiff(null);
       resetRequirementState();
+      resetRevisionPlanState();
       setMessage("Project deleted");
       setIsProjectDrawerOpen(false);
     } catch (error) {
@@ -809,13 +968,182 @@ function App() {
     }
   }
 
+  async function createRevisionPlanFromPrompt() {
+    const prompt = generationPrompt.trim();
+    if (!project || !prompt) {
+      setMessage("Open a project and enter a revision request");
+      return;
+    }
+    const baseRevisionId = project.active_revision_id ?? selectedRevision?.id ?? null;
+    if (!baseRevisionId) {
+      setMessage("Accept a base revision before planning a revision");
+      return;
+    }
+    setIsPlanningRevision(true);
+    setSourceContractError(null);
+    setRevisionComplianceResult(null);
+    setRevisionSuccessResults([]);
+    setGenerationPrompt("");
+    setMessage("Planning revision");
+    try {
+      const plan = await request<RevisionPlan>(`/projects/${project.id}/revision-plans`, {
+        method: "POST",
+        body: JSON.stringify({
+          base_revision_id: baseRevisionId,
+          user_instruction: prompt,
+          reason: pendingRevisionFindingIds.length > 0 ? "geometric_finding" : "user_request",
+          targeted_finding_ids: pendingRevisionFindingIds,
+        }),
+      });
+      setRevisionPlan(plan);
+      setRevisionPlanAnswers({});
+      setPendingRevisionFindingIds([]);
+      setMessage(plan.review_state === "pending_review" ? "Revision plan review" : revisionPlanStageLabel(plan));
+      await loadProjectMessages(project.id);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Revision planning failed");
+    } finally {
+      setIsPlanningRevision(false);
+    }
+  }
+
+  async function submitRevisionPlanClarificationAnswers() {
+    if (!revisionPlan) {
+      return;
+    }
+    setIsRevisionPlanActionPending(true);
+    setMessage("Planning revision");
+    try {
+      const plan = await request<RevisionPlan>(
+        `/revision-plans/${revisionPlan.id}/clarification-answers`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            answers: revisionPlan.clarification_questions.map((question) => ({
+              question_id: question.id,
+              answer: revisionPlanAnswers[question.id] ?? "",
+            })),
+          }),
+        },
+      );
+      setRevisionPlan(plan);
+      setRevisionPlanAnswers({});
+      setMessage(revisionPlanStageLabel(plan));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Revision clarification failed");
+    } finally {
+      setIsRevisionPlanActionPending(false);
+    }
+  }
+
+  async function approveRevisionPlan() {
+    if (!revisionPlan || !canApproveRevisionPlan(revisionPlan)) {
+      return;
+    }
+    setIsRevisionPlanActionPending(true);
+    setMessage(null);
+    try {
+      const approved = await request<RevisionPlan>(`/revision-plans/${revisionPlan.id}/approve`, {
+        method: "POST",
+      });
+      setRevisionPlan(approved);
+      setMessage("Revision plan approved");
+      if (project) {
+        await loadProjectMessages(project.id);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Revision Plan approval failed");
+    } finally {
+      setIsRevisionPlanActionPending(false);
+    }
+  }
+
+  async function rejectRevisionPlan() {
+    if (!revisionPlan) {
+      return;
+    }
+    setIsRevisionPlanActionPending(true);
+    setMessage(null);
+    try {
+      const rejected = await request<RevisionPlan>(`/revision-plans/${revisionPlan.id}/reject`, {
+        method: "POST",
+      });
+      setRevisionPlan(rejected);
+      setMessage("Revision plan rejected");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Revision Plan rejection failed");
+    } finally {
+      setIsRevisionPlanActionPending(false);
+    }
+  }
+
+  async function generateFromRevisionPlan() {
+    if (!revisionPlan || !canGenerateFromRevisionPlan(revisionPlan)) {
+      setMessage("Revision Plan must be approved before source revision");
+      return;
+    }
+    setIsGeneratingRevision(true);
+    setSourceContractError(null);
+    setRevisionComplianceResult(null);
+    setRevisionSuccessResults([]);
+    setMessage("Revising source");
+    try {
+      const revision = await request<Revision>(`/revision-plans/${revisionPlan.id}/generate`, {
+        method: "POST",
+      });
+      if (project) {
+        const nextRevisions = await request<Revision[]>(`/projects/${project.id}/revisions`, {
+          method: "GET",
+        });
+        setRevisions(nextRevisions);
+        await loadProjectMessages(project.id);
+      }
+      setSelectedRevision(revision);
+      await selectRevision(revision);
+      const refreshedPlan = await request<RevisionPlan>(`/revision-plans/${revisionPlan.id}`, {
+        method: "GET",
+      });
+      setRevisionPlan(refreshedPlan);
+      await loadRevisionPlanResults(refreshedPlan);
+      setMessage(revision.status === "succeeded" ? "Revision candidate ready" : revision.error_message ?? "Revision failed");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Revision failed";
+      setMessage(message);
+      if (
+        message.startsWith("Revision source rejected before compile") ||
+        message.startsWith("Model source rejected before compile")
+      ) {
+        setSourceContractError(message);
+      }
+      try {
+        setRevisionComplianceResult(
+          await request<RevisionComplianceResult>(`/revision-plans/${revisionPlan.id}/compliance-result`, {
+            method: "GET",
+          }),
+        );
+      } catch {
+        setRevisionComplianceResult(null);
+      }
+    } finally {
+      setIsGeneratingRevision(false);
+    }
+  }
+
+  function submitPrompt() {
+    if (hasAcceptedBaseRevision && project?.active_revision_id) {
+      void createRevisionPlanFromPrompt();
+      return;
+    }
+    void generateSource();
+  }
+
   function handlePromptKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== "Enter" || event.shiftKey) {
       return;
     }
     event.preventDefault();
-    if (!isGenerating && generationPrompt.trim()) {
-      void generateSource();
+    if (!isGenerating && !isPlanningRevision && generationPrompt.trim()) {
+      submitPrompt();
     }
   }
 
@@ -847,6 +1175,7 @@ function App() {
     setProjectName(nextProject.name);
     setIntent(nextProject.original_intent);
     await loadCurrentDesignSpecification(nextProject.id);
+    await loadCurrentRevisionPlan(nextProject.id);
     await loadProjectMessages(nextProject.id);
     const nextRevisions = await request<Revision[]>(`/projects/${nextProject.id}/revisions`, {
       method: "GET",
@@ -1187,6 +1516,7 @@ function App() {
     setPrintabilityReport(null);
     setDismissedPrintabilityResults(new Set());
     resetRequirementState();
+    resetRevisionPlanState();
     setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
   }
@@ -1275,7 +1605,7 @@ function App() {
             </div>
             <form className="prompt-row" onSubmit={(event) => {
               event.preventDefault();
-              void generateSource();
+              submitPrompt();
             }}>
               <textarea
                 aria-label="AI chat message"
@@ -1285,8 +1615,12 @@ function App() {
                 onKeyDown={handlePromptKeyDown}
                 onChange={(event) => setGenerationPrompt(event.target.value)}
               />
-              <button className="secondary" disabled={isGenerating || !canAskAi} type="submit">
-                {isGenerating ? "Sending" : "Send"}
+              <button className="secondary" disabled={isGenerating || isPlanningRevision || !canAskAi} type="submit">
+                {isGenerating || isPlanningRevision
+                  ? "Sending"
+                  : hasAcceptedBaseRevision
+                    ? "Plan revision"
+                    : "Send"}
               </button>
             </form>
           </section>
@@ -1350,6 +1684,25 @@ function App() {
               onGenerate={() => void continueGenerationFromDesignPlan()}
               onReject={() => void rejectDesignPlan()}
             />
+            <RevisionPlanReview
+              answers={revisionPlanAnswers}
+              canApprove={canApproveCurrentRevisionPlan}
+              canGenerate={canGenerateFromCurrentRevisionPlan}
+              complianceResult={revisionComplianceResult}
+              isActionPending={isRevisionPlanActionPending}
+              isGenerating={isGeneratingRevision}
+              isSubmittingAnswers={isRevisionPlanActionPending}
+              plan={revisionPlan}
+              stageLabel={currentRevisionPlanStage}
+              successResults={revisionSuccessResults}
+              onAnswerChange={(questionId, answer) =>
+                setRevisionPlanAnswers((current) => ({ ...current, [questionId]: answer }))
+              }
+              onApprove={() => void approveRevisionPlan()}
+              onGenerate={() => void generateFromRevisionPlan()}
+              onReject={() => void rejectRevisionPlan()}
+              onSubmitAnswers={() => void submitRevisionPlanClarificationAnswers()}
+            />
             <SourceContractRejection message={sourceContractError} />
             <h2>Revisions</h2>
             <div className="revision-list">
@@ -1388,6 +1741,9 @@ function App() {
             onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
             onReviseFromGeometricFinding={(finding) => {
               setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
+              setPendingRevisionFindingIds(
+                finding.validation_finding_id ? [finding.validation_finding_id] : [],
+              );
               setMessage("Revision prompt prepared from geometric finding");
             }}
             retryingOutputId={isRetryingOutputId}
@@ -1701,6 +2057,219 @@ function SummaryList({ title, items }: { title: string; items: string[] }) {
       </ul>
     </div>
   );
+}
+
+function RevisionPlanReview({
+  answers,
+  canApprove,
+  canGenerate,
+  complianceResult,
+  isActionPending,
+  isGenerating,
+  isSubmittingAnswers,
+  plan,
+  stageLabel,
+  successResults,
+  onAnswerChange,
+  onApprove,
+  onGenerate,
+  onReject,
+  onSubmitAnswers,
+}: {
+  answers: Record<string, string>;
+  canApprove: boolean;
+  canGenerate: boolean;
+  complianceResult: RevisionComplianceResult | null;
+  isActionPending: boolean;
+  isGenerating: boolean;
+  isSubmittingAnswers: boolean;
+  plan: RevisionPlan | null;
+  stageLabel: string;
+  successResults: RevisionSuccessResult[];
+  onAnswerChange: (questionId: string, answer: string) => void;
+  onApprove: () => void;
+  onGenerate: () => void;
+  onReject: () => void;
+  onSubmitAnswers: () => void;
+}) {
+  if (!plan) {
+    return null;
+  }
+
+  const counts = revisionPlanSummaryCounts(plan);
+  const requestedChanges = plan.revision_plan.requested_changes ?? [];
+  const dependencies = plan.revision_plan.required_dependency_changes ?? [];
+  const protectedParameters = plan.revision_plan.protected_parameters ?? [];
+  const protectedComponents = plan.revision_plan.protected_components ?? [];
+  const protectedFeatures = plan.revision_plan.protected_features ?? [];
+  const protectedOutputs = plan.revision_plan.protected_outputs ?? [];
+  const questions = plan.clarification_questions ?? [];
+  const compliance = revisionComplianceBuckets(complianceResult);
+  const success = revisionSuccessBuckets(successResults);
+
+  return (
+    <section className="revision-plan-review" aria-label="Revision Plan">
+      <div className="section-heading">
+        <h2>Revision Plan</h2>
+        <span className={`requirement-state ${plan.review_state}`}>{stageLabel}</span>
+      </div>
+      <p>{plan.revision_plan.summary ?? plan.user_instruction}</p>
+      <dl className="review-facts compact">
+        <dt>Changes</dt>
+        <dd>{counts.requestedChanges}</dd>
+        <dt>Dependencies</dt>
+        <dd>{counts.dependencies}</dd>
+        <dt>Outputs</dt>
+        <dd>{counts.targetedOutputs}</dd>
+        <dt>Protected</dt>
+        <dd>{counts.protectedParameters + counts.protectedOutputs}</dd>
+      </dl>
+
+      {questions.length > 0 ? (
+        <div className="clarification-answers">
+          <h3>Revision questions</h3>
+          {questions.map((question) => (
+            <label key={question.id}>
+              {question.question}
+              {question.reason ? <span>{question.reason}</span> : null}
+              <input
+                value={answers[question.id] ?? ""}
+                onChange={(event) => onAnswerChange(question.id, event.target.value)}
+              />
+            </label>
+          ))}
+          <button className="primary" disabled={isSubmittingAnswers} onClick={onSubmitAnswers}>
+            {isSubmittingAnswers ? "Submitting" : "Submit answers"}
+          </button>
+        </div>
+      ) : null}
+
+      <SummaryList
+        title="Requested change"
+        items={requestedChanges.map((change) =>
+          `${change.target_id}: ${formatUnknown(change.current_value)} -> ${formatUnknown(change.requested_value)}`,
+        )}
+      />
+      <SummaryList
+        title="Required dependent updates"
+        items={dependencies.map((dependency) =>
+          `${dependency.parameter_id} affects ${(dependency.affects ?? []).join(", ") || "declared dependents"}`,
+        )}
+      />
+      <SummaryList title="Affected components" items={plan.revision_plan.targeted_components ?? []} />
+      <SummaryList title="Affected outputs" items={plan.revision_plan.targeted_outputs ?? []} />
+      <SummaryList
+        title="Will remain unchanged"
+        items={[
+          ...protectedParameters.map(
+            (parameter) =>
+              `${parameter.parameter_id}: ${formatUnknown(parameter.expected_value)}${parameter.unit ? ` ${parameter.unit}` : ""}`,
+          ),
+          ...protectedComponents.map((component) => `Component ${component}`),
+          ...protectedFeatures.map((feature) => `Feature ${feature}`),
+          ...protectedOutputs.map((output) => `Output ${output}`),
+        ]}
+      />
+      <SummaryList
+        title="Success checks"
+        items={(plan.revision_plan.success_criteria ?? []).map(
+          (criterion) =>
+            `${criterion.type}: ${criterion.target_id} -> ${formatUnknown(criterion.expected_value)}`,
+        )}
+      />
+
+      {complianceResult ? (
+        <div className="source-checks">
+          <h3>Revision scope checks</h3>
+          <p>{complianceResult.passed ? "Passed approved revision scope" : "Rejected before compile"}</p>
+          <FindingList title="Blocking" findings={compliance.blocking} />
+          <FindingList title="Advisory" findings={compliance.advisory} />
+        </div>
+      ) : null}
+
+      {successResults.length > 0 ? (
+        <div className="source-checks">
+          <h3>Revision verification</h3>
+          <SuccessList title="Verified" results={success.verified} />
+          <SuccessList title="Violated" results={success.violated} />
+          <SuccessList title="Unable to verify" results={success.unverifiable} />
+        </div>
+      ) : null}
+
+      <div className="actions">
+        <button
+          className="secondary"
+          disabled={
+            isActionPending ||
+            !["pending_review", "clarification_required"].includes(plan.review_state)
+          }
+          onClick={onReject}
+        >
+          Reject
+        </button>
+        <button className="primary" disabled={!canApprove} onClick={onApprove}>
+          {isActionPending ? "Approving" : "Approve revision plan"}
+        </button>
+        <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
+          {isGenerating ? "Revising" : "Generate revision"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function FindingList({
+  title,
+  findings,
+}: {
+  title: string;
+  findings: Array<{ rule_id: string; title: string; explanation?: string }>;
+}) {
+  if (findings.length === 0) {
+    return null;
+  }
+  return (
+    <div className="summary-list">
+      <h3>{title}</h3>
+      <ul>
+        {findings.map((finding) => (
+          <li key={finding.rule_id}>
+            {finding.title}
+            {finding.explanation ? ` - ${finding.explanation}` : ""}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SuccessList({ title, results }: { title: string; results: RevisionSuccessResult[] }) {
+  if (results.length === 0) {
+    return null;
+  }
+  return (
+    <div className="summary-list">
+      <h3>{title}</h3>
+      <ul>
+        {results.map((result) => (
+          <li key={result.id}>
+            {result.target_id}: expected {formatUnknown(result.expected_value)}, detected{" "}
+            {formatUnknown(result.detected_value)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function formatUnknown(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "unset";
+  }
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value);
 }
 
 function CandidateReview({

@@ -21,6 +21,11 @@ from app.schemas.project import (
     ProjectUpdate,
     RevisionRead,
     RevisionOutputRead,
+    RevisionComplianceResultRead,
+    RevisionPlanClarificationQuestionRead,
+    RevisionPlanCreate,
+    RevisionPlanRead,
+    RevisionSuccessResultRead,
     ValidationFindingDismiss,
     ValidationFindingRead,
     RequirementExtractionCreate,
@@ -260,6 +265,195 @@ def get_current_design_plan(
     if plan is None:
         raise HTTPException(status_code=404, detail="Design Plan not found")
     return plan
+
+
+@router.get(
+    "/projects/{project_id}/revision-plan",
+    response_model=RevisionPlanRead,
+)
+def get_current_revision_plan(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    plan = service.get_current_revision_plan(project_id)
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return plan
+
+
+@router.get(
+    "/revision-plans/{revision_plan_id}",
+    response_model=RevisionPlanRead,
+)
+def get_revision_plan(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    plan = service.get_revision_plan(revision_plan_id)
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return plan
+
+
+@router.post(
+    "/projects/{project_id}/revision-plans",
+    response_model=RevisionPlanRead,
+    status_code=201,
+)
+async def create_revision_plan(
+    project_id: str,
+    payload: RevisionPlanCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> RevisionPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir, ai_provider=ai_provider)
+    try:
+        plan = await service.create_revision_plan(project_id, payload)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return plan
+
+
+@router.post("/revision-plans/{revision_plan_id}/approve", response_model=RevisionPlanRead)
+def approve_revision_plan(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        plan = service.approve_revision_plan(revision_plan_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return plan
+
+
+@router.post("/revision-plans/{revision_plan_id}/reject", response_model=RevisionPlanRead)
+def reject_revision_plan(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    try:
+        plan = service.reject_revision_plan(revision_plan_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return plan
+
+
+@router.get(
+    "/revision-plans/{revision_plan_id}/clarification-questions",
+    response_model=list[RevisionPlanClarificationQuestionRead],
+)
+def list_revision_plan_clarification_questions(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[RevisionPlanClarificationQuestionRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    questions = service.list_revision_plan_clarification_questions(revision_plan_id)
+    if questions is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return questions
+
+
+@router.post(
+    "/revision-plans/{revision_plan_id}/clarification-answers",
+    response_model=RevisionPlanRead,
+    status_code=201,
+)
+async def submit_revision_plan_clarification_answers(
+    revision_plan_id: str,
+    payload: ClarificationAnswersCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> RevisionPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir, ai_provider=ai_provider)
+    try:
+        plan = await service.submit_revision_plan_clarification_answers(revision_plan_id, payload)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return plan
+
+
+@router.post(
+    "/revision-plans/{revision_plan_id}/generate",
+    response_model=RevisionRead,
+    status_code=201,
+)
+async def generate_from_revision_plan(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> RevisionRead:
+    service = ProjectService(
+        db=db,
+        data_dir=data_dir,
+        cad_runner=cad_runner,
+        ai_provider=ai_provider,
+    )
+    try:
+        revision = await service.generate_from_revision_plan(revision_plan_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if revision is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return revision
+
+
+@router.get(
+    "/revision-plans/{revision_plan_id}/compliance-result",
+    response_model=RevisionComplianceResultRead,
+)
+def get_revision_compliance_result(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> RevisionComplianceResultRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    result = service.get_revision_compliance_result(revision_plan_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="revision compliance result not found")
+    return result
+
+
+@router.get(
+    "/revision-plans/{revision_plan_id}/success-results",
+    response_model=list[RevisionSuccessResultRead],
+)
+def list_revision_success_results(
+    revision_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[RevisionSuccessResultRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    results = service.list_revision_success_results(revision_plan_id)
+    if results is None:
+        raise HTTPException(status_code=404, detail="Revision Plan not found")
+    return results
 
 
 @router.get(

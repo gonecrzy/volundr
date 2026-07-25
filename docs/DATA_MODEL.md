@@ -1,6 +1,6 @@
 # Volundr Data Model
 
-This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, AI attempts, CAD jobs, mesh metadata, and project conversation history.
+This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, and project conversation history.
 
 ## Project
 
@@ -448,6 +448,102 @@ The JSON stored at `plan_path` uses schema version `1.0`:
 }
 ```
 
+## RevisionPlan
+
+Represents an immutable, scoped plan for changing an accepted revision. Revision Plans are generated from an accepted base revision plus its Design Specification, approved Design Plan, output manifest, source metadata, and optionally selected validation findings. The full lifecycle and payload schema are defined in `docs/STRUCTURED_REVISION_PLANNING.md`.
+
+Fields:
+
+```text
+id
+project_id
+base_revision_id
+base_design_specification_id
+base_design_plan_id
+generation_attempt_id
+superseded_revision_plan_id
+generated_revision_id
+revised_design_specification_id
+revised_design_plan_id
+version_number
+schema_version
+prompt_template_version
+gemini_ruleset_version
+provider
+provider_model
+user_instruction
+reason
+raw_response_path
+plan_path
+content_hash
+base_source_hash
+base_output_manifest_hash
+base_design_specification_hash
+base_design_plan_hash
+outcome
+review_state
+clarification_required
+revision_ready
+approved_at
+rejected_at
+created_at
+```
+
+Suggested `outcome` values:
+
+```text
+revision_ready
+clarification_required
+revision_conflict
+unsupported_revision
+planning_failed
+```
+
+Suggested `review_state` values:
+
+```text
+clarification_required
+pending_review
+approved
+rejected
+```
+
+Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. OpenSCAD revision generation requires a `revision_ready` plan in `approved` state.
+
+## RevisionPlanClarificationQuestion
+
+Represents one specific question attached to a non-ready Revision Plan.
+
+Fields:
+
+```text
+id
+project_id
+revision_plan_id
+requirement_id
+question
+reason
+display_order
+created_at
+```
+
+## RevisionPlanClarificationAnswer
+
+Represents the user's answer to a persisted revision-plan clarification question. Answers are retained as history and used as structured context for the next revision-plan run.
+
+Fields:
+
+```text
+id
+project_id
+question_id
+revision_plan_id
+related_requirement_id
+question_text
+answer
+created_at
+```
+
 ## ClarificationQuestion
 
 Represents one specific question attached to a non-ready Design Specification.
@@ -600,6 +696,62 @@ created_at
 ```
 
 `result_path` points to the full JSON result, including verification state, confidence, expected value, detected value, tolerance, source/feature metadata, analyzer version, and linked `validation_finding_id` for persisted non-pass findings. New AI candidates with Design Specifications receive this analysis before candidate state is derived. Multi-output candidates receive output-scoped results. Existing legacy revisions may have no geometric analysis.
+
+## RevisionComplianceResult
+
+Represents deterministic pre-compile validation that a revised source stayed within the approved Revision Plan.
+
+Fields:
+
+```text
+id
+project_id
+revision_plan_id
+generation_attempt_id
+revision_id
+base_source_hash
+revised_source_hash
+result_path
+passed
+validation_ms
+created_at
+```
+
+`result_path` stores blocking and advisory compliance findings. `revision_id` is nullable because failed compliance stops before compile and candidate creation.
+
+## RevisionSuccessResult
+
+Represents post-generation verification of a Revision Plan success criterion.
+
+Fields:
+
+```text
+id
+project_id
+revision_plan_id
+generation_attempt_id
+revision_id
+criterion_type
+target_id
+verification_state
+expected_value_json
+detected_value_json
+unit
+tolerance
+confidence
+is_blocking
+explanation
+metadata_json
+created_at
+```
+
+Suggested `verification_state` values:
+
+```text
+success_verified
+success_violated
+success_unverifiable
+```
 
 ## CadJob
 

@@ -44,6 +44,7 @@ class GenerationBenchmark:
     unacceptable_outcomes: list[str]
     expected_geometric_invariants: list[dict[str, Any]]
     expected_design_plan: dict[str, Any]
+    expected_revision_plan: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -122,6 +123,7 @@ def _parse_benchmark(payload: object) -> GenerationBenchmark:
         unacceptable_outcomes=_required_text_list(payload, "unacceptable_outcomes"),
         expected_geometric_invariants=_optional_object_list(payload, "expected_geometric_invariants"),
         expected_design_plan=_optional_object(payload, "expected_design_plan"),
+        expected_revision_plan=_optional_object(payload, "expected_revision_plan"),
     )
 
 

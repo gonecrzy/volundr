@@ -39,13 +39,25 @@ type Revision = {
   };
 };
 
-const source = "module main_model() { cube([10, 10, 10]); } main_model();";
+const source = `
+selected_output = "body";
+// @volundr-output body module=body required=true
+// @volundr-output lid module=lid required=true
+module body() { cube([80, 50, 24]); }
+module lid() { cube([80, 50, 4]); }
+module render_selected_output() {
+  if (selected_output == "body") { body(); }
+  else if (selected_output == "lid") { lid(); }
+  else { assert(false, "Unknown selected_output"); }
+}
+render_selected_output();
+`;
 
-test("candidate workflow keeps active revision safe while accepting and rejecting candidates", async ({ page }) => {
+test("structured revision planning preserves active revision until scoped candidate is accepted", async ({ page }) => {
   const project = {
     id: "project-1",
-    name: "Candidate Workflow",
-    original_intent: "Create a tested fixture.",
+    name: "Revision Workflow",
+    original_intent: "Create a configurable enclosure.",
     status: "active",
     active_revision_id: "rev-active",
   };
@@ -53,16 +65,29 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     revision({
       id: "rev-active",
       revision_number: 1,
-      source_type: "manual_edit",
+      source_type: "ai_initial",
       is_accepted: true,
       review_state: "accepted",
+      design_specification_id: "spec-1",
+      design_plan_id: "plan-1",
+      output_manifest_path: "projects/project-1/revisions/rev-active/output-manifest.json",
+      expected_output_count: 2,
+      required_output_count: 2,
+      successful_output_count: 2,
     }),
   ];
-  let generatedCandidateCount = 0;
-  let requirementCount = 0;
-  let designPlanCount = 0;
-  const designPlans = new Map<string, ReturnType<typeof designPlan>>();
-  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>();
+  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>([
+    [
+      "rev-active",
+      [
+        revisionOutput({ id: "active-body", revision_id: "rev-active", output_id: "body", label: "Body" }),
+        revisionOutput({ id: "active-lid", revision_id: "rev-active", output_id: "lid", label: "Lid" }),
+      ],
+    ],
+  ]);
+  let currentRevisionPlan: ReturnType<typeof revisionPlan> | null = null;
+  let planCount = 0;
+  let generateRevisionCount = 0;
 
   await page.route("**/api/**", async (route) => {
     const request = route.request();
@@ -83,6 +108,12 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     }
     if (request.method() === "GET" && path === "/projects/project-1/design-plan") {
       return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revision-plan") {
+      if (!currentRevisionPlan) {
+        return route.fulfill({ status: 404, json: { detail: "not found" } });
+      }
+      return route.fulfill({ json: currentRevisionPlan });
     }
     if (request.method() === "GET" && path === "/projects/project-1/revisions") {
       return route.fulfill({ json: revisions });
@@ -122,181 +153,143 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
     if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
       return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
     }
-    if (request.method() === "POST" && path === "/projects/project-1/requirements") {
-      requirementCount += 1;
-      if (requirementCount === 1) {
-        return route.fulfill({ status: 201, json: clarificationSpec() });
+    if (request.method() === "POST" && path === "/projects/project-1/revision-plans") {
+      planCount += 1;
+      currentRevisionPlan = revisionPlan({
+        id: `revision-plan-${planCount}`,
+        user_instruction: planCount === 1 ? "Make the lid 4 mm thick" : "Make the body width 90 mm",
+        revision_plan:
+          planCount === 1
+            ? {
+                ...revisionPlanPayload(),
+                summary: "Increase lid thickness from 3 mm to 4 mm",
+              }
+            : {
+                ...revisionPlanPayload(),
+                summary: "Resize body width, but source later violates protected scope",
+                allowed_parameter_changes: ["body_width"],
+                protected_parameters: [{ parameter_id: "lid_thickness", expected_value: 4, unit: "mm" }],
+                success_criteria: [{ type: "parameter_value", target_id: "body_width", expected_value: 90, unit: "mm" }],
+              },
+      });
+      return route.fulfill({ status: 201, json: currentRevisionPlan });
+    }
+    if (request.method() === "POST" && /^\/revision-plans\/[^/]+\/approve$/.test(path)) {
+      currentRevisionPlan = { ...currentRevisionPlan!, review_state: "approved", approved_at: "2026-07-25T13:10:00Z" };
+      return route.fulfill({ json: currentRevisionPlan });
+    }
+    if (request.method() === "POST" && /^\/revision-plans\/[^/]+\/reject$/.test(path)) {
+      currentRevisionPlan = { ...currentRevisionPlan!, review_state: "rejected", rejected_at: "2026-07-25T13:12:00Z" };
+      return route.fulfill({ json: currentRevisionPlan });
+    }
+    if (request.method() === "GET" && /^\/revision-plans\/[^/]+$/.test(path)) {
+      return route.fulfill({ json: currentRevisionPlan });
+    }
+    if (request.method() === "GET" && /^\/revision-plans\/[^/]+\/compliance-result$/.test(path)) {
+      if (currentRevisionPlan?.generated_revision_id || generateRevisionCount > 1) {
+        return route.fulfill({
+          json:
+            generateRevisionCount > 1
+              ? complianceResult(false)
+              : complianceResult(true),
+        });
       }
-      return route.fulfill({ status: 201, json: readySpec(`spec-ready-${requirementCount}`) });
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
     }
-    if (
-      request.method() === "POST" &&
-      path === "/design-specifications/spec-clarify/clarification-answers"
-    ) {
-      return route.fulfill({ status: 201, json: readySpec("spec-ready-1") });
+    if (request.method() === "GET" && /^\/revision-plans\/[^/]+\/success-results$/.test(path)) {
+      if (!currentRevisionPlan?.generated_revision_id) {
+        return route.fulfill({ status: 404, json: { detail: "not found" } });
+      }
+      return route.fulfill({ json: [successResult()] });
     }
-    if (request.method() === "POST" && /^\/design-specifications\/spec-ready-\d+\/design-plan$/.test(path)) {
-      designPlanCount += 1;
-      const specificationId = path.split("/")[2];
-      const nextPlan = designPlan(`plan-${designPlanCount}`, specificationId);
-      designPlans.set(nextPlan.id, nextPlan);
-      return route.fulfill({ status: 201, json: nextPlan });
-    }
-    if (request.method() === "POST" && /^\/design-plans\/plan-\d+\/approve$/.test(path)) {
-      const planId = path.split("/")[2];
-      const approved = { ...designPlans.get(planId)!, review_state: "approved", approved_at: "2026-07-25T13:02:00Z" };
-      designPlans.set(planId, approved);
-      return route.fulfill({ json: approved });
-    }
-    if (request.method() === "POST" && /^\/design-plans\/plan-\d+\/generate$/.test(path)) {
-      generatedCandidateCount += 1;
-      if (generatedCandidateCount === 3) {
+    if (request.method() === "POST" && /^\/revision-plans\/[^/]+\/generate$/.test(path)) {
+      generateRevisionCount += 1;
+      if (generateRevisionCount === 2) {
         return route.fulfill({
           status: 409,
           json: {
             detail:
-              "Model source rejected before compile\n- Protected value does not match Design Specification: expected 81, detected 90 (line 12)",
+              "Revision source rejected before compile\n- Unauthorized parameter change: lid_thickness expected 4 mm, detected 5 mm",
           },
         });
       }
-      const next =
-        generatedCandidateCount === 1
-          ? revision({
-              id: "rev-warning",
-              parent_revision_id: "rev-active",
-              design_specification_id: "spec-ready-1",
-              revision_number: 2,
-              source_type: "ai_revision",
-              review_state: "ready_with_warnings",
-              validation_summary: { blocking_count: 0, advisory_count: 1, dismissed_count: 0 },
-              design_plan_id: "plan-1",
-              output_manifest_path: "projects/project-1/revisions/rev-warning/output-manifest.json",
-              expected_output_count: 2,
-              required_output_count: 2,
-              successful_output_count: 2,
-            })
-          : revision({
-              id: "rev-blocked",
-              parent_revision_id: "rev-warning",
-              design_specification_id: "spec-ready-2",
-              revision_number: 3,
-              source_type: "ai_revision",
-              review_state: "blocked",
-              validation_summary: { blocking_count: 1, advisory_count: 0, dismissed_count: 0 },
-              design_plan_id: "plan-2",
-              output_manifest_path: "projects/project-1/revisions/rev-blocked/output-manifest.json",
-              expected_output_count: 2,
-              required_output_count: 2,
-              successful_output_count: 1,
-              failed_output_count: 1,
-            });
+
+      const next = revision({
+        id: "rev-scoped",
+        parent_revision_id: "rev-active",
+        design_specification_id: "spec-1",
+        design_plan_id: "plan-1",
+        revision_number: 2,
+        source_type: "ai_revision",
+        review_state: "ready_with_warnings",
+        validation_summary: { blocking_count: 0, advisory_count: 1, dismissed_count: 0 },
+        output_manifest_path: "projects/project-1/revisions/rev-scoped/output-manifest.json",
+        expected_output_count: 2,
+        required_output_count: 2,
+        successful_output_count: 2,
+      });
       revisions.push(next);
-      outputsByRevision.set(
-        next.id,
-        next.id === "rev-warning"
-          ? [
-              revisionOutput({ id: "out-body", revision_id: next.id, output_id: "holder_body", label: "Holder body" }),
-              revisionOutput({ id: "out-lip", revision_id: next.id, output_id: "retention_lip", label: "Retention lip", quantity: 2 }),
-            ]
-          : [
-              revisionOutput({ id: "out-blocked-body", revision_id: next.id, output_id: "holder_body", label: "Holder body" }),
-              revisionOutput({
-                id: "out-blocked-lip",
-                revision_id: next.id,
-                output_id: "retention_lip",
-                label: "Retention lip",
-                output_state: "failed",
-                stl_path: null,
-                stl_hash: null,
-                compile_error: "OpenSCAD failed for retention_lip",
-              }),
-            ],
-      );
+      outputsByRevision.set("rev-scoped", [
+        revisionOutput({ id: "scoped-body", revision_id: "rev-scoped", output_id: "body", label: "Body" }),
+        revisionOutput({
+          id: "scoped-lid",
+          revision_id: "rev-scoped",
+          output_id: "lid",
+          label: "Lid",
+          metadata: {
+            size_x_mm: 80,
+            size_y_mm: 50,
+            size_z_mm: 4,
+            volume_mm3: 16000,
+            triangle_count: 12,
+            connected_components: 1,
+            is_watertight: true,
+            is_winding_consistent: true,
+            center_of_mass: [40, 25, 2],
+          },
+        }),
+      ]);
+      currentRevisionPlan = { ...currentRevisionPlan!, generated_revision_id: next.id };
       return route.fulfill({ status: 201, json: next });
     }
-    if (request.method() === "GET" && path === "/candidates/rev-warning/findings") {
+    if (request.method() === "GET" && path === "/candidates/rev-scoped/findings") {
       return route.fulfill({
         json: [
           finding({
-            id: "finding-source-warning",
-            rule_id: "source_parameterization.missing_assertions",
-            severity: "warning",
-            is_blocking: false,
-          }),
-          finding({
-            id: "finding-warning",
-            rule_id: "mesh.disconnected_components",
+            id: "finding-thin-edge",
+            rule_id: "printability.thin_edge",
             severity: "warning",
             is_blocking: false,
           }),
         ],
       });
     }
-    if (request.method() === "GET" && path === "/candidates/rev-warning/geometric-analysis") {
+    if (request.method() === "GET" && path === "/candidates/rev-scoped/geometric-analysis") {
       return route.fulfill({
-        json: geometricAnalysis("rev-warning", [
-          geometricFinding({
-            rule_id: "geometry.protected_hole_spacing",
-            verification_state: "verified",
-            expected_value: 50,
-            detected_value: 49.95,
-            tolerance: 0.25,
-            confidence: 0.97,
-            severity: "notice",
-            is_blocking: false,
-            title: "Hole spacing",
-            explanation: "Detected protected hole spacing matches the Design Specification.",
-            suggested_correction: "No correction is needed.",
-          }),
-        ]),
+        json: {
+          id: "analysis-rev-scoped",
+          revision_id: "rev-scoped",
+          design_specification_id: "spec-1",
+          analysis_version: "geometric-invariants-v1",
+          tolerance_profile_version: "geometry-tolerance-v1",
+          mesh_hash: "mesh-rev-scoped",
+          source_hash: "source-rev-scoped",
+          analysis_ms: 12.5,
+          created_at: "2026-07-25T13:00:00Z",
+          findings: [],
+        },
       });
     }
-    if (request.method() === "GET" && path === "/candidates/rev-blocked/findings") {
-      return route.fulfill({
-        json: [
-          finding({
-            id: "finding-hole-spacing",
-            rule_id: "geometry.protected_hole_spacing",
-            category: "geometry",
-            severity: "critical",
-            is_blocking: true,
-          }),
-        ],
-      });
-    }
-    if (request.method() === "GET" && path === "/candidates/rev-blocked/geometric-analysis") {
-      return route.fulfill({
-        json: geometricAnalysis("rev-blocked", [
-          geometricFinding({
-            validation_finding_id: "finding-hole-spacing",
-            rule_id: "geometry.protected_hole_spacing",
-            verification_state: "violated",
-            expected_value: 50,
-            detected_value: 60,
-            tolerance: 0.25,
-            confidence: 0.96,
-            severity: "critical",
-            is_blocking: true,
-            title: "Hole spacing",
-            explanation: "Detected protected hole spacing differs from the Design Specification.",
-            suggested_correction: "Revise the hole centers to match the protected spacing.",
-          }),
-        ]),
-      });
-    }
-    if (request.method() === "POST" && path === "/candidates/rev-warning/accept") {
-      project.active_revision_id = "rev-warning";
-      const accepted = revisions.find((entry) => entry.id === "rev-warning")!;
+    if (request.method() === "POST" && path === "/candidates/rev-scoped/accept") {
+      project.active_revision_id = "rev-scoped";
+      const active = revisions.find((entry) => entry.id === "rev-active")!;
+      active.is_accepted = true;
+      active.review_state = "accepted";
+      const accepted = revisions.find((entry) => entry.id === "rev-scoped")!;
       accepted.is_accepted = true;
       accepted.review_state = "accepted";
-      accepted.accepted_at = "2026-07-25T13:00:00Z";
+      accepted.accepted_at = "2026-07-25T13:15:00Z";
       return route.fulfill({ json: accepted });
-    }
-    if (request.method() === "POST" && path === "/candidates/rev-blocked/reject") {
-      const rejected = revisions.find((entry) => entry.id === "rev-blocked")!;
-      rejected.review_state = "rejected";
-      rejected.rejected_at = "2026-07-25T13:05:00Z";
-      return route.fulfill({ json: rejected });
     }
 
     return route.fulfill({ status: 404, json: { detail: `unhandled ${request.method()} ${path}` } });
@@ -304,79 +297,42 @@ test("candidate workflow keeps active revision safe while accepting and rejectin
 
   await page.goto("/");
   await page.getByRole("button", { name: "Projects" }).click();
-  await page.getByRole("button", { name: "Candidate Workflow" }).click();
+  await page.getByRole("button", { name: "Revision Workflow" }).click();
   await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
 
-  await page.getByLabel("AI chat message").fill("Make this bottle fit on the wall");
-  await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByLabel("Requirements").getByText("Waiting for clarification")).toBeVisible();
-  await page
-    .getByLabel("What is the outside diameter of the container the holder must fit?")
-    .fill("81 mm");
-  await page.getByRole("button", { name: "Submit answers" }).click();
-  await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
-  await expect(page.getByText("Container diameter: 81 mm (clarification)")).toBeVisible();
-  await expect(page.getByText("Use a 3 mm wall thickness")).toBeVisible();
-  await page.getByRole("button", { name: "Create Design Plan" }).click();
-  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
-  await expect(page.getByText("Container holder body (holder_body)")).toBeVisible();
-  await page.getByRole("button", { name: "Approve plan" }).click();
-  await expect(page.getByLabel("Design Plan").getByText("Plan approved")).toBeVisible();
-  await page.getByRole("button", { name: "Continue to generation" }).click();
+  await page.getByLabel("AI chat message").fill("Make the lid 4 mm thick");
+  await page.getByRole("button", { name: "Plan revision" }).click();
+  await expect(page.getByLabel("Revision Plan").getByText("Revision plan review")).toBeVisible();
+  await expect(page.getByText("Increase lid thickness from 3 mm to 4 mm")).toBeVisible();
+  await expect(page.getByText("lid_thickness: 3 -> 4")).toBeVisible();
+  await expect(page.getByLabel("Revision Plan").getByText("Output body", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Generate revision" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Approve revision plan" }).click();
+  await expect(page.getByLabel("Revision Plan").getByText("Revision plan approved")).toBeVisible();
+  await page.getByRole("button", { name: "Generate revision" }).click();
   await expect(page.getByText("Candidate - R2 - Ready with warnings")).toBeVisible();
+  await expect(page.getByText("Revision scope checks")).toBeVisible();
+  await expect(page.getByText("Passed approved revision scope")).toBeVisible();
+  await expect(page.getByText("Revision verification")).toBeVisible();
+  await expect(page.getByText("lid_thickness: expected 4, detected 4")).toBeVisible();
   await expect(page.getByText("Printable outputs")).toBeVisible();
-  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Holder body/ })).toBeVisible();
-  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Retention lip/ })).toBeVisible();
-  await page.getByLabel("Candidate review").getByRole("button", { name: /Retention lip/ }).click();
-  await expect(page.getByLabel("Candidate review").getByText("Quantity").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "ZIP" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Manifest" })).toBeVisible();
-  await expect(page.getByText("Source checks")).toBeVisible();
-  await expect(
-    page.getByLabel("Candidate review").getByText("source_parameterization.missing_assertions", { exact: true }).first(),
-  ).toBeVisible();
-  await expect(page.getByText("Geometric checks")).toBeVisible();
-  await expect(page.getByText("1 verified, 0 violated, 0 unable to verify")).toBeVisible();
-  await expect(page.getByText("Advisory warnings")).toBeVisible();
-  await expect(page.getByText("mesh.disconnected_components", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeEnabled();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Body/ })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Lid/ })).toBeVisible();
   await expect(page.getByText("R1 active")).toBeVisible();
 
   await page.getByRole("button", { name: "Accept", exact: true }).click();
   await expect(page.getByText("Active design - R2 - Accepted revision")).toBeVisible();
 
-  await page.getByLabel("AI chat message").fill("Generate a blocked candidate");
-  await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
-  await page.getByRole("button", { name: "Create Design Plan" }).click();
-  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
-  await page.getByRole("button", { name: "Approve plan" }).click();
-  await page.getByRole("button", { name: "Continue to generation" }).click();
-  await expect(page.getByText("Candidate - R3 - Blocked candidate")).toBeVisible();
-  await expect(page.getByText("OpenSCAD failed for retention_lip")).toBeVisible();
-  await expect(page.getByText("Source checks")).toBeVisible();
-  await expect(page.getByText("Passed required structure and protected dimensions")).toBeVisible();
-  await expect(page.getByText("0 verified, 1 violated, 0 unable to verify")).toBeVisible();
-  await expect(page.getByText("geometry.protected_hole_spacing", { exact: true })).toBeVisible();
-  await expect(page.getByText("Expected 50 mm. Detected 60 mm. Tolerance 0.25 mm. Confidence 96%.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeDisabled();
-  await expect(page.getByText("Resolve 1 blocking finding with a new revision before accepting.")).toBeVisible();
-  await page.getByRole("button", { name: "Revise from finding" }).click();
-  await expect(page.getByLabel("AI chat message")).toHaveValue(/finding-hole-spacing/);
-
-  await page.getByLabel("Candidate review").getByRole("button", { name: "Reject" }).click();
-  await expect(page.getByText("Historical revision - R3 - Rejected candidate")).toBeVisible();
-  await expect(page.getByText("R2 active")).toBeVisible();
-
-  await page.getByLabel("AI chat message").fill("Generate source with mismatched protected diameter");
-  await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
-  await page.getByRole("button", { name: "Create Design Plan" }).click();
-  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
-  await page.getByRole("button", { name: "Approve plan" }).click();
-  await page.getByRole("button", { name: "Continue to generation" }).click();
-  await expect(page.getByLabel("Source checks").getByText("Rejected", { exact: true })).toBeVisible();
-  await expect(page.getByText("Protected value does not match Design Specification")).toBeVisible();
+  await page.getByLabel("AI chat message").fill("Make the body width 90 mm");
+  await page.getByRole("button", { name: "Plan revision" }).click();
+  await expect(page.getByLabel("Revision Plan").getByText("Revision plan review")).toBeVisible();
+  await page.getByRole("button", { name: "Approve revision plan" }).click();
+  await page.getByRole("button", { name: "Generate revision" }).click();
+  await expect(page.getByLabel("Revision Plan").getByText("Revision scope checks")).toBeVisible();
+  await expect(page.getByLabel("Revision Plan").getByText("Rejected before compile", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Revision Plan").getByText("Unauthorized parameter change")).toBeVisible();
+  await expect(page.getByLabel("Source checks").getByText("Revision source rejected before compile")).toBeVisible();
   await expect(page.getByText("R2 active")).toBeVisible();
 });
 
@@ -404,10 +360,10 @@ function revision(overrides: Partial<Revision>): Revision {
     failed_output_count: null,
     created_at: "2026-07-25T13:00:00Z",
     metadata: {
-      size_x_mm: 10,
-      size_y_mm: 10,
-      size_z_mm: 10,
-      volume_mm3: 1000,
+      size_x_mm: 80,
+      size_y_mm: 50,
+      size_z_mm: 24,
+      volume_mm3: 96000,
       triangle_count: 12,
       connected_components: 1,
       is_watertight: true,
@@ -427,34 +383,34 @@ function revisionOutput(overrides: Record<string, unknown>) {
     id: "output",
     revision_id: "revision",
     design_plan_id: "plan-1",
-    design_specification_id: "spec-ready-1",
-    output_id: "holder_body",
-    component_id: "holder_body",
-    component_ids: ["holder_body"],
+    design_specification_id: "spec-1",
+    output_id: "body",
+    component_id: "body",
+    component_ids: ["body"],
     output_state: "ready",
     output_type: "printable_component",
-    label: "Holder body",
-    filename: "holder_body.stl",
+    label: "Body",
+    filename: "body.stl",
     quantity: 1,
     required: true,
-    module_name: "holder_body",
+    module_name: "body",
     source_hash: "source-hash",
-    stl_path: "projects/project-1/revisions/revision/stl/holder_body.stl",
+    stl_path: "projects/project-1/revisions/revision/stl/body.stl",
     stl_hash: "stl-hash",
-    compile_log_path: "projects/project-1/revisions/revision/logs/holder_body.log",
+    compile_log_path: "projects/project-1/revisions/revision/logs/body.log",
     compile_ms: 25,
     compile_error: null,
-    compile_command: ["openscad", "-D", "selected_output=\"holder_body\""],
+    compile_command: ["openscad", "-D", "selected_output=\"body\""],
     metadata: {
       size_x_mm: 80,
       size_y_mm: 50,
-      size_z_mm: 6,
-      volume_mm3: 24000,
+      size_z_mm: 24,
+      volume_mm3: 96000,
       triangle_count: 12,
       connected_components: 1,
       is_watertight: true,
       is_winding_consistent: true,
-      center_of_mass: [40, 25, 3],
+      center_of_mass: [40, 25, 12],
     },
     validation_summary: {
       blocking_count: 0,
@@ -468,222 +424,135 @@ function revisionOutput(overrides: Record<string, unknown>) {
   };
 }
 
-function clarificationSpec() {
+function revisionPlan(overrides: Record<string, unknown>) {
   return {
-    ...readySpec("spec-clarify"),
-    outcome: "clarification_required",
-    generation_ready: false,
-    clarification_required: true,
-    specification: {
-      purpose: "Hold a container on a wall",
-      critical_dimensions: [],
-      functional_requirements: [],
-      assumptions: [],
-      missing_requirements: [
-        {
-          id: "container_diameter",
-          label: "Container diameter",
-          reason: "The holder opening depends on the container size.",
-        },
-      ],
-      conflicts: [],
-    },
-    clarification_questions: [
-      {
-        id: "question-container-diameter",
-        project_id: "project-1",
-        design_specification_id: "spec-clarify",
-        requirement_id: "container_diameter",
-        question: "What is the outside diameter of the container the holder must fit?",
-        reason: "The holder opening depends on the container size.",
-        display_order: 0,
-        created_at: "2026-07-25T13:00:00Z",
-      },
-    ],
-  };
-}
-
-function readySpec(id: string) {
-  return {
-    id,
+    id: "revision-plan",
     project_id: "project-1",
-    generation_attempt_id: `attempt-${id}`,
-    superseded_specification_id: id === "spec-ready-1" ? "spec-clarify" : null,
-    version_number: id === "spec-clarify" ? 1 : 2,
-    schema_version: "1.0",
-    prompt_template_version: "requirements-v1",
+    base_revision_id: "rev-active",
+    base_design_specification_id: "spec-1",
+    base_design_plan_id: "plan-1",
+    generation_attempt_id: "attempt-revision-plan",
+    superseded_revision_plan_id: null,
+    generated_revision_id: null,
+    revised_design_specification_id: null,
+    revised_design_plan_id: null,
+    version_number: 1,
+    schema_version: "revision-plan-v1",
+    prompt_template_version: "revision-planning-v1",
     gemini_ruleset_version: "gemini-ruleset-v1",
     provider: "fake",
     provider_model: "fake-model",
-    user_instruction: "Make this bottle fit on the wall",
+    user_instruction: "Make the lid 4 mm thick",
+    reason: "user_request",
     raw_response_path: null,
-    specification_path: `projects/project-1/generation-runs/attempt-${id}/parsed-design-spec.json`,
-    content_hash: `hash-${id}`,
-    outcome: "generation_ready",
-    supported_scope: true,
-    clarification_required: false,
-    generation_ready: true,
-    created_at: "2026-07-25T13:00:00Z",
-    specification: {
-      purpose: "Hold an 81 mm container on a vertical wall",
-      critical_dimensions: [
-        {
-          id: "container_diameter",
-          label: "Container diameter",
-          value: 81,
-          unit: "mm",
-          source: "clarification",
-          importance: "critical",
-          protected: true,
-        },
-      ],
-      functional_requirements: [
-        {
-          id: "mounting_method",
-          description: "Mount to a vertical wall",
-          source: "user",
-          importance: "critical",
-          protected: true,
-        },
-      ],
-      assumptions: [
-        {
-          id: "default_wall",
-          description: "Use a 3 mm wall thickness",
-          source: "product_default",
-          requires_approval: false,
-        },
-      ],
-      print_requirements: {
-        printer_profile_id: "default-fdm-256",
-        nozzle_diameter_mm: 0.4,
-        layer_height_mm: 0.2,
-      },
-      conflicts: [],
-      missing_requirements: [],
-    },
-    clarification_questions: [],
-  };
-}
-
-function designPlan(id: string, specificationId: string) {
-  return {
-    id,
-    project_id: "project-1",
-    design_specification_id: specificationId,
-    generation_attempt_id: `attempt-${id}`,
-    superseded_design_plan_id: null,
-    version_number: Number(id.replace("plan-", "")),
-    schema_version: "1.0",
-    prompt_template_version: "design-plan-v1",
-    gemini_ruleset_version: "gemini-ruleset-v1",
-    provider: "fake",
-    provider_model: "fake-model",
-    raw_response_path: null,
-    plan_path: `projects/project-1/generation-runs/attempt-${id}/parsed-design-plan.json`,
-    content_hash: `hash-${id}`,
-    outcome: "plan_ready",
+    plan_path: "projects/project-1/revision-plans/revision-plan.json",
+    content_hash: "revision-plan-hash",
+    base_source_hash: "source-hash",
+    base_output_manifest_hash: "manifest-hash",
+    base_design_specification_hash: "spec-hash",
+    base_design_plan_hash: "plan-hash",
+    outcome: "revision_ready",
     review_state: "pending_review",
     clarification_required: false,
-    plan_ready: true,
+    revision_ready: true,
     approved_at: null,
     rejected_at: null,
-    created_at: "2026-07-25T13:01:00Z",
-    plan: {
-      schema_version: "1.0",
-      design_level: "product",
-      product_type: "wall_mounted_cylindrical_holder",
-      purpose: "Hold an 81 mm container on a vertical wall",
-      units: "mm",
-      parameters: [
-        {
-          id: "container_diameter",
-          label: "Container diameter",
-          value: 81,
-          unit: "mm",
-          editable: true,
-          protected: true,
-          component_id: "holder_body",
-        },
-        {
-          id: "wall_thickness",
-          label: "Wall thickness",
-          value: 3,
-          unit: "mm",
-          editable: true,
-          protected: false,
-          component_id: "holder_body",
-        },
-      ],
-      derived_parameters: [
-        {
-          id: "holder_inside_diameter",
-          label: "Holder inside diameter",
-          expression: "container_diameter + 1.0",
-          depends_on: ["container_diameter"],
-        },
-      ],
-      dependency_edges: [
-        {
-          from: "container_diameter",
-          to: "holder_inside_diameter",
-          relationship: "container size controls holder opening",
-        },
-      ],
-      components: [
-        {
-          id: "holder_body",
-          label: "Container holder body",
-          description: "Single printable wall holder",
-          features: ["mounting_holes", "retention_lip"],
-          parameters: ["container_diameter", "wall_thickness"],
-        },
-      ],
-      features: [
-        {
-          id: "mounting_holes",
-          component_id: "holder_body",
-          type: "hole_group",
-          description: "Two wall mounting holes",
-          parameters: ["mount_hole_spacing"],
-          protected: true,
-        },
-        {
-          id: "retention_lip",
-          component_id: "holder_body",
-          type: "retention",
-          description: "Front lip prevents container sliding out",
-          parameters: ["wall_thickness"],
-          protected: false,
-        },
-      ],
-      presets: [],
-      assembly_strategy: {
-        type: "single_part",
-        instructions: ["Print with the wall face on the build plate."],
+    created_at: "2026-07-25T13:10:00Z",
+    revision_plan: revisionPlanPayload(),
+    clarification_questions: [],
+    ...overrides,
+  };
+}
+
+function revisionPlanPayload() {
+  return {
+    summary: "Increase lid thickness from 3 mm to 4 mm",
+    requested_changes: [
+      {
+        target_type: "parameter",
+        target_id: "lid_thickness",
+        current_value: 3,
+        requested_value: 4,
+        change_type: "set_value",
+        source: "user",
       },
-      printable_outputs: [
-        {
-          id: "holder_body_output",
-          label: "Holder body",
-          component_ids: ["holder_body"],
-          quantity: 1,
-          orientation: "wall face on Z=0",
-        },
-      ],
-      risks: [
-        {
-          id: "support_access",
-          severity: "warning",
-          description: "Deep holder geometry may need local support depending on lip shape.",
-          mitigation: "Keep the lip shallow and chamfered.",
-        },
-      ],
-      clarification_required: false,
-      clarification_questions: [],
-      plan_ready: true,
-      outcome: "plan_ready",
-    },
+    ],
+    required_dependency_changes: [
+      {
+        parameter_id: "lid_lip_depth",
+        affects: ["lid"],
+      },
+    ],
+    targeted_components: ["lid"],
+    targeted_features: ["lid_lip"],
+    targeted_outputs: ["lid"],
+    targeted_findings: [],
+    allowed_parameter_changes: ["lid_thickness", "lid_lip_depth"],
+    protected_parameters: [
+      { parameter_id: "body_width", expected_value: 80, unit: "mm" },
+      { parameter_id: "wall_thickness", expected_value: 3, unit: "mm" },
+    ],
+    protected_components: ["body"],
+    protected_features: ["mounting_tabs"],
+    protected_outputs: ["body"],
+    prohibited_changes: ["Do not change body output geometry."],
+    success_criteria: [
+      { type: "parameter_value", target_id: "lid_thickness", expected_value: 4, unit: "mm" },
+      { type: "parameter_unchanged", target_id: "wall_thickness", expected_value: 3, unit: "mm" },
+      { type: "output_exists", target_id: "lid", expected_value: true },
+    ],
+    clarification_questions: [],
+    outcome: "revision_ready",
+    revision_ready: true,
+    clarification_required: false,
+  };
+}
+
+function complianceResult(passed: boolean) {
+  return {
+    id: "compliance-1",
+    revision_plan_id: "revision-plan-1",
+    generation_attempt_id: "attempt-revision",
+    revision_id: passed ? "rev-scoped" : null,
+    base_source_hash: "source-hash",
+    revised_source_hash: passed ? "source-scoped" : "source-rejected",
+    passed,
+    validation_ms: 3.2,
+    findings: passed
+      ? []
+      : [
+          {
+            rule_id: "revision.unauthorized_parameter_change",
+            is_blocking: true,
+            title: "Unauthorized parameter change",
+            explanation: "lid_thickness expected 4 mm, detected 5 mm",
+            expected_value: 4,
+            detected_value: 5,
+            parameter_id: "lid_thickness",
+          },
+        ],
+    created_at: "2026-07-25T13:11:00Z",
+  };
+}
+
+function successResult() {
+  return {
+    id: "success-1",
+    revision_plan_id: "revision-plan-1",
+    generation_attempt_id: "attempt-revision",
+    revision_id: "rev-scoped",
+    criterion_type: "parameter_value",
+    target_id: "lid_thickness",
+    verification_state: "success_verified",
+    expected_value: 4,
+    detected_value: 4,
+    unit: "mm",
+    tolerance: 0.000001,
+    confidence: 1,
+    is_blocking: false,
+    explanation: "Revised parameter matched the approved Revision Plan.",
+    metadata: {},
+    created_at: "2026-07-25T13:11:00Z",
   };
 }
 
@@ -710,45 +579,6 @@ function finding(overrides: {
     dismissal_reason: null,
     dismissed_at: null,
     created_at: "2026-07-25T13:00:00Z",
-    ...overrides,
-  };
-}
-
-function geometricAnalysis(revisionId: string, findings: ReturnType<typeof geometricFinding>[]) {
-  return {
-    id: `analysis-${revisionId}`,
-    revision_id: revisionId,
-    design_specification_id: "spec-ready-1",
-    analysis_version: "geometric-invariants-v1",
-    tolerance_profile_version: "geometry-tolerance-v1",
-    mesh_hash: `mesh-${revisionId}`,
-    source_hash: `source-${revisionId}`,
-    analysis_ms: 12.5,
-    created_at: "2026-07-25T13:00:00Z",
-    findings,
-  };
-}
-
-function geometricFinding(overrides: {
-  validation_finding_id?: string | null;
-  rule_id: string;
-  verification_state: "verified" | "violated" | "unverifiable" | "not_applicable";
-  expected_value: number | string | null;
-  detected_value: number | string | null;
-  tolerance: number | null;
-  confidence: number;
-  severity: "notice" | "warning" | "critical";
-  is_blocking: boolean;
-  title: string;
-  explanation: string;
-  suggested_correction: string;
-}) {
-  return {
-    validation_finding_id: null,
-    requirement_id: "mount_hole_spacing",
-    unit: "mm",
-    feature_id: "mounting_holes",
-    metadata: {},
     ...overrides,
   };
 }

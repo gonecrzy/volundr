@@ -26,6 +26,13 @@ from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
+from app.models.revision_plan import (
+    RevisionComplianceResult,
+    RevisionPlan,
+    RevisionPlanClarificationAnswer,
+    RevisionPlanClarificationQuestion,
+    RevisionSuccessResult,
+)
 from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
 from app.schemas.project import (
@@ -48,13 +55,27 @@ from app.schemas.project import (
     ProjectUpdate,
     RevisionRead,
     RevisionOutputRead,
+    RevisionComplianceResultRead,
+    RevisionPlanClarificationQuestionRead,
+    RevisionPlanCreate,
+    RevisionPlanOutcome,
+    RevisionPlanPayload,
+    RevisionPlanRead,
+    RevisionPlanReviewState,
+    RevisionSuccessResultRead,
     ValidationFindingRead,
     ValidationSummaryRead,
     RequirementExtractionCreate,
     RequirementOutcome,
 )
 from app.schemas.printability import PrintabilityProfile, PrintabilityResult
-from app.services.ai.provider import AiProvider, DesignPlanRequest, ModelGenerationRequest, RequirementExtractionRequest
+from app.services.ai.provider import (
+    AiProvider,
+    DesignPlanRequest,
+    ModelGenerationRequest,
+    RequirementExtractionRequest,
+    RevisionPlanRequest,
+)
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
@@ -69,6 +90,7 @@ from app.services.openscad.source_contract import (
     SourceContractFinding,
     SourceContractResult,
     SourceContractValidator,
+    _evaluate_constants,
 )
 from app.services.printability.inspector import inspect_printability
 
@@ -101,6 +123,9 @@ DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 PLANNED_OPENSCAD_PROMPT_VERSION = "openscad-generation-v5"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
+REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
+STRUCTURED_REVISION_PROMPT_VERSION = "openscad-revision-v2"
+REVISION_PLAN_SCHEMA_VERSION = "revision-plan-v1"
 DEFAULT_REQUIREMENT_PROFILE = {
     "version": "volundr-defaults-v1",
     "units": "mm",
@@ -757,6 +782,444 @@ class ProjectService:
         plan = self._latest_design_plan(project_id)
         return self._design_plan_read(plan) if plan is not None else None
 
+    def get_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
+        plan = self.db.get(RevisionPlan, revision_plan_id)
+        return self._revision_plan_read(plan) if plan is not None else None
+
+    def get_current_revision_plan(self, project_id: str) -> RevisionPlanRead | None:
+        if self.db.get(Project, project_id) is None:
+            return None
+        plan = self._latest_revision_plan(project_id)
+        return self._revision_plan_read(plan) if plan is not None else None
+
+    async def create_revision_plan(
+        self,
+        project_id: str,
+        payload: RevisionPlanCreate,
+    ) -> RevisionPlanRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+        base_revision_id = payload.base_revision_id or project.active_revision_id
+        if base_revision_id is None:
+            raise ValueError("base revision is required for revision planning")
+        base_revision = self.db.get(Revision, base_revision_id)
+        if base_revision is None or base_revision.project_id != project.id:
+            raise ValueError("base revision not found for project")
+        if base_revision.status != "succeeded":
+            raise ValueError("base revision must be successful")
+        if base_revision.design_plan_id is None:
+            raise ValueError("structured revision planning requires a Design Plan")
+        design_plan = self.db.get(DesignPlan, base_revision.design_plan_id)
+        if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
+            raise ValueError("base revision must reference an approved Design Plan")
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        design_specification = (
+            self.db.get(DesignSpecification, base_revision.design_specification_id)
+            if base_revision.design_specification_id
+            else None
+        )
+        design_specification_payload = (
+            self._read_design_specification_payload(design_specification)
+            if design_specification is not None
+            else None
+        )
+        base_source = self.read_revision_source(base_revision.id)
+        if base_source is None:
+            raise ValueError("base revision source is missing")
+        output_manifest = self.read_output_manifest(base_revision.id)
+        selected_findings = self._selected_finding_payloads(
+            project_id=project.id,
+            revision_id=base_revision.id,
+            finding_ids=payload.targeted_finding_ids,
+        )
+        source_metadata = SourceContractValidator().validate(
+            base_source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type=base_revision.source_type,
+        ).source_metadata.to_json()
+        request = RevisionPlanRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=payload.user_instruction,
+            reason=payload.reason,
+            base_revision_id=base_revision.id,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            product_parameters=list(design_plan_payload.get("parameters", [])),
+            dependency_edges=list(design_plan_payload.get("dependency_edges", [])),
+            components=list(design_plan_payload.get("components", [])),
+            features=list(design_plan_payload.get("features", [])),
+            printable_outputs=list(design_plan_payload.get("printable_outputs", [])),
+            output_manifest=output_manifest,
+            source_metadata=source_metadata,
+            selected_findings=selected_findings,
+        )
+        superseded = self._latest_revision_plan(project.id, base_revision_id=base_revision.id)
+        return await self._run_revision_planning(
+            project=project,
+            base_revision=base_revision,
+            design_specification=design_specification,
+            design_plan=design_plan,
+            request=request,
+            superseded_revision_plan_id=superseded.id if superseded else None,
+        )
+
+    def approve_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
+        plan = self.db.get(RevisionPlan, revision_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state != RevisionPlanReviewState.PENDING_REVIEW.value:
+            raise ValueError("Only pending Revision Plans can be approved")
+        if self._has_newer_revision_plan(plan):
+            raise ValueError("Revision Plan has been superseded")
+        plan.review_state = RevisionPlanReviewState.APPROVED.value
+        plan.approved_at = project_utcnow()
+        self._record_message(
+            project_id=plan.project_id,
+            revision_id=plan.base_revision_id,
+            role="system_event",
+            content=f"Revision Plan v{plan.version_number} approved",
+        )
+        self.db.commit()
+        self.db.refresh(plan)
+        return self._revision_plan_read(plan)
+
+    def reject_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
+        plan = self.db.get(RevisionPlan, revision_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state not in {
+            RevisionPlanReviewState.PENDING_REVIEW.value,
+            RevisionPlanReviewState.CLARIFICATION_REQUIRED.value,
+        }:
+            raise ValueError("Only pending or clarification Revision Plans can be rejected")
+        plan.review_state = RevisionPlanReviewState.REJECTED.value
+        plan.rejected_at = project_utcnow()
+        self._record_message(
+            project_id=plan.project_id,
+            revision_id=plan.base_revision_id,
+            role="system_event",
+            content=f"Revision Plan v{plan.version_number} rejected",
+        )
+        self.db.commit()
+        self.db.refresh(plan)
+        return self._revision_plan_read(plan)
+
+    def list_revision_plan_clarification_questions(
+        self,
+        revision_plan_id: str,
+    ) -> list[RevisionPlanClarificationQuestionRead] | None:
+        if self.db.get(RevisionPlan, revision_plan_id) is None:
+            return None
+        questions = self.db.scalars(
+            select(RevisionPlanClarificationQuestion)
+            .where(RevisionPlanClarificationQuestion.revision_plan_id == revision_plan_id)
+            .order_by(RevisionPlanClarificationQuestion.display_order.asc())
+        )
+        return [RevisionPlanClarificationQuestionRead.model_validate(question) for question in questions]
+
+    async def submit_revision_plan_clarification_answers(
+        self,
+        revision_plan_id: str,
+        payload: ClarificationAnswersCreate,
+    ) -> RevisionPlanRead | None:
+        plan = self.db.get(RevisionPlan, revision_plan_id)
+        if plan is None:
+            return None
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+        project = self.db.get(Project, plan.project_id)
+        base_revision = self.db.get(Revision, plan.base_revision_id)
+        design_plan = self.db.get(DesignPlan, plan.base_design_plan_id) if plan.base_design_plan_id else None
+        design_specification = (
+            self.db.get(DesignSpecification, plan.base_design_specification_id)
+            if plan.base_design_specification_id
+            else None
+        )
+        if project is None or base_revision is None or design_plan is None:
+            raise ValueError("Revision Plan context is incomplete")
+        previous_payload = self._read_revision_plan_payload(plan)
+        answers: list[dict[str, Any]] = []
+        questions_context: list[dict[str, Any]] = []
+        for answer_payload in payload.answers:
+            question = self.db.get(RevisionPlanClarificationQuestion, answer_payload.question_id)
+            if question is None or question.revision_plan_id != plan.id:
+                raise ValueError("clarification question not found for Revision Plan")
+            answer = RevisionPlanClarificationAnswer(
+                project_id=plan.project_id,
+                revision_plan_id=plan.id,
+                question_id=question.id,
+                related_requirement_id=question.requirement_id,
+                question_text=question.question,
+                answer=answer_payload.answer.strip(),
+            )
+            self.db.add(answer)
+            answers.append(
+                {
+                    "question_id": question.id,
+                    "related_requirement_id": question.requirement_id,
+                    "question": question.question,
+                    "answer": answer.answer,
+                }
+            )
+            questions_context.append(
+                {
+                    "id": question.id,
+                    "question": question.question,
+                    "reason": question.reason,
+                    "related_requirement_id": question.requirement_id,
+                }
+            )
+        self.db.commit()
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        design_specification_payload = (
+            self._read_design_specification_payload(design_specification)
+            if design_specification is not None
+            else None
+        )
+        base_source = self.read_revision_source(base_revision.id) or ""
+        source_metadata = SourceContractValidator().validate(
+            base_source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type=base_revision.source_type,
+        ).source_metadata.to_json()
+        request = RevisionPlanRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=plan.user_instruction,
+            reason=plan.reason,
+            base_revision_id=base_revision.id,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            product_parameters=list(design_plan_payload.get("parameters", [])),
+            dependency_edges=list(design_plan_payload.get("dependency_edges", [])),
+            components=list(design_plan_payload.get("components", [])),
+            features=list(design_plan_payload.get("features", [])),
+            printable_outputs=list(design_plan_payload.get("printable_outputs", [])),
+            output_manifest=self.read_output_manifest(base_revision.id),
+            source_metadata=source_metadata,
+            clarification_questions=questions_context,
+            clarification_answers=answers,
+            previous_revision_plan=previous_payload,
+        )
+        return await self._run_revision_planning(
+            project=project,
+            base_revision=base_revision,
+            design_specification=design_specification,
+            design_plan=design_plan,
+            request=request,
+            superseded_revision_plan_id=plan.id,
+        )
+
+    async def generate_from_revision_plan(self, revision_plan_id: str) -> RevisionRead | None:
+        plan = self.db.get(RevisionPlan, revision_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state != RevisionPlanReviewState.APPROVED.value:
+            raise ValueError("Revision Plan must be approved before source revision")
+        if self._has_newer_revision_plan(plan):
+            raise ValueError("Revision Plan has been superseded")
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+        project = self.db.get(Project, plan.project_id)
+        base_revision = self.db.get(Revision, plan.base_revision_id)
+        design_plan = self.db.get(DesignPlan, plan.revised_design_plan_id or plan.base_design_plan_id)
+        design_specification = (
+            self.db.get(
+                DesignSpecification,
+                plan.revised_design_specification_id or plan.base_design_specification_id,
+            )
+            if (plan.revised_design_specification_id or plan.base_design_specification_id)
+            else None
+        )
+        if project is None or base_revision is None or design_plan is None:
+            raise ValueError("Revision Plan context is incomplete")
+        base_source = self.read_revision_source(base_revision.id)
+        if base_source is None:
+            raise ValueError("base revision source is missing")
+        revision_plan_payload = self._read_revision_plan_payload(plan)
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        design_specification_payload = (
+            self._read_design_specification_payload(design_specification)
+            if design_specification is not None
+            else None
+        )
+        selected_findings = self._selected_finding_payloads(
+            project_id=project.id,
+            revision_id=base_revision.id,
+            finding_ids=revision_plan_payload.get("targeted_findings", []),
+        )
+        generation_request = self._generation_request(
+            project=project,
+            payload=GenerationCreate(
+                user_instruction=plan.user_instruction,
+                design_specification_id=design_specification.id if design_specification else None,
+            ),
+            current_source=base_source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            revision_plan=revision_plan_payload,
+            output_manifest=self.read_output_manifest(base_revision.id),
+            selected_findings=selected_findings,
+        )
+        generation_attempt = self._start_generation_attempt(
+            project=project,
+            request=generation_request,
+            base_revision_id=base_revision.id,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        try:
+            generation_result = await self.ai_provider.generate_model(generation_request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(generation_attempt, generation_result)
+        try:
+            revised_source = extract_scad_source(generation_result.raw_output)
+        except SourceExtractionError as exc:
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                error_message=str(exc),
+            )
+            raise ValueError(str(exc)) from exc
+        self._record_generation_extracted_source(generation_attempt, revised_source)
+        source_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=generation_attempt,
+            source=revised_source,
+            source_type="ai_revision",
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
+        )
+        if not source_validation.passed_hard_checks:
+            message = self._source_contract_rejection_message(source_validation)
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+                error_message=message,
+            )
+            raise ValueError(message)
+        compliance = self._persist_revision_compliance_result(
+            project=project,
+            revision_plan=plan,
+            generation_attempt=generation_attempt,
+            base_source=base_source,
+            revised_source=revised_source,
+            revision_plan_payload=revision_plan_payload,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        if not compliance.passed:
+            message = "Revised source rejected before compile by Revision Plan compliance"
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.REVISION_REGRESSION,
+                error_message=message,
+            )
+            raise ValueError(message)
+        candidate = await self._create_revision_from_planned_source(
+            project_id=project.id,
+            scad_source=revised_source,
+            user_instruction=plan.user_instruction,
+            source_type="ai_revision",
+            raw_ai_output=generation_result.raw_output,
+            design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=design_plan.id,
+            design_plan_payload=design_plan_payload,
+            source_validation_result_id=source_validation.id,
+        )
+        if candidate is None:
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.UNKNOWN_FAILURE,
+                error_message="revision candidate was not created",
+            )
+            return None
+        plan.generated_revision_id = candidate.id
+        compliance.revision_id = candidate.id
+        self._persist_revision_success_results(
+            project=project,
+            revision_plan=plan,
+            generation_attempt_id=generation_attempt.id,
+            revision_id=candidate.id,
+            source=revised_source,
+            revision_plan_payload=revision_plan_payload,
+        )
+        self._finish_generation_attempt(
+            generation_attempt,
+            status="succeeded",
+            failure_class=FailureClass.NONE,
+            resulting_revision_id=candidate.id,
+        )
+        self.db.commit()
+        revision = self.db.get(Revision, candidate.id)
+        if revision is not None:
+            revision.review_state = self._derive_review_state(revision.id)
+            self.db.commit()
+            self.db.refresh(revision)
+            return self._revision_read(revision)
+        return candidate
+
+    def get_revision_compliance_result(
+        self,
+        revision_plan_id: str,
+    ) -> RevisionComplianceResultRead | None:
+        result = self.db.scalar(
+            select(RevisionComplianceResult)
+            .where(RevisionComplianceResult.revision_plan_id == revision_plan_id)
+            .order_by(RevisionComplianceResult.created_at.desc())
+        )
+        if result is None:
+            return None
+        payload = self._read_json_file(result.result_path) or {}
+        return RevisionComplianceResultRead(
+            id=result.id,
+            project_id=result.project_id,
+            revision_plan_id=result.revision_plan_id,
+            generation_attempt_id=result.generation_attempt_id,
+            revision_id=result.revision_id,
+            base_source_hash=result.base_source_hash,
+            revised_source_hash=result.revised_source_hash,
+            passed=result.passed,
+            validation_ms=result.validation_ms,
+            created_at=result.created_at,
+            findings=list(payload.get("findings", [])),
+            metadata=dict(payload.get("metadata", {})),
+        )
+
+    def list_revision_success_results(
+        self,
+        revision_plan_id: str,
+    ) -> list[RevisionSuccessResultRead] | None:
+        if self.db.get(RevisionPlan, revision_plan_id) is None:
+            return None
+        rows = self.db.scalars(
+            select(RevisionSuccessResult)
+            .where(RevisionSuccessResult.revision_plan_id == revision_plan_id)
+            .order_by(RevisionSuccessResult.created_at.asc(), RevisionSuccessResult.target_id.asc())
+        )
+        return [self._revision_success_result_read(row) for row in rows]
+
     async def create_design_plan_from_specification(
         self,
         specification_id: str,
@@ -1313,6 +1776,10 @@ class ProjectService:
         compiler_diagnostics: str | None = None,
         design_specification: dict[str, Any] | None = None,
         design_plan: dict[str, Any] | None = None,
+        revision_plan: dict[str, Any] | None = None,
+        output_manifest: dict[str, Any] | None = None,
+        selected_findings: list[dict[str, Any]] | None = None,
+        source_metadata: dict[str, Any] | None = None,
     ) -> ModelGenerationRequest:
         return ModelGenerationRequest(
             project_name=project.name,
@@ -1323,6 +1790,10 @@ class ProjectService:
             compiler_diagnostics=compiler_diagnostics,
             design_specification=design_specification,
             design_plan=design_plan,
+            revision_plan=revision_plan,
+            output_manifest=output_manifest,
+            selected_findings=selected_findings or [],
+            source_metadata=source_metadata,
         )
 
     def _start_generation_attempt(
@@ -1556,6 +2027,152 @@ class ProjectService:
         )
         return self._design_plan_read(plan)
 
+    async def _run_revision_planning(
+        self,
+        *,
+        project: Project,
+        base_revision: Revision,
+        design_specification: DesignSpecification | None,
+        design_plan: DesignPlan,
+        request: RevisionPlanRequest,
+        superseded_revision_plan_id: str | None = None,
+    ) -> RevisionPlanRead:
+        attempt = self._start_revision_plan_attempt(
+            project=project,
+            base_revision_id=base_revision.id,
+            request=request,
+        )
+        try:
+            planner = getattr(self.ai_provider, "create_revision_plan")
+            planning_result = await planner(request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(attempt, planning_result)
+        try:
+            parsed_payload = self._parse_revision_plan_payload(
+                planning_result.raw_output,
+                project_id=project.id,
+                base_revision_id=base_revision.id,
+                base_design_specification_id=design_specification.id
+                if design_specification is not None
+                else None,
+                base_design_plan_id=design_plan.id,
+                generation_attempt_id=attempt.id,
+            )
+        except (ValueError, ValidationError) as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.REVISION_REGRESSION,
+                error_message=str(exc),
+            )
+            if request.schema_repair_of_raw_output is not None:
+                raise RuntimeError("revision planning returned invalid Revision Plan") from exc
+            repair_request = RevisionPlanRequest(
+                project_name=request.project_name,
+                original_intent=request.original_intent,
+                user_instruction=request.user_instruction,
+                reason=request.reason,
+                base_revision_id=request.base_revision_id,
+                design_specification=request.design_specification,
+                design_plan=request.design_plan,
+                product_parameters=request.product_parameters,
+                dependency_edges=request.dependency_edges,
+                components=request.components,
+                features=request.features,
+                printable_outputs=request.printable_outputs,
+                output_manifest=request.output_manifest,
+                source_metadata=request.source_metadata,
+                selected_findings=request.selected_findings,
+                geometric_measurements=request.geometric_measurements,
+                clarification_questions=request.clarification_questions,
+                clarification_answers=request.clarification_answers,
+                previous_revision_plan=request.previous_revision_plan,
+                schema_repair_of_raw_output=planning_result.raw_output,
+                schema_validation_error=str(exc),
+            )
+            return await self._run_revision_planning(
+                project=project,
+                base_revision=base_revision,
+                design_specification=design_specification,
+                design_plan=design_plan,
+                request=repair_request,
+                superseded_revision_plan_id=superseded_revision_plan_id,
+            )
+
+        plan = self._persist_revision_plan(
+            project=project,
+            base_revision=base_revision,
+            design_specification=design_specification,
+            design_plan=design_plan,
+            attempt=attempt,
+            payload=parsed_payload,
+            raw_response_path=attempt.raw_output_path,
+            superseded_revision_plan_id=superseded_revision_plan_id,
+        )
+        self._finish_generation_attempt(
+            attempt,
+            status="succeeded",
+            failure_class=FailureClass.NONE,
+        )
+        return self._revision_plan_read(plan)
+
+    def _start_revision_plan_attempt(
+        self,
+        *,
+        project: Project,
+        base_revision_id: str,
+        request: RevisionPlanRequest,
+    ) -> GenerationAttempt:
+        attempt = GenerationAttempt(
+            project_id=project.id,
+            base_revision_id=base_revision_id,
+            attempt_number=self._next_generation_attempt_number(project.id),
+            provider=self._provider_name(),
+            provider_model=self._provider_model(),
+            provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            prompt_template_version=self._revision_plan_prompt_template_version(),
+            gemini_ruleset_version=self._gemini_ruleset_version(),
+            request_payload_path="",
+            prompt_path="",
+            status="started",
+            failure_class=FailureClass.NONE.value,
+        )
+        self.db.add(attempt)
+        self.db.flush()
+
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        request_path = run_dir / "request.json"
+        prompt_path = run_dir / "prompt.txt"
+        design_spec_path = run_dir / "design-spec.json"
+        design_plan_path = run_dir / "design-plan.json"
+        chain_path = run_dir / "chain.json"
+
+        self._write_json(request_path, asdict(request))
+        prompt_path.write_text(self._render_revision_plan_prompt(request), encoding="utf-8")
+        if request.design_specification is not None:
+            self._write_json(design_spec_path, request.design_specification)
+            attempt.design_spec_path = self._relative(design_spec_path)
+        self._write_json(design_plan_path, request.design_plan)
+        self._write_json(chain_path, self._attempt_chain(attempt, status="started"))
+
+        attempt.request_payload_path = self._relative(request_path)
+        attempt.prompt_path = self._relative(prompt_path)
+        attempt.design_plan_path = self._relative(design_plan_path)
+        attempt.intermediate_artifacts_path = self._relative(chain_path)
+        self._update_attempt_chain(attempt, status="started")
+        self.db.commit()
+        self.db.refresh(attempt)
+        return attempt
+
     def _start_design_plan_attempt(
         self,
         *,
@@ -1718,6 +2335,42 @@ class ProjectService:
             return DesignPlanOutcome.PLAN_READY
         return DesignPlanOutcome.PLAN_FAILED
 
+    def _parse_revision_plan_payload(
+        self,
+        raw_output: str,
+        *,
+        project_id: str,
+        base_revision_id: str,
+        base_design_specification_id: str | None,
+        base_design_plan_id: str | None,
+        generation_attempt_id: str,
+    ) -> dict[str, Any]:
+        json_text = self._extract_json_response(raw_output)
+        payload = json.loads(json_text)
+        payload["project_id"] = project_id
+        payload["base_revision_id"] = base_revision_id
+        payload["base_design_specification_id"] = base_design_specification_id
+        payload["base_design_plan_id"] = base_design_plan_id
+        payload["generation_attempt_id"] = generation_attempt_id
+        payload["schema_version"] = str(payload.get("schema_version") or REVISION_PLAN_SCHEMA_VERSION)
+        validated = RevisionPlanPayload.model_validate(payload)
+        normalized = validated.model_dump(mode="json")
+        outcome = self._derive_revision_plan_outcome(normalized)
+        normalized["outcome"] = outcome.value
+        normalized["clarification_required"] = outcome == RevisionPlanOutcome.CLARIFICATION_REQUIRED
+        normalized["revision_ready"] = outcome == RevisionPlanOutcome.REVISION_READY
+        return normalized
+
+    def _derive_revision_plan_outcome(self, payload: dict[str, Any]) -> RevisionPlanOutcome:
+        explicit = payload.get("outcome")
+        if explicit:
+            return RevisionPlanOutcome(explicit)
+        if payload.get("clarification_questions"):
+            return RevisionPlanOutcome.CLARIFICATION_REQUIRED
+        if payload.get("requested_changes"):
+            return RevisionPlanOutcome.REVISION_READY
+        return RevisionPlanOutcome.PLANNING_FAILED
+
     def _persist_design_specification(
         self,
         *,
@@ -1819,6 +2472,113 @@ class ProjectService:
         self.db.refresh(plan)
         return plan
 
+    def _persist_revision_plan(
+        self,
+        *,
+        project: Project,
+        base_revision: Revision,
+        design_specification: DesignSpecification | None,
+        design_plan: DesignPlan,
+        attempt: GenerationAttempt,
+        payload: dict[str, Any],
+        raw_response_path: str | None,
+        superseded_revision_plan_id: str | None,
+    ) -> RevisionPlan:
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        plan_path = run_dir / "parsed-revision-plan.json"
+        self._write_json(plan_path, payload)
+        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
+        base_source = self.read_revision_source(base_revision.id) or ""
+        base_manifest = self.read_output_manifest(base_revision.id) or {}
+        base_spec_payload = (
+            self._read_design_specification_payload(design_specification)
+            if design_specification is not None
+            else None
+        )
+        base_plan_payload = self._read_design_plan_payload(design_plan)
+        attempt.design_plan_path = self._relative(plan_path)
+        if payload["outcome"] == RevisionPlanOutcome.REVISION_READY.value:
+            review_state = RevisionPlanReviewState.PENDING_REVIEW
+        elif payload["outcome"] == RevisionPlanOutcome.CLARIFICATION_REQUIRED.value:
+            review_state = RevisionPlanReviewState.CLARIFICATION_REQUIRED
+        else:
+            review_state = RevisionPlanReviewState.REJECTED
+        plan = RevisionPlan(
+            project_id=project.id,
+            base_revision_id=base_revision.id,
+            base_design_specification_id=design_specification.id if design_specification else None,
+            base_design_plan_id=design_plan.id,
+            generation_attempt_id=attempt.id,
+            superseded_revision_plan_id=superseded_revision_plan_id,
+            version_number=self._next_revision_plan_version(project.id),
+            schema_version=str(payload.get("schema_version", REVISION_PLAN_SCHEMA_VERSION)),
+            prompt_template_version=attempt.prompt_template_version,
+            gemini_ruleset_version=attempt.gemini_ruleset_version,
+            provider=attempt.provider,
+            provider_model=attempt.provider_model,
+            user_instruction=str(payload.get("user_instruction") or attempt.project.original_intent)
+            if getattr(attempt, "project", None) is not None
+            else str(payload.get("summary") or ""),
+            reason=str(payload.get("reason") or "user_request"),
+            raw_response_path=raw_response_path,
+            plan_path=self._relative(plan_path),
+            content_hash=content_hash,
+            base_source_hash=self._sha256(base_source) if base_source else None,
+            base_output_manifest_hash=self._sha256(json.dumps(base_manifest, sort_keys=True)),
+            base_design_specification_hash=self._sha256(json.dumps(base_spec_payload, sort_keys=True))
+            if base_spec_payload is not None
+            else None,
+            base_design_plan_hash=self._sha256(json.dumps(base_plan_payload, sort_keys=True)),
+            outcome=str(payload["outcome"]),
+            review_state=review_state.value,
+            clarification_required=bool(payload.get("clarification_required", False)),
+            revision_ready=bool(payload.get("revision_ready", False)),
+        )
+        plan.user_instruction = self._revision_plan_request_instruction(attempt)
+        self.db.add(plan)
+        self.db.flush()
+        for index, question_payload in enumerate(payload.get("clarification_questions", [])):
+            self.db.add(
+                RevisionPlanClarificationQuestion(
+                    project_id=project.id,
+                    revision_plan_id=plan.id,
+                    requirement_id=question_payload.get("related_requirement_id")
+                    or question_payload.get("id"),
+                    question=question_payload["question"],
+                    reason=question_payload.get("reason"),
+                    display_order=index,
+                )
+            )
+        if payload.get("requires_design_specification_version") and base_spec_payload is not None:
+            revised_spec = self._persist_revision_specification_snapshot(
+                project=project,
+                base_specification=design_specification,
+                revision_plan=plan,
+                base_payload=base_spec_payload,
+                revision_plan_payload=payload,
+            )
+            plan.revised_design_specification_id = revised_spec.id
+        if payload.get("requires_design_plan_version"):
+            revised_plan = self._persist_revision_design_plan_snapshot(
+                project=project,
+                base_plan=design_plan,
+                revision_plan=plan,
+                base_payload=base_plan_payload,
+                revision_plan_payload=payload,
+            )
+            plan.revised_design_plan_id = revised_plan.id
+        self.db.flush()
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+        self.db.refresh(plan)
+        return plan
+
+    def _revision_plan_request_instruction(self, attempt: GenerationAttempt) -> str:
+        if not attempt.request_payload_path:
+            return ""
+        payload = self._read_json_file(attempt.request_payload_path) or {}
+        return str(payload.get("user_instruction") or "")
+
     def _update_attempt_chain(
         self,
         attempt: GenerationAttempt,
@@ -1913,6 +2673,12 @@ class ProjectService:
             return build_prompt(request)
         return ""
 
+    def _render_revision_plan_prompt(self, request: RevisionPlanRequest) -> str:
+        build_prompt = getattr(self.ai_provider, "build_revision_plan_prompt", None)
+        if callable(build_prompt):
+            return build_prompt(request)
+        return ""
+
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
         version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
         if callable(version_for):
@@ -1921,6 +2687,8 @@ class ProjectService:
             return "contract-repair-v2"
         if request.compiler_diagnostics:
             return "legacy-compile-repair-v1"
+        if request.revision_plan:
+            return STRUCTURED_REVISION_PROMPT_VERSION
         if request.current_source:
             return "legacy-revision-v1"
         if request.design_plan:
@@ -1940,6 +2708,12 @@ class ProjectService:
         if callable(version):
             return str(version())
         return DESIGN_PLAN_PROMPT_VERSION
+
+    def _revision_plan_prompt_template_version(self) -> str:
+        version = getattr(self.ai_provider, "revision_plan_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return REVISION_PLAN_PROMPT_VERSION
 
     def _gemini_ruleset_version(self) -> str:
         return str(getattr(self.ai_provider, "gemini_ruleset_version", "gemini-ruleset-v1"))
@@ -1980,6 +2754,17 @@ class ProjectService:
             query = query.where(DesignPlan.design_specification_id == specification_id)
         return self.db.scalar(query.order_by(DesignPlan.version_number.desc()))
 
+    def _latest_revision_plan(
+        self,
+        project_id: str,
+        *,
+        base_revision_id: str | None = None,
+    ) -> RevisionPlan | None:
+        query = select(RevisionPlan).where(RevisionPlan.project_id == project_id)
+        if base_revision_id is not None:
+            query = query.where(RevisionPlan.base_revision_id == base_revision_id)
+        return self.db.scalar(query.order_by(RevisionPlan.version_number.desc()))
+
     def _has_newer_design_specification(self, specification: DesignSpecification) -> bool:
         latest_version = self.db.scalar(
             select(func.max(DesignSpecification.version_number)).where(
@@ -1997,6 +2782,15 @@ class ProjectService:
         )
         return latest_version is not None and int(latest_version) > plan.version_number
 
+    def _has_newer_revision_plan(self, plan: RevisionPlan) -> bool:
+        latest_version = self.db.scalar(
+            select(func.max(RevisionPlan.version_number)).where(
+                RevisionPlan.project_id == plan.project_id,
+                RevisionPlan.base_revision_id == plan.base_revision_id,
+            )
+        )
+        return latest_version is not None and int(latest_version) > plan.version_number
+
     def _read_design_specification_payload(
         self,
         specification: DesignSpecification,
@@ -2007,6 +2801,13 @@ class ProjectService:
     def _read_design_plan_payload(
         self,
         plan: DesignPlan,
+    ) -> dict[str, Any]:
+        path = self.data_dir / plan.plan_path
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def _read_revision_plan_payload(
+        self,
+        plan: RevisionPlan,
     ) -> dict[str, Any]:
         path = self.data_dir / plan.plan_path
         return json.loads(path.read_text(encoding="utf-8"))
@@ -2075,6 +2876,57 @@ class ProjectService:
             rejected_at=plan.rejected_at,
             created_at=plan.created_at,
             plan=self._read_design_plan_payload(plan),
+        )
+
+    def _revision_plan_read(
+        self,
+        plan: RevisionPlan,
+    ) -> RevisionPlanRead:
+        questions = list(
+            self.db.scalars(
+                select(RevisionPlanClarificationQuestion)
+                .where(RevisionPlanClarificationQuestion.revision_plan_id == plan.id)
+                .order_by(RevisionPlanClarificationQuestion.display_order.asc())
+            )
+        )
+        return RevisionPlanRead(
+            id=plan.id,
+            project_id=plan.project_id,
+            base_revision_id=plan.base_revision_id,
+            base_design_specification_id=plan.base_design_specification_id,
+            base_design_plan_id=plan.base_design_plan_id,
+            generation_attempt_id=plan.generation_attempt_id,
+            superseded_revision_plan_id=plan.superseded_revision_plan_id,
+            generated_revision_id=plan.generated_revision_id,
+            revised_design_specification_id=plan.revised_design_specification_id,
+            revised_design_plan_id=plan.revised_design_plan_id,
+            version_number=plan.version_number,
+            schema_version=plan.schema_version,
+            prompt_template_version=plan.prompt_template_version,
+            gemini_ruleset_version=plan.gemini_ruleset_version,
+            provider=plan.provider,
+            provider_model=plan.provider_model,
+            user_instruction=plan.user_instruction,
+            reason=plan.reason,
+            raw_response_path=plan.raw_response_path,
+            plan_path=plan.plan_path,
+            content_hash=plan.content_hash,
+            base_source_hash=plan.base_source_hash,
+            base_output_manifest_hash=plan.base_output_manifest_hash,
+            base_design_specification_hash=plan.base_design_specification_hash,
+            base_design_plan_hash=plan.base_design_plan_hash,
+            outcome=RevisionPlanOutcome(plan.outcome),
+            review_state=RevisionPlanReviewState(plan.review_state),
+            clarification_required=plan.clarification_required,
+            revision_ready=plan.revision_ready,
+            approved_at=plan.approved_at,
+            rejected_at=plan.rejected_at,
+            created_at=plan.created_at,
+            revision_plan=self._read_revision_plan_payload(plan),
+            clarification_questions=[
+                RevisionPlanClarificationQuestionRead.model_validate(question)
+                for question in questions
+            ],
         )
 
     def _persist_source_contract_validation(
@@ -2205,6 +3057,507 @@ class ProjectService:
         ):
             finding.revision_id = revision_id
         self.db.flush()
+
+    def _persist_revision_compliance_result(
+        self,
+        *,
+        project: Project,
+        revision_plan: RevisionPlan,
+        generation_attempt: GenerationAttempt,
+        base_source: str,
+        revised_source: str,
+        revision_plan_payload: dict[str, Any],
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any],
+    ) -> RevisionComplianceResult:
+        started = time.perf_counter()
+        validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
+        base_scan = validator.validate(
+            base_source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type="ai_revision",
+        ).source_metadata
+        revised_scan = validator.validate(
+            revised_source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type="ai_revision",
+        ).source_metadata
+        findings = self._revision_compliance_findings(
+            base_scan=base_scan,
+            revised_scan=revised_scan,
+            revision_plan_payload=revision_plan_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        passed = not any(finding["is_blocking"] for finding in findings)
+        result_payload = {
+            "schema_version": "revision-compliance-v1",
+            "revision_plan_id": revision_plan.id,
+            "base_source_hash": base_scan.source_hash,
+            "revised_source_hash": revised_scan.source_hash,
+            "passed": passed,
+            "findings": findings,
+            "metadata": {
+                "base_modules": base_scan.module_names,
+                "revised_modules": revised_scan.module_names,
+                "base_outputs": sorted(base_scan.output_mappings),
+                "revised_outputs": sorted(revised_scan.output_mappings),
+            },
+        }
+        result_dir = self._revision_plan_dir(project.id, revision_plan.id)
+        result_dir.mkdir(parents=True, exist_ok=True)
+        result_path = result_dir / "revision-compliance.json"
+        self._write_json(result_path, result_payload)
+        row = RevisionComplianceResult(
+            project_id=project.id,
+            revision_plan_id=revision_plan.id,
+            generation_attempt_id=generation_attempt.id,
+            base_source_hash=base_scan.source_hash,
+            revised_source_hash=revised_scan.source_hash,
+            result_path=self._relative(result_path),
+            passed=passed,
+            validation_ms=round((time.perf_counter() - started) * 1000, 3),
+        )
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def _revision_compliance_findings(
+        self,
+        *,
+        base_scan,
+        revised_scan,
+        revision_plan_payload: dict[str, Any],
+        design_plan_payload: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        findings: list[dict[str, Any]] = []
+        allowed_parameters = set(revision_plan_payload.get("allowed_parameter_changes", []))
+        for dependency in revision_plan_payload.get("required_dependency_changes", []):
+            allowed_parameters.update(str(item) for item in dependency.get("affects", []))
+        protected_parameters = {
+            item.get("parameter_id"): item
+            for item in revision_plan_payload.get("protected_parameters", [])
+            if item.get("parameter_id")
+        }
+        plan_parameter_ids = {
+            str(item.get("id"))
+            for item in (
+                list(design_plan_payload.get("parameters", []))
+                + list(design_plan_payload.get("derived_parameters", []))
+            )
+            if item.get("id")
+        }
+        base_constants = _evaluate_constants(base_scan.assignments)
+        revised_constants = _evaluate_constants(revised_scan.assignments)
+        for parameter_id, protected in protected_parameters.items():
+            expected = protected.get("expected_value")
+            detected = revised_constants.get(parameter_id)
+            if detected is None and parameter_id in revised_scan.assignments:
+                detected = revised_scan.assignments[parameter_id]
+            if parameter_id not in revised_scan.assignments:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.protected_parameter_removed",
+                        "Protected parameter removed",
+                        f"{parameter_id} is protected by the Revision Plan but is missing.",
+                        parameter_id=parameter_id,
+                        expected=expected,
+                        detected=None,
+                    )
+                )
+            elif expected is not None and not self._values_equal(expected, detected):
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.unauthorized_parameter_change",
+                        "Protected parameter changed",
+                        f"{parameter_id} changed outside the approved revision scope.",
+                        parameter_id=parameter_id,
+                        expected=expected,
+                        detected=detected,
+                    )
+                )
+        ignored = {"selected_output", "$fn", "eps"}
+        for name in sorted(set(base_scan.assignments) & set(revised_scan.assignments)):
+            if name in ignored or name in allowed_parameters:
+                continue
+            if name not in plan_parameter_ids and name not in protected_parameters:
+                continue
+            base_value = base_constants.get(name, base_scan.assignments.get(name))
+            revised_value = revised_constants.get(name, revised_scan.assignments.get(name))
+            if not self._values_equal(base_value, revised_value):
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.unauthorized_parameter_change",
+                        "Unauthorized parameter changed",
+                        f"{name} changed but is not listed as allowed or required by the Revision Plan.",
+                        parameter_id=name,
+                        expected=base_value,
+                        detected=revised_value,
+                    )
+                )
+        for component_id in revision_plan_payload.get("protected_components", []):
+            if component_id and component_id not in revised_scan.component_mappings:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.protected_component_removed",
+                        "Protected component marker removed",
+                        f"Component {component_id} must remain present.",
+                        component_id=component_id,
+                    )
+                )
+        for feature_id in revision_plan_payload.get("protected_features", []):
+            if feature_id and feature_id not in revised_scan.feature_mappings:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.protected_feature_removed",
+                        "Protected feature marker removed",
+                        f"Feature {feature_id} must remain present.",
+                        feature_id=feature_id,
+                    )
+                )
+        for output in design_plan_payload.get("printable_outputs", []):
+            output_id = output.get("id")
+            if output_id and output_id not in revised_scan.output_mappings:
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.required_output_removed",
+                        "Planned output marker removed",
+                        f"Output {output_id} is declared by the Design Plan but missing from revised source.",
+                        output_id=output_id,
+                    )
+                )
+        for output_id in revision_plan_payload.get("protected_outputs", []):
+            base_mapping = base_scan.output_mappings.get(output_id)
+            revised_mapping = revised_scan.output_mappings.get(output_id)
+            if base_mapping is None or revised_mapping is None:
+                continue
+            if (
+                base_mapping.module_name != revised_mapping.module_name
+                or base_mapping.component_ids != revised_mapping.component_ids
+            ):
+                findings.append(
+                    self._revision_compliance_finding(
+                        "revision.unexpected_output_change",
+                        "Protected output mapping changed",
+                        f"Output {output_id} changed module or component mapping outside the approved scope.",
+                        output_id=output_id,
+                        expected=base_mapping.module_name,
+                        detected=revised_mapping.module_name,
+                    )
+                )
+        for dependency in revision_plan_payload.get("required_dependency_changes", []):
+            changed = dependency.get("parameter_id")
+            if not changed:
+                continue
+            base_value = base_constants.get(changed, base_scan.assignments.get(changed))
+            revised_value = revised_constants.get(changed, revised_scan.assignments.get(changed))
+            if self._values_equal(base_value, revised_value):
+                continue
+            for dependent in dependency.get("affects", []):
+                base_dependent = base_scan.assignments.get(str(dependent))
+                revised_dependent = revised_scan.assignments.get(str(dependent))
+                if base_dependent == revised_dependent:
+                    findings.append(
+                        self._revision_compliance_finding(
+                            "revision.required_dependency_not_updated",
+                            "Required dependency was not updated",
+                            f"{dependent} must change with {changed} according to the Revision Plan.",
+                            parameter_id=str(dependent),
+                            expected="changed expression or value",
+                            detected=revised_dependent,
+                        )
+                    )
+        return findings
+
+    def _revision_compliance_finding(
+        self,
+        rule_id: str,
+        title: str,
+        explanation: str,
+        *,
+        parameter_id: str | None = None,
+        component_id: str | None = None,
+        feature_id: str | None = None,
+        output_id: str | None = None,
+        expected: Any = None,
+        detected: Any = None,
+    ) -> dict[str, Any]:
+        return {
+            "rule_id": rule_id,
+            "category": "revision_preservation",
+            "severity": "critical",
+            "is_blocking": True,
+            "title": title,
+            "explanation": explanation,
+            "suggested_correction": "Regenerate the revision from the approved Revision Plan while preserving protected source markers and values.",
+            "parameter_id": parameter_id,
+            "component_id": component_id,
+            "feature_id": feature_id,
+            "output_id": output_id,
+            "expected_value": expected,
+            "detected_value": detected,
+        }
+
+    def _persist_revision_success_results(
+        self,
+        *,
+        project: Project,
+        revision_plan: RevisionPlan,
+        generation_attempt_id: str | None,
+        revision_id: str,
+        source: str,
+        revision_plan_payload: dict[str, Any],
+    ) -> None:
+        metadata = SourceContractValidator().validate(
+            source,
+            design_specification=None,
+            design_plan=None,
+            source_type="ai_revision",
+        ).source_metadata
+        constants = _evaluate_constants(metadata.assignments)
+        outputs = {
+            output.output_id: output
+            for output in self.db.scalars(
+                select(RevisionOutput).where(RevisionOutput.revision_id == revision_id)
+            )
+        }
+        for criterion in revision_plan_payload.get("success_criteria", []):
+            criterion_type = str(criterion.get("type") or "")
+            target_id = str(criterion.get("target_id") or "")
+            expected = criterion.get("expected_value")
+            detected: Any = None
+            state = "success_unverifiable"
+            explanation = "Volundr could not verify this revision success criterion."
+            blocking = False
+            if criterion_type in {"parameter_value", "parameter_unchanged"}:
+                detected = constants.get(target_id)
+                if detected is None and target_id in metadata.assignments:
+                    detected = metadata.assignments[target_id]
+                if detected is None:
+                    state = "success_unverifiable"
+                    explanation = f"Parameter {target_id} could not be evaluated statically."
+                elif self._values_equal(expected, detected):
+                    state = "success_verified"
+                    explanation = f"{target_id} matches the expected value."
+                else:
+                    state = "success_violated"
+                    blocking = True
+                    explanation = f"{target_id} does not match the Revision Plan success criterion."
+            elif criterion_type == "output_exists":
+                output = outputs.get(target_id)
+                detected = output.output_state if output is not None else None
+                if output is not None and output.output_state in OUTPUT_READY_STATES:
+                    state = "success_verified"
+                    explanation = f"Output {target_id} exists and is available for review."
+                else:
+                    state = "success_violated"
+                    blocking = True
+                    explanation = f"Output {target_id} is missing or unavailable."
+            else:
+                state = "success_unverifiable"
+                explanation = f"Success criterion type {criterion_type} is not implemented yet."
+            row = RevisionSuccessResult(
+                project_id=project.id,
+                revision_plan_id=revision_plan.id,
+                generation_attempt_id=generation_attempt_id,
+                revision_id=revision_id,
+                criterion_type=criterion_type,
+                target_id=target_id,
+                verification_state=state,
+                expected_value_json=json.dumps(expected, sort_keys=True),
+                detected_value_json=json.dumps(detected, sort_keys=True),
+                unit=criterion.get("unit"),
+                tolerance=criterion.get("tolerance"),
+                confidence=1.0 if state != "success_unverifiable" else 0.5,
+                is_blocking=blocking,
+                explanation=explanation,
+                metadata_json=json.dumps({"criterion": criterion}, sort_keys=True),
+            )
+            self.db.add(row)
+            if blocking:
+                self.db.add(
+                    ValidationFinding(
+                        revision_id=revision_id,
+                        rule_id="revision.success_criterion_failed",
+                        category="revision_success",
+                        severity="critical",
+                        is_blocking=True,
+                        title="Revision success criterion failed",
+                        explanation=explanation,
+                        suggested_correction="Create a new revision from the failed success criterion.",
+                        detected_value=str(detected) if detected is not None else None,
+                        unit=criterion.get("unit"),
+                        threshold_value=str(expected) if expected is not None else None,
+                        orientation_dependent=False,
+                        metadata_json=json.dumps({"revision_plan_id": revision_plan.id, "criterion": criterion}, sort_keys=True),
+                    )
+                )
+        self.db.flush()
+
+    def _values_equal(self, expected: Any, detected: Any, *, tolerance: float = 1e-6) -> bool:
+        if expected is None:
+            return detected is None
+        try:
+            return abs(float(expected) - float(detected)) <= tolerance
+        except (TypeError, ValueError):
+            return str(expected) == str(detected)
+
+    def _selected_finding_payloads(
+        self,
+        *,
+        project_id: str,
+        revision_id: str,
+        finding_ids: list[str],
+    ) -> list[dict[str, Any]]:
+        if not finding_ids:
+            return []
+        findings: list[dict[str, Any]] = []
+        for finding_id in finding_ids:
+            finding = self.db.get(ValidationFinding, finding_id)
+            if finding is None or finding.revision_id != revision_id:
+                raise ValueError("targeted finding not found for base revision")
+            if finding.revision_id:
+                revision = self.db.get(Revision, finding.revision_id)
+                if revision is None or revision.project_id != project_id:
+                    raise ValueError("targeted finding not found for project")
+            findings.append(
+                {
+                    "id": finding.id,
+                    "revision_id": finding.revision_id,
+                    "revision_output_id": finding.revision_output_id,
+                    "rule_id": finding.rule_id,
+                    "category": finding.category,
+                    "severity": finding.severity,
+                    "is_blocking": finding.is_blocking,
+                    "title": finding.title,
+                    "explanation": finding.explanation,
+                    "suggested_correction": finding.suggested_correction,
+                    "detected_value": finding.detected_value,
+                    "threshold_value": finding.threshold_value,
+                    "unit": finding.unit,
+                    "metadata": json.loads(finding.metadata_json or "{}"),
+                }
+            )
+        return findings
+
+    def _persist_revision_specification_snapshot(
+        self,
+        *,
+        project: Project,
+        base_specification: DesignSpecification | None,
+        revision_plan: RevisionPlan,
+        base_payload: dict[str, Any],
+        revision_plan_payload: dict[str, Any],
+    ) -> DesignSpecification:
+        payload = json.loads(json.dumps(base_payload))
+        for change in revision_plan_payload.get("requested_changes", []):
+            target_id = change.get("target_id")
+            if not target_id:
+                continue
+            for collection in ("critical_dimensions", "parameters"):
+                for item in payload.get(collection, []):
+                    if item.get("id") == target_id:
+                        item["value"] = change.get("requested_value")
+                        item["source"] = "user"
+        payload["superseded_by_revision_plan_id"] = revision_plan.id
+        spec_dir = self._revision_plan_dir(project.id, revision_plan.id)
+        spec_dir.mkdir(parents=True, exist_ok=True)
+        spec_path = spec_dir / "revised-design-specification.json"
+        self._write_json(spec_path, payload)
+        specification = DesignSpecification(
+            project_id=project.id,
+            generation_attempt_id=revision_plan.generation_attempt_id,
+            superseded_specification_id=base_specification.id if base_specification else None,
+            version_number=self._next_design_specification_version(project.id),
+            schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
+            prompt_template_version=revision_plan.prompt_template_version,
+            gemini_ruleset_version=revision_plan.gemini_ruleset_version,
+            provider=revision_plan.provider,
+            provider_model=revision_plan.provider_model,
+            user_instruction=revision_plan.user_instruction,
+            raw_response_path=None,
+            specification_path=self._relative(spec_path),
+            content_hash=self._sha256(json.dumps(payload, sort_keys=True)),
+            outcome=str(payload.get("outcome") or RequirementOutcome.GENERATION_READY.value),
+            supported_scope=bool(payload.get("supported_scope", True)),
+            clarification_required=bool(payload.get("clarification_required", False)),
+            generation_ready=bool(payload.get("generation_ready", True)),
+        )
+        self.db.add(specification)
+        self.db.flush()
+        return specification
+
+    def _persist_revision_design_plan_snapshot(
+        self,
+        *,
+        project: Project,
+        base_plan: DesignPlan,
+        revision_plan: RevisionPlan,
+        base_payload: dict[str, Any],
+        revision_plan_payload: dict[str, Any],
+    ) -> DesignPlan:
+        payload = json.loads(json.dumps(base_payload))
+        for change in revision_plan_payload.get("requested_changes", []):
+            target_id = change.get("target_id")
+            if not target_id:
+                continue
+            for parameter in payload.get("parameters", []):
+                if parameter.get("id") == target_id:
+                    parameter["value"] = change.get("requested_value")
+        payload["superseded_by_revision_plan_id"] = revision_plan.id
+        plan_dir = self._revision_plan_dir(project.id, revision_plan.id)
+        plan_dir.mkdir(parents=True, exist_ok=True)
+        plan_path = plan_dir / "revised-design-plan.json"
+        self._write_json(plan_path, payload)
+        plan = DesignPlan(
+            project_id=project.id,
+            design_specification_id=revision_plan.revised_design_specification_id
+            or base_plan.design_specification_id,
+            generation_attempt_id=revision_plan.generation_attempt_id,
+            superseded_design_plan_id=base_plan.id,
+            version_number=self._next_design_plan_version(project.id),
+            schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
+            prompt_template_version=revision_plan.prompt_template_version,
+            gemini_ruleset_version=revision_plan.gemini_ruleset_version,
+            provider=revision_plan.provider,
+            provider_model=revision_plan.provider_model,
+            raw_response_path=None,
+            plan_path=self._relative(plan_path),
+            content_hash=self._sha256(json.dumps(payload, sort_keys=True)),
+            outcome=DesignPlanOutcome.PLAN_READY.value,
+            review_state=DesignPlanReviewState.APPROVED.value,
+            clarification_required=False,
+            plan_ready=True,
+            approved_at=project_utcnow(),
+        )
+        self.db.add(plan)
+        self.db.flush()
+        return plan
+
+    def _revision_success_result_read(self, row: RevisionSuccessResult) -> RevisionSuccessResultRead:
+        return RevisionSuccessResultRead(
+            id=row.id,
+            project_id=row.project_id,
+            revision_plan_id=row.revision_plan_id,
+            generation_attempt_id=row.generation_attempt_id,
+            revision_id=row.revision_id,
+            criterion_type=row.criterion_type,
+            target_id=row.target_id,
+            verification_state=row.verification_state,
+            expected_value=json.loads(row.expected_value_json)
+            if row.expected_value_json is not None
+            else None,
+            detected_value=json.loads(row.detected_value_json)
+            if row.detected_value_json is not None
+            else None,
+            unit=row.unit,
+            tolerance=row.tolerance,
+            confidence=row.confidence,
+            is_blocking=row.is_blocking,
+            explanation=row.explanation,
+            metadata=json.loads(row.metadata_json or "{}"),
+        )
 
     def _persist_geometric_analysis(
         self,
@@ -3345,17 +4698,34 @@ class ProjectService:
         )
         return int(current or 0) + 1
 
+    def _next_revision_plan_version(self, project_id: str) -> int:
+        current = self.db.scalar(
+            select(func.max(RevisionPlan.version_number)).where(
+                RevisionPlan.project_id == project_id
+            )
+        )
+        return int(current or 0) + 1
+
     def _revision_dir(self, project_id: str, revision_id: str) -> Path:
         return self.data_dir / "projects" / project_id / "revisions" / revision_id
 
     def _generation_attempt_dir(self, project_id: str, attempt_id: str) -> Path:
         return self.data_dir / "projects" / project_id / "generation-runs" / attempt_id
 
+    def _revision_plan_dir(self, project_id: str, revision_plan_id: str) -> Path:
+        return self.data_dir / "projects" / project_id / "revision-plans" / revision_plan_id
+
     def _relative(self, path: Path) -> str:
         return str(path.relative_to(self.data_dir))
 
     def _write_json(self, path: Path, payload: dict) -> None:
         path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+    def _read_json_file(self, relative_path: str) -> dict[str, Any] | None:
+        path = self.data_dir / relative_path
+        if not path.exists():
+            return None
+        return json.loads(path.read_text(encoding="utf-8"))
 
     def _sha256(self, content: str) -> str:
         return hashlib.sha256(content.encode("utf-8")).hexdigest()

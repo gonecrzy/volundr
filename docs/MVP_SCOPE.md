@@ -24,7 +24,10 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Generate and persist an immutable Parametric Design Plan from a ready Design Specification.
 - Require explicit Design Plan approval before new initial OpenSCAD generation in the stabilized frontend flow.
 - Use the approved Design Plan as product-structure authority for OpenSCAD generation.
+- Generate and persist immutable structured Revision Plans before scoped AI revisions.
+- Require explicit Revision Plan approval before AI source revision.
 - Validate new AI OpenSCAD against the source contract before compilation, including security rules, required structure, protected Design Specification values, and advisory quality findings.
+- Validate revised AI source against the approved Revision Plan before compilation.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
 - Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
 
@@ -69,6 +72,8 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Preserve failed attempts without presenting them as accepted models.
 - Keep AI-generated candidates distinct from user-accepted active revisions when validation warnings or assumptions require review.
 - Keep requirement extraction, clarification, and unsupported-request states distinct from failed model revisions.
+- Keep revision planning, revision clarification, revision conflicts, and unsupported revision states distinct from failed model revisions.
+- Use Revision Plans to preserve protected parameters, components, features, outputs, dependencies, and unrelated modules during AI revisions.
 - Prevent blocked and rejected candidates from becoming active through restore or accept actions.
 
 ### Downloads
@@ -102,7 +107,6 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Arbitrary STL editing
 - STEP import or editing
 - CAD assemblies
-- Structured revision planning
 - Component-targeted AI revisions
 - Interactive parameter editing and preset switching
 - Organic sculpting

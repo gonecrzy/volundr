@@ -108,3 +108,22 @@ def test_parametric_product_benchmarks_cover_generic_plan_shapes() -> None:
         assert plan["features"]
         assert plan["printable_outputs"]
         assert plan["dependency_edges"]
+
+
+def test_revision_benchmarks_cover_structured_revision_plans() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    by_id = {benchmark.id: benchmark for benchmark in suite.benchmarks}
+
+    for benchmark_id in (
+        "critical_dimension_revision",
+        "new_feature_revision",
+        "parametric_electronics_enclosure",
+        "parametric_case_carrier",
+        "parametric_repeated_slot_rack",
+    ):
+        plan = by_id[benchmark_id].expected_revision_plan
+        assert plan["targeted_components"]
+        assert plan["targeted_outputs"]
+        assert plan["allowed_parameter_changes"]
+        assert plan["protected_parameters"]
+        assert plan["success_criteria"]

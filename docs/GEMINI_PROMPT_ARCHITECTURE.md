@@ -131,34 +131,65 @@ Output additions compared with `openscad-generation-v3`:
 
 Current implementation: `openscad-generation-v5` is used by the dedicated Design Plan generation endpoint after explicit plan approval. Output selection, compilation, retry, and export behavior are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
-### `revision-v1`
+### `revision-planning-v1`
 
-Responsibility: make the smallest source change that satisfies the user revision.
+Responsibility: create an immutable structured Revision Plan from a user request or selected validation finding. Do not generate OpenSCAD.
 
 Input context:
 
-- original accepted requirements
-- accepted assumptions
-- active source
-- current parameter schema
-- mesh metadata
-- latest validation warnings
+- accepted base revision id
+- base Design Specification JSON
+- approved Design Plan JSON
+- output manifest
+- source metadata from source-contract validation
+- selected validation/geometric/printability findings, when applicable
+- clarification answers and previous Revision Plan when replanning
 - user revision instruction
-- preserve list
 
-Output schema before code generation, persisted internally:
+Output: valid JSON matching `revision-plan-v1` in `docs/STRUCTURED_REVISION_PLANNING.md`.
 
-```json
-{
-  "stage": "revision-v1",
-  "affected_parameters": ["slot_width"],
-  "affected_modules": ["tray_rails"],
-  "preserved_parameters": ["wall_thickness", "tray_height"],
-  "risk_notes": ["changing slot width affects clearance"]
-}
-```
+Required content:
 
-Final output is complete revised OpenSCAD only.
+- exact requested changes
+- targeted parameters, components, features, outputs, and findings
+- allowed parameter/component/feature changes
+- required dependency changes from the Design Plan graph
+- protected parameters, components, features, and outputs
+- prohibited changes
+- success criteria
+- whether a revised Design Specification or Design Plan snapshot is required
+- outcome: `revision_ready`, `clarification_required`, `revision_conflict`, `unsupported_revision`, or `planning_failed`
+
+Current implementation: `revision-planning-v1` is implemented for accepted revisions that have an approved Design Plan. A ready plan enters review and must be explicitly approved before source revision starts. Clarification answers create a superseding plan version.
+
+### `openscad-revision-v2`
+
+Responsibility: return complete authoritative OpenSCAD revised only within an approved Revision Plan.
+
+Input context:
+
+- approved Revision Plan JSON
+- current Design Specification JSON
+- current Design Plan JSON
+- current output manifest
+- selected findings addressed by the plan
+- full base authoritative OpenSCAD source
+
+Output:
+
+- exactly one fenced `openscad` block
+- complete source for the whole product
+- no prose outside the block
+
+Rules:
+
+- the Revision Plan is the only authority for what may change
+- preserve all protected requirement, component, feature, dependency, geometry, and output markers
+- retain every planned printable output and the selected-output dispatcher
+- preserve unrelated modules and unaffected output behavior where practical
+- do not redesign unrelated components or remove difficult features
+
+Current implementation: `openscad-revision-v2` is invoked only after Revision Plan approval. Volundr then runs source-contract validation, revision compliance validation, per-output compilation, geometric/printability validation, and candidate classification.
 
 ### `compile-repair-v1`
 
@@ -247,7 +278,7 @@ Do not pass the full chat history as authoritative context. Maintain a compact p
 - latest printability report summary
 - accepted and rejected validation findings
 
-Initial generation should not receive old failed source unless it is explicitly a repair stage. Revision should receive only the active accepted source plus compact design record. Repair should receive failed source and compiler diagnostics, not broad conversation history.
+Initial generation should not receive old failed source unless it is explicitly a repair stage. Revision planning should receive compact source metadata, output manifest, Design Plan graph, and selected findings. Bounded source revision should receive the active accepted source plus the approved Revision Plan. Repair should receive failed source and compiler diagnostics, not broad conversation history.
 
 ## Token And History Management
 
@@ -302,20 +333,19 @@ user request
   -> persist immutable Design Specification
   -> if clarify/conflict/unsupported: return state, no revision
   -> user reviews ready Design Specification
-  -> explicit Continue to generation
-  -> openscad-generation-v3
+  -> design-plan-v1
+  -> user reviews and approves Design Plan
+  -> openscad-generation-v5
   -> source contract validation
   -> if hard source/spec violation: contract-repair-v2 once, then revalidate or fail attempt
-  -> compile
+  -> per-output compile
   -> mesh inspection, geometric invariant analysis, and printability validation
   -> candidate review, repair, or failed attempt
 ```
 
-Current implementation note: `design-plan-v1` remains deferred. A ready Design Specification is sent directly to `openscad-generation-v3` as the authoritative design source. Raw user text is included only as secondary intent.
+Current implementation note: `design-plan-v1` exists and feeds `openscad-generation-v5`. A compatibility path may still use `openscad-generation-v3` from a ready Design Specification, but the stabilized frontend path requires Design Plan approval.
 
-Current implementation note: `design-plan-v1` exists and feeds `openscad-generation-v5`. The remaining prompt work before component-targeted AI edits is structured revision planning over the approved Design Plan, output manifest, and validation findings.
-
-The target lifecycle for complex configurable products is:
+The lifecycle for complex configurable products is:
 
 ```text
 User requirements
@@ -328,21 +358,24 @@ User requirements
   -> candidate
 ```
 
-OpenSCAD generation should eventually use the approved Design Plan as the structural authority and the Design Specification as the requirements authority.
+OpenSCAD generation uses the approved Design Plan as the structural authority and the Design Specification as the requirements authority.
 
 ## Revision Flow
 
 ```text
-active design record + active source + user change
-  -> revision-v1 legacy path
-  -> complete revised OpenSCAD
-  -> compile and validation
+accepted design record + user change or selected finding
+  -> revision-planning-v1
+  -> clarification/conflict/unsupported or explicit plan approval
+  -> openscad-revision-v2
+  -> source-contract validation
+  -> revision compliance validation
+  -> per-output compile and validation
   -> candidate or failed revision
 ```
 
-Current implementation note: full structured revision planning is not implemented in this pass. Existing active-revision AI edits continue through the legacy revision path and attach the latest Design Specification as context when one exists.
+Current implementation note: structured revision planning is implemented for accepted revisions with approved Design Plans. Legacy active-revision AI edits remain compatibility behavior where a structured plan cannot be created.
 
-Do not implement component-targeted AI revisions before structured revision planning; targeted revisions need the product parameter graph, component graph, feature ownership, printable-output map, and failed-output context.
+Next prompt boundary: component-targeted AI revisions can now build on the approved Revision Plan, product parameter graph, component graph, feature ownership, printable-output map, and failed-output context.
 
 ## Compile-Repair Flow
 

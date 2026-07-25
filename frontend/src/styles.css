@@ -326,6 +326,7 @@ textarea {
 .revision-panel,
 .requirements-review,
 .design-plan-review,
+.revision-plan-review,
 .candidate-review,
 .printability,
 .parameters,
@@ -400,6 +401,7 @@ textarea {
 
 .requirements-review,
 .design-plan-review,
+.revision-plan-review,
 .candidate-review {
   background: #ffffff;
   border: 1px solid #d9ded7;

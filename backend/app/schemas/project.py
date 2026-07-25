@@ -42,6 +42,21 @@ class DesignPlanReviewState(StrEnum):
     REJECTED = "rejected"
 
 
+class RevisionPlanOutcome(StrEnum):
+    REVISION_READY = "revision_ready"
+    CLARIFICATION_REQUIRED = "clarification_required"
+    REVISION_CONFLICT = "revision_conflict"
+    UNSUPPORTED_REVISION = "unsupported_revision"
+    PLANNING_FAILED = "planning_failed"
+
+
+class RevisionPlanReviewState(StrEnum):
+    CLARIFICATION_REQUIRED = "clarification_required"
+    PENDING_REVIEW = "pending_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     original_intent: str = Field(min_length=1)
@@ -97,6 +112,14 @@ class ManualRevisionCreate(BaseModel):
 class GenerationCreate(BaseModel):
     user_instruction: str = Field(min_length=1)
     design_specification_id: str | None = None
+
+
+class RevisionPlanCreate(BaseModel):
+    user_instruction: str = Field(min_length=1)
+    base_revision_id: str | None = Field(default=None, min_length=1)
+    reason: str = "user_request"
+    targeted_finding_ids: list[str] = Field(default_factory=list)
+    targeted_output_ids: list[str] = Field(default_factory=list)
 
 
 class RequirementExtractionCreate(BaseModel):
@@ -348,6 +371,162 @@ class DesignPlanRead(BaseModel):
     rejected_at: datetime | None
     created_at: datetime
     plan: dict[str, Any]
+
+
+class RevisionRequestedChange(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    target_type: str = Field(min_length=1)
+    target_id: str = Field(min_length=1)
+    current_value: float | int | str | bool | None = None
+    requested_value: float | int | str | bool | None = None
+    change_type: str = Field(min_length=1)
+    source: str = Field(min_length=1)
+
+
+class RevisionDependencyChange(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    parameter_id: str = Field(min_length=1)
+    affects: list[str] = Field(default_factory=list)
+
+
+class RevisionProtectedParameter(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    parameter_id: str = Field(min_length=1)
+    expected_value: float | int | str | bool | None = None
+    unit: str | None = None
+
+
+class RevisionSuccessCriterion(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    type: str = Field(min_length=1)
+    target_id: str = Field(min_length=1)
+    expected_value: float | int | str | bool | None = None
+    unit: str | None = None
+    tolerance: float | None = None
+
+
+class RevisionPlanPayload(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    schema_version: str = "revision-plan-v1"
+    project_id: str | None = None
+    base_revision_id: str | None = None
+    base_design_specification_id: str | None = None
+    base_design_plan_id: str | None = None
+    generation_attempt_id: str | None = None
+    reason: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+    requested_changes: list[RevisionRequestedChange] = Field(default_factory=list)
+    targeted_components: list[str] = Field(default_factory=list)
+    targeted_features: list[str] = Field(default_factory=list)
+    targeted_outputs: list[str] = Field(default_factory=list)
+    targeted_findings: list[str] = Field(default_factory=list)
+    allowed_parameter_changes: list[str] = Field(default_factory=list)
+    required_dependency_changes: list[RevisionDependencyChange] = Field(default_factory=list)
+    allowed_component_changes: list[str] = Field(default_factory=list)
+    allowed_feature_changes: list[str] = Field(default_factory=list)
+    protected_parameters: list[RevisionProtectedParameter] = Field(default_factory=list)
+    protected_components: list[str] = Field(default_factory=list)
+    protected_features: list[str] = Field(default_factory=list)
+    protected_outputs: list[str] = Field(default_factory=list)
+    prohibited_changes: list[str] = Field(default_factory=list)
+    success_criteria: list[RevisionSuccessCriterion] = Field(default_factory=list)
+    requires_design_specification_version: bool = False
+    requires_design_plan_version: bool = False
+    clarification_questions: list[dict[str, Any]] = Field(default_factory=list)
+    outcome: RevisionPlanOutcome
+
+
+class RevisionPlanClarificationQuestionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    revision_plan_id: str
+    requirement_id: str | None
+    question: str
+    reason: str | None
+    display_order: int
+    created_at: datetime
+
+
+class RevisionPlanRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    base_revision_id: str
+    base_design_specification_id: str | None
+    base_design_plan_id: str | None
+    generation_attempt_id: str | None
+    superseded_revision_plan_id: str | None
+    generated_revision_id: str | None
+    revised_design_specification_id: str | None
+    revised_design_plan_id: str | None
+    version_number: int
+    schema_version: str
+    prompt_template_version: str
+    gemini_ruleset_version: str
+    provider: str
+    provider_model: str | None
+    user_instruction: str
+    reason: str
+    raw_response_path: str | None
+    plan_path: str
+    content_hash: str
+    base_source_hash: str | None
+    base_output_manifest_hash: str | None
+    base_design_specification_hash: str | None
+    base_design_plan_hash: str | None
+    outcome: RevisionPlanOutcome
+    review_state: RevisionPlanReviewState
+    clarification_required: bool
+    revision_ready: bool
+    approved_at: datetime | None
+    rejected_at: datetime | None
+    created_at: datetime
+    revision_plan: dict[str, Any]
+    clarification_questions: list[RevisionPlanClarificationQuestionRead] = Field(default_factory=list)
+
+
+class RevisionComplianceResultRead(BaseModel):
+    id: str
+    project_id: str
+    revision_plan_id: str
+    generation_attempt_id: str | None
+    revision_id: str | None
+    base_source_hash: str | None
+    revised_source_hash: str | None
+    passed: bool
+    validation_ms: float
+    created_at: datetime
+    findings: list[dict[str, Any]] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RevisionSuccessResultRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    revision_plan_id: str
+    generation_attempt_id: str | None
+    revision_id: str | None
+    criterion_type: str
+    target_id: str
+    verification_state: str
+    expected_value: Any = None
+    detected_value: Any = None
+    unit: str | None
+    tolerance: float | None
+    confidence: float
+    is_blocking: bool
+    explanation: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ClarificationAnswerCreate(BaseModel):

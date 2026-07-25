@@ -1,7 +1,12 @@
 from pathlib import Path
 
 from app.services.ai.gemini_cli import GeminiCliProvider
-from app.services.ai.provider import DesignPlanRequest, ModelGenerationRequest, RequirementExtractionRequest
+from app.services.ai.provider import (
+    DesignPlanRequest,
+    ModelGenerationRequest,
+    RequirementExtractionRequest,
+    RevisionPlanRequest,
+)
 
 
 SNAPSHOT_DIR = Path(__file__).parent / "fixtures" / "prompt_snapshots"
@@ -178,3 +183,61 @@ def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:
     assert "@volundr-requirement <id>" in prompt
     assert "@volundr-geometry markers" in prompt
     assert "Protected value changed" in prompt
+
+
+def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = RevisionPlanRequest(
+        project_name="Configurable enclosure",
+        original_intent="Create a two-part electronics enclosure.",
+        user_instruction="Make the lid 4 mm thick.",
+        reason="user_request",
+        base_revision_id="rev-1",
+        design_specification={"purpose": "Hold a PCB", "critical_dimensions": []},
+        design_plan={
+            "parameters": [{"id": "lid_thickness", "value": 3}],
+            "dependency_edges": [{"from": "lid_thickness", "to": "lid_lip_depth"}],
+            "components": [{"id": "lid"}],
+            "features": [{"id": "lid_lip", "component_id": "lid"}],
+            "printable_outputs": [{"id": "lid", "component_ids": ["lid"]}],
+        },
+        output_manifest={"outputs": [{"output_id": "lid", "filename": "lid.stl"}]},
+        source_metadata={"parameter_names": ["lid_thickness"], "module_names": ["lid"]},
+    )
+
+    prompt = provider.build_revision_plan_prompt(request)
+
+    assert provider.revision_plan_prompt_template_version() == "revision-planning-v1"
+    assert "Return JSON only. Do not generate OpenSCAD." in prompt
+    assert "Use the Design Plan dependency graph" in prompt
+    assert "allowed_parameter_changes" in prompt
+    assert "protected_outputs" in prompt
+    assert "success_criteria" in prompt
+    assert "Make the lid 4 mm thick." in prompt
+
+
+def test_structured_revision_prompt_is_bounded_by_approved_revision_plan() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Configurable enclosure",
+        original_intent="Create a two-part electronics enclosure.",
+        user_instruction="Make the lid 4 mm thick.",
+        current_source='selected_output = "lid";\nmodule lid() { cube([80, 50, 3]); }\nrender_selected_output();',
+        design_specification={"purpose": "Hold a PCB"},
+        design_plan={"printable_outputs": [{"id": "lid"}]},
+        revision_plan={
+            "summary": "Increase lid thickness only",
+            "allowed_parameter_changes": ["lid_thickness"],
+            "protected_outputs": ["body"],
+        },
+        output_manifest={"outputs": [{"output_id": "body"}, {"output_id": "lid"}]},
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "openscad-revision-v2"
+    assert "The Revision Plan is the only authority for what may change." in prompt
+    assert "Preserve all protected requirement, component, feature, dependency, geometry, and output markers." in prompt
+    assert "Retain every planned printable output" in prompt
+    assert "Do not simplify away difficult features" in prompt
+    assert "Increase lid thickness only" in prompt

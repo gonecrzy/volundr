@@ -162,13 +162,18 @@ Ask the smallest useful set of questions. Prefer one primary question when it un
 
 ## Revision Rules
 
-1. Preserve original functional intent.
-2. Preserve all unrelated parameters and modules.
-3. Preserve accepted assumptions unless the user changes them.
-4. Make the smallest source change that satisfies the revision.
-5. Do not rewrite the coordinate system, origin placement, or module architecture unless required.
-6. If the requested revision conflicts with current critical dimensions, ask for clarification.
-7. Return the complete revised source after applying the change.
+1. `revision-planning-v1` must return JSON only and must not generate OpenSCAD.
+2. A Revision Plan must identify requested changes, targets, required dependency changes, protected parameters/components/features/outputs, prohibited changes, and success criteria.
+3. Ask revision clarification when the target, value, affected component/output, dependency scope, or selected-finding correction strategy is ambiguous.
+4. `openscad-revision-v2` must use the approved Revision Plan as the only authority for what may change.
+5. Preserve original functional intent.
+6. Preserve all unrelated parameters, modules, components, features, dependency markers, geometry markers, and output markers.
+7. Preserve accepted assumptions unless the approved Revision Plan changes them.
+8. Make the smallest source change that satisfies the approved plan and its required dependencies.
+9. Do not rewrite the coordinate system, origin placement, or module architecture unless the approved plan requires it.
+10. Do not remove or rename unrelated printable outputs.
+11. If the requested revision conflicts with current critical dimensions, the planning stage must return `revision_conflict` or clarification.
+12. Return the complete revised source after applying an approved plan.
 
 ## Compile Repair Rules
 

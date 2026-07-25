@@ -177,8 +177,18 @@ Completed in this pass:
 
 Next implementation boundary:
 
-- implement structured revision planning using the approved Design Plan, output manifest, and validation findings
-- do not begin component-targeted AI revisions until structured revision plans can name affected parameters, features, components, and outputs
+Structured revision planning pass:
+
+- `revision-planning-v1` now creates immutable scoped plans from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
+- revision-plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
+- revision source generation uses `openscad-revision-v2` only after explicit plan approval
+- revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, and output changes before compile
+- success criteria are persisted as Revision Success Results after candidate generation
+
+Next implementation boundary:
+
+- implement component-targeted revisions that use the approved Revision Plan to constrain Gemini to specific components/outputs where practical
+- do not begin direct parameter editing, preset switching, or full Design Plan regeneration until component-targeted revision behavior is stable
 
 Correct trajectory from the geometric invariant checkpoint:
 
@@ -202,7 +212,7 @@ Deferred stabilization work:
 
 ## Stage 4 — Projects and Revision History
 
-Status: Complete
+Status: Complete for legacy revisions; structured revision planning implemented; component-targeted revisions pending
 
 Current status:
 
@@ -239,6 +249,8 @@ Current status:
 - follow-up AI revisions are labeled `ai_revision`
 - failed follow-up generations use the same preservation and bounded repair path as initial generations
 - selected child revisions show a unified source diff against their parent
+- new structured AI revisions require an approved Revision Plan before source generation
+- revision compliance validation rejects unauthorized protected changes before compile
 
 Goals:
 
@@ -247,6 +259,7 @@ Goals:
 - revision diff
 - compile and repair
 - restore after bad revision
+- structured plan that names targeted parameters, features, components, outputs, protected invariants, dependencies, and success checks
 
 Exit criteria:
 

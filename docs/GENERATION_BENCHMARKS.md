@@ -34,6 +34,7 @@ All generated OpenSCAD benchmarks must:
 - when an approved Design Plan is present, map its components, features, dependency edges, and printable outputs with the markers defined in `docs/MODEL_GENERATION_CONTRACT.md`
 - when an approved Design Plan is present, use the selected-output contract and artifact lifecycle in `docs/MULTI_OUTPUT_GENERATION.md`
 - compile every required printable output, persist component-scoped validation results, and produce a reproducible `output-manifest.json`
+- for revision benchmarks, produce a `revision-plan-v1` artifact before source generation that names allowed changes, required dependencies, protected parameters/components/features/outputs, targeted outputs, and success criteria
 - verify supported protected geometric invariants according to `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - avoid unrequested decorative or weight-reduction features
 - classify assumptions and warnings
@@ -68,6 +69,14 @@ Multi-output fixture expectations:
 - case/carrier: body plus handle or retention output when planned separately
 - multi-part hinged box: body, lid, and hinge pin when planned as printable
 - repeated-slot rack: one or more outputs with quantity represented on the artifact rather than duplicate rows
+
+Structured revision fixture expectations:
+
+- critical-dimension revision: target only the changed dimension and derived hole-position parameters while protecting plate bounds and hole diameter
+- new-feature revision: add only the requested feature while preserving original features and plate dimensions
+- electronics enclosure revision: propagate PCB envelope changes through shell, lid, and standoff layout while protecting fit defaults and output separation
+- case/carrier revision: propagate tray count/profile changes through guides, case height, retention, handle, and reinforcement without treating the fishing-tray case as schema-specific logic
+- repeated-slot rack revision: propagate slot count through rack length and slot positions while protecting sheet thickness, clearance, slot spacing, and output identity
 
 ## Suites
 

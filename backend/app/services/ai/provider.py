@@ -12,6 +12,10 @@ class ModelGenerationRequest:
     compiler_diagnostics: str | None = None
     design_specification: dict[str, Any] | None = None
     design_plan: dict[str, Any] | None = None
+    revision_plan: dict[str, Any] | None = None
+    output_manifest: dict[str, Any] | None = None
+    selected_findings: list[dict[str, Any]] = field(default_factory=list)
+    source_metadata: dict[str, Any] | None = None
     generation_contract_version: str = "v1"
 
 
@@ -63,6 +67,38 @@ class DesignPlanResult:
     provider_model: str | None = None
 
 
+@dataclass(frozen=True)
+class RevisionPlanRequest:
+    project_name: str
+    original_intent: str
+    user_instruction: str
+    reason: str
+    base_revision_id: str
+    design_specification: dict[str, Any] | None
+    design_plan: dict[str, Any]
+    product_parameters: list[dict[str, Any]] = field(default_factory=list)
+    dependency_edges: list[dict[str, Any]] = field(default_factory=list)
+    components: list[dict[str, Any]] = field(default_factory=list)
+    features: list[dict[str, Any]] = field(default_factory=list)
+    printable_outputs: list[dict[str, Any]] = field(default_factory=list)
+    output_manifest: dict[str, Any] | None = None
+    source_metadata: dict[str, Any] | None = None
+    selected_findings: list[dict[str, Any]] = field(default_factory=list)
+    geometric_measurements: list[dict[str, Any]] = field(default_factory=list)
+    clarification_questions: list[dict[str, Any]] = field(default_factory=list)
+    clarification_answers: list[dict[str, Any]] = field(default_factory=list)
+    previous_revision_plan: dict[str, Any] | None = None
+    schema_repair_of_raw_output: str | None = None
+    schema_validation_error: str | None = None
+
+
+@dataclass(frozen=True)
+class RevisionPlanResult:
+    raw_output: str
+    provider: str
+    provider_model: str | None = None
+
+
 class AiProvider(Protocol):
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         ...
@@ -74,4 +110,7 @@ class AiProvider(Protocol):
         ...
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
+        ...
+
+    async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
         ...

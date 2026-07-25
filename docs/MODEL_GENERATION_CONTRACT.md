@@ -172,17 +172,24 @@ Where applicable:
 
 ## Revision Prompt Rules
 
+New structured AI revisions must begin with an approved `revision-plan-v1` artifact as defined in `docs/STRUCTURED_REVISION_PLANNING.md`. The free-form user request is not enough authority to change source.
+
 When revising an existing model, the AI must:
 
 1. Read the current source before editing.
-2. Preserve the original functional intent.
-3. Identify the smallest affected parameters or modules.
+2. Treat the approved Revision Plan as the only authority for what may change.
+3. Preserve the original functional intent.
 4. Return the complete revised source.
 5. Preserve comments that remain accurate.
 6. Update comments that are no longer accurate.
 7. Avoid rewriting the entire model without necessity.
 8. Preserve the accepted design record: critical dimensions, assumptions, parameter names, module names, print orientation, and unrelated validation fixes.
-9. Add or change only the parameters/modules affected by the user's revision.
+9. Add or change only approved parameters, modules, features, outputs, and required dependency updates.
+10. Preserve protected component, feature, dependency, geometry, and output markers.
+11. Preserve all unrelated printable outputs and the `selected_output` dispatcher.
+12. Do not make a geometric or printability repair through compile-repair mode.
+
+After source extraction and source-contract validation, Volundr performs revision compliance validation before compile. Unauthorized protected-value changes, removed protected markers, removed required outputs, or missing required dependency updates reject the generation attempt before OpenSCAD compilation.
 
 ## Repair Prompt Rules
 

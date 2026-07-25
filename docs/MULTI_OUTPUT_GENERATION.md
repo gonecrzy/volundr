@@ -187,8 +187,7 @@ Assembly notes are derived from structured Design Plan fields. Volundr does not 
 
 ## Known Limitations
 
-- no structured revision planning yet
-- no component-targeted AI revisions
+- structured revision planning exists, but component-targeted AI revisions are still pending
 - no assembly collision analysis
 - no exploded assembly viewer
 - no 3MF export

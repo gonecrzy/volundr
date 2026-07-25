@@ -1,0 +1,744 @@
+import copy
+import hashlib
+import json
+from collections.abc import Generator
+from pathlib import Path
+from typing import Any
+
+import pytest
+import trimesh
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
+from app.db.base import Base
+from app.db.session import get_db
+from app.main import app
+from app.models.generation_attempt import GenerationAttempt
+from app.services.ai.provider import (
+    DesignPlanRequest,
+    DesignPlanResult,
+    ModelGenerationRequest,
+    ModelGenerationResult,
+    RequirementExtractionRequest,
+    RequirementExtractionResult,
+)
+from app.services.cad.runner import CadCompileResult
+from app.services.mesh.inspect import MeshMetadata
+
+
+READY_SPEC: dict[str, Any] = {
+    "schema_version": "1.0",
+    "object_type": "two_part_box",
+    "purpose": "Hold electronics in a body with a lid",
+    "units": "mm",
+    "supported_scope": True,
+    "critical_dimensions": [
+        {
+            "id": "body_width",
+            "label": "Body width",
+            "value": 80,
+            "unit": "mm",
+            "source": "user",
+            "importance": "critical",
+            "protected": True,
+        }
+    ],
+    "parameters": [],
+    "functional_requirements": [
+        {
+            "id": "body_and_lid",
+            "description": "A printable body and separate lid",
+            "source": "user",
+            "importance": "critical",
+            "protected": True,
+        }
+    ],
+    "print_requirements": {"printer_profile_id": "default-fdm-256"},
+    "assumptions": [],
+    "conflicts": [],
+    "missing_requirements": [],
+    "clarification_required": False,
+    "clarification_questions": [],
+    "generation_ready": True,
+    "outcome": "generation_ready",
+}
+
+
+READY_PLAN: dict[str, Any] = {
+    "schema_version": "1.0",
+    "design_level": "assembly",
+    "product_type": "electronics_enclosure",
+    "purpose": "Hold electronics in a body with a lid",
+    "units": "mm",
+    "parameters": [
+        {
+            "id": "body_width",
+            "label": "Body width",
+            "value": 80,
+            "unit": "mm",
+            "source_requirement_id": "body_width",
+            "editable": True,
+            "protected": True,
+            "component_id": "body",
+        },
+        {
+            "id": "lid_thickness",
+            "label": "Lid thickness",
+            "value": 3,
+            "unit": "mm",
+            "editable": True,
+            "protected": False,
+            "component_id": "lid",
+        },
+        {
+            "id": "wall_thickness",
+            "label": "Wall thickness",
+            "value": 3,
+            "unit": "mm",
+            "editable": True,
+            "protected": True,
+            "component_id": "body",
+        },
+    ],
+    "derived_parameters": [
+        {
+            "id": "lid_lip_depth",
+            "label": "Lid lip depth",
+            "expression": "lid_thickness + 2",
+            "unit": "mm",
+            "depends_on": ["lid_thickness"],
+        }
+    ],
+    "dependency_edges": [
+        {
+            "from": "lid_thickness",
+            "to": "lid_lip_depth",
+            "relationship": "lid thickness controls lid lip depth",
+        }
+    ],
+    "components": [
+        {
+            "id": "body",
+            "label": "Body",
+            "description": "Main enclosure body",
+            "features": ["body_shell"],
+            "parameters": ["body_width", "wall_thickness"],
+        },
+        {
+            "id": "lid",
+            "label": "Lid",
+            "description": "Removable enclosure lid",
+            "features": ["lid_panel"],
+            "parameters": ["body_width", "lid_thickness"],
+        },
+    ],
+    "features": [
+        {
+            "id": "body_shell",
+            "component_id": "body",
+            "type": "shell",
+            "description": "Open electronics body",
+            "parameters": ["body_width", "wall_thickness"],
+            "protected": True,
+        },
+        {
+            "id": "lid_panel",
+            "component_id": "lid",
+            "type": "cover",
+            "description": "Flat removable lid",
+            "parameters": ["body_width", "lid_thickness"],
+            "protected": True,
+        },
+    ],
+    "presets": [],
+    "assembly_strategy": {
+        "type": "separate_parts",
+        "relationships": [{"from_component_id": "lid", "to_component_id": "body", "relationship": "fits over"}],
+    },
+    "printable_outputs": [
+        {
+            "id": "body",
+            "label": "Body",
+            "component_id": "body",
+            "component_ids": ["body"],
+            "module_name": "body",
+            "filename": "body.stl",
+            "quantity": 1,
+            "required": True,
+            "output_type": "printable_component",
+        },
+        {
+            "id": "lid",
+            "label": "Lid",
+            "component_id": "lid",
+            "component_ids": ["lid"],
+            "module_name": "lid",
+            "filename": "lid.stl",
+            "quantity": 1,
+            "required": True,
+            "output_type": "printable_component",
+        },
+    ],
+    "risks": [],
+    "clarification_required": False,
+    "clarification_questions": [],
+    "plan_ready": True,
+    "outcome": "plan_ready",
+}
+
+
+BASE_SOURCE = """
+/*
+Project: Two part enclosure
+Units: millimeters
+Purpose: electronics enclosure
+Assumptions: none
+Print notes: print body and lid flat on Z=0
+*/
+// ===== QUALITY =====
+$fn = 48;
+selected_output = "body";
+// ===== USER PARAMETERS =====
+// @volundr-requirement body_width
+// @volundr-component body
+body_width = 80;
+body_depth = 50;
+wall_thickness = 3;
+lid_thickness = 3;
+// ===== DERIVED VALUES =====
+// @volundr-dependency lid_thickness -> lid_lip_depth
+lid_lip_depth = lid_thickness + 2;
+// ===== VALIDATION =====
+assert(body_width > 0, "body_width must be positive");
+assert(selected_output == "body" || selected_output == "lid", "Unknown selected_output");
+// ===== MODULES =====
+// @volundr-feature body_and_lid
+// @volundr-feature body_shell
+// @volundr-geometry type=bounds component=body x=body_width y=body_depth z=wall_thickness
+// @volundr-output body module=body required=true filename=body.stl components=body
+module body() {
+  cube([body_width, body_depth, wall_thickness]);
+}
+// @volundr-feature lid_panel
+// @volundr-component lid
+// @volundr-geometry type=bounds component=lid x=body_width y=body_depth z=lid_thickness
+// @volundr-output lid module=lid required=true filename=lid.stl components=lid
+module lid() {
+  cube([body_width, body_depth, lid_thickness]);
+}
+// ===== FINAL MODEL =====
+module render_selected_output() {
+  if (selected_output == "body") {
+    body();
+  } else if (selected_output == "lid") {
+    lid();
+  } else {
+    assert(false, str("Unknown selected_output: ", selected_output));
+  }
+}
+render_selected_output();
+"""
+
+
+REVISED_SOURCE = BASE_SOURCE.replace("lid_thickness = 3;", "lid_thickness = 4;").replace(
+    "lid_lip_depth = lid_thickness + 2;",
+    "lid_lip_depth = lid_thickness + 3;",
+)
+UNAUTHORIZED_SOURCE = REVISED_SOURCE.replace("wall_thickness = 3;", "wall_thickness = 5;")
+
+
+def ready_revision_plan() -> dict[str, Any]:
+    return {
+        "schema_version": "revision-plan-v1",
+        "reason": "parameter_change",
+        "summary": "Increase lid thickness from 3 mm to 4 mm",
+        "requested_changes": [
+            {
+                "target_type": "product_parameter",
+                "target_id": "lid_thickness",
+                "current_value": 3,
+                "requested_value": 4,
+                "change_type": "replace",
+                "source": "user",
+            }
+        ],
+        "targeted_components": ["lid"],
+        "targeted_features": ["lid_panel"],
+        "targeted_outputs": ["lid"],
+        "targeted_findings": [],
+        "allowed_parameter_changes": ["lid_thickness", "lid_lip_depth"],
+        "required_dependency_changes": [
+            {"parameter_id": "lid_thickness", "affects": ["lid_lip_depth"]}
+        ],
+        "allowed_component_changes": ["lid"],
+        "allowed_feature_changes": ["lid_panel"],
+        "protected_parameters": [
+            {"parameter_id": "body_width", "expected_value": 80, "unit": "mm"},
+            {"parameter_id": "wall_thickness", "expected_value": 3, "unit": "mm"},
+        ],
+        "protected_components": ["body"],
+        "protected_features": ["body_shell"],
+        "protected_outputs": ["body"],
+        "prohibited_changes": ["Do not change body width", "Do not change wall thickness"],
+        "success_criteria": [
+            {"type": "parameter_value", "target_id": "lid_thickness", "expected_value": 4, "unit": "mm"},
+            {
+                "type": "parameter_unchanged",
+                "target_id": "wall_thickness",
+                "expected_value": 3,
+                "unit": "mm",
+            },
+            {"type": "output_exists", "target_id": "lid"},
+        ],
+        "requires_design_specification_version": False,
+        "requires_design_plan_version": False,
+        "clarification_questions": [],
+        "outcome": "revision_ready",
+    }
+
+
+CLARIFICATION_PLAN = {
+    **ready_revision_plan(),
+    "summary": "Clarify lid change",
+    "requested_changes": [],
+    "clarification_questions": [
+        {
+            "id": "lid_thickness_value",
+            "question": "What lid thickness should Volundr use?",
+            "reason": "The requested value is missing.",
+            "related_requirement_id": "lid_thickness",
+        }
+    ],
+    "outcome": "clarification_required",
+}
+
+
+class RevisionPlanningProvider:
+    def __init__(self, *, plan: dict[str, Any] | None = None, revised_source: str = REVISED_SOURCE) -> None:
+        self.plan = plan or ready_revision_plan()
+        self.revised_source = revised_source
+        self.revision_plan_requests: list[Any] = []
+        self.generation_requests: list[ModelGenerationRequest] = []
+
+    @property
+    def gemini_ruleset_version(self) -> str:
+        return "gemini-ruleset-v1"
+
+    def provider_settings(self) -> dict[str, Any]:
+        return {"model": "fake-revision-model"}
+
+    def requirement_prompt_template_version(self) -> str:
+        return "requirements-v1"
+
+    def design_plan_prompt_template_version(self) -> str:
+        return "design-plan-v1"
+
+    def revision_plan_prompt_template_version(self) -> str:
+        return "revision-planning-v1"
+
+    def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if getattr(request, "revision_plan", None):
+            return "openscad-revision-v2"
+        return "openscad-generation-v5"
+
+    def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
+        return "requirements prompt"
+
+    def build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
+        return "design plan prompt"
+
+    def build_revision_plan_prompt(self, request: Any) -> str:
+        return "revision plan prompt"
+
+    def build_prompt(self, request: ModelGenerationRequest) -> str:
+        return "revision source prompt"
+
+    async def extract_requirements(
+        self,
+        request: RequirementExtractionRequest,
+    ) -> RequirementExtractionResult:
+        return RequirementExtractionResult(
+            raw_output=json.dumps(READY_SPEC),
+            provider="fake",
+            provider_model="fake-revision-model",
+        )
+
+    async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
+        return DesignPlanResult(
+            raw_output=json.dumps(READY_PLAN),
+            provider="fake",
+            provider_model="fake-revision-model",
+        )
+
+    async def create_revision_plan(self, request: Any) -> Any:
+        self.revision_plan_requests.append(request)
+        return type(
+            "RevisionPlanResult",
+            (),
+            {
+                "raw_output": json.dumps(self.plan),
+                "provider": "fake",
+                "provider_model": "fake-revision-model",
+            },
+        )()
+
+    async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        self.generation_requests.append(request)
+        return ModelGenerationResult(
+            raw_output=f"```openscad\n{self.revised_source}\n```",
+            provider="fake",
+            provider_model="fake-revision-model",
+        )
+
+
+class MultiOutputCadRunner:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        selected_output: str | None = None,
+        defines: dict[str, str | int | float | bool] | None = None,
+    ) -> CadCompileResult:
+        output_id = selected_output or str((defines or {}).get("selected_output") or "model")
+        self.calls.append(
+            {
+                "job_id": job_id,
+                "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                "selected_output": output_id,
+            }
+        )
+        job_dir = Path("/tmp") / "volundr-fake-structured-revision-jobs" / job_id
+        job_dir.mkdir(parents=True, exist_ok=True)
+        source_path = job_dir / "model.scad"
+        stl_path = job_dir / f"{output_id}.stl"
+        stdout_path = job_dir / "stdout.log"
+        stderr_path = job_dir / "stderr.log"
+        metadata_path = job_dir / "metadata.json"
+        source_path.write_text(source, encoding="utf-8")
+        stdout_path.write_text("", encoding="utf-8")
+        extents = (80.0, 50.0, 5.0 if output_id == "lid" else 3.0)
+        mesh = trimesh.creation.box(extents=extents)
+        mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
+        mesh.export(stl_path)
+        stderr_path.write_text("Compilation finished", encoding="utf-8")
+        metadata = MeshMetadata(
+            size_x_mm=extents[0],
+            size_y_mm=extents[1],
+            size_z_mm=extents[2],
+            volume_mm3=extents[0] * extents[1] * extents[2],
+            triangle_count=12,
+            connected_components=1,
+            is_watertight=True,
+            is_winding_consistent=True,
+            center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
+        )
+        metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
+        return CadCompileResult(
+            job_id=job_id,
+            success=True,
+            timed_out=False,
+            exit_code=0,
+            source_path=source_path,
+            stl_path=stl_path,
+            stdout_path=stdout_path,
+            stderr_path=stderr_path,
+            metadata_path=metadata_path,
+            source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
+            output_size_bytes=stl_path.stat().st_size,
+            metadata=metadata,
+            error_message=None,
+        )
+
+
+def build_client(
+    tmp_path: Path,
+    provider: RevisionPlanningProvider,
+    runner: MultiOutputCadRunner,
+) -> tuple[TestClient, sessionmaker[Session]]:
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    Base.metadata.create_all(engine)
+
+    def override_db() -> Generator[Session, None, None]:
+        with TestingSessionLocal() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_data_dir] = lambda: tmp_path / "data"
+    app.dependency_overrides[get_ai_provider] = lambda: provider
+    app.dependency_overrides[get_cad_runner] = lambda: runner
+    return TestClient(app), TestingSessionLocal
+
+
+def teardown_function() -> None:
+    app.dependency_overrides.clear()
+
+
+def create_accepted_multi_output_revision(client: TestClient) -> dict[str, Any]:
+    project = client.post(
+        "/api/projects",
+        json={"name": "Two part box", "original_intent": "Create a two-part box."},
+    ).json()
+    specification = client.post(
+        f"/api/projects/{project['id']}/requirements",
+        json={"user_instruction": "Create an 80 mm wide two-part electronics box."},
+    ).json()
+    plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()
+    approved_plan = client.post(f"/api/design-plans/{plan['id']}/approve").json()
+    initial_candidate = client.post(f"/api/design-plans/{approved_plan['id']}/generate").json()
+    accepted = client.post(f"/api/candidates/{initial_candidate['id']}/accept").json()
+    refreshed_project = client.get(f"/api/projects/{project['id']}").json()
+    assert refreshed_project["active_revision_id"] == accepted["id"]
+    return {
+        "project": refreshed_project,
+        "specification": specification,
+        "design_plan": approved_plan,
+        "revision": accepted,
+    }
+
+
+def test_precise_parameter_request_creates_ready_revision_plan_without_generation(
+    tmp_path: Path,
+) -> None:
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    provider.generation_requests.clear()
+
+    response = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    )
+
+    assert response.status_code == 201
+    plan = response.json()
+    assert plan["outcome"] == "revision_ready"
+    assert plan["review_state"] == "pending_review"
+    assert plan["base_revision_id"] == context["revision"]["id"]
+    assert plan["revision_plan"]["allowed_parameter_changes"] == ["lid_thickness", "lid_lip_depth"]
+    assert plan["revision_plan"]["protected_outputs"] == ["body"]
+    assert provider.revision_plan_requests[0].output_manifest["outputs"][0]["output_id"] == "body"
+    assert provider.generation_requests == []
+
+
+def test_ambiguous_revision_request_creates_clarification_state(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider(plan=CLARIFICATION_PLAN)
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+
+    response = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Make the lid thicker.",
+            "reason": "parameter_change",
+        },
+    )
+
+    assert response.status_code == 201
+    plan = response.json()
+    assert plan["outcome"] == "clarification_required"
+    assert plan["review_state"] == "clarification_required"
+    assert plan["clarification_required"] is True
+    questions = client.get(f"/api/revision-plans/{plan['id']}/clarification-questions").json()
+    assert questions[0]["question"] == "What lid thickness should Volundr use?"
+
+
+def test_revision_plan_must_be_approved_before_generation(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    provider.generation_requests.clear()
+
+    blocked = client.post(f"/api/revision-plans/{plan['id']}/generate")
+
+    assert blocked.status_code == 409
+    assert provider.generation_requests == []
+
+
+def test_approved_revision_plan_generates_candidate_from_revised_source(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    provider.generation_requests.clear()
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 201
+    candidate = response.json()
+    assert candidate["source_type"] == "ai_revision"
+    assert candidate["parent_revision_id"] == context["revision"]["id"]
+    assert candidate["review_state"] in {"ready", "ready_with_warnings"}
+    assert set(call["selected_output"] for call in runner.calls) == {"body", "lid"}
+    assert provider.generation_requests[0].revision_plan["summary"] == "Increase lid thickness from 3 mm to 4 mm"
+    assert client.get(f"/api/projects/{context['project']['id']}").json()["active_revision_id"] == context["revision"]["id"]
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert compliance["passed"] is True
+    success = client.get(f"/api/revision-plans/{approved['id']}/success-results").json()
+    assert {result["criterion_type"]: result["verification_state"] for result in success}["parameter_value"] == "success_verified"
+
+
+def test_unauthorized_parameter_change_blocks_before_compile(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider(revised_source=UNAUTHORIZED_SOURCE)
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 409
+    assert runner.calls == []
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert compliance["passed"] is False
+    assert any(finding["rule_id"] == "revision.unauthorized_parameter_change" for finding in compliance["findings"])
+    assert client.get(f"/api/projects/{context['project']['id']}").json()["active_revision_id"] == context["revision"]["id"]
+
+
+def test_finding_driven_revision_links_targeted_finding(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    with SessionLocal() as session:
+        from app.models.validation_finding import ValidationFinding
+
+        finding = ValidationFinding(
+            revision_id=context["revision"]["id"],
+            rule_id="geometry.protected_hole_spacing",
+            category="geometry",
+            severity="critical",
+            is_blocking=True,
+            title="Hole spacing mismatch",
+            explanation="Detected 60 mm, expected 50 mm.",
+            suggested_correction="Move the mounting holes to 50 mm spacing.",
+            detected_value="60",
+            unit="mm",
+            threshold_value="50",
+            orientation_dependent=False,
+            metadata_json=json.dumps({"confidence": 0.95}),
+        )
+        session.add(finding)
+        session.commit()
+        finding_id = finding.id
+    planned = ready_revision_plan()
+    planned["reason"] = "geometric_finding"
+    planned["targeted_findings"] = [finding_id]
+    provider.plan = planned
+
+    response = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Fix this spacing issue.",
+            "reason": "geometric_finding",
+            "targeted_finding_ids": [finding_id],
+        },
+    )
+
+    assert response.status_code == 201
+    plan = response.json()
+    assert plan["revision_plan"]["targeted_findings"] == [finding_id]
+    assert provider.revision_plan_requests[-1].selected_findings[0]["rule_id"] == "geometry.protected_hole_spacing"
+
+
+def test_clarification_answer_creates_new_revision_plan_version(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider(plan=CLARIFICATION_PLAN)
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    first = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Make the lid thicker.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    question = client.get(f"/api/revision-plans/{first['id']}/clarification-questions").json()[0]
+    provider.plan = ready_revision_plan()
+
+    response = client.post(
+        f"/api/revision-plans/{first['id']}/clarification-answers",
+        json={"answers": [{"question_id": question["id"], "answer": "Use 4 mm."}]},
+    )
+
+    assert response.status_code == 201
+    second = response.json()
+    assert second["id"] != first["id"]
+    assert second["superseded_revision_plan_id"] == first["id"]
+    assert second["version_number"] == first["version_number"] + 1
+    assert second["outcome"] == "revision_ready"
+
+
+def test_revision_plan_attempts_are_persisted_with_prompt_versions(tmp_path: Path) -> None:
+    provider = RevisionPlanningProvider()
+    runner = MultiOutputCadRunner()
+    client, SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+
+    client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    )
+
+    with SessionLocal() as session:
+        attempt = session.scalar(
+            select(GenerationAttempt)
+            .where(GenerationAttempt.prompt_template_version == "revision-planning-v1")
+            .order_by(GenerationAttempt.attempt_number.desc())
+        )
+        assert attempt is not None
+        assert attempt.raw_output_path is not None
+        assert attempt.request_payload_path
+        assert attempt.prompt_path

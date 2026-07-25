@@ -27,6 +27,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - revision API                                │
 │ - requirement extraction and clarification    │
 │ - parametric Design Plan generation/review    │
+│ - structured revision planning/review         │
 │ - generation orchestration                    │
 │ - multi-output artifact orchestration         │
 │ - candidate revision review and acceptance    │
@@ -88,6 +89,7 @@ Responsibilities:
 - project and revision orchestration
 - candidate state transitions
 - Design Plan output manifest resolution
+- structured revision-plan persistence and compliance validation
 - per-output compile/retry orchestration
 - project export packaging
 - validation finding persistence and blocking/advisory enforcement
@@ -203,6 +205,8 @@ The request should include:
 - source-contract diagnostics, when contract-repairing
 - Design Specification, when available
 - approved Design Plan, when available
+- approved Revision Plan, when making a scoped AI revision
+- output manifest, source metadata, and selected findings, when revision-planning
 - mesh metadata, when available
 - generation contract version
 
@@ -310,7 +314,20 @@ request
   -> repair, candidate review, or acceptance
 ```
 
-The legacy endpoint may still generate from a ready Design Specification for compatibility. The new initial frontend flow uses an approved Design Plan. Initial generation, Design Plan creation, design revision, source-contract repair, and compiler repair use separate prompt stages and persisted prompt versions.
+Structured AI revision flow:
+
+```text
+accepted revision
+  -> revision-planning-v1 from Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
+  -> clarification/conflict/unsupported or explicit revision-plan approval
+  -> openscad-revision-v2
+  -> source-contract validation
+  -> revision compliance validation against approved plan
+  -> multi-output compile and validation
+  -> candidate review
+```
+
+The legacy endpoint may still generate from a ready Design Specification for compatibility. The new initial frontend flow uses an approved Design Plan. Initial generation, Design Plan creation, structured revision planning, bounded revision generation, source-contract repair, and compiler repair use separate prompt stages and persisted prompt versions.
 
 ## File Layout
 
@@ -334,6 +351,7 @@ data/
 │       │       ├── raw-output.txt
 │       │       ├── parsed-design-spec.json
 │       │       ├── parsed-design-plan.json
+│       │       ├── parsed-revision-plan.json
 │       │       ├── design-spec.json
 │       │       ├── design-plan.json
 │       │       ├── extracted-source.scad

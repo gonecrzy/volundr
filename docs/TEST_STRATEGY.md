@@ -102,6 +102,12 @@ Test:
 - failed optional outputs create advisory assembly findings when required outputs remain usable
 - output retry recompiles the same source hash and does not call the provider
 - output manifests match persisted artifacts and exports include only the selected revision's files
+- structured revision planning creates immutable `revision-plan-v1` records from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
+- ambiguous revision requests create revision-plan clarification questions and no source generation
+- OpenSCAD revision generation cannot begin before Revision Plan approval
+- `openscad-revision-v2` receives the approved Revision Plan as its change authority
+- revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, and output changes before compile
+- Revision Success Results persist planned success checks after candidate generation
 - generated initial candidates link back to the Design Specification that produced them
 - create initial revision
 - create child revision
@@ -127,6 +133,7 @@ Use Vitest for:
 - geometric check grouping for verified, violated, and unverifiable invariants
 - blocked Accept reason when a geometric invariant blocks acceptance
 - Design Plan stage labels, approval gating, and generic product-model summary counts
+- Revision Plan stage labels, approval gating, scoped-change summary counts, compliance buckets, and success-result buckets
 
 Use Playwright for critical workflows:
 
@@ -169,6 +176,18 @@ Design Plan workflow coverage:
 5. Approve the Design Plan.
 6. Continue to OpenSCAD generation from the approved plan.
 7. Confirm the resulting candidate does not replace the active accepted revision until accepted.
+
+Structured revision workflow coverage:
+
+1. Open a project with an accepted multi-output revision.
+2. Submit a revision request and receive a Revision Plan.
+3. Confirm source generation is disabled before approval.
+4. Approve the Revision Plan.
+5. Generate a scoped candidate.
+6. Confirm active accepted revision remains unchanged until candidate acceptance.
+7. Confirm revision compliance and success checks render.
+8. Trigger a protected-scope compliance rejection before compile.
+9. Confirm no new candidate is created and the active revision remains unchanged.
 
 ## Fixture Models
 
@@ -234,3 +253,5 @@ Requirement-extraction tests must use fake providers and deterministic JSON fixt
 Design Plan tests must use fake providers and deterministic JSON fixtures. They must assert immutable persistence, supersession, approval/rejection, prompt/model/ruleset metadata, plan artifact hashes, and `openscad-generation-v5` prompt context.
 
 Multi-output tests must use fake providers and deterministic STL fixtures. They must cover required and optional outputs, selected-output compiler invocation, component-scoped findings, assembly candidate classification, output manifest reproducibility, retry without provider calls, and ZIP export contents.
+
+Structured revision tests must use fake providers and deterministic source/output fixtures. They must cover plan readiness, clarification, approval gating, finding-driven planning, superseding plans from clarification answers, prompt/model/ruleset persistence, revision compliance rejection before compile, success criteria, and active-revision preservation.
