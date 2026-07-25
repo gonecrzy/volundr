@@ -1,0 +1,107 @@
+# Volundr Test Strategy
+
+This document defines the required automated coverage for CAD execution, AI-source extraction, mesh inspection, revision safety, frontend behavior, and regression fixtures.
+
+## Testing Priorities
+
+The highest-risk areas are:
+
+1. untrusted CAD execution
+2. revision preservation
+3. source extraction from AI output
+4. failed-generation recovery
+5. filesystem isolation
+6. viewer compatibility with generated STL files
+
+## Backend Unit Tests
+
+### CAD runner
+
+Test:
+
+- simple cube compiles
+- difference operation compiles
+- invalid syntax returns failure
+- missing output returns failure
+- timeout terminates process
+- oversized source is rejected
+- forbidden import is rejected
+- output metadata is populated
+- temporary files are cleaned safely
+
+### Source extraction
+
+Test AI responses containing:
+
+- plain SCAD
+- fenced `scad`
+- fenced `openscad`
+- surrounding explanation
+- multiple code blocks
+- no valid source
+- truncated source
+
+### Mesh inspection
+
+Test:
+
+- watertight cube
+- disconnected components
+- zero-volume or invalid mesh
+- extreme dimensions
+- excessive triangle count warning
+
+### Revisions
+
+Test:
+
+- create initial revision
+- create child revision
+- failed attempt does not replace active revision
+- restore old revision
+- manual edit creates a new revision
+
+## Frontend Tests
+
+Use Vitest for:
+
+- project state
+- revision selection
+- generation status rendering
+- error presentation
+- parameter parsing
+
+Use Playwright for critical workflows:
+
+1. Create project.
+2. Enter or paste SCAD.
+3. Compile successfully.
+4. View model.
+5. Download source.
+6. Make manual edit.
+7. Compile as new revision.
+8. Restore previous revision.
+
+After Gemini integration:
+
+1. Create project from prompt.
+2. Observe generation progress.
+3. Receive model.
+4. Request a revision.
+5. Restore earlier revision after a failed change.
+
+## Fixture Models
+
+Maintain a small set of SCAD fixtures:
+
+- cube
+- mounting plate
+- cylindrical holder
+- box with lid
+- invalid syntax
+- runaway/high-complexity pattern
+- disconnected components
+
+## Regression Policy
+
+Every AI-generated model that exposes a new compiler or extraction bug should be sanitized and added as a regression fixture when practical.

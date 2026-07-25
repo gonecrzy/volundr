@@ -1,0 +1,44 @@
+services:
+  volundr-web:
+    container_name: volundr-web
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - volundr-api
+    ports:
+      - "${VOLUNDR_WEB_PORT:-8080}:80"
+    networks:
+      - volundr-internal
+
+  volundr-api:
+    container_name: volundr-api
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      VOLUNDR_DATA_DIR: /app/data
+      VOLUNDR_CAD_WORKSPACE_DIR: /app/data/jobs
+    volumes:
+      - ${VOLUNDR_DATA_DIR:-./data}:/app/data
+      - ${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
+    networks:
+      - volundr-internal
+
+  volundr-cad-worker:
+    container_name: volundr-cad-worker
+    build:
+      context: .
+      dockerfile: cad-worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      VOLUNDR_CAD_WORKSPACE_DIR: /work/jobs
+      VOLUNDR_OPENSCAD_BINARY: /usr/bin/openscad
+    volumes:
+      - ${VOLUNDR_DATA_DIR:-./data}/jobs:/work/jobs
+    networks:
+      - volundr-internal
+
+networks:
+  volundr-internal:
+    name: volundr-internal

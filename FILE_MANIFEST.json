@@ -1,0 +1,62 @@
+[
+  {
+    "path": "CODEX_KICKOFF_PROMPT.md",
+    "heading": "# Codex Kickoff Prompt \u2014 Volundr",
+    "bytes": 6186
+  },
+  {
+    "path": "README.md",
+    "heading": "# Volundr",
+    "bytes": 1352
+  },
+  {
+    "path": "docs/ARCHITECTURE.md",
+    "heading": "# Volundr Architecture",
+    "bytes": 8379
+  },
+  {
+    "path": "docs/CAD_EXECUTION_SECURITY.md",
+    "heading": "# Volundr CAD Execution Security",
+    "bytes": 3371
+  },
+  {
+    "path": "docs/CURRENT_STAGE_ROADMAP.md",
+    "heading": "# Volundr Current Stage Roadmap",
+    "bytes": 3013
+  },
+  {
+    "path": "docs/DATA_MODEL.md",
+    "heading": "# Volundr Data Model",
+    "bytes": 2102
+  },
+  {
+    "path": "docs/DOCKER_BASELINE.md",
+    "heading": "# Volundr Docker Baseline",
+    "bytes": 1971
+  },
+  {
+    "path": "docs/DOCUMENTATION_MAP.md",
+    "heading": "# Volundr Documentation Map",
+    "bytes": 1623
+  },
+  {
+    "path": "docs/MODEL_GENERATION_CONTRACT.md",
+    "heading": "# Volundr Model Generation Contract",
+    "bytes": 4155
+  },
+  {
+    "path": "docs/MVP_SCOPE.md",
+    "heading": "# Volundr V1 Scope",
+    "bytes": 3013
+  },
+  {
+    "path": "docs/PRODUCT_DIRECTION.md",
+    "heading": "# Volundr Product Direction",
+    "bytes": 4200
+  },
+  {
+    "path": "docs/TEST_STRATEGY.md",
+    "heading": "# Volundr Test Strategy",
+    "bytes": 2213
+  }
+]
