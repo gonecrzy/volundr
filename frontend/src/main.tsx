@@ -81,6 +81,70 @@ type Revision = {
   error_message: string | null;
 };
 
+type BuildVolumeProfile = {
+  x_mm: number;
+  y_mm: number;
+  z_mm: number;
+};
+
+type PrintabilityProfile = {
+  profile_version: string;
+  printer_name: string;
+  process: string;
+  material_behavior: string;
+  build_volume: BuildVolumeProfile;
+  nozzle_diameter_mm: number;
+  default_layer_height_mm: number;
+};
+
+type PrintabilitySeverity = "Pass" | "Notice" | "Warning" | "Critical";
+
+type PrintabilityHighlight = {
+  rule_id: string;
+  severity: PrintabilitySeverity;
+  type: string;
+  bounds_min_mm: [number, number, number] | null;
+  bounds_max_mm: [number, number, number] | null;
+  face_indices: number[] | null;
+};
+
+type PrintabilityResult = {
+  severity: PrintabilitySeverity;
+  rule_id: string;
+  detected_value: {
+    value: number | string;
+    units: string;
+  };
+  affected_count: number | null;
+  affected_area_mm2: number | null;
+  explanation: string;
+  suggested_correction: string;
+  orientation_dependent: boolean;
+  dismissed: boolean;
+  highlight: PrintabilityHighlight | null;
+};
+
+type PrintabilityReport = {
+  profile_version: string;
+  profile: PrintabilityProfile;
+  results: PrintabilityResult[];
+  highlights: PrintabilityHighlight[];
+};
+
+const DEFAULT_PRINTABILITY_PROFILE: PrintabilityProfile = {
+  profile_version: "printability-fdm-v1",
+  printer_name: "Generic FDM 256",
+  process: "FDM",
+  material_behavior: "general PLA/PETG",
+  build_volume: {
+    x_mm: 256,
+    y_mm: 256,
+    z_mm: 256,
+  },
+  nozzle_diameter_mm: 0.4,
+  default_layer_height_mm: 0.2,
+};
+
 function App() {
   const [projectName, setProjectName] = useState("Mounting bracket");
   const [intent, setIntent] = useState("A flat mounting bracket with two bolt holes.");
@@ -101,6 +165,14 @@ function App() {
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState<string | null>(null);
   const [revisionDiff, setRevisionDiff] = useState<string | null>(null);
+  const [printabilityProfile, setPrintabilityProfile] = useState<PrintabilityProfile>(
+    DEFAULT_PRINTABILITY_PROFILE,
+  );
+  const [printabilityReport, setPrintabilityReport] = useState<PrintabilityReport | null>(null);
+  const [isInspectingPrintability, setIsInspectingPrintability] = useState(false);
+  const [dismissedPrintabilityResults, setDismissedPrintabilityResults] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const activeMetadata = selectedRevision?.metadata ?? null;
   const stlUrl = selectedRevision?.is_accepted
@@ -108,6 +180,10 @@ function App() {
     : null;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const sourceParameters = useMemo(() => parseSourceParameters(source), [source]);
+  const printabilityHighlights = useMemo(
+    () => printabilityReport?.highlights ?? [],
+    [printabilityReport],
+  );
 
   useEffect(() => {
     void refreshProjects();
@@ -162,6 +238,8 @@ function App() {
       setRevisions([]);
       setProjectMessages([]);
       setSelectedRevision(null);
+      setPrintabilityReport(null);
+      setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
       setAiOutput(null);
       setRevisionDiff(null);
@@ -202,6 +280,8 @@ function App() {
       const nextRevisions = [...revisions, revision];
       setRevisions(nextRevisions);
       setSelectedRevision(revision);
+      setPrintabilityReport(null);
+      setDismissedPrintabilityResults(new Set());
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Compiled" : revision.error_message ?? "Compile failed");
       await loadCompileLog(revision);
@@ -243,6 +323,8 @@ function App() {
       });
       setRevisions(nextRevisions);
       setSelectedRevision(revision);
+      setPrintabilityReport(null);
+      setDismissedPrintabilityResults(new Set());
       setProject({ ...currentProject, active_revision_id: revision.is_accepted ? revision.id : currentProject.active_revision_id });
       setMessage(revision.status === "succeeded" ? "Generated" : revision.error_message ?? "Generation failed");
       await selectRevision(revision);
@@ -256,6 +338,8 @@ function App() {
 
   async function selectRevision(revision: Revision) {
     setSelectedRevision(revision);
+    setPrintabilityReport(null);
+    setDismissedPrintabilityResults(new Set());
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/source`);
     if (response.ok) {
       setSource(await response.text());
@@ -282,6 +366,8 @@ function App() {
     if (activeRevision) {
       await selectRevision(activeRevision);
     } else {
+      setPrintabilityReport(null);
+      setDismissedPrintabilityResults(new Set());
       setCompileLog(null);
       setAiOutput(null);
       setRevisionDiff(null);
@@ -333,6 +419,43 @@ function App() {
       current.map((entry) => (entry.id === restoredProject.id ? restoredProject : entry)),
     );
     setMessage(`Restored R${selectedRevision.revision_number}`);
+  }
+
+  async function inspectSelectedRevisionPrintability() {
+    if (!selectedRevision?.is_accepted) {
+      return;
+    }
+    setIsInspectingPrintability(true);
+    setMessage(null);
+    try {
+      const report = await request<PrintabilityReport>(
+        `/revisions/${selectedRevision.id}/printability`,
+        {
+          method: "POST",
+          body: JSON.stringify(printabilityProfile),
+        },
+      );
+      setPrintabilityReport(report);
+      setDismissedPrintabilityResults(new Set());
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Printability inspection failed");
+    } finally {
+      setIsInspectingPrintability(false);
+    }
+  }
+
+  function updatePrintabilityProfile(profile: PrintabilityProfile) {
+    setPrintabilityProfile(profile);
+    setPrintabilityReport(null);
+    setDismissedPrintabilityResults(new Set());
+  }
+
+  function dismissPrintabilityResult(ruleId: string) {
+    setDismissedPrintabilityResults((current) => {
+      const next = new Set(current);
+      next.add(ruleId);
+      return next;
+    });
   }
 
   return (
@@ -418,12 +541,22 @@ function App() {
         </aside>
 
         <section className="viewer-panel" aria-label="STL preview">
-          <StlViewer stlUrl={stlUrl} />
+          <StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />
         </section>
 
         <section className="metadata-panel" aria-label="Metadata">
           <h2>Metadata</h2>
           <Metadata metadata={activeMetadata} />
+          <PrintabilityInspector
+            canInspect={Boolean(selectedRevision?.is_accepted)}
+            dismissedRuleIds={dismissedPrintabilityResults}
+            isInspecting={isInspectingPrintability}
+            profile={printabilityProfile}
+            report={printabilityReport}
+            onDismiss={dismissPrintabilityResult}
+            onInspect={() => void inspectSelectedRevisionPrintability()}
+            onProfileChange={updatePrintabilityProfile}
+          />
           <ParameterControls
             parameters={sourceParameters}
             onChange={(parameter, value) => setSource(updateSourceParameter(source, parameter, value))}
@@ -465,6 +598,172 @@ function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function PrintabilityInspector({
+  canInspect,
+  dismissedRuleIds,
+  isInspecting,
+  profile,
+  report,
+  onDismiss,
+  onInspect,
+  onProfileChange,
+}: {
+  canInspect: boolean;
+  dismissedRuleIds: Set<string>;
+  isInspecting: boolean;
+  profile: PrintabilityProfile;
+  report: PrintabilityReport | null;
+  onDismiss: (ruleId: string) => void;
+  onInspect: () => void;
+  onProfileChange: (profile: PrintabilityProfile) => void;
+}) {
+  function setNumber(path: keyof PrintabilityProfile, value: string) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return;
+    }
+    onProfileChange({ ...profile, [path]: parsed });
+  }
+
+  function setBuildVolume(axis: keyof BuildVolumeProfile, value: string) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return;
+    }
+    onProfileChange({
+      ...profile,
+      build_volume: {
+        ...profile.build_volume,
+        [axis]: parsed,
+      },
+    });
+  }
+
+  const sortedResults = useMemo(
+    () =>
+      report
+        ? [...report.results].sort(
+            (left, right) => severityRank(right.severity) - severityRank(left.severity),
+          )
+        : [],
+    [report],
+  );
+
+  return (
+    <section className="printability" aria-label="Printability inspector">
+      <div className="section-heading">
+        <h2>Printability</h2>
+        <button className="secondary compact" disabled={!canInspect || isInspecting} onClick={onInspect}>
+          {isInspecting ? "Inspecting" : "Inspect"}
+        </button>
+      </div>
+      <div className="printer-profile">
+        <label>
+          Printer
+          <input
+            value={profile.printer_name}
+            onChange={(event) => onProfileChange({ ...profile, printer_name: event.target.value })}
+          />
+        </label>
+        <div className="profile-grid">
+          <label>
+            X mm
+            <input
+              min="1"
+              step="1"
+              type="number"
+              value={profile.build_volume.x_mm}
+              onChange={(event) => setBuildVolume("x_mm", event.target.value)}
+            />
+          </label>
+          <label>
+            Y mm
+            <input
+              min="1"
+              step="1"
+              type="number"
+              value={profile.build_volume.y_mm}
+              onChange={(event) => setBuildVolume("y_mm", event.target.value)}
+            />
+          </label>
+          <label>
+            Z mm
+            <input
+              min="1"
+              step="1"
+              type="number"
+              value={profile.build_volume.z_mm}
+              onChange={(event) => setBuildVolume("z_mm", event.target.value)}
+            />
+          </label>
+          <label>
+            Nozzle
+            <input
+              min="0.1"
+              step="0.05"
+              type="number"
+              value={profile.nozzle_diameter_mm}
+              onChange={(event) => setNumber("nozzle_diameter_mm", event.target.value)}
+            />
+          </label>
+          <label>
+            Layer
+            <input
+              min="0.05"
+              step="0.05"
+              type="number"
+              value={profile.default_layer_height_mm}
+              onChange={(event) => setNumber("default_layer_height_mm", event.target.value)}
+            />
+          </label>
+        </div>
+      </div>
+      {!canInspect ? <p className="empty">Compile a successful revision to inspect printability.</p> : null}
+      {report ? (
+        <div className="printability-results">
+          {sortedResults.map((result) => {
+            const dismissed = result.dismissed || dismissedRuleIds.has(result.rule_id);
+            return (
+              <article
+                className={`printability-result ${result.severity.toLowerCase()}${dismissed ? " dismissed" : ""}`}
+                key={result.rule_id}
+              >
+                <div className="result-row">
+                  <span className={`severity ${result.severity.toLowerCase()}`}>{result.severity}</span>
+                  <span className="rule-id">{result.rule_id}</span>
+                </div>
+                <p>{result.explanation}</p>
+                <p className="correction">{result.suggested_correction}</p>
+                <dl className="result-facts">
+                  <dt>Detected</dt>
+                  <dd>{formatDetectedValue(result.detected_value.value, result.detected_value.units)}</dd>
+                  <dt>Count</dt>
+                  <dd>{result.affected_count ?? "n/a"}</dd>
+                  <dt>Area</dt>
+                  <dd>
+                    {result.affected_area_mm2 === null
+                      ? "n/a"
+                      : `${result.affected_area_mm2.toFixed(2)} mm2`}
+                  </dd>
+                  <dt>Orientation</dt>
+                  <dd>{result.orientation_dependent ? "Depends on orientation" : "Independent"}</dd>
+                  <dt>Dismissed</dt>
+                  <dd>{dismissed ? "Intentional" : "No"}</dd>
+                </dl>
+                {!dismissed ? (
+                  <button className="text-action" onClick={() => onDismiss(result.rule_id)}>
+                    Dismiss
+                  </button>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -577,6 +876,20 @@ function isValidParameterValue(parameter: SourceParameter, value: string): boole
   return /^-?\d+(?:\.\d*)?$/.test(value);
 }
 
+function severityRank(severity: PrintabilitySeverity): number {
+  return {
+    Pass: 0,
+    Notice: 1,
+    Warning: 2,
+    Critical: 3,
+  }[severity];
+}
+
+function formatDetectedValue(value: number | string, units: string): string {
+  const formattedValue = typeof value === "number" ? value.toFixed(3).replace(/\.?0+$/, "") : value;
+  return `${formattedValue} ${units}`;
+}
+
 function Diagnostics({
   compileLog,
   aiOutput,
@@ -647,7 +960,13 @@ function Metadata({ metadata }: { metadata: MeshMetadata | null }) {
   );
 }
 
-function StlViewer({ stlUrl }: { stlUrl: string | null }) {
+function StlViewer({
+  highlights,
+  stlUrl,
+}: {
+  highlights: PrintabilityHighlight[];
+  stlUrl: string | null;
+}) {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -673,7 +992,7 @@ function StlViewer({ stlUrl }: { stlUrl: string | null }) {
     scene.add(grid);
 
     let frame = 0;
-    let mesh: THREE.Mesh | null = null;
+    let modelGroup: THREE.Group | null = null;
     let disposed = false;
 
     if (stlUrl) {
@@ -689,8 +1008,18 @@ function StlViewer({ stlUrl }: { stlUrl: string | null }) {
           roughness: 0.55,
           metalness: 0.08,
         });
-        mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+        const mesh = new THREE.Mesh(geometry, material);
+        modelGroup = new THREE.Group();
+        modelGroup.add(mesh);
+        geometry.computeBoundingBox();
+        const highlightSeverity = highestHighlightSeverity(highlights);
+        const highlightBox = geometry.boundingBox?.clone();
+        if (highlightSeverity && highlightBox) {
+          highlightBox.expandByScalar(Math.max(1, (geometry.boundingSphere?.radius ?? 40) * 0.02));
+          const helper = new THREE.Box3Helper(highlightBox, highlightColor(highlightSeverity));
+          modelGroup.add(helper);
+        }
+        scene.add(modelGroup);
         const radius = geometry.boundingSphere?.radius ?? 80;
         camera.position.set(radius * 1.8, -radius * 2.0, radius * 1.25);
         camera.lookAt(0, 0, 0);
@@ -699,8 +1028,8 @@ function StlViewer({ stlUrl }: { stlUrl: string | null }) {
 
     const animate = () => {
       frame = requestAnimationFrame(animate);
-      if (mesh) {
-        mesh.rotation.z += 0.004;
+      if (modelGroup) {
+        modelGroup.rotation.z += 0.004;
       }
       renderer.render(scene, camera);
     };
@@ -710,7 +1039,7 @@ function StlViewer({ stlUrl }: { stlUrl: string | null }) {
       disposed = true;
       cancelAnimationFrame(frame);
       scene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
+        if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
           object.geometry.dispose();
           const material = object.material;
           if (Array.isArray(material)) {
@@ -723,9 +1052,29 @@ function StlViewer({ stlUrl }: { stlUrl: string | null }) {
       renderer.dispose();
       mount.replaceChildren();
     };
-  }, [stlUrl]);
+  }, [highlights, stlUrl]);
 
   return <div className="viewer" ref={mountRef} />;
+}
+
+function highestHighlightSeverity(highlights: PrintabilityHighlight[]): PrintabilitySeverity | null {
+  if (highlights.length === 0) {
+    return null;
+  }
+  return highlights.reduce<PrintabilitySeverity>(
+    (highest, highlight) =>
+      severityRank(highlight.severity) > severityRank(highest) ? highlight.severity : highest,
+    highlights[0].severity,
+  );
+}
+
+function highlightColor(severity: PrintabilitySeverity): number {
+  return {
+    Pass: 0x6f7a73,
+    Notice: 0x7b6f2a,
+    Warning: 0xb45d27,
+    Critical: 0xb93232,
+  }[severity];
 }
 
 async function request<T>(path: string, init: RequestInit): Promise<T> {

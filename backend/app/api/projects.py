@@ -15,8 +15,10 @@ from app.schemas.project import (
     ProjectUpdate,
     RevisionRead,
 )
+from app.schemas.printability import PrintabilityProfile, PrintabilityReport
 from app.services.ai.provider import AiProvider
 from app.services.cad.runner import OpenScadCliRunner
+from app.services.printability.inspector import inspect_printability
 from app.services.projects.service import ProjectService
 
 router = APIRouter(prefix="/api", tags=["projects"])
@@ -191,6 +193,23 @@ def get_revision_stl(
     if stl_path is None:
         raise HTTPException(status_code=404, detail="revision STL not found")
     return FileResponse(stl_path, media_type="model/stl", filename="model.stl")
+
+
+@router.post("/revisions/{revision_id}/printability", response_model=PrintabilityReport)
+def inspect_revision_printability(
+    revision_id: str,
+    payload: PrintabilityProfile,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> PrintabilityReport:
+    service = ProjectService(db=db, data_dir=data_dir)
+    stl_path = service.resolve_revision_stl(revision_id)
+    if stl_path is None:
+        raise HTTPException(status_code=404, detail="revision STL not found")
+    try:
+        return inspect_printability(stl_path, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/revisions/{revision_id}/restore", response_model=ProjectRead)

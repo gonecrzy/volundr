@@ -223,6 +223,7 @@ input {
   background: #fbfcf9;
   border-bottom: 1px solid #d9ded7;
   border-left: 1px solid #d9ded7;
+  overflow: auto;
   padding: 16px;
 }
 
@@ -246,6 +247,158 @@ input {
   border-top: 1px solid #d9ded7;
   margin-top: 18px;
   padding-top: 14px;
+}
+
+.printability {
+  border-top: 1px solid #d9ded7;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.section-heading {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+.compact {
+  min-width: 92px;
+  padding: 7px 10px;
+}
+
+.printer-profile {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.profile-grid label:nth-last-child(-n + 2) {
+  grid-column: span 1;
+}
+
+.printability-results {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.printability-result {
+  background: #ffffff;
+  border: 1px solid #d9ded7;
+  border-left-width: 4px;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.printability-result.pass {
+  border-left-color: #6f7a73;
+}
+
+.printability-result.notice {
+  border-left-color: #b29b2f;
+}
+
+.printability-result.warning {
+  border-left-color: #c2642e;
+}
+
+.printability-result.critical {
+  border-left-color: #bc3838;
+}
+
+.printability-result.dismissed {
+  opacity: 0.62;
+}
+
+.result-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.severity {
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.severity.pass {
+  background: #6f7a73;
+}
+
+.severity.notice {
+  background: #8a7620;
+}
+
+.severity.warning {
+  background: #b45d27;
+}
+
+.severity.critical {
+  background: #b93232;
+}
+
+.rule-id {
+  color: #647068;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.printability-result p {
+  color: #27302b;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  margin: 8px 0 0;
+}
+
+.printability-result .correction {
+  color: #56615b;
+}
+
+.result-facts {
+  display: grid;
+  font-size: 0.76rem;
+  gap: 5px 8px;
+  grid-template-columns: minmax(72px, auto) 1fr;
+  margin: 10px 0 0;
+}
+
+.result-facts dt {
+  color: #647068;
+}
+
+.result-facts dd {
+  color: #27302b;
+  font-weight: 700;
+  margin: 0;
+}
+
+.text-action {
+  background: transparent;
+  border: 0;
+  color: #2f6f6d;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-top: 8px;
+  padding: 0;
 }
 
 .parameter-list {

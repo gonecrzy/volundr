@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+import trimesh
 
 from app.api.dependencies import get_cad_runner, get_data_dir
 from app.db.base import Base
@@ -44,7 +45,9 @@ class FakeCadRunner:
                 error_message="Parser error",
             )
 
-        stl_path.write_bytes(b"solid fake\nendsolid fake\n")
+        mesh = trimesh.creation.box(extents=(10.0, 20.0, 30.0))
+        mesh.apply_translation([0.0, 0.0, 15.0])
+        mesh.export(stl_path)
         stderr_path.write_text("Compilation finished", encoding="utf-8")
         metadata = MeshMetadata(
             size_x_mm=10.0,
@@ -69,7 +72,7 @@ class FakeCadRunner:
             stderr_path=stderr_path,
             metadata_path=metadata_path,
             source_hash="fake-source-hash",
-            output_size_bytes=24,
+            output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
             error_message=None,
         )
@@ -146,6 +149,65 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert revisions_response.status_code == 200
     revisions = revisions_response.json()
     assert revisions[0]["metadata"]["triangle_count"] == 12
+
+
+def test_revision_printability_endpoint_returns_profiled_findings(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Printable box",
+            "original_intent": "Create a box for printability inspection.",
+        },
+    ).json()
+    revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": "cube([10, 20, 30]);",
+            "user_instruction": "Initial manual model.",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/revisions/{revision['id']}/printability",
+        json={
+            "printer_name": "Bambu Lab H2C",
+            "build_volume": {"x_mm": 325, "y_mm": 320, "z_mm": 320},
+            "nozzle_diameter_mm": 0.4,
+            "default_layer_height_mm": 0.2,
+        },
+    )
+
+    assert response.status_code == 200
+    report = response.json()
+    assert "score" not in report
+    assert report["profile"]["printer_name"] == "Bambu Lab H2C"
+    assert report["profile_version"] == "printability-fdm-v1"
+    rule_ids = {result["rule_id"] for result in report["results"]}
+    assert {
+        "mesh.empty_or_zero_volume",
+        "mesh.non_watertight",
+        "orientation.overhangs",
+        "orientation.bridge_spans",
+        "profile.build_volume",
+    }.issubset(rule_ids)
+    build_volume = next(result for result in report["results"] if result["rule_id"] == "profile.build_volume")
+    assert build_volume["severity"] == "Pass"
+    for result in report["results"]:
+        assert set(
+            [
+                "severity",
+                "rule_id",
+                "detected_value",
+                "affected_count",
+                "affected_area_mm2",
+                "explanation",
+                "suggested_correction",
+                "orientation_dependent",
+                "dismissed",
+                "highlight",
+            ]
+        ).issubset(result)
 
 
 def test_project_can_be_renamed(tmp_path: Path) -> None:
