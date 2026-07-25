@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from datetime import timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -11,6 +12,7 @@ from app.api.dependencies import get_cad_runner, get_data_dir
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.project import Project, utcnow
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
@@ -260,6 +262,82 @@ def test_archived_project_is_hidden_from_default_project_list(tmp_path: Path) ->
     assert list_response.status_code == 200
     projects = list_response.json()
     assert [project["id"] for project in projects] == [kept_project["id"]]
+
+
+def test_draft_project_is_hidden_from_project_list_and_can_compile(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+
+    draft_response = client.post("/api/projects/draft")
+
+    assert draft_response.status_code == 201
+    draft = draft_response.json()
+    assert draft["status"] == "draft"
+    assert draft["name"].startswith("Draft ")
+    assert draft["original_intent"] == ""
+
+    list_response = client.get("/api/projects")
+    assert list_response.status_code == 200
+    assert list_response.json() == []
+
+    revision_response = client.post(
+        f"/api/projects/{draft['id']}/revisions",
+        json={
+            "scad_source": "cube([10, 20, 30]);",
+            "user_instruction": None,
+        },
+    )
+
+    assert revision_response.status_code == 201
+    revision = revision_response.json()
+    assert revision["project_id"] == draft["id"]
+    assert revision["status"] == "succeeded"
+
+
+def test_draft_project_can_be_saved_as_active_project(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    draft = client.post("/api/projects/draft").json()
+
+    response = client.post(
+        f"/api/projects/{draft['id']}/save",
+        json={
+            "name": "Saved bracket",
+            "original_intent": "Keep this bracket.",
+        },
+    )
+
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["status"] == "active"
+    assert saved["name"] == "Saved bracket"
+    assert saved["original_intent"] == "Keep this bracket."
+
+    projects = client.get("/api/projects").json()
+    assert [project["id"] for project in projects] == [draft["id"]]
+
+
+def test_old_draft_projects_are_cleaned_after_fourteen_days(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    current_draft = client.post("/api/projects/draft").json()
+
+    with next(app.dependency_overrides[get_db]()) as session:
+        old_draft = Project(
+            name="Draft old",
+            slug="draft-old",
+            original_intent="",
+            status="draft",
+            created_at=utcnow() - timedelta(days=15),
+            updated_at=utcnow() - timedelta(days=15),
+        )
+        session.add(old_draft)
+        session.commit()
+        old_draft_id = old_draft.id
+
+    list_response = client.get("/api/projects")
+
+    assert list_response.status_code == 200
+    with next(app.dependency_overrides[get_db]()) as session:
+        assert session.get(Project, old_draft_id) is None
+        assert session.get(Project, current_draft["id"]) is not None
 
 
 def test_project_messages_record_project_and_revision_events(tmp_path: Path) -> None:

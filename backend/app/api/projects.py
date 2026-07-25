@@ -12,6 +12,7 @@ from app.schemas.project import (
     ProjectCreate,
     ProjectMessageRead,
     ProjectRead,
+    ProjectSave,
     ProjectUpdate,
     RevisionRead,
 )
@@ -36,6 +37,15 @@ def list_projects(db: Session = Depends(get_db)) -> list[ProjectRead]:
     return service.list_projects()
 
 
+@router.post("/projects/draft", response_model=ProjectRead, status_code=201)
+def create_draft_project(
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ProjectRead:
+    service = ProjectService(db=db, data_dir=data_dir)
+    return service.create_draft_project()
+
+
 @router.patch("/projects/{project_id}", response_model=ProjectRead)
 def update_project(
     project_id: str,
@@ -44,6 +54,19 @@ def update_project(
 ) -> ProjectRead:
     service = ProjectService(db=db)
     project = service.update_project(project_id, payload)
+    if project is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return project
+
+
+@router.post("/projects/{project_id}/save", response_model=ProjectRead)
+def save_project(
+    project_id: str,
+    payload: ProjectSave,
+    db: Session = Depends(get_db),
+) -> ProjectRead:
+    service = ProjectService(db=db)
+    project = service.save_project(project_id, payload)
     if project is None:
         raise HTTPException(status_code=404, detail="project not found")
     return project

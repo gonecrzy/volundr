@@ -20,6 +20,16 @@ updated_at
 archived_at
 ```
 
+Suggested `status` values:
+
+```text
+draft
+active
+archived
+```
+
+Draft projects support unnamed short-lived workspaces. They are hidden from the default project list, can own revisions, and become normal active projects when saved with a user-visible name. Draft projects older than 14 days may be deleted during opportunistic cleanup.
+
 ## Revision
 
 Represents one immutable model state.

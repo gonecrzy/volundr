@@ -3,6 +3,7 @@ import json
 import re
 import shutil
 from dataclasses import asdict
+from datetime import timedelta
 from pathlib import Path
 
 from sqlalchemy import func, select
@@ -18,6 +19,7 @@ from app.schemas.project import (
     MeshMetadataRead,
     ProjectCreate,
     ProjectMessageRead,
+    ProjectSave,
     ProjectUpdate,
     RevisionRead,
 )
@@ -25,6 +27,8 @@ from app.services.ai.provider import AiProvider, ModelGenerationRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.mesh.inspect import MeshMetadata
+
+DRAFT_RETENTION_DAYS = 14
 
 
 class ProjectService:
@@ -65,7 +69,48 @@ class ProjectService:
         self.db.refresh(project)
         return project
 
+    def create_draft_project(self) -> Project:
+        self.cleanup_expired_drafts()
+        draft_id = self._next_draft_id()
+        project = Project(
+            name=f"Draft {draft_id}",
+            slug=self._unique_slug(f"draft-{draft_id}"),
+            original_intent="",
+            status="draft",
+        )
+        self.db.add(project)
+        self.db.flush()
+        self._record_message(
+            project_id=project.id,
+            revision_id=None,
+            role="system_event",
+            content="Draft workspace created",
+        )
+        self.db.commit()
+        self.db.refresh(project)
+        return project
+
+    def save_project(self, project_id: str, payload: ProjectSave) -> Project | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        project.name = payload.name.strip()
+        project.slug = self._unique_slug(project.name, exclude_project_id=project.id)
+        project.original_intent = payload.original_intent.strip()
+        if project.status == "draft":
+            project.status = "active"
+            self._record_message(
+                project_id=project.id,
+                revision_id=None,
+                role="system_event",
+                content="Draft workspace saved",
+            )
+        self.db.commit()
+        self.db.refresh(project)
+        return project
+
     def list_projects(self) -> list[Project]:
+        self.cleanup_expired_drafts()
         return list(
             self.db.scalars(
                 select(Project)
@@ -73,6 +118,25 @@ class ProjectService:
                 .order_by(Project.created_at.desc())
             )
         )
+
+    def cleanup_expired_drafts(self) -> int:
+        cutoff = project_utcnow() - timedelta(days=DRAFT_RETENTION_DAYS)
+        expired_drafts = list(
+            self.db.scalars(
+                select(Project).where(
+                    Project.status == "draft",
+                    Project.updated_at < cutoff,
+                )
+            )
+        )
+        for project in expired_drafts:
+            project_dir = self.data_dir / "projects" / project.id
+            if project_dir.exists():
+                shutil.rmtree(project_dir)
+            self.db.delete(project)
+        if expired_drafts:
+            self.db.commit()
+        return len(expired_drafts)
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
@@ -511,6 +575,9 @@ class ProjectService:
                 return slug
             slug = f"{base}-{suffix}"
             suffix += 1
+
+    def _next_draft_id(self) -> str:
+        return project_utcnow().strftime("%Y%m%d%H%M%S%f")
 
     def _compile_log(self, result) -> str:
         parts: list[str] = []

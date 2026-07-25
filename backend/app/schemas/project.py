@@ -8,6 +8,11 @@ class ProjectCreate(BaseModel):
     original_intent: str = Field(min_length=1)
 
 
+class ProjectSave(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    original_intent: str = ""
+
+
 class ProjectUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     original_intent: str | None = Field(default=None, min_length=1)

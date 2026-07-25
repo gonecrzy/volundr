@@ -39,6 +39,7 @@ type Project = {
   id: string;
   name: string;
   original_intent: string;
+  status: string;
   active_revision_id: string | null;
 };
 
@@ -185,11 +186,12 @@ function App() {
     () => printabilityReport?.highlights ?? [],
     [printabilityReport],
   );
-  const hasRequiredProjectFields = projectName.trim().length > 0 && intent.trim().length > 0;
-  const canCompileDraft = Boolean(project) || hasRequiredProjectFields;
-  const canAskAi = canCompileDraft && generationPrompt.trim().length > 0;
-  const canSaveProject = Boolean(project) && hasRequiredProjectFields;
-  const workspaceTitle = project ? project.name : projectName.trim() || "Untitled draft";
+  const hasProjectName = projectName.trim().length > 0;
+  const isDraftProject = project?.status === "draft";
+  const canAskAi = generationPrompt.trim().length > 0;
+  const canSaveProject = Boolean(project) && hasProjectName;
+  const workspaceTitle =
+    project && !isDraftProject ? project.name : projectName.trim() || "Untitled draft";
 
   useEffect(() => {
     void refreshProjects();
@@ -204,24 +206,28 @@ function App() {
   }
 
   async function saveProject() {
-    if (!project || !hasRequiredProjectFields) {
-      setMessage("Name and intent are required before saving");
+    if (!project || !hasProjectName) {
+      setMessage("Name is required before saving");
       return;
     }
     setIsSavingProject(true);
     setMessage(null);
     try {
-      const updatedProject = await request<Project>(`/projects/${project.id}`, {
-        method: "PATCH",
+      const updatedProject = await request<Project>(`/projects/${project.id}${isDraftProject ? "/save" : ""}`, {
+        method: isDraftProject ? "POST" : "PATCH",
         body: JSON.stringify({
           name: projectName,
           original_intent: intent,
         }),
       });
       setProject(updatedProject);
-      setProjects((current) =>
-        current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)),
-      );
+      setProjects((current) => {
+        const existing = current.some((entry) => entry.id === updatedProject.id);
+        if (!existing) {
+          return [updatedProject, ...current];
+        }
+        return current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry));
+      });
       setMessage("Project saved");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Project save failed");
@@ -265,26 +271,13 @@ function App() {
   }
 
   async function compileSource() {
-    if (!canCompileDraft) {
-      setMessage("Name and intent are required before compiling a new workspace");
-      return;
-    }
     setIsCompiling(true);
     setMessage(null);
     try {
-      const currentProject =
-        project ??
-        (await request<Project>("/projects", {
-          method: "POST",
-          body: JSON.stringify({
-            name: projectName,
-            original_intent: intent,
-          }),
-        }));
+      const currentProject = project ?? (await createDraftProject());
 
-      if (!project) {
+      if (!project || project.id !== currentProject.id) {
         setProject(currentProject);
-        setProjects((current) => [currentProject, ...current]);
       }
 
       const revision = await request<Revision>(`/projects/${currentProject.id}/revisions`, {
@@ -314,25 +307,16 @@ function App() {
 
   async function generateSource() {
     if (!canAskAi) {
-      setMessage("Name, intent, and an AI prompt are required before asking AI");
+      setMessage("Enter an AI prompt before asking AI");
       return;
     }
     setIsGenerating(true);
     setMessage(null);
     try {
-      const currentProject =
-        project ??
-        (await request<Project>("/projects", {
-          method: "POST",
-          body: JSON.stringify({
-            name: projectName,
-            original_intent: intent,
-          }),
-        }));
+      const currentProject = project ?? (await createDraftProject());
 
-      if (!project) {
+      if (!project || project.id !== currentProject.id) {
         setProject(currentProject);
-        setProjects((current) => [currentProject, ...current]);
       }
 
       const revision = await request<Revision>(`/projects/${currentProject.id}/generate`, {
@@ -368,6 +352,12 @@ function App() {
     await loadCompileLog(revision);
     await loadAiOutput(revision);
     await loadRevisionDiff(revision);
+  }
+
+  async function createDraftProject() {
+    return request<Project>("/projects/draft", {
+      method: "POST",
+    });
   }
 
   async function selectProject(nextProject: Project) {
@@ -526,7 +516,7 @@ function App() {
               STL
             </a>
           ) : null}
-          <button className="primary" disabled={isCompiling || !canCompileDraft} onClick={compileSource}>
+          <button className="primary" disabled={isCompiling} onClick={compileSource}>
             {isCompiling ? "Compiling" : "Compile"}
           </button>
         </div>
@@ -610,8 +600,8 @@ function App() {
               Manual compile note
               <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
             </label>
-            {!canCompileDraft ? (
-              <p className="empty">Name and intent are required before creating this workspace.</p>
+            {project && isDraftProject && !hasProjectName ? (
+              <p className="empty">Name this draft when you want it to appear in Projects.</p>
             ) : null}
           </section>
 
