@@ -11,6 +11,7 @@ from app.schemas.project import (
     GenerationCreate,
     ProjectCreate,
     ProjectRead,
+    ProjectUpdate,
     RevisionRead,
 )
 from app.services.ai.provider import AiProvider
@@ -30,6 +31,28 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
 def list_projects(db: Session = Depends(get_db)) -> list[ProjectRead]:
     service = ProjectService(db=db)
     return service.list_projects()
+
+
+@router.patch("/projects/{project_id}", response_model=ProjectRead)
+def update_project(
+    project_id: str,
+    payload: ProjectUpdate,
+    db: Session = Depends(get_db),
+) -> ProjectRead:
+    service = ProjectService(db=db)
+    project = service.update_project(project_id, payload)
+    if project is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return project
+
+
+@router.post("/projects/{project_id}/archive", response_model=ProjectRead)
+def archive_project(project_id: str, db: Session = Depends(get_db)) -> ProjectRead:
+    service = ProjectService(db=db)
+    project = service.archive_project(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return project
 
 
 @router.get("/projects/{project_id}", response_model=ProjectRead)

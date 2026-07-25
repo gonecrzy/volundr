@@ -86,7 +86,7 @@ a {
   border-bottom: 1px solid #d9ded7;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(180px, 260px) 1fr minmax(220px, 320px);
+  grid-template-columns: minmax(180px, 260px) 1fr minmax(220px, 320px) auto;
   padding: 12px 18px;
 }
 
@@ -113,6 +113,12 @@ input {
   min-height: 38px;
   padding: 8px 10px;
   width: 100%;
+}
+
+.project-actions {
+  align-items: end;
+  display: flex;
+  gap: 8px;
 }
 
 .main-grid {

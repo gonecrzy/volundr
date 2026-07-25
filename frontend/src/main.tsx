@@ -79,6 +79,7 @@ function App() {
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSavingProject, setIsSavingProject] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState<string | null>(null);
@@ -98,6 +99,56 @@ function App() {
       setProjects(await request<Project[]>("/projects", { method: "GET" }));
     } catch {
       setProjects([]);
+    }
+  }
+
+  async function saveProject() {
+    if (!project) {
+      return;
+    }
+    setIsSavingProject(true);
+    setMessage(null);
+    try {
+      const updatedProject = await request<Project>(`/projects/${project.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: projectName,
+          original_intent: intent,
+        }),
+      });
+      setProject(updatedProject);
+      setProjects((current) =>
+        current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)),
+      );
+      setMessage("Project saved");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Project save failed");
+    } finally {
+      setIsSavingProject(false);
+    }
+  }
+
+  async function archiveProject() {
+    if (!project) {
+      return;
+    }
+    setIsSavingProject(true);
+    setMessage(null);
+    try {
+      await request<Project>(`/projects/${project.id}/archive`, {
+        method: "POST",
+      });
+      setProjects((current) => current.filter((entry) => entry.id !== project.id));
+      setProject(null);
+      setRevisions([]);
+      setSelectedRevision(null);
+      setCompileLog(null);
+      setAiOutput(null);
+      setMessage("Project archived");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Project archive failed");
+    } finally {
+      setIsSavingProject(false);
     }
   }
 
@@ -262,6 +313,14 @@ function App() {
           Revision
           <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
         </label>
+        <div className="project-actions" aria-label="Project actions">
+          <button className="secondary" disabled={!project || isSavingProject} onClick={() => void saveProject()}>
+            {isSavingProject ? "Saving" : "Save"}
+          </button>
+          <button className="secondary" disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
+            Archive
+          </button>
+        </div>
       </section>
 
       <section className="generation-strip" aria-label="AI generation">

@@ -111,6 +111,7 @@ Current status:
 - active revision is updated only by successful compiles or restore
 - successful prior revisions can be restored
 - failed AI attempts remain visible and are not accepted
+- projects can be renamed and archived
 
 Goals:
 

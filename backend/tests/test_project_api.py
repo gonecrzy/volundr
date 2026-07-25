@@ -148,6 +148,58 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert revisions[0]["metadata"]["triangle_count"] == 12
 
 
+def test_project_can_be_renamed(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Draft fixture",
+            "original_intent": "Create a fixture.",
+        },
+    ).json()
+
+    response = client.patch(
+        f"/api/projects/{project['id']}",
+        json={"name": "Final fixture"},
+    )
+
+    assert response.status_code == 200
+    renamed = response.json()
+    assert renamed["name"] == "Final fixture"
+    assert renamed["slug"] == "final-fixture"
+    assert renamed["original_intent"] == "Create a fixture."
+
+
+def test_archived_project_is_hidden_from_default_project_list(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    kept_project = client.post(
+        "/api/projects",
+        json={
+            "name": "Keep",
+            "original_intent": "Keep this project.",
+        },
+    ).json()
+    archived_project = client.post(
+        "/api/projects",
+        json={
+            "name": "Archive",
+            "original_intent": "Archive this project.",
+        },
+    ).json()
+
+    archive_response = client.post(f"/api/projects/{archived_project['id']}/archive")
+
+    assert archive_response.status_code == 200
+    archived = archive_response.json()
+    assert archived["status"] == "archived"
+    assert archived["archived_at"] is not None
+
+    list_response = client.get("/api/projects")
+    assert list_response.status_code == 200
+    projects = list_response.json()
+    assert [project["id"] for project in projects] == [kept_project["id"]]
+
+
 def test_failed_manual_revision_does_not_replace_active_revision(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     project = client.post(

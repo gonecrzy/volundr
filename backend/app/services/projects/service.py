@@ -8,9 +8,16 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models.project import Project
+from app.models.project import Project, utcnow as project_utcnow
 from app.models.revision import Revision
-from app.schemas.project import GenerationCreate, ManualRevisionCreate, MeshMetadataRead, ProjectCreate, RevisionRead
+from app.schemas.project import (
+    GenerationCreate,
+    ManualRevisionCreate,
+    MeshMetadataRead,
+    ProjectCreate,
+    ProjectUpdate,
+    RevisionRead,
+)
 from app.services.ai.provider import AiProvider, ModelGenerationRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
@@ -43,10 +50,41 @@ class ProjectService:
         return project
 
     def list_projects(self) -> list[Project]:
-        return list(self.db.scalars(select(Project).order_by(Project.created_at.desc())))
+        return list(
+            self.db.scalars(
+                select(Project)
+                .where(Project.status == "active")
+                .order_by(Project.created_at.desc())
+            )
+        )
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
+
+    def update_project(self, project_id: str, payload: ProjectUpdate) -> Project | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        if payload.name is not None:
+            next_name = payload.name.strip()
+            if next_name != project.name:
+                project.name = next_name
+                project.slug = self._unique_slug(next_name, exclude_project_id=project.id)
+        if payload.original_intent is not None:
+            project.original_intent = payload.original_intent.strip()
+        self.db.commit()
+        self.db.refresh(project)
+        return project
+
+    def archive_project(self, project_id: str) -> Project | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+        project.status = "archived"
+        project.archived_at = project_utcnow()
+        self.db.commit()
+        self.db.refresh(project)
+        return project
 
     def list_revisions(self, project_id: str) -> list[RevisionRead]:
         revisions = self.db.scalars(
@@ -365,14 +403,16 @@ class ProjectService:
         payload = json.loads(metadata_path.read_text(encoding="utf-8"))
         return MeshMetadataRead(**payload)
 
-    def _unique_slug(self, name: str) -> str:
+    def _unique_slug(self, name: str, *, exclude_project_id: str | None = None) -> str:
         base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "project"
         slug = base
         suffix = 2
-        while self.db.scalar(select(Project).where(Project.slug == slug)) is not None:
+        while True:
+            existing_project = self.db.scalar(select(Project).where(Project.slug == slug))
+            if existing_project is None or existing_project.id == exclude_project_id:
+                return slug
             slug = f"{base}-{suffix}"
             suffix += 1
-        return slug
 
     def _compile_log(self, result) -> str:
         parts: list[str] = []
