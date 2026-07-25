@@ -496,7 +496,11 @@ function ParameterControls({
                 step="any"
                 type="number"
                 value={parameter.value}
-                onChange={(event) => onChange(parameter, event.target.value)}
+                onChange={(event) => {
+                  if (isValidParameterValue(parameter, event.target.value)) {
+                    onChange(parameter, event.target.value);
+                  }
+                }}
               />
             )}
           </label>
@@ -564,6 +568,13 @@ function updateSourceParameter(source: string, parameter: SourceParameter, value
     `$1${value}$3`,
   );
   return lines.join("\n");
+}
+
+function isValidParameterValue(parameter: SourceParameter, value: string): boolean {
+  if (parameter.type === "boolean") {
+    return value === "true" || value === "false";
+  }
+  return /^-?\d+(?:\.\d*)?$/.test(value);
 }
 
 function Diagnostics({
