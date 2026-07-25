@@ -108,6 +108,24 @@ Stabilization gap:
 - compile success can accept functionally weak or critically unprintable AI models
 - `docs/GENERATION_RELIABILITY_PLAN.md` now defines the required stabilization work before generation quality can be called dependable
 
+Approved stabilization amendments:
+
+- persist the full staged generation chain and intermediate artifacts
+- use a structured Design Specification with dimension and requirement source labels
+- implement candidate revisions during stabilization so AI results do not replace the active accepted revision automatically
+- use candidate review states: `ready`, `ready_with_warnings`, `blocked`, `rejected`, `accepted`
+- separate blocking validations from advisory warnings
+- split source-contract hard rejections from quality findings
+- use a stable failure taxonomy
+- reject repair output that changes protected design invariants
+- split benchmarks into core and full stability suites
+- track clarification recall and clarification precision
+
+Next implementation boundary:
+
+- Priority 0 only: settings handling, failure taxonomy, generation-attempt persistence, machine-readable benchmark fixtures, deterministic benchmark harness, and prompt snapshot infrastructure.
+- Do not implement staged requirement extraction until Priority 0 is complete, tested, and committed.
+
 ## Stage 4 — Projects and Revision History
 
 Status: Complete

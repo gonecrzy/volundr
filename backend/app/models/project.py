@@ -38,4 +38,9 @@ class Project(Base):
         foreign_keys="Revision.project_id",
         cascade="all, delete-orphan",
     )
+    generation_attempts = relationship(
+        "GenerationAttempt",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     active_revision = relationship("Revision", foreign_keys=[active_revision_id], post_update=True)

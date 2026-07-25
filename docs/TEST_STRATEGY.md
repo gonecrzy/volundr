@@ -113,6 +113,11 @@ Printability fixtures should cover zero-volume or empty meshes, non-watertight m
 
 Use `docs/GENERATION_BENCHMARKS.md` as the canonical prompt benchmark set for generation reliability. Prompt changes should not be considered improvements until they are measured against that set.
 
+Maintain machine-readable fixtures under `backend/tests/fixtures/generation_benchmarks/`:
+
+- `core.json` for frequent deterministic benchmark checks
+- `full.json` for full stability evaluation
+
 Track at minimum:
 
 - extraction pass rate
@@ -122,6 +127,11 @@ Track at minimum:
 - prohibited feature violations
 - accepted revisions with blocking validation failures
 - revision preservation
+- protected design invariant preservation
 - repair boundedness
 
 The benchmark harness should persist provider, model, prompt version, request payload, raw output, extracted source, hashes, timing, validation results, and failure class for every run.
+
+Prompt templates must have snapshot tests. Snapshot failures should require an intentional prompt-template version update or explicit snapshot update.
+
+Generation-attempt tests must verify that the structured requirements/design artifact can be persisted before OpenSCAD generation, even before staged requirement extraction is implemented.

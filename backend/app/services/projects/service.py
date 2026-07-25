@@ -1,4 +1,5 @@
 import difflib
+import hashlib
 import json
 import re
 import shutil
@@ -10,6 +11,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
@@ -26,6 +28,7 @@ from app.schemas.project import (
 from app.services.ai.provider import AiProvider, ModelGenerationRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
+from app.services.generation.failure_taxonomy import FailureClass
 from app.services.mesh.inspect import MeshMetadata
 
 DRAFT_RETENTION_DAYS = 14
@@ -255,24 +258,48 @@ class ProjectService:
                 raise RuntimeError("active revision source is missing")
             source_type = "ai_revision"
 
-        generation_result = await self.ai_provider.generate_model(
-            self._generation_request(
-                project=project,
-                payload=payload,
-                current_source=current_source,
-            )
+        generation_request = self._generation_request(
+            project=project,
+            payload=payload,
+            current_source=current_source,
         )
+        generation_attempt = self._start_generation_attempt(
+            project=project,
+            request=generation_request,
+            base_revision_id=project.active_revision_id,
+        )
+        try:
+            generation_result = await self.ai_provider.generate_model(generation_request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(generation_attempt, generation_result)
         try:
             scad_source = extract_scad_source(generation_result.raw_output)
         except SourceExtractionError as exc:
-            return self._create_failed_ai_revision(
+            failed_revision = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
                 source_type=source_type,
                 raw_ai_output=generation_result.raw_output,
                 error_message=str(exc),
             )
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                error_message=str(exc),
+                resulting_revision_id=failed_revision.id,
+            )
+            return failed_revision
 
+        self._record_generation_extracted_source(generation_attempt, scad_source)
         initial_revision = await self._create_revision_from_source(
             project_id=project_id,
             scad_source=scad_source,
@@ -281,34 +308,86 @@ class ProjectService:
             raw_ai_output=generation_result.raw_output,
         )
         if initial_revision is None or initial_revision.status == "succeeded":
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="succeeded" if initial_revision is not None else "failed",
+                failure_class=FailureClass.NONE
+                if initial_revision is not None
+                else FailureClass.UNKNOWN_FAILURE,
+                resulting_revision_id=initial_revision.id if initial_revision is not None else None,
+            )
             return initial_revision
 
-        repair_result = await self.ai_provider.generate_model(
-            self._generation_request(
-                project=project,
-                payload=payload,
-                current_source=scad_source,
-                compiler_diagnostics=initial_revision.error_message,
-            )
+        self._finish_generation_attempt(
+            generation_attempt,
+            status="failed",
+            failure_class=FailureClass.OPENSCAD_COMPILE_FAILURE,
+            error_message=initial_revision.error_message,
+            resulting_revision_id=initial_revision.id,
         )
+
+        repair_request = self._generation_request(
+            project=project,
+            payload=payload,
+            current_source=scad_source,
+            compiler_diagnostics=initial_revision.error_message,
+        )
+        repair_attempt = self._start_generation_attempt(
+            project=project,
+            request=repair_request,
+            base_revision_id=project.active_revision_id,
+        )
+        try:
+            repair_result = await self.ai_provider.generate_model(repair_request)
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.PROVIDER_FAILURE,
+                error_message=str(exc),
+            )
+            raise
+
+        self._record_generation_result(repair_attempt, repair_result)
         try:
             repaired_source = extract_scad_source(repair_result.raw_output)
         except SourceExtractionError as exc:
-            return self._create_failed_ai_revision(
+            failed_repair = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
                 source_type="ai_repair",
                 raw_ai_output=repair_result.raw_output,
                 error_message=str(exc),
             )
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                error_message=str(exc),
+                resulting_revision_id=failed_repair.id,
+            )
+            return failed_repair
 
-        return await self._create_revision_from_source(
+        self._record_generation_extracted_source(repair_attempt, repaired_source)
+        repair_revision = await self._create_revision_from_source(
             project_id=project_id,
             scad_source=repaired_source,
             user_instruction=payload.user_instruction,
             source_type="ai_repair",
             raw_ai_output=repair_result.raw_output,
         )
+        self._finish_generation_attempt(
+            repair_attempt,
+            status="succeeded" if repair_revision and repair_revision.status == "succeeded" else "failed",
+            failure_class=FailureClass.NONE
+            if repair_revision and repair_revision.status == "succeeded"
+            else FailureClass.OPENSCAD_COMPILE_FAILURE,
+            error_message=None
+            if repair_revision and repair_revision.status == "succeeded"
+            else repair_revision.error_message if repair_revision else "repair revision was not created",
+            resulting_revision_id=repair_revision.id if repair_revision else None,
+        )
+        return repair_revision
 
     def _generation_request(
         self,
@@ -325,6 +404,179 @@ class ProjectService:
             current_source=current_source,
             compiler_diagnostics=compiler_diagnostics,
         )
+
+    def _start_generation_attempt(
+        self,
+        *,
+        project: Project,
+        request: ModelGenerationRequest,
+        base_revision_id: str | None,
+    ) -> GenerationAttempt:
+        attempt = GenerationAttempt(
+            project_id=project.id,
+            base_revision_id=base_revision_id,
+            attempt_number=self._next_generation_attempt_number(project.id),
+            provider=self._provider_name(),
+            provider_model=self._provider_model(),
+            provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            prompt_template_version=self._prompt_template_version(request),
+            gemini_ruleset_version=self._gemini_ruleset_version(),
+            request_payload_path="",
+            prompt_path="",
+            status="started",
+            failure_class=FailureClass.NONE.value,
+        )
+        self.db.add(attempt)
+        self.db.flush()
+
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        request_path = run_dir / "request.json"
+        prompt_path = run_dir / "prompt.txt"
+        design_spec_path = run_dir / "design-spec.json"
+        chain_path = run_dir / "chain.json"
+
+        self._write_json(request_path, asdict(request))
+        prompt_path.write_text(self._render_prompt(request), encoding="utf-8")
+        self._write_json(design_spec_path, self._legacy_design_spec(request))
+        self._write_json(chain_path, self._attempt_chain(attempt, status="started"))
+
+        attempt.request_payload_path = self._relative(request_path)
+        attempt.prompt_path = self._relative(prompt_path)
+        attempt.design_spec_path = self._relative(design_spec_path)
+        attempt.intermediate_artifacts_path = self._relative(chain_path)
+        self._update_attempt_chain(attempt, status="started")
+        self.db.commit()
+        self.db.refresh(attempt)
+        return attempt
+
+    def _record_generation_result(self, attempt: GenerationAttempt, generation_result) -> None:
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        raw_output_path = run_dir / "raw-output.txt"
+        raw_output_path.write_text(generation_result.raw_output, encoding="utf-8")
+        attempt.provider = generation_result.provider
+        attempt.provider_model = generation_result.provider_model
+        attempt.raw_output_path = self._relative(raw_output_path)
+        attempt.output_hash = self._sha256(generation_result.raw_output)
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+
+    def _record_generation_extracted_source(self, attempt: GenerationAttempt, source: str) -> None:
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        source_path = run_dir / "extracted-source.scad"
+        source_path.write_text(source, encoding="utf-8")
+        attempt.extracted_source_path = self._relative(source_path)
+        attempt.source_hash = self._sha256(source)
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+
+    def _finish_generation_attempt(
+        self,
+        attempt: GenerationAttempt,
+        *,
+        status: str,
+        failure_class: FailureClass,
+        error_message: str | None = None,
+        resulting_revision_id: str | None = None,
+    ) -> None:
+        attempt.status = status
+        attempt.failure_class = failure_class.value
+        attempt.error_message = error_message
+        attempt.resulting_revision_id = resulting_revision_id
+        attempt.completed_at = project_utcnow()
+        self._update_attempt_chain(attempt, status=status, error_message=error_message)
+        self.db.commit()
+
+    def _update_attempt_chain(
+        self,
+        attempt: GenerationAttempt,
+        *,
+        status: str,
+        error_message: str | None = None,
+    ) -> None:
+        if not attempt.intermediate_artifacts_path:
+            return
+        chain_path = self.data_dir / attempt.intermediate_artifacts_path
+        self._write_json(
+            chain_path,
+            self._attempt_chain(attempt, status=status, error_message=error_message),
+        )
+
+    def _attempt_chain(
+        self,
+        attempt: GenerationAttempt,
+        *,
+        status: str,
+        error_message: str | None = None,
+    ) -> dict:
+        return {
+            "chain_version": "generation-chain-v1",
+            "attempt_id": attempt.id,
+            "status": status,
+            "failure_class": attempt.failure_class,
+            "error_message": error_message,
+            "stages": [
+                {
+                    "stage": "legacy_openscad_generation",
+                    "prompt_template_version": attempt.prompt_template_version,
+                    "gemini_ruleset_version": attempt.gemini_ruleset_version,
+                    "request_payload_path": attempt.request_payload_path,
+                    "prompt_path": attempt.prompt_path,
+                    "raw_output_path": attempt.raw_output_path,
+                    "extracted_source_path": attempt.extracted_source_path,
+                    "design_spec_path": attempt.design_spec_path,
+                    "source_hash": attempt.source_hash,
+                    "output_hash": attempt.output_hash,
+                }
+            ],
+        }
+
+    def _legacy_design_spec(self, request: ModelGenerationRequest) -> dict:
+        return {
+            "design_specification_version": "legacy-design-spec-placeholder-v1",
+            "artifact_status": "placeholder_until_staged_requirements",
+            "sources": ["user", "calculated", "profile_default", "ai_assumption"],
+            "project_name": {"value": request.project_name, "source": "user"},
+            "original_intent": {"value": request.original_intent, "source": "user"},
+            "user_instruction": {"value": request.user_instruction, "source": "user"},
+        }
+
+    def _render_prompt(self, request: ModelGenerationRequest) -> str:
+        build_prompt = getattr(self.ai_provider, "build_prompt", None)
+        if callable(build_prompt):
+            return build_prompt(request)
+        return ""
+
+    def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
+        version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
+        if callable(version_for):
+            return str(version_for(request))
+        if request.compiler_diagnostics:
+            return "legacy-compile-repair-v1"
+        if request.current_source:
+            return "legacy-revision-v1"
+        return "legacy-initial-v1"
+
+    def _gemini_ruleset_version(self) -> str:
+        return str(getattr(self.ai_provider, "gemini_ruleset_version", "gemini-ruleset-v1"))
+
+    def _provider_name(self) -> str:
+        return type(self.ai_provider).__name__ if self.ai_provider is not None else "unknown"
+
+    def _provider_model(self) -> str | None:
+        model = getattr(self.ai_provider, "model", None)
+        return str(model) if model is not None else None
+
+    def _provider_settings(self) -> dict:
+        provider_settings = getattr(self.ai_provider, "provider_settings", None)
+        if callable(provider_settings):
+            return provider_settings()
+        settings_payload: dict[str, str | int | None] = {}
+        for name in ("model", "binary", "timeout_seconds"):
+            value = getattr(self.ai_provider, name, None)
+            if value is not None:
+                settings_payload[name] = value
+        return settings_payload
 
     def _create_failed_ai_revision(
         self,
@@ -584,11 +836,28 @@ class ProjectService:
         )
         return int(current or 0) + 1
 
+    def _next_generation_attempt_number(self, project_id: str) -> int:
+        current = self.db.scalar(
+            select(func.max(GenerationAttempt.attempt_number)).where(
+                GenerationAttempt.project_id == project_id
+            )
+        )
+        return int(current or 0) + 1
+
     def _revision_dir(self, project_id: str, revision_id: str) -> Path:
         return self.data_dir / "projects" / project_id / "revisions" / revision_id
 
+    def _generation_attempt_dir(self, project_id: str, attempt_id: str) -> Path:
+        return self.data_dir / "projects" / project_id / "generation-runs" / attempt_id
+
     def _relative(self, path: Path) -> str:
         return str(path.relative_to(self.data_dir))
+
+    def _write_json(self, path: Path, payload: dict) -> None:
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+    def _sha256(self, content: str) -> str:
+        return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def _read_revision_metadata(self, revision: Revision) -> MeshMetadataRead | None:
         if revision.status != "succeeded" or not revision.scad_source_path:

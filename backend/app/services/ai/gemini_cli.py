@@ -1,7 +1,13 @@
 import asyncio
+from typing import Any
 
 from app.core.config import settings
 from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
+
+GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
+LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
+LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
+LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
 
 
 class GeminiCliProvider:
@@ -17,7 +23,7 @@ class GeminiCliProvider:
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
-        prompt = self._build_prompt(request)
+        prompt = self.build_prompt(request)
         command = self.build_command(prompt)
 
         process = await asyncio.create_subprocess_exec(
@@ -50,6 +56,29 @@ class GeminiCliProvider:
         if self.model:
             command.extend(["--model", self.model])
         return command
+
+    @property
+    def gemini_ruleset_version(self) -> str:
+        return GEMINI_RULESET_VERSION
+
+    def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if request.compiler_diagnostics:
+            return LEGACY_COMPILE_REPAIR_PROMPT_VERSION
+        if request.current_source:
+            return LEGACY_REVISION_PROMPT_VERSION
+        return LEGACY_INITIAL_PROMPT_VERSION
+
+    def provider_settings(self) -> dict[str, Any]:
+        return {
+            "binary": self.binary,
+            "model": self.model,
+            "timeout_seconds": self.timeout_seconds,
+            "output_format": "text",
+            "skip_trust": True,
+        }
+
+    def build_prompt(self, request: ModelGenerationRequest) -> str:
+        return self._build_prompt(request)
 
     def _build_prompt(self, request: ModelGenerationRequest) -> str:
         parts = [

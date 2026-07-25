@@ -8,7 +8,7 @@ Gemini should not be asked to infer requirements, decide whether to clarify, des
 
 ### `requirements-v1`
 
-Responsibility: convert user text into structured design requirements. Do not generate OpenSCAD.
+Responsibility: convert user text into a structured Design Specification. Do not generate OpenSCAD.
 
 Input context:
 
@@ -23,14 +23,17 @@ Output schema:
 ```json
 {
   "stage": "requirements-v1",
+  "design_specification_version": "design-spec-v1",
   "part_category": "mounting_plate|holder|box|spacer|adapter|tool_holder|t_track|handle|other",
   "purpose": "string",
-  "success_conditions": ["string"],
+  "success_conditions": [
+    {"text": "mounts with two M4 screws", "source": "user|calculated|profile_default|ai_assumption"}
+  ],
   "critical_dimensions": [
     {
       "name": "plate_width",
       "value_mm": 80,
-      "source": "user_provided|assumed|derived",
+      "source": "user|calculated|profile_default|ai_assumption",
       "tolerance_mm": 0.5,
       "why_critical": "controls mounting fit"
     }
@@ -42,7 +45,9 @@ Output schema:
       "clearance_mm": 0.5
     }
   ],
-  "functional_requirements": ["string"],
+  "functional_requirements": [
+    {"text": "must retain the tray during carrying", "source": "user"}
+  ],
   "load_requirements": {
     "known": false,
     "direction": null,
@@ -55,12 +60,14 @@ Output schema:
   },
   "missing_required_info": ["string"],
   "conflicts": ["string"],
-  "allowed_assumptions": [
-    {"name": "wall_thickness", "value_mm": 3, "reason": "ordinary FDM functional wall"}
+  "assumptions": [
+    {"name": "wall_thickness", "value_mm": 3, "source": "ai_assumption", "reason": "ordinary FDM functional wall"}
   ],
   "blocked_assumptions": ["string"]
 }
 ```
+
+Every dimension and requirement must identify one source from `user`, `calculated`, `profile_default`, or `ai_assumption`. The structured Design Specification must be persisted and associated with the generation attempt before OpenSCAD generation starts.
 
 ### `clarification-v1`
 
@@ -131,6 +138,7 @@ Responsibility: produce only OpenSCAD from an approved plan and ruleset.
 Input context:
 
 - requirements object
+- persisted Design Specification artifact path or hash
 - clarification decision with `action=generate`
 - design plan
 - `docs/GEMINI_RULESET.md` version
@@ -254,8 +262,11 @@ validation-feedback-v1
 
 Persist per attempt:
 
+- full staged generation chain
 - stage id and prompt version
+- Gemini ruleset version
 - provider and provider model
+- non-secret provider settings
 - full request payload
 - rendered prompt or prompt artifact path
 - raw output
@@ -271,6 +282,7 @@ Persist per attempt:
 ```text
 user request
   -> requirements-v1
+  -> persist Design Specification
   -> clarification-v1
   -> if clarify: return questions, no revision
   -> design-plan-v1
@@ -323,6 +335,7 @@ Prompt changes are improvements only when benchmark metrics improve:
 - clarification precision and recall
 - revision preservation
 - repair boundedness
+- protected design invariant preservation
 
 Run the deterministic fake-provider suite on every commit. Run one Gemini smoke per benchmark after prompt changes. Run 5 normal-part generations and 10 clarification/revision generations before declaring stability.
 
@@ -346,3 +359,33 @@ provider_timeout
 observability_gap
 ```
 
+Clarification recall measures whether Volundr asks when it must. Clarification precision measures whether it avoids asking on prompts that already contain sufficient dimensions and constraints.
+
+## Candidate Revisions
+
+During stabilization, AI-generated results produce candidate revisions. They do not replace the active accepted revision automatically.
+
+Candidate review states:
+
+```text
+ready
+ready_with_warnings
+blocked
+rejected
+accepted
+```
+
+`ready` means no blocking validations or unresolved assumptions. `ready_with_warnings` means advisory warnings exist. `blocked` means at least one blocking validation or unresolved clarification exists. `rejected` means the user or system rejected the candidate. `accepted` means the user accepted the candidate and it may become the active revision.
+
+## Repair Invariants
+
+Repair mode must preserve protected design invariants:
+
+- user-provided dimensions
+- required functional features
+- mating geometry
+- fastener geometry
+- print orientation
+- unrelated module names and behavior
+
+A repair that changes protected invariants must be rejected and classified as `repair_overreach`.

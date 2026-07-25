@@ -7,8 +7,10 @@ This benchmark set measures whether prompt and pipeline changes improve practica
 ## Run Policy
 
 - Fake-provider deterministic regression: every commit.
-- Gemini smoke suite: 1 run per benchmark after prompt changes.
-- Gemini stability suite: 5 runs for ordinary generation benchmarks; 10 runs for clarification, conflict, and revision benchmarks.
+- Core suite: frequent smoke coverage on every prompt or pipeline change.
+- Full stability suite: all benchmark categories before declaring a prompt architecture stable.
+- Gemini smoke suite: 1 run per core benchmark after prompt changes.
+- Gemini stability suite: 5 runs for ordinary full-suite generation benchmarks; 10 runs for clarification, conflict, and revision benchmarks.
 - Repair benchmarks: 3 runs per repair case.
 
 Prompt changes are not considered improvements unless they reduce accepted models with blocking validation failures and preserve or improve extraction/compile success.
@@ -27,8 +29,26 @@ All generated OpenSCAD benchmarks must:
 - expose required parameters in `USER PARAMETERS`
 - avoid unrequested decorative or weight-reduction features
 - classify assumptions and warnings
+- preserve protected design invariants during repair and revision
 
 Clarification benchmarks must not generate SCAD.
+
+Protected design invariants include user-provided dimensions, required features, mating geometry, fastener geometry, print orientation, and unrelated modules.
+
+## Suites
+
+Core suite:
+
+- 1. Simple Mounting Plate
+- 2. Cylindrical Holder
+- 4. Spacer Or Bushing
+- 10. Critical-Dimension Revision
+- 12. Intentionally Vague Request
+- 13. Conflicting Dimensions
+
+Full stability suite:
+
+- all 15 benchmarks in this document
 
 ## Benchmarks
 
@@ -161,6 +181,7 @@ Clarification benchmarks must not generate SCAD.
 - Compile expectations: success.
 - Mesh expectations: one component, same plate bounds.
 - Revision expectations: minimal diff; `hole_spacing` changed, unrelated modules preserved.
+- Protected design invariants: plate width, plate depth, plate thickness, hole diameter, module names, Z=0 placement.
 - Unacceptable outcomes: plate resized, hole diameter changed, whole rewrite.
 
 ### 11. New Feature Revision
@@ -175,6 +196,7 @@ Clarification benchmarks must not generate SCAD.
 - Compile expectations: success.
 - Mesh expectations: one component.
 - Revision expectations: add one feature module or extend hole module without changing original holes.
+- Protected design invariants: original hole diameter, original hole spacing, plate size, existing module behavior.
 - Unacceptable outcomes: moving original holes, adding decorative slots.
 
 ### 12. Intentionally Vague Request
@@ -239,3 +261,26 @@ This review did not run the full benchmark through Gemini. One Gemini CLI auth p
 - 6/6 included unsolicited cutout/pocket/vent terminology.
 - 6/6 tackle-tray STLs had Critical printability findings under the default profile.
 
+## Machine-Readable Fixtures
+
+The canonical runnable fixtures live under `backend/tests/fixtures/generation_benchmarks/`.
+
+- `core.json` contains the frequently run core suite.
+- `full.json` contains the full stability suite.
+
+Each fixture entry must include:
+
+- `id`
+- `suite`
+- `input_prompt`
+- `required_dimensions`
+- `allowed_assumptions`
+- `expected_clarification`
+- `expected_modules`
+- `expected_parameters`
+- `expected_printability_constraints`
+- `compile_expectation`
+- `mesh_expectation`
+- `revision_expectation`
+- `protected_design_invariants`
+- `unacceptable_outcomes`
