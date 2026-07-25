@@ -19,6 +19,8 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Extract SCAD from markdown or surrounding explanation when necessary.
 - Limit automatic repair attempts.
 - Store every attempt, including failures.
+- Ask for clarification before OpenSCAD generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
+- Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
 
 ### OpenSCAD Execution
 
@@ -42,6 +44,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Inspect printability using the current model orientation and a configurable FDM printer profile.
 - Report printability risks as Pass, Notice, Warning, or Critical findings, without a single percentage score.
 - Do not claim print success is guaranteed.
+- Use blocking validation findings to prevent automatic acceptance of unsafe or invalid AI-generated candidates.
 
 ### Source Editing
 
@@ -56,6 +59,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Display instruction, timestamp, status, and model metadata.
 - Restore a prior revision by making it the active revision.
 - Preserve failed attempts without presenting them as accepted models.
+- Keep AI-generated candidates distinct from user-accepted active revisions when validation warnings or assumptions require review.
 
 ### Downloads
 

@@ -2,6 +2,8 @@
 
 This document is the contract between Volundr and the AI model. It defines the required OpenSCAD output structure, revision behavior, safety restrictions, and rejection conditions.
 
+For the implementation-ready Gemini ruleset, use `docs/GEMINI_RULESET.md`. For staged prompt responsibilities and schemas, use `docs/GEMINI_PROMPT_ARCHITECTURE.md`.
+
 ## Purpose
 
 This contract defines the required format and behavior of AI-generated OpenSCAD.
@@ -13,6 +15,8 @@ The AI is not free to return arbitrary prose, shell commands, external dependenc
 The preferred response is a single OpenSCAD source block.
 
 The backend may extract source from a fenced `scad` or `openscad` block, but prompts should request source only.
+
+Clarification-capable stages must not return OpenSCAD when critical information is missing. They must return the structured clarification response defined in `docs/GEMINI_PROMPT_ARCHITECTURE.md`.
 
 ## Required Source Structure
 
@@ -112,6 +116,8 @@ When revising an existing model, the AI must:
 5. Preserve comments that remain accurate.
 6. Update comments that are no longer accurate.
 7. Avoid rewriting the entire model without necessity.
+8. Preserve the accepted design record: critical dimensions, assumptions, parameter names, module names, print orientation, and unrelated validation fixes.
+9. Add or change only the parameters/modules affected by the user's revision.
 
 ## Repair Prompt Rules
 
@@ -122,6 +128,8 @@ When repairing a compile failure:
 - preserve dimensions and intent
 - return complete corrected source
 - make only the minimum required change
+- treat the source as failed source, not accepted source
+- do not add, remove, or reinterpret functional features
 
 ## Rejection Conditions
 
@@ -137,3 +145,8 @@ The backend should reject or flag output when:
 - no STL is produced
 - STL has zero volume
 - dimensions exceed configured safety limits
+- geometry is below the build plate
+- an ordinary functional part is non-watertight
+- generated source violates the ruleset skeleton or required assertion/parameter sections
+
+Printability findings that depend on user preference, orientation, printer profile, or support strategy may create a candidate revision requiring user review instead of immediate rejection. Blocking and warning policy is defined in `docs/GENERATION_RELIABILITY_PLAN.md`.

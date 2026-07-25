@@ -236,6 +236,25 @@ cancelled
 
 The frontend should receive status through polling initially or SSE when practical.
 
+Generation stabilization should split generation runs from revision records. A generation run records the provider/prompt/request lifecycle; a revision records a model state. A successful compile may create a candidate revision before it becomes the active accepted revision.
+
+Recommended staged AI flow:
+
+```text
+request
+  -> requirements
+  -> clarification decision
+  -> design plan
+  -> OpenSCAD generation
+  -> source validation
+  -> compile
+  -> mesh validation
+  -> printability validation
+  -> repair, candidate review, or acceptance
+```
+
+Initial generation, design revision, and compiler repair should use separate prompt stages and persisted prompt versions.
+
 ## File Layout
 
 ```text
@@ -251,6 +270,13 @@ data/
 │       │       ├── compile.log
 │       │       ├── ai-output.txt
 │       │       └── metadata.json
+│       ├── generation-runs/
+│       │   └── <run-id>/
+│       │       ├── request.json
+│       │       ├── prompt.txt
+│       │       ├── raw-output.txt
+│       │       ├── extracted-source.scad
+│       │       └── validation.json
 │       └── thumbnails/
 └── jobs/
 ```

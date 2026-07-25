@@ -1,0 +1,348 @@
+# Gemini Prompt Architecture
+
+## Goal
+
+Gemini should not be asked to infer requirements, decide whether to clarify, design a printable part, write OpenSCAD, revise accepted source, and repair compiler failures in one prompt. Volundr should use small versioned stages with structured inputs and outputs.
+
+## Prompt Stages
+
+### `requirements-v1`
+
+Responsibility: convert user text into structured design requirements. Do not generate OpenSCAD.
+
+Input context:
+
+- prompt version
+- project name
+- original intent
+- latest user instruction
+- active design record, when revising
+
+Output schema:
+
+```json
+{
+  "stage": "requirements-v1",
+  "part_category": "mounting_plate|holder|box|spacer|adapter|tool_holder|t_track|handle|other",
+  "purpose": "string",
+  "success_conditions": ["string"],
+  "critical_dimensions": [
+    {
+      "name": "plate_width",
+      "value_mm": 80,
+      "source": "user_provided|assumed|derived",
+      "tolerance_mm": 0.5,
+      "why_critical": "controls mounting fit"
+    }
+  ],
+  "mating_parts": [
+    {
+      "name": "M4 screw",
+      "known_dimensions": {"shaft_diameter_mm": 4},
+      "clearance_mm": 0.5
+    }
+  ],
+  "functional_requirements": ["string"],
+  "load_requirements": {
+    "known": false,
+    "direction": null,
+    "notes": "unknown load"
+  },
+  "print_requirements": {
+    "process": "FDM",
+    "orientation": "unknown",
+    "support_expectation": "avoid|required|unknown"
+  },
+  "missing_required_info": ["string"],
+  "conflicts": ["string"],
+  "allowed_assumptions": [
+    {"name": "wall_thickness", "value_mm": 3, "reason": "ordinary FDM functional wall"}
+  ],
+  "blocked_assumptions": ["string"]
+}
+```
+
+### `clarification-v1`
+
+Responsibility: decide whether Volundr can safely generate or must ask one or more questions.
+
+Clarify instead of generate when:
+
+- the part must fit an object and a mating dimension is missing
+- fasteners are mentioned without size, head style, or spacing
+- load-bearing use is implied without load direction or mounting orientation
+- dimensions conflict
+- axes are ambiguous and affect function
+- the request implies inaccessible internal cavities
+- the requested shape likely requires severe unsupported spans unless supports are acceptable
+- a revision changes a critical dimension and would affect fit or assembly
+
+Output schema:
+
+```json
+{
+  "stage": "clarification-v1",
+  "action": "generate|clarify|reject",
+  "questions": ["What is the outside diameter of the hose?"],
+  "defaultable_assumptions": [
+    {"name": "wall_thickness", "value_mm": 3}
+  ],
+  "reason": "hose adapter fit cannot be inferred safely"
+}
+```
+
+### `design-plan-v1`
+
+Responsibility: create a bounded CAD plan from approved requirements and assumptions. Do not generate OpenSCAD.
+
+Output schema:
+
+```json
+{
+  "stage": "design-plan-v1",
+  "design_summary": "string",
+  "parameter_plan": [
+    {
+      "name": "wall_thickness",
+      "value_mm": 3,
+      "role": "critical|assumption|editable",
+      "bounds": {"min_mm": 1.6, "max_mm": 8}
+    }
+  ],
+  "module_plan": [
+    {"name": "main_body", "responsibility": "solid base plate"},
+    {"name": "mounting_holes", "responsibility": "two M4 clearance holes"}
+  ],
+  "geometry_strategy": ["string"],
+  "print_strategy": {
+    "orientation": "largest flat face on Z=0",
+    "supports": "avoid",
+    "layer_strength_notes": ["string"]
+  },
+  "validation_plan": ["string"],
+  "prohibited_features": ["unrequested vents", "decorative cutouts"]
+}
+```
+
+### `openscad-generation-v1`
+
+Responsibility: produce only OpenSCAD from an approved plan and ruleset.
+
+Input context:
+
+- requirements object
+- clarification decision with `action=generate`
+- design plan
+- `docs/GEMINI_RULESET.md` version
+- target printer profile summary
+
+Output:
+
+- exactly one fenced `openscad` block
+- no prose outside the block
+- strict source skeleton from `docs/GEMINI_RULESET.md`
+
+### `revision-v1`
+
+Responsibility: make the smallest source change that satisfies the user revision.
+
+Input context:
+
+- original accepted requirements
+- accepted assumptions
+- active source
+- current parameter schema
+- mesh metadata
+- latest validation warnings
+- user revision instruction
+- preserve list
+
+Output schema before code generation, persisted internally:
+
+```json
+{
+  "stage": "revision-v1",
+  "affected_parameters": ["slot_width"],
+  "affected_modules": ["tray_rails"],
+  "preserved_parameters": ["wall_thickness", "tray_height"],
+  "risk_notes": ["changing slot width affects clearance"]
+}
+```
+
+Final output is complete revised OpenSCAD only.
+
+### `compile-repair-v1`
+
+Responsibility: repair source-level compile failures only.
+
+Input context:
+
+- failed source
+- compiler stdout/stderr
+- source extraction result
+- attempt number
+- original design summary
+
+Allowed changes:
+
+- syntax fixes
+- missing braces, commas, and semicolons
+- OpenSCAD-compatible expression rewrites
+- zero/negative derived expression fixes when directly proven by diagnostics
+
+Prohibited changes:
+
+- changing user dimensions
+- removing modules
+- adding features
+- reorienting the part
+- redesigning geometry
+
+### `validation-feedback-v1`
+
+Responsibility: classify compile, mesh, and printability results.
+
+Output schema:
+
+```json
+{
+  "stage": "validation-feedback-v1",
+  "decision": "accept|candidate_review|repair_compile|request_revision|reject",
+  "blocking_failures": ["mesh.empty_or_zero_volume"],
+  "warnings": ["orientation.overhangs"],
+  "repair_allowed": false,
+  "user_visible_summary": "string"
+}
+```
+
+## Context Selection
+
+Do not pass the full chat history as authoritative context. Maintain a compact project design record:
+
+- original intent
+- accepted requirements
+- accepted assumptions
+- parameter schema
+- active source hash and active source
+- latest mesh metadata
+- latest printability report summary
+- accepted and rejected validation findings
+
+Initial generation should not receive old failed source unless it is explicitly a repair stage. Revision should receive only the active accepted source plus compact design record. Repair should receive failed source and compiler diagnostics, not broad conversation history.
+
+## Token And History Management
+
+- Store large artifacts as files and pass summaries unless the stage requires full source.
+- Include full OpenSCAD only for revision and repair stages.
+- Summarize printability results as rule id, severity, detected value, and suggested correction.
+- Keep prompt examples short and canonical.
+- Version every prompt independently.
+
+## Prompt Versioning
+
+Use stable stage IDs:
+
+```text
+requirements-v1
+clarification-v1
+design-plan-v1
+openscad-generation-v1
+revision-v1
+compile-repair-v1
+validation-feedback-v1
+```
+
+Persist per attempt:
+
+- stage id and prompt version
+- provider and provider model
+- full request payload
+- rendered prompt or prompt artifact path
+- raw output
+- extracted source or parsed JSON
+- status
+- failure class
+- elapsed time
+- source hash and output hash
+- benchmark id, when applicable
+
+## Initial Generation Flow
+
+```text
+user request
+  -> requirements-v1
+  -> clarification-v1
+  -> if clarify: return questions, no revision
+  -> design-plan-v1
+  -> openscad-generation-v1
+  -> source contract validation
+  -> compile
+  -> mesh and printability validation
+  -> accept, candidate review, repair, or reject
+```
+
+## Revision Flow
+
+```text
+active design record + active source + user change
+  -> requirements-v1 scoped to revision
+  -> clarification-v1 if critical ambiguity exists
+  -> revision-v1 affected-objects plan
+  -> complete revised OpenSCAD
+  -> compile and validation
+  -> candidate or accepted revision
+```
+
+## Compile-Repair Flow
+
+```text
+failed source + compiler diagnostics
+  -> compile-repair-v1
+  -> source contract validation
+  -> compile once
+  -> stop after bounded attempt
+```
+
+Repair failure should remain a failed attempt. It should not trigger an unbounded design rewrite.
+
+## Validation Feedback Flow
+
+Validation should feed revisions, not source-level repair, unless the failure is a compile/source-contract failure. Printability warnings become user-visible context and revision context. Printability blockers become candidate/reject decisions depending on user override policy.
+
+## Evaluation Strategy
+
+Prompt changes are improvements only when benchmark metrics improve:
+
+- extraction success
+- compile success before and after repair
+- source-contract compliance
+- required parameter compliance
+- critical dimension accuracy
+- prohibited feature rate
+- accepted-with-blocking-validation rate
+- clarification precision and recall
+- revision preservation
+- repair boundedness
+
+Run the deterministic fake-provider suite on every commit. Run one Gemini smoke per benchmark after prompt changes. Run 5 normal-part generations and 10 clarification/revision generations before declaring stability.
+
+## Failure Classification
+
+Use these failure classes:
+
+```text
+clarification_missed
+requirements_misread
+unsafe_assumption
+contract_violation
+source_extraction_failure
+openscad_compile_failure
+mesh_invalid
+printability_blocker
+revision_regression
+repair_overreach
+provider_failure
+provider_timeout
+observability_gap
+```
+

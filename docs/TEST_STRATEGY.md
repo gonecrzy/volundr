@@ -108,3 +108,20 @@ Maintain a small set of SCAD fixtures:
 Every AI-generated model that exposes a new compiler or extraction bug should be sanitized and added as a regression fixture when practical.
 
 Printability fixtures should cover zero-volume or empty meshes, non-watertight meshes, disconnected components, build-volume violations, Z-origin violations, low build-plate contact, thin-feature estimates, overhang angle buckets, and simple horizontal bridge spans.
+
+## Generation Benchmark Policy
+
+Use `docs/GENERATION_BENCHMARKS.md` as the canonical prompt benchmark set for generation reliability. Prompt changes should not be considered improvements until they are measured against that set.
+
+Track at minimum:
+
+- extraction pass rate
+- compile pass rate before and after bounded repair
+- clarification precision and recall
+- required parameter compliance
+- prohibited feature violations
+- accepted revisions with blocking validation failures
+- revision preservation
+- repair boundedness
+
+The benchmark harness should persist provider, model, prompt version, request payload, raw output, extracted source, hashes, timing, validation results, and failure class for every run.

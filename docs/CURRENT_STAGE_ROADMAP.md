@@ -71,7 +71,7 @@ Exit criteria:
 
 ## Stage 3 — Gemini CLI Generation
 
-Status: Complete
+Status: Complete as a basic integration; stabilization required
 
 Current status:
 
@@ -99,6 +99,14 @@ Exit criteria:
 - plain-English prompt creates a compilable model
 - raw AI output and extracted source are preserved
 - failures are visible and recoverable
+
+Stabilization gap:
+
+- generation is currently one-step and prompt-mode mixed
+- clarification is not representable
+- prompt versions and full request payloads are not persisted
+- compile success can accept functionally weak or critically unprintable AI models
+- `docs/GENERATION_RELIABILITY_PLAN.md` now defines the required stabilization work before generation quality can be called dependable
 
 ## Stage 4 — Projects and Revision History
 
@@ -186,6 +194,11 @@ Goals:
 - model orientation suggestions
 - basic wall-thickness warnings
 - overhang heuristics
+
+Stabilization note:
+
+- Critical printability findings are currently advisory and user-triggered after acceptance.
+- Generation stabilization should decide which validation results block AI acceptance, which create candidate revisions, and which remain warnings.
 
 Excluded from this increment:
 
