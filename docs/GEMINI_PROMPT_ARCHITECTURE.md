@@ -24,6 +24,8 @@ Every dimension and requirement must identify one source from `user`, `clarifica
 
 Current implementation: `requirements-v1` is implemented for new initial AI generations. Invalid JSON is classified as `design_spec_invalid`, raw output is preserved, and one bounded schema-repair extraction attempt is allowed.
 
+The persisted Design Specification schema remains strict. Before validation, the backend may normalize common unambiguous provider variants such as `name` to `label`, `default_value` to `value`, string functional requirements to requirement objects, and `assumption` to `description`. This normalization must not invent missing critical dimensions or turn an underspecified request into `generation_ready`.
+
 ### `clarification-v1`
 
 Responsibility: decide whether Volundr can safely generate or must ask one or more questions.

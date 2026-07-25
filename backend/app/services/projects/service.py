@@ -76,7 +76,9 @@ from app.schemas.project import (
     ValidationFindingRead,
     ValidationSummaryRead,
     RequirementExtractionCreate,
+    RequirementImportance,
     RequirementOutcome,
+    RequirementSource,
 )
 from app.schemas.printability import PrintabilityProfile, PrintabilityResult
 from app.services.ai.provider import (
@@ -2747,6 +2749,7 @@ class ProjectService:
         payload["generation_attempt_id"] = generation_attempt_id
         if "schema_version" not in payload:
             payload["schema_version"] = DESIGN_SPEC_SCHEMA_VERSION
+        payload = self._normalize_design_specification_payload(payload)
         validated = DesignSpecificationPayload.model_validate(payload)
         normalized = validated.model_dump(mode="json")
         outcome = self._derive_requirement_outcome(normalized)
@@ -2756,6 +2759,130 @@ class ProjectService:
         if outcome == RequirementOutcome.UNSUPPORTED_REQUEST:
             normalized["supported_scope"] = False
         return normalized
+
+    def _normalize_design_specification_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(payload)
+        normalized["parameters"] = [
+            self._normalize_design_parameter(item, index)
+            for index, item in enumerate(normalized.get("parameters") or [])
+        ]
+        normalized["functional_requirements"] = [
+            self._normalize_functional_requirement(item, index)
+            for index, item in enumerate(normalized.get("functional_requirements") or [])
+        ]
+        normalized["assumptions"] = [
+            self._normalize_design_assumption(item, index)
+            for index, item in enumerate(normalized.get("assumptions") or [])
+        ]
+        normalized["missing_requirements"] = [
+            self._normalize_missing_requirement(item, index)
+            for index, item in enumerate(normalized.get("missing_requirements") or [])
+        ]
+        return normalized
+
+    def _normalize_design_parameter(self, item: object, index: int) -> object:
+        if not isinstance(item, dict):
+            return item
+        normalized = dict(item)
+        normalized.setdefault("id", f"parameter_{index + 1}")
+        normalized.setdefault("label", normalized.get("name") or self._human_label(str(normalized["id"])))
+        if "value" not in normalized and "default_value" in normalized:
+            normalized["value"] = normalized["default_value"]
+        normalized.setdefault("source", RequirementSource.AI_ASSUMPTION.value)
+        normalized.setdefault("importance", RequirementImportance.IMPORTANT.value)
+        normalized.setdefault("protected", False)
+        normalized.setdefault("editable", True)
+        return normalized
+
+    def _normalize_functional_requirement(self, item: object, index: int) -> object:
+        if isinstance(item, str):
+            description = item
+            normalized: dict[str, Any] = {"description": description}
+        elif isinstance(item, dict):
+            normalized = dict(item)
+            description = str(normalized.get("description") or normalized.get("requirement") or "")
+            if description:
+                normalized["description"] = description
+        else:
+            return item
+        description = str(normalized.get("description") or f"Functional requirement {index + 1}")
+        normalized.setdefault("id", self._safe_identifier(description, fallback=f"functional_requirement_{index + 1}"))
+        normalized.setdefault("source", RequirementSource.USER.value)
+        normalized.setdefault("importance", self._importance_from_priority(normalized.get("priority")))
+        normalized.setdefault(
+            "protected",
+            normalized.get("importance") == RequirementImportance.CRITICAL.value,
+        )
+        return normalized
+
+    def _normalize_design_assumption(self, item: object, index: int) -> object:
+        if isinstance(item, str):
+            description = item
+            normalized: dict[str, Any] = {"description": description}
+        elif isinstance(item, dict):
+            normalized = dict(item)
+            description = str(
+                normalized.get("description")
+                or normalized.get("assumption")
+                or normalized.get("text")
+                or ""
+            )
+            if description:
+                normalized["description"] = description
+        else:
+            return item
+        description = str(normalized.get("description") or f"Assumption {index + 1}")
+        normalized.setdefault("id", self._safe_identifier(description, fallback=f"assumption_{index + 1}"))
+        if normalized.get("source") not in {
+            RequirementSource.PRODUCT_DEFAULT.value,
+            RequirementSource.PRINTER_PROFILE.value,
+            RequirementSource.AI_ASSUMPTION.value,
+            RequirementSource.CALCULATED.value,
+        }:
+            normalized["source"] = RequirementSource.AI_ASSUMPTION.value
+        normalized.setdefault("requires_approval", False)
+        return normalized
+
+    def _normalize_missing_requirement(self, item: object, index: int) -> object:
+        if isinstance(item, str):
+            return {
+                "id": self._safe_identifier(item, fallback=f"missing_requirement_{index + 1}"),
+                "description": item,
+                "source": RequirementSource.USER.value,
+                "importance": RequirementImportance.CRITICAL.value,
+                "reason": item,
+            }
+        if isinstance(item, dict):
+            normalized = dict(item)
+            description = str(
+                normalized.get("description")
+                or normalized.get("label")
+                or normalized.get("reason")
+                or f"Missing requirement {index + 1}"
+            )
+            normalized.setdefault(
+                "id",
+                self._safe_identifier(description, fallback=f"missing_requirement_{index + 1}"),
+            )
+            normalized.setdefault("description", description)
+            normalized.setdefault("source", RequirementSource.USER.value)
+            normalized.setdefault("importance", RequirementImportance.CRITICAL.value)
+            return normalized
+        return item
+
+    def _importance_from_priority(self, priority: object) -> str:
+        if isinstance(priority, str) and priority.lower() in {"high", "critical", "required"}:
+            return RequirementImportance.CRITICAL.value
+        if isinstance(priority, str) and priority.lower() in {"low", "optional", "cosmetic"}:
+            return RequirementImportance.OPTIONAL.value
+        return RequirementImportance.IMPORTANT.value
+
+    def _safe_identifier(self, value: str, *, fallback: str) -> str:
+        identifier = re.sub(r"[^a-zA-Z0-9]+", "_", value.lower()).strip("_")
+        return identifier[:120] or fallback
+
+    def _human_label(self, value: str) -> str:
+        return re.sub(r"[_-]+", " ", value).strip().title() or value
 
     def _extract_json_response(self, raw_output: str) -> str:
         stripped = raw_output.strip()

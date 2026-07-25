@@ -474,6 +474,87 @@ def test_invalid_extraction_json_is_classified_and_bounded_repair_is_attempted(t
         assert attempts[1].prompt_template_version == "requirements-v1"
 
 
+def test_requirement_extraction_normalizes_common_provider_schema_variants(tmp_path: Path) -> None:
+    loose_spec = {
+        "schema_version": "1.0",
+        "object_type": "carrying_case_tackle_box",
+        "purpose": "Transport and store 3600 fishing tackle trays.",
+        "units": "mm",
+        "supported_scope": True,
+        "critical_dimensions": [
+            {
+                "id": "tray_length_3600",
+                "label": "Standard 3600 Tray Length",
+                "value": 275.0,
+                "unit": "mm",
+                "source": "product_default",
+                "importance": "critical",
+                "protected": True,
+            }
+        ],
+        "parameters": [
+            {
+                "id": "case_inner_length",
+                "name": "Case Inner Length",
+                "default_value": 275.0,
+                "unit": "mm",
+                "type": "float",
+            }
+        ],
+        "functional_requirements": [
+            {
+                "description": "Integrated sturdy carrying handle for transport.",
+                "priority": "high",
+                "verification_method": "geometric_inspection",
+            },
+            "Secure tray retention mechanism to prevent trays from sliding out during carrying.",
+        ],
+        "assumptions": [
+            {
+                "assumption": "Using standard 3600 fishing tackle tray dimensions.",
+                "category": "design_scope",
+                "confidence": 0.9,
+            },
+            "Use PETG or PLA with ordinary FDM wall thickness.",
+        ],
+        "missing_requirements": [
+            "Preferred tray retention mechanism.",
+        ],
+        "clarification_questions": [
+            {
+                "id": "q_retention_style",
+                "question": "What style of tray retention do you prefer?",
+            }
+        ],
+        "clarification_required": True,
+        "generation_ready": False,
+        "outcome": "clarification_required",
+    }
+    provider = StagedAiProvider(loose_spec)
+    client, _SessionLocal = build_client(tmp_path, provider)
+    project = create_project(client)
+
+    response = client.post(
+        f"/api/projects/{project['id']}/requirements",
+        json={"user_instruction": "Create a configurable tackle tray carrier."},
+    )
+
+    assert response.status_code == 201
+    spec = response.json()["specification"]
+    assert spec["outcome"] == "clarification_required"
+    assert spec["parameters"][0]["label"] == "Case Inner Length"
+    assert spec["parameters"][0]["value"] == 275.0
+    assert spec["parameters"][0]["source"] == "ai_assumption"
+    assert spec["parameters"][0]["importance"] == "important"
+    assert spec["functional_requirements"][0]["id"] == "integrated_sturdy_carrying_handle_for_transport"
+    assert spec["functional_requirements"][0]["source"] == "user"
+    assert spec["functional_requirements"][0]["importance"] == "critical"
+    assert spec["functional_requirements"][1]["id"] == "secure_tray_retention_mechanism_to_prevent_trays_from_sliding_out_during_carrying"
+    assert spec["assumptions"][0]["description"] == "Using standard 3600 fishing tackle tray dimensions."
+    assert spec["assumptions"][0]["source"] == "ai_assumption"
+    assert spec["missing_requirements"][0]["id"] == "preferred_tray_retention_mechanism"
+
+
 def test_generation_cannot_begin_before_requirements_are_ready(tmp_path: Path) -> None:
     provider = StagedAiProvider(READY_SPEC)
     client, _SessionLocal = build_client(tmp_path, provider)
