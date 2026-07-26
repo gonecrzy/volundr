@@ -154,6 +154,16 @@ def test_gemini_cli_provider_settings_include_policy_path() -> None:
     assert settings["policy_path"] == "/tmp/volundr-no-tools.toml"
 
 
+def test_gemini_cli_provider_settings_report_auth_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "secret-value")
+    provider = GeminiCliProvider(binary="gemini", model="gemini-3.5-flash-lite")
+
+    assert provider.provider_settings()["auth_mode"] == "api_key"
+
+    monkeypatch.delenv("GEMINI_API_KEY")
+    assert provider.provider_settings()["auth_mode"] == "gemini_profile"
+
+
 def test_requirement_prompt_forbids_external_tools() -> None:
     provider = GeminiCliProvider(binary="gemini", model="gemini-3.5-flash-lite")
 

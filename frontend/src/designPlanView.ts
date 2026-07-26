@@ -10,6 +10,12 @@ export type DesignPlanSummary = {
   plan_ready: boolean;
   clarification_required: boolean;
   generated_revision_id?: string | null;
+  clarification_questions?: Array<{
+    id: string;
+    question: string;
+    reason?: string | null;
+    related_plan_field?: string | null;
+  }>;
   plan: {
     purpose?: string;
     design_level?: string;
@@ -86,6 +92,26 @@ export function canApproveDesignPlan(plan: DesignPlanSummary | null): boolean {
 
 export function canGenerateFromDesignPlan(plan: DesignPlanSummary | null): boolean {
   return plan?.review_state === "approved" && plan.plan_ready && !plan.generated_revision_id;
+}
+
+export function designPlanClarificationQuestions(plan: DesignPlanSummary | null): Array<{
+  id: string;
+  question: string;
+  reason?: string | null;
+}> {
+  const persisted = plan?.clarification_questions ?? [];
+  if (persisted.length > 0) {
+    return persisted;
+  }
+  return (plan?.plan.clarification_questions ?? [])
+    .filter((question): question is { id: string; question: string; reason?: string } =>
+      Boolean(question.id && question.question),
+    )
+    .map((question) => ({
+      id: question.id,
+      question: question.question,
+      reason: question.reason,
+    }));
 }
 
 export function designPlanSummaryCounts(plan: DesignPlanSummary | null): {

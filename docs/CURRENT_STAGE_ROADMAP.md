@@ -175,7 +175,7 @@ Completed in this pass:
 - approved Design Plan printable outputs now compile into per-output STL artifacts through the selector contract in `docs/MULTI_OUTPUT_GENERATION.md`
 - the candidate review workflow now exposes assembly status, component output states, per-output downloads, SCAD download, manifest download, ZIP export, and safe retry for failed outputs
 - blocker review now uses typed recovery actions for the first common cases: build-volume findings can route the user to printer-profile review, and mesh/geometry blockers can prepare scoped revision prompts from the selected finding
-- requirement and revision-plan clarification can now be answered from the main chat input; each message fills the next unanswered clarification question and submits when the answer set is complete
+- requirement, Design Plan, and revision-plan clarification can now be answered from the main chat input; each message fills the next unanswered clarification question and submits when the answer set is complete
 
 Next implementation boundary:
 
@@ -183,7 +183,7 @@ Structured revision planning pass:
 
 - `revision-planning-v1` now creates immutable scoped plans from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
 - revision-plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
-- revision source generation uses the approved Revision Plan only after explicit plan approval; future UX should mirror Design Plan approve-and-run where the plan has no unresolved clarification
+- revision source generation uses the approved Revision Plan only after explicit plan approval; current UI approval immediately starts source revision when the plan has no unresolved clarification
 - revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, and output changes before compile
 - success criteria are persisted as Revision Success Results after candidate generation
 

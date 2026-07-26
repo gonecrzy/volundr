@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   canApproveDesignPlan,
   canGenerateFromDesignPlan,
+  designPlanClarificationQuestions,
   designPlanStageLabel,
   designPlanSummaryCounts,
   type DesignPlanSummary,
@@ -70,5 +71,35 @@ describe("design plan view helpers", () => {
       features: 1,
       outputs: 1,
     });
+  });
+
+  it("uses persisted design plan clarification question ids when available", () => {
+    expect(
+      designPlanClarificationQuestions(
+        plan({
+          clarification_questions: [
+            {
+              id: "db-question",
+              question: "Should the body and lid be separate outputs?",
+              reason: "This affects the printable output manifest.",
+            },
+          ],
+          plan: {
+            clarification_questions: [
+              {
+                id: "provider-question",
+                question: "Provider question",
+              },
+            ],
+          },
+        }),
+      ),
+    ).toEqual([
+      {
+        id: "db-question",
+        question: "Should the body and lid be separate outputs?",
+        reason: "This affects the printable output manifest.",
+      },
+    ]);
   });
 });

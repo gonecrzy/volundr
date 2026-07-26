@@ -219,6 +219,7 @@ class GeminiCliProvider:
             "output_format": "text",
             "skip_trust": True,
             "policy_path": str(self.policy_path) if self.policy_path else None,
+            "auth_mode": "api_key" if os.environ.get("GEMINI_API_KEY") else "gemini_profile",
         }
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:

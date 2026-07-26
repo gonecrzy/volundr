@@ -297,6 +297,8 @@ The frontend should receive status through polling initially or SSE when practic
 
 Generation stabilization should split generation runs from revision records. A generation run records the provider/prompt/request lifecycle; a revision records a model state. A successful compile may create a candidate revision before it becomes the active accepted revision.
 
+Design Plan clarification is a normal planning state, not a failed generation. Persisted answers create a superseding immutable Design Plan version before OpenSCAD generation can be approved.
+
 Recommended staged AI flow:
 
 ```text

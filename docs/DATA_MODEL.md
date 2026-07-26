@@ -414,11 +414,46 @@ Design Plan lifecycle:
 ```text
 Design Specification generation_ready
   -> design-plan-v1 extraction
-  -> plan_clarification_required -> rejected | replanned after user input
+  -> plan_clarification_required -> rejected | clarification answers -> superseding plan version
   -> plan_ready -> pending_review -> approved | rejected
   -> approved -> OpenSCAD generation may start
+  -> UI approval starts generation immediately during the current stabilization workflow
+```
 
-Design Plans are immutable. Replanning creates a new version with superseded_design_plan_id set.
+Design Plans are immutable. Planning clarification answers are persisted against the non-ready Design Plan, then `design-plan-v1` is rerun with the previous plan, original Design Specification, persisted questions, and answers. The resulting plan stores `superseded_design_plan_id`.
+
+## DesignPlanClarificationQuestion
+
+Represents one specific question attached to a non-ready Design Plan.
+
+Fields:
+
+```text
+id
+project_id
+design_plan_id
+related_plan_field
+question
+reason
+display_order
+created_at
+```
+
+## DesignPlanClarificationAnswer
+
+Represents one user answer to a Design Plan clarification question.
+
+Fields:
+
+```text
+id
+project_id
+design_plan_id
+question_id
+related_plan_field
+question_text
+answer
+created_at
 ```
 
 The JSON stored at `plan_path` uses schema version `1.0`:

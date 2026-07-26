@@ -130,6 +130,8 @@ GEMINI_API_KEY=<your key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
+Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, no-tools policy path, and non-secret auth mode (`api_key` or `gemini_profile`) so quota or policy issues can be traced without storing credentials.
+
 ## Manual Compile API
 
 Create a project:

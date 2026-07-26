@@ -369,6 +369,19 @@ class DesignPlanPayload(BaseModel):
     outcome: DesignPlanOutcome | None = None
 
 
+class DesignPlanClarificationQuestionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    design_plan_id: str
+    related_plan_field: str | None
+    question: str
+    reason: str | None
+    display_order: int
+    created_at: datetime
+
+
 class DesignPlanRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -394,6 +407,7 @@ class DesignPlanRead(BaseModel):
     rejected_at: datetime | None
     created_at: datetime
     plan: dict[str, Any]
+    clarification_questions: list[DesignPlanClarificationQuestionRead] = Field(default_factory=list)
 
 
 class ConfigurationParameterRead(BaseModel):

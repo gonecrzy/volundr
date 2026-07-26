@@ -35,6 +35,7 @@ accepted assembly revision
 ```
 
 OpenSCAD generation is forbidden until the Revision Plan is `revision_ready` and `approved`.
+The backend keeps approval and source generation as distinct operations. The current frontend combines them into an approve-and-generate action for ready plans, while retaining a separate generate action only for already-approved plans that have not produced a revision.
 
 ## Revision Plan Record
 

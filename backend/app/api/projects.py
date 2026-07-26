@@ -16,6 +16,7 @@ from app.schemas.project import (
     ConfigurationPresetCreate,
     ConfigurationPresetRead,
     ComponentRevisionSummaryRead,
+    DesignPlanClarificationQuestionRead,
     DesignSpecificationRead,
     DesignPlanRead,
     GeometricAnalysisRead,
@@ -714,6 +715,46 @@ def reject_design_plan(
     service = ProjectService(db=db, data_dir=data_dir)
     try:
         plan = service.reject_design_plan(design_plan_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
+    return plan
+
+
+@router.get(
+    "/design-plans/{design_plan_id}/clarification-questions",
+    response_model=list[DesignPlanClarificationQuestionRead],
+)
+def list_design_plan_clarification_questions(
+    design_plan_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[DesignPlanClarificationQuestionRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    questions = service.list_design_plan_clarification_questions(design_plan_id)
+    if questions is None:
+        raise HTTPException(status_code=404, detail="Design Plan not found")
+    return questions
+
+
+@router.post(
+    "/design-plans/{design_plan_id}/clarification-answers",
+    response_model=DesignPlanRead,
+    status_code=201,
+)
+async def submit_design_plan_clarification_answers(
+    design_plan_id: str,
+    payload: ClarificationAnswersCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+) -> DesignPlanRead:
+    service = ProjectService(db=db, data_dir=data_dir, ai_provider=ai_provider)
+    try:
+        plan = await service.submit_design_plan_clarification_answers(design_plan_id, payload)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if plan is None:

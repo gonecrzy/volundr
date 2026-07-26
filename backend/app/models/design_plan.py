@@ -59,3 +59,64 @@ class DesignPlan(Base):
     design_specification = relationship("DesignSpecification")
     generation_attempt = relationship("GenerationAttempt")
     superseded_design_plan = relationship("DesignPlan", remote_side=[id])
+    clarification_questions = relationship(
+        "DesignPlanClarificationQuestion",
+        back_populates="design_plan",
+        cascade="all, delete-orphan",
+    )
+
+
+class DesignPlanClarificationQuestion(Base):
+    __tablename__ = "design_plan_clarification_questions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    project_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    design_plan_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("design_plans.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    related_plan_field: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    display_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    design_plan = relationship("DesignPlan", back_populates="clarification_questions")
+
+
+class DesignPlanClarificationAnswer(Base):
+    __tablename__ = "design_plan_clarification_answers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    project_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    design_plan_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("design_plans.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    question_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("design_plan_clarification_questions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    related_plan_field: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    question_text: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    design_plan = relationship("DesignPlan")
+    question = relationship("DesignPlanClarificationQuestion")

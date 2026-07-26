@@ -16,6 +16,7 @@ export type RevisionPlanSummary = {
   review_state: RevisionPlanReviewState;
   revision_ready: boolean;
   clarification_required: boolean;
+  generated_revision_id?: string | null;
   revision_plan: {
     summary?: string;
     requested_changes?: Array<{
@@ -152,7 +153,7 @@ export function canApproveRevisionPlan(plan: RevisionPlanSummary | null): boolea
 }
 
 export function canGenerateFromRevisionPlan(plan: RevisionPlanSummary | null): boolean {
-  return plan?.review_state === "approved" && plan.revision_ready;
+  return plan?.review_state === "approved" && plan.revision_ready && !plan.generated_revision_id;
 }
 
 export function revisionPlanSummaryCounts(plan: RevisionPlanSummary | null): {

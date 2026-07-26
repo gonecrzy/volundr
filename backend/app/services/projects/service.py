@@ -20,7 +20,11 @@ from app.core.config import settings
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
-from app.models.design_plan import DesignPlan
+from app.models.design_plan import (
+    DesignPlan,
+    DesignPlanClarificationAnswer,
+    DesignPlanClarificationQuestion,
+)
 from app.models.design_specification import DesignSpecification
 from app.models.geometric_analysis_result import GeometricAnalysisResult
 from app.models.generation_attempt import GenerationAttempt
@@ -51,6 +55,7 @@ from app.schemas.project import (
     ComponentRevisionSummaryRead,
     DesignSpecificationPayload,
     DesignSpecificationRead,
+    DesignPlanClarificationQuestionRead,
     DesignPlanOutcome,
     DesignPlanPayload,
     DesignPlanRead,
@@ -1772,6 +1777,87 @@ class ProjectService:
         self.db.refresh(plan)
         return self._design_plan_read(plan)
 
+    def list_design_plan_clarification_questions(
+        self,
+        design_plan_id: str,
+    ) -> list[DesignPlanClarificationQuestionRead] | None:
+        if self.db.get(DesignPlan, design_plan_id) is None:
+            return None
+        questions = self.db.scalars(
+            select(DesignPlanClarificationQuestion)
+            .where(DesignPlanClarificationQuestion.design_plan_id == design_plan_id)
+            .order_by(DesignPlanClarificationQuestion.display_order.asc())
+        )
+        return [DesignPlanClarificationQuestionRead.model_validate(question) for question in questions]
+
+    async def submit_design_plan_clarification_answers(
+        self,
+        design_plan_id: str,
+        payload: ClarificationAnswersCreate,
+    ) -> DesignPlanRead | None:
+        plan = self.db.get(DesignPlan, design_plan_id)
+        if plan is None:
+            return None
+        if plan.review_state != DesignPlanReviewState.CLARIFICATION_REQUIRED.value:
+            raise ValueError("Design Plan is not waiting for clarification")
+        if self.ai_provider is None:
+            raise RuntimeError("AI provider is not configured")
+        project = self.db.get(Project, plan.project_id)
+        specification = self.db.get(DesignSpecification, plan.design_specification_id)
+        if project is None or specification is None:
+            raise ValueError("Design Plan context is incomplete")
+
+        previous_payload = self._read_design_plan_payload(plan)
+        answers: list[dict[str, Any]] = []
+        questions_context: list[dict[str, Any]] = []
+        for answer_payload in payload.answers:
+            question = self.db.get(DesignPlanClarificationQuestion, answer_payload.question_id)
+            if question is None or question.design_plan_id != plan.id:
+                raise ValueError("clarification question not found for Design Plan")
+            answer = DesignPlanClarificationAnswer(
+                project_id=plan.project_id,
+                design_plan_id=plan.id,
+                question_id=question.id,
+                related_plan_field=question.related_plan_field,
+                question_text=question.question,
+                answer=answer_payload.answer.strip(),
+            )
+            self.db.add(answer)
+            answers.append(
+                {
+                    "question_id": question.id,
+                    "related_plan_field": question.related_plan_field,
+                    "question": question.question,
+                    "answer": answer.answer,
+                }
+            )
+            questions_context.append(
+                {
+                    "id": question.id,
+                    "question": question.question,
+                    "reason": question.reason,
+                    "related_plan_field": question.related_plan_field,
+                }
+            )
+        self.db.commit()
+
+        request = DesignPlanRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=specification.user_instruction,
+            design_specification=self._read_design_specification_payload(specification),
+            previous_design_plan=previous_payload,
+            clarification_questions=questions_context,
+            clarification_answers=answers,
+            defaults=DEFAULT_REQUIREMENT_PROFILE,
+        )
+        return await self._run_design_planning(
+            project=project,
+            specification=specification,
+            request=request,
+            superseded_design_plan_id=plan.id,
+        )
+
     async def generate_from_design_plan(
         self,
         design_plan_id: str,
@@ -3223,6 +3309,22 @@ class ProjectService:
         )
         self.db.add(plan)
         self.db.flush()
+        for index, question_payload in enumerate(payload.get("clarification_questions", [])):
+            question_text = str(question_payload.get("question") or "").strip()
+            if not question_text:
+                continue
+            self.db.add(
+                DesignPlanClarificationQuestion(
+                    project_id=project.id,
+                    design_plan_id=plan.id,
+                    related_plan_field=question_payload.get("related_plan_field")
+                    or question_payload.get("plan_field")
+                    or question_payload.get("id"),
+                    question=question_text,
+                    reason=question_payload.get("reason"),
+                    display_order=index,
+                )
+            )
         self._update_attempt_chain(attempt, status=attempt.status)
         self.db.commit()
         self.db.refresh(plan)
@@ -3609,6 +3711,13 @@ class ProjectService:
         self,
         plan: DesignPlan,
     ) -> DesignPlanRead:
+        questions = list(
+            self.db.scalars(
+                select(DesignPlanClarificationQuestion)
+                .where(DesignPlanClarificationQuestion.design_plan_id == plan.id)
+                .order_by(DesignPlanClarificationQuestion.display_order.asc())
+            )
+        )
         return DesignPlanRead(
             id=plan.id,
             project_id=plan.project_id,
@@ -3632,6 +3741,10 @@ class ProjectService:
             rejected_at=plan.rejected_at,
             created_at=plan.created_at,
             plan=self._read_design_plan_payload(plan),
+            clarification_questions=[
+                DesignPlanClarificationQuestionRead.model_validate(question)
+                for question in questions
+            ],
         )
 
     def _revision_plan_read(

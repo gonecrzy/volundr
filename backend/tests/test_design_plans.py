@@ -490,6 +490,51 @@ def test_design_plan_clarification_is_not_a_generation_failure(tmp_path: Path) -
     assert provider.generation_requests == []
 
 
+def test_design_plan_clarification_answers_create_superseding_ready_plan(tmp_path: Path) -> None:
+    provider = PlanningAiProvider(PLAN_CLARIFICATION, READY_PLAN)
+    client, SessionLocal = build_client(tmp_path, provider)
+    _project, specification = create_project_and_spec(client)
+    first_plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()
+
+    questions_response = client.get(f"/api/design-plans/{first_plan['id']}/clarification-questions")
+    assert questions_response.status_code == 200
+    questions = questions_response.json()
+    assert questions[0]["question"].startswith("Should the lid")
+
+    response = client.post(
+        f"/api/design-plans/{first_plan['id']}/clarification-answers",
+        json={"answers": [{"question_id": questions[0]["id"], "answer": "Make them separate outputs."}]},
+    )
+
+    assert response.status_code == 201
+    next_plan = response.json()
+    assert next_plan["outcome"] == "plan_ready"
+    assert next_plan["review_state"] == "pending_review"
+    assert next_plan["superseded_design_plan_id"] == first_plan["id"]
+    assert next_plan["version_number"] == first_plan["version_number"] + 1
+    assert provider.generation_requests == []
+    assert len(provider.plan_requests) == 2
+    assert provider.plan_requests[1].previous_design_plan["outcome"] == "plan_clarification_required"
+    assert provider.plan_requests[1].clarification_questions[0]["question"].startswith("Should the lid")
+    assert provider.plan_requests[1].clarification_answers == [
+        {
+            "question_id": questions[0]["id"],
+            "related_plan_field": "printable_outputs",
+            "question": questions[0]["question"],
+            "answer": "Make them separate outputs.",
+        }
+    ]
+
+    with SessionLocal() as session:
+        attempts = session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)).all()
+        planning_attempts = [
+            attempt
+            for attempt in attempts
+            if attempt.prompt_template_version == "design-plan-v1"
+        ]
+        assert [attempt.status for attempt in planning_attempts] == ["succeeded", "succeeded"]
+
+
 def test_approval_required_before_generating_from_design_plan(tmp_path: Path) -> None:
     provider = PlanningAiProvider(READY_PLAN)
     client, _SessionLocal = build_client(tmp_path, provider)

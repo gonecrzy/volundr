@@ -84,6 +84,11 @@ describe("revision plan view helpers", () => {
     expect(canGenerateFromRevisionPlan(plan({ review_state: "pending_review" }))).toBe(false);
     expect(canApproveRevisionPlan(plan({ review_state: "approved" }))).toBe(false);
     expect(canGenerateFromRevisionPlan(plan({ review_state: "approved" }))).toBe(true);
+    expect(
+      canGenerateFromRevisionPlan(
+        plan({ review_state: "approved", generated_revision_id: "revision-1" }),
+      ),
+    ).toBe(false);
   });
 
   it("summarizes revision targets and protections", () => {

@@ -45,6 +45,7 @@ import {
 import {
   canApproveDesignPlan,
   canGenerateFromDesignPlan,
+  designPlanClarificationQuestions,
   designPlanStageLabel,
   designPlanSummaryCounts,
   type DesignPlanReviewState,
@@ -223,6 +224,16 @@ type DesignPlan = {
   approved_at: string | null;
   rejected_at: string | null;
   created_at: string;
+  clarification_questions: Array<{
+    id: string;
+    project_id: string;
+    design_plan_id: string;
+    related_plan_field: string | null;
+    question: string;
+    reason: string | null;
+    display_order: number;
+    created_at: string;
+  }>;
   plan: {
     purpose?: string;
     design_level?: string;
@@ -482,6 +493,7 @@ function App() {
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
   const [designSpecification, setDesignSpecification] = useState<DesignSpecification | null>(null);
   const [designPlan, setDesignPlan] = useState<DesignPlan | null>(null);
+  const [designPlanAnswers, setDesignPlanAnswers] = useState<Record<string, string>>({});
   const [revisionPlan, setRevisionPlan] = useState<RevisionPlan | null>(null);
   const [revisionPlanAnswers, setRevisionPlanAnswers] = useState<Record<string, string>>({});
   const [configurationParameters, setConfigurationParameters] = useState<ConfigurationParameter[]>([]);
@@ -559,19 +571,27 @@ function App() {
   const hasRequirementClarificationPending =
     designSpecification?.outcome === "clarification_required" &&
     designSpecification.clarification_questions.length > 0;
+  const designPlanQuestions = designPlanClarificationQuestions(designPlan);
+  const hasDesignPlanClarificationPending =
+    designPlan?.review_state === "clarification_required" &&
+    designPlanQuestions.length > 0;
   const hasRevisionClarificationPending =
     revisionPlan?.review_state === "clarification_required" &&
     revisionPlan.clarification_questions.length > 0;
   const isChatActionPending =
-    isGenerating || isPlanningRevision || isSubmittingClarification || isRevisionPlanActionPending;
+    isGenerating ||
+    isPlanningRevision ||
+    isSubmittingClarification ||
+    isDesignPlanActionPending ||
+    isRevisionPlanActionPending;
   const chatButtonLabel = isChatActionPending
     ? "Sending"
-    : hasRequirementClarificationPending || hasRevisionClarificationPending
+    : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
       ? "Answer"
       : canPlanRevisionFromCurrentContext
         ? "Plan revision"
         : "Send";
-  const chatPlaceholder = hasRequirementClarificationPending || hasRevisionClarificationPending
+  const chatPlaceholder = hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
     ? "Answer clarification"
     : "Message Gemini";
   const canApproveCurrentRevisionPlan =
@@ -607,6 +627,7 @@ function App() {
   function resetRequirementState() {
     setDesignSpecification(null);
     setDesignPlan(null);
+    setDesignPlanAnswers({});
     setClarificationAnswers({});
     setIsSubmittingClarification(false);
     setIsCreatingDesignPlan(false);
@@ -657,9 +678,11 @@ function App() {
           method: "GET",
         }),
       );
+      setDesignPlanAnswers({});
       await loadConfigurationOptions(projectId);
     } catch {
       setDesignPlan(null);
+      setDesignPlanAnswers({});
       resetConfigurationState();
     }
   }
@@ -971,6 +994,7 @@ function App() {
         method: "POST",
       });
       setDesignPlan(plan);
+      setDesignPlanAnswers({});
       setMessage(plan.review_state === "pending_review" ? "Plan review" : designPlanStageLabel(plan));
       await loadProjectMessages(project.id);
     } catch (error) {
@@ -1064,6 +1088,40 @@ function App() {
       }
     } finally {
       setIsContinuingGeneration(false);
+    }
+  }
+
+  async function submitDesignPlanClarificationAnswers(answerOverride?: Record<string, string>) {
+    if (!designPlan) {
+      return;
+    }
+    const questions = designPlanClarificationQuestions(designPlan);
+    const answers = answerOverride ?? designPlanAnswers;
+    setIsDesignPlanActionPending(true);
+    setMessage("Planning product model");
+    try {
+      const plan = await request<DesignPlan>(
+        `/design-plans/${designPlan.id}/clarification-answers`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            answers: questions.map((question) => ({
+              question_id: question.id,
+              answer: answers[question.id] ?? "",
+            })),
+          }),
+        },
+      );
+      setDesignPlan(plan);
+      setDesignPlanAnswers({});
+      setMessage(designPlanStageLabel(plan));
+      if (project) {
+        await loadProjectMessages(project.id);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Design Plan clarification failed");
+    } finally {
+      setIsDesignPlanActionPending(false);
     }
   }
 
@@ -1165,6 +1223,30 @@ function App() {
     await submitClarificationAnswers(result.answers);
   }
 
+  async function submitDesignPlanClarificationFromChat() {
+    if (!designPlan) {
+      return;
+    }
+    const questions = designPlanClarificationQuestions(designPlan);
+    const result = applyChatClarificationAnswer(
+      questions,
+      designPlanAnswers,
+      generationPrompt,
+    );
+    setDesignPlanAnswers(result.answers);
+    setGenerationPrompt("");
+    if (!result.answeredQuestionId) {
+      setMessage("Answer the Design Plan clarification question before continuing.");
+      return;
+    }
+    if (!result.readyToSubmit) {
+      const nextQuestion = questions.find((question) => question.id === result.nextQuestionId);
+      setMessage(nextQuestion ? `Answer recorded. ${nextQuestion.question}` : "Answer recorded.");
+      return;
+    }
+    await submitDesignPlanClarificationAnswers(result.answers);
+  }
+
   async function submitRevisionPlanClarificationFromChat() {
     if (!revisionPlan) {
       return;
@@ -1201,10 +1283,10 @@ function App() {
         method: "POST",
       });
       setRevisionPlan(approved);
-      setMessage("Revision plan approved");
       if (project) {
         await loadProjectMessages(project.id);
       }
+      await generateFromRevisionPlan(approved);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Revision Plan approval failed");
     } finally {
@@ -1231,8 +1313,9 @@ function App() {
     }
   }
 
-  async function generateFromRevisionPlan() {
-    if (!revisionPlan || !canGenerateFromRevisionPlan(revisionPlan)) {
+  async function generateFromRevisionPlan(planOverride?: RevisionPlan) {
+    const planToGenerate = planOverride ?? revisionPlan;
+    if (!planToGenerate || !canGenerateFromRevisionPlan(planToGenerate)) {
       setMessage("Revision Plan must be approved before source revision");
       return;
     }
@@ -1242,7 +1325,7 @@ function App() {
     setRevisionSuccessResults([]);
     setMessage("Revising source");
     try {
-      const revision = await request<Revision>(`/revision-plans/${revisionPlan.id}/generate`, {
+      const revision = await request<Revision>(`/revision-plans/${planToGenerate.id}/generate`, {
         method: "POST",
       });
       if (project) {
@@ -1254,7 +1337,7 @@ function App() {
       }
       setSelectedRevision(revision);
       await selectRevision(revision);
-      const refreshedPlan = await request<RevisionPlan>(`/revision-plans/${revisionPlan.id}`, {
+      const refreshedPlan = await request<RevisionPlan>(`/revision-plans/${planToGenerate.id}`, {
         method: "GET",
       });
       setRevisionPlan(refreshedPlan);
@@ -1271,7 +1354,7 @@ function App() {
       }
       try {
         setRevisionComplianceResult(
-          await request<RevisionComplianceResult>(`/revision-plans/${revisionPlan.id}/compliance-result`, {
+          await request<RevisionComplianceResult>(`/revision-plans/${planToGenerate.id}/compliance-result`, {
             method: "GET",
           }),
         );
@@ -1286,6 +1369,10 @@ function App() {
   function submitPrompt() {
     if (hasRequirementClarificationPending) {
       void submitRequirementClarificationFromChat();
+      return;
+    }
+    if (hasDesignPlanClarificationPending) {
+      void submitDesignPlanClarificationFromChat();
       return;
     }
     if (hasRevisionClarificationPending) {
@@ -2268,7 +2355,7 @@ function DesignPlanReview({
   const features = plan.plan.features ?? [];
   const outputs = plan.plan.printable_outputs ?? [];
   const risks = plan.plan.risks ?? [];
-  const questions = plan.plan.clarification_questions ?? [];
+  const questions = designPlanClarificationQuestions(plan);
 
   return (
     <section className="design-plan-review" aria-label="Design Plan">

@@ -83,7 +83,7 @@ Required content:
 - `design_level` as `single_part`, `product`, or `assembly`
 - `plan_ready`, `clarification_required`, and `outcome`
 
-Current implementation: `design-plan-v1` is implemented for ready initial Design Specifications. Invalid JSON is classified as `design_plan_invalid`, raw output is preserved, and one bounded schema-repair planning attempt is allowed. A ready plan enters `pending_review`; the user must approve it before OpenSCAD generation can start.
+Current implementation: `design-plan-v1` is implemented for ready initial Design Specifications. Invalid JSON is classified as `design_plan_invalid`, raw output is preserved, and one bounded schema-repair planning attempt is allowed. A clarification plan enters `clarification_required`; chat answers are persisted, then planning is rerun with the previous plan and answer context to create a superseding version. A ready plan enters `pending_review`; the user must approve it before OpenSCAD generation can start, and current UI approval immediately starts generation.
 
 ### `openscad-generation-v3`
 
