@@ -444,6 +444,24 @@ def test_multi_output_plan_creates_assembly_candidate_and_output_artifacts(tmp_p
     assert [output["output_id"] for output in manifest["outputs"]] == ["body", "lid"]
 
 
+def test_revision_outputs_normalize_string_preferred_orientation(tmp_path: Path) -> None:
+    plan = design_plan()
+    plan["printable_outputs"][0]["orientation"] = "base-down vertical orientation"
+    provider = MultiOutputProvider(plan=plan)
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_approved_plan(client)
+    candidate = client.post(f"/api/design-plans/{context['plan']['id']}/generate").json()
+
+    response = client.get(f"/api/revisions/{candidate['id']}/outputs")
+
+    assert response.status_code == 200
+    body_output = next(output for output in response.json() if output["output_id"] == "body")
+    assert body_output["preferred_orientation"] == {
+        "description": "base-down vertical orientation"
+    }
+
+
 def test_required_output_failure_blocks_assembly_but_preserves_successful_artifacts(
     tmp_path: Path,
 ) -> None:

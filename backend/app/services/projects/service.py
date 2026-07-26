@@ -6301,10 +6301,8 @@ class ProjectService:
 
     def _revision_output_read(self, output: RevisionOutput) -> RevisionOutputRead:
         metadata = MeshMetadataRead(**json.loads(output.metadata_json)) if output.metadata_json else None
-        preferred_orientation = (
-            json.loads(output.preferred_orientation_json)
-            if output.preferred_orientation_json
-            else None
+        preferred_orientation = self._preferred_orientation_read(
+            output.preferred_orientation_json
         )
         return RevisionOutputRead(
             id=output.id,
@@ -6337,6 +6335,19 @@ class ProjectService:
             created_at=output.created_at,
             updated_at=output.updated_at,
         )
+
+    def _preferred_orientation_read(
+        self,
+        preferred_orientation_json: str | None,
+    ) -> dict[str, Any] | None:
+        if not preferred_orientation_json:
+            return None
+        value = json.loads(preferred_orientation_json)
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, str):
+            return {"description": value}
+        return {"value": value}
 
     def _legacy_revision_output_read(self, revision: Revision) -> RevisionOutputRead:
         metadata = self._read_revision_metadata(revision)
