@@ -486,6 +486,27 @@ def test_invalid_design_plan_json_is_classified_and_bounded_repair_attempted(tmp
         assert attempts[-2].failure_class == "design_plan_invalid"
 
 
+def test_design_plan_parameter_source_value_mismatch_is_repaired(tmp_path: Path) -> None:
+    bad_plan = json.loads(json.dumps(READY_PLAN))
+    bad_plan["parameters"][0]["value"] = 145
+    provider = PlanningAiProvider(bad_plan, READY_PLAN)
+    client, SessionLocal = build_client(tmp_path, provider)
+    _project, specification = create_project_and_spec(client)
+
+    response = client.post(f"/api/design-specifications/{specification['id']}/design-plan")
+
+    assert response.status_code == 201
+    assert response.json()["outcome"] == "plan_ready"
+    assert len(provider.plan_requests) == 2
+    assert "does not match source requirement" in (
+        provider.plan_requests[1].schema_validation_error or ""
+    )
+    with SessionLocal() as session:
+        attempts = list(session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)))
+        assert [attempt.status for attempt in attempts[-2:]] == ["failed", "succeeded"]
+        assert attempts[-2].failure_class == "design_plan_invalid"
+
+
 def test_replanning_supersedes_prior_unapproved_plan(tmp_path: Path) -> None:
     first = {**READY_PLAN, "purpose": "First plan"}
     second = {**READY_PLAN, "purpose": "Second plan"}

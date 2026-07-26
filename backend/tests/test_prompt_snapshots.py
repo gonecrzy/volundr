@@ -164,6 +164,27 @@ def test_planned_openscad_prompt_uses_approved_design_plan_as_authority() -> Non
     assert "selected_output" in prompt
     assert "render_selected_output();" in prompt
     assert "assertions for invalid configurations" in prompt
+    assert "prefer additive construction of explicit base, side walls, rails" in prompt
+    assert "positive overlap with its supporting component" in prompt
+
+
+def test_design_plan_prompt_separates_source_values_from_derived_dimensions() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_design_plan_prompt(
+        DesignPlanRequest(
+            project_name="Tray carrier",
+            original_intent="Carry tackle trays.",
+            user_instruction="Carry three trays.",
+            design_specification={
+                "critical_dimensions": [
+                    {"id": "tray_height", "value": 45, "unit": "mm", "protected": True}
+                ]
+            },
+        )
+    )
+
+    assert "source_requirement_id must copy that source requirement's value and unit" in prompt
+    assert "calculated stack, envelope, or overall product dimensions" in prompt
 
 
 def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:

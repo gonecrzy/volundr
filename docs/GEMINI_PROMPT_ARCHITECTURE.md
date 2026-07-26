@@ -74,6 +74,7 @@ Required content:
 - user-editable parameters and protected parameters
 - derived parameters expressed from other parameters
 - dependency edges showing what must update when a configuration changes
+- direct `source_requirement_id` mappings only when the parameter copies the source requirement value and unit; calculated stack, envelope, and overall dimensions belong in derived parameters
 - components and the features that belong to each component
 - presets for common configurations when useful
 - assembly strategy

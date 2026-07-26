@@ -138,6 +138,7 @@ Rules:
 14. Editable parameters must include `@volundr-parameter <id> type=<number|integer|boolean|enum> editable=<true|false>` immediately before the assignment. Direct configuration behavior is defined in `docs/PARAMETER_CONFIGURATION.md`.
 15. Assertions must reject impossible configurations implied by the Design Plan, such as nonpositive counts, negative clearances, invalid wall thicknesses, or derived dimensions that cannot fit their dependent features.
 16. Shared reusable modules must use `@volundr-shared-module <module_name>` immediately before the module declaration. Component-targeted revisions may change shared modules only when the approved Revision Plan lists them in `allowed_shared_modules`.
+17. A Design Plan parameter that declares `source_requirement_id` is a direct copy of that requirement's value and unit. Calculated dimensions such as tray stack height, case envelope, or overall product size must be derived parameters with dependency markers.
 
 ## Mandatory Rules
 
@@ -162,6 +163,8 @@ Rules:
 19. Prefer the model near the XY origin with Z at or above zero.
 20. Avoid excessive polygon counts.
 21. For `openscad-generation-v5`, preserve all approved Design Plan components, features, dependency edges, parameters, presets that affect parameters, and printable outputs.
+22. For cases, trays, holders, and enclosures, do not use oversized subtractive cavities that remove required walls, top bridges, handle supports, retention features, or mounting surfaces.
+23. A required handle, latch, stop, rail, rib, or hinge in a single printable output must be connected to the supporting component by positive overlapping material.
 
 ## Functional Design Guidelines
 

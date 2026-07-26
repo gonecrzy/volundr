@@ -315,6 +315,8 @@ class GeminiCliProvider:
                 "End with exactly one top-level render_selected_output(); call.",
                 "Add @volundr-geometry markers for supported measurable bounds, holes, hole groups, and wall thickness.",
                 "Include assertions for invalid configurations and dependencies, such as impossible counts, negative clearances, too-thin walls, or outputs that exceed derived bounds.",
+                "For cases, trays, holders, and enclosures, prefer additive construction of explicit base, side walls, rails, lips, lids, and handles. If using difference() for a cavity, bound the subtractor so it cannot remove a required wall, top bridge, handle support, retention feature, or mounting surface.",
+                "Any handle, latch, retention stop, rail, rib, or hinge feature must have positive overlap with its supporting component; do not leave required features as disconnected bodies in a single printable output.",
                 "Use this same selected-output contract for single-output plans.",
                 "Do not require source-file edits between component compiles; Volundr will compile each output with a command-line selected_output override.",
                 "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
@@ -351,6 +353,7 @@ class GeminiCliProvider:
                 "Return JSON only. Do not generate OpenSCAD.",
                 "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
                 "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
+                "A parameter with source_requirement_id must copy that source requirement's value and unit within tolerance. Do not use source_requirement_id for calculated stack, envelope, or overall product dimensions; represent those as derived_parameters with dependency_edges.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
             ]
         schema = {

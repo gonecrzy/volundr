@@ -96,6 +96,7 @@ render_selected_output();
 6. Every printable output must list component IDs and quantity; OpenSCAD generation uses the selected-output contract in `docs/MULTI_OUTPUT_GENERATION.md` even when there is one output.
 7. Ask plan clarification when component structure, output separation, assembly strategy, or configuration dependencies cannot be chosen safely.
 8. A ready Design Plan must enter review and be explicitly approved before OpenSCAD generation.
+9. A parameter with `source_requirement_id` must copy that source requirement's value and unit within tolerance. Calculated stack, envelope, or overall dimensions must be represented as derived parameters with dependency edges, not as direct source mappings.
 
 ## Requirement Marker Rules
 
@@ -133,6 +134,8 @@ The authoritative marker format is defined in `docs/MODEL_GENERATION_CONTRACT.md
 10. Avoid exact coplanar Boolean boundaries. Cutters should extend past target faces by `eps`; joined parts should overlap by at least `eps`.
 11. Avoid zero-thickness contact. Tangent or face-only contact is not a structural connection.
 12. Avoid unbounded loops, recursion, excessive nested Booleans, and high polygon counts.
+13. For cases, trays, holders, and enclosures, prefer additive construction of explicit bases, walls, rails, lips, lids, and handles. If using `difference()` for a cavity, bound each cutter so it cannot remove a required wall, top bridge, handle support, retention feature, or mounting surface.
+14. Handles, latches, retention stops, rails, ribs, and hinges in a single printable output must overlap their supporting component by positive material; disconnected required features are not acceptable.
 
 ## Printability Rules
 

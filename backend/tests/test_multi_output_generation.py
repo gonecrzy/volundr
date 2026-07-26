@@ -275,8 +275,14 @@ class MultiOutputProvider:
 
 
 class MultiOutputCadRunner:
-    def __init__(self, *, fail_outputs: set[str] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        fail_outputs: set[str] | None = None,
+        disconnected_outputs: set[str] | None = None,
+    ) -> None:
         self.fail_outputs = fail_outputs or set()
+        self.disconnected_outputs = disconnected_outputs or set()
         self.calls: list[dict[str, Any]] = []
 
     async def compile(
@@ -326,18 +332,26 @@ class MultiOutputCadRunner:
         extents = (80.0, 50.0, 6.0 if output_id == "body" else 3.0)
         mesh = trimesh.creation.box(extents=extents)
         mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
+        connected_components = 1
+        triangle_count = 12
+        if output_id in self.disconnected_outputs:
+            handle = trimesh.creation.box(extents=(20.0, 8.0, 6.0))
+            handle.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] + 20.0])
+            mesh = trimesh.util.concatenate([mesh, handle])
+            connected_components = 2
+            triangle_count = int(len(mesh.faces))
         mesh.export(stl_path)
         stderr_path.write_text("Compilation finished", encoding="utf-8")
         metadata = MeshMetadata(
             size_x_mm=extents[0],
             size_y_mm=extents[1],
-            size_z_mm=extents[2],
-            volume_mm3=extents[0] * extents[1] * extents[2],
-            triangle_count=12,
-            connected_components=1,
+            size_z_mm=float(mesh.bounding_box.extents[2]),
+            volume_mm3=float(abs(mesh.volume)),
+            triangle_count=triangle_count,
+            connected_components=connected_components,
             is_watertight=True,
             is_winding_consistent=True,
-            center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
+            center_of_mass=tuple(float(value) for value in mesh.center_mass),
         )
         metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
         return CadCompileResult(
@@ -452,6 +466,28 @@ def test_required_output_failure_blocks_assembly_but_preserves_successful_artifa
     findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
     assert any(finding["rule_id"] == "assembly.required_output_failed" for finding in findings)
     assert client.post(f"/api/candidates/{candidate['id']}/accept").status_code == 409
+
+
+def test_single_component_output_with_disconnected_bodies_blocks_candidate(tmp_path: Path) -> None:
+    single_output_plan = design_plan()
+    single_output_plan["printable_outputs"] = [single_output_plan["printable_outputs"][0]]
+    single_output_plan["components"] = [single_output_plan["components"][0]]
+    single_output_plan["features"] = [single_output_plan["features"][0]]
+    provider = MultiOutputProvider(plan=single_output_plan)
+    runner = MultiOutputCadRunner(disconnected_outputs={"body"})
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_approved_plan(client)
+
+    candidate = client.post(f"/api/design-plans/{context['plan']['id']}/generate").json()
+
+    assert candidate["review_state"] == "blocked"
+    outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
+    assert outputs[0]["output_state"] == "blocked"
+    findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
+    disconnected = next(
+        finding for finding in findings if finding["rule_id"] == "mesh.disconnected_components"
+    )
+    assert disconnected["is_blocking"] is True
 
 
 def test_optional_output_failure_keeps_assembly_reviewable_with_warnings(tmp_path: Path) -> None:

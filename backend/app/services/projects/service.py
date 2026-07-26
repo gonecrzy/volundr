@@ -2496,6 +2496,7 @@ class ProjectService:
                 project_id=project.id,
                 design_specification_id=specification.id,
                 generation_attempt_id=attempt.id,
+                design_specification_payload=request.design_specification,
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -2948,6 +2949,7 @@ class ProjectService:
         project_id: str,
         design_specification_id: str,
         generation_attempt_id: str,
+        design_specification_payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -2964,7 +2966,85 @@ class ProjectService:
             outcome == DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED
         )
         normalized["plan_ready"] = outcome == DesignPlanOutcome.PLAN_READY
+        self._validate_design_plan_source_requirement_links(
+            normalized,
+            design_specification_payload=design_specification_payload,
+        )
         return normalized
+
+    def _validate_design_plan_source_requirement_links(
+        self,
+        payload: dict[str, Any],
+        *,
+        design_specification_payload: dict[str, Any] | None,
+    ) -> None:
+        if payload.get("outcome") != DesignPlanOutcome.PLAN_READY.value:
+            return
+        if not design_specification_payload:
+            return
+        source_values = self._numeric_design_specification_values(design_specification_payload)
+        violations: list[str] = []
+        for parameter in payload.get("parameters", []):
+            if not isinstance(parameter, dict):
+                continue
+            source_id = parameter.get("source_requirement_id")
+            if not source_id or source_id not in source_values:
+                continue
+            expected = source_values[source_id]
+            detected = self._to_float(parameter.get("value"))
+            if detected is None:
+                violations.append(
+                    f"Design Plan parameter {parameter.get('id')} is linked to numeric source "
+                    f"requirement {source_id} but has a non-numeric value."
+                )
+                continue
+            parameter_unit = parameter.get("unit")
+            expected_unit = expected.get("unit")
+            if parameter_unit and expected_unit and parameter_unit != expected_unit:
+                violations.append(
+                    f"Design Plan parameter {parameter.get('id')} unit {parameter_unit} "
+                    f"does not match source requirement {source_id} unit {expected_unit}."
+                )
+            expected_value = expected["value"]
+            tolerance = expected["tolerance"]
+            if abs(detected - expected_value) > tolerance:
+                violations.append(
+                    f"Design Plan parameter {parameter.get('id')} value {detected:g} "
+                    f"does not match source requirement {source_id} value {expected_value:g} "
+                    f"within tolerance {tolerance:g}. Use a derived parameter for calculated "
+                    "stack, envelope, or overall product dimensions."
+                )
+        if violations:
+            raise ValueError("\n".join(violations))
+
+    def _numeric_design_specification_values(
+        self,
+        payload: dict[str, Any],
+    ) -> dict[str, dict[str, Any]]:
+        values: dict[str, dict[str, Any]] = {}
+        for collection_name in ("critical_dimensions", "parameters"):
+            for entry in payload.get(collection_name, []):
+                if not isinstance(entry, dict):
+                    continue
+                entry_id = entry.get("id")
+                value = self._to_float(entry.get("value"))
+                if not entry_id or value is None:
+                    continue
+                tolerance = self._to_float(entry.get("tolerance"))
+                values[str(entry_id)] = {
+                    "value": value,
+                    "unit": entry.get("unit"),
+                    "tolerance": tolerance if tolerance is not None else 1e-6,
+                }
+        return values
+
+    def _to_float(self, value: Any) -> float | None:
+        if isinstance(value, bool):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
 
     def _derive_design_plan_outcome(self, payload: dict[str, Any]) -> DesignPlanOutcome:
         explicit = payload.get("outcome")
@@ -5014,7 +5094,7 @@ class ProjectService:
                 self._validation_finding_from_printability_result(
                     revision.id,
                     result,
-                    revision_output_id=revision_output.id if revision_output is not None else None,
+                    revision_output=revision_output,
                 )
             )
         self.db.flush()
@@ -5024,7 +5104,7 @@ class ProjectService:
         revision_id: str,
         result: PrintabilityResult,
         *,
-        revision_output_id: str | None = None,
+        revision_output: RevisionOutput | None = None,
     ) -> ValidationFinding:
         severity = result.severity.lower()
         metadata = {
@@ -5035,11 +5115,14 @@ class ProjectService:
         }
         return ValidationFinding(
             revision_id=revision_id,
-            revision_output_id=revision_output_id,
+            revision_output_id=revision_output.id if revision_output is not None else None,
             rule_id=result.rule_id,
             category=result.rule_id.split(".", 1)[0],
             severity=severity,
-            is_blocking=self._is_blocking_printability_result(result),
+            is_blocking=self._is_blocking_printability_result(
+                result,
+                revision_output=revision_output,
+            ),
             title=result.rule_id.replace(".", " ").replace("_", " ").title(),
             explanation=result.explanation,
             suggested_correction=result.suggested_correction,
@@ -5051,10 +5134,28 @@ class ProjectService:
             metadata_json=json.dumps(metadata, sort_keys=True),
         )
 
-    def _is_blocking_printability_result(self, result: PrintabilityResult) -> bool:
+    def _is_blocking_printability_result(
+        self,
+        result: PrintabilityResult,
+        *,
+        revision_output: RevisionOutput | None = None,
+    ) -> bool:
+        if result.rule_id == "mesh.disconnected_components" and revision_output is not None:
+            component_ids = self._json_list(revision_output.component_ids_json)
+            if revision_output.required and len(component_ids) <= 1:
+                return True
         if result.rule_id in BLOCKING_RULE_IDS:
             return True
         return result.severity == "Critical" and result.rule_id in BLOCKING_CRITICAL_RULE_IDS
+
+    def _json_list(self, value: str | None) -> list[Any]:
+        if not value:
+            return []
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+        return parsed if isinstance(parsed, list) else []
 
     def _affected_geometry_summary(self, result: PrintabilityResult) -> str | None:
         pieces = []
