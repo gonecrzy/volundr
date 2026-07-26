@@ -63,6 +63,7 @@ import {
   type RevisionPlanReviewState,
   type RevisionSuccessResult,
 } from "./revisionPlanView";
+import { applyChatClarificationAnswer } from "./chatWorkflow";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -555,6 +556,24 @@ function App() {
     project &&
       (selectedRevisionCanPlan || project.active_revision_id),
   );
+  const hasRequirementClarificationPending =
+    designSpecification?.outcome === "clarification_required" &&
+    designSpecification.clarification_questions.length > 0;
+  const hasRevisionClarificationPending =
+    revisionPlan?.review_state === "clarification_required" &&
+    revisionPlan.clarification_questions.length > 0;
+  const isChatActionPending =
+    isGenerating || isPlanningRevision || isSubmittingClarification || isRevisionPlanActionPending;
+  const chatButtonLabel = isChatActionPending
+    ? "Sending"
+    : hasRequirementClarificationPending || hasRevisionClarificationPending
+      ? "Answer"
+      : canPlanRevisionFromCurrentContext
+        ? "Plan revision"
+        : "Send";
+  const chatPlaceholder = hasRequirementClarificationPending || hasRevisionClarificationPending
+    ? "Answer clarification"
+    : "Message Gemini";
   const canApproveCurrentRevisionPlan =
     canApproveRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
   const canGenerateFromCurrentRevisionPlan =
@@ -903,10 +922,11 @@ function App() {
     }
   }
 
-  async function submitClarificationAnswers() {
+  async function submitClarificationAnswers(answerOverride?: Record<string, string>) {
     if (!designSpecification) {
       return;
     }
+    const answers = answerOverride ?? clarificationAnswers;
     setIsSubmittingClarification(true);
     setSourceContractError(null);
     setMessage("Understanding request");
@@ -918,7 +938,7 @@ function App() {
           body: JSON.stringify({
             answers: designSpecification.clarification_questions.map((question) => ({
               question_id: question.id,
-              answer: clarificationAnswers[question.id] ?? "",
+              answer: answers[question.id] ?? "",
             })),
           }),
         },
@@ -1090,10 +1110,11 @@ function App() {
     }
   }
 
-  async function submitRevisionPlanClarificationAnswers() {
+  async function submitRevisionPlanClarificationAnswers(answerOverride?: Record<string, string>) {
     if (!revisionPlan) {
       return;
     }
+    const answers = answerOverride ?? revisionPlanAnswers;
     setIsRevisionPlanActionPending(true);
     setMessage("Planning revision");
     try {
@@ -1104,7 +1125,7 @@ function App() {
           body: JSON.stringify({
             answers: revisionPlan.clarification_questions.map((question) => ({
               question_id: question.id,
-              answer: revisionPlanAnswers[question.id] ?? "",
+              answer: answers[question.id] ?? "",
             })),
           }),
         },
@@ -1117,6 +1138,56 @@ function App() {
     } finally {
       setIsRevisionPlanActionPending(false);
     }
+  }
+
+  async function submitRequirementClarificationFromChat() {
+    if (!designSpecification) {
+      return;
+    }
+    const result = applyChatClarificationAnswer(
+      designSpecification.clarification_questions,
+      clarificationAnswers,
+      generationPrompt,
+    );
+    setClarificationAnswers(result.answers);
+    setGenerationPrompt("");
+    if (!result.answeredQuestionId) {
+      setMessage("Answer the clarification question before continuing.");
+      return;
+    }
+    if (!result.readyToSubmit) {
+      const nextQuestion = designSpecification.clarification_questions.find(
+        (question) => question.id === result.nextQuestionId,
+      );
+      setMessage(nextQuestion ? `Answer recorded. ${nextQuestion.question}` : "Answer recorded.");
+      return;
+    }
+    await submitClarificationAnswers(result.answers);
+  }
+
+  async function submitRevisionPlanClarificationFromChat() {
+    if (!revisionPlan) {
+      return;
+    }
+    const result = applyChatClarificationAnswer(
+      revisionPlan.clarification_questions,
+      revisionPlanAnswers,
+      generationPrompt,
+    );
+    setRevisionPlanAnswers(result.answers);
+    setGenerationPrompt("");
+    if (!result.answeredQuestionId) {
+      setMessage("Answer the revision clarification question before continuing.");
+      return;
+    }
+    if (!result.readyToSubmit) {
+      const nextQuestion = revisionPlan.clarification_questions.find(
+        (question) => question.id === result.nextQuestionId,
+      );
+      setMessage(nextQuestion ? `Answer recorded. ${nextQuestion.question}` : "Answer recorded.");
+      return;
+    }
+    await submitRevisionPlanClarificationAnswers(result.answers);
   }
 
   async function approveRevisionPlan() {
@@ -1213,6 +1284,14 @@ function App() {
   }
 
   function submitPrompt() {
+    if (hasRequirementClarificationPending) {
+      void submitRequirementClarificationFromChat();
+      return;
+    }
+    if (hasRevisionClarificationPending) {
+      void submitRevisionPlanClarificationFromChat();
+      return;
+    }
     if (canPlanRevisionFromCurrentContext) {
       void createRevisionPlanFromPrompt();
       return;
@@ -1225,7 +1304,7 @@ function App() {
       return;
     }
     event.preventDefault();
-    if (!isGenerating && !isPlanningRevision && generationPrompt.trim()) {
+    if (!isChatActionPending && generationPrompt.trim()) {
       submitPrompt();
     }
   }
@@ -1813,18 +1892,14 @@ function App() {
             }}>
               <textarea
                 aria-label="AI chat message"
-                placeholder="Message Gemini"
+                placeholder={chatPlaceholder}
                 rows={2}
                 value={generationPrompt}
                 onKeyDown={handlePromptKeyDown}
                 onChange={(event) => setGenerationPrompt(event.target.value)}
               />
-              <button className="secondary" disabled={isGenerating || isPlanningRevision || !canAskAi} type="submit">
-                {isGenerating || isPlanningRevision
-                  ? "Sending"
-                  : canPlanRevisionFromCurrentContext
-                    ? "Plan revision"
-                    : "Send"}
+              <button className="secondary" disabled={isChatActionPending || !canAskAi} type="submit">
+                {chatButtonLabel}
               </button>
             </form>
           </section>

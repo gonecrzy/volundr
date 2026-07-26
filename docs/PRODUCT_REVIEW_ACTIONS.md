@@ -4,7 +4,7 @@
 
 1. Keep the chat input scoped to the current project until the user starts a new project.
 2. Route follow-up messages to the current workflow state instead of treating every message as a new initial request.
-3. Show clarification, plan review, revision planning, and blocked-candidate recovery in the chat timeline.
+3. Expand chat-native recovery for plan clarification and unsupported/conflict states.
 4. Continue expanding typed recovery actions for blocking findings: source-contract blockers should regenerate or repair, geometry/mesh blockers should start scoped revision planning, build-volume blockers should first review the printer profile, and ambiguous intent blockers should ask clarification.
 5. Make uncompiled editor changes explicit before AI revision.
 

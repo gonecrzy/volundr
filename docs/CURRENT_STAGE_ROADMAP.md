@@ -175,6 +175,7 @@ Completed in this pass:
 - approved Design Plan printable outputs now compile into per-output STL artifacts through the selector contract in `docs/MULTI_OUTPUT_GENERATION.md`
 - the candidate review workflow now exposes assembly status, component output states, per-output downloads, SCAD download, manifest download, ZIP export, and safe retry for failed outputs
 - blocker review now uses typed recovery actions for the first common cases: build-volume findings can route the user to printer-profile review, and mesh/geometry blockers can prepare scoped revision prompts from the selected finding
+- requirement and revision-plan clarification can now be answered from the main chat input; each message fills the next unanswered clarification question and submits when the answer set is complete
 
 Next implementation boundary:
 
