@@ -5,7 +5,7 @@
 1. Keep the chat input scoped to the current project until the user starts a new project.
 2. Route follow-up messages to the current workflow state instead of treating every message as a new initial request.
 3. Show clarification, plan review, revision planning, and blocked-candidate recovery in the chat timeline.
-4. Give each blocking finding an action that starts revision planning, asks for clarification, changes configuration/profile, or regenerates from an approved plan.
+4. Continue expanding typed recovery actions for blocking findings: source-contract blockers should regenerate or repair, geometry/mesh blockers should start scoped revision planning, build-volume blockers should first review the printer profile, and ambiguous intent blockers should ask clarification.
 5. Make uncompiled editor changes explicit before AI revision.
 
 ## Should Fix Next
@@ -16,6 +16,7 @@
 4. Show revision design deltas: changed parameters, affected modules, validation delta, and parent revision.
 5. Add printer/profile selection before build-volume findings become blocking.
 6. Add guided prompts for common categories: plate, holder, box, bushing, adapter, handle.
+7. Persist the selected recovery action in project history when a user starts a revision from a blocker.
 
 ## Useful Later
 

@@ -8,6 +8,7 @@ import {
   acceptDisabledReason,
   canAcceptRevision,
   candidateFindingBuckets,
+  candidateFindingRecoveryActions,
   geometricFindingBuckets,
   revisionViewerLabel,
   revisionWorkflowLabel,
@@ -18,6 +19,7 @@ import {
   canRetryOutput,
   sourceCheckSummary,
   type CandidateFinding,
+  type CandidateFindingRecoveryActionKind,
   type GeometricAnalysis,
   type GeometricFinding,
   type ReviewState,
@@ -507,6 +509,7 @@ function App() {
     () => new Set(),
   );
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
+  const printabilitySectionRef = useRef<HTMLDivElement | null>(null);
 
   const selectedOutput =
     revisionOutputs.find((output) => output.id === selectedOutputId) ?? revisionOutputs[0] ?? null;
@@ -1518,6 +1521,22 @@ function App() {
     }
   }
 
+  function handleCandidateFindingRecovery(
+    finding: CandidateFinding,
+    actionKind: CandidateFindingRecoveryActionKind,
+  ) {
+    if (actionKind === "profile") {
+      printabilitySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setMessage(
+        "Review the printer build volume/profile. If the profile is correct, revise the model or split outputs.",
+      );
+      return;
+    }
+    setGenerationPrompt(revisionPromptFromCandidateFinding(finding));
+    setPendingRevisionFindingIds([finding.id]);
+    setMessage("Revision prompt prepared from validation finding");
+  }
+
   async function retryOutput(output: RevisionOutput) {
     setIsRetryingOutputId(output.id);
     setMessage(null);
@@ -1926,11 +1945,7 @@ function App() {
             onRetryOutput={(output) => void retryOutput(output)}
             onReject={() => void rejectSelectedCandidate()}
             onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
-            onReviseFromFinding={(finding) => {
-              setGenerationPrompt(revisionPromptFromCandidateFinding(finding));
-              setPendingRevisionFindingIds([finding.id]);
-              setMessage("Revision prompt prepared from validation finding");
-            }}
+            onRecoverFinding={handleCandidateFindingRecovery}
             onReviseFromGeometricFinding={(finding) => {
               setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
               setPendingRevisionFindingIds(
@@ -1967,25 +1982,27 @@ function App() {
             onPreview={() => void previewConfiguration()}
           />
 
-          <h2>Metadata</h2>
-          <Metadata metadata={activeMetadata} />
-          <PrintabilityInspector
-            canInspect={Boolean(selectedRevision?.is_accepted)}
-            dismissedRuleIds={dismissedPrintabilityResults}
-            isInspecting={isInspectingPrintability}
-            isSavingProfile={isSavingPrintabilityProfile}
-            profile={printabilityProfile}
-            report={printabilityReport}
-            savedProfiles={savedPrintabilityProfiles}
-            selectedProfileId={selectedPrintabilityProfileId}
-            onDeleteProfile={() => void deletePrintabilityProfile()}
-            onDismiss={dismissPrintabilityResult}
-            onInspect={() => void inspectSelectedRevisionPrintability()}
-            onNewProfile={startNewPrintabilityProfile}
-            onProfileChange={updatePrintabilityProfile}
-            onProfileSelect={selectPrintabilityProfile}
-            onSaveProfile={() => void savePrintabilityProfile()}
-          />
+          <div ref={printabilitySectionRef}>
+            <h2>Metadata</h2>
+            <Metadata metadata={activeMetadata} />
+            <PrintabilityInspector
+              canInspect={Boolean(selectedRevision?.is_accepted)}
+              dismissedRuleIds={dismissedPrintabilityResults}
+              isInspecting={isInspectingPrintability}
+              isSavingProfile={isSavingPrintabilityProfile}
+              profile={printabilityProfile}
+              report={printabilityReport}
+              savedProfiles={savedPrintabilityProfiles}
+              selectedProfileId={selectedPrintabilityProfileId}
+              onDeleteProfile={() => void deletePrintabilityProfile()}
+              onDismiss={dismissPrintabilityResult}
+              onInspect={() => void inspectSelectedRevisionPrintability()}
+              onNewProfile={startNewPrintabilityProfile}
+              onProfileChange={updatePrintabilityProfile}
+              onProfileSelect={selectPrintabilityProfile}
+              onSaveProfile={() => void savePrintabilityProfile()}
+            />
+          </div>
           <ParameterControls
             parameters={sourceParameters}
             onChange={(parameter, value) => setSource(updateSourceParameter(source, parameter, value))}
@@ -2639,7 +2656,7 @@ function CandidateReview({
   onRetryOutput,
   onReject,
   onSelectOutput,
-  onReviseFromFinding,
+  onRecoverFinding,
   onReviseFromGeometricFinding,
   retryingOutputId,
 }: {
@@ -2659,7 +2676,10 @@ function CandidateReview({
   onRetryOutput: (output: RevisionOutput) => void;
   onReject: () => void;
   onSelectOutput: (outputId: string) => void;
-  onReviseFromFinding: (finding: CandidateFinding) => void;
+  onRecoverFinding: (
+    finding: CandidateFinding,
+    actionKind: CandidateFindingRecoveryActionKind,
+  ) => void;
   onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
   retryingOutputId: string | null;
 }) {
@@ -2726,7 +2746,7 @@ function CandidateReview({
         <FindingGroup
           findings={buckets.blocking}
           title="Blocking findings"
-          onReviseFromFinding={onReviseFromFinding}
+          onRecoverFinding={onRecoverFinding}
         />
       ) : null}
       {buckets.advisory.length > 0 ? (
@@ -3019,12 +3039,15 @@ function FindingGroup({
   findings,
   title,
   onDismissFinding,
-  onReviseFromFinding,
+  onRecoverFinding,
 }: {
   findings: CandidateFinding[];
   title: string;
   onDismissFinding?: (findingId: string) => void;
-  onReviseFromFinding?: (finding: CandidateFinding) => void;
+  onRecoverFinding?: (
+    finding: CandidateFinding,
+    actionKind: CandidateFindingRecoveryActionKind,
+  ) => void;
 }) {
   return (
     <div className="candidate-findings">
@@ -3037,11 +3060,18 @@ function FindingGroup({
           </div>
           <p>{finding.explanation}</p>
           <p className="correction">{finding.suggested_correction}</p>
-          {onReviseFromFinding ? (
-            <button className="text-action" onClick={() => onReviseFromFinding(finding)}>
-              Revise from finding
-            </button>
-          ) : null}
+          {onRecoverFinding
+            ? candidateFindingRecoveryActions(finding).map((action) => (
+                <button
+                  className="text-action"
+                  key={`${finding.id}-${action.kind}`}
+                  title={action.description}
+                  onClick={() => onRecoverFinding(finding, action.kind)}
+                >
+                  {action.label}
+                </button>
+              ))
+            : null}
           {onDismissFinding && finding.finding_state !== "dismissed" ? (
             <button className="text-action" onClick={() => onDismissFinding(finding.id)}>
               Dismiss

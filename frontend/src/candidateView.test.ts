@@ -3,6 +3,7 @@ import {
   acceptDisabledReason,
   canAcceptRevision,
   candidateFindingBuckets,
+  candidateFindingRecoveryActions,
   revisionViewerLabel,
   revisionWorkflowLabel,
   sourceCheckFindings,
@@ -250,6 +251,49 @@ describe("candidate view helpers", () => {
     expect(prompt).toContain("The handle is a loose component.");
     expect(prompt).toContain("Join the handle to the body");
     expect(prompt).toContain("Preserve unrelated");
+  });
+
+  it("offers profile and revision recovery for build-volume blockers", () => {
+    const actions = candidateFindingRecoveryActions(
+      finding({
+        id: "volume-1",
+        category: "profile",
+        rule_id: "profile.build_volume",
+        is_blocking: true,
+        severity: "critical",
+      }),
+    );
+
+    expect(actions.map((action) => action.kind)).toEqual(["profile", "revise"]);
+    expect(actions[0].label).toBe("Review printer profile");
+    expect(actions[1].label).toBe("Revise model");
+  });
+
+  it("offers targeted revision for mesh and geometry blockers", () => {
+    expect(
+      candidateFindingRecoveryActions(
+        finding({
+          category: "mesh",
+          rule_id: "mesh.disconnected_components",
+          is_blocking: true,
+          severity: "critical",
+        }),
+      ).map((action) => action.kind),
+    ).toEqual(["revise"]);
+    expect(
+      candidateFindingRecoveryActions(
+        finding({
+          category: "geometry",
+          rule_id: "geometry.build_plate_min_z",
+          is_blocking: true,
+          severity: "critical",
+        }),
+      ).map((action) => action.kind),
+    ).toEqual(["revise"]);
+  });
+
+  it("does not offer recovery actions for advisory findings", () => {
+    expect(candidateFindingRecoveryActions(finding({ is_blocking: false }))).toEqual([]);
   });
 
   it("labels output states and dimensions", () => {

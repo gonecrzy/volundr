@@ -77,6 +77,14 @@ export type CandidateFinding = {
   finding_state: string;
 };
 
+export type CandidateFindingRecoveryActionKind = "profile" | "revise";
+
+export type CandidateFindingRecoveryAction = {
+  kind: CandidateFindingRecoveryActionKind;
+  label: string;
+  description: string;
+};
+
 export type GeometricVerificationState =
   | "verified"
   | "violated"
@@ -306,6 +314,28 @@ export function revisionPromptFromCandidateFinding(finding: CandidateFinding): s
   ]
     .filter((line): line is string => Boolean(line))
     .join("\n");
+}
+
+export function candidateFindingRecoveryActions(
+  finding: CandidateFinding,
+): CandidateFindingRecoveryAction[] {
+  if (!finding.is_blocking) {
+    return [];
+  }
+  const actions: CandidateFindingRecoveryAction[] = [];
+  if (finding.rule_id === "profile.build_volume" || finding.category === "profile") {
+    actions.push({
+      kind: "profile",
+      label: "Review printer profile",
+      description: "Check whether the selected printer build volume is correct before redesigning.",
+    });
+  }
+  actions.push({
+    kind: "revise",
+    label: "Revise model",
+    description: "Create a scoped revision prompt from this blocking finding.",
+  });
+  return actions;
 }
 
 function formatMaybeValue(value: number | string | null, unit: string | null): string {
