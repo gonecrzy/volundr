@@ -59,6 +59,7 @@ describe("design plan view helpers", () => {
     expect(canGenerateFromDesignPlan(plan({ review_state: "pending_review" }))).toBe(false);
     expect(canApproveDesignPlan(plan({ review_state: "approved" }))).toBe(false);
     expect(canGenerateFromDesignPlan(plan({ review_state: "approved" }))).toBe(true);
+    expect(canGenerateFromDesignPlan(plan({ review_state: "approved", generated_revision_id: "rev-1" }))).toBe(false);
   });
 
   it("summarizes generic product model sections", () => {

@@ -11,6 +11,7 @@ import {
   geometricFindingBuckets,
   revisionViewerLabel,
   revisionWorkflowLabel,
+  revisionPromptFromCandidateFinding,
   revisionPromptFromGeometricFinding,
   outputDimensionsLabel,
   outputStateLabel,
@@ -544,7 +545,13 @@ function App() {
   const canGenerateFromCurrentDesignPlan =
     canGenerateFromDesignPlan(designPlan) && !isDesignPlanActionPending && !isContinuingGeneration;
   const currentRevisionPlanStage = revisionPlanStageLabel(revisionPlan);
-  const hasAcceptedBaseRevision = Boolean(project?.active_revision_id);
+  const selectedRevisionCanPlan = Boolean(
+    selectedRevision?.status === "succeeded" && selectedRevision.design_plan_id,
+  );
+  const canPlanRevisionFromCurrentContext = Boolean(
+    project &&
+      (selectedRevisionCanPlan || project.active_revision_id),
+  );
   const canApproveCurrentRevisionPlan =
     canApproveRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
   const canGenerateFromCurrentRevisionPlan =
@@ -961,10 +968,10 @@ function App() {
         method: "POST",
       });
       setDesignPlan(approved);
-      setMessage("Plan approved");
       if (project) {
         await loadProjectMessages(project.id);
       }
+      await continueGenerationFromDesignPlan(approved);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Design Plan approval failed");
     } finally {
@@ -994,12 +1001,13 @@ function App() {
     }
   }
 
-  async function continueGenerationFromDesignPlan() {
+  async function continueGenerationFromDesignPlan(planOverride?: DesignPlan) {
     if (!project) {
       setMessage("Save or create a project before generation");
       return;
     }
-    if (!designPlan || !canGenerateFromDesignPlan(designPlan)) {
+    const planToGenerate = planOverride ?? designPlan;
+    if (!planToGenerate || !canGenerateFromDesignPlan(planToGenerate)) {
       setMessage("Design Plan must be approved before generation");
       return;
     }
@@ -1007,7 +1015,7 @@ function App() {
     setSourceContractError(null);
     setMessage("Generating model");
     try {
-      const revision = await request<Revision>(`/design-plans/${designPlan.id}/generate`, {
+      const revision = await request<Revision>(`/design-plans/${planToGenerate.id}/generate`, {
         method: "POST",
       });
       const nextRevisions = await request<Revision[]>(`/projects/${project.id}/revisions`, {
@@ -1042,7 +1050,9 @@ function App() {
       setMessage("Open a project and enter a revision request");
       return;
     }
-    const baseRevisionId = project.active_revision_id ?? selectedRevision?.id ?? null;
+    const baseRevisionId = selectedRevisionCanPlan
+      ? selectedRevision?.id ?? null
+      : project.active_revision_id;
     if (!baseRevisionId) {
       setMessage("Accept a base revision before planning a revision");
       return;
@@ -1200,7 +1210,7 @@ function App() {
   }
 
   function submitPrompt() {
-    if (hasAcceptedBaseRevision && project?.active_revision_id) {
+    if (canPlanRevisionFromCurrentContext) {
       void createRevisionPlanFromPrompt();
       return;
     }
@@ -1769,6 +1779,13 @@ function App() {
           <section className="prompt-dock" aria-label="Prompt chat">
             <div className="chat-log">
               <MessageList messages={projectMessages} compact />
+              <WorkflowChatCards
+                designPlan={designPlan}
+                designSpecification={designSpecification}
+                revision={selectedRevision}
+                revisionPlan={revisionPlan}
+                findings={candidateFindings}
+              />
               {message ? <p className="message">{message}</p> : null}
             </div>
             <form className="prompt-row" onSubmit={(event) => {
@@ -1786,7 +1803,7 @@ function App() {
               <button className="secondary" disabled={isGenerating || isPlanningRevision || !canAskAi} type="submit">
                 {isGenerating || isPlanningRevision
                   ? "Sending"
-                  : hasAcceptedBaseRevision
+                  : canPlanRevisionFromCurrentContext
                     ? "Plan revision"
                     : "Send"}
               </button>
@@ -1831,6 +1848,7 @@ function App() {
             <DesignSpecificationReview
               answers={clarificationAnswers}
               canContinue={canContinueFromSpecification}
+              hasDesignPlan={Boolean(designPlan)}
               isContinuing={isCreatingDesignPlan}
               isSubmittingAnswers={isSubmittingClarification}
               specification={designSpecification}
@@ -1908,6 +1926,11 @@ function App() {
             onRetryOutput={(output) => void retryOutput(output)}
             onReject={() => void rejectSelectedCandidate()}
             onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
+            onReviseFromFinding={(finding) => {
+              setGenerationPrompt(revisionPromptFromCandidateFinding(finding));
+              setPendingRevisionFindingIds([finding.id]);
+              setMessage("Revision prompt prepared from validation finding");
+            }}
             onReviseFromGeometricFinding={(finding) => {
               setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
               setPendingRevisionFindingIds(
@@ -2002,6 +2025,7 @@ function App() {
 function DesignSpecificationReview({
   answers,
   canContinue,
+  hasDesignPlan,
   isContinuing,
   isSubmittingAnswers,
   specification,
@@ -2012,6 +2036,7 @@ function DesignSpecificationReview({
 }: {
   answers: Record<string, string>;
   canContinue: boolean;
+  hasDesignPlan: boolean;
   isContinuing: boolean;
   isSubmittingAnswers: boolean;
   specification: DesignSpecification | null;
@@ -2086,11 +2111,15 @@ function DesignSpecificationReview({
           />
           <SummaryList title="Defaults" items={buckets.defaults} />
           <SummaryList title="AI assumptions" items={buckets.aiAssumptions} />
-          <div className="actions">
-            <button className="primary" disabled={!canContinue} onClick={onContinue}>
-              {isContinuing ? "Planning" : "Create Design Plan"}
-            </button>
-          </div>
+          {hasDesignPlan ? (
+            <p className="empty">Design Plan created. Review it below.</p>
+          ) : (
+            <div className="actions">
+              <button className="primary" disabled={!canContinue} onClick={onContinue}>
+                {isContinuing ? "Planning" : "Create Design Plan"}
+              </button>
+            </div>
+          )}
         </>
       ) : null}
 
@@ -2228,11 +2257,13 @@ function DesignPlanReview({
           Reject
         </button>
         <button className="primary" disabled={!canApprove} onClick={onApprove}>
-          {isActionPending ? "Approving" : "Approve plan"}
+          {isActionPending || isGenerating ? "Starting" : "Approve and generate"}
         </button>
-        <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-          {isGenerating ? "Generating" : "Continue to generation"}
-        </button>
+        {plan.review_state === "approved" ? (
+          <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
+            {isGenerating ? "Generating" : "Generate candidate"}
+          </button>
+        ) : null}
       </div>
     </section>
   );
@@ -2608,6 +2639,7 @@ function CandidateReview({
   onRetryOutput,
   onReject,
   onSelectOutput,
+  onReviseFromFinding,
   onReviseFromGeometricFinding,
   retryingOutputId,
 }: {
@@ -2627,6 +2659,7 @@ function CandidateReview({
   onRetryOutput: (output: RevisionOutput) => void;
   onReject: () => void;
   onSelectOutput: (outputId: string) => void;
+  onReviseFromFinding: (finding: CandidateFinding) => void;
   onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
   retryingOutputId: string | null;
 }) {
@@ -2690,7 +2723,11 @@ function CandidateReview({
         onReviseFromFinding={onReviseFromGeometricFinding}
       />
       {buckets.blocking.length > 0 ? (
-        <FindingGroup findings={buckets.blocking} title="Blocking findings" />
+        <FindingGroup
+          findings={buckets.blocking}
+          title="Blocking findings"
+          onReviseFromFinding={onReviseFromFinding}
+        />
       ) : null}
       {buckets.advisory.length > 0 ? (
         <FindingGroup
@@ -2982,10 +3019,12 @@ function FindingGroup({
   findings,
   title,
   onDismissFinding,
+  onReviseFromFinding,
 }: {
   findings: CandidateFinding[];
   title: string;
   onDismissFinding?: (findingId: string) => void;
+  onReviseFromFinding?: (finding: CandidateFinding) => void;
 }) {
   return (
     <div className="candidate-findings">
@@ -2998,6 +3037,11 @@ function FindingGroup({
           </div>
           <p>{finding.explanation}</p>
           <p className="correction">{finding.suggested_correction}</p>
+          {onReviseFromFinding ? (
+            <button className="text-action" onClick={() => onReviseFromFinding(finding)}>
+              Revise from finding
+            </button>
+          ) : null}
           {onDismissFinding && finding.finding_state !== "dismissed" ? (
             <button className="text-action" onClick={() => onDismissFinding(finding.id)}>
               Dismiss
@@ -3275,6 +3319,88 @@ function MessageList({ compact = false, messages }: { compact?: boolean; message
           <p>{message.content}</p>
         </div>
       ))}
+    </div>
+  );
+}
+
+function WorkflowChatCards({
+  designPlan,
+  designSpecification,
+  findings,
+  revision,
+  revisionPlan,
+}: {
+  designPlan: DesignPlan | null;
+  designSpecification: DesignSpecification | null;
+  findings: CandidateFinding[];
+  revision: Revision | null;
+  revisionPlan: RevisionPlan | null;
+}) {
+  const blockingFindings = findings.filter((finding) => finding.is_blocking);
+  if (revisionPlan?.review_state === "clarification_required") {
+    return (
+      <ChatStageCard
+        title="Revision clarification"
+        body={revisionPlan.clarification_questions.map((question) => question.question).join(" ")}
+      />
+    );
+  }
+  if (revisionPlan?.review_state === "pending_review") {
+    return (
+      <ChatStageCard
+        title="Revision plan ready"
+        body="Review the scoped change, then approve it to generate a revised candidate."
+      />
+    );
+  }
+  if (revision?.review_state === "blocked" && blockingFindings.length > 0) {
+    return (
+      <ChatStageCard
+        title="Candidate blocked"
+        body={`${blockingFindings.length} blocking ${blockingFindings.length === 1 ? "finding needs" : "findings need"} a revision or clarification before acceptance.`}
+      />
+    );
+  }
+  if (designPlan?.review_state === "pending_review") {
+    return (
+      <ChatStageCard
+        title="Design Plan ready"
+        body="Review the product plan. Approving it will start model generation."
+      />
+    );
+  }
+  if (designPlan?.review_state === "clarification_required") {
+    return (
+      <ChatStageCard
+        title="Plan clarification"
+        body={(designPlan.plan.clarification_questions ?? []).map((question) => question.question ?? "").join(" ")}
+      />
+    );
+  }
+  if (designSpecification?.outcome === "clarification_required") {
+    return (
+      <ChatStageCard
+        title="Clarification needed"
+        body={designSpecification.clarification_questions.map((question) => question.question).join(" ")}
+      />
+    );
+  }
+  if (designSpecification?.outcome === "generation_ready" && !designPlan) {
+    return (
+      <ChatStageCard
+        title="Requirements ready"
+        body="Create a Design Plan to turn these requirements into components, parameters, and printable outputs."
+      />
+    );
+  }
+  return null;
+}
+
+function ChatStageCard({ body, title }: { body: string; title: string }) {
+  return (
+    <div className="chat-stage-card">
+      <span>{title}</span>
+      <p>{body}</p>
     </div>
   );
 }

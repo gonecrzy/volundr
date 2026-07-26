@@ -9,6 +9,7 @@ import {
   sourceCheckSummary,
   geometricFindingBuckets,
   revisionPromptFromGeometricFinding,
+  revisionPromptFromCandidateFinding,
   outputDimensionsLabel,
   outputStateLabel,
   canRetryOutput,
@@ -228,6 +229,27 @@ describe("candidate view helpers", () => {
     expect(prompt).toContain("geometry.protected_hole_spacing");
     expect(prompt).toContain("expected 50");
     expect(prompt).toContain("detected 60");
+  });
+
+  it("builds revision prompt context from candidate blocker", () => {
+    const prompt = revisionPromptFromCandidateFinding(
+      finding({
+        id: "blocker-1",
+        rule_id: "mesh.disconnected_components",
+        is_blocking: true,
+        severity: "critical",
+        title: "Disconnected components",
+        explanation: "The handle is a loose component.",
+        suggested_correction: "Join the handle to the body or make it a declared separate output.",
+        detected_value: "2",
+      }),
+    );
+
+    expect(prompt).toContain("blocker-1");
+    expect(prompt).toContain("mesh.disconnected_components");
+    expect(prompt).toContain("The handle is a loose component.");
+    expect(prompt).toContain("Join the handle to the body");
+    expect(prompt).toContain("Preserve unrelated");
   });
 
   it("labels output states and dimensions", () => {

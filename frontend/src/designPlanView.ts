@@ -9,6 +9,7 @@ export type DesignPlanSummary = {
   review_state: DesignPlanReviewState;
   plan_ready: boolean;
   clarification_required: boolean;
+  generated_revision_id?: string | null;
   plan: {
     purpose?: string;
     design_level?: string;
@@ -84,7 +85,7 @@ export function canApproveDesignPlan(plan: DesignPlanSummary | null): boolean {
 }
 
 export function canGenerateFromDesignPlan(plan: DesignPlanSummary | null): boolean {
-  return plan?.review_state === "approved" && plan.plan_ready;
+  return plan?.review_state === "approved" && plan.plan_ready && !plan.generated_revision_id;
 }
 
 export function designPlanSummaryCounts(plan: DesignPlanSummary | null): {

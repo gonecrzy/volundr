@@ -293,6 +293,21 @@ export function revisionPromptFromGeometricFinding(finding: GeometricFinding): s
     .join("\n");
 }
 
+export function revisionPromptFromCandidateFinding(finding: CandidateFinding): string {
+  return [
+    `Revise the current candidate to resolve validation finding ${finding.id}.`,
+    `Rule: ${finding.rule_id}.`,
+    `Title: ${finding.title}.`,
+    finding.explanation,
+    finding.detected_value ? `Detected: ${finding.detected_value}.` : null,
+    finding.threshold_value ? `Expected or threshold: ${finding.threshold_value}.` : null,
+    finding.suggested_correction,
+    "Preserve unrelated protected requirements, dimensions, markers, modules, outputs, and accepted design intent.",
+  ]
+    .filter((line): line is string => Boolean(line))
+    .join("\n");
+}
+
 function formatMaybeValue(value: number | string | null, unit: string | null): string {
   if (value === null || value === undefined || value === "") {
     return "unverified";

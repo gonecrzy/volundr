@@ -169,7 +169,7 @@ Completed in this pass:
 - immutable `design-plan-v1` records are persisted and linked to ready Design Specifications and planning generation attempts
 - Design Plans capture product parameters, derived parameters, dependency edges, components, component features, presets, assembly strategy, printable outputs, risks, and design level
 - plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
-- the frontend now creates a Design Plan from ready requirements, presents it for review, requires explicit approval, and generates OpenSCAD from the approved plan
+- the frontend now creates a Design Plan from ready requirements, presents it for review, and starts OpenSCAD generation when the user approves the plan
 - `openscad-generation-v5` uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
 - source metadata now recognizes `@volundr-component`, `@volundr-dependency`, and `@volundr-output` markers in addition to requirement, feature, and geometry markers
 - approved Design Plan printable outputs now compile into per-output STL artifacts through the selector contract in `docs/MULTI_OUTPUT_GENERATION.md`
@@ -181,7 +181,7 @@ Structured revision planning pass:
 
 - `revision-planning-v1` now creates immutable scoped plans from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
 - revision-plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
-- revision source generation uses the approved Revision Plan only after explicit plan approval
+- revision source generation uses the approved Revision Plan only after explicit plan approval; future UX should mirror Design Plan approve-and-run where the plan has no unresolved clarification
 - revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, and output changes before compile
 - success criteria are persisted as Revision Success Results after candidate generation
 

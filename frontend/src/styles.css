@@ -813,6 +813,29 @@ textarea {
   background: #f1f4f1;
 }
 
+.chat-stage-card {
+  background: #ffffff;
+  border: 1px solid #cfd6cf;
+  border-left: 4px solid #2b6370;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.chat-stage-card span {
+  color: #275b66;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.chat-stage-card p {
+  color: #38423c;
+  font-size: 0.86rem;
+  margin: 0;
+}
+
 .project-message span {
   color: #647068;
   display: block;

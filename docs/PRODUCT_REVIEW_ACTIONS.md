@@ -2,18 +2,16 @@
 
 ## Must Fix Now
 
-1. Add a generation-run state separate from revision status.
-2. Add a clarification path before SCAD generation.
-3. Stop presenting compile success as final design acceptance for AI generations.
-4. Preserve provider failures as generation attempts.
-5. Show assumptions and critical parameters outside raw AI output.
-6. Make uncompiled editor changes explicit before AI revision.
-7. Split user-visible failures into provider, extraction, compile, mesh, validation, and clarification categories.
+1. Keep the chat input scoped to the current project until the user starts a new project.
+2. Route follow-up messages to the current workflow state instead of treating every message as a new initial request.
+3. Show clarification, plan review, revision planning, and blocked-candidate recovery in the chat timeline.
+4. Give each blocking finding an action that starts revision planning, asks for clarification, changes configuration/profile, or regenerates from an approved plan.
+5. Make uncompiled editor changes explicit before AI revision.
 
 ## Should Fix Next
 
-1. Show a pipeline timeline: Requirements, Plan, Generate, Compile, Validate, Review.
-2. Add candidate revision review before replacing the active AI revision.
+1. Show a compact pipeline timeline: Requirements, Plan, Generate, Compile, Validate, Review.
+2. Apply the approve-and-run pattern to Revision Plans after verifying the same recovery semantics.
 3. Display validation as Blocking, Warnings, and Notices.
 4. Show revision design deltas: changed parameters, affected modules, validation delta, and parent revision.
 5. Add printer/profile selection before build-volume findings become blocking.
@@ -35,4 +33,3 @@
 4. Public sharing, galleries, or collaboration.
 5. Marketplace features.
 6. STEP/CadQuery/build123d provider migration.
-
