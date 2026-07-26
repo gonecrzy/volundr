@@ -70,14 +70,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=("dry-run", "gemini"),
+        choices=("dry-run", "gemini", "ollama"),
         default="dry-run",
         help="Provider mode. dry-run writes artifacts without provider calls.",
     )
     parser.add_argument(
         "--allow-live",
         action="store_true",
-        help="Required with --provider gemini to permit Gemini CLI calls.",
+        help="Required with --provider gemini to permit Gemini CLI calls. Ollama is local and does not require this flag.",
     )
     parser.add_argument(
         "--baseline-manifest",

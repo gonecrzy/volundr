@@ -15,7 +15,7 @@ The harness answers which area most limits successful generated products:
 - revision preservation
 - UX
 
-It complements deterministic benchmark fixtures. Deterministic tests prove the pipeline is wired correctly; live evaluations measure whether Gemini produces useful functional products.
+It complements deterministic benchmark fixtures. Deterministic tests prove the pipeline is wired correctly; live evaluations measure whether the selected provider produces useful functional products.
 
 ## Runner
 
@@ -31,7 +31,18 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --max-runs 10
 ```
 
-Dry-run mode is the default and never calls Gemini. A live Gemini run requires both:
+Dry-run mode is the default and never calls a model. During development, use the local Ollama provider:
+
+```bash
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label ollama-core \
+  --provider ollama \
+  --max-runs 10
+```
+
+Ollama uses the configured `VOLUNDR_OLLAMA_BASE_URL` and `VOLUNDR_OLLAMA_MODEL` and does not require `--allow-live` because it has no external quota cost. A live Gemini run requires both:
 
 ```bash
 --provider gemini --allow-live
@@ -47,7 +58,7 @@ Every run validates:
 - runs per case
 - total run cap
 - estimated prompt-token cap
-- live-provider opt-in
+- live-provider opt-in for Gemini
 - optional estimated cost cap when the caller supplies a token price
 
 The runner fails before any provider call when a quota limit is exceeded.
@@ -84,7 +95,7 @@ Provider raw output files exist only for live provider runs. Dry runs still coll
 - selected benchmark IDs
 - provider mode and non-secret provider settings
 - prompt-template versions
-- Gemini ruleset version
+- ruleset version
 - quota controls
 - per-case artifact paths
 - failure class

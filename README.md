@@ -96,9 +96,10 @@ VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
 
 The API container and local database must be on the current migration head. A stale runtime can continue using the legacy one-step Gemini prompt and bypass the staged Design Specification, Design Plan, source-contract, candidate, and validation gates.
 
-The frontend includes the Stage 2 manual CAD workspace and Stage 3 Gemini
-generation path. Live generation requires Gemini CLI authentication in the API
-container profile or a `GEMINI_API_KEY` in `.env`.
+The frontend includes the Stage 2 manual CAD workspace and staged AI generation
+path. Development defaults to a local Ollama provider at
+`http://10.1.20.25:11434` using `qwen3.5:9b`. Gemini remains available as an
+explicit provider switch.
 
 If a project has an active revision, the Generate action sends that revision's
 OpenSCAD source as context and stores the result as a follow-up AI revision.
@@ -112,7 +113,32 @@ projects are hidden from the default project list.
 Project activity is captured as a per-project message ledger for the original
 intent, revision instructions, and system events.
 
-## Gemini CLI Setup
+## AI Provider Setup
+
+Volundr selects the AI backend with:
+
+```bash
+VOLUNDR_AI_PROVIDER=ollama
+```
+
+The development default is Ollama:
+
+```bash
+VOLUNDR_OLLAMA_BASE_URL=http://10.1.20.25:11434
+VOLUNDR_OLLAMA_MODEL=qwen3.5:9b
+VOLUNDR_OLLAMA_TIMEOUT_SECONDS=300
+```
+
+Make sure the model is available on the Ollama host:
+
+```bash
+ollama pull qwen3.5:9b
+```
+
+Generation attempts record `provider=ollama`, the model, endpoint, timeout, and
+`auth_mode=local_ollama`; no API keys are stored.
+
+### Gemini CLI Setup
 
 The API service is the only service that mounts Gemini credentials:
 
@@ -126,6 +152,7 @@ button, or use API-key based auth.
 For API-key based auth, set:
 
 ```bash
+VOLUNDR_AI_PROVIDER=gemini_cli
 GEMINI_API_KEY=<your key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
 ```

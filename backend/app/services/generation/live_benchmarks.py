@@ -21,6 +21,7 @@ from app.services.ai.gemini_cli import (
     STRUCTURED_REVISION_PROMPT_VERSION,
     GeminiCliProvider,
 )
+from app.services.ai.ollama import OllamaProvider
 from app.services.ai.provider import RequirementExtractionRequest
 from app.services.generation.benchmarks import BenchmarkSuite, GenerationBenchmark, load_benchmark_suite
 from app.services.generation.failure_taxonomy import FailureClass
@@ -124,7 +125,8 @@ class LiveBenchmarkRunner:
             "provider": {
                 "mode": config.provider,
                 "settings": provider.provider_settings(),
-                "live_provider_calls_enabled": config.provider == "gemini" and config.allow_live,
+                "live_provider_calls_enabled": config.provider == "ollama"
+                or (config.provider == "gemini" and config.allow_live),
             },
             "prompt_versions": prompt_versions,
             "ruleset_version": GEMINI_RULESET_VERSION,
@@ -250,8 +252,10 @@ class LiveBenchmarkRunner:
         return benchmarks
 
     def _provider_for(self, config: LiveBenchmarkConfig) -> GeminiCliProvider:
-        if config.provider not in {"dry-run", "gemini"}:
-            raise ValueError("provider must be dry-run or gemini")
+        if config.provider not in {"dry-run", "gemini", "ollama"}:
+            raise ValueError("provider must be dry-run, gemini, or ollama")
+        if config.provider == "ollama":
+            return OllamaProvider()
         return GeminiCliProvider()
 
     def _validate_quota(

@@ -100,6 +100,56 @@ def test_live_benchmark_quota_controls_reject_unapproved_live_provider(
         )
 
 
+def test_live_benchmark_quota_controls_allow_unapproved_local_ollama(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "qwen3.5:9b", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="qwen3.5:9b",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            allow_live=False,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+
+    assert manifest["provider"]["mode"] == "ollama"
+    assert manifest["provider"]["live_provider_calls_enabled"] is True
+    assert manifest["case_runs"][0]["status"] == "provider_output_collected"
+
+
 def test_live_benchmark_quota_controls_reject_excessive_run_count(
     tmp_path: Path,
 ) -> None:

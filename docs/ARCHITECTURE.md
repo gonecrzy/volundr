@@ -212,20 +212,23 @@ The request should include:
 - mesh metadata, when available
 - generation contract version
 
-Initial implementation:
+Implemented providers:
 
 ```text
 GeminiCliProvider
+OllamaProvider
 ```
 
 Potential later implementations:
 
 ```text
-OllamaProvider
 GeminiApiProvider
 OpenAIProvider
 AnthropicProvider
 ```
+
+Development defaults to `OllamaProvider` via `VOLUNDR_AI_PROVIDER=ollama`.
+Gemini CLI remains available with `VOLUNDR_AI_PROVIDER=gemini_cli`.
 
 ### CAD runner
 
