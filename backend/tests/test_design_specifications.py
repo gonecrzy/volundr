@@ -1,9 +1,12 @@
+import asyncio
+import concurrent.futures
 import json
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -234,6 +237,18 @@ main_model();
         )
 
 
+class CancelledRequirementProvider(StagedAiProvider):
+    def __init__(self) -> None:
+        super().__init__()
+
+    async def extract_requirements(
+        self,
+        request: RequirementExtractionRequest,
+    ) -> RequirementExtractionResult:
+        self.requirement_requests.append(request)
+        raise asyncio.CancelledError
+
+
 class FakeCadRunner:
     async def compile(self, source: str, job_id: str) -> CadCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-design-spec-jobs" / job_id
@@ -347,6 +362,25 @@ def test_complete_request_creates_requirements_ready_specification(tmp_path: Pat
     run_dir = tmp_path / "data" / "projects" / project["id"] / "generation-runs" / attempt.id
     assert json.loads((run_dir / "parsed-design-spec.json").read_text(encoding="utf-8"))["outcome"] == "generation_ready"
     assert (run_dir / "raw-output.txt").exists()
+
+
+def test_cancelled_requirement_extraction_marks_attempt_failed(tmp_path: Path) -> None:
+    provider = CancelledRequirementProvider()
+    client, SessionLocal = build_client(tmp_path, provider)
+    project = create_project(client)
+
+    with pytest.raises((asyncio.CancelledError, concurrent.futures.CancelledError)):
+        client.post(
+            f"/api/projects/{project['id']}/requirements",
+            json={"user_instruction": "Create a tackle tray carrier."},
+        )
+
+    with SessionLocal() as session:
+        attempts = list(session.scalars(select(GenerationAttempt)))
+        assert len(attempts) == 1
+        assert attempts[0].status == "failed"
+        assert attempts[0].failure_class == "provider_timeout"
+        assert "cancelled" in (attempts[0].error_message or "")
 
 
 def test_clarification_required_persists_questions_and_creates_no_candidate(tmp_path: Path) -> None:

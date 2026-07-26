@@ -1,5 +1,8 @@
 import asyncio
+import contextlib
 import json
+import os
+import signal
 from typing import Any
 
 from app.core.config import settings
@@ -43,29 +46,10 @@ class GeminiCliProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         prompt = self.build_prompt(request)
-        command = self.build_command(prompt)
-
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=self.timeout_seconds,
-            )
-        except TimeoutError as exc:
-            process.kill()
-            await process.communicate()
-            raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
-
-        if process.returncode != 0:
-            diagnostic = stderr.decode("utf-8", errors="replace").strip()
-            raise RuntimeError(diagnostic or "Gemini CLI failed")
+        raw_output = await self._run_prompt(prompt)
 
         return ModelGenerationResult(
-            raw_output=stdout.decode("utf-8", errors="replace"),
+            raw_output=raw_output,
             provider="gemini_cli",
             provider_model=self.model,
         )
@@ -75,70 +59,42 @@ class GeminiCliProvider:
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
         prompt = self.build_requirement_prompt(request)
-        command = self.build_command(prompt)
-
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=self.timeout_seconds,
-            )
-        except TimeoutError as exc:
-            process.kill()
-            await process.communicate()
-            raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
-
-        if process.returncode != 0:
-            diagnostic = stderr.decode("utf-8", errors="replace").strip()
-            raise RuntimeError(diagnostic or "Gemini CLI failed")
+        raw_output = await self._run_prompt(prompt)
 
         return RequirementExtractionResult(
-            raw_output=stdout.decode("utf-8", errors="replace"),
+            raw_output=raw_output,
             provider="gemini_cli",
             provider_model=self.model,
         )
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
         prompt = self.build_design_plan_prompt(request)
-        command = self.build_command(prompt)
-
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=self.timeout_seconds,
-            )
-        except TimeoutError as exc:
-            process.kill()
-            await process.communicate()
-            raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
-
-        if process.returncode != 0:
-            diagnostic = stderr.decode("utf-8", errors="replace").strip()
-            raise RuntimeError(diagnostic or "Gemini CLI failed")
+        raw_output = await self._run_prompt(prompt)
 
         return DesignPlanResult(
-            raw_output=stdout.decode("utf-8", errors="replace"),
+            raw_output=raw_output,
             provider="gemini_cli",
             provider_model=self.model,
         )
 
     async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
         prompt = self.build_revision_plan_prompt(request)
+        raw_output = await self._run_prompt(prompt)
+
+        return RevisionPlanResult(
+            raw_output=raw_output,
+            provider="gemini_cli",
+            provider_model=self.model,
+        )
+
+    async def _run_prompt(self, prompt: str) -> str:
         command = self.build_command(prompt)
 
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            start_new_session=True,
         )
         try:
             stdout, stderr = await asyncio.wait_for(
@@ -146,19 +102,40 @@ class GeminiCliProvider:
                 timeout=self.timeout_seconds,
             )
         except TimeoutError as exc:
-            process.kill()
-            await process.communicate()
+            await self._terminate_process_group(process)
             raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
+        except asyncio.CancelledError:
+            self._kill_process_group(process)
+            raise
 
         if process.returncode != 0:
             diagnostic = stderr.decode("utf-8", errors="replace").strip()
             raise RuntimeError(diagnostic or "Gemini CLI failed")
 
-        return RevisionPlanResult(
-            raw_output=stdout.decode("utf-8", errors="replace"),
-            provider="gemini_cli",
-            provider_model=self.model,
-        )
+        return stdout.decode("utf-8", errors="replace")
+
+    async def _terminate_process_group(
+        self,
+        process: asyncio.subprocess.Process,
+    ) -> None:
+        if process.returncode is not None:
+            return
+        self._signal_process_group(process.pid, signal.SIGTERM)
+        try:
+            await asyncio.wait_for(process.communicate(), timeout=5)
+        except TimeoutError:
+            self._kill_process_group(process)
+            with contextlib.suppress(Exception):
+                await process.communicate()
+
+    def _kill_process_group(self, process: asyncio.subprocess.Process) -> None:
+        if process.returncode is not None:
+            return
+        self._signal_process_group(process.pid, signal.SIGKILL)
+
+    def _signal_process_group(self, pid: int, sig: signal.Signals) -> None:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(pid, sig)
 
     def build_command(self, prompt: str) -> list[str]:
         command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]

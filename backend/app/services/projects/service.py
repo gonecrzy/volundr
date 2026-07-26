@@ -1,3 +1,4 @@
+import asyncio
 import difflib
 import hashlib
 import json
@@ -1321,11 +1322,14 @@ class ProjectService:
         )
         try:
             generation_result = await self.ai_provider.generate_model(generation_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(generation_attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -1548,11 +1552,14 @@ class ProjectService:
         )
         try:
             correction_result = await self.ai_provider.generate_model(correction_request)  # type: ignore[union-attr]
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(correction_attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 correction_attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -1951,11 +1958,14 @@ class ProjectService:
         )
         try:
             generation_result = await self.ai_provider.generate_model(generation_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(generation_attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -2036,11 +2046,14 @@ class ProjectService:
         )
         try:
             repair_result = await self.ai_provider.generate_model(repair_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(repair_attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -2194,11 +2207,14 @@ class ProjectService:
         )
         try:
             repair_result = await self.ai_provider.generate_model(repair_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(repair_attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -2365,6 +2381,19 @@ class ProjectService:
         self._update_attempt_chain(attempt, status=status, error_message=error_message)
         self.db.commit()
 
+    def _finish_provider_cancelled_attempt(self, attempt: GenerationAttempt) -> None:
+        self._finish_generation_attempt(
+            attempt,
+            status="failed",
+            failure_class=FailureClass.PROVIDER_TIMEOUT,
+            error_message="request was cancelled while waiting for the AI provider",
+        )
+
+    def _provider_failure_class(self, error_message: str) -> FailureClass:
+        if "timed out" in error_message.lower() or "timeout" in error_message.lower():
+            return FailureClass.PROVIDER_TIMEOUT
+        return FailureClass.PROVIDER_FAILURE
+
     async def _run_requirement_extraction(
         self,
         *,
@@ -2376,11 +2405,14 @@ class ProjectService:
         try:
             extractor = getattr(self.ai_provider, "extract_requirements")
             extraction_result = await extractor(request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -2445,11 +2477,14 @@ class ProjectService:
         try:
             planner = getattr(self.ai_provider, "create_design_plan")
             planning_result = await planner(request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
@@ -2523,11 +2558,14 @@ class ProjectService:
         try:
             planner = getattr(self.ai_provider, "create_revision_plan")
             planning_result = await planner(request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(attempt)
+            raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
                 attempt,
                 status="failed",
-                failure_class=FailureClass.PROVIDER_FAILURE,
+                failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
             raise
