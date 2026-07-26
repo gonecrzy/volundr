@@ -888,9 +888,24 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                             target_kind="parameter",
                             line=token.line,
                         )
-                    )
+                )
                 index = end_index
                 continue
+            if (
+                next_token
+                and next_token.value == "("
+                and previous
+                and previous.value.lower() not in {"module", "function"}
+            ):
+                for marker in _markers_for_line(feature_markers, token.line):
+                    if marker not in feature_mappings:
+                        feature_mappings[marker] = SourceMapping(
+                            requirement_id=marker,
+                            marker_type="feature",
+                            target_name=token.value,
+                            target_kind="statement",
+                            line=token.line,
+                        )
             if (
                 next_token
                 and next_token.value == "("

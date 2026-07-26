@@ -429,6 +429,31 @@ def test_selected_output_design_plan_source_passes_without_main_model() -> None:
     assert result.hard_violations == []
 
 
+def test_design_plan_feature_marker_may_target_in_module_statement() -> None:
+    source = SELECTED_OUTPUT_PLAN_SOURCE.replace(
+        """// @volundr-feature mounting_holes
+module mounting_holes() {
+  translate([hole_spacing / 2, 0, 0]) cylinder(h=6, d=4.5);
+}""",
+        """module mounting_holes() {
+  // @volundr-feature mounting_holes
+  translate([hole_spacing / 2, 0, 0]) cylinder(h=6, d=4.5);
+}""",
+    )
+
+    result = SourceContractValidator().validate(
+        source,
+        design_specification=DESIGN_SPEC,
+        design_plan=DESIGN_PLAN,
+        source_type="ai_initial",
+    )
+
+    assert "mounting_holes" in result.source_metadata.feature_mappings
+    assert "design_plan_compliance.missing_feature_marker" not in {
+        finding.rule_id for finding in result.specification_findings
+    }
+
+
 def test_selected_output_design_plan_requires_existing_output_module() -> None:
     source = SELECTED_OUTPUT_PLAN_SOURCE.replace(
         "module=bracket_body",

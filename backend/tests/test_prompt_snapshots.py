@@ -185,6 +185,24 @@ def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:
     assert "Protected value changed" in prompt
 
 
+def test_contract_repair_prompt_preserves_design_plan_output_selector() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Repair planned source",
+        original_intent="Create a carrying case.",
+        user_instruction="Create planned outputs.",
+        current_source='selected_output = "body";\nmodule render_selected_output() {}\nmain_model();',
+        contract_diagnostics="Missing final render_selected_output() call",
+        design_specification={"critical_dimensions": []},
+        design_plan={"printable_outputs": [{"id": "body"}]},
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert "Ensure the file ends with exactly one top-level render_selected_output(); call." in prompt
+    assert "Ensure module main_model() exists" not in prompt
+
+
 def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = RevisionPlanRequest(

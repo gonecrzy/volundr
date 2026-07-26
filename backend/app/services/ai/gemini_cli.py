@@ -673,6 +673,26 @@ class GeminiCliProvider:
         )
 
     def _build_contract_repair_prompt(self, request: ModelGenerationRequest) -> str:
+        has_design_plan_outputs = bool(
+            request.design_plan
+            and any(
+                isinstance(output, dict) and output.get("id")
+                for output in request.design_plan.get("printable_outputs", [])
+            )
+        )
+        final_model_instruction = (
+            "Ensure the file ends with exactly one top-level render_selected_output(); call."
+            if has_design_plan_outputs
+            else "Ensure module main_model() exists and the file ends with exactly one top-level main_model(); call."
+        )
+        design_plan_instructions = (
+            [
+                "Preserve selected_output, render_selected_output(), and every @volundr-output mapping from the Design Plan.",
+                "Repair missing Design Plan @volundr-component, @volundr-feature, @volundr-dependency, and @volundr-output markers without changing the intended geometry.",
+            ]
+            if request.design_plan
+            else []
+        )
         return "\n".join(
             [
                 "Repair OpenSCAD source so it satisfies Volundr source-contract validation.",
@@ -686,7 +706,8 @@ class GeminiCliProvider:
                 "Ensure protected features use // @volundr-feature <id> immediately before the implementing module or statement.",
                 "Preserve and repair // @volundr-geometry markers for bounds, hole groups, holes, and wall thickness when those features exist.",
                 "Do not add geometry markers that claim a feature or dimension the source does not implement.",
-                "Ensure module main_model() exists and the file ends with exactly one top-level main_model(); call.",
+                *design_plan_instructions,
+                final_model_instruction,
                 "",
                 f"Project name: {request.project_name}",
                 f"Original intent: {request.original_intent}",
@@ -697,6 +718,9 @@ class GeminiCliProvider:
                 "",
                 "Authoritative Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "",
+                "Authoritative Design Plan JSON:",
+                json.dumps(request.design_plan, indent=2, sort_keys=True),
                 "",
                 "Source to repair:",
                 request.current_source or "",
