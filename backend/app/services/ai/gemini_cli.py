@@ -3,6 +3,7 @@ import contextlib
 import json
 import os
 import signal
+from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
@@ -39,10 +40,13 @@ class GeminiCliProvider:
         binary: str | None = None,
         model: str | None = None,
         timeout_seconds: int | None = None,
+        policy_path: str | Path | None = None,
     ) -> None:
         self.binary = binary or settings.gemini_binary
         self.model = model or settings.gemini_model
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
+        configured_policy = policy_path if policy_path is not None else settings.gemini_policy_path
+        self.policy_path = Path(configured_policy) if configured_policy else Path(__file__).with_name("gemini_no_tools_policy.toml")
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         prompt = self.build_prompt(request)
@@ -96,17 +100,25 @@ class GeminiCliProvider:
             stderr=asyncio.subprocess.PIPE,
             start_new_session=True,
         )
+        stdout_task = asyncio.create_task(self._read_stream(process.stdout))
+        stderr_task = asyncio.create_task(self._read_stream(process.stderr))
         try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=self.timeout_seconds,
-            )
+            await asyncio.wait_for(process.wait(), timeout=self.timeout_seconds)
         except TimeoutError as exc:
             await self._terminate_process_group(process)
-            raise RuntimeError(f"Gemini CLI timed out after {self.timeout_seconds} seconds") from exc
+            stdout, stderr = await self._collect_output(stdout_task, stderr_task)
+            diagnostic = self._diagnostic_tail(stderr) or self._diagnostic_tail(stdout)
+            message = f"Gemini CLI timed out after {self.timeout_seconds} seconds"
+            if diagnostic:
+                message = f"{message}: {diagnostic}"
+            raise RuntimeError(message) from exc
         except asyncio.CancelledError:
             self._kill_process_group(process)
+            stdout_task.cancel()
+            stderr_task.cancel()
             raise
+
+        stdout, stderr = await self._collect_output(stdout_task, stderr_task)
 
         if process.returncode != 0:
             diagnostic = stderr.decode("utf-8", errors="replace").strip()
@@ -122,11 +134,27 @@ class GeminiCliProvider:
             return
         self._signal_process_group(process.pid, signal.SIGTERM)
         try:
-            await asyncio.wait_for(process.communicate(), timeout=5)
+            await asyncio.wait_for(process.wait(), timeout=5)
         except TimeoutError:
             self._kill_process_group(process)
             with contextlib.suppress(Exception):
-                await process.communicate()
+                await process.wait()
+
+    async def _read_stream(
+        self,
+        stream: asyncio.StreamReader | None,
+    ) -> bytes:
+        if stream is None:
+            return b""
+        return await stream.read()
+
+    async def _collect_output(
+        self,
+        stdout_task: asyncio.Task[bytes],
+        stderr_task: asyncio.Task[bytes],
+    ) -> tuple[bytes, bytes]:
+        outputs = await asyncio.gather(stdout_task, stderr_task, return_exceptions=True)
+        return tuple(output if isinstance(output, bytes) else b"" for output in outputs)  # type: ignore[return-value]
 
     def _kill_process_group(self, process: asyncio.subprocess.Process) -> None:
         if process.returncode is not None:
@@ -141,7 +169,15 @@ class GeminiCliProvider:
         command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]
         if self.model:
             command.extend(["--model", self.model])
+        if self.policy_path:
+            command.extend(["--policy", str(self.policy_path)])
         return command
+
+    def _diagnostic_tail(self, output: bytes, *, max_chars: int = 1200) -> str:
+        text = output.decode("utf-8", errors="replace").strip()
+        if not text:
+            return ""
+        return text[-max_chars:]
 
     @property
     def gemini_ruleset_version(self) -> str:
@@ -182,6 +218,7 @@ class GeminiCliProvider:
             "timeout_seconds": self.timeout_seconds,
             "output_format": "text",
             "skip_trust": True,
+            "policy_path": str(self.policy_path) if self.policy_path else None,
         }
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
@@ -303,7 +340,8 @@ class GeminiCliProvider:
                 "Preserve every protected requirement, Design Plan parameter, dependency edge, component, feature, preset-relevant parameter, and printable output.",
                 "Expose editable Design Plan parameters in USER PARAMETERS.",
                 "Place derived Design Plan parameters in DERIVED VALUES and preserve dependency relationships.",
-                "Every protected requirement must use // @volundr-requirement <design_spec_requirement_id> immediately before its parameter assignment.",
+                "Every protected Design Specification critical dimension and every Design Plan parameter with source_requirement_id must use // @volundr-requirement <design_spec_requirement_id> immediately before its parameter assignment. This includes count parameters such as tray_count.",
+                "Every protected Design Specification functional requirement must use // @volundr-feature <design_spec_functional_requirement_id> immediately before the module or statement that implements that requirement. Do not use @volundr-requirement for functional requirements.",
                 "Every component must use // @volundr-component <design_plan_component_id> near the parameter/module that implements it.",
                 "Every feature must use // @volundr-feature <design_plan_feature_id> immediately before the implementing module or statement.",
                 "Every dependency edge must use // @volundr-dependency <from_parameter_id> -> <to_parameter_id> immediately before the derived assignment.",
@@ -354,6 +392,8 @@ class GeminiCliProvider:
                 "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
                 "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
                 "A parameter with source_requirement_id must copy that source requirement's value and unit within tolerance. Do not use source_requirement_id for calculated stack, envelope, or overall product dimensions; represent those as derived_parameters with dependency_edges.",
+                "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
+                "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
             ]
         schema = {
@@ -383,10 +423,10 @@ class GeminiCliProvider:
                     "depends_on": ["parameter_id"],
                 }
             ],
-            "dependency_edges": [
+                "dependency_edges": [
                 {
                     "from": "source_parameter_id",
-                    "to": "dependent_parameter_or_feature_id",
+                    "to": "dependent_parameter_or_derived_parameter_id",
                     "relationship": "string",
                 }
             ],
@@ -692,6 +732,8 @@ class GeminiCliProvider:
             [
                 "Preserve selected_output, render_selected_output(), and every @volundr-output mapping from the Design Plan.",
                 "Repair missing Design Plan @volundr-component, @volundr-feature, @volundr-dependency, and @volundr-output markers without changing the intended geometry.",
+                "Dependency markers must exactly match Design Plan edges as // @volundr-dependency <from_parameter_id> -> <to_parameter_id> immediately before the assignment for the target parameter.",
+                "Do not copy validator diagnostic text such as 'expected' or 'detected' into any @volundr-dependency marker.",
             ]
             if request.design_plan
             else []
@@ -705,8 +747,9 @@ class GeminiCliProvider:
                 "Only fix the listed contract violations, marker omissions, section omissions, prohibited constructs, or verifiability issues.",
                 "Do not change protected parameter values unless the diagnostics explicitly say the current value is wrong and the Design Specification value is provided.",
                 "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-                "Ensure protected dimensions use // @volundr-requirement <id> immediately before the parameter assignment.",
-                "Ensure protected features use // @volundr-feature <id> immediately before the implementing module or statement.",
+                "Ensure every protected Design Specification critical dimension uses // @volundr-requirement <id> immediately before the parameter assignment, including count parameters such as tray_count.",
+                "Ensure every protected Design Specification functional requirement uses // @volundr-feature <id> immediately before the implementing module or statement.",
+                "Do not use @volundr-requirement for protected functional requirements; use @volundr-feature for those.",
                 "Preserve and repair // @volundr-geometry markers for bounds, hole groups, holes, and wall thickness when those features exist.",
                 "Do not add geometry markers that claim a feature or dimension the source does not implement.",
                 *design_plan_instructions,
@@ -748,7 +791,8 @@ class GeminiCliProvider:
                 "Extract a structured Volundr Design Specification from the user request.",
                 "Return JSON only. Do not generate OpenSCAD.",
                 "Classify whether generation is ready, clarification is required, requirements conflict, or the request is unsupported.",
-                "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
+            "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
+            "Do not use tools, web search, files, or external resources. Use only this prompt, supplied defaults, previous specifications, and clarification answers.",
             ]
         schema = {
             "schema_version": "1.0",

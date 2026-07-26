@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     gemini_binary: str = Field(default="gemini")
     gemini_model: str | None = Field(default="gemini-3.5-flash-lite")
     gemini_timeout_seconds: int = Field(default=120)
+    gemini_policy_path: Path | None = Field(default=None)
 
     @cached_property
     def database_url(self) -> str:

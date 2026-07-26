@@ -2970,6 +2970,7 @@ class ProjectService:
             normalized,
             design_specification_payload=design_specification_payload,
         )
+        self._validate_design_plan_dependency_edges(normalized)
         return normalized
 
     def _validate_design_plan_source_requirement_links(
@@ -3013,6 +3014,40 @@ class ProjectService:
                     f"does not match source requirement {source_id} value {expected_value:g} "
                     f"within tolerance {tolerance:g}. Use a derived parameter for calculated "
                     "stack, envelope, or overall product dimensions."
+                )
+        if violations:
+            raise ValueError("\n".join(violations))
+
+    def _validate_design_plan_dependency_edges(self, payload: dict[str, Any]) -> None:
+        if payload.get("outcome") != DesignPlanOutcome.PLAN_READY.value:
+            return
+        parameter_ids = {
+            str(parameter.get("id"))
+            for parameter in payload.get("parameters", [])
+            if isinstance(parameter, dict) and parameter.get("id")
+        }
+        derived_ids = {
+            str(parameter.get("id"))
+            for parameter in payload.get("derived_parameters", [])
+            if isinstance(parameter, dict) and parameter.get("id")
+        }
+        known_ids = parameter_ids | derived_ids
+        violations: list[str] = []
+        for index, edge in enumerate(payload.get("dependency_edges", []), start=1):
+            if not isinstance(edge, dict):
+                continue
+            from_id = str(edge.get("from") or edge.get("from_") or "")
+            to_id = str(edge.get("to") or "")
+            if from_id and from_id not in known_ids:
+                violations.append(
+                    f"Design Plan dependency edge {index} references unknown source "
+                    f"parameter {from_id}. Add it to parameters or derived_parameters."
+                )
+            if to_id and to_id not in known_ids:
+                violations.append(
+                    f"Design Plan dependency edge {index} references unknown target "
+                    f"parameter {to_id}. Add it to derived_parameters or remove the edge. "
+                    "Feature dependencies belong in feature.parameters, not dependency_edges."
                 )
         if violations:
             raise ValueError("\n".join(violations))

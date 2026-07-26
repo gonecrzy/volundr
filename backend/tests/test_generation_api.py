@@ -486,7 +486,13 @@ def test_gemini_cli_provider_uses_headless_trust_flag() -> None:
     command = provider.build_command("prompt")
 
     assert "--skip-trust" in command
-    assert command[-2:] == ["--model", "gemini-3.5-flash-lite"]
+    assert command[command.index("--model") : command.index("--model") + 2] == [
+        "--model",
+        "gemini-3.5-flash-lite",
+    ]
+    assert "--policy" in command
+    policy_path = command[command.index("--policy") + 1]
+    assert policy_path.endswith("gemini_no_tools_policy.toml")
 
 
 def test_gemini_initial_prompt_sets_functional_cad_ground_rules() -> None:

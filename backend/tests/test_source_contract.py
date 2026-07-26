@@ -333,6 +333,69 @@ def test_scanner_extracts_design_plan_markers() -> None:
     assert metadata.output_mappings["bracket_output"].component_ids == ["bracket_body"]
 
 
+def test_scanner_accepts_output_id_attribute_marker_form() -> None:
+    source = """
+// @volundr-output output_id=case_base module=render_case_base required=true filename=case_base.stl components=base
+module render_case_base() {
+  cube([1, 1, 1]);
+}
+"""
+
+    metadata = scan_openscad_source(source).metadata
+
+    mapping = metadata.output_mappings["case_base"]
+    assert mapping.module_name == "render_case_base"
+    assert mapping.filename == "case_base.stl"
+    assert mapping.component_ids == ["base"]
+
+
+def test_scanner_records_loose_feature_marker_as_declared_intent() -> None:
+    source = """
+module body() {
+  // @volundr-feature base_shell_feature
+  height = 20;
+  wall = 3;
+
+  difference() {
+    cube([30, 30, height]);
+    cube([20, 20, height]);
+  }
+}
+"""
+
+    metadata = scan_openscad_source(source).metadata
+
+    mapping = metadata.feature_mappings["base_shell_feature"]
+    assert mapping.target_kind in {"comment", "statement"}
+    assert mapping.line >= 3
+
+
+def test_scanner_does_not_leak_dependency_marker_to_next_assignment() -> None:
+    source = """
+// ===== USER PARAMETERS =====
+body_width = 80;
+slot_count = 4;
+
+// ===== DERIVED VALUES =====
+// @volundr-dependency body_width -> outer_width
+outer_width = body_width + 6;
+
+// @volundr-dependency slot_count -> slot_spacing
+slot_spacing = outer_width / slot_count;
+"""
+
+    metadata = scan_openscad_source(source).metadata
+
+    mappings = {
+        (mapping.from_id, mapping.to_id, mapping.target_name)
+        for mapping in metadata.dependency_mappings
+    }
+    assert mappings == {
+        ("body_width", "outer_width", "outer_width"),
+        ("slot_count", "slot_spacing", "slot_spacing"),
+    }
+
+
 def test_scanner_extracts_shared_module_markers_and_module_fingerprints() -> None:
     source = PLAN_SOURCE.replace(
         "module mounting_holes() {",

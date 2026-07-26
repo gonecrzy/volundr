@@ -415,6 +415,65 @@ def test_ready_specification_creates_immutable_design_plan(tmp_path: Path) -> No
     assert json.loads((run_dir / "parsed-design-plan.json").read_text(encoding="utf-8"))["outcome"] == "plan_ready"
 
 
+def test_design_plan_dependency_edges_must_reference_declared_parameters(tmp_path: Path) -> None:
+    invalid_plan = {
+        **READY_PLAN,
+        "dependency_edges": [
+            {
+                "from": "mount_hole_spacing",
+                "to": "undeclared_height",
+                "relationship": "spacing controls undeclared height",
+            }
+        ],
+    }
+    repaired_plan = {
+        **READY_PLAN,
+        "derived_parameters": [
+            *READY_PLAN["derived_parameters"],
+            {
+                "id": "undeclared_height",
+                "label": "Declared height",
+                "expression": "mount_hole_spacing + 30",
+                "unit": "mm",
+                "depends_on": ["mount_hole_spacing"],
+            },
+        ],
+        "dependency_edges": [
+            {
+                "from": "mount_hole_spacing",
+                "to": "undeclared_height",
+                "relationship": "spacing controls declared height",
+            }
+        ],
+    }
+    provider = PlanningAiProvider(invalid_plan, repaired_plan)
+    client, SessionLocal = build_client(tmp_path, provider)
+    project, specification = create_project_and_spec(client)
+
+    response = client.post(f"/api/design-specifications/{specification['id']}/design-plan")
+
+    assert response.status_code == 201
+    plan = response.json()
+    assert plan["plan"]["derived_parameters"][-1]["id"] == "undeclared_height"
+    assert len(provider.plan_requests) == 2
+    assert "unknown target parameter undeclared_height" in (
+        provider.plan_requests[1].schema_validation_error or ""
+    )
+
+    with SessionLocal() as session:
+        attempts = session.scalars(
+            select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)
+        ).all()
+        planning_attempts = [
+            attempt
+            for attempt in attempts
+            if attempt.project_id == project["id"]
+            and attempt.prompt_template_version == "design-plan-v1"
+        ]
+        assert [attempt.status for attempt in planning_attempts] == ["failed", "succeeded"]
+        assert planning_attempts[0].failure_class == "design_plan_invalid"
+
+
 def test_design_plan_clarification_is_not_a_generation_failure(tmp_path: Path) -> None:
     provider = PlanningAiProvider(PLAN_CLARIFICATION)
     client, _SessionLocal = build_client(tmp_path, provider)

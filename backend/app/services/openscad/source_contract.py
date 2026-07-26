@@ -748,6 +748,7 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
     dependency_mappings: list[SourceDependencyMapping] = []
     output_mappings: dict[str, SourceOutputMapping] = {}
     shared_module_mappings: dict[str, SourceMapping] = {}
+    source_lines = source.splitlines()
     brace_depth = 0
     paren_depth = 0
     unbalanced_braces = False
@@ -876,8 +877,9 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                             line=token.line,
                             attributes=parameter_marker.get("attributes", {}),
                         )
-                for dependency_marker in _dependency_markers_for_line(
+                for dependency_marker in _dependency_markers_for_assignment(
                     dependency_markers,
+                    source_lines,
                     token.line,
                 ):
                     dependency_mappings.append(
@@ -918,6 +920,16 @@ def _metadata(source: str, tokens: list[SourceToken], comments: list[SourceToken
                 if token.value not in {"main_model", "render_selected_output", "assert", "echo"}:
                     top_level_geometry_calls.append(token.value)
         index += 1
+    for marker_line, markers in feature_markers.items():
+        for marker in markers:
+            if marker not in feature_mappings:
+                feature_mappings[marker] = SourceMapping(
+                    requirement_id=marker,
+                    marker_type="feature",
+                    target_name="",
+                    target_kind="comment",
+                    line=marker_line,
+                )
     metadata = SourceMetadata(
         source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
         source_size_bytes=len(source.encode("utf-8")),
@@ -1043,7 +1055,10 @@ def _pending_markers(
             dependency_markers.setdefault(comment.line, []).append(
                 (dependency_match.group(1), dependency_match.group(2))
             )
-        for output_match in re.finditer(r"@volundr-output\s+([A-Za-z0-9_.-]+)(.*)", comment.value):
+        for output_match in re.finditer(
+            r"@volundr-output\s+(?:output_id=)?([A-Za-z0-9_.-]+)(.*)",
+            comment.value,
+        ):
             remainder = output_match.group(2)
             components_match = re.search(
                 r"components=([A-Za-z0-9_.-]+(?:,[A-Za-z0-9_.-]+)*)",
@@ -1115,11 +1130,24 @@ def _last_marker_for_line(markers: dict[int, list[str]], line: int) -> str | Non
     return candidates[-1] if candidates else None
 
 
-def _dependency_markers_for_line(
+def _dependency_markers_for_assignment(
     markers: dict[int, list[tuple[str, str]]],
+    source_lines: list[str],
     line: int,
 ) -> list[tuple[str, str]]:
-    candidates = [marker_line for marker_line in markers if 0 <= line - marker_line <= 4]
+    candidates: list[int] = []
+    for candidate_line in range(line - 1, max(line - 6, 0), -1):
+        if candidate_line in markers:
+            candidates.append(candidate_line)
+            continue
+        if candidate_line < 1 or candidate_line > len(source_lines):
+            break
+        stripped = source_lines[candidate_line - 1].strip()
+        if not stripped:
+            continue
+        if stripped.startswith("//") or stripped.startswith("/*") or stripped.startswith("*"):
+            continue
+        break
     result: list[tuple[str, str]] = []
     for marker_line in sorted(candidates):
         result.extend(markers[marker_line])
