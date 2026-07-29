@@ -62,6 +62,25 @@ def test_legacy_initial_prompt_preserves_creative_style_intent() -> None:
     assert "Do not add decorative cutouts" not in prompt
 
 
+def test_legacy_initial_prompt_includes_compact_cad_pattern_examples() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_prompt(
+        ModelGenerationRequest(
+            project_name="Fish shelf bracket",
+            original_intent="Create a functional bracket with a creative silhouette.",
+            user_instruction="Make a 90 degree bracket with through holes and a fish underside.",
+        )
+    )
+
+    assert "CAD PATTERN EXAMPLES" in prompt
+    assert "through_hole_example" in prompt
+    assert "translate([x, y, -eps]) cylinder(h = part_thickness + 2*eps" in prompt
+    assert "l_bracket_core_example" in prompt
+    assert "rotate([0, -90, 0])" in prompt
+    assert "style_overlay_example" in prompt
+    assert "keep mounting faces and holes outside decorative cuts" in prompt
+
+
 def test_legacy_revision_prompt_matches_snapshot() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(

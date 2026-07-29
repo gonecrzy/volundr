@@ -253,6 +253,8 @@ class GeminiCliProvider:
             "Follow these rules exactly:",
             *self._legacy_openscad_generation_rules(),
             "",
+            *self._legacy_openscad_pattern_examples(),
+            "",
             f"Project name: {request.project_name}",
             f"Original intent: {request.original_intent}",
             f"User instruction: {request.user_instruction}",
@@ -294,6 +296,24 @@ class GeminiCliProvider:
             "- Every subtraction must serve requested function, requested style, or necessary clearance; avoid subtractive features that weaken unrelated support surfaces.",
             "- Preserve load-bearing walls, mounting faces, tray support surfaces, retention features, and handles unless the user asks to change them.",
             "- If a grip, access notch, drain, fastener hole, clearance cut, or decorative feature is needed, keep it sized and positioned for that purpose instead of cutting through unrelated geometry.",
+        ]
+
+    def _legacy_openscad_pattern_examples(self) -> list[str]:
+        return [
+            "CAD PATTERN EXAMPLES:",
+            "- through_hole_example: use oversized subtractive cutters inside difference():",
+            "  eps = 0.01;",
+            "  difference() {",
+            "    cube([part_length, part_width, part_thickness]);",
+            "    translate([x, y, -eps]) cylinder(h = part_thickness + 2*eps, d = hole_diameter);",
+            "  }",
+            "- l_bracket_core_example: make a real 90-degree support from perpendicular solids before styling:",
+            "  union() {",
+            "    cube([shelf_leg_length, bracket_width, material_thickness]);",
+            "    rotate([0, -90, 0]) cube([wall_leg_length, bracket_width, material_thickness]);",
+            "    translate([rib_offset, 0, material_thickness]) rotate([0, -90, 0]) linear_extrude(height = rib_thickness) polygon([[0,0], [rib_x,0], [0,rib_z]]);",
+            "  }",
+            "- style_overlay_example: style visible regions after the functional core; keep mounting faces and holes outside decorative cuts.",
         ]
 
     def _build_design_spec_openscad_prompt(self, request: ModelGenerationRequest) -> str:
