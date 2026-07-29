@@ -222,6 +222,8 @@ Source-probe benchmark pass:
 
 - phase-validation runs can now include `--source-probe` to ask the provider for direct OpenSCAD without accepting a candidate
 - source probe artifacts capture raw source output, extracted source when valid, exact expected-parameter coverage from the source-derived parameter scanner, OpenSCAD compile logs, STL output, and mesh metadata
+- `qwen2.5-coder:14b` is the primary local Ollama model for the current OpenSCAD path; Gemini remains an explicit future/provider endpoint, and every provider must pass the same source-probe validation loop
+- prompt syntax guardrails now explicitly reject pseudo-CAD method chaining, recursive modules, lowercase `pi`, invalid `circle(r1/r2)` usage, and unbounded thread/knurl tricks
 - this provides a cheap in-between signal for prompt/model changes before spending time on full CAD geometry review
 
 Correct trajectory from the geometric invariant checkpoint:

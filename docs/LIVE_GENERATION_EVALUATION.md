@@ -42,6 +42,24 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --max-runs 10
 ```
 
+Current local-primary model:
+
+```bash
+VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b
+```
+
+For phase checks where reproducibility matters, set it explicitly:
+
+```bash
+VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b \
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label ollama-core \
+  --provider ollama \
+  --max-runs 10
+```
+
 Ollama uses the configured `VOLUNDR_OLLAMA_BASE_URL` and `VOLUNDR_OLLAMA_MODEL` and does not require `--allow-live` because it has no external quota cost. A live Gemini run requires both:
 
 ```bash

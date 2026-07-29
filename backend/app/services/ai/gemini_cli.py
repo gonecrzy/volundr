@@ -287,6 +287,7 @@ class GeminiCliProvider:
             "- Define module main_model().",
             "- End with exactly one top-level main_model(); call.",
             "- Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+            *self._openscad_syntax_guardrails(),
             "- Prefer practical FDM-printable functional geometry.",
             "- Treat explicit style, theme, silhouette, and decorative requests as part of the design intent, not as optional extras.",
             "- Build requested functional features as real geometry before adding or integrating styling; the styled result must still satisfy the requested object type and use.",
@@ -296,6 +297,19 @@ class GeminiCliProvider:
             "- Every subtraction must serve requested function, requested style, or necessary clearance; avoid subtractive features that weaken unrelated support surfaces.",
             "- Preserve load-bearing walls, mounting faces, tray support surfaces, retention features, and handles unless the user asks to change them.",
             "- If a grip, access notch, drain, fastener hole, clearance cut, or decorative feature is needed, keep it sized and positioned for that purpose instead of cutting through unrelated geometry.",
+        ]
+
+    def _openscad_syntax_guardrails(self) -> list[str]:
+        return [
+            "- Use valid OpenSCAD syntax only; this is not CadQuery, Build123D, Python, JavaScript, or object-oriented CAD.",
+            "- Do not use pseudo-CAD method chaining such as .translate(), .rotate(), .union(), .workplane(), .add_hole(), or #print().",
+            "- Do not assign geometry objects to variables; define modules and call them inside union(), difference(), hull(), or minkowski().",
+            "- Do not call unknown modules such as extrude(); use linear_extrude() or rotate_extrude() with valid OpenSCAD child geometry.",
+            "- Use PI for the circle constant; do not use lowercase pi.",
+            "- Every assignment and module call must be syntactically complete with balanced parentheses/braces and semicolons where OpenSCAD requires them.",
+            "- Do not write recursive modules or self-calling modules; every module expansion must be finite.",
+            "- circle() accepts r or d, not r1/r2. Use cylinder(h=..., r1=..., r2=...) only for tapered 3D cylinders.",
+            "- For thread-like or knurled details, prefer bounded approximations such as grooves, ribs, shallow cuts, or labeled clearance holes over invalid rotate_extrude tricks.",
         ]
 
     def _legacy_openscad_pattern_examples(self) -> list[str]:
@@ -339,6 +353,7 @@ class GeminiCliProvider:
                 "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
                 "Define module main_model() and end with exactly one top-level main_model(); call.",
                 "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                *self._openscad_syntax_guardrails(),
                 "Use this recognizable section skeleton:",
                 "/* Project: ...",
                 "Units: millimeters",
@@ -389,6 +404,7 @@ class GeminiCliProvider:
                 "Do not require source-file edits between component compiles; Volundr will compile each output with a command-line selected_output override.",
                 "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
                 "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                *self._openscad_syntax_guardrails(),
                 "",
                 f"Project name: {request.project_name}",
                 f"Original intent: {request.original_intent}",

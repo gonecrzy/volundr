@@ -25,7 +25,7 @@ def test_settings_default_to_ollama_for_development() -> None:
 
     assert settings.ai_provider == "ollama"
     assert settings.ollama_base_url == "http://10.1.20.25:11434"
-    assert settings.ollama_model == "qwen3.5:9b"
+    assert settings.ollama_model == "qwen2.5-coder:14b"
     assert settings.ollama_timeout_seconds == 300
 
 

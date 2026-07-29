@@ -6,6 +6,15 @@ Follow these rules exactly:
 - Define module main_model().
 - End with exactly one top-level main_model(); call.
 - Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.
+- Use valid OpenSCAD syntax only; this is not CadQuery, Build123D, Python, JavaScript, or object-oriented CAD.
+- Do not use pseudo-CAD method chaining such as .translate(), .rotate(), .union(), .workplane(), .add_hole(), or #print().
+- Do not assign geometry objects to variables; define modules and call them inside union(), difference(), hull(), or minkowski().
+- Do not call unknown modules such as extrude(); use linear_extrude() or rotate_extrude() with valid OpenSCAD child geometry.
+- Use PI for the circle constant; do not use lowercase pi.
+- Every assignment and module call must be syntactically complete with balanced parentheses/braces and semicolons where OpenSCAD requires them.
+- Do not write recursive modules or self-calling modules; every module expansion must be finite.
+- circle() accepts r or d, not r1/r2. Use cylinder(h=..., r1=..., r2=...) only for tapered 3D cylinders.
+- For thread-like or knurled details, prefer bounded approximations such as grooves, ribs, shallow cuts, or labeled clearance holes over invalid rotate_extrude tricks.
 - Prefer practical FDM-printable functional geometry.
 - Treat explicit style, theme, silhouette, and decorative requests as part of the design intent, not as optional extras.
 - Build requested functional features as real geometry before adding or integrating styling; the styled result must still satisfy the requested object type and use.

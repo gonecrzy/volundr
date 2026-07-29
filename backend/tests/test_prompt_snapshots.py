@@ -81,6 +81,29 @@ def test_legacy_initial_prompt_includes_compact_cad_pattern_examples() -> None:
     assert "keep mounting faces and holes outside decorative cuts" in prompt
 
 
+def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_prompt(
+        ModelGenerationRequest(
+            project_name="Honeycomb bracket",
+            original_intent="Create a honeycomb angle bracket.",
+            user_instruction="Create a bracket with honeycomb cutouts.",
+        )
+    )
+
+    assert "Use valid OpenSCAD syntax only" in prompt
+    assert "Do not use pseudo-CAD method chaining" in prompt
+    assert ".translate()" in prompt
+    assert ".rotate()" in prompt
+    assert "Do not call unknown modules such as extrude()" in prompt
+    assert "use linear_extrude()" in prompt
+    assert "Use PI for the circle constant; do not use lowercase pi" in prompt
+    assert "Every assignment and module call must be syntactically complete" in prompt
+    assert "Do not write recursive modules" in prompt
+    assert "circle() accepts r or d, not r1/r2" in prompt
+    assert "For thread-like or knurled details, prefer bounded approximations" in prompt
+
+
 def test_legacy_revision_prompt_matches_snapshot() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
@@ -170,6 +193,9 @@ def test_staged_openscad_prompt_uses_design_specification_as_authority() -> None
     assert "@volundr-geometry type=hole_group" in prompt
     assert "Secondary raw user request" in prompt
     assert "hole_spacing" in prompt
+    assert "Use valid OpenSCAD syntax only" in prompt
+    assert "Do not use pseudo-CAD method chaining" in prompt
+    assert "Use PI for the circle constant; do not use lowercase pi" in prompt
 
 
 def test_design_plan_prompt_is_json_only_and_product_model_aware() -> None:
@@ -226,6 +252,9 @@ def test_planned_openscad_prompt_uses_approved_design_plan_as_authority() -> Non
     assert "assertions for invalid configurations" in prompt
     assert "prefer additive construction of explicit base, side walls, rails" in prompt
     assert "positive overlap with its supporting component" in prompt
+    assert "Use valid OpenSCAD syntax only" in prompt
+    assert "Do not use pseudo-CAD method chaining" in prompt
+    assert "Use PI for the circle constant; do not use lowercase pi" in prompt
 
 
 def test_design_plan_prompt_separates_source_values_from_derived_dimensions() -> None:

@@ -98,7 +98,7 @@ The API container and local database must be on the current migration head. A st
 
 The frontend includes the Stage 2 manual CAD workspace and staged AI generation
 path. Development defaults to a local Ollama provider at
-`http://10.1.20.25:11434` using `qwen3.5:9b`. Gemini remains available as an
+`http://10.1.20.25:11434` using `qwen2.5-coder:14b`. Gemini remains available as an
 explicit provider switch.
 
 The default generation workflow is intentionally simple while model quality is
@@ -129,19 +129,25 @@ Volundr selects the AI backend with:
 VOLUNDR_AI_PROVIDER=ollama
 ```
 
-The development default is Ollama:
+The development default is local Ollama with `qwen2.5-coder:14b`. Current phase-validation runs show it is the best primary local model for this OpenSCAD path. Keep Gemini as an explicit provider option for later higher-capability endpoint testing.
 
 ```bash
 VOLUNDR_OLLAMA_BASE_URL=http://10.1.20.25:11434
-VOLUNDR_OLLAMA_MODEL=qwen3.5:9b
+VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b
 VOLUNDR_OLLAMA_TIMEOUT_SECONDS=300
 ```
 
 Make sure the model is available on the Ollama host:
 
 ```bash
-ollama pull qwen3.5:9b
+ollama pull qwen2.5-coder:14b
 ```
+
+Notes from current local model testing:
+
+- `qwen2.5-coder:14b` is the primary local model.
+- `deepseek-coder-v2:16b` remains a slower fallback comparison model.
+- `joshuaokolo/C3Dv0:latest` is not compatible with the current OpenSCAD prompt contract without a separate adapter.
 
 Generation attempts record `provider=ollama`, the model, endpoint, timeout, and
 `auth_mode=local_ollama`; no API keys are stored.
