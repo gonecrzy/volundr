@@ -128,7 +128,12 @@ def test_live_benchmark_source_probe_dry_run_writes_source_prompt(
     assert source_probe["prompt_template_version"] == "legacy-initial-v1"
     assert source_probe["raw_output_path"] is None
     assert source_probe["parameter_analysis_path"] is None
-    assert (result.run_dir / case_run["artifact_dir"] / "source-prompt.txt").exists()
+    source_prompt = (result.run_dir / case_run["artifact_dir"] / "source-prompt.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "Source-probe parameter targets" in source_prompt
+    assert "plate_width" in source_prompt
+    assert "hole_spacing" in source_prompt
     assert metrics["source_probe_enabled"] is True
     assert metrics["source_probe_status_counts"] == {"not_run": 1}
 

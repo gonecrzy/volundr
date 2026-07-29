@@ -692,10 +692,22 @@ def _requirement_request_for(benchmark: GenerationBenchmark) -> RequirementExtra
 
 
 def _source_request_for(benchmark: GenerationBenchmark) -> ModelGenerationRequest:
+    user_instruction = benchmark.input_prompt
+    if benchmark.expected_parameters:
+        user_instruction = "\n".join(
+            [
+                benchmark.input_prompt,
+                "",
+                "Source-probe parameter targets:",
+                "Expose these as simple top-level OpenSCAD parameters when applicable.",
+                "Do not force the silhouette or styling into a fixed template; keep the requested creative form.",
+                *[f"- {parameter}" for parameter in benchmark.expected_parameters],
+            ]
+        )
     return ModelGenerationRequest(
         project_name=f"Benchmark: {benchmark.id}",
         original_intent=benchmark.input_prompt,
-        user_instruction=benchmark.input_prompt,
+        user_instruction=user_instruction,
     )
 
 

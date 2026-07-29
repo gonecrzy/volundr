@@ -73,7 +73,7 @@ The flag selects exactly three scenarios:
 
 Do not treat the phase run as a complete acceptance test. It is a smoke signal for whether the AI and pipeline are moving in the right direction on functional geometry, requested styling, subtractive CAD patterns, parameterization, and curated-library pressure.
 
-`--source-probe` adds a lightweight direct OpenSCAD generation probe. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage. It does not compile, accept candidates, or judge final geometry.
+`--source-probe` adds a lightweight direct OpenSCAD generation probe. The probe prompt includes the benchmark's expected parameter IDs as top-level control targets while explicitly keeping creative form open. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage. It does not compile, accept candidates, or judge final geometry.
 
 ## Quota Controls
 
