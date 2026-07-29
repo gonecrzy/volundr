@@ -89,6 +89,25 @@ openscad -D 'selected_output="body"' -D 'slot_count=8' -o body.stl project.scad
 
 The accepted source file is never rewritten for configuration changes.
 
+## Source-Derived Parameter Discovery
+
+Volundr also exposes a lightweight read-only discovery endpoint for accepted or candidate revision source:
+
+```text
+GET /api/revisions/{revision_id}/parameters
+```
+
+This endpoint derives candidate controls directly from the saved OpenSCAD source. It is intentionally narrower than the Design Plan configuration system and is used as an evaluation gate before adding more editing UI.
+
+The extractor currently accepts only simple top-level constants before the first `module` or `function` declaration:
+
+- numbers, booleans, strings, color strings, and one-line numeric arrays
+- OpenSCAD Customizer-style group comments such as `/* [Dimensions] */`
+- descriptions from the immediately preceding `//` comment
+- range, step, enum, and enum-label hints from trailing comments such as `// [10:1:80]`
+
+It intentionally ignores derived expressions, multiline values, assignments inside modules, and structural source changes. If AI output does not expose useful top-level parameters, this phase should improve generation prompts or Design Plan parameterization before adding override workflows.
+
 ## Presets
 
 Design Plan presets and project-local presets are groups of input parameter values. Applying a preset creates a configuration preview; it does not mutate the Design Plan. Volundr stores selected preset values separately from user overrides.

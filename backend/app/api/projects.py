@@ -22,6 +22,7 @@ from app.schemas.project import (
     GeometricAnalysisRead,
     ManualRevisionCreate,
     GenerationCreate,
+    OpenScadParameterRead,
     ProjectCreate,
     ProjectMessageRead,
     ProjectRead,
@@ -1116,6 +1117,19 @@ def get_revision_source(
     if source_path is None:
         raise HTTPException(status_code=404, detail="revision source not found")
     return FileResponse(source_path, media_type="text/plain", filename="model.scad")
+
+
+@router.get("/revisions/{revision_id}/parameters", response_model=list[OpenScadParameterRead])
+def list_revision_parameters(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[OpenScadParameterRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    parameters = service.list_revision_parameters(revision_id)
+    if parameters is None:
+        raise HTTPException(status_code=404, detail="revision source not found")
+    return parameters
 
 
 @router.get("/revisions/{revision_id}/compile-log")

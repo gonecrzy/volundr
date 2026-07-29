@@ -429,6 +429,23 @@ class ConfigurationParameterRead(BaseModel):
     affected_outputs: list[str] = Field(default_factory=list)
 
 
+class OpenScadParameterRead(BaseModel):
+    id: str
+    name: str
+    display_name: str
+    type: str
+    value: float | int | str | bool
+    default_value: float | int | str | bool
+    group: str | None = None
+    description: str | None = None
+    minimum: float | int | None = None
+    maximum: float | int | None = None
+    step: float | int | None = None
+    options: list[str] = Field(default_factory=list)
+    option_labels: dict[str, str] = Field(default_factory=dict)
+    source_line: int | None = None
+
+
 class ConfigurationPresetRead(BaseModel):
     id: str
     project_id: str

@@ -65,6 +65,7 @@ from app.schemas.project import (
     GeometricFindingRead,
     ManualRevisionCreate,
     MeshMetadataRead,
+    OpenScadParameterRead,
     ProjectCreate,
     ProjectMessageRead,
     ProjectSave,
@@ -110,6 +111,7 @@ from app.services.openscad.source_contract import (
     SourceContractValidator,
     _evaluate_constants,
 )
+from app.services.openscad.parameters import extract_editable_parameters
 from app.services.printability.inspector import inspect_printability
 
 DRAFT_RETENTION_DAYS = 14
@@ -5630,6 +5632,15 @@ class ProjectService:
         if path is None:
             return None
         return path.read_text(encoding="utf-8")
+
+    def list_revision_parameters(self, revision_id: str) -> list[OpenScadParameterRead] | None:
+        source = self.read_revision_source(revision_id)
+        if source is None:
+            return None
+        return [
+            OpenScadParameterRead(**parameter.to_json())
+            for parameter in extract_editable_parameters(source)
+        ]
 
     def resolve_revision_source(self, revision_id: str) -> Path | None:
         revision = self.db.get(Revision, revision_id)

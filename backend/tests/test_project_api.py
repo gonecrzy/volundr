@@ -154,6 +154,49 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert revisions[0]["metadata"]["triangle_count"] == 12
 
 
+def test_revision_parameters_endpoint_derives_controls_from_source(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Fish bracket",
+            "original_intent": "Create a styled shelf bracket.",
+        },
+    ).json()
+    revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "scad_source": """
+/* [Dimensions] */
+// Wall leg length
+wall_leg_length = 80; // [40:1:140]
+fish_style = "perch"; // [plain, perch, trout]
+
+module main_model() {
+  internal_only = 12;
+  cube([wall_leg_length, 10, 10]);
+}
+main_model();
+""",
+            "user_instruction": "Initial manual model.",
+        },
+    ).json()
+
+    response = client.get(f"/api/revisions/{revision['id']}/parameters")
+
+    assert response.status_code == 200
+    parameters = response.json()
+    by_id = {parameter["id"]: parameter for parameter in parameters}
+    assert list(by_id) == ["wall_leg_length", "fish_style"]
+    assert by_id["wall_leg_length"]["display_name"] == "Wall Leg Length"
+    assert by_id["wall_leg_length"]["description"] == "Wall leg length"
+    assert by_id["wall_leg_length"]["group"] == "Dimensions"
+    assert by_id["wall_leg_length"]["minimum"] == 40
+    assert by_id["wall_leg_length"]["maximum"] == 140
+    assert by_id["wall_leg_length"]["step"] == 1
+    assert by_id["fish_style"]["options"] == ["plain", "perch", "trout"]
+
+
 def test_revision_printability_endpoint_returns_profiled_findings(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     project = client.post(

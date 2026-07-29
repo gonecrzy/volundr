@@ -212,6 +212,12 @@ Live generation-quality evaluation pass:
 - prompt promotion is intentionally disabled; results must be reviewed manually to decide whether the next work belongs in prompt quality, Design Plan quality, component decomposition, parameter modeling, geometry generation, printability, revision preservation, or UX
 - full behavior is defined in `docs/LIVE_GENERATION_EVALUATION.md`
 
+Source-derived parameter discovery pass:
+
+- revision source can now be scanned for simple top-level OpenSCAD parameters before adding richer editing UX
+- `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from constants and OpenSCAD Customizer-style comments
+- this is a phase gate for evaluating whether AI output exposes useful creative and functional knobs without forcing generated models into one fixed template
+
 Correct trajectory from the geometric invariant checkpoint:
 
 ```text
