@@ -22,7 +22,8 @@ from app.services.ai.gemini_cli import (
     GeminiCliProvider,
 )
 from app.services.ai.ollama import OllamaProvider
-from app.services.ai.provider import RequirementExtractionRequest
+from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest
+from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.generation.benchmarks import (
     BenchmarkSuite,
     GenerationBenchmark,
@@ -31,6 +32,7 @@ from app.services.generation.benchmarks import (
     phase_validation_scenario_set,
 )
 from app.services.generation.failure_taxonomy import FailureClass
+from app.services.openscad.parameters import extract_editable_parameters
 
 
 LIVE_BENCHMARK_RUN_SCHEMA_VERSION = "live-benchmark-run-v1"
@@ -38,6 +40,7 @@ LIVE_BENCHMARK_METRICS_SCHEMA_VERSION = "live-benchmark-metrics-v1"
 PROMPT_COMPARISON_SCHEMA_VERSION = "prompt-version-comparison-v1"
 HUMAN_SCORING_FORM_SCHEMA_VERSION = "human-scoring-form-v1"
 LIVE_BENCHMARK_HARNESS_VERSION = "live-benchmark-harness-v1"
+SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION = "source-parameter-analysis-v1"
 
 SCORING_CATEGORIES = (
     "prompt_quality",
@@ -67,6 +70,7 @@ class LiveBenchmarkConfig:
     allow_live: bool = False
     baseline_manifest_path: Path | None = None
     phase_validation: bool = False
+    source_probe: bool = False
 
 
 @dataclass(frozen=True)
@@ -86,7 +90,13 @@ class LiveBenchmarkRunner:
         selected_benchmarks = self._select_benchmarks(suite, config)
         provider = self._provider_for(config)
         case_prompts = self._build_requirement_prompts(provider, selected_benchmarks)
-        estimated_tokens = self._estimate_run_tokens(case_prompts, config.runs_per_case)
+        source_prompts = (
+            self._build_source_prompts(provider, selected_benchmarks) if config.source_probe else {}
+        )
+        estimated_tokens = self._estimate_run_tokens(
+            [*case_prompts.values(), *source_prompts.values()],
+            config.runs_per_case,
+        )
         estimated_cost_usd = self._estimate_cost(config, estimated_tokens)
         self._validate_quota(config, selected_benchmarks, estimated_tokens, estimated_cost_usd)
 
@@ -106,6 +116,7 @@ class LiveBenchmarkRunner:
                         run_dir=run_dir,
                         run_index=run_index,
                         prompt=case_prompts[benchmark.id],
+                        source_prompt=source_prompts.get(benchmark.id),
                     )
                 )
 
@@ -129,6 +140,7 @@ class LiveBenchmarkRunner:
                 if config.baseline_manifest_path
                 else None,
                 "phase_validation": config.phase_validation,
+                "source_probe": config.source_probe,
             },
             "provider": {
                 "mode": config.provider,
@@ -160,7 +172,7 @@ class LiveBenchmarkRunner:
         _write_json(manifest_path, manifest)
 
         metrics_path = run_dir / "aggregate-metrics.json"
-        _write_json(metrics_path, self._build_metrics(manifest))
+        _write_json(metrics_path, self._build_metrics(manifest, run_dir))
 
         prompt_comparison_path = run_dir / "prompt-version-comparison.json"
         _write_json(
@@ -185,6 +197,7 @@ class LiveBenchmarkRunner:
         run_dir: Path,
         run_index: int,
         prompt: str,
+        source_prompt: str | None = None,
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -192,6 +205,8 @@ class LiveBenchmarkRunner:
 
         _write_json(artifact_dir / "benchmark-input.json", self._benchmark_payload(benchmark))
         (artifact_dir / "requirements-prompt.txt").write_text(prompt, encoding="utf-8")
+        if source_prompt is not None:
+            (artifact_dir / "source-prompt.txt").write_text(source_prompt, encoding="utf-8")
         provider_output_path: str | None = None
         error_path: str | None = None
         failure_class = FailureClass.NONE.value
@@ -214,6 +229,14 @@ class LiveBenchmarkRunner:
                 failure_class = _provider_failure_class(exc)
                 error_path = self._write_error(artifact_dir, run_dir, exc)
 
+        source_probe = self._run_source_probe(
+            benchmark=benchmark,
+            provider=provider,
+            provider_mode=provider_mode,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            source_prompt=source_prompt,
+        )
         scoring_form_path = self._write_scoring_form(
             run_dir=run_dir,
             benchmark=benchmark,
@@ -238,9 +261,93 @@ class LiveBenchmarkRunner:
             "artifact_dir": _relative(artifact_dir, run_dir),
             "provider_output_path": provider_output_path,
             "error_path": error_path,
+            "source_probe": source_probe,
             "scoring_form_path": _relative(scoring_form_path, run_dir),
             "report_path": _relative(report_path, run_dir),
         }
+
+    def _run_source_probe(
+        self,
+        *,
+        benchmark: GenerationBenchmark,
+        provider: GeminiCliProvider,
+        provider_mode: str,
+        run_dir: Path,
+        artifact_dir: Path,
+        source_prompt: str | None,
+    ) -> dict[str, Any]:
+        if source_prompt is None:
+            return {
+                "enabled": False,
+                "status": "disabled",
+                "prompt_sha256": None,
+                "prompt_template_version": None,
+                "raw_output_path": None,
+                "extracted_source_path": None,
+                "parameter_analysis_path": None,
+                "error_path": None,
+            }
+
+        request = _source_request_for(benchmark)
+        probe = {
+            "enabled": True,
+            "status": "not_run",
+            "prompt_sha256": _sha256_text(source_prompt),
+            "prompt_template_version": provider.prompt_template_version_for(request),
+            "raw_output_path": None,
+            "extracted_source_path": None,
+            "parameter_analysis_path": None,
+            "error_path": None,
+        }
+        if provider_mode == "dry-run":
+            return probe
+
+        try:
+            result = asyncio.run(provider.generate_model(request))
+        except TimeoutError as exc:
+            probe["status"] = "provider_failed"
+            probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return probe
+        except Exception as exc:
+            probe["status"] = "provider_failed"
+            probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return probe
+
+        output_file = artifact_dir / "source-raw-output.txt"
+        output_file.write_text(result.raw_output, encoding="utf-8")
+        probe["raw_output_path"] = _relative(output_file, run_dir)
+
+        try:
+            source = extract_scad_source(result.raw_output)
+        except SourceExtractionError as exc:
+            analysis_path = artifact_dir / "source-parameter-analysis.json"
+            _write_json(
+                analysis_path,
+                _source_parameter_analysis(
+                    benchmark=benchmark,
+                    extracted_source=None,
+                    extraction_error=str(exc),
+                ),
+            )
+            probe["status"] = "source_extraction_failed"
+            probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+            return probe
+
+        source_path = artifact_dir / "source-extracted.scad"
+        source_path.write_text(source, encoding="utf-8")
+        analysis_path = artifact_dir / "source-parameter-analysis.json"
+        _write_json(
+            analysis_path,
+            _source_parameter_analysis(
+                benchmark=benchmark,
+                extracted_source=source,
+                extraction_error=None,
+            ),
+        )
+        probe["status"] = "source_parameters_analyzed"
+        probe["extracted_source_path"] = _relative(source_path, run_dir)
+        probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+        return probe
 
     def _select_benchmarks(
         self,
@@ -268,6 +375,7 @@ class LiveBenchmarkRunner:
                 allow_live=config.allow_live,
                 baseline_manifest_path=config.baseline_manifest_path,
                 phase_validation=config.phase_validation,
+                source_probe=config.source_probe,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -329,6 +437,16 @@ class LiveBenchmarkRunner:
             for benchmark in benchmarks
         }
 
+    def _build_source_prompts(
+        self,
+        provider: GeminiCliProvider,
+        benchmarks: list[GenerationBenchmark],
+    ) -> dict[str, str]:
+        return {
+            benchmark.id: provider.build_prompt(_source_request_for(benchmark))
+            for benchmark in benchmarks
+        }
+
     def _prompt_versions(self, provider: GeminiCliProvider) -> dict[str, str]:
         return {
             "requirements": provider.requirement_prompt_template_version(),
@@ -345,8 +463,8 @@ class LiveBenchmarkRunner:
             "legacy_revision": LEGACY_REVISION_PROMPT_VERSION,
         }
 
-    def _estimate_run_tokens(self, prompts: dict[str, str], runs_per_case: int) -> int:
-        return sum(max(1, len(prompt) // 4) for prompt in prompts.values()) * runs_per_case
+    def _estimate_run_tokens(self, prompts: list[str], runs_per_case: int) -> int:
+        return sum(max(1, len(prompt) // 4) for prompt in prompts) * runs_per_case
 
     def _estimate_cost(self, config: LiveBenchmarkConfig, estimated_tokens: int) -> float | None:
         if config.cost_per_1k_tokens_usd is None:
@@ -473,13 +591,27 @@ class LiveBenchmarkRunner:
         error_file.write_text(str(exc), encoding="utf-8")
         return _relative(error_file, run_dir)
 
-    def _build_metrics(self, manifest: dict[str, Any]) -> dict[str, Any]:
+    def _build_metrics(self, manifest: dict[str, Any], run_dir: Path) -> dict[str, Any]:
         status_counts: dict[str, int] = {}
         failure_class_counts: dict[str, int] = {}
         for case_run in manifest["case_runs"]:
             status_counts[case_run["status"]] = status_counts.get(case_run["status"], 0) + 1
             failure_class = case_run["failure_class"]
             failure_class_counts[failure_class] = failure_class_counts.get(failure_class, 0) + 1
+        source_probe_status_counts: dict[str, int] = {}
+        source_probe_coverages: list[float] = []
+        for case_run in manifest["case_runs"]:
+            source_probe = case_run.get("source_probe", {})
+            status = source_probe.get("status", "disabled")
+            source_probe_status_counts[status] = source_probe_status_counts.get(status, 0) + 1
+            analysis_path = source_probe.get("parameter_analysis_path")
+            if isinstance(analysis_path, str):
+                analysis_file = run_dir / analysis_path
+                if analysis_file.exists():
+                    analysis = json.loads(analysis_file.read_text(encoding="utf-8"))
+                    coverage = analysis.get("expected_parameter_coverage")
+                    if isinstance(coverage, int | float):
+                        source_probe_coverages.append(float(coverage))
         return {
             "schema_version": LIVE_BENCHMARK_METRICS_SCHEMA_VERSION,
             "run_id": manifest["run_id"],
@@ -492,6 +624,13 @@ class LiveBenchmarkRunner:
             "needs_human_scoring": True,
             "next_work_buckets": {category: 0 for category in SCORING_CATEGORIES},
             "phase_validation": bool(manifest.get("config", {}).get("phase_validation")),
+            "source_probe_enabled": bool(manifest.get("config", {}).get("source_probe")),
+            "source_probe_status_counts": source_probe_status_counts,
+            "source_probe_expected_parameter_coverage_average": (
+                round(sum(source_probe_coverages) / len(source_probe_coverages), 4)
+                if source_probe_coverages
+                else None
+            ),
             "no_automatic_prompt_promotion": True,
         }
 
@@ -550,6 +689,72 @@ def _requirement_request_for(benchmark: GenerationBenchmark) -> RequirementExtra
             "supports_assumed_allowed": False,
         },
     )
+
+
+def _source_request_for(benchmark: GenerationBenchmark) -> ModelGenerationRequest:
+    return ModelGenerationRequest(
+        project_name=f"Benchmark: {benchmark.id}",
+        original_intent=benchmark.input_prompt,
+        user_instruction=benchmark.input_prompt,
+    )
+
+
+def _source_parameter_analysis(
+    *,
+    benchmark: GenerationBenchmark,
+    extracted_source: str | None,
+    extraction_error: str | None,
+) -> dict[str, Any]:
+    if extracted_source is None:
+        return {
+            "schema_version": SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION,
+            "benchmark_id": benchmark.id,
+            "source_extracted": False,
+            "extraction_error": extraction_error,
+            "expected_parameters": benchmark.expected_parameters,
+            "parameter_count": 0,
+            "parameter_ids": [],
+            "matched_expected_parameters": [],
+            "missing_expected_parameters": benchmark.expected_parameters,
+            "expected_parameter_coverage": 0.0 if benchmark.expected_parameters else None,
+            "parameter_types": {},
+            "parameter_groups": [],
+        }
+
+    parameters = extract_editable_parameters(extracted_source)
+    parameter_ids = [parameter.id for parameter in parameters]
+    parameter_id_set = set(parameter_ids)
+    matched = [
+        parameter_id
+        for parameter_id in benchmark.expected_parameters
+        if parameter_id in parameter_id_set
+    ]
+    missing = [
+        parameter_id
+        for parameter_id in benchmark.expected_parameters
+        if parameter_id not in parameter_id_set
+    ]
+    coverage = (
+        round(len(matched) / len(benchmark.expected_parameters), 4)
+        if benchmark.expected_parameters
+        else None
+    )
+    return {
+        "schema_version": SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION,
+        "benchmark_id": benchmark.id,
+        "source_extracted": True,
+        "extraction_error": None,
+        "expected_parameters": benchmark.expected_parameters,
+        "parameter_count": len(parameters),
+        "parameter_ids": parameter_ids,
+        "matched_expected_parameters": matched,
+        "missing_expected_parameters": missing,
+        "expected_parameter_coverage": coverage,
+        "parameter_types": {parameter.id: parameter.type for parameter in parameters},
+        "parameter_groups": sorted(
+            {parameter.group for parameter in parameters if parameter.group is not None}
+        ),
+    }
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:

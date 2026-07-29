@@ -103,6 +103,135 @@ def test_live_benchmark_phase_validation_selects_three_progression_scenarios(
     assert metrics["total_case_runs"] == 3
 
 
+def test_live_benchmark_source_probe_dry_run_writes_source_prompt(
+    tmp_path: Path,
+) -> None:
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            run_label="source-probe",
+            benchmark_ids=("simple_mounting_plate",),
+            provider="dry-run",
+            source_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    case_run = manifest["case_runs"][0]
+    source_probe = case_run["source_probe"]
+
+    assert manifest["config"]["source_probe"] is True
+    assert source_probe["enabled"] is True
+    assert source_probe["status"] == "not_run"
+    assert source_probe["prompt_template_version"] == "legacy-initial-v1"
+    assert source_probe["raw_output_path"] is None
+    assert source_probe["parameter_analysis_path"] is None
+    assert (result.run_dir / case_run["artifact_dir"] / "source-prompt.txt").exists()
+    assert metrics["source_probe_enabled"] is True
+    assert metrics["source_probe_status_counts"] == {"not_run": 1}
+
+
+def test_live_benchmark_source_probe_extracts_parameter_coverage(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_prompt(self, request) -> str:
+            return f"source for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            return ModelGenerationResult(
+                raw_output="""
+```openscad
+/* [Dimensions] */
+plate_width = 80; // [40:1:160]
+plate_depth = 35; // [20:1:80]
+plate_thickness = 6; // [2:1:12]
+hole_spacing = 55; // [20:1:120]
+
+module main_model() {
+  cube([plate_width, plate_depth, plate_thickness]);
+}
+main_model();
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+    analysis = json.loads(
+        (result.run_dir / source_probe["parameter_analysis_path"]).read_text(encoding="utf-8")
+    )
+
+    assert source_probe["status"] == "source_parameters_analyzed"
+    assert source_probe["extracted_source_path"] is not None
+    assert analysis["schema_version"] == "source-parameter-analysis-v1"
+    assert analysis["source_extracted"] is True
+    assert analysis["parameter_ids"] == [
+        "plate_width",
+        "plate_depth",
+        "plate_thickness",
+        "hole_spacing",
+    ]
+    assert analysis["matched_expected_parameters"] == [
+        "plate_width",
+        "plate_depth",
+        "plate_thickness",
+        "hole_spacing",
+    ]
+    assert analysis["expected_parameter_coverage"] == pytest.approx(4 / 5)
+    assert metrics["source_probe_status_counts"] == {"source_parameters_analyzed": 1}
+    assert metrics["source_probe_expected_parameter_coverage_average"] == pytest.approx(4 / 5)
+
+
 def test_live_benchmark_phase_validation_rejects_truncating_case_limit(
     tmp_path: Path,
 ) -> None:

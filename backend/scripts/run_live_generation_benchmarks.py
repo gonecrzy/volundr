@@ -93,6 +93,14 @@ def main(argv: list[str] | None = None) -> int:
             "honeycomb bracket, and threaded control knob. Cannot be combined with --benchmark-id."
         ),
     )
+    parser.add_argument(
+        "--source-probe",
+        action="store_true",
+        help=(
+            "Also ask the provider for direct OpenSCAD source, extract it if possible, "
+            "and write source parameter coverage artifacts. No compile is attempted."
+        ),
+    )
     args = parser.parse_args(argv)
 
     result = LiveBenchmarkRunner().run(
@@ -111,6 +119,7 @@ def main(argv: list[str] | None = None) -> int:
             allow_live=args.allow_live,
             baseline_manifest_path=args.baseline_manifest,
             phase_validation=args.phase_validation,
+            source_probe=args.source_probe,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))

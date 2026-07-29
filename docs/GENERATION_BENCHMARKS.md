@@ -63,6 +63,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --output-dir ../output/live-benchmarks \
   --run-label phase-check \
   --phase-validation \
+  --source-probe \
   --provider ollama \
   --max-runs 3
 ```
@@ -86,6 +87,8 @@ The phase-validation set is intentionally small:
 - `threaded_control_knob`: tests whether the pipeline can progress toward curated-library-backed CAD patterns instead of fake hand-rolled threads.
 
 Compare each phase run against the previous run using the generated `run-manifest.json`, `aggregate-metrics.json`, raw provider outputs, and human scoring forms. Improvement means fewer blocking/unacceptable outcomes, better preservation of function plus style, and clearer evidence about whether failures belong to prompt quality, parameter modeling, geometry generation, library support, printability, or UX.
+
+When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal. Useful movement means the model returns extractable OpenSCAD and exposes more of the expected functional/style parameters as simple top-level controls. This is not a substitute for compiling or reviewing the model.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 

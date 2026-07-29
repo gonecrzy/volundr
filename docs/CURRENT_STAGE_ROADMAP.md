@@ -218,6 +218,12 @@ Source-derived parameter discovery pass:
 - `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from constants and OpenSCAD Customizer-style comments
 - this is a phase gate for evaluating whether AI output exposes useful creative and functional knobs without forcing generated models into one fixed template
 
+Source-probe benchmark pass:
+
+- phase-validation runs can now include `--source-probe` to ask the provider for direct OpenSCAD without compiling or accepting a candidate
+- source probe artifacts capture raw source output, extracted source when valid, and exact expected-parameter coverage from the source-derived parameter scanner
+- this provides a cheap in-between signal for prompt/model changes before spending time on full CAD geometry review
+
 Correct trajectory from the geometric invariant checkpoint:
 
 ```text

@@ -60,6 +60,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --output-dir ../output/live-benchmarks \
   --run-label phase-1-baseline \
   --phase-validation \
+  --source-probe \
   --provider ollama \
   --max-runs 3
 ```
@@ -71,6 +72,8 @@ The flag selects exactly three scenarios:
 - `threaded_control_knob`
 
 Do not treat the phase run as a complete acceptance test. It is a smoke signal for whether the AI and pipeline are moving in the right direction on functional geometry, requested styling, subtractive CAD patterns, parameterization, and curated-library pressure.
+
+`--source-probe` adds a lightweight direct OpenSCAD generation probe. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage. It does not compile, accept candidates, or judge final geometry.
 
 ## Quota Controls
 
@@ -99,7 +102,11 @@ output/live-benchmarks/<run-id>/
 │   └── <benchmark-id>/run-001/
 │       ├── benchmark-input.json
 │       ├── requirements-prompt.txt
-│       └── requirements-raw-output.txt
+│       ├── requirements-raw-output.txt
+│       ├── source-prompt.txt
+│       ├── source-raw-output.txt
+│       ├── source-extracted.scad
+│       └── source-parameter-analysis.json
 ├── case-reports/
 │   └── <benchmark-id>-run-001.md
 └── human-scoring/
