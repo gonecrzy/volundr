@@ -312,6 +312,8 @@ class GeminiCliProvider:
             "- For thread-like or knurled details, prefer bounded approximations such as grooves, ribs, shallow cuts, or labeled clearance holes over invalid rotate_extrude tricks.",
             "- For one-piece outputs, all visible bodies must physically overlap or be joined into one connected solid unless the user explicitly requests separate parts.",
             "- Do not leave decorative silhouettes, ribs, handles, indicators, or cutout frames as loose disconnected solids.",
+            "- Do not call non-existent string parsing helpers such as str_to_num; OpenSCAD string handling is limited.",
+            "- String parameters are for labels, style choices, or selection. Use explicit numeric parameters or derived numeric defaults for geometry.",
         ]
 
     def _legacy_openscad_pattern_examples(self) -> list[str]:

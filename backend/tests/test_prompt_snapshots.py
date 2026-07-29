@@ -104,6 +104,8 @@ def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax(
     assert "For thread-like or knurled details, prefer bounded approximations" in prompt
     assert "For one-piece outputs, all visible bodies must physically overlap or be joined" in prompt
     assert "Do not leave decorative silhouettes, ribs, handles, indicators, or cutout frames as loose disconnected solids" in prompt
+    assert "Do not call non-existent string parsing helpers such as str_to_num" in prompt
+    assert "String parameters are for labels, style choices, or selection" in prompt
 
 
 def test_legacy_revision_prompt_matches_snapshot() -> None:
