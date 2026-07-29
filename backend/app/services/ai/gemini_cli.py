@@ -310,6 +310,8 @@ class GeminiCliProvider:
             "- Do not write recursive modules or self-calling modules; every module expansion must be finite.",
             "- circle() accepts r or d, not r1/r2. Use cylinder(h=..., r1=..., r2=...) only for tapered 3D cylinders.",
             "- For thread-like or knurled details, prefer bounded approximations such as grooves, ribs, shallow cuts, or labeled clearance holes over invalid rotate_extrude tricks.",
+            "- For one-piece outputs, all visible bodies must physically overlap or be joined into one connected solid unless the user explicitly requests separate parts.",
+            "- Do not leave decorative silhouettes, ribs, handles, indicators, or cutout frames as loose disconnected solids.",
         ]
 
     def _legacy_openscad_pattern_examples(self) -> list[str]:

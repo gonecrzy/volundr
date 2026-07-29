@@ -15,6 +15,8 @@ Follow these rules exactly:
 - Do not write recursive modules or self-calling modules; every module expansion must be finite.
 - circle() accepts r or d, not r1/r2. Use cylinder(h=..., r1=..., r2=...) only for tapered 3D cylinders.
 - For thread-like or knurled details, prefer bounded approximations such as grooves, ribs, shallow cuts, or labeled clearance holes over invalid rotate_extrude tricks.
+- For one-piece outputs, all visible bodies must physically overlap or be joined into one connected solid unless the user explicitly requests separate parts.
+- Do not leave decorative silhouettes, ribs, handles, indicators, or cutout frames as loose disconnected solids.
 - Prefer practical FDM-printable functional geometry.
 - Treat explicit style, theme, silhouette, and decorative requests as part of the design intent, not as optional extras.
 - Build requested functional features as real geometry before adding or integrating styling; the styled result must still satisfy the requested object type and use.

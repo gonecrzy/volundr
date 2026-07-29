@@ -102,6 +102,8 @@ def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax(
     assert "Do not write recursive modules" in prompt
     assert "circle() accepts r or d, not r1/r2" in prompt
     assert "For thread-like or knurled details, prefer bounded approximations" in prompt
+    assert "For one-piece outputs, all visible bodies must physically overlap or be joined" in prompt
+    assert "Do not leave decorative silhouettes, ribs, handles, indicators, or cutout frames as loose disconnected solids" in prompt
 
 
 def test_legacy_revision_prompt_matches_snapshot() -> None:
