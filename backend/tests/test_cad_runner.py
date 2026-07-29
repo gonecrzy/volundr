@@ -67,6 +67,60 @@ async def test_openscad_runner_returns_structured_failure_for_invalid_scad(
 
 
 @pytest.mark.asyncio
+async def test_openscad_runner_rejects_successful_compile_with_undefined_symbols(
+    tmp_path: Path,
+) -> None:
+    runner = OpenScadCliRunner(workspace_root=tmp_path, timeout_seconds=15)
+
+    result = await runner.compile(
+        """
+module main_model() {
+  union() {
+    cube([1, 1, 1]);
+    translate([missing_offset, 0, 0]) cube([1, 1, 1]);
+  }
+}
+main_model();
+""",
+        job_id="warning-job",
+    )
+
+    assert result.success is False
+    assert result.exit_code == 0
+    assert result.error_message is not None
+    assert "OpenSCAD emitted hard warnings" in result.error_message
+    assert "unknown variable 'missing_offset'" in result.error_message
+    assert result.metadata is None
+
+
+@pytest.mark.asyncio
+async def test_openscad_runner_rejects_successful_compile_with_ignored_child_geometry(
+    tmp_path: Path,
+) -> None:
+    runner = OpenScadCliRunner(workspace_root=tmp_path, timeout_seconds=15)
+
+    result = await runner.compile(
+        """
+module main_model() {
+  union() {
+    cube([1, 1, 1]);
+    square([1, 1]);
+  }
+}
+main_model();
+""",
+        job_id="ignored-child-warning-job",
+    )
+
+    assert result.success is False
+    assert result.exit_code == 0
+    assert result.error_message is not None
+    assert "OpenSCAD emitted hard warnings" in result.error_message
+    assert "Ignoring 2D child object for 3D operation" in result.error_message
+    assert result.metadata is None
+
+
+@pytest.mark.asyncio
 async def test_openscad_runner_rejects_forbidden_file_import(tmp_path: Path) -> None:
     runner = OpenScadCliRunner(workspace_root=tmp_path, timeout_seconds=15)
 

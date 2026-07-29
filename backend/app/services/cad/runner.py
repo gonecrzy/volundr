@@ -18,6 +18,14 @@ FORBIDDEN_SOURCE_PATTERNS = (
     re.compile(r"(^|[\"'])/[^\"']*"),
 )
 
+HARD_WARNING_PATTERNS = (
+    re.compile(r"\bWARNING:\s+Ignoring unknown (module|function|variable)\b", re.IGNORECASE),
+    re.compile(r"\bWARNING:\s+Ignoring (2D|3D) child object\b", re.IGNORECASE),
+    re.compile(r"\bWARNING:\s+undefined operation\b", re.IGNORECASE),
+    re.compile(r"\bWARNING:\s+Problem converting .*undef", re.IGNORECASE),
+    re.compile(r"\bWARNING:\s+variable .* not specified as parameter\b", re.IGNORECASE),
+)
+
 
 @dataclass(frozen=True)
 class CadCompileResult:
@@ -143,6 +151,25 @@ class OpenScadCliRunner:
                 output_size_bytes=self._file_size(stl_path),
                 metadata=None,
                 error_message=self._diagnostic(stderr, "OpenSCAD failed"),
+                command_args=self._safe_command_args(command_args),
+            )
+
+        hard_warning_diagnostic = self._hard_warning_diagnostic(stderr)
+        if hard_warning_diagnostic is not None:
+            return CadCompileResult(
+                job_id=job_id,
+                success=False,
+                timed_out=False,
+                exit_code=exit_code,
+                source_path=source_path,
+                stl_path=stl_path if stl_path.exists() else None,
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                metadata_path=None,
+                source_hash=source_hash,
+                output_size_bytes=self._file_size(stl_path),
+                metadata=None,
+                error_message=hard_warning_diagnostic,
                 command_args=self._safe_command_args(command_args),
             )
 
@@ -314,3 +341,18 @@ class OpenScadCliRunner:
     def _diagnostic(self, stderr: bytes, fallback: str) -> str:
         decoded = stderr.decode("utf-8", errors="replace").strip()
         return decoded or fallback
+
+    def _hard_warning_diagnostic(self, stderr: bytes) -> str | None:
+        decoded = stderr.decode("utf-8", errors="replace")
+        hard_warnings = [
+            line.strip()
+            for line in decoded.splitlines()
+            if any(pattern.search(line) for pattern in HARD_WARNING_PATTERNS)
+        ]
+        if not hard_warnings:
+            return None
+        shown_warnings = hard_warnings[:20]
+        suffix = ""
+        if len(hard_warnings) > len(shown_warnings):
+            suffix = f"\n... {len(hard_warnings) - len(shown_warnings)} more hard warning(s)"
+        return "OpenSCAD emitted hard warnings:\n" + "\n".join(shown_warnings) + suffix

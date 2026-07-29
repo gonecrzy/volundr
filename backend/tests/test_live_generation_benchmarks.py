@@ -299,7 +299,7 @@ def test_live_benchmark_source_probe_compiles_extracted_source_and_records_mesh_
             return ModelGenerationResult(
                 raw_output="""
 ```openscad
-angle = pi / 6;
+angle = PI / 6;
 plate_width = 80;
 plate_depth = 35;
 plate_thickness = 6;
@@ -333,8 +333,8 @@ main_model();
 
     assert source_probe["status"] == "source_parameters_analyzed"
     assert source_probe["compile_status"] == "compile_succeeded"
-    assert source_probe["compile_warning_count"] == 2
-    assert any("unknown variable 'pi'" in warning for warning in source_probe["compile_warnings"])
+    assert source_probe["compile_warning_count"] == 0
+    assert source_probe["compile_warnings"] == []
     assert source_probe["compiled_stl_path"] is not None
     assert source_probe["mesh_metadata_path"] is not None
     assert (result.run_dir / source_probe["compiled_stl_path"]).stat().st_size > 0
@@ -348,7 +348,7 @@ main_model();
     assert metadata["triangle_count"] > 0
     assert metadata["is_watertight"] is True
     assert metrics["source_probe_compile_status_counts"] == {"compile_succeeded": 1}
-    assert metrics["source_probe_compile_warning_count"] == 2
+    assert metrics["source_probe_compile_warning_count"] == 0
     assert metrics["source_probe_compiled_watertight_count"] == 1
     assert metrics["source_probe_compiled_nonzero_volume_count"] == 1
 
