@@ -629,6 +629,8 @@ class LiveBenchmarkRunner:
         source_probe_coverages: list[float] = []
         source_probe_compiled_watertight_count = 0
         source_probe_compiled_nonzero_volume_count = 0
+        source_probe_disconnected_mesh_count = 0
+        source_probe_max_connected_components = 0
         source_probe_compile_warning_count = 0
         for case_run in manifest["case_runs"]:
             source_probe = case_run.get("source_probe", {})
@@ -659,6 +661,14 @@ class LiveBenchmarkRunner:
                     volume = metadata.get("volume_mm3")
                     if isinstance(volume, int | float) and volume > 0:
                         source_probe_compiled_nonzero_volume_count += 1
+                    connected_components = metadata.get("connected_components")
+                    if isinstance(connected_components, int):
+                        source_probe_max_connected_components = max(
+                            source_probe_max_connected_components,
+                            connected_components,
+                        )
+                        if connected_components > 1:
+                            source_probe_disconnected_mesh_count += 1
         return {
             "schema_version": LIVE_BENCHMARK_METRICS_SCHEMA_VERSION,
             "run_id": manifest["run_id"],
@@ -683,6 +693,8 @@ class LiveBenchmarkRunner:
             "source_probe_compiled_nonzero_volume_count": (
                 source_probe_compiled_nonzero_volume_count
             ),
+            "source_probe_disconnected_mesh_count": source_probe_disconnected_mesh_count,
+            "source_probe_max_connected_components": source_probe_max_connected_components,
             "source_probe_compile_warning_count": source_probe_compile_warning_count,
             "no_automatic_prompt_promotion": True,
         }

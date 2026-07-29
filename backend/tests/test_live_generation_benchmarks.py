@@ -431,6 +431,91 @@ main_model();
     assert (result.run_dir / source_probe["compiled_stl_path"]).exists()
 
 
+def test_live_benchmark_source_probe_counts_disconnected_meshes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_prompt(self, request) -> str:
+            return f"source for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            return ModelGenerationResult(
+                raw_output="""
+```openscad
+plate_width = 10;
+plate_depth = 10;
+plate_thickness = 10;
+
+module main_model() {
+  union() {
+    cube([plate_width, plate_depth, plate_thickness]);
+    translate([30, 0, 0]) cube([plate_width, plate_depth, plate_thickness]);
+  }
+}
+main_model();
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+    metadata = json.loads(
+        (result.run_dir / source_probe["mesh_metadata_path"]).read_text(encoding="utf-8")
+    )
+
+    assert source_probe["compile_status"] == "compile_succeeded"
+    assert metadata["connected_components"] == 2
+    assert metrics["source_probe_disconnected_mesh_count"] == 1
+    assert metrics["source_probe_max_connected_components"] == 2
+
+
 def test_live_benchmark_source_probe_records_compile_failure_diagnostics(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -210,6 +210,7 @@ Reviewers should cite artifact paths in `evidence_paths` and list the recommende
 - source-probe extraction and compile status counts
 - average expected-parameter coverage from extracted source
 - count of compiled source probes with watertight and nonzero-volume meshes
+- count of compiled source probes with disconnected meshes and the maximum connected-component count
 - total OpenSCAD warning/deprecation lines from source-probe compile logs
 - no-promotion flag
 

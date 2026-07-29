@@ -138,6 +138,10 @@ def main(argv: list[str] | None = None) -> int:
             f"{metrics.get('source_probe_expected_parameter_coverage_average')}"
         )
         print(f"Source probe compile warning count: {metrics.get('source_probe_compile_warning_count')}")
+        print(
+            "Source probe disconnected mesh count: "
+            f"{metrics.get('source_probe_disconnected_mesh_count')}"
+        )
     print("Prompt promotion: disabled; manual review required")
     return 0
 
