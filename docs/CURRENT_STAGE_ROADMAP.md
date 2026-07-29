@@ -220,8 +220,8 @@ Source-derived parameter discovery pass:
 
 Source-probe benchmark pass:
 
-- phase-validation runs can now include `--source-probe` to ask the provider for direct OpenSCAD without compiling or accepting a candidate
-- source probe artifacts capture raw source output, extracted source when valid, and exact expected-parameter coverage from the source-derived parameter scanner
+- phase-validation runs can now include `--source-probe` to ask the provider for direct OpenSCAD without accepting a candidate
+- source probe artifacts capture raw source output, extracted source when valid, exact expected-parameter coverage from the source-derived parameter scanner, OpenSCAD compile logs, STL output, and mesh metadata
 - this provides a cheap in-between signal for prompt/model changes before spending time on full CAD geometry review
 
 Correct trajectory from the geometric invariant checkpoint:

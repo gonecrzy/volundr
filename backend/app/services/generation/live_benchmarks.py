@@ -24,6 +24,7 @@ from app.services.ai.gemini_cli import (
 from app.services.ai.ollama import OllamaProvider
 from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
+from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.benchmarks import (
     BenchmarkSuite,
     GenerationBenchmark,
@@ -285,6 +286,17 @@ class LiveBenchmarkRunner:
                 "raw_output_path": None,
                 "extracted_source_path": None,
                 "parameter_analysis_path": None,
+                "compile_status": "disabled",
+                "compiled_stl_path": None,
+                "compile_stdout_path": None,
+                "compile_stderr_path": None,
+                "mesh_metadata_path": None,
+                "compile_error_message": None,
+                "compile_timed_out": None,
+                "compile_exit_code": None,
+                "compile_warning_count": 0,
+                "compile_warnings": [],
+                "stl_size_bytes": 0,
                 "error_path": None,
             }
 
@@ -297,6 +309,17 @@ class LiveBenchmarkRunner:
             "raw_output_path": None,
             "extracted_source_path": None,
             "parameter_analysis_path": None,
+            "compile_status": "not_run",
+            "compiled_stl_path": None,
+            "compile_stdout_path": None,
+            "compile_stderr_path": None,
+            "mesh_metadata_path": None,
+            "compile_error_message": None,
+            "compile_timed_out": None,
+            "compile_exit_code": None,
+            "compile_warning_count": 0,
+            "compile_warnings": [],
+            "stl_size_bytes": 0,
             "error_path": None,
         }
         if provider_mode == "dry-run":
@@ -347,6 +370,9 @@ class LiveBenchmarkRunner:
         probe["status"] = "source_parameters_analyzed"
         probe["extracted_source_path"] = _relative(source_path, run_dir)
         probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+        probe.update(_compile_source_probe(source=source, run_dir=run_dir, artifact_dir=artifact_dir))
+        if probe["compile_status"] != "compile_succeeded":
+            probe["status"] = "source_compile_failed"
         return probe
 
     def _select_benchmarks(
@@ -599,11 +625,22 @@ class LiveBenchmarkRunner:
             failure_class = case_run["failure_class"]
             failure_class_counts[failure_class] = failure_class_counts.get(failure_class, 0) + 1
         source_probe_status_counts: dict[str, int] = {}
+        source_probe_compile_status_counts: dict[str, int] = {}
         source_probe_coverages: list[float] = []
+        source_probe_compiled_watertight_count = 0
+        source_probe_compiled_nonzero_volume_count = 0
+        source_probe_compile_warning_count = 0
         for case_run in manifest["case_runs"]:
             source_probe = case_run.get("source_probe", {})
             status = source_probe.get("status", "disabled")
             source_probe_status_counts[status] = source_probe_status_counts.get(status, 0) + 1
+            compile_status = source_probe.get("compile_status", "disabled")
+            source_probe_compile_status_counts[compile_status] = (
+                source_probe_compile_status_counts.get(compile_status, 0) + 1
+            )
+            warning_count = source_probe.get("compile_warning_count", 0)
+            if isinstance(warning_count, int):
+                source_probe_compile_warning_count += warning_count
             analysis_path = source_probe.get("parameter_analysis_path")
             if isinstance(analysis_path, str):
                 analysis_file = run_dir / analysis_path
@@ -612,6 +649,16 @@ class LiveBenchmarkRunner:
                     coverage = analysis.get("expected_parameter_coverage")
                     if isinstance(coverage, int | float):
                         source_probe_coverages.append(float(coverage))
+            metadata_path = source_probe.get("mesh_metadata_path")
+            if isinstance(metadata_path, str):
+                metadata_file = run_dir / metadata_path
+                if metadata_file.exists():
+                    metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+                    if metadata.get("is_watertight") is True:
+                        source_probe_compiled_watertight_count += 1
+                    volume = metadata.get("volume_mm3")
+                    if isinstance(volume, int | float) and volume > 0:
+                        source_probe_compiled_nonzero_volume_count += 1
         return {
             "schema_version": LIVE_BENCHMARK_METRICS_SCHEMA_VERSION,
             "run_id": manifest["run_id"],
@@ -626,11 +673,17 @@ class LiveBenchmarkRunner:
             "phase_validation": bool(manifest.get("config", {}).get("phase_validation")),
             "source_probe_enabled": bool(manifest.get("config", {}).get("source_probe")),
             "source_probe_status_counts": source_probe_status_counts,
+            "source_probe_compile_status_counts": source_probe_compile_status_counts,
             "source_probe_expected_parameter_coverage_average": (
                 round(sum(source_probe_coverages) / len(source_probe_coverages), 4)
                 if source_probe_coverages
                 else None
             ),
+            "source_probe_compiled_watertight_count": source_probe_compiled_watertight_count,
+            "source_probe_compiled_nonzero_volume_count": (
+                source_probe_compiled_nonzero_volume_count
+            ),
+            "source_probe_compile_warning_count": source_probe_compile_warning_count,
             "no_automatic_prompt_promotion": True,
         }
 
@@ -769,12 +822,63 @@ def _source_parameter_analysis(
     }
 
 
+def _compile_source_probe(
+    *,
+    source: str,
+    run_dir: Path,
+    artifact_dir: Path,
+) -> dict[str, Any]:
+    workspace_root = (artifact_dir / "source-compile-workspace").resolve()
+    result = asyncio.run(
+        OpenScadCliRunner(
+            workspace_root=workspace_root,
+            timeout_seconds=60,
+        ).compile(source, job_id="source-probe")
+    )
+    warnings = _openscad_warning_lines(result.stderr_path)
+    return {
+        "compile_status": "compile_succeeded" if result.success else "compile_failed",
+        "compiled_stl_path": _relative(result.stl_path, run_dir)
+        if result.success and result.stl_path is not None
+        else None,
+        "compile_stdout_path": _relative(result.stdout_path, run_dir)
+        if result.stdout_path is not None
+        else None,
+        "compile_stderr_path": _relative(result.stderr_path, run_dir)
+        if result.stderr_path is not None
+        else None,
+        "mesh_metadata_path": _relative(result.metadata_path, run_dir)
+        if result.success and result.metadata_path is not None
+        else None,
+        "compile_error_message": result.error_message,
+        "compile_timed_out": result.timed_out,
+        "compile_exit_code": result.exit_code,
+        "compile_warning_count": len(warnings),
+        "compile_warnings": warnings[:20],
+        "stl_size_bytes": result.output_size_bytes,
+    }
+
+
+def _openscad_warning_lines(stderr_path: Path | None) -> list[str]:
+    if stderr_path is None or not stderr_path.exists():
+        return []
+    warnings: list[str] = []
+    for line in stderr_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        normalized = line.strip()
+        if not normalized:
+            continue
+        upper = normalized.upper()
+        if upper.startswith("WARNING:") or upper.startswith("DEPRECATED:"):
+            warnings.append(normalized)
+    return warnings
+
+
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _relative(path: Path, root: Path) -> str:
-    return str(path.relative_to(root))
+    return str(path.resolve().relative_to(root.resolve()))
 
 
 def _safe_slug(value: str | None) -> str:

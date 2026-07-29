@@ -88,7 +88,7 @@ The phase-validation set is intentionally small:
 
 Compare each phase run against the previous run using the generated `run-manifest.json`, `aggregate-metrics.json`, raw provider outputs, and human scoring forms. Improvement means fewer blocking/unacceptable outcomes, better preservation of function plus style, and clearer evidence about whether failures belong to prompt quality, parameter modeling, geometry generation, library support, printability, or UX.
 
-When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal. Useful movement means the model returns extractable OpenSCAD and exposes more of the expected functional/style parameters as simple top-level controls. This is not a substitute for compiling or reviewing the model.
+When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable OpenSCAD, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STL, and avoids obvious mesh warnings. This is still not a substitute for human visual review.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 

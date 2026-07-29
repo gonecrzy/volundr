@@ -73,7 +73,9 @@ The flag selects exactly three scenarios:
 
 Do not treat the phase run as a complete acceptance test. It is a smoke signal for whether the AI and pipeline are moving in the right direction on functional geometry, requested styling, subtractive CAD patterns, parameterization, and curated-library pressure.
 
-`--source-probe` adds a lightweight direct OpenSCAD generation probe. The probe prompt includes the benchmark's expected parameter IDs as top-level control targets while explicitly keeping creative form open. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage. It does not compile, accept candidates, or judge final geometry.
+`--source-probe` adds a lightweight direct OpenSCAD generation probe. The probe prompt includes the benchmark's expected parameter IDs as top-level control targets while explicitly keeping creative form open. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage.
+
+When extraction succeeds, the probe also compiles the source with OpenSCAD and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.
 
 ## Quota Controls
 
@@ -106,7 +108,14 @@ output/live-benchmarks/<run-id>/
 │       ├── source-prompt.txt
 │       ├── source-raw-output.txt
 │       ├── source-extracted.scad
-│       └── source-parameter-analysis.json
+│       ├── source-parameter-analysis.json
+│       └── source-compile-workspace/
+│           └── source-probe/
+│               ├── model.scad
+│               ├── model.stl
+│               ├── metadata.json
+│               ├── stdout.log
+│               └── stderr.log
 ├── case-reports/
 │   └── <benchmark-id>-run-001.md
 └── human-scoring/
@@ -180,6 +189,10 @@ Reviewers should cite artifact paths in `evidence_paths` and list the recommende
 - estimated prompt tokens
 - live-provider enabled flag
 - next-work buckets initialized for human scoring
+- source-probe extraction and compile status counts
+- average expected-parameter coverage from extracted source
+- count of compiled source probes with watertight and nonzero-volume meshes
+- total OpenSCAD warning/deprecation lines from source-probe compile logs
 - no-promotion flag
 
 Future evaluators may aggregate completed human scoring forms into the same next-work buckets, but prompt promotion must still remain a separate manual decision.

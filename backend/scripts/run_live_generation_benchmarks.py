@@ -130,6 +130,14 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Prompt comparison: {result.prompt_comparison_path}")
     print(f"Case runs: {metrics['total_case_runs']}")
     print(f"Statuses: {metrics['status_counts']}")
+    if metrics.get("source_probe_enabled"):
+        print(f"Source probe statuses: {metrics.get('source_probe_status_counts')}")
+        print(f"Source probe compile statuses: {metrics.get('source_probe_compile_status_counts')}")
+        print(
+            "Source probe expected-parameter coverage average: "
+            f"{metrics.get('source_probe_expected_parameter_coverage_average')}"
+        )
+        print(f"Source probe compile warning count: {metrics.get('source_probe_compile_warning_count')}")
     print("Prompt promotion: disabled; manual review required")
     return 0
 

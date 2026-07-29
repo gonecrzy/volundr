@@ -6,10 +6,26 @@ import pytest
 from app.services.generation.live_benchmarks import (
     LiveBenchmarkConfig,
     LiveBenchmarkRunner,
+    _openscad_warning_lines,
 )
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "generation_benchmarks"
+
+
+def test_openscad_warning_parser_ignores_warning_substring_in_paths(tmp_path: Path) -> None:
+    stderr_path = tmp_path / "stderr.log"
+    stderr_path.write_text(
+        "Can't parse file '/tmp/live-benchmark-compile-warning-source-probe/model.scad'!\n"
+        "WARNING: real OpenSCAD warning\n"
+        "DEPRECATED: real OpenSCAD deprecation\n",
+        encoding="utf-8",
+    )
+
+    assert _openscad_warning_lines(stderr_path) == [
+        "WARNING: real OpenSCAD warning",
+        "DEPRECATED: real OpenSCAD deprecation",
+    ]
 
 
 def test_live_benchmark_dry_run_writes_manifest_metrics_reports_and_scoring_forms(
@@ -203,6 +219,7 @@ main_model();
         LiveBenchmarkConfig(
             suite_path=FIXTURE_DIR / "core.json",
             output_root=tmp_path,
+            run_label="warning-path",
             benchmark_ids=("simple_mounting_plate",),
             provider="ollama",
             source_probe=True,
@@ -235,6 +252,269 @@ main_model();
     assert analysis["expected_parameter_coverage"] == pytest.approx(4 / 5)
     assert metrics["source_probe_status_counts"] == {"source_parameters_analyzed": 1}
     assert metrics["source_probe_expected_parameter_coverage_average"] == pytest.approx(4 / 5)
+
+
+def test_live_benchmark_source_probe_compiles_extracted_source_and_records_mesh_metadata(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_prompt(self, request) -> str:
+            return f"source for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            return ModelGenerationResult(
+                raw_output="""
+```openscad
+angle = pi / 6;
+plate_width = 80;
+plate_depth = 35;
+plate_thickness = 6;
+hole_spacing = 55;
+
+module main_model() {
+  cube([plate_width, plate_depth, plate_thickness]);
+}
+main_model();
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+
+    assert source_probe["status"] == "source_parameters_analyzed"
+    assert source_probe["compile_status"] == "compile_succeeded"
+    assert source_probe["compile_warning_count"] == 2
+    assert any("unknown variable 'pi'" in warning for warning in source_probe["compile_warnings"])
+    assert source_probe["compiled_stl_path"] is not None
+    assert source_probe["mesh_metadata_path"] is not None
+    assert (result.run_dir / source_probe["compiled_stl_path"]).stat().st_size > 0
+    metadata = json.loads(
+        (result.run_dir / source_probe["mesh_metadata_path"]).read_text(encoding="utf-8")
+    )
+    assert metadata["size_x_mm"] == pytest.approx(80)
+    assert metadata["size_y_mm"] == pytest.approx(35)
+    assert metadata["size_z_mm"] == pytest.approx(6)
+    assert metadata["volume_mm3"] > 0
+    assert metadata["triangle_count"] > 0
+    assert metadata["is_watertight"] is True
+    assert metrics["source_probe_compile_status_counts"] == {"compile_succeeded": 1}
+    assert metrics["source_probe_compile_warning_count"] == 2
+    assert metrics["source_probe_compiled_watertight_count"] == 1
+    assert metrics["source_probe_compiled_nonzero_volume_count"] == 1
+
+
+def test_live_benchmark_source_probe_compile_supports_relative_output_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    monkeypatch.chdir(tmp_path)
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_prompt(self, request) -> str:
+            return f"source for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            return ModelGenerationResult(
+                raw_output="""
+```openscad
+plate_width = 10;
+plate_depth = 10;
+plate_thickness = 10;
+
+module main_model() {
+  cube([plate_width, plate_depth, plate_thickness]);
+}
+main_model();
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=Path("relative-output"),
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+
+    assert source_probe["compile_status"] == "compile_succeeded"
+    assert (result.run_dir / source_probe["compiled_stl_path"]).exists()
+
+
+def test_live_benchmark_source_probe_records_compile_failure_diagnostics(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_prompt(self, request) -> str:
+            return f"source for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            return ModelGenerationResult(
+                raw_output="""
+```openscad
+plate_width = 80;
+
+module main_model() {
+  cube([plate_width, 10, 10];
+}
+main_model();
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+
+    assert source_probe["status"] == "source_compile_failed"
+    assert source_probe["compile_status"] == "compile_failed"
+    assert source_probe["compile_error_message"]
+    assert source_probe["compile_warning_count"] == 0
+    assert source_probe["compile_warnings"] == []
+    assert source_probe["compile_stderr_path"] is not None
+    assert "parser error" in (
+        result.run_dir / source_probe["compile_stderr_path"]
+    ).read_text(encoding="utf-8").lower()
+    assert source_probe["compiled_stl_path"] is None
+    assert source_probe["mesh_metadata_path"] is None
+    assert metrics["source_probe_status_counts"] == {"source_compile_failed": 1}
+    assert metrics["source_probe_compile_status_counts"] == {"compile_failed": 1}
+    assert metrics["source_probe_compile_warning_count"] == 0
+    assert metrics["source_probe_compiled_watertight_count"] == 0
 
 
 def test_live_benchmark_phase_validation_rejects_truncating_case_limit(
