@@ -251,17 +251,7 @@ class GeminiCliProvider:
             "You generate OpenSCAD for Volundr.",
             "Return only a single OpenSCAD source block. Do not include shell commands.",
             "Follow these rules exactly:",
-            "- Units are millimeters.",
-            "- Include a USER PARAMETERS section.",
-            "- Define module main_model().",
-            "- End with exactly one top-level main_model(); call.",
-            "- Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-            "- Prefer practical FDM-printable functional geometry.",
-            "- For initial builds, stay literal and simple before adding secondary features.",
-            "- Do not add decorative cutouts, lightening holes, pass-through holes, vents, windows, slots, or pockets unless the user explicitly asks for them or they are structurally necessary.",
-            "- Every subtraction must directly serve the user's requested function; avoid subtractive features that weaken the part or remove support surfaces.",
-            "- Preserve load-bearing walls, tray support surfaces, retention features, and handles unless the user asks to change them.",
-            "- If a grip, access notch, drain, fastener hole, or clearance cut is needed, keep it local and sized for that purpose instead of cutting through unrelated geometry.",
+            *self._legacy_openscad_generation_rules(),
             "",
             f"Project name: {request.project_name}",
             f"Original intent: {request.original_intent}",
@@ -279,13 +269,32 @@ class GeminiCliProvider:
             parts.extend(
                 [
                     "",
-                    "Current accepted OpenSCAD source. Preserve working geometry and make the smallest necessary change:",
+                    "Current accepted OpenSCAD source. Preserve working geometry that is not contradicted by the user request.",
+                    "If the user requests a stylistic or functional redesign, make that requested change while preserving the functional core and source contract:",
                     request.current_source,
                 ]
             )
         if request.compiler_diagnostics:
             parts.extend(["", "Compiler diagnostics to account for:", request.compiler_diagnostics])
         return "\n".join(parts)
+
+    def _legacy_openscad_generation_rules(self) -> list[str]:
+        return [
+            "- Units are millimeters.",
+            "- Include a USER PARAMETERS section.",
+            "- Define module main_model().",
+            "- End with exactly one top-level main_model(); call.",
+            "- Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+            "- Prefer practical FDM-printable functional geometry.",
+            "- Treat explicit style, theme, silhouette, and decorative requests as part of the design intent, not as optional extras.",
+            "- Build requested functional features as real geometry before adding or integrating styling; the styled result must still satisfy the requested object type and use.",
+            "- Do not automatically simplify away requested creative or stylistic geometry; build it when it can coexist with the functional core.",
+            "- Model requested through-holes, slots, pockets, and clearances as subtractive geometry inside difference(), with cutters that pass completely through the target solid.",
+            "- Keep requested decorative cutouts, relief, silhouettes, vents, windows, slots, or pockets local and bounded so they do not destroy load-bearing geometry or required mounting/contact surfaces.",
+            "- Every subtraction must serve requested function, requested style, or necessary clearance; avoid subtractive features that weaken unrelated support surfaces.",
+            "- Preserve load-bearing walls, mounting faces, tray support surfaces, retention features, and handles unless the user asks to change them.",
+            "- If a grip, access notch, drain, fastener hole, clearance cut, or decorative feature is needed, keep it sized and positioned for that purpose instead of cutting through unrelated geometry.",
+        ]
 
     def _build_design_spec_openscad_prompt(self, request: ModelGenerationRequest) -> str:
         return "\n".join(

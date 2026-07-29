@@ -529,6 +529,6 @@ def test_gemini_initial_prompt_sets_functional_cad_ground_rules() -> None:
         )
     )
 
-    assert "Do not add decorative cutouts, lightening holes, pass-through holes" in prompt
-    assert "Every subtraction must directly serve the user's requested function" in prompt
-    assert "Preserve load-bearing walls, tray support surfaces, retention features, and handles" in prompt
+    assert "Treat explicit style, theme, silhouette, and decorative requests as part of the design intent" in prompt
+    assert "Every subtraction must serve requested function, requested style, or necessary clearance" in prompt
+    assert "Preserve load-bearing walls, mounting faces, tray support surfaces, retention features, and handles" in prompt

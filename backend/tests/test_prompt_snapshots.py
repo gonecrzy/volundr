@@ -37,6 +37,31 @@ def test_legacy_initial_prompt_matches_snapshot() -> None:
     assert prompt.rstrip("\n") == read_snapshot("legacy_initial.txt")
 
 
+def test_legacy_initial_prompt_preserves_creative_style_intent() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_prompt(
+        ModelGenerationRequest(
+            project_name="Fish shelf bracket",
+            original_intent=(
+                "Create a functional 90 degree shelf bracket that looks like a fish "
+                "from below."
+            ),
+            user_instruction=(
+                "Build a 90 degree shelf bracket with mounting holes, but make the "
+                "visible underside look like a fish."
+            ),
+        )
+    )
+
+    assert "Treat explicit style, theme, silhouette, and decorative requests as part of the design intent" in prompt
+    assert "Build requested functional features as real geometry before adding or integrating styling" in prompt
+    assert "Model requested through-holes, slots, pockets, and clearances as subtractive geometry inside difference()" in prompt
+    assert "functional core" in prompt
+    assert "Do not automatically simplify away requested creative or stylistic geometry" in prompt
+    assert "stay literal and simple before adding secondary features" not in prompt
+    assert "Do not add decorative cutouts" not in prompt
+
+
 def test_legacy_revision_prompt_matches_snapshot() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
@@ -48,6 +73,22 @@ def test_legacy_revision_prompt_matches_snapshot() -> None:
 
     assert provider.prompt_template_version_for(request) == "legacy-revision-v1"
     assert provider.build_prompt(request).rstrip("\n") == read_snapshot("legacy_revision.txt")
+
+
+def test_legacy_revision_prompt_allows_requested_stylistic_revision() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_prompt(
+        ModelGenerationRequest(
+            project_name="Fish shelf bracket",
+            original_intent="Create a functional shelf bracket.",
+            user_instruction="Revise the underside silhouette so it looks like a fish.",
+            current_source="module main_model() {\n  cube([100, 50, 5]);\n}\nmain_model();\n",
+        )
+    )
+
+    assert "If the user requests a stylistic or functional redesign, make that requested change" in prompt
+    assert "Treat explicit style, theme, silhouette, and decorative requests as part of the design intent" in prompt
+    assert "make the smallest necessary change" not in prompt
 
 
 def test_legacy_repair_prompt_matches_snapshot() -> None:
