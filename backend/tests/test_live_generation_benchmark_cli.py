@@ -1,0 +1,40 @@
+import json
+from pathlib import Path
+
+from scripts.run_live_generation_benchmarks import main
+
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures" / "generation_benchmarks"
+
+
+def test_live_benchmark_cli_phase_validation_flag_runs_three_scenarios(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    exit_code = main(
+        [
+            "--suite",
+            str(FIXTURE_DIR / "core.json"),
+            "--output-dir",
+            str(tmp_path),
+            "--run-label",
+            "phase-cli",
+            "--phase-validation",
+            "--provider",
+            "dry-run",
+        ]
+    )
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Case runs: 3" in output
+
+    manifests = list(tmp_path.glob("*/run-manifest.json"))
+    assert len(manifests) == 1
+    manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+    assert manifest["config"]["phase_validation"] is True
+    assert manifest["selected_benchmark_ids"] == [
+        "creative_fish_shelf_bracket",
+        "honeycomb_angle_bracket",
+        "threaded_control_knob",
+    ]

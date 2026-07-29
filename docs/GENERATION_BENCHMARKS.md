@@ -38,7 +38,7 @@ All generated OpenSCAD benchmarks must:
 - compile every required printable output, persist component-scoped validation results, and produce a reproducible `output-manifest.json`
 - for revision benchmarks, produce a `revision-plan-v1` artifact before source generation that names allowed changes, required dependencies, protected parameters/components/features/outputs, targeted outputs, and success criteria
 - verify supported protected geometric invariants according to `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
-- avoid unrequested decorative or weight-reduction features
+- avoid unrequested decorative or weight-reduction features while preserving explicitly requested style, theme, silhouette, and decorative intent
 - classify assumptions and warnings
 - preserve protected design invariants during repair and revision
 
@@ -46,11 +46,46 @@ Clarification benchmarks must not generate SCAD.
 
 Protected design invariants include user-provided dimensions, required features, mating geometry, fastener geometry, print orientation, and unrelated modules.
 
-Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, and conflicting dimensions. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, and the remaining model categories.
+Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, conflicting dimensions, and three quick phase-validation scenarios. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, creative-functional generation, curated-library pressure cases, and the remaining model categories.
 
 Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated. Fixture-generated meshes should also include expected geometric invariant assertions for supported cases: bounding dimensions, build-plate placement, cylindrical hole diameter, hole count, hole spacing, and wall-thickness estimates.
 
 Live evaluation artifacts are written under `output/live-benchmarks/` and are intentionally ignored by git. Each run stores `run-manifest.json`, prompt-version comparison, per-case reports, human scoring forms, rendered prompts, and any provider outputs collected during live mode. See `docs/LIVE_GENERATION_EVALUATION.md` for the manifest schema and quota controls.
+
+## Phase Validation Scenario Set
+
+Between implementation phases, run the same three realistic cases to get a fast directional signal before spending time on full CAD review:
+
+```bash
+cd backend
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase-check \
+  --phase-validation \
+  --provider ollama \
+  --max-runs 3
+```
+
+Use dry-run first when validating harness behavior:
+
+```bash
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase-check-dry-run \
+  --phase-validation \
+  --provider dry-run \
+  --max-runs 3
+```
+
+The phase-validation set is intentionally small:
+
+- `creative_fish_shelf_bracket`: tests whether functional mounting geometry and explicit creative styling coexist.
+- `honeycomb_angle_bracket`: tests real subtractive cutouts, borders, holes, and reinforcement.
+- `threaded_control_knob`: tests whether the pipeline can progress toward curated-library-backed CAD patterns instead of fake hand-rolled threads.
+
+Compare each phase run against the previous run using the generated `run-manifest.json`, `aggregate-metrics.json`, raw provider outputs, and human scoring forms. Improvement means fewer blocking/unacceptable outcomes, better preservation of function plus style, and clearer evidence about whether failures belong to prompt quality, parameter modeling, geometry generation, library support, printability, or UX.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 
@@ -113,6 +148,9 @@ Core suite:
 - 10. Critical-Dimension Revision
 - 12. Intentionally Vague Request
 - 13. Conflicting Dimensions
+- Phase check: Creative Fish Shelf Bracket
+- Phase check: Honeycomb Angle Bracket
+- Phase check: Threaded Control Knob
 
 Full stability suite:
 

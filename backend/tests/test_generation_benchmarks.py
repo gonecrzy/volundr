@@ -1,6 +1,10 @@
 from pathlib import Path
 
-from app.services.generation.benchmarks import load_benchmark_suite, run_deterministic_contract_check
+from app.services.generation.benchmarks import (
+    phase_validation_benchmark_ids,
+    load_benchmark_suite,
+    run_deterministic_contract_check,
+)
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "generation_benchmarks"
@@ -10,7 +14,7 @@ def test_core_generation_benchmark_fixture_loads_required_cases() -> None:
     suite = load_benchmark_suite(FIXTURE_DIR / "core.json")
 
     assert suite.name == "core"
-    assert len(suite.benchmarks) == 6
+    assert len(suite.benchmarks) == 9
     assert {benchmark.id for benchmark in suite.benchmarks} == {
         "simple_mounting_plate",
         "cylindrical_holder",
@@ -18,6 +22,9 @@ def test_core_generation_benchmark_fixture_loads_required_cases() -> None:
         "critical_dimension_revision",
         "vague_clarification",
         "conflicting_dimensions",
+        "creative_fish_shelf_bracket",
+        "honeycomb_angle_bracket",
+        "threaded_control_knob",
     }
 
 
@@ -36,6 +43,37 @@ def test_deterministic_benchmark_contract_check_passes_fixtures() -> None:
     assert len(results) == len(suite.benchmarks)
     assert all(result.passed for result in results)
     assert {result.failure_class for result in results} == {"none"}
+
+
+def test_phase_validation_scenarios_cover_function_style_and_library_progression() -> None:
+    core = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    full = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    core_by_id = {benchmark.id: benchmark for benchmark in core.benchmarks}
+    full_by_id = {benchmark.id: benchmark for benchmark in full.benchmarks}
+
+    assert phase_validation_benchmark_ids() == (
+        "creative_fish_shelf_bracket",
+        "honeycomb_angle_bracket",
+        "threaded_control_knob",
+    )
+    assert set(phase_validation_benchmark_ids()) <= set(core_by_id)
+    assert set(phase_validation_benchmark_ids()) <= set(full_by_id)
+
+    fish = core_by_id["creative_fish_shelf_bracket"]
+    assert fish.expected_clarification == "none"
+    assert {"wall_mounting_holes", "shelf_mounting_holes", "fish_silhouette"} <= set(fish.expected_modules)
+    assert "visible underside fish silhouette" in fish.protected_design_invariants
+    assert "plain L bracket with no fish-like underside" in fish.unacceptable_outcomes
+
+    honeycomb = core_by_id["honeycomb_angle_bracket"]
+    assert "hexagonal lightening pattern" in honeycomb.protected_design_invariants
+    assert "honeycomb represented as surface decoration only" in honeycomb.unacceptable_outcomes
+    assert any(invariant["type"] == "hole_group" for invariant in honeycomb.expected_geometric_invariants)
+
+    knob = core_by_id["threaded_control_knob"]
+    assert "BOSL2/threading allowed when curated library support is enabled" in knob.allowed_assumptions
+    assert "hand-rolled fake threads accepted as functional threads" in knob.unacceptable_outcomes
+    assert "thread_spec" in knob.expected_parameters
 
 
 def test_requirement_stage_benchmarks_cover_ready_clarification_and_conflict_cases() -> None:

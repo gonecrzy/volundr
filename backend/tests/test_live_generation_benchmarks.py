@@ -68,6 +68,56 @@ def test_live_benchmark_dry_run_writes_manifest_metrics_reports_and_scoring_form
         assert set(scoring["scores"]) == set(metrics["next_work_buckets"])
 
 
+def test_live_benchmark_phase_validation_selects_three_progression_scenarios(
+    tmp_path: Path,
+) -> None:
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            run_label="phase-check",
+            phase_validation=True,
+            provider="dry-run",
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+
+    assert manifest["config"]["phase_validation"] is True
+    assert manifest["validation_scenario_set"] == {
+        "schema_version": "phase-validation-scenarios-v1",
+        "purpose": "quick before/after signal for generation pipeline changes",
+        "benchmark_ids": [
+            "creative_fish_shelf_bracket",
+            "honeycomb_angle_bracket",
+            "threaded_control_knob",
+        ],
+    }
+    assert [case["benchmark_id"] for case in manifest["case_runs"]] == [
+        "creative_fish_shelf_bracket",
+        "honeycomb_angle_bracket",
+        "threaded_control_knob",
+    ]
+    assert metrics["phase_validation"] is True
+    assert metrics["total_case_runs"] == 3
+
+
+def test_live_benchmark_phase_validation_rejects_truncating_case_limit(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(ValueError, match="phase_validation cannot be combined with max_cases"):
+        LiveBenchmarkRunner().run(
+            LiveBenchmarkConfig(
+                suite_path=FIXTURE_DIR / "core.json",
+                output_root=tmp_path,
+                phase_validation=True,
+                max_cases=1,
+                provider="dry-run",
+            )
+        )
+
+
 def test_live_benchmark_repeated_runs_are_explicit_and_bounded(tmp_path: Path) -> None:
     result = LiveBenchmarkRunner().run(
         LiveBenchmarkConfig(

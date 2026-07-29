@@ -85,6 +85,14 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Optional prior run-manifest.json for prompt-version comparison.",
     )
+    parser.add_argument(
+        "--phase-validation",
+        action="store_true",
+        help=(
+            "Run the three quick phase-validation scenarios: creative fish bracket, "
+            "honeycomb bracket, and threaded control knob. Cannot be combined with --benchmark-id."
+        ),
+    )
     args = parser.parse_args(argv)
 
     result = LiveBenchmarkRunner().run(
@@ -102,6 +110,7 @@ def main(argv: list[str] | None = None) -> int:
             provider=args.provider,
             allow_live=args.allow_live,
             baseline_manifest_path=args.baseline_manifest,
+            phase_validation=args.phase_validation,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))

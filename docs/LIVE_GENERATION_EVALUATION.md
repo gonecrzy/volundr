@@ -50,6 +50,28 @@ Ollama uses the configured `VOLUNDR_OLLAMA_BASE_URL` and `VOLUNDR_OLLAMA_MODEL` 
 
 This explicit opt-in prevents accidental quota spend during routine testing.
 
+## Phase-Validation Runs
+
+Use `--phase-validation` between implementation phases when the goal is a quick before/after signal rather than a full benchmark pass:
+
+```bash
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase-1-baseline \
+  --phase-validation \
+  --provider ollama \
+  --max-runs 3
+```
+
+The flag selects exactly three scenarios:
+
+- `creative_fish_shelf_bracket`
+- `honeycomb_angle_bracket`
+- `threaded_control_knob`
+
+Do not treat the phase run as a complete acceptance test. It is a smoke signal for whether the AI and pipeline are moving in the right direction on functional geometry, requested styling, subtractive CAD patterns, parameterization, and curated-library pressure.
+
 ## Quota Controls
 
 Every run validates:
@@ -97,6 +119,7 @@ Provider raw output files exist only for live provider runs. Dry runs still coll
 - prompt-template versions
 - ruleset version
 - quota controls
+- whether the run used the phase-validation scenario set
 - per-case artifact paths
 - failure class
 - prompt hashes

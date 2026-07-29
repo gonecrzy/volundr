@@ -25,6 +25,26 @@ REQUIRED_BENCHMARK_FIELDS = frozenset(
     }
 )
 
+PHASE_VALIDATION_SCENARIO_SCHEMA_VERSION = "phase-validation-scenarios-v1"
+PHASE_VALIDATION_BENCHMARK_IDS = (
+    "creative_fish_shelf_bracket",
+    "honeycomb_angle_bracket",
+    "threaded_control_knob",
+)
+
+
+def phase_validation_benchmark_ids() -> tuple[str, ...]:
+    """Return the small scenario set used for before/after phase validation runs."""
+    return PHASE_VALIDATION_BENCHMARK_IDS
+
+
+def phase_validation_scenario_set() -> dict[str, Any]:
+    return {
+        "schema_version": PHASE_VALIDATION_SCENARIO_SCHEMA_VERSION,
+        "purpose": "quick before/after signal for generation pipeline changes",
+        "benchmark_ids": list(PHASE_VALIDATION_BENCHMARK_IDS),
+    }
+
 
 @dataclass(frozen=True)
 class GenerationBenchmark:

@@ -23,7 +23,13 @@ from app.services.ai.gemini_cli import (
 )
 from app.services.ai.ollama import OllamaProvider
 from app.services.ai.provider import RequirementExtractionRequest
-from app.services.generation.benchmarks import BenchmarkSuite, GenerationBenchmark, load_benchmark_suite
+from app.services.generation.benchmarks import (
+    BenchmarkSuite,
+    GenerationBenchmark,
+    load_benchmark_suite,
+    phase_validation_benchmark_ids,
+    phase_validation_scenario_set,
+)
 from app.services.generation.failure_taxonomy import FailureClass
 
 
@@ -60,6 +66,7 @@ class LiveBenchmarkConfig:
     provider: str = "dry-run"
     allow_live: bool = False
     baseline_manifest_path: Path | None = None
+    phase_validation: bool = False
 
 
 @dataclass(frozen=True)
@@ -121,6 +128,7 @@ class LiveBenchmarkRunner:
                 "baseline_manifest_path": str(config.baseline_manifest_path)
                 if config.baseline_manifest_path
                 else None,
+                "phase_validation": config.phase_validation,
             },
             "provider": {
                 "mode": config.provider,
@@ -140,6 +148,9 @@ class LiveBenchmarkRunner:
             },
             "selected_benchmark_ids": [benchmark.id for benchmark in selected_benchmarks],
             "case_runs": case_runs,
+            "validation_scenario_set": phase_validation_scenario_set()
+            if config.phase_validation
+            else None,
             "artifact_collection_root": "artifacts",
             "human_scoring_root": "human-scoring",
             "case_reports_root": "case-reports",
@@ -237,6 +248,27 @@ class LiveBenchmarkRunner:
         config: LiveBenchmarkConfig,
     ) -> list[GenerationBenchmark]:
         benchmarks = suite.benchmarks
+        if config.phase_validation:
+            if config.benchmark_ids:
+                raise ValueError("phase_validation cannot be combined with explicit benchmark_ids")
+            if config.max_cases is not None:
+                raise ValueError("phase_validation cannot be combined with max_cases")
+            config = LiveBenchmarkConfig(
+                suite_path=config.suite_path,
+                output_root=config.output_root,
+                run_label=config.run_label,
+                benchmark_ids=phase_validation_benchmark_ids(),
+                runs_per_case=config.runs_per_case,
+                max_cases=config.max_cases,
+                max_runs=config.max_runs,
+                max_estimated_tokens=config.max_estimated_tokens,
+                cost_per_1k_tokens_usd=config.cost_per_1k_tokens_usd,
+                max_estimated_cost_usd=config.max_estimated_cost_usd,
+                provider=config.provider,
+                allow_live=config.allow_live,
+                baseline_manifest_path=config.baseline_manifest_path,
+                phase_validation=config.phase_validation,
+            )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
             missing = sorted(set(config.benchmark_ids) - set(by_id))
@@ -459,6 +491,7 @@ class LiveBenchmarkRunner:
             "live_provider_calls_enabled": manifest["provider"]["live_provider_calls_enabled"],
             "needs_human_scoring": True,
             "next_work_buckets": {category: 0 for category in SCORING_CATEGORIES},
+            "phase_validation": bool(manifest.get("config", {}).get("phase_validation")),
             "no_automatic_prompt_promotion": True,
         }
 
