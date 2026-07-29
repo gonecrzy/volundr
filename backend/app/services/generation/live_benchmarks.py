@@ -753,6 +753,8 @@ def _source_request_for(benchmark: GenerationBenchmark) -> ModelGenerationReques
                 "",
                 "Source-probe parameter targets:",
                 "Expose these as simple top-level OpenSCAD parameters when applicable.",
+                "Use each target identifier exactly as written.",
+                "Do not split a target into indexed parameters, arrays, renamed aliases, or derived-only values.",
                 "Do not force the silhouette or styling into a fixed template; keep the requested creative form.",
                 *[f"- {parameter}" for parameter in benchmark.expected_parameters],
             ]

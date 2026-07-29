@@ -148,6 +148,8 @@ def test_live_benchmark_source_probe_dry_run_writes_source_prompt(
         encoding="utf-8"
     )
     assert "Source-probe parameter targets" in source_prompt
+    assert "Use each target identifier exactly as written" in source_prompt
+    assert "Do not split a target into indexed parameters" in source_prompt
     assert "plate_width" in source_prompt
     assert "hole_spacing" in source_prompt
     assert metrics["source_probe_enabled"] is True
