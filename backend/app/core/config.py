@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     gemini_model: str | None = Field(default="gemini-3.5-flash-lite")
     gemini_timeout_seconds: int = Field(default=120)
     gemini_policy_path: Path | None = Field(default=None)
+    generation_mode: str = Field(default="simple")
+    enable_design_plans: bool = Field(default=False)
+    enable_multi_output: bool = Field(default=False)
+    enable_structured_revisions: bool = Field(default=False)
+    enable_strict_marker_contract: bool = Field(default=False)
 
     @cached_property
     def database_url(self) -> str:

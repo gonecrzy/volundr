@@ -2018,14 +2018,14 @@ class ProjectService:
             if current_source is None:
                 raise RuntimeError("active revision source is missing")
             source_type = "ai_revision"
-            if design_specification_payload is None:
+            if design_specification_payload is None and settings.generation_mode != "simple":
                 latest_specification = self._latest_design_specification(project.id)
                 if latest_specification is not None:
                     design_specification = latest_specification
                     design_specification_payload = self._read_design_specification_payload(
                         latest_specification
                     )
-        elif design_specification is None:
+        elif design_specification is None and settings.generation_mode != "simple":
             raise ValueError("Design Specification is required before initial AI generation")
 
         generation_request = self._generation_request(

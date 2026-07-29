@@ -64,10 +64,16 @@ import {
   type RevisionPlanReviewState,
   type RevisionSuccessResult,
 } from "./revisionPlanView";
-import { applyChatClarificationAnswer } from "./chatWorkflow";
+import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
 import "./styles.css";
 
 const API_BASE = "/api";
+type VolundrFrontendEnv = {
+  VITE_VOLUNDR_GENERATION_MODE?: string;
+};
+const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
+const ADVANCED_WORKFLOW_ENABLED =
+  (FRONTEND_ENV.VITE_VOLUNDR_GENERATION_MODE ?? "simple").toLowerCase() === "advanced";
 
 type Project = {
   id: string;
@@ -588,7 +594,7 @@ function App() {
     ? "Sending"
     : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
       ? "Answer"
-      : canPlanRevisionFromCurrentContext
+      : ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
         ? "Plan revision"
         : "Send";
   const chatPlaceholder = hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
@@ -918,6 +924,23 @@ function App() {
         setProject(currentProject);
       }
 
+      if (!ADVANCED_WORKFLOW_ENABLED) {
+        setMessage("Generating source");
+        const revision = await request<Revision>(`/projects/${currentProject.id}/generate`, {
+          method: "POST",
+          body: JSON.stringify({ user_instruction: prompt }),
+        });
+        const nextRevisions = await request<Revision[]>(`/projects/${currentProject.id}/revisions`, {
+          method: "GET",
+        });
+        setRevisions(nextRevisions);
+        await loadProjectMessages(currentProject.id);
+        setSelectedRevision(revision);
+        await selectRevision(revision);
+        setMessage(revision.status === "succeeded" ? "Candidate ready" : revision.error_message ?? "Generation failed");
+        return;
+      }
+
       setMessage("Understanding request");
       const specification = await request<DesignSpecification>(`/projects/${currentProject.id}/requirements`, {
         method: "POST",
@@ -939,7 +962,12 @@ function App() {
       }
       await loadProjectMessages(currentProject.id);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Requirement extraction failed");
+      const fallback = ADVANCED_WORKFLOW_ENABLED ? "Requirement extraction failed" : "Generation failed";
+      const message = error instanceof Error ? error.message : fallback;
+      setMessage(message);
+      if (message.startsWith("Model source rejected before compile")) {
+        setSourceContractError(message);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -1367,23 +1395,30 @@ function App() {
   }
 
   function submitPrompt() {
-    if (hasRequirementClarificationPending) {
-      void submitRequirementClarificationFromChat();
-      return;
+    const action = nextChatWorkflowAction({
+      advancedWorkflowEnabled: ADVANCED_WORKFLOW_ENABLED,
+      hasRequirementClarificationPending,
+      hasDesignPlanClarificationPending,
+      hasRevisionPlanClarificationPending: hasRevisionClarificationPending,
+      canPlanRevisionFromCurrentContext,
+    });
+    switch (action) {
+      case "answer_requirement_clarification":
+        void submitRequirementClarificationFromChat();
+        return;
+      case "answer_design_plan_clarification":
+        void submitDesignPlanClarificationFromChat();
+        return;
+      case "answer_revision_plan_clarification":
+        void submitRevisionPlanClarificationFromChat();
+        return;
+      case "plan_revision":
+        void createRevisionPlanFromPrompt();
+        return;
+      case "generate":
+        void generateSource();
+        return;
     }
-    if (hasDesignPlanClarificationPending) {
-      void submitDesignPlanClarificationFromChat();
-      return;
-    }
-    if (hasRevisionClarificationPending) {
-      void submitRevisionPlanClarificationFromChat();
-      return;
-    }
-    if (canPlanRevisionFromCurrentContext) {
-      void createRevisionPlanFromPrompt();
-      return;
-    }
-    void generateSource();
   }
 
   function handlePromptKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -2026,50 +2061,54 @@ function App() {
           </section>
 
           <section className="revision-panel" aria-label="Revisions">
-            <DesignSpecificationReview
-              answers={clarificationAnswers}
-              canContinue={canContinueFromSpecification}
-              hasDesignPlan={Boolean(designPlan)}
-              isContinuing={isCreatingDesignPlan}
-              isSubmittingAnswers={isSubmittingClarification}
-              specification={designSpecification}
-              stageLabel={currentRequirementStage}
-              onAnswerChange={(questionId, answer) =>
-                setClarificationAnswers((current) => ({ ...current, [questionId]: answer }))
-              }
-              onContinue={() => void createDesignPlanFromSpecification()}
-              onSubmitAnswers={() => void submitClarificationAnswers()}
-            />
-            <DesignPlanReview
-              canApprove={canApproveCurrentDesignPlan}
-              canGenerate={canGenerateFromCurrentDesignPlan}
-              isActionPending={isDesignPlanActionPending}
-              isGenerating={isContinuingGeneration}
-              plan={designPlan}
-              stageLabel={currentDesignPlanStage}
-              onApprove={() => void approveDesignPlan()}
-              onGenerate={() => void continueGenerationFromDesignPlan()}
-              onReject={() => void rejectDesignPlan()}
-            />
-            <RevisionPlanReview
-              answers={revisionPlanAnswers}
-              canApprove={canApproveCurrentRevisionPlan}
-              canGenerate={canGenerateFromCurrentRevisionPlan}
-              complianceResult={revisionComplianceResult}
-              isActionPending={isRevisionPlanActionPending}
-              isGenerating={isGeneratingRevision}
-              isSubmittingAnswers={isRevisionPlanActionPending}
-              plan={revisionPlan}
-              stageLabel={currentRevisionPlanStage}
-              successResults={revisionSuccessResults}
-              onAnswerChange={(questionId, answer) =>
-                setRevisionPlanAnswers((current) => ({ ...current, [questionId]: answer }))
-              }
-              onApprove={() => void approveRevisionPlan()}
-              onGenerate={() => void generateFromRevisionPlan()}
-              onReject={() => void rejectRevisionPlan()}
-              onSubmitAnswers={() => void submitRevisionPlanClarificationAnswers()}
-            />
+            {ADVANCED_WORKFLOW_ENABLED ? (
+              <>
+                <DesignSpecificationReview
+                  answers={clarificationAnswers}
+                  canContinue={canContinueFromSpecification}
+                  hasDesignPlan={Boolean(designPlan)}
+                  isContinuing={isCreatingDesignPlan}
+                  isSubmittingAnswers={isSubmittingClarification}
+                  specification={designSpecification}
+                  stageLabel={currentRequirementStage}
+                  onAnswerChange={(questionId, answer) =>
+                    setClarificationAnswers((current) => ({ ...current, [questionId]: answer }))
+                  }
+                  onContinue={() => void createDesignPlanFromSpecification()}
+                  onSubmitAnswers={() => void submitClarificationAnswers()}
+                />
+                <DesignPlanReview
+                  canApprove={canApproveCurrentDesignPlan}
+                  canGenerate={canGenerateFromCurrentDesignPlan}
+                  isActionPending={isDesignPlanActionPending}
+                  isGenerating={isContinuingGeneration}
+                  plan={designPlan}
+                  stageLabel={currentDesignPlanStage}
+                  onApprove={() => void approveDesignPlan()}
+                  onGenerate={() => void continueGenerationFromDesignPlan()}
+                  onReject={() => void rejectDesignPlan()}
+                />
+                <RevisionPlanReview
+                  answers={revisionPlanAnswers}
+                  canApprove={canApproveCurrentRevisionPlan}
+                  canGenerate={canGenerateFromCurrentRevisionPlan}
+                  complianceResult={revisionComplianceResult}
+                  isActionPending={isRevisionPlanActionPending}
+                  isGenerating={isGeneratingRevision}
+                  isSubmittingAnswers={isRevisionPlanActionPending}
+                  plan={revisionPlan}
+                  stageLabel={currentRevisionPlanStage}
+                  successResults={revisionSuccessResults}
+                  onAnswerChange={(questionId, answer) =>
+                    setRevisionPlanAnswers((current) => ({ ...current, [questionId]: answer }))
+                  }
+                  onApprove={() => void approveRevisionPlan()}
+                  onGenerate={() => void generateFromRevisionPlan()}
+                  onReject={() => void rejectRevisionPlan()}
+                  onSubmitAnswers={() => void submitRevisionPlanClarificationAnswers()}
+                />
+              </>
+            ) : null}
             <SourceContractRejection message={sourceContractError} />
             <h2>Revisions</h2>
             <div className="revision-list">
@@ -2118,31 +2157,33 @@ function App() {
             retryingOutputId={isRetryingOutputId}
           />
 
-          <ConfigurationPanel
-            canGenerate={canGenerateCurrentConfiguration}
-            change={configurationPreview}
-            draft={configurationDraft}
-            isGenerating={isGeneratingConfiguration}
-            isPreviewing={isPreviewingConfiguration}
-            parameters={configurationParameters}
-            presets={configurationPresets}
-            selectedPresetId={selectedConfigurationPresetId}
-            onDraftChange={(parameterId, value) =>
-              setConfigurationDraft((current) => ({ ...current, [parameterId]: value }))
-            }
-            onGenerate={() => void generateConfigurationCandidate()}
-            onPresetChange={(presetId) => {
-              setSelectedConfigurationPresetId(presetId);
-              const preset = configurationPresets.find((entry) => entry.preset_id === presetId);
-              if (preset) {
-                setConfigurationDraft((current) => ({
-                  ...current,
-                  ...configurationDraftValues(preset.parameter_values),
-                }));
+          {ADVANCED_WORKFLOW_ENABLED ? (
+            <ConfigurationPanel
+              canGenerate={canGenerateCurrentConfiguration}
+              change={configurationPreview}
+              draft={configurationDraft}
+              isGenerating={isGeneratingConfiguration}
+              isPreviewing={isPreviewingConfiguration}
+              parameters={configurationParameters}
+              presets={configurationPresets}
+              selectedPresetId={selectedConfigurationPresetId}
+              onDraftChange={(parameterId, value) =>
+                setConfigurationDraft((current) => ({ ...current, [parameterId]: value }))
               }
-            }}
-            onPreview={() => void previewConfiguration()}
-          />
+              onGenerate={() => void generateConfigurationCandidate()}
+              onPresetChange={(presetId) => {
+                setSelectedConfigurationPresetId(presetId);
+                const preset = configurationPresets.find((entry) => entry.preset_id === presetId);
+                if (preset) {
+                  setConfigurationDraft((current) => ({
+                    ...current,
+                    ...configurationDraftValues(preset.parameter_values),
+                  }));
+                }
+              }}
+              onPreview={() => void previewConfiguration()}
+            />
+          ) : null}
 
           <div ref={printabilitySectionRef}>
             <h2>Metadata</h2>

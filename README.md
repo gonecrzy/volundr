@@ -101,6 +101,14 @@ path. Development defaults to a local Ollama provider at
 `http://10.1.20.25:11434` using `qwen3.5:9b`. Gemini remains available as an
 explicit provider switch.
 
+The default generation workflow is intentionally simple while model quality is
+being stabilized: chat prompts call AI source generation directly, compile the
+result, and present the result as a candidate. The staged Design Specification,
+Design Plan, multi-output, structured revision, and strict marker-contract UI
+can be rebuilt into the normal path after the simple model loop is reliable.
+Set `VOLUNDR_GENERATION_MODE=advanced` and build the frontend with
+`VITE_VOLUNDR_GENERATION_MODE=advanced` to expose the advanced workflow again.
+
 If a project has an active revision, the Generate action sends that revision's
 OpenSCAD source as context and stores the result as a follow-up AI revision.
 Child revisions expose a unified source diff against their parent in the

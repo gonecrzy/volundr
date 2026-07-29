@@ -27,3 +27,13 @@ def test_settings_default_to_ollama_for_development() -> None:
     assert settings.ollama_base_url == "http://10.1.20.25:11434"
     assert settings.ollama_model == "qwen3.5:9b"
     assert settings.ollama_timeout_seconds == 300
+
+
+def test_settings_default_to_simple_generation_mode() -> None:
+    settings = Settings()
+
+    assert settings.generation_mode == "simple"
+    assert settings.enable_design_plans is False
+    assert settings.enable_multi_output is False
+    assert settings.enable_structured_revisions is False
+    assert settings.enable_strict_marker_contract is False

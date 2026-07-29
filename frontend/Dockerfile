@@ -1,6 +1,8 @@
 FROM node:22-slim AS build
 
 WORKDIR /app
+ARG VITE_VOLUNDR_GENERATION_MODE=simple
+ENV VITE_VOLUNDR_GENERATION_MODE=${VITE_VOLUNDR_GENERATION_MODE}
 
 COPY package.json package-lock.json ./
 RUN npm ci

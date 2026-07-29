@@ -354,6 +354,29 @@ def test_generates_initial_revision_from_prompt(tmp_path: Path) -> None:
     assert refreshed_project["active_revision_id"] is None
 
 
+def test_simple_generation_does_not_require_design_specification(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Simple generated cube",
+            "original_intent": "Create a calibration cube.",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/projects/{project['id']}/generate",
+        json={"user_instruction": "Create a 10mm cube with named parameters."},
+    )
+
+    assert response.status_code == 201
+    revision = response.json()
+    assert revision["source_type"] == "ai_initial"
+    assert revision["design_specification_id"] is None
+    assert revision["design_plan_id"] is None
+    assert revision["status"] == "succeeded"
+
+
 def test_generation_provider_failure_returns_visible_error(tmp_path: Path) -> None:
     client = build_client(tmp_path)
     project = client.post(
