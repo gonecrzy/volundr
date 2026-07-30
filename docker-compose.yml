@@ -46,13 +46,20 @@ services:
       context: .
       dockerfile: cad-worker/Dockerfile
     restart: unless-stopped
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 1024m
+    cpus: 1.0
     environment:
       VOLUNDR_CAD_WORKSPACE_DIR: /work/jobs
       VOLUNDR_OPENSCAD_BINARY: /usr/bin/openscad
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}/jobs:/work/jobs
-    networks:
-      - volundr-internal
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
 
 networks:
   volundr-internal:

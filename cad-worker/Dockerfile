@@ -6,7 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends openscad \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && adduser --system --group --home /home/volundr-cad volundr-cad \
+    && mkdir -p /work/jobs /tmp \
+    && chown -R volundr-cad:volundr-cad /work /home/volundr-cad
 
 WORKDIR /app
 
@@ -14,5 +17,7 @@ COPY backend/pyproject.toml ./
 COPY backend/app ./app
 
 RUN pip install --no-cache-dir .
+
+USER volundr-cad
 
 CMD ["python", "-m", "app.workers.cad_worker"]

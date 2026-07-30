@@ -244,6 +244,12 @@ class CadRunner(Protocol):
         ...
 ```
 
+### CAD worker job transport
+
+Phase 2 uses a filesystem-backed job transport under the CAD jobs directory. The API writes an atomic job directory containing `job.json` and `input/model.py`; the worker validates the manifest, executes one job, and writes `result.json` atomically.
+
+This choice fits the current self-hosted single-user deployment because it needs no broker service, survives worker restarts, is easy to inspect during failures, and can be mounted narrowly into the worker. The tradeoff is that it is not a distributed queue and does not provide high-throughput scheduling, priority, or multi-worker locking beyond atomic file operations. Those are not required for the current product shape.
+
 ## Candidate Acceptance Flow
 
 ```text

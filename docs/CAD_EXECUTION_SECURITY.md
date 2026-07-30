@@ -95,6 +95,12 @@ It should not see:
 
 The CAD worker does not require network access. Disable network access for the worker with `network_mode: none` or an equally strong mechanism.
 
+## Job Transport
+
+Phase 2 uses filesystem-backed atomic job directories. A job directory contains only a structured manifest and approved input files. The worker validates relative paths, source hashes, schema version, backend, language, timeout, and source location before execution.
+
+Results are written through an atomic `result.json` replacement. Duplicate completion is rejected so a worker restart or repeated processing attempt cannot silently overwrite the first terminal result.
+
 ## Limits
 
 Initial configurable limits should include:
@@ -110,6 +116,18 @@ maximum triangle count: warning and hard ceiling
 ```
 
 These values are defaults and may be adjusted after testing.
+
+The Compose worker policy documents the initial container bounds:
+
+```text
+network: disabled
+root filesystem: read-only
+temporary writable path: /tmp tmpfs
+process limit: 128
+memory limit: 1024 MB
+CPU limit: 1.0
+security option: no-new-privileges
+```
 
 ## Source Screening
 

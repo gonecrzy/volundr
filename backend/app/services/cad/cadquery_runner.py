@@ -85,6 +85,7 @@ class CadQueryCliRunner:
             cwd=job_dir,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=self._subprocess_env(),
             start_new_session=True,
         )
 
@@ -293,6 +294,23 @@ class CadQueryCliRunner:
 
     def _safe_command_args(self, args: list[str]) -> list[str]:
         return [Path(arg).name if Path(arg).is_absolute() else arg for arg in args]
+
+    def _subprocess_env(self) -> dict[str, str]:
+        allowed_keys = {
+            "LANG",
+            "LC_ALL",
+            "PATH",
+            "PYTHONIOENCODING",
+            "TZ",
+        }
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key in allowed_keys and value
+        }
+        env.setdefault("PATH", os.defpath)
+        env["HOME"] = str(self.workspace_root / ".home")
+        return env
 
 
 _CADQUERY_RUNNER_SOURCE = """
