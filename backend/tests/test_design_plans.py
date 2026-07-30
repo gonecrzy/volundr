@@ -15,6 +15,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.generation_attempt import GenerationAttempt
+from app.schemas.project import DesignPlanPrintableOutput
 from app.services.ai.provider import (
     DesignPlanRequest,
     DesignPlanResult,
@@ -63,6 +64,19 @@ READY_SPEC: dict[str, Any] = {
     "generation_ready": True,
     "outcome": "generation_ready",
 }
+
+
+def test_printable_output_schema_does_not_promote_module_name_alias() -> None:
+    output = DesignPlanPrintableOutput.model_validate(
+        {
+            "id": "body",
+            "label": "Body",
+            "component_ids": ["body"],
+            "module_name": "legacy_body_module",
+        }
+    )
+
+    assert output.entrypoint is None
 
 
 READY_PLAN: dict[str, Any] = {

@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class RequirementSource(StrEnum):
@@ -333,10 +333,7 @@ class DesignPlanPrintableOutput(BaseModel):
     label: str = Field(min_length=1)
     component_ids: list[str] = Field(min_length=1)
     component_id: str | None = None
-    entrypoint: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("entrypoint", "module_name", "module"),
-    )
+    entrypoint: str | None = None
     filename: str | None = None
     quantity: int = Field(default=1, ge=1)
     required: bool = True

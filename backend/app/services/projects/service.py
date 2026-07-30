@@ -6946,9 +6946,7 @@ class ProjectService:
                 if component_id
             ]
             component_id = str(output.get("component_id") or (component_ids[0] if component_ids else ""))
-            entrypoint = str(
-                output.get("entrypoint") or output.get("module_name") or output.get("module") or output_id
-            ).strip()
+            entrypoint = str(output.get("entrypoint") or output_id).strip()
             required = bool(output.get("required", output_type != "optional_printable_component"))
             preferred_orientation = output.get("preferred_orientation") or output.get("orientation")
             outputs.append(
