@@ -5,6 +5,7 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RevisionPlanRequest,
 )
+from app.services.projects.service import ProjectService
 
 
 def test_cadquery_initial_prompt_uses_product_contract() -> None:
@@ -134,6 +135,31 @@ def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> Non
     assert "Current CadQuery source to repair begins below" in prompt
     assert ".holes(4)" in prompt
     assert "Return the full corrected CadQuery Python source" in prompt
+
+
+def test_project_service_records_distinct_cadquery_repair_prompt_versions() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    service = ProjectService(db=None, ai_provider=provider)  # type: ignore[arg-type]
+
+    contract_request = ModelGenerationRequest(
+        project_name="Repair",
+        original_intent="Create a bracket.",
+        user_instruction="Repair contract.",
+        current_source="import cadquery as cq",
+        contract_diagnostics="cadquery-v1 source must define build(params)",
+        design_plan={"printable_outputs": [{"id": "body"}]},
+    )
+    execution_request = ModelGenerationRequest(
+        project_name="Repair",
+        original_intent="Create a bracket.",
+        user_instruction="Repair execution.",
+        current_source="import cadquery as cq",
+        compiler_diagnostics="AttributeError: Workplane has no attribute holes",
+        design_plan={"printable_outputs": [{"id": "body"}]},
+    )
+
+    assert service._prompt_template_version(contract_request) == "cadquery-contract-repair-v1"
+    assert service._prompt_template_version(execution_request) == "cadquery-execution-repair-v1"
 
 
 def test_requirement_prompt_is_json_only_and_clarification_capable() -> None:

@@ -3658,6 +3658,12 @@ class ProjectService:
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
         if self._uses_cadquery_generation(request):
+            if request.compiler_diagnostics:
+                return "cadquery-execution-repair-v1"
+            if request.contract_diagnostics:
+                return "cadquery-contract-repair-v1"
+            if request.scope_diagnostics:
+                return "cadquery-scope-correction-v1"
             if request.revision_plan and request.scoped_revision_context:
                 return "cadquery-component-revision-v1"
             if request.revision_plan:
