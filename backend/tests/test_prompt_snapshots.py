@@ -49,6 +49,8 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
     assert "Return only a single fenced python block" in prompt
     assert "Follow the cadquery-v1 source contract" in prompt
     assert "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product" in prompt
+    assert "@component(\"component_id\")" in prompt
+    assert "@feature(\"feature_id\", component=\"component_id\")" in prompt
     assert "Define `def build(params):`" in prompt
     assert "Return exactly one `Product`" in prompt
     assert "Do not define `build_model()`" in prompt

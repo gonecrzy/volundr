@@ -9,6 +9,38 @@ class ParameterValidationError(ValueError):
     pass
 
 
+def _metadata_decorator(attribute: str, payload: dict[str, Any]):
+    def decorate(function):
+        existing = list(getattr(function, attribute, ()))
+        existing.append(payload)
+        setattr(function, attribute, tuple(existing))
+        return function
+
+    return decorate
+
+
+def component(component_id: str):
+    return _metadata_decorator("__volundr_components__", {"id": component_id})
+
+
+def feature(feature_id: str, *, component: str | None = None):
+    return _metadata_decorator(
+        "__volundr_features__",
+        {"id": feature_id, "component_id": component},
+    )
+
+
+def shared_helper(helper_id: str):
+    return _metadata_decorator("__volundr_shared_helpers__", {"id": helper_id})
+
+
+def protected_interface(interface_id: str, *, parameters: tuple[str, ...] = ()):
+    return _metadata_decorator(
+        "__volundr_protected_interfaces__",
+        {"id": interface_id, "parameters": tuple(parameters)},
+    )
+
+
 @dataclass(frozen=True)
 class ParameterSpec:
     id: str

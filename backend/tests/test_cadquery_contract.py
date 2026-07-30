@@ -261,6 +261,48 @@ def build(params):
     validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
+def test_cadquery_v1_contract_accepts_static_ownership_decorators() -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper
+
+PARAMETERS = [
+    ParameterSpec(id="width_mm", label="Width", type="float", default=80.0, unit="mm")
+]
+
+@shared_helper("lip_profile")
+def build_lip(width):
+    return cq.Workplane("XY").box(width, 5, 3)
+
+@component("body")
+@feature("body_lip", component="body")
+def build_body(params):
+    width = params["width_mm"]
+    return cq.Workplane("XY").box(width, 40, 6).union(build_lip(width))
+
+def build(params):
+    body = build_body(params)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                component_id="body",
+                label="Main body",
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+"""
+
+    metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+
+    assert metadata.output_ids == ["body"]
+    assert metadata.component_ids == ["body"]
+
+
 def test_cadquery_v1_contract_accepts_nested_helper_functions() -> None:
     source = """
 import cadquery as cq

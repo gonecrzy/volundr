@@ -28,6 +28,7 @@ from app.services.ai.provider import (
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
+from app.services.projects.service import ProjectService
 
 
 READY_SPEC: dict[str, Any] = {
@@ -232,6 +233,59 @@ CADQUERY_REVISED_SOURCE = CADQUERY_BASE_SOURCE.replace(
 CADQUERY_UNAUTHORIZED_SOURCE = CADQUERY_REVISED_SOURCE.replace(
     'ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0',
     'ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=5.0',
+)
+
+
+CADQUERY_DECORATED_SOURCE = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper
+
+PARAMETERS = [
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True),
+    ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=3.0, unit="mm", editable=True),
+    ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", editable=True, protected=True),
+]
+
+
+@shared_helper("rounded_box")
+def rounded_box(width, depth, height):
+    return cq.Workplane("XY").box(width, depth, height)
+
+
+@component("body")
+@feature("body_shell", component="body")
+def body_model(params):
+    return rounded_box(float(params["body_width"]), 50, float(params["wall_thickness"]))
+
+
+@component("lid")
+@feature("lid_panel", component="lid")
+def lid_model(params):
+    return cq.Workplane("XY").box(float(params["body_width"]), 50, float(params["lid_thickness"]))
+
+
+def build(params):
+    body = body_model(params)
+    lid = lid_model(params)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(output_id="body", label="Body", component_id="body", component_ids=("body",), model=body, expected_solid_count=1, allow_disconnected_solids=False),
+            PrintableOutput(output_id="lid", label="Lid", component_id="lid", component_ids=("lid",), model=lid, expected_solid_count=1, allow_disconnected_solids=False),
+        ],
+    )
+"""
+
+
+CADQUERY_DECORATED_REVISED_SOURCE = CADQUERY_DECORATED_SOURCE.replace(
+    'ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=3.0',
+    'ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=4.0',
+)
+
+
+CADQUERY_DECORATED_UNAUTHORIZED_COMPONENT_SOURCE = CADQUERY_DECORATED_REVISED_SOURCE.replace(
+    'return rounded_box(float(params["body_width"]), 50, float(params["wall_thickness"]))',
+    'return rounded_box(float(params["body_width"]), 60, float(params["wall_thickness"]))',
 )
 
 
@@ -482,7 +536,23 @@ class MultiOutputCadRunner:
                 is_winding_consistent=True,
                 center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
             )
-            topology = {"valid": True, "detected_solid_count": 1, "expected_solid_count": 1}
+            topology = {
+                "valid": True,
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "shell_count": 1,
+                "bounding_box_mm": {
+                    "xmin": 0,
+                    "ymin": 0,
+                    "zmin": 0,
+                    "xmax": extents[0],
+                    "ymax": extents[1],
+                    "zmax": extents[2],
+                    "xlen": extents[0],
+                    "ylen": extents[1],
+                    "zlen": extents[2],
+                },
+            }
             metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
             topology_path.write_text(json.dumps(topology), encoding="utf-8")
             outputs.append(
@@ -742,6 +812,73 @@ def test_cadquery_protected_parameter_change_blocks_before_compile(
     assert any(finding["rule_id"] == "revision.unauthorized_parameter_change" for finding in compliance["findings"])
 
 
+def test_cadquery_source_metadata_uses_ast_normalized_ownership_fingerprints() -> None:
+    service = ProjectService(db=None, ai_provider=None)  # type: ignore[arg-type]
+
+    base = service._cadquery_revision_source_metadata(CADQUERY_DECORATED_SOURCE, READY_PLAN)
+    reformatted = service._cadquery_revision_source_metadata(
+        CADQUERY_DECORATED_SOURCE.replace(
+            "@component(\"body\")\n@feature(\"body_shell\", component=\"body\")\ndef body_model(params):",
+            "# formatting-only comment\n@component(\"body\")\n@feature(\"body_shell\", component=\"body\")\ndef body_model(params):",
+        ),
+        READY_PLAN,
+    )
+    changed = service._cadquery_revision_source_metadata(
+        CADQUERY_DECORATED_UNAUTHORIZED_COMPONENT_SOURCE,
+        READY_PLAN,
+    )
+
+    assert base.component_mappings["body"].target_name == "body_model"
+    assert base.feature_mappings["body_shell"].target_name == "body_model"
+    assert base.shared_module_mappings["rounded_box"].target_name == "rounded_box"
+    assert base.module_fingerprints["body_model"].normalized_hash == reformatted.module_fingerprints[
+        "body_model"
+    ].normalized_hash
+    assert base.module_fingerprints["body_model"].normalized_hash != changed.module_fingerprints[
+        "body_model"
+    ].normalized_hash
+
+
+def test_cadquery_protected_component_function_change_blocks_before_compile(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setattr(settings, "generation_mode", "advanced")
+    provider = RevisionPlanningProvider(
+        plan={
+            **ready_revision_plan(),
+            "allowed_parameter_changes": ["lid_thickness"],
+            "required_dependency_changes": [],
+        },
+        revised_source=CADQUERY_DECORATED_SOURCE,
+    )
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_accepted_multi_output_revision(client)
+    source_path = tmp_path / "data" / context["revision"]["source_path"]
+    source_path.write_text(CADQUERY_DECORATED_SOURCE, encoding="utf-8")
+    provider.revised_source = CADQUERY_DECORATED_UNAUTHORIZED_COMPONENT_SOURCE
+    provider.correction_source = CADQUERY_DECORATED_UNAUTHORIZED_COMPONENT_SOURCE
+    runner.calls.clear()
+    plan = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": context["revision"]["id"],
+            "user_instruction": "Change lid thickness to 4 mm.",
+            "reason": "parameter_change",
+        },
+    ).json()
+    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
+
+    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
+
+    assert response.status_code == 409
+    assert runner.calls == []
+    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
+    assert compliance["passed"] is False
+    assert any(finding["rule_id"] == "revision.protected_module_changed" for finding in compliance["findings"])
+
+
 def test_protected_output_drift_blocks_candidate_after_compile(tmp_path: Path) -> None:
     provider = RevisionPlanningProvider()
     runner = MultiOutputCadRunner()
@@ -766,6 +903,9 @@ def test_protected_output_drift_blocks_candidate_after_compile(tmp_path: Path) -
     assert candidate["review_state"] == "blocked"
     summary = client.get(f"/api/revision-plans/{approved['id']}/component-revision-summary").json()
     assert summary["summary"]["protected_outputs"][0]["preservation_state"] == "unexpected_change"
+    comparison = summary["summary"]["protected_outputs"][0]["comparison"]
+    assert comparison["topology"]["bounding_box_mm"]["dimensions"]["ylen"]["delta"] == 10.0
+    assert comparison["topology"]["scalars"]["detected_solid_count"] == {"base": 1, "revised": 1}
     findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
     assert any(finding["rule_id"] == "revision.protected_output_unexpected_change" for finding in findings)
 

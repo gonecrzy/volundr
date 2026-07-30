@@ -1,3 +1,4 @@
+import ast
 import asyncio
 import difflib
 import hashlib
@@ -4188,43 +4189,127 @@ class ProjectService:
         design_plan_payload: dict[str, Any],
     ) -> SourceMetadata:
         metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        tree = ast.parse(source)
         source_hash = self._sha256(source)
-        parameter_mappings = {
-            parameter_id: SourceParameterMapping(
+        parameter_mappings: dict[str, SourceParameterMapping] = {}
+        parameter_fingerprints: dict[str, str] = {}
+        for call in self._cadquery_runtime_calls(tree, "ParameterSpec"):
+            parameter_id = self._cadquery_static_string_keyword(call, "id")
+            if not parameter_id:
+                continue
+            parameter_mappings[parameter_id] = SourceParameterMapping(
                 parameter_id=parameter_id,
                 target_name=parameter_id,
                 target_kind="ParameterSpec",
-                line=1,
+                line=getattr(call, "lineno", 1),
             )
-            for parameter_id in metadata.parameter_ids
-        }
-        component_mappings = {
-            component_id: SourceMapping(
-                requirement_id=component_id,
-                marker_type="component",
-                target_name="build",
-                target_kind="function",
-                line=1,
+            parameter_fingerprints[parameter_id] = self._cadquery_normalized_hash(call)
+
+        component_mappings: dict[str, SourceMapping] = {}
+        feature_mappings: dict[str, SourceMapping] = {}
+        shared_module_mappings: dict[str, SourceMapping] = {}
+        module_fingerprints: dict[str, SourceModuleFingerprint] = {}
+        for function in self._cadquery_top_level_functions(tree):
+            ownership = self._cadquery_function_ownership(function)
+            component_ids = ownership["component_ids"]
+            feature_ids = ownership["feature_ids"]
+            shared_helper_ids = ownership["shared_helper_ids"]
+            for component_id in component_ids:
+                component_mappings[component_id] = SourceMapping(
+                    requirement_id=component_id,
+                    marker_type="component",
+                    target_name=function.name,
+                    target_kind="function",
+                    line=function.lineno,
+                )
+            for feature_id, component_id in ownership["feature_components"].items():
+                feature_mappings[feature_id] = SourceMapping(
+                    requirement_id=feature_id,
+                    marker_type="feature",
+                    target_name=function.name,
+                    target_kind="function",
+                    line=function.lineno,
+                )
+                if component_id and component_id not in component_ids:
+                    component_ids.append(component_id)
+            for helper_id in shared_helper_ids:
+                shared_module_mappings[helper_id] = SourceMapping(
+                    requirement_id=helper_id,
+                    marker_type="shared_helper",
+                    target_name=function.name,
+                    target_kind="function",
+                    line=function.lineno,
+                )
+            if component_ids or feature_ids or shared_helper_ids:
+                module_fingerprints[function.name] = SourceModuleFingerprint(
+                    module_name=function.name,
+                    line=function.lineno,
+                    normalized_hash=self._cadquery_normalized_hash(function),
+                    called_modules=self._cadquery_called_functions(function),
+                    referenced_parameters=self._cadquery_referenced_parameters(function),
+                    component_ids=component_ids,
+                    feature_ids=feature_ids,
+                    is_shared=bool(shared_helper_ids) and not component_ids and not feature_ids,
+                )
+
+        for component_id in metadata.component_ids:
+            component_mappings.setdefault(
+                component_id,
+                SourceMapping(
+                    requirement_id=component_id,
+                    marker_type="component",
+                    target_name="build",
+                    target_kind="function",
+                    line=1,
+                ),
             )
-            for component_id in metadata.component_ids
-        }
-        output_mappings = {
-            output_id: SourceOutputMapping(
+
+        output_mappings: dict[str, SourceOutputMapping] = {}
+        output_fingerprints: dict[str, str] = {}
+        for call in self._cadquery_runtime_calls(tree, "PrintableOutput"):
+            output_id = self._cadquery_static_string_keyword(call, "output_id")
+            if not output_id:
+                continue
+            component_ids = self._cadquery_output_component_ids(call)
+            output_module_name = f"output:{output_id}"
+            output_mappings[output_id] = SourceOutputMapping(
                 output_id=output_id,
-                component_ids=list(metadata.output_component_ids.get(output_id, [])),
+                component_ids=component_ids,
                 target_name=output_id,
                 target_kind="PrintableOutput",
-                line=1,
-                module_name=output_id,
+                line=getattr(call, "lineno", 1),
+                module_name=output_module_name,
                 filename=f"{output_id}.stl",
-                required=True,
+                required=self._cadquery_static_bool_keyword(call, "required", default=True),
             )
-            for output_id in metadata.output_ids
-        }
-        feature_mappings: dict[str, SourceMapping] = {}
+            output_fingerprints[output_id] = self._cadquery_normalized_hash(call)
+            module_fingerprints[output_module_name] = SourceModuleFingerprint(
+                module_name=output_module_name,
+                line=getattr(call, "lineno", 1),
+                normalized_hash=output_fingerprints[output_id],
+                component_ids=component_ids,
+                output_ids=[output_id],
+            )
+
+        for output_id in metadata.output_ids:
+            output_mappings.setdefault(
+                output_id,
+                SourceOutputMapping(
+                    output_id=output_id,
+                    component_ids=list(metadata.output_component_ids.get(output_id, [])),
+                    target_name=output_id,
+                    target_kind="PrintableOutput",
+                    line=1,
+                    module_name=f"output:{output_id}",
+                    filename=f"{output_id}.stl",
+                    required=True,
+                ),
+            )
         for feature in design_plan_payload.get("features", []):
             feature_id = str(feature.get("id") or "")
             if not feature_id:
+                continue
+            if feature_id in feature_mappings:
                 continue
             component_id = str(feature.get("component_id") or "")
             if component_id and component_id not in metadata.component_ids:
@@ -4232,46 +4317,138 @@ class ProjectService:
             feature_mappings[feature_id] = SourceMapping(
                 requirement_id=feature_id,
                 marker_type="feature",
-                target_name=component_id or "build",
-                target_kind="component",
+                target_name=component_mappings.get(component_id, SourceMapping("", "", "build", "function", 1)).target_name
+                if component_id
+                else "build",
+                target_kind="function",
                 line=1,
             )
-        module_fingerprints = {
-            output_id: SourceModuleFingerprint(
-                module_name=output_id,
-                line=1,
-                normalized_hash=self._sha256(
-                    json.dumps(
-                        {
-                            "output_id": output_id,
-                            "component_ids": output.component_ids,
-                            "target_kind": output.target_kind,
-                        },
-                        sort_keys=True,
-                    )
-                ),
-                component_ids=list(output.component_ids),
-                output_ids=[output_id],
-            )
-            for output_id, output in output_mappings.items()
-        }
         return SourceMetadata(
             source_hash=source_hash,
             source_size_bytes=len(source.encode("utf-8")),
             line_count=len(source.splitlines()),
-            module_names=["build"],
+            module_names=sorted(set(["build", *module_fingerprints])),
             parameter_names=list(metadata.parameter_ids),
             feature_mappings=feature_mappings,
             component_mappings=component_mappings,
             parameter_mappings=parameter_mappings,
             output_mappings=output_mappings,
+            shared_module_mappings=shared_module_mappings,
             module_fingerprints=module_fingerprints,
+            parameter_fingerprints=parameter_fingerprints,
+            output_fingerprints=output_fingerprints,
             assignments={
                 parameter_id: self._cadquery_assignment_literal(default)
                 for parameter_id, default in metadata.parameter_defaults.items()
             },
-            assignment_lines={parameter_id: 1 for parameter_id in metadata.parameter_defaults},
+            assignment_lines={
+                parameter_id: parameter_mappings.get(
+                    parameter_id,
+                    SourceParameterMapping(parameter_id, parameter_id, "ParameterSpec", 1),
+                ).line
+                for parameter_id in metadata.parameter_defaults
+            },
         )
+
+    def _cadquery_top_level_functions(self, tree: ast.Module) -> list[ast.FunctionDef]:
+        return [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+
+    def _cadquery_runtime_calls(self, tree: ast.AST, call_name: str) -> list[ast.Call]:
+        return [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and self._cadquery_call_name(node.func) == call_name
+        ]
+
+    def _cadquery_call_name(self, node: ast.expr) -> str | None:
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Attribute):
+            return node.attr
+        return None
+
+    def _cadquery_function_ownership(self, node: ast.FunctionDef) -> dict[str, Any]:
+        component_ids: list[str] = []
+        feature_ids: list[str] = []
+        feature_components: dict[str, str | None] = {}
+        shared_helper_ids: list[str] = []
+        for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call) or not isinstance(decorator.func, ast.Name):
+                continue
+            decorator_name = decorator.func.id
+            decorator_id = self._cadquery_static_positional_string(decorator, 0)
+            if not decorator_id:
+                continue
+            if decorator_name == "component":
+                component_ids.append(decorator_id)
+            elif decorator_name == "feature":
+                feature_ids.append(decorator_id)
+                feature_components[decorator_id] = self._cadquery_static_string_keyword(decorator, "component")
+            elif decorator_name == "shared_helper":
+                shared_helper_ids.append(decorator_id)
+        return {
+            "component_ids": list(dict.fromkeys(component_ids)),
+            "feature_ids": list(dict.fromkeys(feature_ids)),
+            "feature_components": feature_components,
+            "shared_helper_ids": list(dict.fromkeys(shared_helper_ids)),
+        }
+
+    def _cadquery_normalized_hash(self, node: ast.AST) -> str:
+        return self._sha256(ast.dump(node, include_attributes=False, annotate_fields=True))
+
+    def _cadquery_called_functions(self, node: ast.AST) -> list[str]:
+        names: list[str] = []
+        for call in (child for child in ast.walk(node) if isinstance(child, ast.Call)):
+            name = self._cadquery_call_name(call.func)
+            if name:
+                names.append(name)
+        return sorted(set(names))
+
+    def _cadquery_referenced_parameters(self, node: ast.AST) -> list[str]:
+        names: list[str] = []
+        for child in ast.walk(node):
+            if (
+                isinstance(child, ast.Subscript)
+                and isinstance(child.value, ast.Name)
+                and child.value.id == "params"
+                and isinstance(child.slice, ast.Constant)
+                and isinstance(child.slice.value, str)
+            ):
+                names.append(child.slice.value)
+        return sorted(set(names))
+
+    def _cadquery_static_positional_string(self, node: ast.Call, index: int) -> str | None:
+        if len(node.args) <= index:
+            return None
+        value = node.args[index]
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            return value.value
+        return None
+
+    def _cadquery_static_string_keyword(self, node: ast.Call, name: str) -> str | None:
+        for keyword in node.keywords:
+            if keyword.arg == name and isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, str):
+                return keyword.value.value
+        return None
+
+    def _cadquery_static_bool_keyword(self, node: ast.Call, name: str, *, default: bool) -> bool:
+        for keyword in node.keywords:
+            if keyword.arg == name and isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, bool):
+                return keyword.value.value
+        return default
+
+    def _cadquery_output_component_ids(self, node: ast.Call) -> list[str]:
+        component_ids: list[str] = []
+        component_id = self._cadquery_static_string_keyword(node, "component_id")
+        if component_id:
+            component_ids.append(component_id)
+        for keyword in node.keywords:
+            if keyword.arg != "component_ids" or not isinstance(keyword.value, ast.List | ast.Tuple):
+                continue
+            for element in keyword.value.elts:
+                if isinstance(element, ast.Constant) and isinstance(element.value, str):
+                    component_ids.append(element.value)
+        return list(dict.fromkeys(component_ids))
 
     def _cadquery_source_parameter_values(self, source: str) -> dict[str, Any]:
         try:
@@ -4380,6 +4557,11 @@ class ProjectService:
             )
             if item.get("id")
         }
+        plan_output_ids = {
+            str(output.get("id"))
+            for output in design_plan_payload.get("printable_outputs", [])
+            if output.get("id")
+        }
         base_constants = evaluate_constants(base_scan.assignments)
         revised_constants = evaluate_constants(revised_scan.assignments)
         for parameter_id, protected in protected_parameters.items():
@@ -4428,6 +4610,23 @@ class ProjectService:
                         detected=revised_value,
                     )
                 )
+        for parameter_id in sorted(set(base_scan.parameter_fingerprints) & set(revised_scan.parameter_fingerprints)):
+            if parameter_id in allowed_parameters:
+                continue
+            if parameter_id not in plan_parameter_ids and parameter_id not in protected_parameters:
+                continue
+            if base_scan.parameter_fingerprints[parameter_id] == revised_scan.parameter_fingerprints[parameter_id]:
+                continue
+            findings.append(
+                self._revision_compliance_finding(
+                    "revision.unauthorized_parameter_definition_change",
+                    "Unauthorized parameter definition changed",
+                    f"{parameter_id} changed its ParameterSpec declaration outside the approved revision scope.",
+                    parameter_id=parameter_id,
+                    expected=base_scan.parameter_fingerprints[parameter_id],
+                    detected=revised_scan.parameter_fingerprints[parameter_id],
+                )
+            )
         for component_id in revision_plan_payload.get("protected_components", []):
             if component_id and component_id not in revised_scan.component_mappings:
                 findings.append(
@@ -4478,6 +4677,30 @@ class ProjectService:
                         detected=revised_mapping.module_name,
                     )
                 )
+        targeted_outputs = set(map(str, revision_plan_payload.get("targeted_outputs", [])))
+        protected_outputs = set(map(str, revision_plan_payload.get("protected_outputs", [])))
+        for output_id in sorted(set(base_scan.output_fingerprints) & set(revised_scan.output_fingerprints)):
+            if output_id in targeted_outputs:
+                continue
+            if output_id not in protected_outputs and output_id not in plan_output_ids:
+                continue
+            if base_scan.output_fingerprints[output_id] == revised_scan.output_fingerprints[output_id]:
+                continue
+            rule_id = (
+                "revision.protected_output_declaration_changed"
+                if output_id in protected_outputs
+                else "revision.unexpected_output_declaration_changed"
+            )
+            findings.append(
+                self._revision_compliance_finding(
+                    rule_id,
+                    "Output declaration changed outside revision scope",
+                    f"Output {output_id} changed its PrintableOutput declaration outside the approved revision scope.",
+                    output_id=output_id,
+                    expected=base_scan.output_fingerprints[output_id],
+                    detected=revised_scan.output_fingerprints[output_id],
+                )
+            )
         findings.extend(
             self._component_scope_findings(
                 base_scan=base_scan,
@@ -5148,6 +5371,11 @@ class ProjectService:
         if component_delta != 0:
             beyond = True
             changed = True
+        topology = self._compare_output_topology(base_output, revised_output)
+        if topology.get("changed"):
+            changed = True
+        if topology.get("beyond_tolerance"):
+            beyond = True
         return {
             "profile_version": "output-preservation-v1",
             "changed": changed,
@@ -5155,6 +5383,7 @@ class ProjectService:
             "dimensions": dimensions,
             "volume_mm3": {"base": base_volume, "revised": revised_volume, "delta": volume_delta},
             "connected_components_delta": component_delta,
+            "topology": topology,
             "hash_equal": base_output.stl_hash == revised_output.stl_hash,
             "tolerances": tolerances,
         }
@@ -5164,6 +5393,91 @@ class ProjectService:
             return None
         try:
             return json.loads(output.metadata_json)
+        except json.JSONDecodeError:
+            return None
+
+    def _compare_output_topology(
+        self,
+        base_output: RevisionOutput,
+        revised_output: RevisionOutput,
+    ) -> dict[str, Any]:
+        base_topology = self._output_topology_metadata(base_output)
+        revised_topology = self._output_topology_metadata(revised_output)
+        if base_topology is None or revised_topology is None:
+            return {"unverifiable": True, "reason": "missing_topology_metadata"}
+        changed = False
+        beyond = False
+        scalar_fields = (
+            "valid",
+            "detected_solid_count",
+            "expected_solid_count",
+            "allow_disconnected_solids",
+            "shell_count",
+        )
+        scalars: dict[str, dict[str, Any]] = {}
+        for field in scalar_fields:
+            base_value = base_topology.get(field)
+            revised_value = revised_topology.get(field)
+            scalars[field] = {"base": base_value, "revised": revised_value}
+            if base_value != revised_value:
+                changed = True
+                if field in {"valid", "detected_solid_count", "expected_solid_count", "shell_count"}:
+                    beyond = True
+        bounding_box = self._compare_bounding_boxes(
+            base_topology.get("bounding_box_mm"),
+            revised_topology.get("bounding_box_mm"),
+        )
+        if bounding_box.get("changed"):
+            changed = True
+        if bounding_box.get("beyond_tolerance"):
+            beyond = True
+        advisory: dict[str, dict[str, Any]] = {}
+        for field in ("face_count", "edge_count", "volume_mm3"):
+            if field not in base_topology and field not in revised_topology:
+                continue
+            base_value = base_topology.get(field)
+            revised_value = revised_topology.get(field)
+            advisory[field] = {"base": base_value, "revised": revised_value}
+            if base_value != revised_value:
+                changed = True
+        return {
+            "unverifiable": False,
+            "changed": changed,
+            "beyond_tolerance": beyond,
+            "scalars": scalars,
+            "bounding_box_mm": bounding_box,
+            "advisory": advisory,
+        }
+
+    def _compare_bounding_boxes(self, base: Any, revised: Any) -> dict[str, Any]:
+        if not isinstance(base, dict) or not isinstance(revised, dict):
+            return {"unverifiable": True, "reason": "missing_bounding_box"}
+        tolerances = {"dimension_mm": 0.25}
+        axes: dict[str, dict[str, float]] = {}
+        changed = False
+        beyond = False
+        for key in ("xlen", "ylen", "zlen"):
+            base_value = float(base.get(key, 0) or 0)
+            revised_value = float(revised.get(key, 0) or 0)
+            delta = abs(revised_value - base_value)
+            axes[key] = {"base": base_value, "revised": revised_value, "delta": delta}
+            if delta > 1e-6:
+                changed = True
+            if delta > tolerances["dimension_mm"]:
+                beyond = True
+        return {
+            "unverifiable": False,
+            "changed": changed,
+            "beyond_tolerance": beyond,
+            "dimensions": axes,
+            "tolerances": tolerances,
+        }
+
+    def _output_topology_metadata(self, output: RevisionOutput) -> dict[str, Any] | None:
+        if not output.topology_metadata_json:
+            return None
+        try:
+            return json.loads(output.topology_metadata_json)
         except json.JSONDecodeError:
             return None
 

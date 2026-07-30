@@ -43,10 +43,17 @@ RUNTIME_IMPORT_NAMES = frozenset(
         "ParameterValues",
         "PrintableOutput",
         "Product",
+        "component",
+        "feature",
+        "protected_interface",
+        "shared_helper",
     }
 )
 
 RUNTIME_CONSTRUCTOR_NAMES = frozenset({"ParameterSpec", "PrintableOutput", "Product"})
+RUNTIME_METADATA_DECORATOR_NAMES = frozenset(
+    {"component", "feature", "protected_interface", "shared_helper"}
+)
 
 PARAMETER_SPEC_TYPES = frozenset({"float", "int", "bool", "str", "enum"})
 
@@ -213,7 +220,10 @@ def _validate_function(
     strict_v1: bool = False,
 ) -> None:
     if node.decorator_list:
-        raise CadQueryContractError("function decorators are not allowed in cadquery-v1")
+        if not strict_v1:
+            raise CadQueryContractError("function decorators are not allowed in cadquery-v1")
+        for decorator in node.decorator_list:
+            _validate_metadata_decorator(decorator)
     if node.args.vararg or node.args.kwarg:
         raise CadQueryContractError("variadic function arguments are not allowed")
     _validate_body(node, function_names=function_names, strict_v1=strict_v1)
@@ -237,9 +247,12 @@ def _validate_body(node: ast.AST, *, function_names: set[str], strict_v1: bool =
     for child in ast.walk(node):
         if isinstance(child, ast.FunctionDef) and child is not node:
             if child.decorator_list:
-                raise CadQueryContractError(
-                    "function decorators are not allowed in cadquery-v1"
-                )
+                if not strict_v1:
+                    raise CadQueryContractError(
+                        "function decorators are not allowed in cadquery-v1"
+                    )
+                for decorator in child.decorator_list:
+                    _validate_metadata_decorator(decorator)
             if child.args.vararg or child.args.kwarg:
                 raise CadQueryContractError("variadic function arguments are not allowed")
         if isinstance(child, ast.Import | ast.ImportFrom):
@@ -270,7 +283,42 @@ def _validate_call(node: ast.Call, *, function_names: set[str], strict_v1: bool 
         raise CadQueryContractError("dynamic calls are not allowed")
     if isinstance(node.func, ast.Name) and name not in SAFE_CALL_NAMES:
         if name not in function_names and (not strict_v1 or name not in RUNTIME_CONSTRUCTOR_NAMES):
-            raise CadQueryContractError(f"unsupported direct function call: {name}")
+            if not strict_v1 or name not in RUNTIME_METADATA_DECORATOR_NAMES:
+                raise CadQueryContractError(f"unsupported direct function call: {name}")
+
+
+def _validate_metadata_decorator(node: ast.expr) -> None:
+    if isinstance(node, ast.Name):
+        if node.id not in RUNTIME_METADATA_DECORATOR_NAMES:
+            raise CadQueryContractError("unsupported function decorator")
+        raise CadQueryContractError("ownership decorators require static metadata arguments")
+    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
+        raise CadQueryContractError("unsupported function decorator")
+    if node.func.id not in RUNTIME_METADATA_DECORATOR_NAMES:
+        raise CadQueryContractError("unsupported function decorator")
+    if any(keyword.arg is None for keyword in node.keywords):
+        raise CadQueryContractError("ownership decorators do not support dynamic keyword arguments")
+    if node.func.id in {"component", "shared_helper"}:
+        if len(node.args) != 1 or node.keywords:
+            raise CadQueryContractError(f"{node.func.id} decorator requires one static id argument")
+        if not _is_static_string(node.args[0]):
+            raise CadQueryContractError(f"{node.func.id} decorator id must be a static string")
+        return
+    if node.func.id == "feature":
+        if len(node.args) != 1 or not _is_static_string(node.args[0]):
+            raise CadQueryContractError("feature decorator id must be a static string")
+        allowed_keywords = {"component"}
+    else:
+        if len(node.args) != 1 or not _is_static_string(node.args[0]):
+            raise CadQueryContractError("protected_interface decorator id must be a static string")
+        allowed_keywords = {"parameters"}
+    for keyword in node.keywords:
+        if keyword.arg not in allowed_keywords:
+            raise CadQueryContractError(f"{node.func.id} decorator does not support keyword {keyword.arg}")
+        if keyword.arg == "component" and not _is_static_string(keyword.value):
+            raise CadQueryContractError("feature decorator component must be a static string")
+        if keyword.arg == "parameters" and not _is_static_string_sequence(keyword.value):
+            raise CadQueryContractError("protected_interface parameters must be static strings")
 
 
 def _validate_runtime_constructor_calls(node: ast.AST) -> None:
@@ -544,6 +592,16 @@ def _string_keyword(node: ast.Call, name: str) -> str | None:
     if isinstance(value, ast.Constant) and isinstance(value.value, str):
         return value.value
     return None
+
+
+def _is_static_string(node: ast.expr) -> bool:
+    return isinstance(node, ast.Constant) and isinstance(node.value, str) and bool(node.value.strip())
+
+
+def _is_static_string_sequence(node: ast.expr) -> bool:
+    if not isinstance(node, ast.List | ast.Tuple):
+        return False
+    return all(_is_static_string(element) for element in node.elts)
 
 
 def _int_keyword(node: ast.Call, name: str) -> int | None:

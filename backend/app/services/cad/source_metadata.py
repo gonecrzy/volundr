@@ -83,6 +83,8 @@ class SourceMetadata:
     output_mappings: dict[str, SourceOutputMapping] = field(default_factory=dict)
     shared_module_mappings: dict[str, SourceMapping] = field(default_factory=dict)
     module_fingerprints: dict[str, SourceModuleFingerprint] = field(default_factory=dict)
+    parameter_fingerprints: dict[str, str] = field(default_factory=dict)
+    output_fingerprints: dict[str, str] = field(default_factory=dict)
     geometry_mappings: list[SourceGeometryMapping] = field(default_factory=list)
     assignments: dict[str, str] = field(default_factory=dict)
     assignment_lines: dict[str, int] = field(default_factory=dict)
