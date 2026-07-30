@@ -75,6 +75,29 @@ def build_model():
     assert "plate_width = 80" in source
 
 
+def test_extracts_fenced_cadquery_v1_source_with_build_entrypoint() -> None:
+    raw_output = """
+```cadquery
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [ParameterSpec(id="width_mm", label="Width", type="float", default=80.0)]
+
+def build(params):
+    body = cq.Workplane("XY").box(params["width_mm"], 35, 6)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[PrintableOutput(output_id="body", component_id="body", label="Body", model=body)],
+    )
+```
+"""
+
+    source = extract_python_source(raw_output)
+
+    assert "def build(params)" in source
+    assert "PrintableOutput" in source
+
+
 def test_rejects_python_source_without_build_model() -> None:
     with pytest.raises(SourceExtractionError, match="build_model"):
         extract_python_source("import cadquery as cq\nresult = cq.Workplane('XY').box(1, 1, 1)")

@@ -152,6 +152,8 @@ cadquery-scope-correction-v1
 
 CadQuery generation receives the approved Design Specification, approved Design Plan, typed parameter contract, components, features, dependencies, printable outputs, printer profile, source contract, topology expectations, and security restrictions. It must return complete Python source only.
 
+Current implementation: the active CadQuery source prompt uses the `cadquery-v1` runtime contract. It requires `import cadquery as cq`, `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product`, typed `ParameterSpec` metadata, a single `build(params)` entry point, and one returned `Product` containing `PrintableOutput` records. `build_model()` remains only for the transitional probe runner until CadQuery product execution is replaced.
+
 Contract repair may fix schema, entrypoint, import, output declaration, syntax, or API contract issues. Execution repair may fix straightforward CadQuery API or geometry-operation failures. Neither repair path may silently redesign geometry or modify protected requirements.
 
 ### `revision-planning-v1`

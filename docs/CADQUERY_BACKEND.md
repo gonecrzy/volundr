@@ -62,17 +62,18 @@ The worker owns exports and artifact paths.
 
 ## Internal Runtime Contract
 
-Volundr should provide a small internal runtime package for generated CadQuery source. It owns:
+Volundr provides a small internal runtime package for generated CadQuery source at `backend/volundr_cad`. It owns:
 
 - `ParameterSpec` definitions,
 - validated parameter object creation,
 - `Product`,
 - `PrintableOutput`,
 - validation exceptions,
-- output metadata,
-- artifact export orchestration.
+- output metadata.
 
 The runtime should not hide CadQuery modeling APIs. Generated code may use approved CadQuery modeling operations, but source ownership, output registration, parameter validation, execution, topology checks, and artifact writing belong to Volundr.
+
+Current implementation: Phase 4 introduces the runtime containers and strict AST validation for `cadquery-v1` source. The transitional probe runner still accepts `build_model()` until the Phase 5 execution path calls `build(params)` and exports each `PrintableOutput`.
 
 ## Multi-Output Product Model
 

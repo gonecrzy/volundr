@@ -3,6 +3,78 @@ import pytest
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
 
 
+def cadquery_v1_source() -> str:
+    return """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(
+        id="width_mm",
+        label="Width",
+        type="float",
+        default=80.0,
+        unit="mm",
+        min_value=10.0,
+        max_value=200.0,
+    )
+]
+
+def build(params):
+    width = params["width_mm"]
+    body = cq.Workplane("XY").box(width, 40, 6)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                component_id="body",
+                label="Main body",
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+"""
+
+
+def test_cadquery_v1_contract_accepts_typed_product_source() -> None:
+    metadata = validate_cadquery_source(
+        cadquery_v1_source(),
+        contract_version="cadquery-v1",
+    )
+
+    assert metadata.contract_version == "cadquery-v1"
+    assert metadata.entrypoint == "build"
+    assert metadata.parameter_ids == ["width_mm"]
+    assert metadata.output_ids == ["body"]
+    assert metadata.component_ids == ["body"]
+    assert metadata.expected_solid_counts == {"body": 1}
+
+
+def test_cadquery_v1_contract_rejects_probe_build_model_only_source() -> None:
+    source = """
+import cadquery as cq
+
+def build_model():
+    return cq.Workplane("XY").box(1, 1, 1)
+"""
+
+    with pytest.raises(CadQueryContractError, match="build\\(params\\)"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
+def test_cadquery_v1_contract_rejects_artifact_writes() -> None:
+    source = cadquery_v1_source().replace(
+        "return Product(",
+        'cq.exporters.export(body, "/tmp/model.step")\n    return Product(',
+    )
+
+    with pytest.raises(CadQueryContractError, match="artifact writing"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
 def test_cadquery_contract_accepts_parameter_constants_and_build_functions() -> None:
     source = """
 import cadquery as cq

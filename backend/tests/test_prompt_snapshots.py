@@ -99,6 +99,9 @@ def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> Non
     )
 
     assert "cadquery-v1 source contract" in prompt
+    assert "Define `def build(params):`" in prompt
+    assert "Return exactly one `Product`" in prompt
+    assert "`PrintableOutput`" in prompt
     assert "Repair mode:" in prompt
     assert "AttributeError: Workplane has no attribute 'holes'" in prompt
     assert "Current CadQuery source to repair begins below" in prompt
@@ -132,6 +135,23 @@ def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
     assert "Prefer one extruded 2D profile for creative one-piece brackets" in prompt
     assert "Do not cut shallow decorative marks from faces unless the cutter overlaps the solid interior" in prompt
     assert "Return the main fused solid directly, not a Compound of loose solids" in prompt
+
+
+def test_cadquery_prompt_requires_runtime_product_contract() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_cadquery_prompt(
+        ModelGenerationRequest(
+            project_name="Parametric enclosure",
+            original_intent="Create a two-part electronics enclosure.",
+            user_instruction="Generate the approved CadQuery product source.",
+        )
+    )
+
+    assert "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product" in prompt
+    assert "Define typed `ParameterSpec` entries" in prompt
+    assert "Define `def build(params):`" in prompt
+    assert "Do not define `build_model()`" in prompt
+    assert "Every output must be a `PrintableOutput`" in prompt
 
 
 def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax() -> None:

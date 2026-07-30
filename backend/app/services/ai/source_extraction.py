@@ -1,5 +1,6 @@
 import re
 
+from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
 from app.services.openscad.source_contract import scan_openscad_source
 
 
@@ -12,7 +13,7 @@ FENCED_BLOCK_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 PYTHON_FENCED_BLOCK_RE = re.compile(
-    r"```(?:python|py)\s*(?P<source>.*?)```",
+    r"```(?:python|py|cadquery)\s*(?P<source>.*?)```",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -50,12 +51,29 @@ def extract_python_source(raw_output: str) -> str:
 
 
 def _looks_like_python_cadquery(source: str) -> bool:
-    return "def build_model" in source or "import cadquery" in source or "cq.Workplane" in source
+    return (
+        "def build(" in source
+        or "def build_model" in source
+        or "import cadquery" in source
+        or "cq.Workplane" in source
+        or "PrintableOutput" in source
+    )
 
 
 def _validate_python_source(source: str) -> None:
-    if not re.search(r"^\s*def\s+build_model\s*\(", source, flags=re.MULTILINE):
-        raise SourceExtractionError("Python source must define build_model()")
+    if re.search(r"^\s*def\s+build\s*\(", source, flags=re.MULTILINE):
+        try:
+            validate_cadquery_source(source, contract_version="cadquery-v1")
+        except CadQueryContractError as exc:
+            raise SourceExtractionError(str(exc)) from exc
+        return
+    if re.search(r"^\s*def\s+build_model\s*\(", source, flags=re.MULTILINE):
+        try:
+            validate_cadquery_source(source)
+        except CadQueryContractError as exc:
+            raise SourceExtractionError(str(exc)) from exc
+        return
+    raise SourceExtractionError("Python source must define build(params) or build_model()")
 
 
 def _looks_like_scad(source: str) -> bool:
