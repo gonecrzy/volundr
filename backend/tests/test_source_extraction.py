@@ -1,6 +1,10 @@
 import pytest
 
-from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
+from app.services.ai.source_extraction import (
+    SourceExtractionError,
+    extract_python_source,
+    extract_scad_source,
+)
 
 
 def test_extracts_plain_scad_source() -> None:
@@ -51,3 +55,26 @@ main_model();
 main_model();
 """
         )
+
+
+def test_extracts_fenced_python_source_with_build_model() -> None:
+    raw_output = """
+```python
+import cadquery as cq
+
+plate_width = 80
+
+def build_model():
+    return cq.Workplane("XY").box(plate_width, 35, 6)
+```
+"""
+
+    source = extract_python_source(raw_output)
+
+    assert "def build_model()" in source
+    assert "plate_width = 80" in source
+
+
+def test_rejects_python_source_without_build_model() -> None:
+    with pytest.raises(SourceExtractionError, match="build_model"):
+        extract_python_source("import cadquery as cq\nresult = cq.Workplane('XY').box(1, 1, 1)")

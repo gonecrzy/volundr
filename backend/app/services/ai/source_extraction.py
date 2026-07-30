@@ -11,6 +11,10 @@ FENCED_BLOCK_RE = re.compile(
     r"```(?:scad|openscad)\s*(?P<source>.*?)```",
     re.IGNORECASE | re.DOTALL,
 )
+PYTHON_FENCED_BLOCK_RE = re.compile(
+    r"```(?:python|py)\s*(?P<source>.*?)```",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 def extract_scad_source(raw_output: str) -> str:
@@ -26,6 +30,30 @@ def extract_scad_source(raw_output: str) -> str:
             _validate_source(candidate)
 
     raise SourceExtractionError("no valid OpenSCAD source found")
+
+
+def extract_python_source(raw_output: str) -> str:
+    candidates = [
+        match.group("source").strip() for match in PYTHON_FENCED_BLOCK_RE.finditer(raw_output)
+    ]
+    if not candidates:
+        candidates = [raw_output.strip()]
+
+    for candidate in candidates:
+        if _looks_like_python_cadquery(candidate):
+            _validate_python_source(candidate)
+            return candidate
+
+    raise SourceExtractionError("no valid Python source found")
+
+
+def _looks_like_python_cadquery(source: str) -> bool:
+    return "def build_model" in source or "import cadquery" in source or "cq.Workplane" in source
+
+
+def _validate_python_source(source: str) -> None:
+    if not re.search(r"^\s*def\s+build_model\s*\(", source, flags=re.MULTILINE):
+        raise SourceExtractionError("Python source must define build_model()")
 
 
 def _looks_like_scad(source: str) -> bool:

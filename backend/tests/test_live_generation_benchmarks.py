@@ -156,6 +156,38 @@ def test_live_benchmark_source_probe_dry_run_writes_source_prompt(
     assert metrics["source_probe_status_counts"] == {"not_run": 1}
 
 
+def test_live_benchmark_cadquery_source_probe_dry_run_writes_python_prompt(
+    tmp_path: Path,
+) -> None:
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            run_label="cadquery-source-probe",
+            benchmark_ids=("simple_mounting_plate",),
+            provider="dry-run",
+            source_probe=True,
+            source_language="cadquery",
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    case_run = manifest["case_runs"][0]
+    source_probe = case_run["source_probe"]
+
+    assert manifest["config"]["source_language"] == "cadquery"
+    assert source_probe["source_language"] == "cadquery"
+    source_prompt = (result.run_dir / case_run["artifact_dir"] / "source-prompt.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "You generate CadQuery Python for Volundr" in source_prompt
+    assert "def build_model()" in source_prompt
+    assert "```python" in source_prompt
+    assert "Source-probe parameter targets" in source_prompt
+    assert metrics["source_probe_language_counts"] == {"cadquery": 1}
+
+
 def test_live_benchmark_source_brief_dry_run_writes_brief_prompt(
     tmp_path: Path,
 ) -> None:
@@ -413,6 +445,132 @@ main_model();
     assert metrics["source_probe_compile_warning_count"] == 0
     assert metrics["source_probe_compiled_watertight_count"] == 1
     assert metrics["source_probe_compiled_nonzero_volume_count"] == 1
+
+
+def test_live_benchmark_cadquery_source_probe_extracts_and_records_compile_metadata(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_cadquery_prompt(self, request) -> str:
+            return f"cadquery source for {request.user_instruction}"
+
+        def cadquery_prompt_template_version(self) -> str:
+            return "cadquery-source-v1"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "cadquery-source-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_cadquery_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            assert "Source-probe parameter targets" in request.user_instruction
+            return ModelGenerationResult(
+                raw_output="""
+```python
+import cadquery as cq
+
+plate_width = 80
+plate_depth = 35
+plate_thickness = 6
+hole_spacing = 55
+
+def build_model():
+    return cq.Workplane("XY").box(plate_width, plate_depth, plate_thickness)
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    def fake_compile_cadquery_probe(*, source, run_dir, artifact_dir, workspace_dir_name="source-compile-workspace", job_id="source-probe"):
+        workspace = artifact_dir / workspace_dir_name / job_id
+        workspace.mkdir(parents=True)
+        stl_path = workspace / "model.stl"
+        stl_path.write_text("solid fake\nendsolid fake\n", encoding="utf-8")
+        metadata_path = workspace / "metadata.json"
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "size_x_mm": 80,
+                    "size_y_mm": 35,
+                    "size_z_mm": 6,
+                    "volume_mm3": 16800,
+                    "triangle_count": 12,
+                    "connected_components": 1,
+                    "is_watertight": True,
+                    "is_winding_consistent": True,
+                    "center_of_mass": [0, 0, 0],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return {
+            "compile_status": "compile_succeeded",
+            "compiled_stl_path": str(stl_path.resolve().relative_to(run_dir.resolve())),
+            "compiled_step_path": None,
+            "compile_stdout_path": None,
+            "compile_stderr_path": None,
+            "mesh_metadata_path": str(metadata_path.resolve().relative_to(run_dir.resolve())),
+            "compile_error_message": None,
+            "compile_timed_out": False,
+            "compile_exit_code": 0,
+            "compile_warning_count": 0,
+            "compile_warnings": [],
+            "stl_size_bytes": stl_path.stat().st_size,
+        }
+
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", FakeOllamaProvider)
+    monkeypatch.setattr(live_benchmarks, "_compile_cadquery_probe", fake_compile_cadquery_probe)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+            source_language="cadquery",
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+
+    assert source_probe["source_language"] == "cadquery"
+    assert source_probe["status"] == "source_parameters_analyzed"
+    assert source_probe["compile_status"] == "compile_succeeded"
+    assert source_probe["extracted_source_path"].endswith("source-extracted.py")
+    assert source_probe["compiled_step_path"] is None
+    assert metrics["source_probe_language_counts"] == {"cadquery": 1}
+    assert metrics["source_probe_compile_status_counts"] == {"compile_succeeded": 1}
 
 
 def test_live_benchmark_source_probe_compile_supports_relative_output_root(

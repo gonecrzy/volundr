@@ -34,6 +34,7 @@ LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
 LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-source-v1"
 
 
 def _current_source_prompt_section(*, current_source: str, is_repair: bool) -> list[str]:
@@ -69,6 +70,19 @@ class GeminiCliProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         prompt = self.build_prompt(request)
+        raw_output = await self._run_prompt(prompt)
+
+        return ModelGenerationResult(
+            raw_output=raw_output,
+            provider="gemini_cli",
+            provider_model=self.model,
+        )
+
+    async def generate_cadquery_model(
+        self,
+        request: ModelGenerationRequest,
+    ) -> ModelGenerationResult:
+        prompt = self.build_cadquery_prompt(request)
         raw_output = await self._run_prompt(prompt)
 
         return ModelGenerationResult(
@@ -237,6 +251,9 @@ class GeminiCliProvider:
     def source_brief_prompt_template_version(self) -> str:
         return SOURCE_BRIEF_PROMPT_VERSION
 
+    def cadquery_prompt_template_version(self) -> str:
+        return CADQUERY_SOURCE_PROMPT_VERSION
+
     def design_plan_prompt_template_version(self) -> str:
         return DESIGN_PLAN_PROMPT_VERSION
 
@@ -256,6 +273,31 @@ class GeminiCliProvider:
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
         return self._build_prompt(request)
+
+    def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        return "\n".join(
+            [
+                "You generate CadQuery Python for Volundr.",
+                "Return only a single fenced python block. Do not include prose outside the block.",
+                "The response must start with ```python and end with ```.",
+                "Follow these rules exactly:",
+                "- Use millimeters.",
+                "- Use CadQuery imported as `import cadquery as cq`.",
+                "- Define simple top-level user parameters as Python constants.",
+                "- Define exactly one function with this signature: `def build_model():`.",
+                "- build_model() must return one CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable object.",
+                "- Do not write files, read files, import local modules, use shell commands, network access, subprocesses, pathlib, os, sys, eval, exec, or open().",
+                "- Do not use OpenSCAD syntax. This is Python CadQuery, not SCAD.",
+                "- Prefer real CAD operations such as box(), cylinder(), workplane(), hole(), cutBlind(), cutThruAll(), union(), cut(), extrude(), loft(), fillet(), chamfer(), translate(), rotate(), and mirror().",
+                "- For one-piece outputs, boolean-union additive solids into one returned model unless the user explicitly requests separate parts.",
+                "- Model holes and cutouts as subtractive CadQuery features such as hole(), cutBlind(), cutThruAll(), or cut().",
+                "- Keep requested creative/style geometry integrated with the functional body rather than returning loose decorative bodies.",
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User instruction: {request.user_instruction}",
+            ]
+        )
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return self._build_requirement_prompt(request)

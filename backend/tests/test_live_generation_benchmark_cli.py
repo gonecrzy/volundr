@@ -38,3 +38,31 @@ def test_live_benchmark_cli_phase_validation_flag_runs_three_scenarios(
         "honeycomb_angle_bracket",
         "threaded_control_knob",
     ]
+
+
+def test_live_benchmark_cli_accepts_cadquery_source_language(
+    tmp_path: Path,
+) -> None:
+    exit_code = main(
+        [
+            "--suite",
+            str(FIXTURE_DIR / "core.json"),
+            "--output-dir",
+            str(tmp_path),
+            "--run-label",
+            "cadquery-cli",
+            "--benchmark-id",
+            "simple_mounting_plate",
+            "--source-probe",
+            "--source-language",
+            "cadquery",
+            "--provider",
+            "dry-run",
+        ]
+    )
+
+    assert exit_code == 0
+    manifests = list(tmp_path.glob("*/run-manifest.json"))
+    assert len(manifests) == 1
+    manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+    assert manifest["config"]["source_language"] == "cadquery"

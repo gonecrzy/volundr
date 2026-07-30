@@ -1,7 +1,9 @@
 from pathlib import Path
+from importlib.util import find_spec
 
 import pytest
 
+from app.services.cad.cadquery_runner import CadQueryCliRunner
 from app.services.cad.runner import OpenScadCliRunner
 
 
@@ -148,3 +150,29 @@ async def test_openscad_runner_times_out_slow_process(tmp_path: Path) -> None:
     assert result.success is False
     assert result.timed_out is True
     assert result.error_message == "OpenSCAD timed out after 1 seconds"
+
+
+@pytest.mark.asyncio
+async def test_cadquery_runner_rejects_forbidden_python_file_access(tmp_path: Path) -> None:
+    result = await CadQueryCliRunner(workspace_root=tmp_path).compile(
+        "import os\n\ndef build_model():\n    return None\n",
+        job_id="unsafe",
+    )
+
+    assert result.success is False
+    assert result.error_message == "source contains forbidden Python access"
+
+
+@pytest.mark.asyncio
+async def test_cadquery_runner_reports_missing_cadquery_dependency(tmp_path: Path) -> None:
+    if find_spec("cadquery") is not None:
+        pytest.skip("CadQuery is installed in this environment")
+
+    result = await CadQueryCliRunner(workspace_root=tmp_path).compile(
+        "import cadquery as cq\n\ndef build_model():\n    return cq.Workplane('XY').box(1, 1, 1)\n",
+        job_id="missing-cadquery",
+    )
+
+    assert result.success is False
+    assert result.stderr_path is not None
+    assert "No module named 'cadquery'" in result.error_message

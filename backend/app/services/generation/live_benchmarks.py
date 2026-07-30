@@ -1,4 +1,5 @@
 import asyncio
+import ast
 import hashlib
 import json
 import re
@@ -24,7 +25,12 @@ from app.services.ai.gemini_cli import (
 )
 from app.services.ai.ollama import OllamaProvider
 from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest, SourceBriefRequest
-from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
+from app.services.ai.source_extraction import (
+    SourceExtractionError,
+    extract_python_source,
+    extract_scad_source,
+)
+from app.services.cad.cadquery_runner import CadQueryCliRunner
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.benchmarks import (
     BenchmarkSuite,
@@ -44,6 +50,7 @@ HUMAN_SCORING_FORM_SCHEMA_VERSION = "human-scoring-form-v1"
 LIVE_BENCHMARK_HARNESS_VERSION = "live-benchmark-harness-v1"
 SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION = "source-parameter-analysis-v1"
 SOURCE_BRIEF_SCHEMA_VERSION = "source-brief-v1"
+SOURCE_LANGUAGES = frozenset({"openscad", "cadquery"})
 
 SCORING_CATEGORIES = (
     "prompt_quality",
@@ -76,6 +83,7 @@ class LiveBenchmarkConfig:
     source_probe: bool = False
     source_probe_repair: bool = False
     source_brief: bool = False
+    source_language: str = "openscad"
 
 
 @dataclass(frozen=True)
@@ -96,7 +104,9 @@ class LiveBenchmarkRunner:
         provider = self._provider_for(config)
         case_prompts = self._build_requirement_prompts(provider, selected_benchmarks)
         source_prompts = (
-            self._build_source_prompts(provider, selected_benchmarks) if config.source_probe else {}
+            self._build_source_prompts(provider, selected_benchmarks, config.source_language)
+            if config.source_probe
+            else {}
         )
         source_brief_prompts = (
             self._build_source_brief_prompts(provider, selected_benchmarks)
@@ -134,6 +144,7 @@ class LiveBenchmarkRunner:
                         source_prompt=source_prompts.get(benchmark.id),
                         source_probe_repair=config.source_probe_repair,
                         source_brief_prompt=source_brief_prompts.get(benchmark.id),
+                        source_language=config.source_language,
                     )
                 )
 
@@ -160,6 +171,7 @@ class LiveBenchmarkRunner:
                 "source_probe": config.source_probe,
                 "source_probe_repair": config.source_probe_repair,
                 "source_brief": config.source_brief,
+                "source_language": config.source_language,
             },
             "provider": {
                 "mode": config.provider,
@@ -219,6 +231,7 @@ class LiveBenchmarkRunner:
         source_prompt: str | None = None,
         source_probe_repair: bool = False,
         source_brief_prompt: str | None = None,
+        source_language: str = "openscad",
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -264,6 +277,7 @@ class LiveBenchmarkRunner:
             source_prompt=source_prompt,
             source_probe_repair=source_probe_repair,
             source_brief_prompt=source_brief_prompt,
+            source_language=source_language,
         )
         scoring_form_path = self._write_scoring_form(
             run_dir=run_dir,
@@ -305,11 +319,13 @@ class LiveBenchmarkRunner:
         source_prompt: str | None,
         source_probe_repair: bool,
         source_brief_prompt: str | None,
+        source_language: str,
     ) -> dict[str, Any]:
         if source_prompt is None:
             return {
                 "enabled": False,
                 "status": "disabled",
+                "source_language": source_language,
                 "prompt_sha256": None,
                 "prompt_template_version": None,
                 "raw_output_path": None,
@@ -317,6 +333,7 @@ class LiveBenchmarkRunner:
                 "parameter_analysis_path": None,
                 "compile_status": "disabled",
                 "compiled_stl_path": None,
+                "compiled_step_path": None,
                 "compile_stdout_path": None,
                 "compile_stderr_path": None,
                 "mesh_metadata_path": None,
@@ -332,17 +349,19 @@ class LiveBenchmarkRunner:
             }
 
         source_brief_enabled = source_brief_prompt is not None
-        request = _source_request_for(benchmark)
+        request = _source_request_for(benchmark, source_language=source_language)
         probe = {
             "enabled": True,
             "status": "not_run",
+            "source_language": source_language,
             "prompt_sha256": _sha256_text(source_prompt),
-            "prompt_template_version": provider.prompt_template_version_for(request),
+            "prompt_template_version": _source_prompt_template_version(provider, request, source_language),
             "raw_output_path": None,
             "extracted_source_path": None,
             "parameter_analysis_path": None,
             "compile_status": "not_run",
             "compiled_stl_path": None,
+            "compiled_step_path": None,
             "compile_stdout_path": None,
             "compile_stderr_path": None,
             "mesh_metadata_path": None,
@@ -375,15 +394,23 @@ class LiveBenchmarkRunner:
             parsed_path = brief.get("parsed_brief_path")
             if isinstance(parsed_path, str):
                 source_brief = json.loads((run_dir / parsed_path).read_text(encoding="utf-8"))
-                request = _source_request_for(benchmark, source_brief=source_brief)
-                source_prompt = provider.build_prompt(request)
+                request = _source_request_for(
+                    benchmark,
+                    source_brief=source_brief,
+                    source_language=source_language,
+                )
+                source_prompt = _build_source_prompt(provider, request, source_language)
                 source_prompt_path = artifact_dir / "source-prompt.txt"
                 source_prompt_path.write_text(source_prompt, encoding="utf-8")
                 probe["prompt_sha256"] = _sha256_text(source_prompt)
-                probe["prompt_template_version"] = provider.prompt_template_version_for(request)
+                probe["prompt_template_version"] = _source_prompt_template_version(
+                    provider,
+                    request,
+                    source_language,
+                )
 
         try:
-            result = asyncio.run(provider.generate_model(request))
+            result = asyncio.run(_generate_source_model(provider, request, source_language))
         except TimeoutError as exc:
             probe["status"] = "provider_failed"
             probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
@@ -398,7 +425,7 @@ class LiveBenchmarkRunner:
         probe["raw_output_path"] = _relative(output_file, run_dir)
 
         try:
-            source = extract_scad_source(result.raw_output)
+            source = _extract_source_for_language(result.raw_output, source_language)
         except SourceExtractionError as exc:
             analysis_path = artifact_dir / "source-parameter-analysis.json"
             _write_json(
@@ -407,13 +434,14 @@ class LiveBenchmarkRunner:
                     benchmark=benchmark,
                     extracted_source=None,
                     extraction_error=str(exc),
+                    source_language=source_language,
                 ),
             )
             probe["status"] = "source_extraction_failed"
             probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
             return probe
 
-        source_path = artifact_dir / "source-extracted.scad"
+        source_path = artifact_dir / _source_filename_for_language(source_language)
         source_path.write_text(source, encoding="utf-8")
         analysis_path = artifact_dir / "source-parameter-analysis.json"
         _write_json(
@@ -422,15 +450,23 @@ class LiveBenchmarkRunner:
                 benchmark=benchmark,
                 extracted_source=source,
                 extraction_error=None,
+                source_language=source_language,
             ),
         )
         probe["status"] = "source_parameters_analyzed"
         probe["extracted_source_path"] = _relative(source_path, run_dir)
         probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
-        probe.update(_compile_source_probe(source=source, run_dir=run_dir, artifact_dir=artifact_dir))
+        probe.update(
+            _compile_source_probe_for_language(
+                source=source,
+                source_language=source_language,
+                run_dir=run_dir,
+                artifact_dir=artifact_dir,
+            )
+        )
         if probe["compile_status"] != "compile_succeeded":
             probe["status"] = "source_compile_failed"
-            if source_probe_repair:
+            if source_probe_repair and source_language == "openscad":
                 repair = self._run_source_probe_repair(
                     benchmark=benchmark,
                     provider=provider,
@@ -458,7 +494,7 @@ class LiveBenchmarkRunner:
                 and connected_components > expected_connected_body_count
             ):
                 probe["status"] = "source_mesh_disconnected"
-                if source_probe_repair:
+                if source_probe_repair and source_language == "openscad":
                     repair = self._run_source_probe_repair(
                         benchmark=benchmark,
                         provider=provider,
@@ -647,6 +683,7 @@ class LiveBenchmarkRunner:
                 source_probe=config.source_probe,
                 source_probe_repair=config.source_probe_repair,
                 source_brief=config.source_brief,
+                source_language=config.source_language,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -682,6 +719,10 @@ class LiveBenchmarkRunner:
             raise ValueError("source_probe_repair requires source_probe")
         if config.source_brief and not config.source_probe:
             raise ValueError("source_brief requires source_probe")
+        if config.source_language not in SOURCE_LANGUAGES:
+            raise ValueError(
+                f"source_language must be one of: {', '.join(sorted(SOURCE_LANGUAGES))}"
+            )
         total_runs = len(selected_benchmarks) * config.runs_per_case
         if total_runs > config.max_runs:
             raise ValueError(f"requested {total_runs} runs exceeds max_runs={config.max_runs}")
@@ -716,9 +757,14 @@ class LiveBenchmarkRunner:
         self,
         provider: GeminiCliProvider,
         benchmarks: list[GenerationBenchmark],
+        source_language: str,
     ) -> dict[str, str]:
         return {
-            benchmark.id: provider.build_prompt(_source_request_for(benchmark))
+            benchmark.id: _build_source_prompt(
+                provider,
+                _source_request_for(benchmark, source_language=source_language),
+                source_language,
+            )
             for benchmark in benchmarks
         }
 
@@ -736,6 +782,7 @@ class LiveBenchmarkRunner:
         return {
             "requirements": provider.requirement_prompt_template_version(),
             "source_brief": _source_brief_prompt_template_version(provider),
+            "cadquery_source": _cadquery_prompt_template_version(provider),
             "design_plan": provider.design_plan_prompt_template_version(),
             "planned_openscad": PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION,
             "design_spec_openscad": OPENSCAD_GENERATION_PROMPT_VERSION,
@@ -886,6 +933,7 @@ class LiveBenchmarkRunner:
             failure_class_counts[failure_class] = failure_class_counts.get(failure_class, 0) + 1
         source_probe_status_counts: dict[str, int] = {}
         source_probe_compile_status_counts: dict[str, int] = {}
+        source_probe_language_counts: dict[str, int] = {}
         source_probe_coverages: list[float] = []
         source_probe_compiled_watertight_count = 0
         source_probe_compiled_nonzero_volume_count = 0
@@ -900,6 +948,11 @@ class LiveBenchmarkRunner:
         source_brief_status_counts: dict[str, int] = {}
         for case_run in manifest["case_runs"]:
             source_probe = case_run.get("source_probe", {})
+            source_language = source_probe.get("source_language", "unknown")
+            if isinstance(source_language, str):
+                source_probe_language_counts[source_language] = (
+                    source_probe_language_counts.get(source_language, 0) + 1
+                )
             status = source_probe.get("status", "disabled")
             source_probe_status_counts[status] = source_probe_status_counts.get(status, 0) + 1
             brief = source_probe.get("brief", {})
@@ -971,6 +1024,7 @@ class LiveBenchmarkRunner:
             "next_work_buckets": {category: 0 for category in SCORING_CATEGORIES},
             "phase_validation": bool(manifest.get("config", {}).get("phase_validation")),
             "source_probe_enabled": bool(manifest.get("config", {}).get("source_probe")),
+            "source_probe_language_counts": source_probe_language_counts,
             "source_probe_status_counts": source_probe_status_counts,
             "source_probe_compile_status_counts": source_probe_compile_status_counts,
             "source_probe_expected_parameter_coverage_average": (
@@ -1061,10 +1115,31 @@ def _requirement_request_for(benchmark: GenerationBenchmark) -> RequirementExtra
     )
 
 
+def _source_brief_generation_instruction(source_language: str) -> str:
+    if source_language == "cadquery":
+        return (
+            "Generate CadQuery Python that satisfies the structured source brief. If the "
+            "brief says a decorative feature must attach or one connected body is expected, "
+            "boolean-union the additive solids into one returned model."
+        )
+    return (
+        "Generate OpenSCAD that satisfies the structured source brief. If the brief says "
+        "a decorative feature must attach or one connected body is expected, physically "
+        "fuse or overlap those solids."
+    )
+
+
+def _parameter_target_instruction(source_language: str) -> str:
+    if source_language == "cadquery":
+        return "Expose these as simple top-level Python constants when applicable."
+    return "Expose these as simple top-level OpenSCAD parameters when applicable."
+
+
 def _source_request_for(
     benchmark: GenerationBenchmark,
     *,
     source_brief: dict[str, Any] | None = None,
+    source_language: str = "openscad",
 ) -> ModelGenerationRequest:
     user_instruction = benchmark.input_prompt
     additions: list[str] = []
@@ -1073,14 +1148,14 @@ def _source_request_for(
             [
                 "Structured source brief:",
                 json.dumps(source_brief, indent=2, sort_keys=True),
-                "Generate OpenSCAD that satisfies the structured source brief. If the brief says a decorative feature must attach or one connected body is expected, physically fuse or overlap those solids.",
+                _source_brief_generation_instruction(source_language),
             ]
         )
     if benchmark.expected_parameters:
         additions.extend(
             [
                 "Source-probe parameter targets:",
-                "Expose these as simple top-level OpenSCAD parameters when applicable.",
+                _parameter_target_instruction(source_language),
                 "Use each target identifier exactly as written.",
                 "Do not split a target into indexed parameters, arrays, renamed aliases, or derived-only values.",
                 "Do not force the silhouette or styling into a fixed template; keep the requested creative form.",
@@ -1194,6 +1269,7 @@ def _empty_source_probe_repair(*, enabled: bool) -> dict[str, Any]:
         "parameter_analysis_path": None,
         "compile_status": "not_run" if enabled else "disabled",
         "compiled_stl_path": None,
+        "compiled_step_path": None,
         "compile_stdout_path": None,
         "compile_stderr_path": None,
         "mesh_metadata_path": None,
@@ -1227,11 +1303,19 @@ def _source_brief_prompt_template_version(provider: GeminiCliProvider) -> str:
     return SOURCE_BRIEF_PROMPT_VERSION
 
 
+def _cadquery_prompt_template_version(provider: GeminiCliProvider) -> str:
+    version_method = getattr(provider, "cadquery_prompt_template_version", None)
+    if callable(version_method):
+        return str(version_method())
+    return "cadquery-source-v1"
+
+
 def _source_parameter_analysis(
     *,
     benchmark: GenerationBenchmark,
     extracted_source: str | None,
     extraction_error: str | None,
+    source_language: str = "openscad",
 ) -> dict[str, Any]:
     if extracted_source is None:
         return {
@@ -1249,8 +1333,8 @@ def _source_parameter_analysis(
             "parameter_groups": [],
         }
 
-    parameters = extract_editable_parameters(extracted_source)
-    parameter_ids = [parameter.id for parameter in parameters]
+    parameters = _extract_source_parameters(extracted_source, source_language)
+    parameter_ids = [parameter["id"] for parameter in parameters]
     parameter_id_set = set(parameter_ids)
     matched = [
         parameter_id
@@ -1278,11 +1362,127 @@ def _source_parameter_analysis(
         "matched_expected_parameters": matched,
         "missing_expected_parameters": missing,
         "expected_parameter_coverage": coverage,
-        "parameter_types": {parameter.id: parameter.type for parameter in parameters},
+        "parameter_types": {parameter["id"]: parameter["type"] for parameter in parameters},
         "parameter_groups": sorted(
-            {parameter.group for parameter in parameters if parameter.group is not None}
+            {parameter["group"] for parameter in parameters if parameter["group"] is not None}
         ),
     }
+
+
+def _extract_source_parameters(source: str, source_language: str) -> list[dict[str, Any]]:
+    if source_language == "cadquery":
+        return _extract_python_constants(source)
+    return [
+        {"id": parameter.id, "type": parameter.type, "group": parameter.group}
+        for parameter in extract_editable_parameters(source)
+    ]
+
+
+def _extract_python_constants(source: str) -> list[dict[str, Any]]:
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+    parameters: list[dict[str, Any]] = []
+    for node in tree.body:
+        target: ast.expr | None = None
+        value: ast.expr | None = None
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            value = node.value
+        elif isinstance(node, ast.AnnAssign):
+            target = node.target
+            value = node.value
+        if not isinstance(target, ast.Name) or value is None:
+            continue
+        if target.id.startswith("_") or target.id.isupper():
+            continue
+        value_type = _python_constant_type(value)
+        if value_type is None:
+            continue
+        parameters.append({"id": target.id, "type": value_type, "group": None})
+    return parameters
+
+
+def _python_constant_type(value: ast.expr) -> str | None:
+    if isinstance(value, ast.Constant):
+        if isinstance(value.value, bool):
+            return "boolean"
+        if isinstance(value.value, int | float):
+            return "number"
+        if isinstance(value.value, str):
+            return "string"
+    if isinstance(value, ast.List | ast.Tuple):
+        return "array"
+    return None
+
+
+def _build_source_prompt(
+    provider: GeminiCliProvider,
+    request: ModelGenerationRequest,
+    source_language: str,
+) -> str:
+    if source_language == "cadquery":
+        return provider.build_cadquery_prompt(request)
+    return provider.build_prompt(request)
+
+
+async def _generate_source_model(
+    provider: GeminiCliProvider,
+    request: ModelGenerationRequest,
+    source_language: str,
+):
+    if source_language == "cadquery":
+        return await provider.generate_cadquery_model(request)
+    return await provider.generate_model(request)
+
+
+def _source_prompt_template_version(
+    provider: GeminiCliProvider,
+    request: ModelGenerationRequest,
+    source_language: str,
+) -> str:
+    if source_language == "cadquery":
+        return _cadquery_prompt_template_version(provider)
+    return provider.prompt_template_version_for(request)
+
+
+def _extract_source_for_language(raw_output: str, source_language: str) -> str:
+    if source_language == "cadquery":
+        return extract_python_source(raw_output)
+    return extract_scad_source(raw_output)
+
+
+def _source_filename_for_language(source_language: str) -> str:
+    if source_language == "cadquery":
+        return "source-extracted.py"
+    return "source-extracted.scad"
+
+
+def _compile_source_probe_for_language(
+    *,
+    source: str,
+    source_language: str,
+    run_dir: Path,
+    artifact_dir: Path,
+    workspace_dir_name: str = "source-compile-workspace",
+    job_id: str = "source-probe",
+) -> dict[str, Any]:
+    if source_language == "cadquery":
+        return _compile_cadquery_probe(
+            source=source,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            workspace_dir_name=workspace_dir_name,
+            job_id=job_id,
+        )
+    return _compile_source_probe(
+        source=source,
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+        workspace_dir_name=workspace_dir_name,
+        job_id=job_id,
+    )
 
 
 def _compile_source_probe(
@@ -1306,6 +1506,7 @@ def _compile_source_probe(
         "compiled_stl_path": _relative(result.stl_path, run_dir)
         if result.success and result.stl_path is not None
         else None,
+        "compiled_step_path": None,
         "compile_stdout_path": _relative(result.stdout_path, run_dir)
         if result.stdout_path is not None
         else None,
@@ -1320,6 +1521,47 @@ def _compile_source_probe(
         "compile_exit_code": result.exit_code,
         "compile_warning_count": len(warnings),
         "compile_warnings": warnings[:20],
+        "stl_size_bytes": result.output_size_bytes,
+    }
+
+
+def _compile_cadquery_probe(
+    *,
+    source: str,
+    run_dir: Path,
+    artifact_dir: Path,
+    workspace_dir_name: str = "source-compile-workspace",
+    job_id: str = "source-probe",
+) -> dict[str, Any]:
+    workspace_root = (artifact_dir / workspace_dir_name).resolve()
+    result = asyncio.run(
+        CadQueryCliRunner(
+            workspace_root=workspace_root,
+            timeout_seconds=60,
+        ).compile(source, job_id=job_id)
+    )
+    return {
+        "compile_status": "compile_succeeded" if result.success else "compile_failed",
+        "compiled_stl_path": _relative(result.stl_path, run_dir)
+        if result.success and result.stl_path is not None
+        else None,
+        "compiled_step_path": _relative(result.step_path, run_dir)
+        if result.success and result.step_path is not None
+        else None,
+        "compile_stdout_path": _relative(result.stdout_path, run_dir)
+        if result.stdout_path is not None
+        else None,
+        "compile_stderr_path": _relative(result.stderr_path, run_dir)
+        if result.stderr_path is not None
+        else None,
+        "mesh_metadata_path": _relative(result.metadata_path, run_dir)
+        if result.success and result.metadata_path is not None
+        else None,
+        "compile_error_message": result.error_message,
+        "compile_timed_out": result.timed_out,
+        "compile_exit_code": result.exit_code,
+        "compile_warning_count": 0,
+        "compile_warnings": [],
         "stl_size_bytes": result.output_size_bytes,
     }
 

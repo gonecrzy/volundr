@@ -123,6 +123,12 @@ class AiProvider(Protocol):
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         ...
 
+    async def generate_cadquery_model(
+        self,
+        request: ModelGenerationRequest,
+    ) -> ModelGenerationResult:
+        ...
+
     async def extract_requirements(
         self,
         request: RequirementExtractionRequest,

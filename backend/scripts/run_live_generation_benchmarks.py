@@ -97,9 +97,15 @@ def main(argv: list[str] | None = None) -> int:
         "--source-probe",
         action="store_true",
         help=(
-            "Also ask the provider for direct OpenSCAD source, extract it if possible, "
+            "Also ask the provider for direct CAD source, extract it if possible, "
             "compile it, and write source parameter coverage artifacts."
         ),
+    )
+    parser.add_argument(
+        "--source-language",
+        choices=("openscad", "cadquery"),
+        default="openscad",
+        help="Source language for --source-probe. CadQuery is experimental.",
     )
     parser.add_argument(
         "--source-brief",
@@ -113,9 +119,9 @@ def main(argv: list[str] | None = None) -> int:
         "--source-probe-repair",
         action="store_true",
         help=(
-            "When --source-probe compile or source-brief connected-body validation fails, "
-            "run one repair prompt, extract the repaired source, and compile it as a "
-            "separate repair metric."
+            "For OpenSCAD source probes, run one repair prompt after compile failure or "
+            "source-brief connected-body validation failure, then compile the repaired "
+            "source as a separate repair metric."
         ),
     )
     args = parser.parse_args(argv)
@@ -139,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
             source_probe=args.source_probe,
             source_probe_repair=args.source_probe_repair,
             source_brief=args.source_brief,
+            source_language=args.source_language,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))

@@ -46,6 +46,18 @@ class OllamaProvider(GeminiCliProvider):
             provider_model=self.model,
         )
 
+    async def generate_cadquery_model(
+        self,
+        request: ModelGenerationRequest,
+    ) -> ModelGenerationResult:
+        prompt = self.build_cadquery_prompt(request)
+        raw_output = await self._run_prompt(prompt)
+        return ModelGenerationResult(
+            raw_output=raw_output,
+            provider="ollama",
+            provider_model=self.model,
+        )
+
     async def extract_requirements(
         self,
         request: RequirementExtractionRequest,
