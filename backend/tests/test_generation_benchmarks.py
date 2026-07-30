@@ -5,6 +5,7 @@ from app.services.generation.benchmarks import (
     load_benchmark_suite,
     run_deterministic_contract_check,
 )
+from app.services.generation.live_benchmarks import _source_parameter_analysis
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "generation_benchmarks"
@@ -43,6 +44,50 @@ def test_deterministic_benchmark_contract_check_passes_fixtures() -> None:
     assert len(results) == len(suite.benchmarks)
     assert all(result.passed for result in results)
     assert {result.failure_class for result in results} == {"none"}
+
+
+def test_source_parameter_analysis_reads_cadquery_v1_parameter_specs() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    benchmark = {entry.id: entry for entry in suite.benchmarks}["simple_mounting_plate"]
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="plate_width", label="Plate Width", type="float", default=80.0, unit="mm"),
+    ParameterSpec(id="plate_depth", label="Plate Depth", type="float", default=35.0, unit="mm"),
+    ParameterSpec(id="plate_thickness", label="Plate Thickness", type="float", default=6.0, unit="mm"),
+    ParameterSpec(id="hole_diameter", label="Hole Diameter", type="float", default=4.5, unit="mm"),
+    ParameterSpec(id="hole_spacing", label="Hole Spacing", type="float", default=55.0, unit="mm"),
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(params["plate_width"], params["plate_depth"], params["plate_thickness"])
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model=body,
+                component_id="body",
+            )
+        ],
+    )
+"""
+
+    analysis = _source_parameter_analysis(
+        benchmark=benchmark,
+        extracted_source=source,
+        extraction_error=None,
+        source_language="cadquery",
+    )
+
+    assert analysis["parameter_count"] == 5
+    assert analysis["matched_expected_parameters"] == benchmark.expected_parameters
+    assert analysis["missing_expected_parameters"] == []
+    assert analysis["expected_parameter_coverage"] == 1.0
+    assert analysis["parameter_types"]["plate_width"] == "float"
 
 
 def test_phase_validation_scenarios_cover_function_style_and_library_progression() -> None:

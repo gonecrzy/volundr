@@ -30,10 +30,14 @@ def test_extracts_fenced_cadquery_v1_source_with_build_entrypoint() -> None:
 import cadquery as cq
 from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
 
+PARAMETERS = [
+    ParameterSpec(id="width_mm", label="Width", type="float", default=80.0),
+]
+
 def build(params):
     body = cq.Workplane("XY").box(params["width_mm"], 35, 6)
     return Product(
-        parameters=[ParameterSpec(id="width_mm", label="Width", type="float", default=80.0)],
+        parameters=PARAMETERS,
         outputs=[PrintableOutput(output_id="body", component_id="body", label="Body", model=body)],
     )
 ```

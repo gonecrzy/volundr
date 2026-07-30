@@ -1387,7 +1387,42 @@ def _source_parameter_analysis(
 
 
 def _extract_source_parameters(source: str, source_language: str) -> list[dict[str, Any]]:
-    return _extract_python_constants(source)
+    cadquery_parameters = _extract_cadquery_v1_parameter_specs(source)
+    constant_parameters = _extract_python_constants(source)
+    if not cadquery_parameters:
+        return constant_parameters
+    seen_ids = {parameter["id"] for parameter in cadquery_parameters}
+    return [
+        *cadquery_parameters,
+        *[
+            parameter
+            for parameter in constant_parameters
+            if parameter["id"] not in seen_ids
+        ],
+    ]
+
+
+def _extract_cadquery_v1_parameter_specs(source: str) -> list[dict[str, Any]]:
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+    parameters: list[dict[str, Any]] = []
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        if not isinstance(call.func, ast.Name) or call.func.id != "ParameterSpec":
+            continue
+        parameter_id = _string_keyword(call, "id")
+        if parameter_id is None:
+            continue
+        parameter_type = _string_keyword(call, "type") or "unknown"
+        parameters.append(
+            {
+                "id": parameter_id,
+                "type": parameter_type,
+                "group": None,
+            }
+        )
+    return parameters
 
 
 def _extract_python_constants(source: str) -> list[dict[str, Any]]:
@@ -1414,6 +1449,15 @@ def _extract_python_constants(source: str) -> list[dict[str, Any]]:
             continue
         parameters.append({"id": target.id, "type": value_type, "group": None})
     return parameters
+
+
+def _string_keyword(node: ast.Call, name: str) -> str | None:
+    for keyword in node.keywords:
+        if keyword.arg != name:
+            continue
+        if isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, str):
+            return keyword.value.value
+    return None
 
 
 def _python_constant_type(value: ast.expr) -> str | None:

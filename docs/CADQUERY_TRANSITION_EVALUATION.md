@@ -89,7 +89,7 @@ Results:
 
 ## Live Benchmark Smoke
 
-Attempted the required live Gemini benchmark gate with a one-case CadQuery source probe before spending broader quota:
+Attempted the live Gemini CLI path first with a one-case CadQuery source probe before spending broader quota:
 
 ```bash
 rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
@@ -125,11 +125,44 @@ Blocker:
 
 The local Gemini CLI profile failed before model output with `IneligibleTierError` because the configured Gemini Code Assist individual tier is no longer supported by the installed CLI. No `GEMINI_API_KEY` or `GOOGLE_API_KEY` was present, so the direct Gemini API path could not be used.
 
+Direct Gemini API access later became available and was used for a CadQuery smoke probe:
+
+```bash
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase11-gemini-api-smoke-v6 \
+  --benchmark-id simple_mounting_plate \
+  --provider gemini-api \
+  --allow-live \
+  --source-probe \
+  --source-brief \
+  --source-probe-repair \
+  --max-runs 1 \
+  --max-estimated-tokens 80000
+```
+
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T144306Z-phase11-gemini-api-smoke-v6
+```
+
+Result:
+
+- Case runs: 1.
+- Requirements provider status: `provider_output_collected`.
+- Source brief status: `source_brief_parsed`.
+- Source probe status: `source_parameters_analyzed`.
+- Source compile status: `compile_succeeded`.
+- Source repair status: `not_attempted`.
+- Expected parameter coverage: `1.0`.
+- Compile warnings: `0`.
+- Disconnected mesh count: `0`.
+
 ## Benchmark Gate Status
 
-The transition is not declared successful from live benchmarks. Deterministic and mocked verification passes, but the real functional Gemini gate is blocked on credentials/provider access.
-
-When Gemini access is available, run the required varied set:
+The required varied live Gemini API set was run:
 
 ```bash
 rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
@@ -157,4 +190,30 @@ rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
   --max-estimated-tokens 500000
 ```
 
-Score the run against requirement understanding, clarification quality, Design Plan usefulness, parameter quality, component decomposition, valid source rate, worker execution success, B-Rep validity, expected solid-count compliance, STEP/STL completeness, printability, revision preservation, configuration regeneration, and human print-worthiness.
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T144341Z-phase11-required
+```
+
+Aggregate result:
+
+- Case runs: 12.
+- Requirements provider statuses: `provider_output_collected=11`, `provider_failed=1`.
+- Provider failure: `honeycomb_angle_bracket` requirements request timed out after 120 seconds.
+- Source brief statuses: `source_brief_parsed=12`.
+- Direct source compile statuses: `compile_succeeded=7`, `compile_failed=2`, `not_run=3`.
+- Source repair attempts: 5.
+- Source repair compile statuses: `compile_succeeded=4`, `compile_failed=1`, `not_run=7`.
+- Repair-inclusive source compile success: 11 of 12 cases.
+- Remaining source failure: `parametric_multi_part_hinged_box` repaired source failed with `output shape is invalid`.
+- Source expected-parameter coverage average: `0.6667`.
+- Repair artifacts had full expected-parameter coverage for repaired cases where extraction succeeded.
+- Compiled direct-source outputs with nonzero volume: 7.
+- Compiled direct-source watertight outputs: 7.
+- Compile warnings: `0`.
+- Disconnected mesh count: `0`.
+
+Conclusion:
+
+The transition is not declared fully successful from live benchmarks. The direct Gemini API path is usable and the CadQuery backend can execute most live-generated outputs, but the required 12-case gate still has one provider timeout and one unrepaired invalid-shape compile failure. The benchmark remains a human-review gate for requirement understanding, clarification quality, Design Plan usefulness, parameter quality, component decomposition, B-Rep validity, expected solid-count compliance, STEP/STL completeness, printability, revision preservation, configuration regeneration, and human print-worthiness.

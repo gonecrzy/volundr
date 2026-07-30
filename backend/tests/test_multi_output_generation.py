@@ -171,15 +171,17 @@ import cadquery as cq
 
 from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
 
+PARAMETERS = [
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm"),
+]
+
 
 def build(params):
     body_width = params.get("body_width", 80.0)
     body = cq.Workplane("XY").box(body_width, 50.0, 6.0)
     lid = cq.Workplane("XY").box(body_width, 50.0, 3.0)
     return Product(
-        parameters=[
-            ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm"),
-        ],
+        parameters=PARAMETERS,
         outputs=[
             PrintableOutput(output_id="body", label="Body", model=body, component_id="body"),
             PrintableOutput(output_id="lid", label="Lid", model=lid, component_id="lid"),

@@ -75,6 +75,78 @@ def test_cadquery_v1_contract_rejects_artifact_writes() -> None:
         validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
+@pytest.mark.parametrize(
+    ("constructor", "keyword"),
+    [
+        ("ParameterSpec", "description"),
+        ("ParameterSpec", "min"),
+        ("ParameterSpec", "max"),
+        ("PrintableOutput", "description"),
+        ("Product", "title"),
+    ],
+)
+def test_cadquery_v1_contract_rejects_unknown_runtime_constructor_keywords(
+    constructor: str,
+    keyword: str,
+) -> None:
+    source = cadquery_v1_source().replace(
+        f"{constructor}(",
+        f"{constructor}({keyword}=\"unsupported\",",
+        1,
+    )
+
+    with pytest.raises(CadQueryContractError, match=rf"{constructor}.*{keyword}"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
+def test_cadquery_v1_contract_rejects_unsupported_parameter_type() -> None:
+    source = cadquery_v1_source().replace('type="float"', 'type="number"', 1)
+
+    with pytest.raises(CadQueryContractError, match="ParameterSpec.*type.*number"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
+def test_cadquery_v1_contract_reports_unquoted_parameter_type() -> None:
+    source = cadquery_v1_source().replace('type="float"', "type=float", 1)
+
+    with pytest.raises(CadQueryContractError, match="ParameterSpec type.*string literal"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
+def test_cadquery_v1_contract_rejects_build_local_parameter_specs() -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+def build(params):
+    width = params["width_mm"]
+    body = cq.Workplane("XY").box(width, 40, 6)
+    parameters = [
+        ParameterSpec(
+            id="width_mm",
+            label="Width",
+            type="float",
+            default=80.0,
+            unit="mm",
+        )
+    ]
+    return Product(
+        parameters=parameters,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                component_id="body",
+                label="Main body",
+                model=body,
+            )
+        ],
+    )
+"""
+
+    with pytest.raises(CadQueryContractError, match="module-level PARAMETERS"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
 def test_cadquery_contract_accepts_parameter_constants_and_build_functions() -> None:
     source = """
 import cadquery as cq

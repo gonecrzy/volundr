@@ -26,6 +26,12 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
     assert "Define `def build(params):`" in prompt
     assert "Return exactly one `Product`" in prompt
     assert "Do not define `build_model()`" in prompt
+    assert "ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False)" in prompt
+    assert "Do not use unsupported ParameterSpec aliases such as description, min, max, minimum, maximum, value, default_value, units, or help" in prompt
+    assert "ParameterSpec type must be exactly one of float, int, bool, str, or enum; never use number" in prompt
+    assert "ParameterSpec default must be a literal value, not a variable reference" in prompt
+    assert "Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params)" in prompt
+    assert "Always quote ParameterSpec type values, for example type=\"float\"; never write type=float" in prompt
 
 
 def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:

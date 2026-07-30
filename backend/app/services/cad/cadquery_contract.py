@@ -48,6 +48,47 @@ RUNTIME_IMPORT_NAMES = frozenset(
 
 RUNTIME_CONSTRUCTOR_NAMES = frozenset({"ParameterSpec", "PrintableOutput", "Product"})
 
+PARAMETER_SPEC_TYPES = frozenset({"float", "int", "bool", "str", "enum"})
+
+RUNTIME_CONSTRUCTOR_KEYWORDS = {
+    "ParameterSpec": frozenset(
+        {
+            "id",
+            "label",
+            "type",
+            "default",
+            "unit",
+            "min_value",
+            "max_value",
+            "choices",
+            "editable",
+            "protected",
+        }
+    ),
+    "PrintableOutput": frozenset(
+        {
+            "output_id",
+            "label",
+            "model",
+            "component_id",
+            "component_ids",
+            "quantity",
+            "required",
+            "expected_solid_count",
+            "allow_disconnected_solids",
+            "metadata",
+        }
+    ),
+    "Product": frozenset(
+        {
+            "outputs",
+            "parameters",
+            "schema_version",
+            "metadata",
+        }
+    ),
+}
+
 UNSAFE_CALL_NAMES = frozenset(
     {
         "__import__",
@@ -116,6 +157,8 @@ def validate_cadquery_source(
         if build_function is None:
             raise CadQueryContractError("cadquery-v1 source must define build(params)")
         _validate_build_entrypoint(build_function)
+        _validate_runtime_constructor_calls(tree)
+        _validate_parameter_spec_locations(tree)
         metadata = _collect_cadquery_v1_metadata(tree)
         if not metadata.output_ids:
             raise CadQueryContractError("cadquery-v1 source must define at least one PrintableOutput")
@@ -162,6 +205,8 @@ def _validate_top_level_assignment(node: ast.Assign | ast.AnnAssign, *, strict_v
         raise CadQueryContractError("top-level assignment targets must be simple names")
     if value is None:
         raise CadQueryContractError("top-level assignment values must be literal parameters")
+    if strict_v1 and _contains_runtime_metadata_call(value):
+        _validate_runtime_constructor_calls(value)
     if strict_v1 and _is_runtime_metadata_value(value):
         return
     if not _is_constant_value(value):
@@ -231,6 +276,89 @@ def _validate_call(node: ast.Call, *, function_names: set[str], strict_v1: bool 
     if isinstance(node.func, ast.Name) and name not in SAFE_CALL_NAMES:
         if name not in function_names and (not strict_v1 or name not in RUNTIME_CONSTRUCTOR_NAMES):
             raise CadQueryContractError(f"unsupported direct function call: {name}")
+
+
+def _validate_runtime_constructor_calls(node: ast.AST) -> None:
+    for call in (child for child in ast.walk(node) if isinstance(child, ast.Call)):
+        name = _call_name(call.func)
+        if name in RUNTIME_CONSTRUCTOR_KEYWORDS:
+            _validate_runtime_constructor_keywords(call, name)
+
+
+def _validate_runtime_constructor_keywords(node: ast.Call, constructor_name: str) -> None:
+    allowed_keywords = RUNTIME_CONSTRUCTOR_KEYWORDS[constructor_name]
+    for keyword in node.keywords:
+        if keyword.arg is None:
+            raise CadQueryContractError(
+                f"{constructor_name} does not support dynamic keyword arguments"
+            )
+        if keyword.arg not in allowed_keywords:
+            allowed = ", ".join(sorted(allowed_keywords))
+            raise CadQueryContractError(
+                f"{constructor_name} does not support keyword {keyword.arg}; "
+                f"allowed keywords are {allowed}"
+            )
+    if constructor_name == "ParameterSpec":
+        _validate_parameter_spec_type(node)
+
+
+def _validate_parameter_spec_type(node: ast.Call) -> None:
+    type_value = _keyword(node, "type")
+    if type_value is None:
+        return
+    if not isinstance(type_value, ast.Constant) or not isinstance(type_value.value, str):
+        raise CadQueryContractError("ParameterSpec type must be a static string literal")
+    if type_value.value not in PARAMETER_SPEC_TYPES:
+        allowed = ", ".join(sorted(PARAMETER_SPEC_TYPES))
+        raise CadQueryContractError(
+            f"ParameterSpec type {type_value.value} is unsupported; allowed types are {allowed}"
+        )
+
+
+def _validate_parameter_spec_locations(tree: ast.Module) -> None:
+    parameter_calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and _call_name(node.func) == "ParameterSpec"
+    ]
+    if not parameter_calls:
+        return
+
+    module_level_parameter_call_ids: set[int] = set()
+    for node in tree.body:
+        value: ast.expr | None = None
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            if not isinstance(node.targets[0], ast.Name) or node.targets[0].id != "PARAMETERS":
+                continue
+            value = node.value
+        elif isinstance(node, ast.AnnAssign):
+            if not isinstance(node.target, ast.Name) or node.target.id != "PARAMETERS":
+                continue
+            value = node.value
+        if value is None:
+            continue
+        module_level_parameter_call_ids.update(
+            id(call)
+            for call in ast.walk(value)
+            if isinstance(call, ast.Call) and _call_name(call.func) == "ParameterSpec"
+        )
+
+    if not module_level_parameter_call_ids:
+        raise CadQueryContractError(
+            "ParameterSpec entries must be defined in module-level PARAMETERS"
+        )
+    for call in parameter_calls:
+        if id(call) not in module_level_parameter_call_ids:
+            raise CadQueryContractError(
+                "ParameterSpec entries must be defined in module-level PARAMETERS"
+            )
+
+
+def _contains_runtime_metadata_call(node: ast.AST) -> bool:
+    return any(
+        isinstance(child, ast.Call) and _call_name(child.func) in RUNTIME_CONSTRUCTOR_NAMES
+        for child in ast.walk(node)
+    )
 
 
 def _call_name(node: ast.expr) -> str | None:
