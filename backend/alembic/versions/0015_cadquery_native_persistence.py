@@ -37,7 +37,7 @@ def upgrade() -> None:
                 "cad_backend",
                 sa.String(length=40),
                 nullable=False,
-                server_default="openscad",
+                server_default="cadquery",
             )
         )
         batch.add_column(
@@ -45,7 +45,7 @@ def upgrade() -> None:
                 "source_language",
                 sa.String(length=40),
                 nullable=False,
-                server_default="openscad",
+                server_default="python",
             )
         )
         batch.add_column(sa.Column("source_contract_version", sa.String(length=80), nullable=True))
@@ -61,7 +61,7 @@ def upgrade() -> None:
                 "cad_backend",
                 sa.String(length=40),
                 nullable=False,
-                server_default="openscad",
+                server_default="cadquery",
             )
         )
         batch.add_column(
@@ -69,7 +69,7 @@ def upgrade() -> None:
                 "source_language",
                 sa.String(length=40),
                 nullable=False,
-                server_default="openscad",
+                server_default="python",
             )
         )
         batch.add_column(sa.Column("source_hash", sa.String(length=64), nullable=True))
@@ -114,7 +114,7 @@ def upgrade() -> None:
                 "validator_id",
                 sa.String(length=120),
                 nullable=False,
-                server_default="openscad-static-validator",
+                server_default="cadquery-static-validator",
             )
         )
         batch.add_column(
@@ -122,7 +122,7 @@ def upgrade() -> None:
                 "cad_backend",
                 sa.String(length=40),
                 nullable=False,
-                server_default="openscad",
+                server_default="cadquery",
             )
         )
         batch.add_column(
@@ -130,7 +130,7 @@ def upgrade() -> None:
                 "source_language",
                 sa.String(length=40),
                 nullable=False,
-                server_default="openscad",
+                server_default="python",
             )
         )
 

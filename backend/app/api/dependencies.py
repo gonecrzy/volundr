@@ -5,15 +5,15 @@ from app.services.ai.provider import AiProvider
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.ollama import OllamaProvider
-from app.services.cad.runner import OpenScadCliRunner
+from app.services.cad.cadquery_runner import CadQueryCliRunner
 
 
 def get_data_dir() -> Path:
     return settings.data_dir
 
 
-def get_cad_runner() -> OpenScadCliRunner:
-    return OpenScadCliRunner()
+def get_cad_runner() -> CadQueryCliRunner:
+    return CadQueryCliRunner()
 
 
 def build_ai_provider(config: Settings) -> AiProvider:

@@ -106,7 +106,7 @@ class ProjectMessageRead(BaseModel):
 
 
 class ManualRevisionCreate(BaseModel):
-    source: str = Field(min_length=1, validation_alias=AliasChoices("source", "scad_source"))
+    source: str = Field(min_length=1)
     user_instruction: str | None = None
 
     @field_validator("source")
@@ -432,23 +432,6 @@ class ConfigurationParameterRead(BaseModel):
     affected_outputs: list[str] = Field(default_factory=list)
 
 
-class OpenScadParameterRead(BaseModel):
-    id: str
-    name: str
-    display_name: str
-    type: str
-    value: float | int | str | bool
-    default_value: float | int | str | bool
-    group: str | None = None
-    description: str | None = None
-    minimum: float | int | None = None
-    maximum: float | int | None = None
-    step: float | int | None = None
-    options: list[str] = Field(default_factory=list)
-    option_labels: dict[str, str] = Field(default_factory=dict)
-    source_line: int | None = None
-
-
 class ConfigurationPresetRead(BaseModel):
     id: str
     project_id: str
@@ -492,15 +475,14 @@ class ConfigurationOverrideManifestRead(BaseModel):
     configuration_change_id: str
     base_revision_id: str
     base_source_hash: str | None = None
-    cad_backend: str = "openscad"
-    source_language: str = "openscad"
+    cad_backend: str = "cadquery"
+    source_language: str = "python"
     selected_preset_id: str | None = None
     preset_values: dict[str, Any] = Field(default_factory=dict)
     user_overrides: dict[str, Any] = Field(default_factory=dict)
     parameter_values: dict[str, Any] = Field(default_factory=dict)
     parameter_hash: str | None = None
     resolved_parameters: dict[str, Any] = Field(default_factory=dict)
-    openscad_defines: dict[str, Any] = Field(default_factory=dict)
     affected_parameters: list[str] = Field(default_factory=list)
     affected_components: list[str] = Field(default_factory=list)
     affected_outputs: list[str] = Field(default_factory=list)
@@ -715,8 +697,8 @@ class RevisionRead(BaseModel):
     revision_number: int
     source_type: str
     user_instruction: str | None
-    cad_backend: str = "openscad"
-    source_language: str = "openscad"
+    cad_backend: str = "cadquery"
+    source_language: str = "python"
     source_path: str
     source_hash: str | None = None
     source_contract_version: str | None = None

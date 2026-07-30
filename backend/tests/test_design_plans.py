@@ -24,7 +24,6 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
-from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
 
@@ -212,7 +211,7 @@ class PlanningAiProvider:
         return "design-plan-v1"
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v5" if request.design_plan else "openscad-generation-v3"
+        return "cadquery-generation-v1"
 
     def cadquery_prompt_template_version(self) -> str:
         return "cadquery-generation-v1"
@@ -224,7 +223,7 @@ class PlanningAiProvider:
         return f"design plan prompt\n{json.dumps(request.design_specification, sort_keys=True)}"
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
-        return f"OpenSCAD from approved plan\n{json.dumps(request.design_plan, sort_keys=True)}"
+        return f"CadQuery from approved plan\n{json.dumps(request.design_plan, sort_keys=True)}"
 
     def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
         return f"CadQuery from approved plan\n{json.dumps(request.design_plan, sort_keys=True)}"
@@ -251,55 +250,7 @@ class PlanningAiProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.generation_requests.append(request)
-        return ModelGenerationResult(
-            raw_output="""
-```openscad
-/*
-Project: Planned bracket
-Units: millimeters
-Purpose: bracket
-Assumptions: none
-Print notes: flat
-*/
-// ===== QUALITY =====
-$fn = 32;
-selected_output = "bracket_body_output";
-// ===== USER PARAMETERS =====
-// @volundr-requirement mount_hole_spacing
-// @volundr-component bracket_body
-mount_hole_spacing = 60;
-plate_thickness = 6;
-// ===== DERIVED VALUES =====
-// @volundr-dependency mount_hole_spacing -> plate_height
-plate_height = mount_hole_spacing + 20;
-// ===== VALIDATION =====
-assert(mount_hole_spacing > 0);
-// ===== MODULES =====
-// @volundr-feature mounting_plate
-// @volundr-feature mounting_holes
-// @volundr-geometry type=hole_group count=2 diameter=4.5 spacing=mount_hole_spacing axis=z
-module mounting_holes() {}
-// @volundr-feature reinforcement_ribs
-module reinforcement_ribs() {}
-// @volundr-output bracket_body_output module=bracket_body required=true filename=bracket_body.stl components=bracket_body
-module bracket_body() {
-  cube([80, plate_height, plate_thickness]);
-  reinforcement_ribs();
-}
-// ===== FINAL MODEL =====
-module render_selected_output() {
-  if (selected_output == "bracket_body_output") {
-    bracket_body();
-  } else {
-    assert(false, str("Unknown selected_output: ", selected_output));
-  }
-}
-render_selected_output();
-```
-""",
-            provider="fake",
-            provider_model="fake-planning-model",
-        )
+        raise AssertionError("CadQuery generation must use generate_cadquery_model")
 
     async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.cadquery_requests.append(request)
@@ -348,14 +299,12 @@ class FakeCadRunner:
         source: str,
         job_id: str,
         *,
-        selected_output: str | None = None,
-        defines: dict[str, str | int | float | bool] | None = None,
         parameter_values: dict[str, Any] | None = None,
         requested_outputs: list[dict[str, Any]] | None = None,
-    ) -> CadCompileResult:
+    ) -> CadQueryCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-plan-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
-        source_path = job_dir / "model.scad"
+        source_path = job_dir / "source.py"
         stl_path = job_dir / "model.stl"
         step_path = job_dir / "model.step"
         brep_path = job_dir / "model.brep"
@@ -424,13 +373,14 @@ class FakeCadRunner:
                     )
                 ],
             )
-        return CadCompileResult(
+        return CadQueryCompileResult(
             job_id=job_id,
             success=True,
             timed_out=False,
             exit_code=0,
             source_path=source_path,
             stl_path=stl_path,
+            step_path=step_path,
             stdout_path=stdout_path,
             stderr_path=stderr_path,
             metadata_path=metadata_path,
@@ -438,6 +388,8 @@ class FakeCadRunner:
             output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
             error_message=None,
+            command_args=["python", "_runner.py"],
+            outputs=[],
         )
 
 

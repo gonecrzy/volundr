@@ -104,11 +104,11 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["none_until_clarified"],
       "expected_printability_constraints": ["not applicable until clarified"],
-      "compile_expectation": "no_scad_generated",
+      "compile_expectation": "no_cadquery_generated",
       "mesh_expectation": "none",
       "expected_geometric_invariants": [],
       "revision_expectation": "not applicable",
-      "protected_design_invariants": ["no accepted SCAD before clarification"],
+      "protected_design_invariants": ["no accepted CadQuery before clarification"],
       "unacceptable_outcomes": ["generic bracket accepted", "silent load assumption"]
     },
     {
@@ -121,12 +121,12 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["none_until_clarified"],
       "expected_printability_constraints": ["not applicable until clarified"],
-      "compile_expectation": "no_scad_generated",
+      "compile_expectation": "no_cadquery_generated",
       "mesh_expectation": "none",
       "expected_geometric_invariants": [],
       "revision_expectation": "not applicable",
       "protected_design_invariants": ["conflict must not be silently resolved"],
-      "unacceptable_outcomes": ["choosing either width silently", "accepted SCAD"]
+      "unacceptable_outcomes": ["choosing either width silently", "accepted CadQuery"]
     },
     {
       "id": "creative_fish_shelf_bracket",

@@ -91,13 +91,6 @@ type ProjectMessage = {
   created_at: string;
 };
 
-type SourceParameter = {
-  name: string;
-  value: string;
-  type: "number" | "boolean";
-  lineIndex: number;
-};
-
 type MeshMetadata = {
   size_x_mm: number;
   size_y_mm: number;
@@ -548,10 +541,9 @@ function App() {
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
   const exportUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/export.zip` : null;
-  const selectedSourceLabel = selectedRevision?.source_language === "python" ? "Python" : "SCAD";
-  const sourcePanelLabel = selectedRevision?.source_language === "python" ? "Python source" : "OpenSCAD source";
-  const sourceEditorLanguage = selectedRevision?.source_language === "python" ? "python" : "scad";
-  const sourceParameters = useMemo(() => parseSourceParameters(source), [source]);
+  const selectedSourceLabel = "Python";
+  const sourcePanelLabel = "Python source";
+  const sourceEditorLanguage = "python";
   const printabilityHighlights = useMemo(
     () => printabilityReport?.highlights ?? [],
     [printabilityReport],
@@ -2215,10 +2207,6 @@ function App() {
               onSaveProfile={() => void savePrintabilityProfile()}
             />
           </div>
-          <ParameterControls
-            parameters={sourceParameters}
-            onChange={(parameter, value) => setSource(updateSourceParameter(source, parameter, value))}
-          />
           {selectedRevision?.is_accepted && selectedRevision.id !== project?.active_revision_id ? (
             <div className="actions">
               <button className="download" onClick={() => void restoreSelectedRevision()}>
@@ -3507,48 +3495,6 @@ function PrintabilityInspector({
   );
 }
 
-function ParameterControls({
-  parameters,
-  onChange,
-}: {
-  parameters: SourceParameter[];
-  onChange: (parameter: SourceParameter, value: string) => void;
-}) {
-  if (parameters.length === 0) {
-    return null;
-  }
-  return (
-    <section className="parameters" aria-label="User parameters">
-      <h2>Parameters</h2>
-      <div className="parameter-list">
-        {parameters.map((parameter) => (
-          <label className="parameter-control" key={`${parameter.lineIndex}-${parameter.name}`}>
-            {parameter.name}
-            {parameter.type === "boolean" ? (
-              <input
-                checked={parameter.value === "true"}
-                type="checkbox"
-                onChange={(event) => onChange(parameter, event.target.checked ? "true" : "false")}
-              />
-            ) : (
-              <input
-                step="any"
-                type="number"
-                value={parameter.value}
-                onChange={(event) => {
-                  if (isValidParameterValue(parameter, event.target.value)) {
-                    onChange(parameter, event.target.value);
-                  }
-                }}
-              />
-            )}
-          </label>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function MessageList({ compact = false, messages }: { compact?: boolean; messages: ProjectMessage[] }) {
   if (messages.length === 0) {
     return <p className="empty">No messages</p>;
@@ -3645,57 +3591,6 @@ function ChatStageCard({ body, title }: { body: string; title: string }) {
       <p>{body}</p>
     </div>
   );
-}
-
-function parseSourceParameters(source: string): SourceParameter[] {
-  const lines = source.split("\n");
-  const sectionStart = lines.findIndex((line) => /USER PARAMETERS/i.test(line));
-  if (sectionStart === -1) {
-    return [];
-  }
-
-  const parameters: SourceParameter[] = [];
-  for (let index = sectionStart + 1; index < lines.length; index += 1) {
-    const line = lines[index];
-    if (/^\s*\/\/\s*=+\s*$/.test(line)) {
-      continue;
-    }
-    if (/^\s*\/\/\s*(?:=+\s*)?[A-Za-z][A-Za-z0-9 _-]*(?:\s*=+)?\s*$/.test(line)) {
-      break;
-    }
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(-?\d+(?:\.\d+)?|true|false)\s*;/);
-    if (!match) {
-      continue;
-    }
-    const value = match[2];
-    parameters.push({
-      name: match[1],
-      value,
-      type: value === "true" || value === "false" ? "boolean" : "number",
-      lineIndex: index,
-    });
-  }
-  return parameters;
-}
-
-function updateSourceParameter(source: string, parameter: SourceParameter, value: string): string {
-  const lines = source.split("\n");
-  const line = lines[parameter.lineIndex];
-  if (!line) {
-    return source;
-  }
-  lines[parameter.lineIndex] = line.replace(
-    /^(\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*)(-?\d+(?:\.\d+)?|true|false)(\s*;)/,
-    `$1${value}$3`,
-  );
-  return lines.join("\n");
-}
-
-function isValidParameterValue(parameter: SourceParameter, value: string): boolean {
-  if (parameter.type === "boolean") {
-    return value === "true" || value === "false";
-  }
-  return /^-?\d+(?:\.\d*)?$/.test(value);
 }
 
 function severityRank(severity: PrintabilitySeverity): number {

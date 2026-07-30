@@ -4,10 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     VOLUNDR_CAD_WORKSPACE_DIR=/work/jobs
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends openscad \
-    && rm -rf /var/lib/apt/lists/* \
-    && adduser --system --group --home /home/volundr-cad volundr-cad \
+RUN adduser --system --group --home /home/volundr-cad volundr-cad \
     && mkdir -p /work/jobs /tmp \
     && chown -R volundr-cad:volundr-cad /work /home/volundr-cad
 

@@ -27,7 +27,6 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
-from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
 
@@ -192,82 +191,6 @@ READY_PLAN: dict[str, Any] = {
 }
 
 
-BASE_SOURCE = """
-/*
-Project: Two part enclosure
-Units: millimeters
-Purpose: electronics enclosure
-Assumptions: none
-Print notes: print body and lid flat on Z=0
-*/
-// ===== QUALITY =====
-$fn = 48;
-selected_output = "body";
-// ===== USER PARAMETERS =====
-// @volundr-requirement body_width
-// @volundr-component body
-body_width = 80;
-body_depth = 50;
-wall_thickness = 3;
-lid_thickness = 3;
-// ===== DERIVED VALUES =====
-// @volundr-dependency lid_thickness -> lid_lip_depth
-lid_lip_depth = lid_thickness + 2;
-// ===== VALIDATION =====
-assert(body_width > 0, "body_width must be positive");
-assert(selected_output == "body" || selected_output == "lid", "Unknown selected_output");
-// ===== MODULES =====
-// @volundr-feature body_and_lid
-// @volundr-feature body_shell
-// @volundr-geometry type=bounds component=body x=body_width y=body_depth z=wall_thickness
-// @volundr-output body module=body required=true filename=body.stl components=body
-module body() {
-  cube([body_width, body_depth, wall_thickness]);
-}
-// @volundr-feature lid_panel
-// @volundr-component lid
-// @volundr-geometry type=bounds component=lid x=body_width y=body_depth z=lid_thickness
-// @volundr-output lid module=lid required=true filename=lid.stl components=lid
-module lid() {
-  cube([body_width, body_depth, lid_thickness]);
-}
-// ===== FINAL MODEL =====
-module render_selected_output() {
-  if (selected_output == "body") {
-    body();
-  } else if (selected_output == "lid") {
-    lid();
-  } else {
-    assert(false, str("Unknown selected_output: ", selected_output));
-  }
-}
-render_selected_output();
-"""
-
-
-REVISED_SOURCE = BASE_SOURCE.replace("lid_thickness = 3;", "lid_thickness = 4;").replace(
-    "lid_lip_depth = lid_thickness + 2;",
-    "lid_lip_depth = lid_thickness + 3;",
-)
-UNAUTHORIZED_SOURCE = REVISED_SOURCE.replace("wall_thickness = 3;", "wall_thickness = 5;")
-SHARED_BASE_SOURCE = BASE_SOURCE.replace(
-    "// @volundr-feature body_and_lid",
-    """// @volundr-shared-module shared_box
-module shared_box(size_vec) {
-  cube(size_vec);
-}
-
-// @volundr-feature body_and_lid""",
-).replace(
-    "cube([body_width, body_depth, wall_thickness]);",
-    "shared_box([body_width, body_depth, wall_thickness]);",
-).replace(
-    "cube([body_width, body_depth, lid_thickness]);",
-    "shared_box([body_width, body_depth, lid_thickness]);",
-)
-SHARED_REVISED_SOURCE = SHARED_BASE_SOURCE.replace("cube(size_vec);", "cube(size_vec + [0, 0, 0]);")
-
-
 CADQUERY_BASE_SOURCE = """
 import cadquery as cq
 from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
@@ -331,10 +254,8 @@ def ready_revision_plan() -> dict[str, Any]:
         "targeted_features": ["lid_panel"],
         "targeted_outputs": ["lid"],
         "targeted_findings": [],
-        "allowed_parameter_changes": ["lid_thickness", "lid_lip_depth"],
-        "required_dependency_changes": [
-            {"parameter_id": "lid_thickness", "affects": ["lid_lip_depth"]}
-        ],
+        "allowed_parameter_changes": ["lid_thickness"],
+        "required_dependency_changes": [],
         "allowed_component_changes": ["lid"],
         "allowed_feature_changes": ["lid_panel"],
         "protected_parameters": [
@@ -383,7 +304,7 @@ class RevisionPlanningProvider:
         self,
         *,
         plan: dict[str, Any] | None = None,
-        revised_source: str = REVISED_SOURCE,
+        revised_source: str = CADQUERY_REVISED_SOURCE,
         correction_source: str | None = None,
     ) -> None:
         self.plan = plan or ready_revision_plan()
@@ -413,10 +334,10 @@ class RevisionPlanningProvider:
         if getattr(request, "scope_diagnostics", None):
             return "scope-correction-v1"
         if getattr(request, "revision_plan", None) and getattr(request, "scoped_revision_context", None):
-            return "openscad-component-revision-v1"
+            return "cadquery-component-revision-v1"
         if getattr(request, "revision_plan", None):
-            return "openscad-revision-v2"
-        return "openscad-generation-v5"
+            return "cadquery-revision-v1"
+        return "cadquery-generation-v1"
 
     def cadquery_prompt_template_version(self) -> str:
         return "cadquery-generation-v1"
@@ -467,16 +388,18 @@ class RevisionPlanningProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.generation_requests.append(request)
-        source = self.correction_source if getattr(request, "scope_diagnostics", None) and self.correction_source else self.revised_source
-        return ModelGenerationResult(
-            raw_output=f"```openscad\n{source}\n```",
-            provider="fake",
-            provider_model="fake-revision-model",
-        )
+        raise AssertionError("CadQuery revision generation must use generate_cadquery_model")
 
     async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.cadquery_requests.append(request)
-        source = self.correction_source if getattr(request, "scope_diagnostics", None) and self.correction_source else self.revised_source
+        if getattr(request, "revision_plan", None):
+            source = (
+                self.correction_source
+                if getattr(request, "scope_diagnostics", None) and self.correction_source
+                else self.revised_source
+            )
+        else:
+            source = CADQUERY_BASE_SOURCE
         return ModelGenerationResult(
             raw_output=f"```python\n{source}\n```",
             provider="fake",
@@ -495,68 +418,14 @@ class MultiOutputCadRunner:
         source: str,
         job_id: str,
         *,
-        selected_output: str | None = None,
-        defines: dict[str, str | int | float | bool] | None = None,
         parameter_values: dict[str, Any] | None = None,
         requested_outputs: list[dict[str, Any]] | None = None,
-    ) -> CadCompileResult:
-        if requested_outputs is not None:
-            return self._compile_cadquery(
-                source=source,
-                job_id=job_id,
-                parameter_values=parameter_values or {},
-                requested_outputs=requested_outputs,
-            )
-        output_id = selected_output or str((defines or {}).get("selected_output") or "model")
-        self.calls.append(
-            {
-                "job_id": job_id,
-                "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
-                "selected_output": output_id,
-            }
-        )
-        job_dir = Path("/tmp") / "volundr-fake-structured-revision-jobs" / job_id
-        job_dir.mkdir(parents=True, exist_ok=True)
-        source_path = job_dir / "model.scad"
-        stl_path = job_dir / f"{output_id}.stl"
-        stdout_path = job_dir / "stdout.log"
-        stderr_path = job_dir / "stderr.log"
-        metadata_path = job_dir / "metadata.json"
-        source_path.write_text(source, encoding="utf-8")
-        stdout_path.write_text("", encoding="utf-8")
-        extents = self.body_extents
-        if output_id == "lid":
-            extents = self.lid_extents or (80.0, 50.0, 5.0)
-        mesh = trimesh.creation.box(extents=extents)
-        mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
-        mesh.export(stl_path)
-        stderr_path.write_text("Compilation finished", encoding="utf-8")
-        metadata = MeshMetadata(
-            size_x_mm=extents[0],
-            size_y_mm=extents[1],
-            size_z_mm=extents[2],
-            volume_mm3=extents[0] * extents[1] * extents[2],
-            triangle_count=12,
-            connected_components=1,
-            is_watertight=True,
-            is_winding_consistent=True,
-            center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
-        )
-        metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
-        return CadCompileResult(
+    ) -> CadQueryCompileResult:
+        return self._compile_cadquery(
+            source=source,
             job_id=job_id,
-            success=True,
-            timed_out=False,
-            exit_code=0,
-            source_path=source_path,
-            stl_path=stl_path,
-            stdout_path=stdout_path,
-            stderr_path=stderr_path,
-            metadata_path=metadata_path,
-            source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
-            output_size_bytes=stl_path.stat().st_size,
-            metadata=metadata,
-            error_message=None,
+            parameter_values=parameter_values or {},
+            requested_outputs=requested_outputs or [],
         )
 
     def _compile_cadquery(
@@ -732,7 +601,7 @@ def test_precise_parameter_request_creates_ready_revision_plan_without_generatio
     assert plan["outcome"] == "revision_ready"
     assert plan["review_state"] == "pending_review"
     assert plan["base_revision_id"] == context["revision"]["id"]
-    assert plan["revision_plan"]["allowed_parameter_changes"] == ["lid_thickness", "lid_lip_depth"]
+    assert plan["revision_plan"]["allowed_parameter_changes"] == ["lid_thickness"]
     assert plan["revision_plan"]["protected_outputs"] == ["body"]
     assert provider.revision_plan_requests[0].output_manifest["outputs"][0]["output_id"] == "body"
     assert provider.generation_requests == []
@@ -781,47 +650,6 @@ def test_revision_plan_must_be_approved_before_generation(tmp_path: Path) -> Non
 
     assert blocked.status_code == 409
     assert provider.generation_requests == []
-
-
-def test_approved_revision_plan_generates_candidate_from_revised_source(tmp_path: Path) -> None:
-    provider = RevisionPlanningProvider()
-    runner = MultiOutputCadRunner()
-    client, _SessionLocal = build_client(tmp_path, provider, runner)
-    context = create_accepted_multi_output_revision(client)
-    provider.generation_requests.clear()
-    runner.calls.clear()
-    plan = client.post(
-        f"/api/projects/{context['project']['id']}/revision-plans",
-        json={
-            "base_revision_id": context["revision"]["id"],
-            "user_instruction": "Change lid thickness to 4 mm.",
-            "reason": "parameter_change",
-        },
-    ).json()
-    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
-
-    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
-
-    assert response.status_code == 201
-    candidate = response.json()
-    assert candidate["source_type"] == "ai_revision"
-    assert candidate["parent_revision_id"] == context["revision"]["id"]
-    assert candidate["review_state"] in {"ready", "ready_with_warnings"}
-    assert set(call["selected_output"] for call in runner.calls) == {"body", "lid"}
-    assert provider.generation_requests[0].revision_plan["summary"] == "Increase lid thickness from 3 mm to 4 mm"
-    assert client.get(f"/api/projects/{context['project']['id']}").json()["active_revision_id"] == context["revision"]["id"]
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert compliance["passed"] is True
-    success = client.get(f"/api/revision-plans/{approved['id']}/success-results").json()
-    assert {result["criterion_type"]: result["verification_state"] for result in success}["parameter_value"] == "success_verified"
-    summary = client.get(f"/api/revision-plans/{approved['id']}/component-revision-summary").json()
-    assert summary["summary"]["revision_scope"]["targeted_outputs"] == ["lid"]
-    assert summary["summary"]["protected_outputs"][0]["preservation_state"] in {
-        "verified_unchanged",
-        "changed_within_tolerance",
-    }
-    assert provider.generation_requests[0].scoped_revision_context["targeted_components"] == ["lid"]
-    assert provider.generation_requests[0].scoped_revision_context["protected_outputs"] == ["body"]
 
 
 def test_cadquery_approved_revision_plan_generates_candidate_from_revised_source(
@@ -874,35 +702,6 @@ def test_cadquery_approved_revision_plan_generates_candidate_from_revised_source
     assert client.get(f"/api/projects/{context['project']['id']}").json()["active_revision_id"] == context["revision"]["id"]
     compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
     assert compliance["passed"] is True
-
-
-def test_protected_component_module_change_blocks_before_compile(tmp_path: Path) -> None:
-    source = REVISED_SOURCE.replace(
-        "cube([body_width, body_depth, wall_thickness]);",
-        "cube([body_width, body_depth + 10, wall_thickness]);",
-    )
-    provider = RevisionPlanningProvider()
-    runner = MultiOutputCadRunner()
-    client, _SessionLocal = build_client(tmp_path, provider, runner)
-    context = create_accepted_multi_output_revision(client)
-    provider.revised_source = source
-    runner.calls.clear()
-    plan = client.post(
-        f"/api/projects/{context['project']['id']}/revision-plans",
-        json={
-            "base_revision_id": context["revision"]["id"],
-            "user_instruction": "Change lid thickness to 4 mm.",
-            "reason": "parameter_change",
-        },
-    ).json()
-    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
-
-    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
-
-    assert response.status_code == 409
-    assert runner.calls == []
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert any(finding["rule_id"] == "revision.protected_module_changed" for finding in compliance["findings"])
 
 
 def test_cadquery_protected_parameter_change_blocks_before_compile(
@@ -971,118 +770,8 @@ def test_protected_output_drift_blocks_candidate_after_compile(tmp_path: Path) -
     assert any(finding["rule_id"] == "revision.protected_output_unexpected_change" for finding in findings)
 
 
-def test_unapproved_shared_module_change_blocks_before_compile(tmp_path: Path) -> None:
-    provider = RevisionPlanningProvider(revised_source=SHARED_BASE_SOURCE)
-    runner = MultiOutputCadRunner()
-    client, _SessionLocal = build_client(tmp_path, provider, runner)
-    context = create_accepted_multi_output_revision(client)
-    provider.revised_source = SHARED_REVISED_SOURCE
-    runner.calls.clear()
-    plan = client.post(
-        f"/api/projects/{context['project']['id']}/revision-plans",
-        json={
-            "base_revision_id": context["revision"]["id"],
-            "user_instruction": "Change lid thickness to 4 mm.",
-            "reason": "parameter_change",
-        },
-    ).json()
-    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
-
-    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
-
-    assert response.status_code == 409
-    assert runner.calls == []
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert any(finding["rule_id"] == "revision.shared_module_change_not_allowed" for finding in compliance["findings"])
-
-
-def test_allowed_shared_module_change_can_compile(tmp_path: Path) -> None:
-    provider = RevisionPlanningProvider(
-        plan={**ready_revision_plan(), "allowed_shared_modules": ["shared_box"]},
-        revised_source=SHARED_BASE_SOURCE,
-    )
-    runner = MultiOutputCadRunner()
-    client, _SessionLocal = build_client(tmp_path, provider, runner)
-    context = create_accepted_multi_output_revision(client)
-    provider.revised_source = SHARED_REVISED_SOURCE
-    runner.calls.clear()
-    plan = client.post(
-        f"/api/projects/{context['project']['id']}/revision-plans",
-        json={
-            "base_revision_id": context["revision"]["id"],
-            "user_instruction": "Change lid thickness to 4 mm and adjust the shared box helper.",
-            "reason": "user_request",
-        },
-    ).json()
-    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
-
-    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
-
-    assert response.status_code == 201
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert compliance["passed"] is True
-    assert set(call["selected_output"] for call in runner.calls) == {"body", "lid"}
-
-
-def test_scope_correction_runs_once_before_compile(tmp_path: Path) -> None:
-    unauthorized = REVISED_SOURCE.replace(
-        "cube([body_width, body_depth, wall_thickness]);",
-        "cube([body_width, body_depth + 10, wall_thickness]);",
-    )
-    provider = RevisionPlanningProvider(correction_source=REVISED_SOURCE)
-    runner = MultiOutputCadRunner()
-    client, _SessionLocal = build_client(tmp_path, provider, runner)
-    context = create_accepted_multi_output_revision(client)
-    provider.revised_source = unauthorized
-    provider.generation_requests.clear()
-    runner.calls.clear()
-    plan = client.post(
-        f"/api/projects/{context['project']['id']}/revision-plans",
-        json={
-            "base_revision_id": context["revision"]["id"],
-            "user_instruction": "Change lid thickness to 4 mm.",
-            "reason": "parameter_change",
-        },
-    ).json()
-    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
-
-    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
-
-    assert response.status_code == 201
-    assert [request.scope_diagnostics is not None for request in provider.generation_requests] == [False, True]
-    assert set(call["selected_output"] for call in runner.calls) == {"body", "lid"}
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert compliance["passed"] is True
-
-
-def test_unauthorized_parameter_change_blocks_before_compile(tmp_path: Path) -> None:
-    provider = RevisionPlanningProvider(revised_source=UNAUTHORIZED_SOURCE)
-    runner = MultiOutputCadRunner()
-    client, _SessionLocal = build_client(tmp_path, provider, runner)
-    context = create_accepted_multi_output_revision(client)
-    runner.calls.clear()
-    plan = client.post(
-        f"/api/projects/{context['project']['id']}/revision-plans",
-        json={
-            "base_revision_id": context["revision"]["id"],
-            "user_instruction": "Change lid thickness to 4 mm.",
-            "reason": "parameter_change",
-        },
-    ).json()
-    approved = client.post(f"/api/revision-plans/{plan['id']}/approve").json()
-
-    response = client.post(f"/api/revision-plans/{approved['id']}/generate")
-
-    assert response.status_code == 409
-    assert runner.calls == []
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert compliance["passed"] is False
-    assert any(finding["rule_id"] == "revision.unauthorized_parameter_change" for finding in compliance["findings"])
-    assert client.get(f"/api/projects/{context['project']['id']}").json()["active_revision_id"] == context["revision"]["id"]
-
-
 async def _fail_generate_model(request: ModelGenerationRequest) -> ModelGenerationResult:
-    raise AssertionError("CadQuery revision generation must not call the OpenSCAD provider path")
+    raise AssertionError("CadQuery revision generation must use the CadQuery provider path")
 
 
 def test_finding_driven_revision_links_targeted_finding(tmp_path: Path) -> None:

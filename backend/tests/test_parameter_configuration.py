@@ -25,7 +25,6 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
-from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
 
@@ -218,58 +217,6 @@ READY_PLAN: dict[str, Any] = {
 }
 
 
-CONFIGURABLE_SOURCE = """
-/*
-Project: Configurable box
-Units: millimeters
-Purpose: electronics enclosure
-Assumptions: none
-Print notes: print flat
-*/
-// ===== QUALITY =====
-$fn = 48;
-selected_output = "body";
-// ===== USER PARAMETERS =====
-// @volundr-requirement body_width
-// @volundr-parameter body_width type=number editable=true
-body_width = 80;
-// @volundr-parameter slot_count type=integer editable=true
-slot_count = 4;
-// @volundr-parameter lid_enabled type=boolean editable=true
-lid_enabled = true;
-// @volundr-parameter fit_class type=enum editable=true
-fit_class = "standard";
-// @volundr-parameter wall_thickness type=number editable=false
-wall_thickness = 3;
-// ===== DERIVED VALUES =====
-// @volundr-dependency body_width -> slot_spacing
-// @volundr-dependency slot_count -> slot_spacing
-slot_spacing = body_width / slot_count;
-lid_thickness = 3;
-// ===== VALIDATION =====
-assert(body_width >= 50 && body_width <= 120, "body_width outside supported configuration range");
-assert(slot_count >= 1 && slot_count <= 12, "slot_count outside supported configuration range");
-assert(selected_output == "body" || selected_output == "lid", "Unknown selected_output");
-// ===== MODULES =====
-// @volundr-feature body_and_lid @volundr-feature body_shell
-// @volundr-component body
-// @volundr-geometry type=bounds component=body x=body_width y=50 z=wall_thickness
-// @volundr-output body module=body required=true filename=body.stl components=body
-module body() { cube([body_width, 50, wall_thickness]); }
-// @volundr-feature lid_panel
-// @volundr-component lid
-// @volundr-output lid module=lid required=true filename=lid.stl components=lid
-module lid() { cube([body_width, 50, lid_thickness]); }
-// ===== FINAL MODEL =====
-module render_selected_output() {
-  if (selected_output == "body") { body(); }
-  else if (selected_output == "lid") { lid(); }
-  else { assert(false, str("Unknown selected_output: ", selected_output)); }
-}
-render_selected_output();
-"""
-
-
 CADQUERY_CONFIGURABLE_SOURCE = """
 import cadquery as cq
 from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
@@ -317,7 +264,7 @@ class ConfigurationProvider:
         return "revision-planning-v1"
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v5"
+        return "cadquery-generation-v1"
 
     def cadquery_prompt_template_version(self) -> str:
         return "cadquery-generation-v1"
@@ -349,11 +296,7 @@ class ConfigurationProvider:
         )
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
-        return ModelGenerationResult(
-            raw_output=f"```openscad\n{CONFIGURABLE_SOURCE}\n```",
-            provider="fake",
-            provider_model="fake-config-model",
-        )
+        raise AssertionError("CadQuery generation must use generate_cadquery_model")
 
     async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.cadquery_requests.append(request)
@@ -373,71 +316,14 @@ class ConfigurationRunner:
         source: str,
         job_id: str,
         *,
-        selected_output: str | None = None,
-        defines: dict[str, str | int | float | bool] | None = None,
         parameter_values: dict[str, Any] | None = None,
         requested_outputs: list[dict[str, Any]] | None = None,
-    ) -> CadCompileResult:
-        if requested_outputs is not None:
-            return self._compile_cadquery(
-                source=source,
-                job_id=job_id,
-                parameter_values=parameter_values or {},
-                requested_outputs=requested_outputs,
-            )
-        output_id = selected_output or "body"
-        defines = defines or {}
-        self.calls.append(
-            {
-                "job_id": job_id,
-                "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
-                "selected_output": output_id,
-                "defines": dict(defines),
-            }
-        )
-        job_dir = Path("/tmp") / "volundr-fake-configuration-jobs" / job_id
-        job_dir.mkdir(parents=True, exist_ok=True)
-        source_path = job_dir / "model.scad"
-        stl_path = job_dir / f"{output_id}.stl"
-        stdout_path = job_dir / "stdout.log"
-        stderr_path = job_dir / "stderr.log"
-        metadata_path = job_dir / "metadata.json"
-        source_path.write_text(source, encoding="utf-8")
-        stdout_path.write_text("", encoding="utf-8")
-        body_width = float(defines.get("body_width", 80))
-        thickness = 3.0 if output_id == "body" else 4.0
-        extents = (body_width, 50.0, thickness)
-        mesh = trimesh.creation.box(extents=extents)
-        mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
-        mesh.export(stl_path)
-        stderr_path.write_text("Compilation finished", encoding="utf-8")
-        metadata = MeshMetadata(
-            size_x_mm=extents[0],
-            size_y_mm=extents[1],
-            size_z_mm=extents[2],
-            volume_mm3=extents[0] * extents[1] * extents[2],
-            triangle_count=12,
-            connected_components=1,
-            is_watertight=True,
-            is_winding_consistent=True,
-            center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
-        )
-        metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
-        return CadCompileResult(
+    ) -> CadQueryCompileResult:
+        return self._compile_cadquery(
+            source=source,
             job_id=job_id,
-            success=True,
-            timed_out=False,
-            exit_code=0,
-            source_path=source_path,
-            stl_path=stl_path,
-            stdout_path=stdout_path,
-            stderr_path=stderr_path,
-            metadata_path=metadata_path,
-            source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
-            output_size_bytes=stl_path.stat().st_size,
-            metadata=metadata,
-            error_message=None,
-            command_args=["openscad", "-D", f'selected_output="{output_id}"'],
+            parameter_values=parameter_values or {},
+            requested_outputs=requested_outputs or [],
         )
 
     def _compile_cadquery(
@@ -647,7 +533,9 @@ def test_invalid_and_structural_configuration_changes_do_not_compile(tmp_path: P
     assert runner.calls == []
 
 
-def test_configuration_generation_uses_defines_without_provider_and_keeps_active_revision(tmp_path: Path) -> None:
+def test_configuration_generation_uses_parameter_values_without_legacy_provider_and_keeps_active_revision(
+    tmp_path: Path,
+) -> None:
     provider = ConfigurationProvider()
     runner = ConfigurationRunner()
     client = build_client(tmp_path, provider, runner)
@@ -666,8 +554,10 @@ def test_configuration_generation_uses_defines_without_provider_and_keeps_active
     revision = generated.json()
     assert revision["configuration_change_id"] == change["id"]
     assert revision["review_state"] in {"ready", "ready_with_warnings"}
-    assert all(call["defines"]["body_width"] == 100 for call in runner.calls)
-    assert all(call["defines"]["slot_count"] == 5 for call in runner.calls)
+    assert len(runner.calls) == 1
+    assert runner.calls[0]["parameter_values"]["body_width"] == 100
+    assert runner.calls[0]["parameter_values"]["slot_count"] == 5
+    assert "defines" not in runner.calls[0]
     refreshed_project = client.get(f"/api/projects/{context['project']['id']}").json()
     assert refreshed_project["active_revision_id"] == context["revision"]["id"]
 

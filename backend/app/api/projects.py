@@ -22,7 +22,6 @@ from app.schemas.project import (
     GeometricAnalysisRead,
     ManualRevisionCreate,
     GenerationCreate,
-    OpenScadParameterRead,
     ProjectCreate,
     ProjectMessageRead,
     ProjectRead,
@@ -45,7 +44,7 @@ from app.schemas.printability import (
     SavedPrintabilityProfileRead,
 )
 from app.services.ai.provider import AiProvider
-from app.services.cad.runner import OpenScadCliRunner
+from app.services.cad.cadquery_runner import CadQueryCliRunner
 from app.services.printability.inspector import inspect_printability
 from app.services.printability.profiles import PrintabilityProfileService
 from app.services.projects.service import ProjectService
@@ -404,7 +403,7 @@ async def generate_from_configuration_change(
     configuration_change_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
 ) -> RevisionRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     try:
@@ -537,7 +536,7 @@ async def generate_from_revision_plan(
     revision_plan_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -812,7 +811,7 @@ async def generate_from_design_specification(
     specification_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -841,7 +840,7 @@ async def generate_from_design_plan(
     design_plan_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -867,7 +866,7 @@ async def create_manual_revision(
     payload: ManualRevisionCreate,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
 ) -> RevisionRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     revision = await service.create_manual_revision(project_id, payload)
@@ -882,7 +881,7 @@ async def generate_initial_revision(
     payload: GenerationCreate,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -1016,7 +1015,7 @@ async def retry_revision_output(
     output_artifact_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: CadQueryCliRunner = Depends(get_cad_runner),
 ) -> RevisionOutputRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     try:
@@ -1116,20 +1115,7 @@ def get_revision_source(
     source_path = service.resolve_revision_source(revision_id)
     if source_path is None:
         raise HTTPException(status_code=404, detail="revision source not found")
-    return FileResponse(source_path, media_type="text/plain", filename="model.scad")
-
-
-@router.get("/revisions/{revision_id}/parameters", response_model=list[OpenScadParameterRead])
-def list_revision_parameters(
-    revision_id: str,
-    db: Session = Depends(get_db),
-    data_dir: Path = Depends(get_data_dir),
-) -> list[OpenScadParameterRead]:
-    service = ProjectService(db=db, data_dir=data_dir)
-    parameters = service.list_revision_parameters(revision_id)
-    if parameters is None:
-        raise HTTPException(status_code=404, detail="revision source not found")
-    return parameters
+    return FileResponse(source_path, media_type="text/plain", filename=source_path.name)
 
 
 @router.get("/revisions/{revision_id}/compile-log")

@@ -11,7 +11,7 @@ import trimesh
 from trimesh import Trimesh
 
 from app.schemas.printability import PrintabilityProfile
-from app.services.openscad.source_contract import SourceGeometryMapping, SourceMetadata
+from app.services.cad.source_metadata import SourceGeometryMapping, SourceMetadata
 
 GEOMETRIC_ANALYZER_VERSION = "geometric-invariants-v1"
 GEOMETRIC_TOLERANCE_PROFILE_VERSION = "geometry-tolerance-v1"

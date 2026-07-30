@@ -106,16 +106,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--source-language",
-        choices=("openscad", "cadquery"),
-        default="openscad",
-        help="Source language for --source-probe. CadQuery is experimental.",
+        choices=("cadquery",),
+        default="cadquery",
+        help="Source language for --source-probe.",
     )
     parser.add_argument(
         "--source-brief",
         action="store_true",
         help=(
             "Before --source-probe generation, ask the provider for a compact structured "
-            "source brief and feed it into the OpenSCAD prompt."
+            "source brief and feed it into the CadQuery prompt."
         ),
     )
     parser.add_argument(

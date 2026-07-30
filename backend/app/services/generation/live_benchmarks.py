@@ -9,18 +9,14 @@ from pathlib import Path
 from typing import Any
 
 from app.services.ai.gemini_cli import (
-    COMPONENT_REVISION_PROMPT_VERSION,
+    CADQUERY_SOURCE_PROMPT_VERSION,
     CONTRACT_REPAIR_PROMPT_VERSION,
+    DESIGN_PLAN_PROMPT_VERSION,
     GEMINI_RULESET_VERSION,
-    LEGACY_COMPILE_REPAIR_PROMPT_VERSION,
-    LEGACY_INITIAL_PROMPT_VERSION,
-    LEGACY_REVISION_PROMPT_VERSION,
-    OPENSCAD_GENERATION_PROMPT_VERSION,
-    PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION,
     REQUIREMENTS_PROMPT_VERSION,
+    REVISION_PLAN_PROMPT_VERSION,
     SCOPE_CORRECTION_PROMPT_VERSION,
     SOURCE_BRIEF_PROMPT_VERSION,
-    STRUCTURED_REVISION_PROMPT_VERSION,
     GeminiCliProvider,
 )
 from app.services.ai.gemini_api import GeminiApiProvider
@@ -29,10 +25,8 @@ from app.services.ai.provider import ModelGenerationRequest, RequirementExtracti
 from app.services.ai.source_extraction import (
     SourceExtractionError,
     extract_python_source,
-    extract_scad_source,
 )
 from app.services.cad.cadquery_runner import CadQueryCliRunner
-from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.benchmarks import (
     BenchmarkSuite,
     GenerationBenchmark,
@@ -41,7 +35,6 @@ from app.services.generation.benchmarks import (
     phase_validation_scenario_set,
 )
 from app.services.generation.failure_taxonomy import FailureClass
-from app.services.openscad.parameters import extract_editable_parameters
 
 
 LIVE_BENCHMARK_RUN_SCHEMA_VERSION = "live-benchmark-run-v1"
@@ -51,7 +44,9 @@ HUMAN_SCORING_FORM_SCHEMA_VERSION = "human-scoring-form-v1"
 LIVE_BENCHMARK_HARNESS_VERSION = "live-benchmark-harness-v1"
 SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION = "source-parameter-analysis-v1"
 SOURCE_BRIEF_SCHEMA_VERSION = "source-brief-v1"
-SOURCE_LANGUAGES = frozenset({"openscad", "cadquery"})
+SOURCE_LANGUAGES = frozenset({"cadquery"})
+CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
+CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v1"
 
 SCORING_CATEGORIES = (
     "prompt_quality",
@@ -84,7 +79,7 @@ class LiveBenchmarkConfig:
     source_probe: bool = False
     source_probe_repair: bool = False
     source_brief: bool = False
-    source_language: str = "openscad"
+    source_language: str = "cadquery"
 
 
 @dataclass(frozen=True)
@@ -232,7 +227,7 @@ class LiveBenchmarkRunner:
         source_prompt: str | None = None,
         source_probe_repair: bool = False,
         source_brief_prompt: str | None = None,
-        source_language: str = "openscad",
+        source_language: str = "cadquery",
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -816,16 +811,11 @@ class LiveBenchmarkRunner:
             "source_brief": _source_brief_prompt_template_version(provider),
             "cadquery_source": _cadquery_prompt_template_version(provider),
             "design_plan": provider.design_plan_prompt_template_version(),
-            "planned_openscad": PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION,
-            "design_spec_openscad": OPENSCAD_GENERATION_PROMPT_VERSION,
             "revision_plan": provider.revision_plan_prompt_template_version(),
-            "structured_revision": STRUCTURED_REVISION_PROMPT_VERSION,
-            "component_revision": COMPONENT_REVISION_PROMPT_VERSION,
+            "cadquery_revision": CADQUERY_REVISION_PROMPT_VERSION,
+            "cadquery_component_revision": CADQUERY_COMPONENT_REVISION_PROMPT_VERSION,
             "contract_repair": CONTRACT_REPAIR_PROMPT_VERSION,
             "scope_correction": SCOPE_CORRECTION_PROMPT_VERSION,
-            "compile_repair": LEGACY_COMPILE_REPAIR_PROMPT_VERSION,
-            "legacy_initial": LEGACY_INITIAL_PROMPT_VERSION,
-            "legacy_revision": LEGACY_REVISION_PROMPT_VERSION,
         }
 
     def _estimate_run_tokens(self, prompts: list[str], runs_per_case: int) -> int:
@@ -1148,30 +1138,22 @@ def _requirement_request_for(benchmark: GenerationBenchmark) -> RequirementExtra
 
 
 def _source_brief_generation_instruction(source_language: str) -> str:
-    if source_language == "cadquery":
-        return (
-            "Generate CadQuery Python that satisfies the structured source brief. If the "
-            "brief says a decorative feature must attach or one connected body is expected, "
-            "boolean-union the additive solids into one returned model."
-        )
     return (
-        "Generate OpenSCAD that satisfies the structured source brief. If the brief says "
-        "a decorative feature must attach or one connected body is expected, physically "
-        "fuse or overlap those solids."
+        "Generate CadQuery Python that satisfies the structured source brief. If the "
+        "brief says a decorative feature must attach or one connected body is expected, "
+        "boolean-union the additive solids into one returned model."
     )
 
 
 def _parameter_target_instruction(source_language: str) -> str:
-    if source_language == "cadquery":
-        return "Expose these as simple top-level Python constants when applicable."
-    return "Expose these as simple top-level OpenSCAD parameters when applicable."
+    return "Expose these as simple top-level Python constants when applicable."
 
 
 def _source_request_for(
     benchmark: GenerationBenchmark,
     *,
     source_brief: dict[str, Any] | None = None,
-    source_language: str = "openscad",
+    source_language: str = "cadquery",
 ) -> ModelGenerationRequest:
     user_instruction = benchmark.input_prompt
     additions: list[str] = []
@@ -1255,32 +1237,20 @@ def _mesh_connected_components(*, run_dir: Path, metadata_path: Any) -> int | No
 
 def _disconnected_mesh_diagnostics(
     *,
-    source_language: str = "openscad",
+    source_language: str = "cadquery",
     expected_connected_body_count: int,
     connected_components: int,
 ) -> str:
-    if source_language == "cadquery":
-        return (
-            "CadQuery compiled successfully, but mesh validation failed: "
-            f"expected connected body count: {expected_connected_body_count}; "
-            f"actual connected components: {connected_components}. "
-            "Rewrite build_model() so every additive solid in the one-piece model is "
-            "joined with union() and physically overlaps another positive solid by at "
-            "least 0.5 mm. Sink decorative overlays, indicators, ribs, silhouettes, "
-            "fins, labels, and handles into the parent body so they fuse. Model holes "
-            "as subtractive CadQuery features such as hole(), cutThruAll(), cutBlind(), "
-            "or cut(), not as positive cylinders."
-        )
     return (
-        "OpenSCAD compiled successfully, but mesh validation failed: "
+        "CadQuery compiled successfully, but mesh validation failed: "
         f"expected connected body count: {expected_connected_body_count}; "
         f"actual connected components: {connected_components}. "
-        "Rewrite the SCAD so every positive solid in the one-piece model overlaps another "
-        "positive solid by at least 0.5 mm or is joined with hull() or a bridge. "
-        "Do not rely on face-touching, edge-touching, or coplanar contact. "
-        "Sink decorative overlays, indicators, ribs, silhouettes, fins, labels, and handles "
-        "into the parent body so they fuse. Model holes as subtractive cutters inside "
-        "difference(), not positive cylinders inside union()."
+        "Rewrite build_model() so every additive solid in the one-piece model is "
+        "joined with union() and physically overlaps another positive solid by at "
+        "least 0.5 mm. Sink decorative overlays, indicators, ribs, silhouettes, "
+        "fins, labels, and handles into the parent body so they fuse. Model holes "
+        "as subtractive CadQuery features such as hole(), cutThruAll(), cutBlind(), "
+        "or cut(), not as positive cylinders."
     )
 
 
@@ -1289,18 +1259,12 @@ def _source_repair_request_for(
     benchmark: GenerationBenchmark,
     current_source: str,
     compiler_diagnostics: str,
-    source_language: str = "openscad",
+    source_language: str = "cadquery",
 ) -> ModelGenerationRequest:
-    if source_language == "cadquery":
-        instruction = (
-            "Repair the CadQuery Python source so build_model() compiles cleanly while "
-            "preserving the benchmark intent and expected source-probe parameters."
-        )
-    else:
-        instruction = (
-            "Repair the OpenSCAD source so it compiles cleanly while preserving the benchmark "
-            "intent and expected source-probe parameters."
-        )
+    instruction = (
+        "Repair the CadQuery Python source so build_model() compiles cleanly while "
+        "preserving the benchmark intent and expected source-probe parameters."
+    )
     return ModelGenerationRequest(
         project_name=f"Benchmark: {benchmark.id}",
         original_intent=benchmark.input_prompt,
@@ -1368,7 +1332,7 @@ def _source_parameter_analysis(
     benchmark: GenerationBenchmark,
     extracted_source: str | None,
     extraction_error: str | None,
-    source_language: str = "openscad",
+    source_language: str = "cadquery",
 ) -> dict[str, Any]:
     if extracted_source is None:
         return {
@@ -1423,12 +1387,7 @@ def _source_parameter_analysis(
 
 
 def _extract_source_parameters(source: str, source_language: str) -> list[dict[str, Any]]:
-    if source_language == "cadquery":
-        return _extract_python_constants(source)
-    return [
-        {"id": parameter.id, "type": parameter.type, "group": parameter.group}
-        for parameter in extract_editable_parameters(source)
-    ]
+    return _extract_python_constants(source)
 
 
 def _extract_python_constants(source: str) -> list[dict[str, Any]]:
@@ -1475,9 +1434,7 @@ def _build_source_prompt(
     request: ModelGenerationRequest,
     source_language: str,
 ) -> str:
-    if source_language == "cadquery":
-        return provider.build_cadquery_prompt(request)
-    return provider.build_prompt(request)
+    return provider.build_cadquery_prompt(request)
 
 
 async def _generate_source_model(
@@ -1485,9 +1442,7 @@ async def _generate_source_model(
     request: ModelGenerationRequest,
     source_language: str,
 ):
-    if source_language == "cadquery":
-        return await provider.generate_cadquery_model(request)
-    return await provider.generate_model(request)
+    return await provider.generate_cadquery_model(request)
 
 
 def _source_prompt_template_version(
@@ -1495,27 +1450,19 @@ def _source_prompt_template_version(
     request: ModelGenerationRequest,
     source_language: str,
 ) -> str:
-    if source_language == "cadquery":
-        return _cadquery_prompt_template_version(provider)
-    return provider.prompt_template_version_for(request)
+    return _cadquery_prompt_template_version(provider)
 
 
 def _extract_source_for_language(raw_output: str, source_language: str) -> str:
-    if source_language == "cadquery":
-        return extract_python_source(raw_output)
-    return extract_scad_source(raw_output)
+    return extract_python_source(raw_output)
 
 
 def _source_filename_for_language(source_language: str) -> str:
-    if source_language == "cadquery":
-        return "source-extracted.py"
-    return "source-extracted.scad"
+    return "source-extracted.py"
 
 
 def _source_repair_filename_for_language(source_language: str) -> str:
-    if source_language == "cadquery":
-        return "source-repair-extracted.py"
-    return "source-repair-extracted.scad"
+    return "source-repair-extracted.py"
 
 
 def _compile_source_probe_for_language(
@@ -1527,61 +1474,13 @@ def _compile_source_probe_for_language(
     workspace_dir_name: str = "source-compile-workspace",
     job_id: str = "source-probe",
 ) -> dict[str, Any]:
-    if source_language == "cadquery":
-        return _compile_cadquery_probe(
-            source=source,
-            run_dir=run_dir,
-            artifact_dir=artifact_dir,
-            workspace_dir_name=workspace_dir_name,
-            job_id=job_id,
-        )
-    return _compile_source_probe(
+    return _compile_cadquery_probe(
         source=source,
         run_dir=run_dir,
         artifact_dir=artifact_dir,
         workspace_dir_name=workspace_dir_name,
         job_id=job_id,
     )
-
-
-def _compile_source_probe(
-    *,
-    source: str,
-    run_dir: Path,
-    artifact_dir: Path,
-    workspace_dir_name: str = "source-compile-workspace",
-    job_id: str = "source-probe",
-) -> dict[str, Any]:
-    workspace_root = (artifact_dir / workspace_dir_name).resolve()
-    result = asyncio.run(
-        OpenScadCliRunner(
-            workspace_root=workspace_root,
-            timeout_seconds=60,
-        ).compile(source, job_id=job_id)
-    )
-    warnings = _openscad_warning_lines(result.stderr_path)
-    return {
-        "compile_status": "compile_succeeded" if result.success else "compile_failed",
-        "compiled_stl_path": _relative(result.stl_path, run_dir)
-        if result.success and result.stl_path is not None
-        else None,
-        "compiled_step_path": None,
-        "compile_stdout_path": _relative(result.stdout_path, run_dir)
-        if result.stdout_path is not None
-        else None,
-        "compile_stderr_path": _relative(result.stderr_path, run_dir)
-        if result.stderr_path is not None
-        else None,
-        "mesh_metadata_path": _relative(result.metadata_path, run_dir)
-        if result.success and result.metadata_path is not None
-        else None,
-        "compile_error_message": result.error_message,
-        "compile_timed_out": result.timed_out,
-        "compile_exit_code": result.exit_code,
-        "compile_warning_count": len(warnings),
-        "compile_warnings": warnings[:20],
-        "stl_size_bytes": result.output_size_bytes,
-    }
 
 
 def _compile_cadquery_probe(
@@ -1623,20 +1522,6 @@ def _compile_cadquery_probe(
         "compile_warnings": [],
         "stl_size_bytes": result.output_size_bytes,
     }
-
-
-def _openscad_warning_lines(stderr_path: Path | None) -> list[str]:
-    if stderr_path is None or not stderr_path.exists():
-        return []
-    warnings: list[str] = []
-    for line in stderr_path.read_text(encoding="utf-8", errors="replace").splitlines():
-        normalized = line.strip()
-        if not normalized:
-            continue
-        upper = normalized.upper()
-        if upper.startswith("WARNING:") or upper.startswith("DEPRECATED:"):
-            warnings.append(normalized)
-    return warnings
 
 
 def _read_text_if_present(run_dir: Path, relative_path: Any) -> str | None:

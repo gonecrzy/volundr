@@ -23,7 +23,7 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RequirementExtractionResult,
 )
-from app.services.cad.runner import CadCompileResult
+from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
 
 
@@ -167,53 +167,24 @@ def design_plan(*, optional_lid: bool = False) -> dict[str, Any]:
 
 
 MULTI_OUTPUT_SOURCE = """
-/*
-Project: Two part enclosure
-Units: millimeters
-Purpose: electronics enclosure
-Assumptions: none
-Print notes: print body and lid flat on Z=0
-*/
-// ===== QUALITY =====
-$fn = 48;
-selected_output = "body";
-// ===== USER PARAMETERS =====
-// @volundr-requirement body_width
-// @volundr-component body
-body_width = 80;
-body_depth = 50;
-wall_thickness = 3;
-// ===== DERIVED VALUES =====
-lid_thickness = 3;
-// ===== VALIDATION =====
-assert(body_width > 0, "body_width must be positive");
-assert(selected_output == "body" || selected_output == "lid", "Unknown selected_output");
-// ===== MODULES =====
-// @volundr-feature body_and_lid
-// @volundr-feature body_shell
-// @volundr-geometry type=bounds component=body x=body_width y=body_depth z=wall_thickness
-// @volundr-output body module=body required=true filename=body.stl components=body
-module body() {
-  cube([body_width, body_depth, wall_thickness]);
-}
-// @volundr-feature lid_panel
-// @volundr-component lid
-// @volundr-geometry type=bounds component=lid x=body_width y=body_depth z=lid_thickness
-// @volundr-output lid module=lid required=true filename=lid.stl components=lid
-module lid() {
-  cube([body_width, body_depth, lid_thickness]);
-}
-// ===== FINAL MODEL =====
-module render_selected_output() {
-  if (selected_output == "body") {
-    body();
-  } else if (selected_output == "lid") {
-    lid();
-  } else {
-    assert(false, str("Unknown selected_output: ", selected_output));
-  }
-}
-render_selected_output();
+import cadquery as cq
+
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+
+def build(params):
+    body_width = params.get("body_width", 80.0)
+    body = cq.Workplane("XY").box(body_width, 50.0, 6.0)
+    lid = cq.Workplane("XY").box(body_width, 50.0, 3.0)
+    return Product(
+        parameters=[
+            ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm"),
+        ],
+        outputs=[
+            PrintableOutput(output_id="body", label="Body", model=body, component_id="body"),
+            PrintableOutput(output_id="lid", label="Lid", model=lid, component_id="lid"),
+        ]
+    )
 """
 
 
@@ -236,8 +207,8 @@ class MultiOutputProvider:
     def design_plan_prompt_template_version(self) -> str:
         return "design-plan-v1"
 
-    def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v5"
+    def cadquery_prompt_template_version(self) -> str:
+        return "cadquery-generation-v1"
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return "requirements prompt"
@@ -245,8 +216,8 @@ class MultiOutputProvider:
     def build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
         return "design plan prompt"
 
-    def build_prompt(self, request: ModelGenerationRequest) -> str:
-        return "planned source prompt"
+    def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        return "planned CadQuery source prompt"
 
     async def extract_requirements(
         self,
@@ -265,10 +236,10 @@ class MultiOutputProvider:
             provider_model="fake-multi-output-model",
         )
 
-    async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+    async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.generation_requests.append(request)
         return ModelGenerationResult(
-            raw_output=f"```openscad\n{self.source}\n```",
+            raw_output=f"```python\n{self.source}\n```",
             provider="fake",
             provider_model="fake-multi-output-model",
         )
@@ -290,84 +261,130 @@ class MultiOutputCadRunner:
         source: str,
         job_id: str,
         *,
-        selected_output: str | None = None,
-        defines: dict[str, str | int | float | bool] | None = None,
-    ) -> CadCompileResult:
-        output_id = selected_output or str((defines or {}).get("selected_output") or "model")
+        parameter_values: dict[str, Any] | None = None,
+        requested_outputs: list[dict[str, Any]] | None = None,
+    ) -> CadQueryCompileResult:
+        output_ids = [str(output["output_id"]) for output in requested_outputs or [{"output_id": "body"}]]
         self.calls.append(
             {
                 "job_id": job_id,
                 "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
-                "selected_output": output_id,
+                "parameter_values": parameter_values or {},
+                "requested_outputs": output_ids,
             }
         )
         job_dir = Path("/tmp") / "volundr-fake-multi-output-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
-        source_path = job_dir / "model.scad"
-        stl_path = job_dir / f"{output_id}.stl"
+        source_path = job_dir / "source.py"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
-        metadata_path = job_dir / "metadata.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
-
-        if output_id in self.fail_outputs:
-            stderr_path.write_text(f"{output_id} failed", encoding="utf-8")
-            return CadCompileResult(
-                job_id=job_id,
-                success=False,
-                timed_out=False,
-                exit_code=1,
-                source_path=source_path,
-                stl_path=None,
-                stdout_path=stdout_path,
-                stderr_path=stderr_path,
-                metadata_path=None,
-                source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
-                output_size_bytes=0,
-                metadata=None,
-                error_message=f"{output_id} failed",
-            )
-
-        extents = (80.0, 50.0, 6.0 if output_id == "body" else 3.0)
-        mesh = trimesh.creation.box(extents=extents)
-        mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
-        connected_components = 1
-        triangle_count = 12
-        if output_id in self.disconnected_outputs:
-            handle = trimesh.creation.box(extents=(20.0, 8.0, 6.0))
-            handle.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] + 20.0])
-            mesh = trimesh.util.concatenate([mesh, handle])
-            connected_components = 2
-            triangle_count = int(len(mesh.faces))
-        mesh.export(stl_path)
         stderr_path.write_text("Compilation finished", encoding="utf-8")
-        metadata = MeshMetadata(
-            size_x_mm=extents[0],
-            size_y_mm=extents[1],
-            size_z_mm=float(mesh.bounding_box.extents[2]),
-            volume_mm3=float(abs(mesh.volume)),
-            triangle_count=triangle_count,
-            connected_components=connected_components,
-            is_watertight=True,
-            is_winding_consistent=True,
-            center_of_mass=tuple(float(value) for value in mesh.center_mass),
-        )
-        metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
-        return CadCompileResult(
+
+        outputs: list[CadQueryOutputResult] = []
+        first_stl_path: Path | None = None
+        first_metadata_path: Path | None = None
+        first_metadata: MeshMetadata | None = None
+        total_bytes = 0
+        for output_id in output_ids:
+            if output_id in self.fail_outputs:
+                outputs.append(
+                    CadQueryOutputResult(
+                        output_id=output_id,
+                        entrypoint=output_id,
+                        required=True,
+                        success=False,
+                        stl_path=None,
+                        step_path=None,
+                        brep_path=None,
+                        metadata_path=None,
+                        topology_metadata_path=None,
+                        stl_hash=None,
+                        step_hash=None,
+                        brep_hash=None,
+                        output_size_bytes=0,
+                        metadata=None,
+                        topology_metadata=None,
+                        compile_error=f"{output_id} failed",
+                    )
+                )
+                continue
+
+            stl_path = job_dir / f"{output_id}.stl"
+            step_path = job_dir / f"{output_id}.step"
+            brep_path = job_dir / f"{output_id}.brep"
+            metadata_path = job_dir / f"{output_id}.json"
+            topology_metadata_path = job_dir / f"{output_id}-topology.json"
+            extents = (80.0, 50.0, 6.0 if output_id == "body" else 3.0)
+            mesh = trimesh.creation.box(extents=extents)
+            mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
+            connected_components = 1
+            triangle_count = 12
+            if output_id in self.disconnected_outputs:
+                handle = trimesh.creation.box(extents=(20.0, 8.0, 6.0))
+                handle.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] + 20.0])
+                mesh = trimesh.util.concatenate([mesh, handle])
+                connected_components = 2
+                triangle_count = int(len(mesh.faces))
+            mesh.export(stl_path)
+            step_path.write_text("STEP", encoding="utf-8")
+            brep_path.write_text("BREP", encoding="utf-8")
+            metadata = MeshMetadata(
+                size_x_mm=extents[0],
+                size_y_mm=extents[1],
+                size_z_mm=float(mesh.bounding_box.extents[2]),
+                volume_mm3=float(abs(mesh.volume)),
+                triangle_count=triangle_count,
+                connected_components=connected_components,
+                is_watertight=True,
+                is_winding_consistent=True,
+                center_of_mass=tuple(float(value) for value in mesh.center_mass),
+            )
+            topology_metadata = {"solid_count": connected_components}
+            metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
+            topology_metadata_path.write_text(json.dumps(topology_metadata), encoding="utf-8")
+            total_bytes += stl_path.stat().st_size
+            first_stl_path = first_stl_path or stl_path
+            first_metadata_path = first_metadata_path or metadata_path
+            first_metadata = first_metadata or metadata
+            outputs.append(
+                CadQueryOutputResult(
+                    output_id=output_id,
+                    entrypoint=output_id,
+                    required=True,
+                    success=True,
+                    stl_path=stl_path,
+                    step_path=step_path,
+                    brep_path=brep_path,
+                    metadata_path=metadata_path,
+                    topology_metadata_path=topology_metadata_path,
+                    stl_hash=hashlib.sha256(stl_path.read_bytes()).hexdigest(),
+                    step_hash=hashlib.sha256(step_path.read_bytes()).hexdigest(),
+                    brep_hash=hashlib.sha256(brep_path.read_bytes()).hexdigest(),
+                    output_size_bytes=stl_path.stat().st_size,
+                    metadata=metadata,
+                    topology_metadata=topology_metadata,
+                )
+            )
+        success = all(output.success or not output.required for output in outputs)
+        return CadQueryCompileResult(
             job_id=job_id,
-            success=True,
+            success=success,
             timed_out=False,
-            exit_code=0,
+            exit_code=0 if success else 1,
             source_path=source_path,
-            stl_path=stl_path,
+            stl_path=first_stl_path,
+            step_path=None,
             stdout_path=stdout_path,
             stderr_path=stderr_path,
-            metadata_path=metadata_path,
+            metadata_path=first_metadata_path,
             source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
-            output_size_bytes=stl_path.stat().st_size,
-            metadata=metadata,
-            error_message=None,
+            output_size_bytes=total_bytes,
+            metadata=first_metadata,
+            error_message=None if success else "one or more outputs failed",
+            command_args=["cadquery", *output_ids],
+            outputs=outputs,
         )
 
 
@@ -428,14 +445,12 @@ def test_multi_output_plan_creates_assembly_candidate_and_output_artifacts(tmp_p
     assert candidate["design_plan_id"] == context["plan"]["id"]
     assert candidate["expected_output_count"] == 2
     assert candidate["successful_output_count"] == 2
-    assert {call["selected_output"] for call in runner.calls} == {"body", "lid"}
+    assert runner.calls[0]["requested_outputs"] == ["body", "lid"]
     assert client.get(f"/api/projects/{context['project']['id']}").json()["active_revision_id"] is None
 
     outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
-    assert [(output["output_id"], output["output_state"]) for output in outputs] == [
-        ("body", "ready"),
-        ("lid", "ready"),
-    ]
+    assert [output["output_id"] for output in outputs] == ["body", "lid"]
+    assert all(output["output_state"] in {"ready", "ready_with_warnings"} for output in outputs)
     assert outputs[0]["stl_hash"]
     assert outputs[0]["metadata"]["size_x_mm"] == 80.0
 
@@ -476,10 +491,10 @@ def test_required_output_failure_blocks_assembly_but_preserves_successful_artifa
     assert candidate["review_state"] == "blocked"
     assert candidate["failed_output_count"] == 1
     outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
-    assert [(output["output_id"], output["output_state"]) for output in outputs] == [
-        ("body", "ready"),
-        ("lid", "failed"),
-    ]
+    assert outputs[0]["output_id"] == "body"
+    assert outputs[0]["output_state"] in {"ready", "ready_with_warnings"}
+    assert outputs[1]["output_id"] == "lid"
+    assert outputs[1]["output_state"] == "failed"
     assert outputs[0]["stl_path"] is not None
     findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
     assert any(finding["rule_id"] == "assembly.required_output_failed" for finding in findings)
@@ -541,7 +556,7 @@ def test_retry_failed_output_uses_same_source_hash_and_does_not_call_provider(tm
 
     assert retry_response.status_code == 200
     retried = retry_response.json()
-    assert retried["output_state"] == "ready"
+    assert retried["output_state"] in {"ready", "ready_with_warnings"}
     assert retried["source_hash"] == original_source_hash
     assert len(provider.generation_requests) == 1
     refreshed_candidate = client.get(f"/api/candidates/{candidate['id']}").json()
@@ -565,7 +580,7 @@ def test_export_zip_contains_project_manifest_source_and_stls(tmp_path: Path) ->
         assert any(name.endswith("/README.md") for name in names)
         assert any(name.endswith("/design-specification.json") for name in names)
         assert any(name.endswith("/design-plan.json") for name in names)
-        assert any(name.endswith("/project.scad") for name in names)
+        assert any(name.endswith("/source.py") for name in names)
         assert any(name.endswith("/output-manifest.json") for name in names)
         assert any(name.endswith("/assembly-notes.md") for name in names)
         assert any(name.endswith("/stl/body.stl") for name in names)

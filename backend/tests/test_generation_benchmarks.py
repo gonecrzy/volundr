@@ -97,9 +97,9 @@ def test_requirement_stage_benchmarks_cover_ready_clarification_and_conflict_cas
         benchmark = full_by_id[benchmark_id]
         assert benchmark.expected_clarification in {"required", "optional"}
         assert benchmark.compile_expectation in {
-            "no_scad_generated",
-            "no_scad_until_fasteners_clarified",
-            "no_scad_until_vent_or_split_decision",
+            "no_cadquery_generated",
+            "no_cadquery_until_fasteners_clarified",
+            "no_cadquery_until_vent_or_split_decision",
             "success_without_repair",
             "success_after_clarification_or_defaults",
         }
@@ -200,7 +200,7 @@ def test_component_revision_benchmarks_cover_targeted_full_source_revisions() ->
 
     assert (
         by_id["component_revision_lid_only"].expected_component_revision["prompt_template_version"]
-        == "openscad-component-revision-v1"
+        == "cadquery-component-revision-v1"
     )
     assert (
         by_id["component_revision_unauthorized_output_drift"]

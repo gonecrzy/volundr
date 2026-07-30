@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     )
 
     data_dir: Path = Field(default=Path("/app/data"))
-    openscad_binary: str = Field(default="openscad")
     cad_workspace_dir: Path = Field(default=Path("/app/data/jobs"))
     cad_timeout_seconds: int = Field(default=60)
     max_source_bytes: int = Field(default=500 * 1024)

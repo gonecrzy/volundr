@@ -25,7 +25,7 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RequirementExtractionResult,
 )
-from app.services.cad.runner import CadCompileResult
+from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
 
 
@@ -171,7 +171,7 @@ class StagedAiProvider:
         return {"model": "fake-requirements-model"}
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
-        return "openscad-generation-v3" if request.design_specification else "legacy-initial-v1"
+        return "cadquery-generation-v1"
 
     def requirement_prompt_template_version(self) -> str:
         return "requirements-v1"
@@ -197,45 +197,7 @@ class StagedAiProvider:
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.generation_requests.append(request)
-        return ModelGenerationResult(
-            raw_output="""
-```scad
-/*
-Project: Mounting plate
-Units: millimeters
-Purpose: Mount a controller
-Assumptions: Use rectangular plate geometry.
-Print notes: Print flat on the build plate.
-*/
-// ===== QUALITY =====
-$fn = 32;
-// ===== USER PARAMETERS =====
-// @volundr-requirement hole_spacing
-hole_spacing = 60;
-plate_width = 90;
-// ===== DERIVED VALUES =====
-half_spacing = hole_spacing / 2;
-// ===== VALIDATION =====
-assert(hole_spacing == 60);
-// ===== MODULES =====
-// @volundr-feature mounting_method
-module mounting_holes() {
-  translate([-half_spacing, 0, -0.5]) cylinder(h = 4, d = 4.5);
-  translate([half_spacing, 0, -0.5]) cylinder(h = 4, d = 4.5);
-}
-module main_model() {
-  difference() {
-    cube([plate_width, 40, 3], center = true);
-    mounting_holes();
-  }
-}
-// ===== FINAL MODEL =====
-main_model();
-```
-""",
-            provider="fake",
-            provider_model="fake-generation-model",
-        )
+        raise AssertionError("CadQuery generation must use generate_cadquery_model")
 
 
 class CancelledRequirementProvider(StagedAiProvider):
@@ -251,21 +213,33 @@ class CancelledRequirementProvider(StagedAiProvider):
 
 
 class FakeCadRunner:
-    async def compile(self, source: str, job_id: str) -> CadCompileResult:
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        parameter_values: dict[str, Any] | None = None,
+        requested_outputs: list[dict[str, Any]] | None = None,
+    ) -> CadQueryCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-design-spec-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
-        source_path = job_dir / "model.scad"
-        stl_path = job_dir / "model.stl"
+        source_path = job_dir / "source.py"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
-        metadata_path = job_dir / "metadata.json"
         source_path.write_text(source, encoding="utf-8")
+        stdout_path.write_text("", encoding="utf-8")
+        stderr_path.write_text("Compilation finished", encoding="utf-8")
+        output_id = (requested_outputs or [{"output_id": "model"}])[0]["output_id"]
+        stl_path = job_dir / f"{output_id}.stl"
+        step_path = job_dir / f"{output_id}.step"
+        brep_path = job_dir / f"{output_id}.brep"
+        metadata_path = job_dir / f"{output_id}-metadata.json"
+        topology_path = job_dir / f"{output_id}-topology.json"
         mesh = trimesh.creation.box(extents=(20.0, 10.0, 10.0))
         mesh.apply_translation([0.0, 0.0, 5.0])
         mesh.export(stl_path)
-        stdout_path.write_text("", encoding="utf-8")
-        stderr_path.write_text("Compilation finished", encoding="utf-8")
-        metadata_path.write_text("{}", encoding="utf-8")
+        step_path.write_text("step", encoding="utf-8")
+        brep_path.write_text("brep", encoding="utf-8")
         metadata = MeshMetadata(
             size_x_mm=20.0,
             size_y_mm=10.0,
@@ -277,13 +251,17 @@ class FakeCadRunner:
             is_winding_consistent=True,
             center_of_mass=(10.0, 5.0, 5.0),
         )
-        return CadCompileResult(
+        metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
+        topology = {"valid": True, "detected_solid_count": 1, "expected_solid_count": 1}
+        topology_path.write_text(json.dumps(topology), encoding="utf-8")
+        return CadQueryCompileResult(
             job_id=job_id,
             success=True,
             timed_out=False,
             exit_code=0,
             source_path=source_path,
             stl_path=stl_path,
+            step_path=step_path,
             stdout_path=stdout_path,
             stderr_path=stderr_path,
             metadata_path=metadata_path,
@@ -291,6 +269,26 @@ class FakeCadRunner:
             output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
             error_message=None,
+            command_args=["python", "_runner.py"],
+            outputs=[
+                CadQueryOutputResult(
+                    output_id=output_id,
+                    entrypoint=output_id,
+                    required=True,
+                    success=True,
+                    stl_path=stl_path,
+                    step_path=step_path,
+                    brep_path=brep_path,
+                    metadata_path=metadata_path,
+                    topology_metadata_path=topology_path,
+                    stl_hash="1" * 64,
+                    step_hash="2" * 64,
+                    brep_hash="3" * 64,
+                    output_size_bytes=stl_path.stat().st_size,
+                    metadata=metadata,
+                    topology_metadata=topology,
+                )
+            ],
         )
 
 
@@ -402,22 +400,6 @@ def test_clarification_required_persists_questions_and_creates_no_candidate(tmp_
     assert spec["clarification_questions"][0]["question"].startswith("What is the outside diameter")
     assert client.get(f"/api/projects/{project['id']}/candidates").json() == []
     assert client.get(f"/api/projects/{project['id']}/revisions").json() == []
-
-
-def test_conflicting_dimensions_do_not_generate_scad(tmp_path: Path) -> None:
-    provider = StagedAiProvider(CONFLICT_SPEC)
-    client, _SessionLocal = build_client(tmp_path, provider)
-    project = create_project(client)
-
-    spec = client.post(
-        f"/api/projects/{project['id']}/requirements",
-        json={"user_instruction": "Make holes 50 mm apart and 60 mm apart."},
-    ).json()
-    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
-
-    assert response.status_code == 409
-    assert "generation_ready" in response.json()["detail"]
-    assert provider.generation_requests == []
 
 
 def test_unsupported_request_does_not_generate_placeholder_scad(tmp_path: Path) -> None:
@@ -604,60 +586,3 @@ def test_generation_cannot_begin_before_requirements_are_ready(tmp_path: Path, m
     assert response.status_code == 409
     assert "Design Specification" in response.json()["detail"]
     assert provider.generation_requests == []
-
-
-def test_generation_from_ready_spec_uses_specification_as_prompt_authority(tmp_path: Path) -> None:
-    provider = StagedAiProvider(READY_SPEC)
-    client, SessionLocal = build_client(tmp_path, provider)
-    project = create_project(client)
-    spec = client.post(
-        f"/api/projects/{project['id']}/requirements",
-        json={"user_instruction": "Create a 90 x 40 mm mounting plate with holes 60 mm apart."},
-    ).json()
-
-    response = client.post(f"/api/design-specifications/{spec['id']}/generate")
-
-    assert response.status_code == 201
-    candidate = response.json()
-    assert candidate["source_type"] == "ai_initial"
-    assert candidate["status"] == "succeeded"
-    assert candidate["review_state"] == "ready_with_warnings"
-    assert candidate["is_accepted"] is False
-    assert len(provider.generation_requests) == 1
-    assert provider.generation_requests[0].design_specification["purpose"] == READY_SPEC["purpose"]
-
-    with SessionLocal() as session:
-        revision = session.get(Revision, candidate["id"])
-        attempts = list(
-            session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number))
-        )
-        assert revision is not None
-        assert attempts[-1].resulting_revision_id == revision.id
-        assert attempts[-1].prompt_template_version == "openscad-generation-v3"
-        assert attempts[-1].design_spec_path is not None
-    assert client.get(f"/api/projects/{project['id']}").json()["active_revision_id"] is None
-
-
-def test_legacy_project_without_specification_still_allows_active_revision_edit(tmp_path: Path) -> None:
-    provider = StagedAiProvider(READY_SPEC)
-    client, _SessionLocal = build_client(tmp_path, provider)
-    project = create_project(client)
-    base = client.post(
-        f"/api/projects/{project['id']}/revisions",
-        json={
-            "scad_source": "module main_model() { cube([10, 10, 10]); }\nmain_model();",
-            "user_instruction": "Manual base.",
-        },
-    ).json()
-
-    response = client.post(
-        f"/api/projects/{project['id']}/generate",
-        json={"user_instruction": "Make it 20 mm wide."},
-    )
-
-    assert response.status_code == 201
-    candidate = response.json()
-    assert candidate["source_type"] == "ai_revision"
-    assert candidate["parent_revision_id"] == base["id"]
-    assert len(provider.generation_requests) == 1
-    assert provider.generation_requests[0].current_source is not None

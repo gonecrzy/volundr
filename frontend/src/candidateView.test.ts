@@ -170,7 +170,7 @@ describe("candidate view helpers", () => {
   it("extracts source-contract findings for source check display", () => {
     const findings = [
       finding({ id: "mesh", category: "mesh", rule_id: "mesh.empty_or_zero_volume" }),
-      finding({ id: "source", category: "source_structure", rule_id: "source_structure.missing_main_model_module" }),
+      finding({ id: "source", category: "source_structure", rule_id: "cadquery.contract" }),
       finding({
         id: "spec",
         category: "specification_compliance",
