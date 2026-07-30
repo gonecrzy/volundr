@@ -114,7 +114,7 @@ class DesignPlanProbeProvider:
     {"id": "label_tabs"},
     {"id": "rounded_edges"}
   ],
-  "dependencies": [
+  "dependency_edges": [
     {"from": "row_count", "to": "overall_depth"},
     {"from": "column_count", "to": "overall_width"},
     {"from": "cell_width", "to": "divider_positions"}

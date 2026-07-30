@@ -1968,7 +1968,9 @@ def _design_plan_analysis(
     actual_components = _id_set_from_plan_items(parsed_plan.get("components"))
     actual_features = _id_set_from_plan_items(parsed_plan.get("features"))
     actual_outputs = _id_set_from_plan_items(parsed_plan.get("printable_outputs"))
-    actual_dependencies = _dependency_set_from_plan_items(parsed_plan.get("dependencies"))
+    actual_dependencies = _dependency_set_from_plan_items(
+        parsed_plan.get("dependency_edges")
+    ) or _dependency_set_from_plan_items(parsed_plan.get("dependencies"))
     matched_components, missing_components = _match_expected_ids(
         expected_components,
         actual_components,
