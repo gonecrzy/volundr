@@ -47,6 +47,24 @@ Result:
 
 - Playwright staged revision workflow: 1 passed.
 
+Additional migration verification:
+
+```bash
+rtk .venv/bin/alembic heads
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-migration-fresh.AIqMt2 .venv/bin/alembic upgrade head
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-migration-fresh.AIqMt2 .venv/bin/alembic current
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-migration-0014.Bae6bA .venv/bin/alembic upgrade 0014_design_plan_clarifications
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-migration-0014.Bae6bA .venv/bin/alembic upgrade head
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-migration-0014.Bae6bA .venv/bin/alembic current
+```
+
+Results:
+
+- Alembic has a single head: `0015_cadquery_native_persistence`.
+- Fresh SQLite database creation upgraded through all migrations to `0015_cadquery_native_persistence (head)`.
+- Selected pre-CadQuery baseline upgrade from `0014_design_plan_clarifications` to `0015_cadquery_native_persistence` completed.
+- Resulting schema includes CadQuery-native `revisions` fields (`source_path`, `cad_backend`, `source_language`, `source_hash`, `source_contract_version`, `execution_manifest_path`) and `revision_outputs` STEP/BREP/topology/execution manifest fields.
+
 ## Live Benchmark Smoke
 
 Attempted the required live Gemini benchmark gate with a one-case CadQuery source probe before spending broader quota:
