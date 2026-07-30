@@ -92,7 +92,7 @@ The phase-validation set is intentionally small:
 
 Compare each phase run against the previous run using the generated `run-manifest.json`, `aggregate-metrics.json`, raw provider outputs, and human scoring forms. Improvement means fewer blocking/unacceptable outcomes, better preservation of function plus style, and clearer evidence about whether failures belong to prompt quality, parameter modeling, geometry generation, library support, printability, or UX.
 
-When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable source, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STL, avoids obvious mesh warnings, and reduces disconnected mesh counts. The default source language is OpenSCAD; `--source-language cadquery` enables an experimental CadQuery Python probe for backend bakeoffs without changing the product generation path. Add `--source-brief` to require a compact structured understanding pass before source generation; the resulting brief is fed into the source prompt and stored separately so intent understanding can be compared with mesh results. Add `--source-probe-repair` when you want one bounded repair attempt after a failed OpenSCAD source-probe compile or after a successful OpenSCAD compile whose mesh has more connected components than the parsed source brief expects. This measures repair recovery separately from first-pass model quality. This is still not a substitute for human visual review.
+When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable CadQuery source, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STEP/STL/BREP artifacts, avoids obvious runtime warnings, and reduces disconnected mesh counts. Add `--source-brief` to require a compact structured understanding pass before source generation; the resulting brief is fed into the source prompt and stored separately so intent understanding can be compared with mesh results. Add `--source-probe-repair` when you want one bounded repair attempt after a failed CadQuery source-probe extraction/compile or after a successful compile whose mesh has more connected components than the parsed source brief expects. Add `--design-plan-probe` when you want the live harness to collect a staged Design Plan and score expected components, features, printable outputs, and dependency edges. These probes are still not a substitute for human visual review or candidate acceptance.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 
@@ -103,6 +103,8 @@ The full machine-readable suite also includes parametric-product Design Plan exp
 - case/carrier
 - multi-part hinged box
 - repeated-slot rack
+- accidental multiple-solid rejection
+- configuration that exceeds build volume
 
 These cases assert generic plan shape: parameters, derived dependencies, components, features, presets where useful, assembly strategy, printable outputs, risks, and design level. The case/carrier benchmark includes a fishing-tray carrier as one acceptance case, not as a schema template.
 

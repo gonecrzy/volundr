@@ -403,9 +403,58 @@ Case-level score:
 
 Phase 11 coverage limits:
 
-- The controlled live run covered 12 varied prompts, but the fixture set used here does not include a dedicated live case for an accepted configuration that exceeds build volume or a live source intentionally creating accidental multiple solids. Those mechanics are verified deterministically by backend printability and multi-output tests.
+- The controlled v4 source gate covered 12 varied prompts. A follow-up live run added dedicated prompts for configuration build-volume risk and accidental multiple-solid risk, but the benchmark harness still does not execute the oversized configuration override through the printability inspector, and the accidental-multiple-solid prompt produced a valid fused model rather than a rejected multi-solid candidate. Those rejection mechanics remain verified deterministically by backend printability and multi-output tests.
 - The v4 live harness is a requirements/source/worker gate, not a full staged Design Specification -> Design Plan -> approval -> generation -> acceptance benchmark.
 - Prompt promotion remains disabled because the master prompt explicitly requires more than executable source, and artifact review found requirement-fidelity gaps.
+
+## Additional Phase 11 Missing-Cases Run
+
+After adding explicit full-suite fixtures for the two missing live categories, a focused Gemini API run was executed:
+
+```bash
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase11-design-plan-missing-cases \
+  --benchmark-id accidental_multiple_solids \
+  --benchmark-id configuration_exceeds_build_volume \
+  --provider gemini-api \
+  --allow-live \
+  --design-plan-probe \
+  --source-probe \
+  --source-brief \
+  --source-probe-repair \
+  --max-runs 2 \
+  --max-estimated-tokens 160000
+```
+
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T155117Z-phase11-design-plan-missing-cases
+```
+
+Aggregate result:
+
+- Case runs: 2.
+- Requirements provider statuses: `provider_output_collected=2`.
+- Source brief statuses: `source_brief_parsed=2`.
+- Design Plan probe statuses: `design_plan_analyzed=2`.
+- Design Plan expected component coverage average: `1.0`.
+- Design Plan expected feature coverage average: `0.4166`.
+- Design Plan expected output coverage average: `1.0`.
+- Design Plan expected dependency coverage average: `0.0`.
+- Source probe statuses: `source_parameters_analyzed=2`.
+- Direct source compile statuses: `compile_succeeded=2`.
+- Source expected-parameter coverage average: `1.0`.
+- Compile warnings: `0`.
+- Disconnected mesh count: `0`.
+- Estimated tokens: `11959`; dollar cost was not recorded.
+
+Case findings:
+
+- `accidental_multiple_solids`: source output compiled to one valid solid with STEP/STL/BREP artifacts. Design Plan matched components and output, but missed mounting-hole feature coverage and all expected dependency edges.
+- `configuration_exceeds_build_volume`: source output compiled to one valid solid with STEP/STL/BREP artifacts. Design Plan matched components and output, but missed explicit build-volume-check feature coverage and all expected dependency edges. The live run did not execute the oversized `rail_length=360` configuration override, so the `profile.build_volume` blocking behavior remains deterministic-test evidence rather than live-run evidence.
 
 ## Final Current-HEAD Verification
 
@@ -424,7 +473,7 @@ rtk git diff --check
 
 Results:
 
-- Backend tests: 198 passed, 1 existing Starlette/httpx deprecation warning.
+- Backend tests: 200 passed, 1 existing Starlette/httpx deprecation warning.
 - Frontend unit tests: 38 passed across 6 files.
 - Frontend production build: succeeded.
 - Playwright staged workflow: 1 passed.
@@ -490,10 +539,10 @@ Results:
 14. Component-targeted revision behavior: targeted components/outputs and protected components/outputs are represented in plans and checked against generated outputs and topology/preservation evidence.
 15. Frontend lifecycle: the primary UI path is staged Describe -> Requirements -> Design Plan -> Approve -> Generate -> CadQuery execution/topology validation -> Candidate -> Accept or revise, with CadQuery source, named outputs, topology, configuration, and revision controls.
 16. OpenSCAD code removed: OpenSCAD product paths, prompt modes, parser/runner assumptions, schema aliases, UI labels, Docker package usage, and simple bypass defaults were removed or superseded by CadQuery-only paths.
-17. Tests and exact results: final current-HEAD backend tests `198 passed`; frontend unit tests `38 passed`; production build succeeded; staged Playwright workflow `1 passed`; `git diff --check` clean.
+17. Tests and exact results: final current-HEAD backend tests `200 passed`; frontend unit tests `38 passed`; production build succeeded; staged Playwright workflow `1 passed`; `git diff --check` clean.
 18. Docker verification: web/API/worker running; worker non-root, no provider env, no network; deterministic CadQuery job succeeded and artifacts were visible through the jobs directory; structured failure diagnostics were previously verified.
 19. Live Gemini calls made and quota usage: Gemini CLI smoke failed before output due local tier eligibility; Gemini API smoke and required live reruns were then run with quota caps. Final v4 live run estimated `55751` tokens and did not record dollar cost.
-20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output.
-21. Remaining limitations: live benchmark scoring is not a full product-quality pass; Design Plan usefulness, full revision preservation, build-volume configuration, accidental multi-solid live behavior, and human print-worthiness still need richer live or human acceptance gates. Honeycomb bracket feature fidelity and adapter parameter metadata need prompt/repair hardening.
+20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output. A focused follow-up live run for the added build-volume and accidental-multiple-solid prompts collected 2/2 requirements outputs, analyzed 2/2 Design Plans, compiled 2/2 source probes, and showed weak Design Plan feature/dependency coverage.
+21. Remaining limitations: live benchmark scoring is not a full product-quality pass; full revision preservation, actual oversized-configuration printability blocking, true live accidental-multi-solid rejection, and human print-worthiness still need richer live or human acceptance gates. Honeycomb bracket feature fidelity, adapter parameter metadata, and Design Plan dependency coverage need prompt/repair hardening.
 22. Recommended next product task: implement a stricter staged live benchmark that exercises Design Plan approval, deterministic configuration including build-volume failure, protected-output revision preservation, accidental multi-solid rejection, printability inspection, and human scoring aggregation before prompt promotion.
 23. Final repository status: expected to be clean after committing this documentation-only scoring update.

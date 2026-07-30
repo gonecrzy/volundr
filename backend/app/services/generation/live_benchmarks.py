@@ -21,7 +21,12 @@ from app.services.ai.gemini_cli import (
 )
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.ollama import OllamaProvider
-from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest, SourceBriefRequest
+from app.services.ai.provider import (
+    DesignPlanRequest,
+    ModelGenerationRequest,
+    RequirementExtractionRequest,
+    SourceBriefRequest,
+)
 from app.services.ai.source_extraction import (
     SourceExtractionError,
     extract_python_source,
@@ -44,6 +49,7 @@ HUMAN_SCORING_FORM_SCHEMA_VERSION = "human-scoring-form-v1"
 LIVE_BENCHMARK_HARNESS_VERSION = "live-benchmark-harness-v1"
 SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION = "source-parameter-analysis-v1"
 SOURCE_BRIEF_SCHEMA_VERSION = "source-brief-v1"
+DESIGN_PLAN_ANALYSIS_SCHEMA_VERSION = "design-plan-analysis-v1"
 SOURCE_LANGUAGES = frozenset({"cadquery"})
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v1"
@@ -80,6 +86,7 @@ class LiveBenchmarkConfig:
     source_probe_repair: bool = False
     source_brief: bool = False
     source_language: str = "cadquery"
+    design_plan_probe: bool = False
 
 
 @dataclass(frozen=True)
@@ -109,11 +116,17 @@ class LiveBenchmarkRunner:
             if config.source_brief
             else {}
         )
+        design_plan_prompts = (
+            self._build_design_plan_prompts(provider, selected_benchmarks)
+            if config.design_plan_probe
+            else {}
+        )
         estimated_tokens = self._estimate_run_tokens(
             [
                 *case_prompts.values(),
                 *source_prompts.values(),
                 *source_brief_prompts.values(),
+                *design_plan_prompts.values(),
                 *(source_prompts.values() if config.source_probe_repair else []),
             ],
             config.runs_per_case,
@@ -141,6 +154,7 @@ class LiveBenchmarkRunner:
                         source_probe_repair=config.source_probe_repair,
                         source_brief_prompt=source_brief_prompts.get(benchmark.id),
                         source_language=config.source_language,
+                        design_plan_prompt=design_plan_prompts.get(benchmark.id),
                     )
                 )
 
@@ -168,6 +182,7 @@ class LiveBenchmarkRunner:
                 "source_probe_repair": config.source_probe_repair,
                 "source_brief": config.source_brief,
                 "source_language": config.source_language,
+                "design_plan_probe": config.design_plan_probe,
             },
             "provider": {
                 "mode": config.provider,
@@ -228,6 +243,7 @@ class LiveBenchmarkRunner:
         source_probe_repair: bool = False,
         source_brief_prompt: str | None = None,
         source_language: str = "cadquery",
+        design_plan_prompt: str | None = None,
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -242,9 +258,15 @@ class LiveBenchmarkRunner:
                 source_brief_prompt,
                 encoding="utf-8",
             )
+        if design_plan_prompt is not None:
+            (artifact_dir / "design-plan-prompt.txt").write_text(
+                design_plan_prompt,
+                encoding="utf-8",
+            )
         provider_output_path: str | None = None
         error_path: str | None = None
         failure_class = FailureClass.NONE.value
+        design_specification: dict[str, Any] | None = None
 
         if provider_mode == "dry-run":
             status = "not_run"
@@ -255,6 +277,10 @@ class LiveBenchmarkRunner:
                 output_file.write_text(result.raw_output, encoding="utf-8")
                 provider_output_path = _relative(output_file, run_dir)
                 status = "provider_output_collected"
+                try:
+                    design_specification = _extract_json_object(result.raw_output)
+                except ValueError:
+                    design_specification = None
             except TimeoutError as exc:
                 status = "provider_failed"
                 failure_class = FailureClass.PROVIDER_TIMEOUT.value
@@ -263,6 +289,8 @@ class LiveBenchmarkRunner:
                 status = "provider_failed"
                 failure_class = _provider_failure_class(exc)
                 error_path = self._write_error(artifact_dir, run_dir, exc)
+        if design_specification is None:
+            design_specification = _benchmark_design_specification(benchmark)
 
         source_probe = self._run_source_probe(
             benchmark=benchmark,
@@ -274,6 +302,15 @@ class LiveBenchmarkRunner:
             source_probe_repair=source_probe_repair,
             source_brief_prompt=source_brief_prompt,
             source_language=source_language,
+        )
+        design_plan_probe = self._run_design_plan_probe(
+            benchmark=benchmark,
+            provider=provider,
+            provider_mode=provider_mode,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            design_specification=design_specification,
+            design_plan_prompt=design_plan_prompt,
         )
         scoring_form_path = self._write_scoring_form(
             run_dir=run_dir,
@@ -300,9 +337,88 @@ class LiveBenchmarkRunner:
             "provider_output_path": provider_output_path,
             "error_path": error_path,
             "source_probe": source_probe,
+            "design_plan_probe": design_plan_probe,
             "scoring_form_path": _relative(scoring_form_path, run_dir),
             "report_path": _relative(report_path, run_dir),
         }
+
+    def _run_design_plan_probe(
+        self,
+        *,
+        benchmark: GenerationBenchmark,
+        provider: GeminiCliProvider,
+        provider_mode: str,
+        run_dir: Path,
+        artifact_dir: Path,
+        design_specification: dict[str, Any],
+        design_plan_prompt: str | None,
+    ) -> dict[str, Any]:
+        probe = _empty_design_plan_probe(enabled=design_plan_prompt is not None)
+        if design_plan_prompt is None:
+            return probe
+
+        prompt_path = artifact_dir / "design-plan-prompt.txt"
+        if not prompt_path.exists():
+            prompt_path.write_text(design_plan_prompt, encoding="utf-8")
+        probe["prompt_sha256"] = _sha256_text(design_plan_prompt)
+        probe["prompt_template_version"] = provider.design_plan_prompt_template_version()
+        probe["prompt_path"] = _relative(prompt_path, run_dir)
+        if provider_mode == "dry-run":
+            return probe
+
+        request = _design_plan_request_for(benchmark, design_specification)
+        try:
+            result = asyncio.run(provider.create_design_plan(request))
+        except TimeoutError as exc:
+            probe["status"] = "design_plan_provider_failed"
+            probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return probe
+        except Exception as exc:  # pragma: no cover - provider-specific transport errors
+            probe["status"] = "design_plan_provider_failed"
+            probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return probe
+
+        output_file = artifact_dir / "design-plan-raw-output.txt"
+        output_file.write_text(result.raw_output, encoding="utf-8")
+        probe["raw_output_path"] = _relative(output_file, run_dir)
+        try:
+            parsed = _extract_json_object(result.raw_output)
+        except ValueError as exc:
+            analysis_path = artifact_dir / "design-plan-analysis.json"
+            _write_json(
+                analysis_path,
+                _design_plan_analysis(
+                    benchmark=benchmark,
+                    parsed_plan=None,
+                    parse_error=str(exc),
+                ),
+            )
+            probe["status"] = "design_plan_parse_failed"
+            probe["analysis_path"] = _relative(analysis_path, run_dir)
+            probe["parse_error"] = str(exc)
+            return probe
+
+        parsed_path = artifact_dir / "design-plan-parsed.json"
+        _write_json(parsed_path, parsed)
+        analysis = _design_plan_analysis(
+            benchmark=benchmark,
+            parsed_plan=parsed,
+            parse_error=None,
+        )
+        analysis_path = artifact_dir / "design-plan-analysis.json"
+        _write_json(analysis_path, analysis)
+        probe.update(
+            {
+                "status": "design_plan_analyzed",
+                "parsed_plan_path": _relative(parsed_path, run_dir),
+                "analysis_path": _relative(analysis_path, run_dir),
+                "expected_component_coverage": analysis["expected_component_coverage"],
+                "expected_feature_coverage": analysis["expected_feature_coverage"],
+                "expected_output_coverage": analysis["expected_output_coverage"],
+                "expected_dependency_coverage": analysis["expected_dependency_coverage"],
+            }
+        )
+        return probe
 
     def _run_source_probe(
         self,
@@ -772,6 +888,7 @@ class LiveBenchmarkRunner:
                 source_probe_repair=config.source_probe_repair,
                 source_brief=config.source_brief,
                 source_language=config.source_language,
+                design_plan_probe=config.design_plan_probe,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -865,6 +982,18 @@ class LiveBenchmarkRunner:
     ) -> dict[str, str]:
         return {
             benchmark.id: provider.build_source_brief_prompt(_source_brief_request_for(benchmark))
+            for benchmark in benchmarks
+        }
+
+    def _build_design_plan_prompts(
+        self,
+        provider: GeminiCliProvider,
+        benchmarks: list[GenerationBenchmark],
+    ) -> dict[str, str]:
+        return {
+            benchmark.id: provider.build_design_plan_prompt(
+                _design_plan_request_for(benchmark, _benchmark_design_specification(benchmark))
+            )
             for benchmark in benchmarks
         }
 
@@ -1031,7 +1160,27 @@ class LiveBenchmarkRunner:
         source_probe_repair_compile_success_count = 0
         source_probe_repair_compile_warning_count = 0
         source_brief_status_counts: dict[str, int] = {}
+        design_plan_probe_status_counts: dict[str, int] = {}
+        design_plan_component_coverages: list[float] = []
+        design_plan_feature_coverages: list[float] = []
+        design_plan_output_coverages: list[float] = []
+        design_plan_dependency_coverages: list[float] = []
         for case_run in manifest["case_runs"]:
+            design_plan_probe = case_run.get("design_plan_probe", {})
+            if isinstance(design_plan_probe, dict):
+                design_status = design_plan_probe.get("status", "disabled")
+                design_plan_probe_status_counts[design_status] = (
+                    design_plan_probe_status_counts.get(design_status, 0) + 1
+                )
+                for key, bucket in (
+                    ("expected_component_coverage", design_plan_component_coverages),
+                    ("expected_feature_coverage", design_plan_feature_coverages),
+                    ("expected_output_coverage", design_plan_output_coverages),
+                    ("expected_dependency_coverage", design_plan_dependency_coverages),
+                ):
+                    value = design_plan_probe.get(key)
+                    if isinstance(value, int | float):
+                        bucket.append(float(value))
             source_probe = case_run.get("source_probe", {})
             source_language = source_probe.get("source_language", "unknown")
             if isinstance(source_language, str):
@@ -1140,6 +1289,22 @@ class LiveBenchmarkRunner:
             ),
             "source_brief_enabled": bool(manifest.get("config", {}).get("source_brief")),
             "source_brief_status_counts": source_brief_status_counts,
+            "design_plan_probe_enabled": bool(
+                manifest.get("config", {}).get("design_plan_probe")
+            ),
+            "design_plan_probe_status_counts": design_plan_probe_status_counts,
+            "design_plan_expected_component_coverage_average": _average_or_none(
+                design_plan_component_coverages
+            ),
+            "design_plan_expected_feature_coverage_average": _average_or_none(
+                design_plan_feature_coverages
+            ),
+            "design_plan_expected_output_coverage_average": _average_or_none(
+                design_plan_output_coverages
+            ),
+            "design_plan_expected_dependency_coverage_average": _average_or_none(
+                design_plan_dependency_coverages
+            ),
             "no_automatic_prompt_promotion": True,
         }
 
@@ -1263,6 +1428,36 @@ def _source_brief_request_for(benchmark: GenerationBenchmark) -> SourceBriefRequ
         expected_geometric_invariants=list(benchmark.expected_geometric_invariants),
         mesh_expectation=benchmark.mesh_expectation,
     )
+
+
+def _design_plan_request_for(
+    benchmark: GenerationBenchmark,
+    design_specification: dict[str, Any],
+) -> DesignPlanRequest:
+    return DesignPlanRequest(
+        project_name=f"Benchmark: {benchmark.id}",
+        original_intent=benchmark.input_prompt,
+        user_instruction=benchmark.input_prompt,
+        design_specification=design_specification,
+        defaults={
+            "expected_design_plan": benchmark.expected_design_plan,
+            "expected_printability_constraints": benchmark.expected_printability_constraints,
+        },
+    )
+
+
+def _benchmark_design_specification(benchmark: GenerationBenchmark) -> dict[str, Any]:
+    return {
+        "schema_version": "benchmark-design-specification-v1",
+        "object_type": benchmark.id,
+        "purpose": benchmark.input_prompt,
+        "units": "mm",
+        "functional_requirements": list(benchmark.required_dimensions),
+        "print_requirements": {
+            "constraints": list(benchmark.expected_printability_constraints),
+        },
+        "generation_ready": benchmark.expected_clarification != "required",
+    }
 
 
 def _source_brief_expected_connected_body_count(source_brief: dict[str, Any] | None) -> int | None:
@@ -1402,6 +1597,25 @@ def _empty_source_brief(*, enabled: bool) -> dict[str, Any]:
     }
 
 
+def _empty_design_plan_probe(*, enabled: bool) -> dict[str, Any]:
+    return {
+        "enabled": enabled,
+        "status": "not_run" if enabled else "disabled",
+        "prompt_sha256": None,
+        "prompt_template_version": DESIGN_PLAN_PROMPT_VERSION if enabled else None,
+        "prompt_path": None,
+        "raw_output_path": None,
+        "parsed_plan_path": None,
+        "analysis_path": None,
+        "parse_error": None,
+        "error_path": None,
+        "expected_component_coverage": None,
+        "expected_feature_coverage": None,
+        "expected_output_coverage": None,
+        "expected_dependency_coverage": None,
+    }
+
+
 def _source_brief_prompt_template_version(provider: GeminiCliProvider) -> str:
     version_method = getattr(provider, "source_brief_prompt_template_version", None)
     if callable(version_method):
@@ -1473,6 +1687,160 @@ def _source_parameter_analysis(
             {parameter["group"] for parameter in parameters if parameter["group"] is not None}
         ),
     }
+
+
+def _design_plan_analysis(
+    *,
+    benchmark: GenerationBenchmark,
+    parsed_plan: dict[str, Any] | None,
+    parse_error: str | None,
+) -> dict[str, Any]:
+    expected = benchmark.expected_design_plan or {}
+    expected_components = list(expected.get("components", []))
+    expected_features = list(expected.get("features", []))
+    expected_outputs = list(expected.get("printable_outputs", []))
+    expected_dependencies = list(expected.get("dependency_edges", []))
+    if parsed_plan is None:
+        return {
+            "schema_version": DESIGN_PLAN_ANALYSIS_SCHEMA_VERSION,
+            "benchmark_id": benchmark.id,
+            "plan_parsed": False,
+            "parse_error": parse_error,
+            "expected_components": expected_components,
+            "expected_features": expected_features,
+            "expected_printable_outputs": expected_outputs,
+            "expected_dependency_edges": expected_dependencies,
+            "matched_expected_components": [],
+            "missing_expected_components": expected_components,
+            "matched_expected_features": [],
+            "missing_expected_features": expected_features,
+            "matched_expected_outputs": [],
+            "missing_expected_outputs": expected_outputs,
+            "matched_expected_dependencies": [],
+            "missing_expected_dependencies": expected_dependencies,
+            "expected_component_coverage": _coverage(0, len(expected_components)),
+            "expected_feature_coverage": _coverage(0, len(expected_features)),
+            "expected_output_coverage": _coverage(0, len(expected_outputs)),
+            "expected_dependency_coverage": _coverage(0, len(expected_dependencies)),
+        }
+
+    actual_components = _id_set_from_plan_items(parsed_plan.get("components"))
+    actual_features = _id_set_from_plan_items(parsed_plan.get("features"))
+    actual_outputs = _id_set_from_plan_items(parsed_plan.get("printable_outputs"))
+    actual_dependencies = _dependency_set_from_plan_items(parsed_plan.get("dependencies"))
+    matched_components, missing_components = _match_expected_ids(
+        expected_components,
+        actual_components,
+    )
+    matched_features, missing_features = _match_expected_ids(expected_features, actual_features)
+    matched_outputs, missing_outputs = _match_expected_ids(expected_outputs, actual_outputs)
+    matched_dependencies, missing_dependencies = _match_expected_dependencies(
+        expected_dependencies,
+        actual_dependencies,
+    )
+    return {
+        "schema_version": DESIGN_PLAN_ANALYSIS_SCHEMA_VERSION,
+        "benchmark_id": benchmark.id,
+        "plan_parsed": True,
+        "parse_error": None,
+        "expected_components": expected_components,
+        "expected_features": expected_features,
+        "expected_printable_outputs": expected_outputs,
+        "expected_dependency_edges": expected_dependencies,
+        "actual_components": sorted(actual_components),
+        "actual_features": sorted(actual_features),
+        "actual_printable_outputs": sorted(actual_outputs),
+        "actual_dependency_edges": sorted(actual_dependencies),
+        "matched_expected_components": matched_components,
+        "missing_expected_components": missing_components,
+        "matched_expected_features": matched_features,
+        "missing_expected_features": missing_features,
+        "matched_expected_outputs": matched_outputs,
+        "missing_expected_outputs": missing_outputs,
+        "matched_expected_dependencies": matched_dependencies,
+        "missing_expected_dependencies": missing_dependencies,
+        "expected_component_coverage": _coverage(len(matched_components), len(expected_components)),
+        "expected_feature_coverage": _coverage(len(matched_features), len(expected_features)),
+        "expected_output_coverage": _coverage(len(matched_outputs), len(expected_outputs)),
+        "expected_dependency_coverage": _coverage(
+            len(matched_dependencies),
+            len(expected_dependencies),
+        ),
+    }
+
+
+def _id_set_from_plan_items(items: Any) -> set[str]:
+    if not isinstance(items, list):
+        return set()
+    ids: set[str] = set()
+    for item in items:
+        if isinstance(item, str):
+            ids.add(_normalize_identifier(item))
+        elif isinstance(item, dict):
+            for key in ("id", "output_id", "component_id", "name"):
+                value = item.get(key)
+                if isinstance(value, str):
+                    ids.add(_normalize_identifier(value))
+    return ids
+
+
+def _dependency_set_from_plan_items(items: Any) -> set[str]:
+    if not isinstance(items, list):
+        return set()
+    edges: set[str] = set()
+    for item in items:
+        if isinstance(item, str):
+            normalized = _normalize_dependency(item)
+            if normalized:
+                edges.add(normalized)
+        elif isinstance(item, dict):
+            source = item.get("from") or item.get("source") or item.get("parameter_id")
+            target = item.get("to") or item.get("target") or item.get("affects")
+            if isinstance(target, list):
+                for entry in target:
+                    if isinstance(source, str) and isinstance(entry, str):
+                        edges.add(f"{_normalize_identifier(source)}->{_normalize_identifier(entry)}")
+            elif isinstance(source, str) and isinstance(target, str):
+                edges.add(f"{_normalize_identifier(source)}->{_normalize_identifier(target)}")
+    return edges
+
+
+def _match_expected_ids(expected: list[str], actual: set[str]) -> tuple[list[str], list[str]]:
+    matched = [entry for entry in expected if _normalize_identifier(entry) in actual]
+    missing = [entry for entry in expected if entry not in matched]
+    return matched, missing
+
+
+def _match_expected_dependencies(
+    expected: list[str],
+    actual: set[str],
+) -> tuple[list[str], list[str]]:
+    matched = [entry for entry in expected if _normalize_dependency(entry) in actual]
+    missing = [entry for entry in expected if entry not in matched]
+    return matched, missing
+
+
+def _normalize_dependency(value: str) -> str:
+    if "->" not in value:
+        return _normalize_identifier(value)
+    left, right = value.split("->", 1)
+    return f"{_normalize_identifier(left)}->{_normalize_identifier(right)}"
+
+
+def _normalize_identifier(value: str) -> str:
+    return re.sub(r"[^a-z0-9_]+", "", value.strip().lower().replace(" ", "_"))
+
+
+def _coverage(matched_count: int, expected_count: int) -> float | None:
+    if expected_count == 0:
+        return None
+    return round(matched_count / expected_count, 4)
+
+
+def _average_or_none(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return round(sum(values) / len(values), 4)
 
 
 def _extract_source_parameters(source: str, source_language: str) -> list[dict[str, Any]]:

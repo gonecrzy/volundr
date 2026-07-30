@@ -1,12 +1,13 @@
+import json
 from pathlib import Path
 
-from app.services.ai.provider import ModelGenerationResult, SourceBriefResult
+from app.services.ai.provider import DesignPlanResult, ModelGenerationResult, SourceBriefResult
 from app.services.generation.benchmarks import (
     phase_validation_benchmark_ids,
     load_benchmark_suite,
     run_deterministic_contract_check,
 )
-from app.services.generation.live_benchmarks import LiveBenchmarkRunner, _source_parameter_analysis
+from app.services.generation.live_benchmarks import LiveBenchmarkConfig, LiveBenchmarkRunner, _source_parameter_analysis
 from app.services.generation.live_benchmarks import _source_compile_repair_diagnostics
 
 
@@ -81,6 +82,51 @@ class BriefGuidedSourceTimeoutProvider(BriefTimeoutSourceProvider):
         return await super().generate_cadquery_model(request)
 
 
+class DesignPlanProbeProvider:
+    ruleset_version = "test-ruleset"
+
+    def design_plan_prompt_template_version(self) -> str:
+        return "design-plan-v1"
+
+    def build_design_plan_prompt(self, request) -> str:
+        return request.user_instruction
+
+    async def create_design_plan(self, request):
+        return DesignPlanResult(
+            raw_output="""
+{
+  "schema_version": "design-plan-v1",
+  "outcome": "plan_ready",
+  "design_level": "product",
+  "components": [
+    {"id": "tray_body"},
+    {"id": "divider_grid"},
+    {"id": "label_tabs"}
+  ],
+  "features": [
+    {"id": "repeated_cells"},
+    {"id": "label_tabs"},
+    {"id": "rounded_edges"}
+  ],
+  "dependencies": [
+    {"from": "row_count", "to": "overall_depth"},
+    {"from": "column_count", "to": "overall_width"},
+    {"from": "cell_width", "to": "divider_positions"}
+  ],
+  "presets": [
+    {"id": "3x4"},
+    {"id": "4x5"}
+  ],
+  "printable_outputs": [
+    {"output_id": "organizer_body"}
+  ]
+}
+""",
+            provider="fake",
+            provider_model="fake-design-plan",
+        )
+
+
 def test_core_generation_benchmark_fixture_loads_required_cases() -> None:
     suite = load_benchmark_suite(FIXTURE_DIR / "core.json")
 
@@ -105,6 +151,15 @@ def test_full_generation_benchmark_fixture_covers_all_categories() -> None:
     assert suite.name == "full"
     assert len(suite.benchmarks) >= 15
     assert all(benchmark.protected_design_invariants for benchmark in suite.benchmarks)
+    by_id = {benchmark.id: benchmark for benchmark in suite.benchmarks}
+    assert "accidental_multiple_solids" in by_id
+    assert "configuration_exceeds_build_volume" in by_id
+    assert by_id["accidental_multiple_solids"].compile_expectation == (
+        "source_may_compile_but_candidate_blocks"
+    )
+    assert by_id["configuration_exceeds_build_volume"].expected_configuration[
+        "expected_validation_state"
+    ] == "configuration_blocked_build_volume"
 
 
 def test_deterministic_benchmark_contract_check_passes_fixtures() -> None:
@@ -212,6 +267,65 @@ def test_source_probe_retries_without_source_brief_after_brief_guided_timeout(
     assert probe["brief_guided_source_error_path"] is not None
     assert probe["status"] == "source_parameters_analyzed"
     assert probe["compile_status"] == "compile_succeeded"
+
+
+def test_design_plan_probe_scores_expected_fixture_plan(tmp_path: Path) -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["parametric_configurable_organizer"]
+    run_dir = tmp_path / "run"
+    artifact_dir = run_dir / "artifacts" / benchmark.id / "run-001"
+    artifact_dir.mkdir(parents=True)
+
+    probe = LiveBenchmarkRunner()._run_design_plan_probe(
+        benchmark=benchmark,
+        provider=DesignPlanProbeProvider(),
+        provider_mode="gemini_api",
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+        design_specification={"object_type": "drawer_organizer", "units": "mm"},
+        design_plan_prompt="design plan prompt",
+    )
+
+    assert probe["status"] == "design_plan_analyzed"
+    assert probe["raw_output_path"] == (
+        "artifacts/parametric_configurable_organizer/run-001/design-plan-raw-output.txt"
+    )
+    assert probe["analysis_path"] == (
+        "artifacts/parametric_configurable_organizer/run-001/design-plan-analysis.json"
+    )
+    assert probe["expected_component_coverage"] == 1.0
+    assert probe["expected_feature_coverage"] == 1.0
+    assert probe["expected_output_coverage"] == 1.0
+    assert probe["expected_dependency_coverage"] == 1.0
+
+
+def test_live_benchmark_run_writes_design_plan_probe_metrics(tmp_path: Path) -> None:
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "full.json",
+            output_root=tmp_path,
+            run_label="design-plan-dry-run",
+            benchmark_ids=("parametric_configurable_organizer",),
+            max_runs=1,
+            provider="dry-run",
+            design_plan_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    case_run = manifest["case_runs"][0]
+
+    assert manifest["config"]["design_plan_probe"] is True
+    assert case_run["design_plan_probe"]["enabled"] is True
+    assert case_run["design_plan_probe"]["status"] == "not_run"
+    assert case_run["design_plan_probe"]["prompt_path"] == (
+        "artifacts/parametric_configurable_organizer/run-001/design-plan-prompt.txt"
+    )
+    assert metrics["design_plan_probe_enabled"] is True
+    assert metrics["design_plan_probe_status_counts"] == {"not_run": 1}
 
 
 def test_source_compile_repair_diagnostics_expand_invalid_topology() -> None:

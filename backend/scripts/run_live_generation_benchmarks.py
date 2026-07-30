@@ -127,6 +127,14 @@ def main(argv: list[str] | None = None) -> int:
             "source as a separate repair metric."
         ),
     )
+    parser.add_argument(
+        "--design-plan-probe",
+        action="store_true",
+        help=(
+            "Also ask the provider for a staged Design Plan, parse it, and score "
+            "fixture component, feature, output, and dependency coverage."
+        ),
+    )
     args = parser.parse_args(argv)
 
     result = LiveBenchmarkRunner().run(
@@ -149,6 +157,7 @@ def main(argv: list[str] | None = None) -> int:
             source_probe_repair=args.source_probe_repair,
             source_brief=args.source_brief,
             source_language=args.source_language,
+            design_plan_probe=args.design_plan_probe,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
@@ -183,6 +192,24 @@ def main(argv: list[str] | None = None) -> int:
                 "Source probe repair compile successes: "
                 f"{metrics.get('source_probe_repair_compile_success_count')}"
             )
+    if metrics.get("design_plan_probe_enabled"):
+        print(f"Design Plan probe statuses: {metrics.get('design_plan_probe_status_counts')}")
+        print(
+            "Design Plan expected component coverage average: "
+            f"{metrics.get('design_plan_expected_component_coverage_average')}"
+        )
+        print(
+            "Design Plan expected feature coverage average: "
+            f"{metrics.get('design_plan_expected_feature_coverage_average')}"
+        )
+        print(
+            "Design Plan expected output coverage average: "
+            f"{metrics.get('design_plan_expected_output_coverage_average')}"
+        )
+        print(
+            "Design Plan expected dependency coverage average: "
+            f"{metrics.get('design_plan_expected_dependency_coverage_average')}"
+        )
     print("Prompt promotion: disabled; manual review required")
     return 0
 

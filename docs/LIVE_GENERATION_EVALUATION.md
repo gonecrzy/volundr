@@ -133,6 +133,14 @@ extracted source, parameter analysis, execution logs, STEP/STL, and mesh
 metadata artifacts. Repair metrics are separate from first-pass source-probe
 metrics so raw model quality and repair recovery can be compared directly.
 
+`--design-plan-probe` adds a staged Design Plan provider call after requirements
+collection. It stores `design-plan-prompt.txt`, `design-plan-raw-output.txt`,
+`design-plan-parsed.json`, and `design-plan-analysis.json`. The analysis compares
+the parsed plan with fixture expectations for components, features, printable
+outputs, and dependency edges. This scores planning quality separately from
+source validity; it does not approve a plan, accept a candidate, or exercise the
+browser workflow.
+
 ## Quota Controls
 
 Every run validates:
@@ -165,6 +173,10 @@ output/live-benchmarks/<run-id>/
 │       ├── source-raw-output.txt
 │       ├── source-extracted.py
 │       ├── source-parameter-analysis.json
+│       ├── design-plan-prompt.txt
+│       ├── design-plan-raw-output.txt
+│       ├── design-plan-parsed.json
+│       ├── design-plan-analysis.json
 │       └── source-compile-workspace/
 │           └── source-probe/
 │               ├── source.py
@@ -251,6 +263,8 @@ Reviewers should cite artifact paths in `evidence_paths` and list the recommende
 - count of compiled source probes with watertight and nonzero-volume meshes
 - count of compiled source probes with disconnected meshes and the maximum connected-component count
 - total runtime warning/deprecation lines from source-probe execution logs
+- Design Plan probe status counts
+- average expected Design Plan component, feature, output, and dependency coverage
 - no-promotion flag
 
 Future evaluators may aggregate completed human scoring forms into the same next-work buckets, but prompt promotion must still remain a separate manual decision.
@@ -263,6 +277,6 @@ After the dry-run artifacts are reviewed, a small live run can be launched with 
 
 ## Limits
 
-This harness does not yet execute the complete browser-visible staged workflow end to end. The current live provider mode collects requirement-extraction provider output and the surrounding prompt/version artifacts. Full live product-generation scoring should extend the same manifest format rather than replace it.
+This harness does not yet execute the complete browser-visible staged workflow end to end. The current live provider mode collects requirement-extraction provider output, optional Design Plan output, optional source-brief output, optional direct CadQuery source output, and the surrounding prompt/version artifacts. Full live product-generation scoring should extend the same manifest format rather than replace it.
 
 The harness is intentionally unable to accept candidates, update active revisions, or promote prompt versions.
