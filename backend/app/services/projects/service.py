@@ -110,6 +110,18 @@ from app.services.cad.source_metadata import (
     evaluate_constants,
 )
 from app.services.generation.failure_taxonomy import FailureClass
+from app.services.requirements.trace import (
+    RequirementTraceError,
+    build_explicit_requirement_inventory,
+    inventory_from_design_specification,
+    merge_resolved_requirements,
+    requirement_trace_payload,
+    validate_design_plan_trace,
+    validate_design_specification_trace,
+    validate_execution_parameters,
+    validate_requirement_extraction_trace,
+    validate_source_parameter_trace,
+)
 from app.services.geometry.invariants import (
     GeometricAnalysisContext,
     GeometricFinding,
@@ -828,11 +840,23 @@ class ProjectService:
             return None
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
+        inventory = build_explicit_requirement_inventory(payload.user_instruction)
+        defaults = dict(DEFAULT_REQUIREMENT_PROFILE)
+        defaults["explicit_requirements"] = {
+            item["requirement_id"]: {
+                "value": item["value"],
+                "unit": item.get("unit"),
+                "source": item["source"],
+                "authority": item["authority"],
+                "protected": item["protected"],
+            }
+            for item in inventory
+        }
         request = RequirementExtractionRequest(
             project_name=project.name,
             original_intent=project.original_intent,
             user_instruction=payload.user_instruction,
-            defaults=DEFAULT_REQUIREMENT_PROFILE,
+            defaults=defaults,
         )
         return await self._run_requirement_extraction(project=project, request=request)
 
@@ -2628,6 +2652,34 @@ class ProjectService:
                 request=repair_request,
                 superseded_specification_id=superseded_specification_id,
             )
+        inventory = build_explicit_requirement_inventory(request.user_instruction)
+        requirement_stage: dict[str, Any] | None = None
+        specification_stage: dict[str, Any] | None = None
+        if inventory:
+            parsed_payload, requirement_stage = validate_requirement_extraction_trace(
+                parsed_payload,
+                inventory,
+            )
+            parsed_payload, specification_stage = validate_design_specification_trace(
+                parsed_payload,
+                inventory,
+            )
+            parsed_payload["outcome"] = self._derive_requirement_outcome(parsed_payload).value
+            parsed_payload["clarification_required"] = (
+                parsed_payload["outcome"] == RequirementOutcome.CLARIFICATION_REQUIRED.value
+            )
+            parsed_payload["generation_ready"] = (
+                parsed_payload["outcome"] == RequirementOutcome.GENERATION_READY.value
+            )
+            self._persist_requirement_trace(
+                attempt=attempt,
+                inventory=inventory,
+                stages=[
+                    stage
+                    for stage in (requirement_stage, specification_stage)
+                    if stage is not None
+                ],
+            )
 
         specification = self._persist_design_specification(
             project=project,
@@ -2643,6 +2695,25 @@ class ProjectService:
             failure_class=FailureClass.NONE,
         )
         return self._design_specification_read(specification)
+
+    def _persist_requirement_trace(
+        self,
+        *,
+        attempt: GenerationAttempt,
+        inventory: list[dict[str, Any]],
+        stages: list[dict[str, Any]],
+    ) -> str:
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        trace_path = run_dir / "requirement-trace.json"
+        self._write_json(
+            trace_path,
+            requirement_trace_payload(
+                inventory=inventory,
+                resolved_requirements=merge_resolved_requirements(inventory),
+                stages=stages,
+            ),
+        )
+        return self._relative(trace_path)
 
     async def _run_design_planning(
         self,
@@ -3149,6 +3220,9 @@ class ProjectService:
             normalized,
             design_specification_payload=design_specification_payload,
         )
+        explicit_inventory = inventory_from_design_specification(design_specification_payload)
+        if explicit_inventory:
+            validate_design_plan_trace(normalized, explicit_inventory)
         self._validate_design_plan_dependency_edges(normalized)
         return normalized
 
@@ -3907,6 +3981,7 @@ class ProjectService:
             source=source,
             source_type=source_type,
             design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
         )
 
     def _persist_cadquery_source_contract_validation(
@@ -3917,14 +3992,25 @@ class ProjectService:
         source: str,
         source_type: str,
         design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None = None,
     ) -> SourceValidationResult:
         started = time.perf_counter()
         source_hash = self._sha256(source)
         hard_error: str | None = None
         metadata: dict[str, Any] | None = None
         try:
-            metadata = asdict(validate_cadquery_source(source, contract_version="cadquery-v1"))
-        except CadQueryContractError as exc:
+            source_metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+            metadata = asdict(source_metadata)
+            explicit_inventory = inventory_from_design_specification(design_specification_payload)
+            if explicit_inventory:
+                validate_source_parameter_trace(
+                    {
+                        "parameter_ids": source_metadata.parameter_ids,
+                        "parameter_defaults": source_metadata.parameter_defaults,
+                    },
+                    explicit_inventory,
+                )
+        except (CadQueryContractError, RequirementTraceError) as exc:
             hard_error = str(exc)
         validation_ms = round((time.perf_counter() - started) * 1000, 3)
         run_dir = self._generation_attempt_dir(project.id, attempt.id)
@@ -4010,6 +4096,8 @@ class ProjectService:
         lines = ["Model source rejected before compile"]
         for finding in findings[:8]:
             detail = finding.title
+            if finding.explanation:
+                detail += f": {finding.explanation}"
             if finding.detected_value is not None or finding.threshold_value is not None:
                 detail += (
                     f": expected {finding.threshold_value or 'n/a'}, "
@@ -6085,6 +6173,9 @@ class ProjectService:
             ai_output_relative_path = self._relative(ai_output_path)
 
         compile_parameter_values = parameter_values or self._design_plan_parameter_values(design_plan_payload)
+        explicit_inventory = inventory_from_design_specification(design_specification_payload)
+        if explicit_inventory:
+            validate_execution_parameters(compile_parameter_values, explicit_inventory)
         parameter_hash = self._configuration_parameter_hash(compile_parameter_values)
         used_filenames: set[str] = set()
         output_records: list[RevisionOutput] = []

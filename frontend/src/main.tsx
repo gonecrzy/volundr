@@ -31,8 +31,11 @@ import {
 import {
   assumptionBuckets,
   canContinueGeneration,
+  defaultProvenanceRows,
   protectedRequirementCount,
+  requirementProvenanceRows,
   requirementStageLabel,
+  traceFailureMessage,
   type RequirementOutcome,
 } from "./designSpecificationView";
 import {
@@ -2348,9 +2351,9 @@ function DesignSpecificationReview({
   }
 
   const buckets = assumptionBuckets(specification);
-  const criticalDimensions = specification.specification.critical_dimensions ?? [];
   const requirements = specification.specification.functional_requirements ?? [];
   const questions = specification.clarification_questions;
+  const traceMessage = traceFailureMessage(specification);
   const allAnswersPresent =
     questions.length > 0 && questions.every((question) => (answers[question.id] ?? "").trim().length > 0);
 
@@ -2395,11 +2398,10 @@ function DesignSpecificationReview({
 
       {specification.outcome === "generation_ready" ? (
         <>
+          {traceMessage ? <p className="error-state">{traceMessage}</p> : null}
           <SummaryList
             title="Critical dimensions"
-            items={criticalDimensions.map((dimension) =>
-              `${dimension.label}: ${dimension.value ?? "unset"}${dimension.unit ? ` ${dimension.unit}` : ""} (${dimension.source})`,
-            )}
+            items={requirementProvenanceRows(specification)}
           />
           <SummaryList
             title="Protected requirements"
@@ -2407,7 +2409,7 @@ function DesignSpecificationReview({
               .filter((requirement) => requirement.protected)
               .map((requirement) => `${requirement.description} (${requirement.source})`)}
           />
-          <SummaryList title="Defaults" items={buckets.defaults} />
+          <SummaryList title="Defaults" items={defaultProvenanceRows(specification)} />
           <SummaryList title="AI assumptions" items={buckets.aiAssumptions} />
           {hasDesignPlan ? (
             <p className="empty">Design Plan created. Review it below.</p>

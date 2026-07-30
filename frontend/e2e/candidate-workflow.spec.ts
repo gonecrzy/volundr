@@ -280,7 +280,7 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await page.getByLabel("AI chat message").fill("180 mm shelf depth");
   await page.getByRole("button", { name: "Answer", exact: true }).click();
   await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
-  await expect(page.getByText("Shelf depth: 180 mm (clarification)")).toBeVisible();
+  await expect(page.getByText("Shelf depth: 180 mm. Source: Your clarification")).toBeVisible();
 
   await page.getByRole("button", { name: "Create Design Plan" }).click();
   await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();

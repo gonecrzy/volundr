@@ -519,6 +519,7 @@ def main() -> int:
                 "source_contract_version": "cadquery-v1",
                 "source_hash": _file_sha256(Path("model.py")),
                 "parameter_hash": _json_sha256(parameter_values),
+                "parameters": parameter_values,
                 "requested_output_ids": [
                     str(request.get("output_id") or "")
                     for request in requested_outputs

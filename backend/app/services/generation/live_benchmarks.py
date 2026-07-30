@@ -33,6 +33,7 @@ from app.services.ai.source_extraction import (
     extract_python_source,
 )
 from app.services.cad.cadquery_runner import CadQueryCliRunner
+from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
 from app.services.generation.benchmarks import (
     BenchmarkSuite,
     GenerationBenchmark,
@@ -43,6 +44,11 @@ from app.services.generation.benchmarks import (
     staged_product_gate_scenario_set,
 )
 from app.services.generation.failure_taxonomy import FailureClass
+from app.services.requirements.trace import (
+    RequirementTraceError,
+    build_explicit_requirement_inventory,
+    validate_source_parameter_trace,
+)
 from app.schemas.printability import BuildVolumeProfile, PrintabilityProfile
 from app.services.printability.inspector import inspect_printability
 
@@ -715,24 +721,26 @@ class LiveBenchmarkRunner:
         source_path = artifact_dir / _source_filename_for_language(source_language)
         source_path.write_text(source, encoding="utf-8")
         analysis_path = artifact_dir / "source-parameter-analysis.json"
-        _write_json(
-            analysis_path,
-            _source_parameter_analysis(
-                benchmark=benchmark,
-                extracted_source=source,
-                extraction_error=None,
-                source_language=source_language,
-            ),
+        parameter_analysis = _source_parameter_analysis(
+            benchmark=benchmark,
+            extracted_source=source,
+            extraction_error=None,
+            source_language=source_language,
         )
+        _write_json(analysis_path, parameter_analysis)
         probe["status"] = "source_parameters_analyzed"
         probe["extracted_source_path"] = _relative(source_path, run_dir)
         probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+        if parameter_analysis.get("source_parameter_trace_status") == "blocked":
+            probe["status"] = "source_explicit_requirement_blocked"
+            return probe
         probe.update(
             _compile_source_probe_for_language(
                 source=source,
                 source_language=source_language,
                 run_dir=run_dir,
                 artifact_dir=artifact_dir,
+                parameter_values=_source_probe_parameter_values_for(benchmark),
             )
         )
         if probe["compile_status"] != "compile_succeeded":
@@ -958,18 +966,19 @@ class LiveBenchmarkRunner:
         source_path = artifact_dir / _source_repair_filename_for_language(source_language)
         source_path.write_text(repaired_source, encoding="utf-8")
         analysis_path = artifact_dir / "source-repair-parameter-analysis.json"
-        _write_json(
-            analysis_path,
-            _source_parameter_analysis(
-                benchmark=benchmark,
-                extracted_source=repaired_source,
-                extraction_error=None,
-                source_language=source_language,
-            ),
+        parameter_analysis = _source_parameter_analysis(
+            benchmark=benchmark,
+            extracted_source=repaired_source,
+            extraction_error=None,
+            source_language=source_language,
         )
+        _write_json(analysis_path, parameter_analysis)
         repair["status"] = "source_repair_parameters_analyzed"
         repair["extracted_source_path"] = _relative(source_path, run_dir)
         repair["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+        if parameter_analysis.get("source_parameter_trace_status") == "blocked":
+            repair["status"] = "source_repair_explicit_requirement_blocked"
+            return repair
         repair.update(
             _compile_source_probe_for_language(
                 source=repaired_source,
@@ -978,6 +987,7 @@ class LiveBenchmarkRunner:
                 artifact_dir=artifact_dir,
                 workspace_dir_name="source-repair-compile-workspace",
                 job_id="source-repair",
+                parameter_values=_source_probe_parameter_values_for(benchmark),
             )
         )
         if repair["compile_status"] == "compile_succeeded":
@@ -1166,6 +1176,7 @@ class LiveBenchmarkRunner:
             "suite": benchmark.suite,
             "input_prompt": benchmark.input_prompt,
             "required_dimensions": benchmark.required_dimensions,
+            "expected_explicit_requirements": benchmark.expected_explicit_requirements,
             "allowed_assumptions": benchmark.allowed_assumptions,
             "expected_clarification": benchmark.expected_clarification,
             "expected_modules": benchmark.expected_modules,
@@ -1545,16 +1556,27 @@ class LiveBenchmarkRunner:
 
 
 def _requirement_request_for(benchmark: GenerationBenchmark) -> RequirementExtractionRequest:
+    user_instruction = benchmark.input_prompt
+    if benchmark.required_dimensions:
+        user_instruction = "\n".join(
+            [
+                benchmark.input_prompt,
+                "",
+                "Explicit benchmark requirements:",
+                *[f"- {dimension}" for dimension in benchmark.required_dimensions],
+            ]
+        )
     return RequirementExtractionRequest(
         project_name=f"Benchmark: {benchmark.id}",
         original_intent=benchmark.input_prompt,
-        user_instruction=benchmark.input_prompt,
+        user_instruction=user_instruction,
         defaults={
             "units": "mm",
             "default_nozzle_mm": 0.4,
             "default_layer_height_mm": 0.2,
             "wall_thickness_mm": 3.0,
             "supports_assumed_allowed": False,
+            "explicit_requirements": benchmark.expected_explicit_requirements,
         },
     )
 
@@ -1596,6 +1618,15 @@ def _source_request_for(
                 "Do not split a target into indexed parameters, arrays, renamed aliases, or derived-only values.",
                 "Do not force the silhouette or styling into a fixed template; keep the requested creative form.",
                 *[f"- {parameter}" for parameter in benchmark.expected_parameters],
+            ]
+        )
+    if benchmark.expected_explicit_requirements:
+        additions.extend(
+            [
+                "Explicit protected requirement values:",
+                json.dumps(benchmark.expected_explicit_requirements, indent=2, sort_keys=True),
+                "Every matching ParameterSpec default must preserve these values exactly.",
+                "Do not replace explicit protected values with printer, product, preset, or AI defaults.",
             ]
         )
     if benchmark.compile_expectation == "source_may_compile_but_candidate_blocks":
@@ -1667,16 +1698,77 @@ def _design_plan_request_for(
 
 
 def _benchmark_design_specification(benchmark: GenerationBenchmark) -> dict[str, Any]:
+    inventory = _expected_explicit_inventory_for(benchmark)
+    critical_dimensions = [
+        {
+            "id": item["requirement_id"],
+            "requirement_id": item["requirement_id"],
+            "label": item["label"],
+            "value": item["value"],
+            "unit": item.get("unit"),
+            "source": "user",
+            "importance": "critical",
+            "protected": True,
+            "authority": "explicit",
+            "authority_rank": 1,
+        }
+        for item in inventory
+        if item.get("type") != "explicit_feature"
+    ]
+    functional_requirements: list[dict[str, Any] | str] = [
+        {
+            "id": item["requirement_id"],
+            "description": f"{item['label']} {'enabled' if item.get('value') else 'disabled'}",
+            "source": "user",
+            "importance": "critical",
+            "protected": True,
+            "authority": "explicit",
+            "authority_rank": 1,
+        }
+        for item in inventory
+        if item.get("type") == "explicit_feature"
+    ]
+    functional_requirements.extend(benchmark.required_dimensions)
     return {
         "schema_version": "benchmark-design-specification-v1",
         "object_type": benchmark.id,
         "purpose": benchmark.input_prompt,
         "units": "mm",
-        "functional_requirements": list(benchmark.required_dimensions),
+        "explicit_requirements": inventory,
+        "critical_dimensions": critical_dimensions,
+        "functional_requirements": functional_requirements,
         "print_requirements": {
             "constraints": list(benchmark.expected_printability_constraints),
         },
         "generation_ready": benchmark.expected_clarification != "required",
+    }
+
+
+def _expected_explicit_inventory_for(benchmark: GenerationBenchmark) -> list[dict[str, Any]]:
+    if benchmark.expected_explicit_requirements:
+        requirements = [
+            f"{requirement_id}={payload.get('value')}"
+            f" {payload.get('unit') or ''}".strip()
+            for requirement_id, payload in benchmark.expected_explicit_requirements.items()
+            if isinstance(payload, dict) and "value" in payload
+        ]
+        return build_explicit_requirement_inventory(
+            benchmark.input_prompt,
+            supplemental_requirements=requirements,
+        )
+    return build_explicit_requirement_inventory(
+        benchmark.input_prompt,
+        supplemental_requirements=benchmark.required_dimensions,
+    )
+
+
+def _source_probe_parameter_values_for(benchmark: GenerationBenchmark) -> dict[str, Any] | None:
+    if not benchmark.expected_explicit_requirements:
+        return None
+    return {
+        requirement_id: payload["value"]
+        for requirement_id, payload in sorted(benchmark.expected_explicit_requirements.items())
+        if isinstance(payload, dict) and "value" in payload
     }
 
 
@@ -1899,6 +1991,11 @@ def _source_parameter_analysis(
     extraction_error: str | None,
     source_language: str = "cadquery",
 ) -> dict[str, Any]:
+    explicit_analysis = _source_explicit_requirement_analysis(
+        benchmark=benchmark,
+        extracted_source=extracted_source,
+        extraction_error=extraction_error,
+    )
     if extracted_source is None:
         return {
             "schema_version": SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION,
@@ -1913,6 +2010,7 @@ def _source_parameter_analysis(
             "expected_parameter_coverage": 0.0 if benchmark.expected_parameters else None,
             "parameter_types": {},
             "parameter_groups": [],
+            **explicit_analysis,
         }
 
     parameters = _extract_source_parameters(extracted_source, source_language)
@@ -1948,6 +2046,104 @@ def _source_parameter_analysis(
         "parameter_groups": sorted(
             {parameter["group"] for parameter in parameters if parameter["group"] is not None}
         ),
+        **explicit_analysis,
+    }
+
+
+def _source_explicit_requirement_analysis(
+    *,
+    benchmark: GenerationBenchmark,
+    extracted_source: str | None,
+    extraction_error: str | None,
+) -> dict[str, Any]:
+    expected = dict(benchmark.expected_explicit_requirements)
+    if not expected:
+        return {
+            "expected_explicit_requirements": {},
+            "source_parameter_trace_status": "not_applicable",
+            "matched_explicit_requirements": [],
+            "mismatched_explicit_requirements": [],
+            "missing_explicit_requirements": [],
+            "findings": [],
+        }
+    if extracted_source is None:
+        return {
+            "expected_explicit_requirements": expected,
+            "source_parameter_trace_status": "blocked",
+            "matched_explicit_requirements": [],
+            "mismatched_explicit_requirements": [],
+            "missing_explicit_requirements": sorted(expected),
+            "findings": [
+                {
+                    "rule_id": "source_parameter.source_missing",
+                    "stage": "source_parameter",
+                    "severity": "critical",
+                    "is_blocking": True,
+                    "message": extraction_error or "source was not extracted",
+                }
+            ],
+        }
+    inventory = _expected_explicit_inventory_for(benchmark)
+    try:
+        metadata = validate_cadquery_source(extracted_source)
+        validate_source_parameter_trace(
+            {
+                "parameter_ids": metadata.parameter_ids,
+                "parameter_defaults": metadata.parameter_defaults,
+            },
+            inventory,
+        )
+    except CadQueryContractError as exc:
+        return {
+            "expected_explicit_requirements": expected,
+            "source_parameter_trace_status": "blocked",
+            "matched_explicit_requirements": [],
+            "mismatched_explicit_requirements": [],
+            "missing_explicit_requirements": sorted(expected),
+            "findings": [
+                {
+                    "rule_id": "source_parameter.contract_invalid",
+                    "stage": "source_parameter",
+                    "severity": "critical",
+                    "is_blocking": True,
+                    "message": str(exc),
+                }
+            ],
+        }
+    except RequirementTraceError as exc:
+        missing = sorted(
+            {
+                str(finding.get("message", "")).rsplit(" ", 1)[-1].strip(".")
+                for finding in exc.findings
+                if finding.get("rule_id") == "source_parameter.protected_parameter_missing"
+            }
+            & set(expected)
+        )
+        mismatched = sorted(
+            {
+                requirement_id
+                for requirement_id in expected
+                for finding in exc.findings
+                if finding.get("rule_id") == "source_parameter.explicit_value_mismatch"
+                and requirement_id in str(finding.get("message", ""))
+            }
+        )
+        matched = sorted(set(expected) - set(missing) - set(mismatched))
+        return {
+            "expected_explicit_requirements": expected,
+            "source_parameter_trace_status": "blocked",
+            "matched_explicit_requirements": matched,
+            "mismatched_explicit_requirements": mismatched,
+            "missing_explicit_requirements": missing,
+            "findings": exc.findings,
+        }
+    return {
+        "expected_explicit_requirements": expected,
+        "source_parameter_trace_status": "passed",
+        "matched_explicit_requirements": sorted(expected),
+        "mismatched_explicit_requirements": [],
+        "missing_explicit_requirements": [],
+        "findings": [],
     }
 
 

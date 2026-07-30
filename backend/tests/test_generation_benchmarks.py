@@ -13,6 +13,8 @@ from app.services.generation.live_benchmarks import (
     LiveBenchmarkRunner,
     _compile_source_probe_for_language,
     _disconnected_mesh_diagnostics,
+    _requirement_request_for,
+    _source_explicit_requirement_analysis,
     _source_parameter_analysis,
     _source_repair_request_for,
     _source_request_for,
@@ -171,6 +173,30 @@ def test_full_generation_benchmark_fixture_covers_all_categories() -> None:
     assert by_id["configuration_exceeds_build_volume"].expected_configuration[
         "expected_validation_state"
     ] == "configuration_blocked_build_volume"
+    organizer = by_id["parametric_configurable_organizer"]
+    assert organizer.expected_explicit_requirements["row_count"]["value"] == 3
+    assert organizer.expected_explicit_requirements["column_count"]["value"] == 4
+    assert organizer.expected_explicit_requirements["cell_width"] == {"value": 35.0, "unit": "mm"}
+    assert organizer.expected_explicit_requirements["cell_depth"] == {"value": 25.0, "unit": "mm"}
+    assert organizer.expected_explicit_requirements["wall_thickness"] == {
+        "value": 2.0,
+        "unit": "mm",
+    }
+
+
+def test_requirement_request_includes_benchmark_explicit_requirements() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["parametric_configurable_organizer"]
+
+    request = _requirement_request_for(benchmark)
+
+    assert request.defaults["explicit_requirements"]["row_count"]["value"] == 3
+    assert request.defaults["explicit_requirements"]["column_count"]["value"] == 4
+    assert request.defaults["explicit_requirements"]["cell_width"]["value"] == 35.0
+    assert "rows=3" in request.user_instruction
+    assert "cell=35x25 mm" in request.user_instruction
 
 
 def test_staged_product_gate_selects_required_transition_cases() -> None:
@@ -254,6 +280,123 @@ def build(params):
     assert analysis["missing_expected_parameters"] == []
     assert analysis["expected_parameter_coverage"] == 1.0
     assert analysis["parameter_types"]["plate_width"] == "float"
+
+
+def test_source_explicit_requirement_analysis_detects_organizer_default_drift() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["parametric_configurable_organizer"]
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="row_count", label="Rows", type="int", default=2),
+    ParameterSpec(id="column_count", label="Columns", type="int", default=3),
+    ParameterSpec(id="cell_width", label="Cell Width", type="float", default=50.0, unit="mm"),
+    ParameterSpec(id="cell_depth", label="Cell Depth", type="float", default=50.0, unit="mm"),
+    ParameterSpec(id="wall_thickness", label="Wall Thickness", type="float", default=2.0, unit="mm"),
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(10, 10, 10)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="organizer_body",
+                label="Organizer",
+                model=body,
+                component_id="organizer",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+"""
+
+    analysis = _source_explicit_requirement_analysis(
+        benchmark=benchmark,
+        extracted_source=source,
+        extraction_error=None,
+    )
+
+    assert analysis["source_parameter_trace_status"] == "blocked"
+    assert {
+        finding["rule_id"] for finding in analysis["findings"]
+    } == {"source_parameter.explicit_value_mismatch"}
+    assert analysis["matched_explicit_requirements"] == ["wall_thickness"]
+    assert set(analysis["mismatched_explicit_requirements"]) == {
+        "row_count",
+        "column_count",
+        "cell_width",
+        "cell_depth",
+    }
+
+
+def test_source_probe_blocks_compile_on_explicit_requirement_drift(tmp_path: Path) -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["parametric_configurable_organizer"]
+    run_dir = tmp_path / "run"
+    artifact_dir = run_dir / "artifacts" / benchmark.id / "run-001"
+    artifact_dir.mkdir(parents=True)
+
+    class DriftProvider(BriefTimeoutSourceProvider):
+        async def generate_cadquery_model(self, request):
+            return ModelGenerationResult(
+                raw_output="""
+```python
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="row_count", label="Rows", type="int", default=2),
+    ParameterSpec(id="column_count", label="Columns", type="int", default=3),
+    ParameterSpec(id="cell_width", label="Cell Width", type="float", default=50.0, unit="mm"),
+    ParameterSpec(id="cell_depth", label="Cell Depth", type="float", default=50.0, unit="mm"),
+    ParameterSpec(id="wall_thickness", label="Wall Thickness", type="float", default=2.0, unit="mm"),
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(10, 10, 10)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="organizer_body",
+                label="Organizer",
+                model=body,
+                component_id="organizer",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+```
+""",
+                provider="fake",
+                provider_model="fake-source",
+            )
+
+    probe = LiveBenchmarkRunner()._run_source_probe(
+        benchmark=benchmark,
+        provider=DriftProvider(),
+        provider_mode="gemini_api",
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+        source_prompt="source prompt",
+        source_probe_repair=False,
+        source_brief_prompt=None,
+        source_language="cadquery",
+    )
+
+    assert probe["status"] == "source_explicit_requirement_blocked"
+    assert probe["compile_status"] == "not_run"
+    analysis = json.loads((run_dir / probe["parameter_analysis_path"]).read_text(encoding="utf-8"))
+    assert analysis["source_parameter_trace_status"] == "blocked"
 
 
 def test_source_probe_continues_without_source_brief_after_brief_timeout(tmp_path: Path) -> None:

@@ -17,6 +17,7 @@ export type DesignSpecificationSummary = {
       value: number | string | boolean | null;
       unit?: string | null;
       source: string;
+      authority?: string;
       protected?: boolean;
     }>;
     assumptions?: Array<{
@@ -33,6 +34,11 @@ export type DesignSpecificationSummary = {
     }>;
     conflicts?: Array<{ description?: string; id?: string }>;
     missing_requirements?: Array<{ label?: string; reason?: string; id?: string }>;
+    requirement_trace?: {
+      status?: string;
+      findings?: Array<{ rule_id?: string; message?: string }>;
+    };
+    validation_status?: string;
   };
 };
 
@@ -83,4 +89,46 @@ export function assumptionBuckets(specification: DesignSpecificationSummary | nu
       .filter((assumption) => assumption.source === "ai_assumption")
       .map((assumption) => assumption.description),
   };
+}
+
+export function sourceLabel(source: string | undefined): string {
+  switch (source) {
+    case "user":
+      return "Your request";
+    case "clarification":
+      return "Your clarification";
+    case "printer_profile":
+      return "Printer profile default";
+    case "product_default":
+      return "Volundr functional default";
+    case "calculated":
+      return "Calculated";
+    case "ai_assumption":
+      return "AI assumption";
+    default:
+      return source ?? "Unknown";
+  }
+}
+
+export function requirementProvenanceRows(specification: DesignSpecificationSummary | null): string[] {
+  const dimensions = specification?.specification.critical_dimensions ?? [];
+  return dimensions.map((dimension) => {
+    const value = `${dimension.value ?? "unset"}${dimension.unit ? ` ${dimension.unit}` : ""}`;
+    return `${dimension.label}: ${value}. Source: ${sourceLabel(dimension.source)}`;
+  });
+}
+
+export function defaultProvenanceRows(specification: DesignSpecificationSummary | null): string[] {
+  const assumptions = specification?.specification.assumptions ?? [];
+  return assumptions
+    .filter((assumption) => assumption.source === "product_default" || assumption.source === "printer_profile")
+    .map((assumption) => `${assumption.description}. Source: ${sourceLabel(assumption.source)}`);
+}
+
+export function traceFailureMessage(specification: DesignSpecificationSummary | null): string | null {
+  const trace = specification?.specification.requirement_trace;
+  if (trace?.status === "blocked" || specification?.specification.validation_status === "blocked") {
+    return "Volundr could not preserve one of your supplied dimensions. The model has not been generated.";
+  }
+  return null;
 }

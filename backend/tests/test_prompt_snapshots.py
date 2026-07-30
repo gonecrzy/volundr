@@ -43,7 +43,7 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-generation-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-generation-v2"
     assert provider.ruleset_version == "gemini-ruleset-v1"
     assert "You generate CadQuery Python for Volundr." in prompt
     assert "Return only a single fenced python block" in prompt

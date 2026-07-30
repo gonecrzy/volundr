@@ -307,7 +307,67 @@ def build(params):
         )
 
 
+class RequirementOutputProvider(PlanningAiProvider):
+    def __init__(self, requirement_output: dict[str, Any]) -> None:
+        super().__init__(READY_PLAN)
+        self.requirement_output = requirement_output
+
+    async def extract_requirements(
+        self,
+        request: RequirementExtractionRequest,
+    ) -> RequirementExtractionResult:
+        return RequirementExtractionResult(
+            raw_output=json.dumps(self.requirement_output),
+            provider="fake",
+            provider_model="fake-planning-model",
+        )
+
+
+class DriftSourceProvider(PlanningAiProvider):
+    async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        self.cadquery_requests.append(request)
+        return ModelGenerationResult(
+            raw_output="""
+```python
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(
+        id="mount_hole_spacing",
+        label="Mount hole spacing",
+        type="float",
+        default=70.0,
+        unit="mm",
+        min_value=20.0,
+    )
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(80, params["mount_hole_spacing"] + 20, 6)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="bracket_body_output",
+                component_id="bracket_body",
+                label="Bracket body",
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+```
+""",
+            provider="fake",
+            provider_model="fake-planning-model",
+        )
+
+
 class FakeCadRunner:
+    compile_calls = 0
+
     async def compile(
         self,
         source: str,
@@ -316,6 +376,7 @@ class FakeCadRunner:
         parameter_values: dict[str, Any] | None = None,
         requested_outputs: list[dict[str, Any]] | None = None,
     ) -> CadQueryCompileResult:
+        FakeCadRunner.compile_calls += 1
         job_dir = Path("/tmp") / "volundr-fake-plan-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
         source_path = job_dir / "source.py"
@@ -418,6 +479,7 @@ def build_client(
     )
     TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     Base.metadata.create_all(engine)
+    FakeCadRunner.compile_calls = 0
 
     def override_db() -> Generator[Session, None, None]:
         with TestingSessionLocal() as session:
@@ -441,9 +503,45 @@ def create_project_and_spec(client: TestClient) -> tuple[dict[str, Any], dict[st
     ).json()
     specification = client.post(
         f"/api/projects/{project['id']}/requirements",
-        json={"user_instruction": "Create a configurable bracket with 60 mm hole spacing."},
+        json={"user_instruction": "Create a configurable bracket with mount_hole_spacing=60 mm."},
     ).json()
     return project, specification
+
+
+def test_redundant_requirement_clarification_is_suppressed(tmp_path: Path) -> None:
+    provider = RequirementOutputProvider(
+        {
+            **READY_SPEC,
+            "critical_dimensions": [],
+            "clarification_required": True,
+            "clarification_questions": [
+                {
+                    "id": "q_hole_spacing",
+                    "question": "What is the mounting hole spacing?",
+                    "reason": "Missing hole spacing.",
+                }
+            ],
+            "missing_requirements": ["Mounting hole spacing"],
+            "generation_ready": False,
+            "outcome": "clarification_required",
+        }
+    )
+    client, _SessionLocal = build_client(tmp_path, provider)
+
+    _project, specification = create_project_and_spec(client)
+
+    assert specification["outcome"] == "generation_ready"
+    assert specification["clarification_required"] is False
+    assert specification["clarification_questions"] == []
+    dimensions = {
+        dimension["id"]: dimension
+        for dimension in specification["specification"]["critical_dimensions"]
+    }
+    assert dimensions["mount_hole_spacing"]["value"] == 60
+    trace_path = next((tmp_path / "data").glob("projects/*/generation-runs/*/requirement-trace.json"))
+    trace = json.loads(trace_path.read_text(encoding="utf-8"))
+    assert trace["schema_version"] == "requirement-trace-v1"
+    assert trace["stages"][0]["findings"][0]["rule_id"] == "clarification_redundant"
 
 
 def test_ready_specification_creates_immutable_design_plan(tmp_path: Path) -> None:
@@ -690,6 +788,45 @@ def test_design_plan_parameter_source_value_mismatch_is_repaired(tmp_path: Path)
         attempts = list(session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)))
         assert [attempt.status for attempt in attempts[-2:]] == ["failed", "succeeded"]
         assert attempts[-2].failure_class == "design_plan_invalid"
+
+
+def test_design_plan_missing_protected_requirement_is_repaired(tmp_path: Path) -> None:
+    bad_plan = json.loads(json.dumps(READY_PLAN))
+    bad_plan["parameters"] = [
+        parameter
+        for parameter in bad_plan["parameters"]
+        if parameter["id"] != "mount_hole_spacing"
+    ]
+    provider = PlanningAiProvider(bad_plan, READY_PLAN)
+    client, SessionLocal = build_client(tmp_path, provider)
+    _project, specification = create_project_and_spec(client)
+
+    response = client.post(f"/api/design-specifications/{specification['id']}/design-plan")
+
+    assert response.status_code == 201
+    assert response.json()["outcome"] == "plan_ready"
+    assert len(provider.plan_requests) == 2
+    assert "design_plan.explicit_requirement_missing" in (
+        provider.plan_requests[1].schema_validation_error or ""
+    )
+    with SessionLocal() as session:
+        attempts = list(session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)))
+        assert attempts[-2].failure_class == "design_plan_invalid"
+
+
+def test_generated_source_parameter_drift_blocks_before_cad_runner(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "generation_mode", "advanced")
+    provider = DriftSourceProvider(READY_PLAN)
+    client, _SessionLocal = build_client(tmp_path, provider)
+    _project, specification = create_project_and_spec(client)
+    plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()
+    client.post(f"/api/design-plans/{plan['id']}/approve")
+
+    response = client.post(f"/api/design-plans/{plan['id']}/generate")
+
+    assert response.status_code == 409
+    assert "source_parameter.explicit_value_mismatch" in response.json()["detail"]
+    assert FakeCadRunner.compile_calls == 0
 
 
 def test_replanning_supersedes_prior_unapproved_plan(tmp_path: Path) -> None:

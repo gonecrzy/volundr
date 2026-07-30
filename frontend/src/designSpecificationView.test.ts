@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   assumptionBuckets,
   canContinueGeneration,
+  defaultProvenanceRows,
   protectedRequirementCount,
+  requirementProvenanceRows,
   requirementStageLabel,
+  sourceLabel,
+  traceFailureMessage,
   type DesignSpecificationSummary,
 } from "./designSpecificationView";
 
@@ -91,5 +95,33 @@ describe("design specification view helpers", () => {
 
     expect(buckets.defaults).toEqual(["Use a 3 mm wall thickness"]);
     expect(buckets.aiAssumptions).toEqual(["Leave front access open"]);
+  });
+
+  it("renders provenance labels for explicit requirements and defaults", () => {
+    expect(sourceLabel("user")).toBe("Your request");
+    expect(sourceLabel("product_default")).toBe("Volundr functional default");
+    expect(requirementProvenanceRows(specification({}))).toEqual([
+      "Hole spacing: 60 mm. Source: Your request",
+    ]);
+    expect(defaultProvenanceRows(specification({}))).toEqual([
+      "Use a 3 mm wall thickness. Source: Volundr functional default",
+    ]);
+  });
+
+  it("renders a recoverable trace failure state", () => {
+    expect(
+      traceFailureMessage(
+        specification({
+          generation_ready: false,
+          specification: {
+            ...specification({}).specification,
+            requirement_trace: {
+              status: "blocked",
+              findings: [{ rule_id: "design_plan.explicit_value_mismatch" }],
+            },
+          },
+        }),
+      ),
+    ).toBe("Volundr could not preserve one of your supplied dimensions. The model has not been generated.");
   });
 });

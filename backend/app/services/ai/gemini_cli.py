@@ -27,7 +27,7 @@ DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v1"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v1"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v2"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v1"
 
 

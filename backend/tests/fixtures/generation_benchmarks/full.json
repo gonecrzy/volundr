@@ -328,6 +328,13 @@
       "suite": "full",
       "input_prompt": "Create a configurable electronics enclosure for a 70 x 45 x 18 mm PCB with standoffs, cable opening, and snap-on lid.",
       "required_dimensions": ["pcb=70x45x18 mm", "standoff_count=4", "standoff_hole=2.6 mm"],
+      "expected_explicit_requirements": {
+        "pcb_width": {"value": 70.0, "unit": "mm"},
+        "pcb_depth": {"value": 45.0, "unit": "mm"},
+        "pcb_height": {"value": 18.0, "unit": "mm"},
+        "standoff_count": {"value": 4, "unit": "count"},
+        "standoff_hole": {"value": 2.6, "unit": "mm"}
+      },
       "allowed_assumptions": ["wall_thickness=2.4 mm", "lid_clearance=0.3 mm per side"],
       "expected_clarification": "optional",
       "expected_modules": ["base_shell", "lid", "standoffs", "cable_opening"],
@@ -367,6 +374,13 @@
       "suite": "full",
       "input_prompt": "Create a configurable drawer organizer with editable row count, column count, cell size, wall thickness, and label tabs.",
       "required_dimensions": ["rows=3", "columns=4", "cell=35x25 mm", "wall_thickness=2 mm"],
+      "expected_explicit_requirements": {
+        "row_count": {"value": 3, "unit": "count"},
+        "column_count": {"value": 4, "unit": "count"},
+        "cell_width": {"value": 35.0, "unit": "mm"},
+        "cell_depth": {"value": 25.0, "unit": "mm"},
+        "wall_thickness": {"value": 2.0, "unit": "mm"}
+      },
       "allowed_assumptions": ["label_tab_height=8 mm", "corner_radius=1 mm"],
       "expected_clarification": "none",
       "expected_modules": ["outer_tray", "divider_grid", "label_tabs"],
