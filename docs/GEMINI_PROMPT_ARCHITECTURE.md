@@ -6,13 +6,16 @@ Gemini should not be asked to infer requirements, decide whether to clarify, des
 
 ## CadQuery Transition Status
 
-Gemini API is the primary runtime AI provider for the transition. OpenSCAD prompt modes in this document are legacy implementation paths and are scheduled for replacement by CadQuery modes. Ollama may remain an optional development adapter, but the prompt architecture should be evaluated against Gemini API first.
+Gemini API is the primary runtime AI provider. CadQuery prompt modes are the
+active product path. OpenSCAD prompt modes in this document are historical
+implementation paths retained for context only. Ollama may remain an optional
+development adapter, but prompt quality is evaluated against Gemini API first.
 
 ## Prompt Stages
 
 ### `requirements-v1`
 
-Responsibility: convert user text into a structured Design Specification. Do not generate OpenSCAD.
+Responsibility: convert user text into a structured Design Specification. Do not generate source.
 
 Input context:
 
@@ -61,7 +64,7 @@ Output schema:
 
 ### `design-plan-v1`
 
-Responsibility: create a generic immutable Parametric Design Plan from an approved Design Specification. Do not generate OpenSCAD.
+Responsibility: create a generic immutable Parametric Design Plan from an approved Design Specification. Do not generate source.
 
 Input context:
 
@@ -111,7 +114,7 @@ Output:
 - source-assisted geometry markers for measurable bounds, holes, hole groups, and wall-thickness regions as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - protected values copied exactly from the Design Specification and exposed as named parameters
 
-Current implementation: `openscad-generation-v3` remains the legacy ready-Design-Specification generation path until CadQuery generation replaces it.
+Current implementation: historical only; product generation uses CadQuery prompt modes.
 
 ### `openscad-generation-v5`
 
@@ -136,11 +139,12 @@ Output additions compared with `openscad-generation-v3`:
 - derived Design Plan parameters in `DERIVED VALUES`
 - assertions for invalid configurations, impossible counts, negative clearances, and too-thin walls
 
-Current implementation: `openscad-generation-v5` remains only a legacy compatibility prompt. The dedicated Design Plan generation endpoint now uses CadQuery generation after explicit plan approval.
+Current implementation: historical only. The dedicated Design Plan generation
+endpoint uses CadQuery generation after explicit plan approval.
 
 ### CadQuery Prompt Modes
 
-The CadQuery transition introduces active prompt modes equivalent to:
+The active CadQuery prompt modes are:
 
 ```text
 cadquery-generation-v1
@@ -152,13 +156,17 @@ cadquery-scope-correction-v1
 
 CadQuery generation receives the approved Design Specification, approved Design Plan, typed parameter contract, components, features, dependencies, printable outputs, printer profile, source contract, topology expectations, and security restrictions. It must return complete Python source only.
 
-Current implementation: the active `cadquery-generation-v1` prompt uses the `cadquery-v1` runtime contract. It requires `import cadquery as cq`, `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product`, typed `ParameterSpec` metadata, a single `build(params)` entry point, and one returned `Product` containing `PrintableOutput` records. `build_model()` remains only for the transitional probe runner.
+Current implementation: the active `cadquery-generation-v1` prompt uses the
+`cadquery-v1` runtime contract. It requires `import cadquery as cq`, `from
+volundr_cad.runtime import ParameterSpec, PrintableOutput, Product`, typed
+module-level `ParameterSpec` metadata, a single `build(params)` entry point, and
+one returned `Product` containing `PrintableOutput` records.
 
 Contract repair may fix schema, entrypoint, import, output declaration, syntax, or API contract issues. Execution repair may fix straightforward CadQuery API or geometry-operation failures. Neither repair path may silently redesign geometry or modify protected requirements.
 
 ### `revision-planning-v1`
 
-Responsibility: create an immutable structured Revision Plan from a user request or selected validation finding. Do not generate OpenSCAD.
+Responsibility: create an immutable structured Revision Plan from a user request or selected validation finding. Do not generate source.
 
 Input context:
 
@@ -218,7 +226,9 @@ Rules:
 - do not rename unrelated modules or add undeclared components/outputs
 - do not broaden scope when a shared dependency appears necessary
 
-Current implementation: `openscad-component-revision-v1` is used for approved Revision Plans that include scoped component/output context. Source compliance, output preservation, and interface checks are defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
+Historical implementation: `openscad-component-revision-v1` was used for
+approved Revision Plans that included scoped component/output context. Current
+product revisions use `cadquery-component-revision-v1`.
 
 ### `scope-correction-v1`
 
@@ -271,7 +281,9 @@ Rules:
 - preserve unrelated modules and unaffected output behavior where practical
 - do not redesign unrelated components or remove difficult features
 
-Current implementation: `openscad-revision-v2` is superseded by `openscad-component-revision-v1` for component-targeted full-source revisions.
+Historical implementation: `openscad-revision-v2` was superseded by
+`openscad-component-revision-v1` for component-targeted full-source revisions.
+Current product revisions use CadQuery prompt modes.
 
 ### `compile-repair-v1`
 
@@ -417,15 +429,16 @@ user request
   -> user reviews ready Design Specification
   -> design-plan-v1
   -> user reviews and approves Design Plan
-  -> openscad-generation-v5
+  -> cadquery-generation-v1
   -> source contract validation
-  -> if hard source/spec violation: contract-repair-v2 once, then revalidate or fail attempt
-  -> per-output compile
+  -> if hard source/spec violation: cadquery-contract-repair-v1 once, then revalidate or fail attempt
+  -> per-output worker execution
   -> mesh inspection, geometric invariant analysis, and printability validation
   -> candidate review, repair, or failed attempt
 ```
 
-Current implementation note: `design-plan-v1` exists and feeds `openscad-generation-v5`. A compatibility path may still use `openscad-generation-v3` from a ready Design Specification, but the stabilized frontend path requires Design Plan approval.
+Current implementation note: `design-plan-v1` feeds `cadquery-generation-v1`;
+the frontend path requires Design Plan approval before source generation.
 
 The lifecycle for complex configurable products is:
 
@@ -448,7 +461,7 @@ CadQuery generation uses the approved Design Plan as the structural authority an
 accepted design record + user change or selected finding
   -> revision-planning-v1
   -> clarification/conflict/unsupported or explicit plan approval
-  -> openscad-component-revision-v1
+  -> cadquery-component-revision-v1
   -> source-contract validation
   -> revision compliance validation
   -> output preservation and interface checks
@@ -456,9 +469,12 @@ accepted design record + user change or selected finding
   -> candidate or failed revision
 ```
 
-Current implementation note: structured revision planning is implemented for accepted revisions with approved Design Plans. Legacy active-revision AI edits remain compatibility behavior where a structured plan cannot be created.
+Current implementation note: structured revision planning is implemented for
+accepted revisions with approved Design Plans.
 
-Next prompt boundary: structured revision planning can now feed component-targeted full-source revisions. The next quality phase should use real-world generation benchmarks before expanding revision intelligence.
+Next quality gate: structured revision planning feeds component-targeted
+full-source CadQuery revisions. Live benchmark evidence should guide further
+revision intelligence.
 
 ## Compile-Repair Flow
 

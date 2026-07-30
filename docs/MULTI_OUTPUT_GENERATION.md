@@ -4,9 +4,16 @@ This document defines Volundr's canonical output pipeline for approved Design Pl
 
 ## CadQuery Transition Status
 
-The canonical target is CadQuery `Product` output execution, not OpenSCAD selector dispatch. `module_name`, `selected_output`, and `render_selected_output()` are transitional OpenSCAD implementation details. In the completed CadQuery path, every `PrintableOutput` has an output ID, component ID, quantity, required flag, STEP/STL artifacts, topology metadata, mesh metadata, expected solid count, detected solid count, and disconnected-solid policy.
+The canonical implementation is CadQuery `Product` output execution. Every
+`PrintableOutput` has an output ID, component ID, quantity, required flag,
+STEP/STL artifacts, optional BREP artifact, topology metadata, mesh metadata,
+expected solid count, detected solid count, and disconnected-solid policy.
 
-Current implementation: the CadQuery runner and worker boundary can execute a `cadquery-v1` `Product`, select requested `PrintableOutput` records, export STEP/STL plus optional BREP artifacts, inspect STL mesh metadata, persist topology metadata, preserve optional output failures, and fail the job when a required output fails. The product API still uses the transitional OpenSCAD multi-output path until the staged Gemini CadQuery flow is enabled.
+Current implementation: the CadQuery runner and worker boundary execute a
+`cadquery-v1` `Product`, select requested `PrintableOutput` records, export
+STEP/STL plus optional BREP artifacts, inspect STL mesh metadata, persist
+topology metadata, preserve optional output failures, and fail the job when a
+required output fails.
 
 ## Output Model
 
@@ -36,45 +43,50 @@ Supported printable output types:
 
 Purchased hardware and non-printable reference objects may exist in a Design Plan, but they are not compiled as STL outputs.
 
-## Transitional OpenSCAD Selection Contract
+## CadQuery Output Contract
 
-Approved Design Plan source uses one authoritative OpenSCAD file and command-line output selection:
+Approved Design Plan source uses one authoritative CadQuery Python file and
+declares outputs through `Product.outputs`:
 
-```scad
-selected_output = "carrier_body";
+```python
+PARAMETERS = [...]
 
-// @volundr-output carrier_body module=carrier_body required=true filename=carrier_body.stl components=carrier_body
-module carrier_body() {
-    ...
-}
-
-// @volundr-output carry_handle module=carry_handle required=true filename=carry_handle.stl components=carry_handle
-module carry_handle() {
-    ...
-}
-
-module render_selected_output() {
-    if (selected_output == "carrier_body") {
-        carrier_body();
-    } else if (selected_output == "carry_handle") {
-        carry_handle();
-    } else {
-        assert(false, str("Unknown selected_output: ", selected_output));
-    }
-}
-
-render_selected_output();
+def build(params):
+    body = ...
+    handle = ...
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="carrier_body",
+                label="Carrier body",
+                component_id="carrier_body",
+                component_ids=("carrier_body",),
+                model=body,
+                required=True,
+                expected_solid_count=1,
+            ),
+            PrintableOutput(
+                output_id="carry_handle",
+                label="Carry handle",
+                component_id="carry_handle",
+                component_ids=("carry_handle",),
+                model=handle,
+                required=True,
+                expected_solid_count=1,
+            ),
+        ],
+    )
 ```
 
 Rules:
 
-- every planned printable output has one matching `@volundr-output` marker
-- every output marker references an existing module
+- every planned printable output has one matching `PrintableOutput`
 - output IDs are unique within the plan
 - filenames are normalized before persistence
 - required outputs cannot be silently omitted
-- single-output plans use the same selector contract
-- legacy/manual source may still use `main_model();`
+- single-output plans use the same `Product` contract
+- generated code does not choose artifact paths or write output files directly
 
 ## CadQuery Execution Lifecycle
 
@@ -90,20 +102,6 @@ approved Design Plan
   -> export STEP and STL per output
   -> mesh inspection per output
   -> printability checks per output
-  -> assembly validation summary
-  -> assembly candidate classification
-```
-
-The OpenSCAD lifecycle below is the current transitional implementation:
-
-```text
-approved Design Plan
-  -> generate transitional authoritative SCAD
-  -> source-contract validation
-  -> resolve printable output manifest
-  -> compile each output with -D selected_output="output_id"
-  -> mesh inspection per output
-  -> geometric and printability checks per output
   -> assembly validation summary
   -> assembly candidate classification
 ```
@@ -162,14 +160,15 @@ Each assembly revision persists `output-manifest.json`:
   "revision_id": "uuid",
   "design_plan_id": "uuid",
   "source": {
-    "filename": "project.scad",
+    "filename": "source.py",
     "sha256": "..."
   },
   "outputs": [
     {
       "output_id": "carrier_body",
       "component_id": "carrier_body",
-      "filename": "carrier_body.stl",
+      "step_path": "step/carrier_body.step",
+      "stl_path": "stl/carrier_body.stl",
       "quantity": 1,
       "required": true,
       "state": "ready",

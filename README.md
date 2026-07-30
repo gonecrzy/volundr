@@ -1,20 +1,26 @@
 # Volundr
 
-Volundr is a self-hosted, single-user application for generating, executing, previewing, revising, and exporting functional parametric 3D-printing products. The approved transition target is CadQuery Python as the authoritative CAD source, OpenCascade B-Rep topology validation, STEP as the primary geometry artifact, STL as the derived print/preview artifact, Gemini API as the primary runtime AI provider, and a staged Design Specification and Design Plan workflow.
+Volundr is a self-hosted, single-user application for generating, executing,
+previewing, revising, and exporting functional parametric 3D-printing products.
+The current architecture uses CadQuery Python as the authoritative CAD source,
+OpenCascade B-Rep topology validation, STEP as the primary geometry artifact,
+STL as the derived print/preview artifact, Gemini API as the primary runtime AI
+provider, and a staged Design Specification and Design Plan workflow.
 
 ## Status
 
-The current checkout still contains the working OpenSCAD product path and an
-experimental CadQuery probe. That is transitional implementation debt, not the
-strategic product architecture. The authoritative direction is defined in:
+The current checkout is CadQuery-primary for product CAD generation and
+execution. Generated source is CadQuery Python, execution goes through the
+isolated `volundr-cad-worker`, STEP is the primary geometry artifact, and STL is
+derived for print preview and printing. The live Gemini benchmark gate is still
+pending provider credentials/access; current local and Docker verification is
+recorded in `docs/CADQUERY_TRANSITION_EVALUATION.md`.
+
+The authoritative direction is defined in:
 
 - `docs/CADQUERY_BACKEND.md`
 - `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md`
-- `docs/CURRENT_REPOSITORY_AUDIT.md`
-
-Docker Compose remains the supported deployment method, but the current CAD
-worker is not yet a real execution boundary. Until Phase 2 lands, generated CAD
-execution in the product lifecycle is not isolated from the API container.
+- `docs/CADQUERY_TRANSITION_EVALUATION.md`
 
 ## Intended Product Workflow
 
@@ -63,7 +69,8 @@ Runtime data is stored outside the containers in persistent bind mounts.
 
 ## Milestone 1 Setup
 
-Backend tests require Python 3.12+ and OpenSCAD on the host.
+Backend tests require Python 3.12+ and the Python dependencies declared by
+`backend/pyproject.toml`, including CadQuery.
 
 ```bash
 cd backend
@@ -102,18 +109,15 @@ VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
 
 The API container and local database must be on the current migration head. A stale runtime can continue using the legacy one-step Gemini prompt and bypass the staged Design Specification, Design Plan, source-contract, candidate, and validation gates.
 
-The frontend includes a manual OpenSCAD workspace and staged AI generation path
-from prior development stages. The active transition makes the staged workflow
-the normal path and removes the simple raw prompt-to-source bypass as a product
-default.
+The frontend uses the staged Design Specification and Design Plan workflow as
+the normal product path. AI generations are stored as candidate revisions until
+the user explicitly accepts or rejects them.
 
-If a project has an active revision, the Generate action sends that revision's
-accepted source as context and stores the result as a follow-up AI revision.
-Child revisions expose a unified source diff against their parent in the
-diagnostics panel.
-The workspace parses simple numeric and boolean assignments in the marked
-`USER PARAMETERS` section for the current OpenSCAD path. The CadQuery target uses
-typed parameter execution without source rewriting.
+If a project has an active revision, structured revision planning uses that
+revision's accepted CadQuery source, output manifest, and validation summaries
+as context for a full-source CadQuery revision. Child revisions expose a unified
+source diff against their parent in the diagnostics panel. Parameter changes use
+typed CadQuery parameter execution without source rewriting.
 Projects can be renamed or archived from the browser workspace; archived
 projects are hidden from the default project list.
 Project activity is captured as a per-project message ledger for the original
@@ -149,10 +153,10 @@ ollama pull qwen2.5-coder:14b
 
 Notes from prior local model testing:
 
-- `qwen2.5-coder:14b` was the strongest local model for the transitional OpenSCAD path.
+- `qwen2.5-coder:14b` was the strongest local model in older OpenSCAD-era comparisons.
 - Thinking-capable Ollama models can be tested with `VOLUNDR_OLLAMA_THINK=false` to suppress reasoning and keep `response` clean.
 - `deepseek-coder-v2:16b` remains a slower fallback comparison model.
-- `joshuaokolo/C3Dv0:latest` is not compatible with the current OpenSCAD prompt contract without a separate adapter.
+- `joshuaokolo/C3Dv0:latest` was not compatible with the older OpenSCAD prompt contract without a separate adapter.
 
 Generation attempts record provider, model, non-secret endpoint/auth metadata,
 timeouts, prompt versions, and failure state; API keys are not stored.
@@ -168,20 +172,19 @@ VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
 VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal
 ```
 
-The current Compose file still mounts a Gemini CLI profile into `volundr-api`
-for the legacy provider path. The CAD worker must never receive Gemini CLI
-profile data, Gemini API keys, Ollama credentials, or arbitrary API environment
+The Compose file mounts a Gemini CLI profile only into `volundr-api` for the
+optional CLI provider path. The CAD worker must never receive Gemini CLI profile
+data, Gemini API keys, Ollama credentials, or arbitrary API environment
 variables.
 
 Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, transport, non-secret auth mode, and configured thinking level so quota or policy issues can be traced without storing credentials. `gemini_cli` remains available for a configured Gemini CLI profile, but API-key operation should use `gemini_api`.
 
 For source generation, use `VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite` as the default Gemini endpoint unless you are deliberately comparing model tiers. In the current CadQuery validation path it avoids the tighter `gemini-3.5-flash` request-limit behavior and still returns useful geometry signals. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning; unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
 
-## Transitional Manual Compile API
+## Manual Source API
 
-The current checkout still supports manual OpenSCAD compilation while the
-CadQuery backend is being implemented. This API is transitional and will be
-renamed or removed during the CadQuery persistence and OpenSCAD removal phases.
+Manual source revisions use CadQuery Python satisfying the `cadquery-v1`
+contract. They create candidate revisions and still require explicit acceptance.
 
 Create a project:
 
@@ -191,21 +194,17 @@ curl -X POST http://localhost:8000/api/projects \
   -d '{"name":"Mounting bracket","original_intent":"A flat bracket with two holes."}'
 ```
 
-Compile a manual revision:
-
-```bash
-curl -X POST http://localhost:8000/api/projects/<project-id>/revisions \
-  -H 'content-type: application/json' \
-  -d '{"scad_source":"cube([10, 20, 30]);","user_instruction":"Initial manual model."}'
-```
-
 Successful revision assets are stored under:
 
 ```text
 data/projects/<project-id>/revisions/<revision-id>/
-├── model.scad
-├── model.stl
-├── compile.log
+├── source.py
+├── execution-manifest.json
+├── output-manifest.json
+├── step/
+│   └── body.step
+├── stl/
+│   └── body.stl
 ├── ai-output.txt
 └── metadata.json
 ```

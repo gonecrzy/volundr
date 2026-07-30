@@ -4,7 +4,7 @@ This document defines the required automated coverage for CAD execution, AI-sour
 
 ## CadQuery Transition Status
 
-The required final coverage is CadQuery-primary. Existing OpenSCAD tests should be preserved only while they keep transitional commits testable, then removed or replaced when OpenSCAD product paths are deleted.
+The required coverage is CadQuery-primary.
 
 ## Testing Priorities
 
@@ -39,18 +39,6 @@ Test:
 - solid-count mismatch blocks required outputs
 - intentional disconnected outputs require explicit policy
 
-Transitional OpenSCAD coverage remains until removal:
-
-- simple cube compiles
-- difference operation compiles
-- invalid syntax returns failure
-- missing output returns failure
-- timeout terminates process
-- oversized source is rejected
-- forbidden import is rejected
-- output metadata is populated
-- temporary files are cleaned safely
-
 ### Source extraction
 
 Test AI responses containing:
@@ -66,20 +54,6 @@ Test AI responses containing:
 ### Source-contract validation
 
 CadQuery tests must reject generated code that imports `os`, imports `subprocess`, imports network libraries, calls `open`, inspects environment variables, escapes job directories, writes arbitrary artifact paths, mutates interpreter/global state, or uses arbitrary top-level execution.
-
-Transitional OpenSCAD tests:
-
-Test:
-
-- tokenizer ignores prohibited-looking text inside comments and strings
-- real `import()`, `surface()`, `include`, `use`, suspicious paths, oversized source, missing legacy `main_model` or planned `render_selected_output`, missing final call, top-level geometry, unbalanced braces/parentheses, and empty final-output body block before compile
-- new initial AI source requires the contract skeleton and Design Specification requirement/feature markers
-- protected numeric values are statically verified with safe constant arithmetic
-- unverifiable or mismatched protected values block before compile
-- missing assertions, missing print notes, high `$fn`, repeated magic numbers, and unclear parameterization create quality findings rather than universal hard rejections
-- contract repair is attempted at most once and remains distinct from compile repair
-- compile repair starts only after source-contract hard checks pass
-- source-contract failures create generation-attempt findings and no candidate
 
 ### Mesh inspection
 
@@ -240,17 +214,17 @@ Component-targeted revision workflow coverage:
 5. Confirm Gemini returns complete source and the target output changes.
 6. Confirm protected outputs remain equivalent or warn if preservation is unverifiable.
 7. Confirm configuration overrides remain active.
-8. Confirm pre-compile rejection when generated source changes a protected component or unapproved shared module.
+8. Confirm pre-execution rejection when generated source changes a protected component or unapproved shared helper.
 
 ## Fixture Models
 
-Maintain a small set of SCAD fixtures:
+Maintain a small set of CadQuery fixtures:
 
 - cube
 - mounting plate
 - cylindrical holder
 - box with lid
-- invalid syntax
+- invalid Python/source-contract cases
 - runaway/high-complexity pattern
 - disconnected components
 
@@ -303,13 +277,16 @@ Candidate tests must use fake providers and deterministic STL fixtures. Live Gem
 
 Requirement-extraction tests must use fake providers and deterministic JSON fixtures. They must assert that clarification is not represented as a failed revision and that no candidate exists before explicit Continue to generation.
 
-Design Plan tests must use fake providers and deterministic JSON fixtures. They must assert immutable persistence, supersession, approval/rejection, prompt/model/ruleset metadata, plan artifact hashes, and `openscad-generation-v5` prompt context.
+Design Plan tests must use fake providers and deterministic JSON fixtures. They must assert immutable persistence, supersession, approval/rejection, prompt/model/ruleset metadata, plan artifact hashes, and CadQuery generation prompt context.
 
-Multi-output tests must use fake providers and deterministic STL fixtures. They must cover required and optional outputs, selected-output compiler invocation, component-scoped findings, assembly candidate classification, output manifest reproducibility, retry without provider calls, and ZIP export contents.
+Multi-output tests must use fake providers and deterministic STEP/STL fixtures.
+They must cover required and optional outputs, requested-output worker execution,
+component-scoped findings, assembly candidate classification, output manifest
+reproducibility, retry without provider calls, and ZIP export contents.
 
 Structured revision tests must use fake providers and deterministic source/output fixtures. They must cover plan readiness, clarification, approval gating, finding-driven planning, superseding plans from clarification answers, prompt/model/ruleset persistence, revision compliance rejection before compile, success criteria, and active-revision preservation.
 
-Component-targeted revision tests must use fake providers and deterministic source/output fixtures. They must cover full-source prompt mode, source ownership markers, normalized module fingerprints, allowed versus unapproved shared-module changes, protected module drift, output preservation blocking, interface parameter checks, component revision summaries, and active configuration preservation.
+Component-targeted revision tests must use fake providers and deterministic source/output fixtures. They must cover full-source prompt mode, source ownership metadata, allowed versus unapproved shared-helper changes, protected component drift, output preservation blocking, interface parameter checks, component revision summaries, and active configuration preservation.
 They must also cover that scope correction runs at most once and compilation begins only after corrected source passes scope compliance.
 
 Parameter configuration tests must use deterministic accepted-source fixtures and must not call a provider. They must cover editable parameter listing, number/integer/boolean/enum validation, non-editable and derived-parameter rejection, preset preview, dependency impact expansion, `-D` override compilation, active-revision preservation, configuration-linked candidates, retry/export manifest behavior, and UI rendering for ready/invalid/requires-revision states.

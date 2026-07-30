@@ -4,7 +4,10 @@ This document defines what Volundr is, who it serves, the value it should provid
 
 ## CadQuery Transition Status
 
-`docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims that OpenSCAD is the strategic V1 kernel, Gemini CLI is the primary runtime provider, Ollama is the intended default, or simple chat generation is the main product path. Existing OpenSCAD behavior remains useful implementation history during the transition, but the product direction is CadQuery-primary and staged-workflow-primary.
+`docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims that
+OpenSCAD is the strategic V1 kernel, Gemini CLI is the primary runtime provider,
+Ollama is the intended default, or simple chat generation is the main product
+path. The product direction is CadQuery-primary and staged-workflow-primary.
 
 ## Working Description
 
@@ -102,7 +105,7 @@ Generated models should expose meaningful variables and reusable modules rather 
 
 ### Products before isolated solids
 
-For complex functional designs, Volundr should model the product structure before generating source: components, owned features, editable parameters, derived dependencies, presets, assembly strategy, and separate printable outputs. This keeps changes such as tray count, carrier size, retention geometry, handle position, and reinforcement layout connected instead of forcing Gemini to rediscover the design from OpenSCAD text.
+For complex functional designs, Volundr should model the product structure before generating source: components, owned features, editable parameters, derived dependencies, presets, assembly strategy, and separate printable outputs. This keeps changes such as tray count, carrier size, retention geometry, handle position, and reinforcement layout connected instead of forcing Gemini to rediscover the design from source text alone.
 
 ### Source-controlled by design
 

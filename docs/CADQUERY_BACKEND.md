@@ -17,9 +17,19 @@ This document is the authoritative architecture direction for the CadQuery-prima
 
 ## Current Implementation Status
 
-The current checkout has working OpenSCAD product paths and an experimental CadQuery source probe. CadQuery is not yet the normal project backend. CAD execution still occurs from the API process for product workflows, and the `volundr-cad-worker` container is idle. Phase 1 documentation must not be read as claiming the transition is complete.
+The current checkout uses CadQuery as the product CAD backend. Generated and
+manual product source is CadQuery Python satisfying `cadquery-v1`; the normal
+staged lifecycle persists Design Specifications, Design Plans, source-contract
+results, candidate revisions, CadQuery source, STEP/STL/BREP artifacts, topology
+metadata, mesh metadata, and worker execution manifests.
 
-OpenSCAD may remain temporarily only to keep intermediate commits runnable and testable. There is no compatibility obligation for existing development databases, old artifact directories, SCAD source paths, OpenSCAD prompts, or SCAD API names.
+CAD execution is performed through `volundr-cad-worker`, which runs as a
+dedicated non-root user with no network and no provider credentials. Docker
+verification evidence is recorded in `docs/CADQUERY_TRANSITION_EVALUATION.md`.
+
+Existing development databases and old artifact directories may be recreated;
+there is no compatibility obligation for old SCAD source paths, OpenSCAD
+prompts, or SCAD API names.
 
 ## Product Lifecycle
 
@@ -42,7 +52,7 @@ user request
   -> explicit acceptance
 ```
 
-The simple raw prompt-to-source bypass is transitional implementation debt and must not remain the default product path.
+The simple raw prompt-to-source bypass is not the default product path.
 
 ## CadQuery Source Authority
 
@@ -73,7 +83,11 @@ Volundr provides a small internal runtime package for generated CadQuery source 
 
 The runtime should not hide CadQuery modeling APIs. Generated code may use approved CadQuery modeling operations, but source ownership, output registration, parameter validation, execution, topology checks, and artifact writing belong to Volundr.
 
-Current implementation: Phase 4 introduces the runtime containers and strict AST validation for `cadquery-v1` source. The transitional probe runner still accepts `build_model()` until the Phase 5 execution path calls `build(params)` and exports each `PrintableOutput`.
+Current implementation: strict AST validation enforces `cadquery-v1` source for
+product workflows. The execution runner calls `build(params)`, validates
+`ParameterSpec` values, resolves `Product.outputs`, exports each
+`PrintableOutput`, and rejects required outputs with failed or malformed
+artifacts.
 
 ## Multi-Output Product Model
 
@@ -162,12 +176,12 @@ The worker must:
 - scrub inherited environment variables,
 - emit structured success and failure manifests.
 
-## OpenSCAD Removal Plan
+## Historical OpenSCAD Removal
 
-OpenSCAD remains temporary implementation debt during the transition. The completed architecture removes these normal product paths:
+The CadQuery-primary transition removed OpenSCAD from normal product paths:
 
 - OpenSCAD packages in Docker images,
-- OpenSCAD runner,
+- OpenSCAD runner usage in product lifecycle,
 - OpenSCAD source extraction,
 - OpenSCAD scanner and markers,
 - OpenSCAD parameter parser,

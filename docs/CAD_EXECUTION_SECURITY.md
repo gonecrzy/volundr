@@ -131,7 +131,12 @@ security option: no-new-privileges
 
 ## Source Screening
 
-The CadQuery target rejects dangerous Python before execution, including unauthorized imports, `open`, `exec`, `eval`, `compile`, `__import__`, subprocess access, sockets, HTTP libraries, filesystem libraries, environment access, dynamic code loading, reflection, dangerous dunder access, arbitrary top-level calls, uncontrolled exception suppression, source-controlled export paths, and interpreter/global environment mutation.
+The CadQuery source contract rejects dangerous Python before execution,
+including unauthorized imports, `open`, `exec`, `eval`, `compile`, `__import__`,
+subprocess access, sockets, HTTP libraries, filesystem libraries, environment
+access, dynamic code loading, reflection, dangerous dunder access, arbitrary
+top-level calls, uncontrolled exception suppression, source-controlled export
+paths, and interpreter/global environment mutation.
 
 AST validation is defense in depth. It does not replace the worker sandbox.
 

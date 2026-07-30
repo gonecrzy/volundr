@@ -4,7 +4,9 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 
 ## CadQuery Transition Status
 
-`docs/CADQUERY_BACKEND.md` supersedes the original OpenSCAD V1 scope. During the transition, OpenSCAD remains only as temporary implementation debt. The completed scope is CadQuery-primary, Gemini API-primary, staged-workflow-primary, and explicit-candidate-acceptance-primary.
+`docs/CADQUERY_BACKEND.md` supersedes the original OpenSCAD V1 scope. The V1
+scope is CadQuery-primary, Gemini API-primary, staged-workflow-primary, and
+explicit-candidate-acceptance-primary.
 
 ## Included
 

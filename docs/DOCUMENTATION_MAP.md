@@ -6,15 +6,15 @@ This file explains exactly what belongs in each project document.
 |---|---|
 | `CODEX_KICKOFF_PROMPT.md` | The instruction Codex executes when beginning or resuming foundational work. |
 | `README.md` | Repository entry point, project summary, status, and document links. |
-| `docs/CADQUERY_BACKEND.md` | Authoritative CadQuery-primary backend direction, staged lifecycle, artifacts, worker boundary, OpenSCAD removal plan, and non-goals. |
+| `docs/CADQUERY_BACKEND.md` | Authoritative CadQuery-primary backend architecture, staged lifecycle, artifacts, worker boundary, historical OpenSCAD removal notes, and non-goals. |
 | `docs/PRODUCT_DIRECTION.md` | Product purpose, target user, principles, success criteria, and long-term direction. |
 | `docs/MVP_SCOPE.md` | V1 inclusions, exclusions, and scope guard. |
 | `docs/DOCKER_BASELINE.md` | Canonical service/container names, network name, volume boundaries, and Compose skeleton. |
 | `docs/ARCHITECTURE.md` | Approved V1 components, interfaces, Docker service names, runtime flow, storage, and deployment. |
 | `docs/PARAMETRIC_PRODUCT_MODEL.md` | High-level Parametric Product Model concepts and links to Design Plan, configuration, revision planning, and output behavior. |
-| `docs/MODEL_GENERATION_CONTRACT.md` | Legacy OpenSCAD source-contract behavior retained until the CadQuery contract replaces it. |
-| `docs/MULTI_OUTPUT_GENERATION.md` | Canonical output model, CadQuery target behavior, transitional selected-output OpenSCAD contract, per-output lifecycle, assembly classification, retry, and ZIP export behavior. |
-| `docs/PARAMETER_CONFIGURATION.md` | Direct parameter editing, preset switching, deterministic CadQuery parameter regeneration target, transitional `-D` override behavior, configuration-change persistence, and limits that escalate to revision planning. |
+| `docs/MODEL_GENERATION_CONTRACT.md` | Historical OpenSCAD source-contract behavior; superseded for product CAD by the `cadquery-v1` contract in `CADQUERY_BACKEND.md`. |
+| `docs/MULTI_OUTPUT_GENERATION.md` | Canonical CadQuery output model, per-output lifecycle, assembly classification, retry, and ZIP export behavior. |
+| `docs/PARAMETER_CONFIGURATION.md` | Direct parameter editing, preset switching, deterministic CadQuery parameter regeneration, configuration-change persistence, and limits that escalate to revision planning. |
 | `docs/STRUCTURED_REVISION_PLANNING.md` | Immutable revision-plan lifecycle, scoped change model, compliance checks, success criteria, and finding-driven revision behavior. |
 | `docs/COMPONENT_TARGETED_REVISIONS.md` | Component-targeted full-source revision behavior, source ownership, scope compliance, output preservation, interface verification, and configuration preservation. |
 | `docs/GEOMETRIC_INVARIANT_VALIDATION.md` | Supported post-compile geometric invariant checks, marker metadata, tolerances, confidence, blocking policy, and limits. |
@@ -27,9 +27,9 @@ This file explains exactly what belongs in each project document.
 
 When information conflicts:
 
-1. `CADQUERY_BACKEND.md` controls the CadQuery-primary transition direction.
+1. `CADQUERY_BACKEND.md` controls the CadQuery-primary architecture.
 2. `PRODUCT_DIRECTION.md` controls product intent when it does not conflict with `CADQUERY_BACKEND.md`.
-3. `MVP_SCOPE.md` controls scope when it does not conflict with the approved transition.
+3. `MVP_SCOPE.md` controls scope when it does not conflict with the approved CadQuery architecture.
 4. `ARCHITECTURE.md` controls implementation defaults after being reconciled with `CADQUERY_BACKEND.md`.
 5. `MODEL_GENERATION_CONTRACT.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, and `CAD_EXECUTION_SECURITY.md` control generated CAD behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, and execution safety.
 6. `CURRENT_STAGE_ROADMAP.md` controls work order.

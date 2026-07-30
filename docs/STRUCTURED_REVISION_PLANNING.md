@@ -4,7 +4,10 @@ This document defines Volundr's revision-planning lifecycle. It is the authority
 
 ## CadQuery Transition Status
 
-Revision planning is CadQuery-primary for staged workflow revisions. OpenSCAD source revision and marker-based compliance remain for legacy revisions. CadQuery revisions use complete-source Python regeneration, AST-visible `ParameterSpec` and `PrintableOutput` metadata, source-contract validation, and output preservation checks based on persisted STEP/B-Rep/STL summaries.
+Revision planning is CadQuery-primary for staged workflow revisions. CadQuery
+revisions use complete-source Python regeneration, AST-visible `ParameterSpec`
+and `PrintableOutput` metadata, source-contract validation, and output
+preservation checks based on persisted STEP/B-Rep/STL summaries.
 
 ## Purpose
 
@@ -19,7 +22,8 @@ The plan answers:
 - whether the request needs clarification, conflicts with accepted requirements, or is unsupported
 - how the revised source will be checked before compile and after candidate creation
 
-Revision planning does not generate OpenSCAD.
+Revision planning does not generate source; it gates later complete-source
+CadQuery regeneration.
 
 ## Lifecycle
 

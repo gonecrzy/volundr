@@ -4,7 +4,11 @@ This document defines the persistent entities and invariants needed for projects
 
 ## CadQuery Transition Status
 
-The target data model is CadQuery-native and provider-neutral. Phase 3 removes `Revision.scad_source_path`, `RevisionOutput.module_name`, `RevisionOutput.compile_command_json`, and persisted `gemini_ruleset_version` columns as canonical fields. The completed transition stores backend/source-language metadata, CadQuery source paths and hashes, execution manifests, STEP/STL artifact hashes, topology metadata, mesh metadata, and validation summaries without permanent SCAD aliases.
+The data model is CadQuery-native and provider-neutral. It stores
+backend/source-language metadata, CadQuery source paths and hashes, execution
+manifests, STEP/STL artifact hashes, optional BREP artifact hashes, topology
+metadata, mesh metadata, and validation summaries without permanent SCAD
+aliases.
 
 ## Project
 
@@ -111,7 +115,7 @@ accepted
 Candidate state diagram:
 
 ```text
-compile/mesh/validation complete
+worker execution/mesh/validation complete
   -> blocking findings? yes -> blocked -> rejected
   -> advisory findings? yes -> ready_with_warnings -> accepted | rejected
   -> no findings -> ready -> accepted | rejected
@@ -121,15 +125,19 @@ blocked -> accepted is forbidden
 rejected -> accepted is forbidden
 ```
 
-Manual source compilation establishes the first active accepted revision when no active design exists. Later manual compiles and AI compiles create candidates until explicitly accepted.
+Manual source execution establishes the first active accepted revision when no
+active design exists. Later manual and AI executions create candidates until
+explicitly accepted.
 
 For approved Design Plan generation, the revision represents the assembly-level candidate. Individual printable artifacts are represented by `RevisionOutput` rows. `stl_path` remains as a compatibility pointer to the first successful printable output when one exists.
 
-Configuration-generated revisions link to `configuration_change_id`. In the CadQuery target they copy accepted source unchanged, validate typed parameter values, and execute through the isolated worker without source rewriting or provider calls. The current OpenSCAD implementation uses persisted `-D` overrides during per-output compilation until Phase 7 replaces that path.
+Configuration-generated revisions link to `configuration_change_id`. They copy
+accepted source unchanged, validate typed parameter values, and execute through
+the isolated worker without source rewriting or provider calls.
 
-## CadQuery Target Revision Fields
+## CadQuery Revision Fields
 
-The Phase 3 revision model now stores backend-neutral source fields directly.
+The revision model stores backend-neutral source fields directly.
 
 For normal product revisions:
 

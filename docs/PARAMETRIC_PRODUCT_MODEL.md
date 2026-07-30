@@ -2,7 +2,9 @@
 
 Volundr represents configurable products through immutable Design Plans and deterministic configuration changes.
 
-`docs/CADQUERY_BACKEND.md` is authoritative for the CadQuery transition. Product-model concepts in this document remain strategic; references to SCAD source are transitional implementation details.
+`docs/CADQUERY_BACKEND.md` is authoritative for the CadQuery architecture.
+Product-model concepts in this document are current for CadQuery source and
+worker execution.
 
 The Design Plan defines:
 
@@ -18,4 +20,4 @@ Direct user configuration is covered by `docs/PARAMETER_CONFIGURATION.md`. Confi
 
 Printable outputs and assembly-level artifacts are covered by `docs/MULTI_OUTPUT_GENERATION.md`.
 
-Component-targeted full-source revisions are covered by `docs/COMPONENT_TARGETED_REVISIONS.md`. They use the Design Plan component/output graph to constrain Gemini while preserving the complete authoritative CadQuery source in the target architecture.
+Component-targeted full-source revisions are covered by `docs/COMPONENT_TARGETED_REVISIONS.md`. They use the Design Plan component/output graph to constrain Gemini while preserving the complete authoritative CadQuery source.

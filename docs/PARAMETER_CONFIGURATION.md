@@ -4,7 +4,7 @@ This document defines direct parameter editing, preset switching, and determinis
 
 ## CadQuery Transition Status
 
-The primary configuration path is typed CadQuery parameter execution. OpenSCAD identifier checks, source assignment discovery, and `-D` overrides remain only for legacy OpenSCAD revisions.
+The primary configuration path is typed CadQuery parameter execution.
 
 ## Scope
 
@@ -101,29 +101,11 @@ The override manifest is provider-neutral and includes the full resolved paramet
     "slot_count": 5,
     "wall_thickness": 3
   },
-  "parameter_hash": "sha256-of-canonical-parameter-json",
-  "openscad_defines": {}
+  "parameter_hash": "sha256-of-canonical-parameter-json"
 }
 ```
 
 `parameter_hash` is computed from canonical sorted JSON so the same resolved values produce the same hash regardless of request key order.
-
-## Transitional OpenSCAD Override Contract
-
-Generated source should mark editable parameters:
-
-```scad
-// @volundr-parameter slot_count type=integer editable=true
-slot_count = 6;
-```
-
-Volundr compiles configured candidates from unchanged source using command-line overrides:
-
-```text
-openscad -D 'selected_output="body"' -D 'slot_count=8' -o body.stl project.scad
-```
-
-The accepted source file is never rewritten for configuration changes.
 
 ## Source-Derived Parameter Discovery
 
@@ -133,16 +115,11 @@ Volundr also exposes a lightweight read-only discovery endpoint for accepted or 
 GET /api/revisions/{revision_id}/parameters
 ```
 
-This endpoint derives candidate controls directly from the saved OpenSCAD source. It is intentionally narrower than the Design Plan configuration system and is used as an evaluation gate before adding more editing UI.
-
-The extractor currently accepts only simple top-level constants before the first `module` or `function` declaration:
-
-- numbers, booleans, strings, color strings, and one-line numeric arrays
-- OpenSCAD Customizer-style group comments such as `/* [Dimensions] */`
-- descriptions from the immediately preceding `//` comment
-- range, step, enum, and enum-label hints from trailing comments such as `// [10:1:80]`
-
-It intentionally ignores derived expressions, multiline values, assignments inside modules, and structural source changes. If AI output does not expose useful top-level parameters, this phase should improve generation prompts or Design Plan parameterization before adding override workflows.
+This endpoint derives candidate controls from the accepted CadQuery
+`PARAMETERS` declaration and remains narrower than the Design Plan configuration
+system. It intentionally ignores structural source changes. If AI output does
+not expose useful typed parameters, improve generation prompts or Design Plan
+parameterization before adding override workflows.
 
 ## Presets
 

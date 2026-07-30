@@ -4,9 +4,14 @@ This document records the implementation sequence, current stage status, milesto
 
 ## Active Transition
 
-Status: In progress
+Status: locally implemented; live Gemini benchmark gate pending provider access
 
-The active roadmap is now the CadQuery-primary architecture transition defined in `docs/CADQUERY_BACKEND.md` and planned in `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md`. The historical stages below describe how the current OpenSCAD implementation was built; they are not the strategic endpoint.
+The active roadmap is the CadQuery-primary architecture transition defined in
+`docs/CADQUERY_BACKEND.md`, planned in
+`docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md`, and
+verified in `docs/CADQUERY_TRANSITION_EVALUATION.md`. The historical stages
+below describe how the old OpenSCAD implementation was built; they are not the
+current architecture.
 
 Transition order:
 
@@ -20,7 +25,8 @@ Transition order:
 8. Rebuild structured and component-targeted revisions around CadQuery source ownership and topology evidence.
 9. Align the frontend and Playwright workflow with the staged CadQuery lifecycle.
 10. Remove OpenSCAD product paths.
-11. Run the functional CadQuery/Gemini benchmark gate.
+11. Run the functional CadQuery/Gemini benchmark gate. This remains blocked on
+    provider credentials/access; see `docs/CADQUERY_TRANSITION_EVALUATION.md`.
 
 ## Stage 0 — Foundation Documents
 

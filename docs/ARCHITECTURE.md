@@ -4,7 +4,9 @@ This document defines Volundr's technical shape: major components, service bound
 
 ## Decision Status
 
-`docs/CADQUERY_BACKEND.md` is the current architecture authority for the CadQuery-primary transition. Sections below that describe OpenSCAD runners, Gemini CLI, or an already-isolated CAD worker are current-state or legacy-target descriptions and are superseded where they conflict with the CadQuery backend document.
+`docs/CADQUERY_BACKEND.md` is the current architecture authority for the
+CadQuery-primary product path. Historical OpenSCAD-era details in older docs are
+superseded where they conflict with the CadQuery backend document.
 
 ## System Overview
 
@@ -100,7 +102,8 @@ Responsibilities:
 - controlled asset delivery
 - communication with `volundr-cad-worker`
 
-This service may hold provider credentials. It must not execute generated CadQuery Python directly in the completed architecture.
+This service may hold provider credentials. It must not execute generated
+CadQuery Python directly.
 
 ### `volundr-cad-worker`
 
@@ -258,8 +261,8 @@ AI or post-active manual source
   -> source-contract validation
   -> if hard violation: failed generation attempt, optional one contract repair, no candidate
   -> if quality findings only: continue and persist findings
-  -> OpenSCAD compile
-  -> if compile failure: optional one compile repair after source-contract validation passes
+  -> CadQuery worker execution
+  -> if execution failure: optional one bounded repair after source-contract validation passes
   -> mesh inspection
   -> geometric invariant analysis for supported protected values
   -> deterministic validation findings
@@ -272,7 +275,7 @@ Only explicit acceptance updates `projects.active_revision_id` for generated can
 Initial implementation:
 
 ```text
-OpenScadCliRunner
+CadQuery worker job
 ```
 
 ## Job State
@@ -289,8 +292,8 @@ plan_clarification_required
 plan_ready
 plan_approved
 generation_queued
-generating_scad
-extracting_scad
+generating_cadquery
+extracting_python
 contract_validating
 compiling
 inspecting
@@ -322,7 +325,7 @@ request
   -> plan clarification or explicit plan approval
   -> CadQuery generation from approved Design Plan
   -> source validation
-  -> compile
+  -> isolated CadQuery execution
   -> mesh inspection
   -> geometric invariant validation
   -> printability validation
@@ -335,15 +338,18 @@ Structured AI revision flow:
 accepted revision
   -> revision-planning-v1 from Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
   -> clarification/conflict/unsupported or explicit revision-plan approval
-  -> openscad-component-revision-v1 full-source revision
+  -> cadquery-component-revision-v1 full-source revision
   -> source-contract validation
   -> source scope compliance against approved plan
-  -> multi-output compile and validation
+  -> multi-output worker execution and validation
   -> protected output preservation and interface checks
   -> candidate review
 ```
 
-The legacy endpoint may still generate from a ready Design Specification for compatibility. The new initial frontend flow uses an approved Design Plan. Initial generation, Design Plan creation, structured revision planning, component-targeted source revision, source-contract repair, and compiler repair use separate prompt stages and persisted prompt versions.
+The initial frontend flow uses an approved Design Plan. Initial generation,
+Design Plan creation, structured revision planning, component-targeted source
+revision, source-contract repair, and execution repair use separate prompt
+stages and persisted prompt versions.
 
 ## File Layout
 
@@ -355,9 +361,11 @@ data/
 │   └── <project-id>/
 │       ├── revisions/
 │       │   └── <revision-id>/
-│       │       ├── model.scad
-│       │       ├── model.stl
-│       │       ├── compile.log
+│       │       ├── source.py
+│       │       ├── execution-manifest.json
+│       │       ├── output-manifest.json
+│       │       ├── step/
+│       │       ├── stl/
 │       │       ├── ai-output.txt
 │       │       └── metadata.json
 │       ├── configuration-changes/
@@ -374,7 +382,7 @@ data/
 │       │       ├── parsed-revision-plan.json
 │       │       ├── design-spec.json
 │       │       ├── design-plan.json
-│       │       ├── extracted-source.scad
+│       │       ├── extracted-source.py
 │       │       └── chain.json
 │       └── thumbnails/
 └── jobs/
@@ -406,7 +414,11 @@ The exact visual design may evolve, but Volundr should prioritize:
 
 ## Deterministic Configuration Regeneration
 
-Accepted revisions with approved Design Plans expose a configuration workflow. The target backend validates editable Design Plan parameters, persists a `configuration-change-v1` record, and regenerates candidates from the unchanged accepted CadQuery source using a typed parameter manifest in the isolated worker.
+Accepted revisions with approved Design Plans expose a configuration workflow.
+The backend validates editable Design Plan parameters, persists a
+`configuration-change-v1` record, and regenerates candidates from the unchanged
+accepted CadQuery source using a typed parameter manifest in the isolated
+worker.
 
 This path does not call Gemini. If a requested change adds structure or touches a non-editable/derived parameter, the API returns `requires_design_revision` so the user can use structured revision planning instead.
 

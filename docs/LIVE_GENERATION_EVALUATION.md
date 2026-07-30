@@ -100,9 +100,21 @@ The flag selects exactly three scenarios:
 
 Do not treat the phase run as a complete acceptance test. It is a smoke signal for whether the AI and pipeline are moving in the right direction on functional geometry, requested styling, subtractive CAD patterns, parameterization, and curated-library pressure.
 
-`--source-probe` adds a lightweight direct CAD-source generation probe. The probe prompt includes the benchmark's expected parameter IDs as top-level control targets while explicitly keeping creative form open. OpenSCAD remains the default source language. `--source-language cadquery` enables an experimental CadQuery Python probe that extracts `source-extracted.py`, validates it against the restricted `cadquery-v1` AST contract, runs `build_model()`, and exports STL/STEP when CadQuery is installed in the benchmark environment. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage.
+`--source-probe` adds a lightweight direct CAD-source generation probe. The
+probe prompt includes the benchmark's expected parameter IDs as top-level
+control targets while explicitly keeping creative form open. CadQuery is the
+product source language. CadQuery probes extract `source-extracted.py`, validate
+it against the restricted `cadquery-v1` AST contract, execute the generated
+source, and export STEP/STL artifacts when CadQuery is installed in the
+benchmark environment. The analysis reports extracted editable parameter IDs and
+exact expected-parameter coverage.
 
-The `cadquery-v1` contract is intentionally narrower than unrestricted Python: only `import cadquery as cq` is allowed, top-level values must be literal parameters, helper functions may be top-level or nested inside `build_model()`, top-level CadQuery execution is rejected, and unsafe/dynamic calls such as file access, `eval`, `exec`, `getattr`, `globals`, and `locals` are rejected before subprocess execution. This is a probe guardrail, not a complete sandbox; a production CadQuery backend still needs isolated execution.
+The `cadquery-v1` contract is intentionally narrower than unrestricted Python:
+only `import cadquery as cq` and the Volundr runtime import are allowed,
+module-level parameter/output metadata must be AST-visible, top-level CadQuery
+execution is rejected, and unsafe/dynamic calls such as file access, `eval`,
+`exec`, `getattr`, `globals`, and `locals` are rejected before worker execution.
+This is defense in depth; real execution still happens in the isolated worker.
 
 The `cadquery-generation-v1` prompt keeps the same `cadquery-v1` execution contract and includes the stronger generation guidance from earlier source-probe failures: do not use `math`, `map()`, or string parsing; expose `thread_spec` as a numeric millimeter diameter; extrude only closed profiles; and prefer fused single-profile creative bracket geometry over loose decorative solids.
 
@@ -110,7 +122,16 @@ The `cadquery-generation-v1` prompt keeps the same `cadquery-v1` execution contr
 
 When extraction succeeds, the probe compiles the source with the selected source-language runner and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.
 
-`--source-probe-repair` requires `--source-probe`. When the first source-probe extraction or compile fails, the harness sends one repair prompt using the raw or extracted failed source plus extraction/compiler/runtime diagnostics. The repair path uses the selected source language, so OpenSCAD repair returns `.scad` and experimental CadQuery repair returns `.py`. When `--source-brief` is also enabled and the source compiles but mesh metadata reports more connected components than the parsed brief expects, the same bounded repair path runs with disconnected-mesh diagnostics. The harness stores separate `source-repair-*` prompt, raw output, extracted source, parameter analysis, compile logs, STL, and mesh metadata artifacts. Repair metrics are separate from first-pass source-probe metrics so raw model quality and repair recovery can be compared directly.
+`--source-probe-repair` requires `--source-probe`. When the first source-probe
+extraction or execution fails, the harness sends one repair prompt using the raw
+or extracted failed source plus extraction/runtime diagnostics. The CadQuery
+repair path returns `.py`. When `--source-brief` is also enabled and the source
+executes but mesh metadata reports more connected components than the parsed
+brief expects, the same bounded repair path runs with disconnected-mesh
+diagnostics. The harness stores separate `source-repair-*` prompt, raw output,
+extracted source, parameter analysis, execution logs, STEP/STL, and mesh
+metadata artifacts. Repair metrics are separate from first-pass source-probe
+metrics so raw model quality and repair recovery can be compared directly.
 
 ## Quota Controls
 
@@ -142,11 +163,12 @@ output/live-benchmarks/<run-id>/
 │       ├── requirements-raw-output.txt
 │       ├── source-prompt.txt
 │       ├── source-raw-output.txt
-│       ├── source-extracted.scad
+│       ├── source-extracted.py
 │       ├── source-parameter-analysis.json
 │       └── source-compile-workspace/
 │           └── source-probe/
-│               ├── model.scad
+│               ├── source.py
+│               ├── model.step
 │               ├── model.stl
 │               ├── metadata.json
 │               ├── stdout.log
@@ -228,7 +250,7 @@ Reviewers should cite artifact paths in `evidence_paths` and list the recommende
 - average expected-parameter coverage from extracted source
 - count of compiled source probes with watertight and nonzero-volume meshes
 - count of compiled source probes with disconnected meshes and the maximum connected-component count
-- total OpenSCAD warning/deprecation lines from source-probe compile logs
+- total runtime warning/deprecation lines from source-probe execution logs
 - no-promotion flag
 
 Future evaluators may aggregate completed human scoring forms into the same next-work buckets, but prompt promotion must still remain a separate manual decision.

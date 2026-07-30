@@ -2,6 +2,11 @@
 
 Date: 2026-07-25
 
+Historical snapshot: this review describes the old OpenSCAD/Gemini CLI pipeline
+before the CadQuery-primary transition. It is retained for failure taxonomy and
+background only. Use `docs/CADQUERY_BACKEND.md` and
+`docs/CADQUERY_TRANSITION_EVALUATION.md` for the current pipeline.
+
 ## Scope
 
 This review inspected the current Volundr repository as a product, CAD, OpenSCAD, prompt, and reliability system. Specialist read-only agents reviewed functional CAD behavior, OpenSCAD quality, Gemini prompting, product workflow, and nondeterministic test strategy. The synthesis below is not a concatenation of those reports; it records the shared root causes and recommended stabilization path.

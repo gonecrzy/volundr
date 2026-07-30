@@ -1,5 +1,11 @@
 # Current Repository Audit
 
+Historical snapshot: this audit captured the repository before the CadQuery-primary
+transition landed. It is retained for implementation history and should not be
+used as the current architecture or status source. Use
+`docs/CADQUERY_BACKEND.md` and `docs/CADQUERY_TRANSITION_EVALUATION.md` for the
+current CadQuery architecture and verification status.
+
 Audit date: 2026-07-30.
 
 Audited checkout: branch `cadquery-v1-backend`, HEAD `e5ead43 Tighten CadQuery source prompt guardrails`.
