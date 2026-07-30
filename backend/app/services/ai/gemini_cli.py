@@ -16,10 +16,13 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
     RevisionPlanRequest,
     RevisionPlanResult,
+    SourceBriefRequest,
+    SourceBriefResult,
 )
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
+SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
@@ -66,6 +69,16 @@ class GeminiCliProvider:
         raw_output = await self._run_prompt(prompt)
 
         return RequirementExtractionResult(
+            raw_output=raw_output,
+            provider="gemini_cli",
+            provider_model=self.model,
+        )
+
+    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
+        prompt = self.build_source_brief_prompt(request)
+        raw_output = await self._run_prompt(prompt)
+
+        return SourceBriefResult(
             raw_output=raw_output,
             provider="gemini_cli",
             provider_model=self.model,
@@ -205,6 +218,9 @@ class GeminiCliProvider:
     def requirement_prompt_template_version(self) -> str:
         return REQUIREMENTS_PROMPT_VERSION
 
+    def source_brief_prompt_template_version(self) -> str:
+        return SOURCE_BRIEF_PROMPT_VERSION
+
     def design_plan_prompt_template_version(self) -> str:
         return DESIGN_PLAN_PROMPT_VERSION
 
@@ -227,6 +243,9 @@ class GeminiCliProvider:
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return self._build_requirement_prompt(request)
+
+    def build_source_brief_prompt(self, request: SourceBriefRequest) -> str:
+        return self._build_source_brief_prompt(request)
 
     def build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
         return self._build_design_plan_prompt(request)
@@ -279,6 +298,41 @@ class GeminiCliProvider:
         if request.compiler_diagnostics:
             parts.extend(["", "Compiler diagnostics to account for:", request.compiler_diagnostics])
         return "\n".join(parts)
+
+    def _build_source_brief_prompt(self, request: SourceBriefRequest) -> str:
+        return "\n".join(
+            [
+                "You create a compact structured design brief before OpenSCAD generation.",
+                "Return JSON only. Do not generate OpenSCAD.",
+                "The brief constrains correctness without locking down the exact creative shape.",
+                "Required JSON fields:",
+                "- schema_version: exactly source-brief-v1",
+                "- intent_understanding: object_type, functional_goal, style_goal",
+                "- planned_outputs: array of printable outputs with id, expected_connected_body_count, must_be_connected, approx_size_mm",
+                "- functional_features: array of required functional features with id and role/count when known",
+                "- style_features: array of requested decorative features with id, role, and attachment_rule",
+                "- hard_requirements: array of concise requirements for generation and validation",
+                "- open_questions: array; leave empty when enough information is available",
+                "",
+                "Rules:",
+                "- Prefer one connected printable body unless the user explicitly requests multiple separate parts.",
+                "- If decorative features are requested, decorative features must physically attach, overlap, or be fused into the functional body unless the user asks for loose pieces.",
+                "- Preserve creative freedom; do not prescribe exact polygons, coordinates, or a fixed template unless required for function.",
+                "- Include approximate sizing only when implied by the prompt or benchmark expectations; use null for unknown dimensions.",
+                "",
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User instruction: {request.user_instruction}",
+                "",
+                "Expected source parameters:",
+                json.dumps(request.expected_parameters, indent=2, sort_keys=True),
+                "",
+                "Expected geometric invariants:",
+                json.dumps(request.expected_geometric_invariants, indent=2, sort_keys=True),
+                "",
+                f"Mesh expectation: {request.mesh_expectation or 'not specified'}",
+            ]
+        )
 
     def _legacy_openscad_generation_rules(self) -> list[str]:
         return [

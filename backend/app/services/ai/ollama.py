@@ -14,6 +14,8 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
     RevisionPlanRequest,
     RevisionPlanResult,
+    SourceBriefRequest,
+    SourceBriefResult,
 )
 
 
@@ -49,6 +51,15 @@ class OllamaProvider(GeminiCliProvider):
         prompt = self.build_requirement_prompt(request)
         raw_output = await self._run_prompt(prompt)
         return RequirementExtractionResult(
+            raw_output=raw_output,
+            provider="ollama",
+            provider_model=self.model,
+        )
+
+    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
+        prompt = self.build_source_brief_prompt(request)
+        raw_output = await self._run_prompt(prompt)
+        return SourceBriefResult(
             raw_output=raw_output,
             provider="ollama",
             provider_model=self.model,

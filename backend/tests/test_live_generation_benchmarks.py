@@ -156,6 +156,55 @@ def test_live_benchmark_source_probe_dry_run_writes_source_prompt(
     assert metrics["source_probe_status_counts"] == {"not_run": 1}
 
 
+def test_live_benchmark_source_brief_dry_run_writes_brief_prompt(
+    tmp_path: Path,
+) -> None:
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            run_label="source-brief",
+            benchmark_ids=("creative_fish_shelf_bracket",),
+            provider="dry-run",
+            source_probe=True,
+            source_brief=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    case_run = manifest["case_runs"][0]
+    source_probe = case_run["source_probe"]
+    brief = source_probe["brief"]
+
+    assert manifest["config"]["source_brief"] is True
+    assert brief["enabled"] is True
+    assert brief["status"] == "not_run"
+    assert brief["prompt_template_version"] == "source-brief-v1"
+    assert brief["raw_output_path"] is None
+    prompt = (result.run_dir / case_run["artifact_dir"] / "source-brief-prompt.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "Return JSON only" in prompt
+    assert "expected_connected_body_count" in prompt
+    assert "decorative features must physically attach" in prompt
+    assert metrics["source_brief_enabled"] is True
+    assert metrics["source_brief_status_counts"] == {"not_run": 1}
+
+
+def test_live_benchmark_source_brief_requires_source_probe(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="source_brief requires source_probe"):
+        LiveBenchmarkRunner().run(
+            LiveBenchmarkConfig(
+                suite_path=FIXTURE_DIR / "core.json",
+                output_root=tmp_path,
+                benchmark_ids=("simple_mounting_plate",),
+                provider="dry-run",
+                source_brief=True,
+            )
+        )
+
+
 def test_live_benchmark_source_probe_repair_requires_source_probe(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="source_probe_repair requires source_probe"):
         LiveBenchmarkRunner().run(
@@ -745,6 +794,139 @@ main_model();
     assert metrics["source_probe_repair_compile_status_counts"] == {"compile_succeeded": 1}
     assert metrics["source_probe_repair_attempt_count"] == 1
     assert metrics["source_probe_repair_compile_success_count"] == 1
+
+
+def test_live_benchmark_source_brief_feeds_source_generation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def __init__(self) -> None:
+            self.source_prompt = ""
+
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cad", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_source_brief_prompt(self, request) -> str:
+            return f"brief for {request.user_instruction}"
+
+        def build_prompt(self, request) -> str:
+            self.source_prompt = request.user_instruction
+            return f"source for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def source_brief_prompt_template_version(self) -> str:
+            return "source-brief-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def create_source_brief(self, request):
+            from app.services.ai.provider import SourceBriefResult
+
+            return SourceBriefResult(
+                raw_output=json.dumps(
+                    {
+                        "schema_version": "source-brief-v1",
+                        "intent_understanding": {
+                            "object_type": "shelf bracket",
+                            "functional_goal": "support shelf",
+                            "style_goal": "fish underside",
+                        },
+                        "planned_outputs": [
+                            {
+                                "id": "main_bracket",
+                                "expected_connected_body_count": 1,
+                                "must_be_connected": True,
+                                "approx_size_mm": {"x": 120, "y": 30, "z": 90},
+                            }
+                        ],
+                        "functional_features": [{"id": "mounting_holes", "count": 4}],
+                        "style_features": [
+                            {
+                                "id": "fish_underside",
+                                "attachment_rule": "fused into main_bracket",
+                            }
+                        ],
+                        "hard_requirements": ["one connected printable body"],
+                        "open_questions": [],
+                    }
+                ),
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+        async def generate_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            assert "Structured source brief" in request.user_instruction
+            assert "expected_connected_body_count" in request.user_instruction
+            assert "fish_underside" in request.user_instruction
+            return ModelGenerationResult(
+                raw_output="""
+```openscad
+plate_width = 80;
+plate_depth = 35;
+plate_thickness = 6;
+hole_spacing = 55;
+
+module main_model() {
+  cube([plate_width, plate_depth, plate_thickness]);
+}
+main_model();
+```
+""",
+                provider="ollama",
+                provider_model="fake-cad",
+            )
+
+    provider = FakeOllamaProvider()
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", lambda: provider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("creative_fish_shelf_bracket",),
+            provider="ollama",
+            source_probe=True,
+            source_brief=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+    brief = source_probe["brief"]
+
+    assert brief["status"] == "source_brief_parsed"
+    assert brief["raw_output_path"] is not None
+    assert brief["parsed_brief_path"] is not None
+    assert source_probe["status"] == "source_parameters_analyzed"
+    assert source_probe["compile_status"] == "compile_succeeded"
+    assert metrics["source_brief_status_counts"] == {"source_brief_parsed": 1}
 
 
 def test_live_benchmark_phase_validation_rejects_truncating_case_limit(

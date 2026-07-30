@@ -64,6 +64,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --output-dir ../output/live-benchmarks \
   --run-label phase-check \
   --phase-validation \
+  --source-brief \
   --source-probe \
   --source-probe-repair \
   --provider ollama \
@@ -90,7 +91,7 @@ The phase-validation set is intentionally small:
 
 Compare each phase run against the previous run using the generated `run-manifest.json`, `aggregate-metrics.json`, raw provider outputs, and human scoring forms. Improvement means fewer blocking/unacceptable outcomes, better preservation of function plus style, and clearer evidence about whether failures belong to prompt quality, parameter modeling, geometry generation, library support, printability, or UX.
 
-When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable OpenSCAD, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STL, avoids obvious mesh warnings, and reduces disconnected mesh counts. Add `--source-probe-repair` when you want one bounded compile-repair attempt after a failed source-probe compile; this measures repair recovery separately from first-pass model quality. This is still not a substitute for human visual review.
+When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable OpenSCAD, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STL, avoids obvious mesh warnings, and reduces disconnected mesh counts. Add `--source-brief` to require a compact structured understanding pass before source generation; the resulting brief is fed into the OpenSCAD prompt and stored separately so intent understanding can be compared with mesh results. Add `--source-probe-repair` when you want one bounded compile-repair attempt after a failed source-probe compile; this measures repair recovery separately from first-pass model quality. This is still not a substitute for human visual review.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 

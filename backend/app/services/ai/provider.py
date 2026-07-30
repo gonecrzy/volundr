@@ -50,6 +50,23 @@ class RequirementExtractionResult:
 
 
 @dataclass(frozen=True)
+class SourceBriefRequest:
+    project_name: str
+    original_intent: str
+    user_instruction: str
+    expected_parameters: list[str] = field(default_factory=list)
+    expected_geometric_invariants: list[dict[str, Any]] = field(default_factory=list)
+    mesh_expectation: str | None = None
+
+
+@dataclass(frozen=True)
+class SourceBriefResult:
+    raw_output: str
+    provider: str
+    provider_model: str | None = None
+
+
+@dataclass(frozen=True)
 class DesignPlanRequest:
     project_name: str
     original_intent: str
@@ -110,6 +127,9 @@ class AiProvider(Protocol):
         self,
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
+        ...
+
+    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
         ...
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:

@@ -102,6 +102,14 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--source-brief",
+        action="store_true",
+        help=(
+            "Before --source-probe generation, ask the provider for a compact structured "
+            "source brief and feed it into the OpenSCAD prompt."
+        ),
+    )
+    parser.add_argument(
         "--source-probe-repair",
         action="store_true",
         help=(
@@ -129,6 +137,7 @@ def main(argv: list[str] | None = None) -> int:
             phase_validation=args.phase_validation,
             source_probe=args.source_probe,
             source_probe_repair=args.source_probe_repair,
+            source_brief=args.source_brief,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
@@ -151,6 +160,8 @@ def main(argv: list[str] | None = None) -> int:
             "Source probe disconnected mesh count: "
             f"{metrics.get('source_probe_disconnected_mesh_count')}"
         )
+        if metrics.get("source_brief_enabled"):
+            print(f"Source brief statuses: {metrics.get('source_brief_status_counts')}")
         if metrics.get("source_probe_repair_enabled"):
             print(f"Source probe repair statuses: {metrics.get('source_probe_repair_status_counts')}")
             print(

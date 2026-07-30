@@ -18,11 +18,12 @@ from app.services.ai.gemini_cli import (
     PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION,
     REQUIREMENTS_PROMPT_VERSION,
     SCOPE_CORRECTION_PROMPT_VERSION,
+    SOURCE_BRIEF_PROMPT_VERSION,
     STRUCTURED_REVISION_PROMPT_VERSION,
     GeminiCliProvider,
 )
 from app.services.ai.ollama import OllamaProvider
-from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest
+from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest, SourceBriefRequest
 from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.benchmarks import (
@@ -42,6 +43,7 @@ PROMPT_COMPARISON_SCHEMA_VERSION = "prompt-version-comparison-v1"
 HUMAN_SCORING_FORM_SCHEMA_VERSION = "human-scoring-form-v1"
 LIVE_BENCHMARK_HARNESS_VERSION = "live-benchmark-harness-v1"
 SOURCE_PARAMETER_ANALYSIS_SCHEMA_VERSION = "source-parameter-analysis-v1"
+SOURCE_BRIEF_SCHEMA_VERSION = "source-brief-v1"
 
 SCORING_CATEGORIES = (
     "prompt_quality",
@@ -73,6 +75,7 @@ class LiveBenchmarkConfig:
     phase_validation: bool = False
     source_probe: bool = False
     source_probe_repair: bool = False
+    source_brief: bool = False
 
 
 @dataclass(frozen=True)
@@ -95,10 +98,16 @@ class LiveBenchmarkRunner:
         source_prompts = (
             self._build_source_prompts(provider, selected_benchmarks) if config.source_probe else {}
         )
+        source_brief_prompts = (
+            self._build_source_brief_prompts(provider, selected_benchmarks)
+            if config.source_brief
+            else {}
+        )
         estimated_tokens = self._estimate_run_tokens(
             [
                 *case_prompts.values(),
                 *source_prompts.values(),
+                *source_brief_prompts.values(),
                 *(source_prompts.values() if config.source_probe_repair else []),
             ],
             config.runs_per_case,
@@ -124,6 +133,7 @@ class LiveBenchmarkRunner:
                         prompt=case_prompts[benchmark.id],
                         source_prompt=source_prompts.get(benchmark.id),
                         source_probe_repair=config.source_probe_repair,
+                        source_brief_prompt=source_brief_prompts.get(benchmark.id),
                     )
                 )
 
@@ -149,6 +159,7 @@ class LiveBenchmarkRunner:
                 "phase_validation": config.phase_validation,
                 "source_probe": config.source_probe,
                 "source_probe_repair": config.source_probe_repair,
+                "source_brief": config.source_brief,
             },
             "provider": {
                 "mode": config.provider,
@@ -207,6 +218,7 @@ class LiveBenchmarkRunner:
         prompt: str,
         source_prompt: str | None = None,
         source_probe_repair: bool = False,
+        source_brief_prompt: str | None = None,
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -216,6 +228,11 @@ class LiveBenchmarkRunner:
         (artifact_dir / "requirements-prompt.txt").write_text(prompt, encoding="utf-8")
         if source_prompt is not None:
             (artifact_dir / "source-prompt.txt").write_text(source_prompt, encoding="utf-8")
+        if source_brief_prompt is not None:
+            (artifact_dir / "source-brief-prompt.txt").write_text(
+                source_brief_prompt,
+                encoding="utf-8",
+            )
         provider_output_path: str | None = None
         error_path: str | None = None
         failure_class = FailureClass.NONE.value
@@ -246,6 +263,7 @@ class LiveBenchmarkRunner:
             artifact_dir=artifact_dir,
             source_prompt=source_prompt,
             source_probe_repair=source_probe_repair,
+            source_brief_prompt=source_brief_prompt,
         )
         scoring_form_path = self._write_scoring_form(
             run_dir=run_dir,
@@ -286,6 +304,7 @@ class LiveBenchmarkRunner:
         artifact_dir: Path,
         source_prompt: str | None,
         source_probe_repair: bool,
+        source_brief_prompt: str | None,
     ) -> dict[str, Any]:
         if source_prompt is None:
             return {
@@ -309,8 +328,10 @@ class LiveBenchmarkRunner:
                 "stl_size_bytes": 0,
                 "error_path": None,
                 "repair": _empty_source_probe_repair(enabled=False),
+                "brief": _empty_source_brief(enabled=False),
             }
 
+        source_brief_enabled = source_brief_prompt is not None
         request = _source_request_for(benchmark)
         probe = {
             "enabled": True,
@@ -333,9 +354,33 @@ class LiveBenchmarkRunner:
             "stl_size_bytes": 0,
             "error_path": None,
             "repair": _empty_source_probe_repair(enabled=source_probe_repair),
+            "brief": _empty_source_brief(enabled=source_brief_enabled),
         }
         if provider_mode == "dry-run":
             return probe
+
+        source_brief: dict[str, Any] | None = None
+        if source_brief_enabled:
+            brief = self._run_source_brief(
+                benchmark=benchmark,
+                provider=provider,
+                run_dir=run_dir,
+                artifact_dir=artifact_dir,
+                source_brief_prompt=source_brief_prompt,
+            )
+            probe["brief"] = brief
+            if brief["status"] != "source_brief_parsed":
+                probe["status"] = "source_brief_failed"
+                return probe
+            parsed_path = brief.get("parsed_brief_path")
+            if isinstance(parsed_path, str):
+                source_brief = json.loads((run_dir / parsed_path).read_text(encoding="utf-8"))
+                request = _source_request_for(benchmark, source_brief=source_brief)
+                source_prompt = provider.build_prompt(request)
+                source_prompt_path = artifact_dir / "source-prompt.txt"
+                source_prompt_path.write_text(source_prompt, encoding="utf-8")
+                probe["prompt_sha256"] = _sha256_text(source_prompt)
+                probe["prompt_template_version"] = provider.prompt_template_version_for(request)
 
         try:
             result = asyncio.run(provider.generate_model(request))
@@ -400,6 +445,53 @@ class LiveBenchmarkRunner:
                 if repair["status"] == "source_repair_succeeded":
                     probe["status"] = "source_repair_succeeded"
         return probe
+
+    def _run_source_brief(
+        self,
+        *,
+        benchmark: GenerationBenchmark,
+        provider: GeminiCliProvider,
+        run_dir: Path,
+        artifact_dir: Path,
+        source_brief_prompt: str | None,
+    ) -> dict[str, Any]:
+        request = _source_brief_request_for(benchmark)
+        brief = _empty_source_brief(enabled=True)
+        if source_brief_prompt is None:
+            source_brief_prompt = provider.build_source_brief_prompt(request)
+            prompt_path = artifact_dir / "source-brief-prompt.txt"
+            prompt_path.write_text(source_brief_prompt, encoding="utf-8")
+        brief["prompt_sha256"] = _sha256_text(source_brief_prompt)
+        brief["prompt_template_version"] = provider.source_brief_prompt_template_version()
+
+        try:
+            result = asyncio.run(provider.create_source_brief(request))
+        except TimeoutError as exc:
+            brief["status"] = "source_brief_provider_failed"
+            brief["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return brief
+        except Exception as exc:
+            brief["status"] = "source_brief_provider_failed"
+            brief["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return brief
+
+        output_file = artifact_dir / "source-brief-raw-output.txt"
+        output_file.write_text(result.raw_output, encoding="utf-8")
+        brief["raw_output_path"] = _relative(output_file, run_dir)
+
+        try:
+            parsed = _extract_json_object(result.raw_output)
+        except ValueError as exc:
+            brief["status"] = "source_brief_parse_failed"
+            brief["parse_error"] = str(exc)
+            return brief
+
+        parsed.setdefault("schema_version", SOURCE_BRIEF_SCHEMA_VERSION)
+        parsed_path = artifact_dir / "source-brief-parsed.json"
+        _write_json(parsed_path, parsed)
+        brief["status"] = "source_brief_parsed"
+        brief["parsed_brief_path"] = _relative(parsed_path, run_dir)
+        return brief
 
     def _run_source_probe_repair(
         self,
@@ -512,6 +604,7 @@ class LiveBenchmarkRunner:
                 phase_validation=config.phase_validation,
                 source_probe=config.source_probe,
                 source_probe_repair=config.source_probe_repair,
+                source_brief=config.source_brief,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -545,6 +638,8 @@ class LiveBenchmarkRunner:
             raise ValueError("runs_per_case must be at least 1")
         if config.source_probe_repair and not config.source_probe:
             raise ValueError("source_probe_repair requires source_probe")
+        if config.source_brief and not config.source_probe:
+            raise ValueError("source_brief requires source_probe")
         total_runs = len(selected_benchmarks) * config.runs_per_case
         if total_runs > config.max_runs:
             raise ValueError(f"requested {total_runs} runs exceeds max_runs={config.max_runs}")
@@ -585,9 +680,20 @@ class LiveBenchmarkRunner:
             for benchmark in benchmarks
         }
 
+    def _build_source_brief_prompts(
+        self,
+        provider: GeminiCliProvider,
+        benchmarks: list[GenerationBenchmark],
+    ) -> dict[str, str]:
+        return {
+            benchmark.id: provider.build_source_brief_prompt(_source_brief_request_for(benchmark))
+            for benchmark in benchmarks
+        }
+
     def _prompt_versions(self, provider: GeminiCliProvider) -> dict[str, str]:
         return {
             "requirements": provider.requirement_prompt_template_version(),
+            "source_brief": _source_brief_prompt_template_version(provider),
             "design_plan": provider.design_plan_prompt_template_version(),
             "planned_openscad": PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION,
             "design_spec_openscad": OPENSCAD_GENERATION_PROMPT_VERSION,
@@ -749,10 +855,17 @@ class LiveBenchmarkRunner:
         source_probe_repair_attempt_count = 0
         source_probe_repair_compile_success_count = 0
         source_probe_repair_compile_warning_count = 0
+        source_brief_status_counts: dict[str, int] = {}
         for case_run in manifest["case_runs"]:
             source_probe = case_run.get("source_probe", {})
             status = source_probe.get("status", "disabled")
             source_probe_status_counts[status] = source_probe_status_counts.get(status, 0) + 1
+            brief = source_probe.get("brief", {})
+            if isinstance(brief, dict):
+                brief_status = brief.get("status", "disabled")
+                source_brief_status_counts[brief_status] = (
+                    source_brief_status_counts.get(brief_status, 0) + 1
+                )
             compile_status = source_probe.get("compile_status", "disabled")
             source_probe_compile_status_counts[compile_status] = (
                 source_probe_compile_status_counts.get(compile_status, 0) + 1
@@ -844,6 +957,8 @@ class LiveBenchmarkRunner:
             "source_probe_repair_compile_warning_count": (
                 source_probe_repair_compile_warning_count
             ),
+            "source_brief_enabled": bool(manifest.get("config", {}).get("source_brief")),
+            "source_brief_status_counts": source_brief_status_counts,
             "no_automatic_prompt_promotion": True,
         }
 
@@ -904,13 +1019,24 @@ def _requirement_request_for(benchmark: GenerationBenchmark) -> RequirementExtra
     )
 
 
-def _source_request_for(benchmark: GenerationBenchmark) -> ModelGenerationRequest:
+def _source_request_for(
+    benchmark: GenerationBenchmark,
+    *,
+    source_brief: dict[str, Any] | None = None,
+) -> ModelGenerationRequest:
     user_instruction = benchmark.input_prompt
-    if benchmark.expected_parameters:
-        user_instruction = "\n".join(
+    additions: list[str] = []
+    if source_brief is not None:
+        additions.extend(
             [
-                benchmark.input_prompt,
-                "",
+                "Structured source brief:",
+                json.dumps(source_brief, indent=2, sort_keys=True),
+                "Generate OpenSCAD that satisfies the structured source brief. If the brief says a decorative feature must attach or one connected body is expected, physically fuse or overlap those solids.",
+            ]
+        )
+    if benchmark.expected_parameters:
+        additions.extend(
+            [
                 "Source-probe parameter targets:",
                 "Expose these as simple top-level OpenSCAD parameters when applicable.",
                 "Use each target identifier exactly as written.",
@@ -919,10 +1045,29 @@ def _source_request_for(benchmark: GenerationBenchmark) -> ModelGenerationReques
                 *[f"- {parameter}" for parameter in benchmark.expected_parameters],
             ]
         )
+    if additions:
+        user_instruction = "\n".join(
+            [
+                benchmark.input_prompt,
+                "",
+                *additions,
+            ]
+        )
     return ModelGenerationRequest(
         project_name=f"Benchmark: {benchmark.id}",
         original_intent=benchmark.input_prompt,
         user_instruction=user_instruction,
+    )
+
+
+def _source_brief_request_for(benchmark: GenerationBenchmark) -> SourceBriefRequest:
+    return SourceBriefRequest(
+        project_name=f"Benchmark: {benchmark.id}",
+        original_intent=benchmark.input_prompt,
+        user_instruction=benchmark.input_prompt,
+        expected_parameters=list(benchmark.expected_parameters),
+        expected_geometric_invariants=list(benchmark.expected_geometric_invariants),
+        mesh_expectation=benchmark.mesh_expectation,
     )
 
 
@@ -967,6 +1112,26 @@ def _empty_source_probe_repair(*, enabled: bool) -> dict[str, Any]:
         "stl_size_bytes": 0,
         "error_path": None,
     }
+
+
+def _empty_source_brief(*, enabled: bool) -> dict[str, Any]:
+    return {
+        "enabled": enabled,
+        "status": "not_run" if enabled else "disabled",
+        "prompt_sha256": None,
+        "prompt_template_version": SOURCE_BRIEF_PROMPT_VERSION if enabled else None,
+        "raw_output_path": None,
+        "parsed_brief_path": None,
+        "parse_error": None,
+        "error_path": None,
+    }
+
+
+def _source_brief_prompt_template_version(provider: GeminiCliProvider) -> str:
+    version_method = getattr(provider, "source_brief_prompt_template_version", None)
+    if callable(version_method):
+        return str(version_method())
+    return SOURCE_BRIEF_PROMPT_VERSION
 
 
 def _source_parameter_analysis(
@@ -1087,6 +1252,27 @@ def _read_text_if_present(run_dir: Path, relative_path: Any) -> str | None:
     if not path.exists():
         return None
     return path.read_text(encoding="utf-8", errors="replace").strip() or None
+
+
+def _extract_json_object(raw_output: str) -> dict[str, Any]:
+    stripped = raw_output.strip()
+    if stripped.startswith("```"):
+        stripped = re.sub(r"^```(?:json)?\s*", "", stripped, flags=re.IGNORECASE)
+        stripped = re.sub(r"\s*```$", "", stripped)
+    try:
+        parsed = json.loads(stripped)
+    except json.JSONDecodeError:
+        start = stripped.find("{")
+        end = stripped.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError("no JSON object found") from None
+        try:
+            parsed = json.loads(stripped[start : end + 1])
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"invalid JSON object: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("brief output must be a JSON object")
+    return parsed
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:

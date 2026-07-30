@@ -78,6 +78,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --output-dir ../output/live-benchmarks \
   --run-label phase-1-baseline \
   --phase-validation \
+  --source-brief \
   --source-probe \
   --source-probe-repair \
   --provider ollama \
@@ -93,6 +94,8 @@ The flag selects exactly three scenarios:
 Do not treat the phase run as a complete acceptance test. It is a smoke signal for whether the AI and pipeline are moving in the right direction on functional geometry, requested styling, subtractive CAD patterns, parameterization, and curated-library pressure.
 
 `--source-probe` adds a lightweight direct OpenSCAD generation probe. The probe prompt includes the benchmark's expected parameter IDs as top-level control targets while explicitly keeping creative form open. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage.
+
+`--source-brief` requires `--source-probe`. It adds a JSON-only `source-brief-v1` stage before OpenSCAD generation. The brief captures intended object type, functional goal, style goal, planned outputs, expected connected body count, functional features, style attachment rules, hard requirements, and open questions. The parsed brief is then injected into the source prompt as compact structured context.
 
 When extraction succeeds, the probe also compiles the source with OpenSCAD and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.
 
