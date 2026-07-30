@@ -72,6 +72,7 @@ class LiveBenchmarkConfig:
     baseline_manifest_path: Path | None = None
     phase_validation: bool = False
     source_probe: bool = False
+    source_probe_repair: bool = False
 
 
 @dataclass(frozen=True)
@@ -95,7 +96,11 @@ class LiveBenchmarkRunner:
             self._build_source_prompts(provider, selected_benchmarks) if config.source_probe else {}
         )
         estimated_tokens = self._estimate_run_tokens(
-            [*case_prompts.values(), *source_prompts.values()],
+            [
+                *case_prompts.values(),
+                *source_prompts.values(),
+                *(source_prompts.values() if config.source_probe_repair else []),
+            ],
             config.runs_per_case,
         )
         estimated_cost_usd = self._estimate_cost(config, estimated_tokens)
@@ -118,6 +123,7 @@ class LiveBenchmarkRunner:
                         run_index=run_index,
                         prompt=case_prompts[benchmark.id],
                         source_prompt=source_prompts.get(benchmark.id),
+                        source_probe_repair=config.source_probe_repair,
                     )
                 )
 
@@ -142,6 +148,7 @@ class LiveBenchmarkRunner:
                 else None,
                 "phase_validation": config.phase_validation,
                 "source_probe": config.source_probe,
+                "source_probe_repair": config.source_probe_repair,
             },
             "provider": {
                 "mode": config.provider,
@@ -199,6 +206,7 @@ class LiveBenchmarkRunner:
         run_index: int,
         prompt: str,
         source_prompt: str | None = None,
+        source_probe_repair: bool = False,
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -237,6 +245,7 @@ class LiveBenchmarkRunner:
             run_dir=run_dir,
             artifact_dir=artifact_dir,
             source_prompt=source_prompt,
+            source_probe_repair=source_probe_repair,
         )
         scoring_form_path = self._write_scoring_form(
             run_dir=run_dir,
@@ -276,6 +285,7 @@ class LiveBenchmarkRunner:
         run_dir: Path,
         artifact_dir: Path,
         source_prompt: str | None,
+        source_probe_repair: bool,
     ) -> dict[str, Any]:
         if source_prompt is None:
             return {
@@ -298,6 +308,7 @@ class LiveBenchmarkRunner:
                 "compile_warnings": [],
                 "stl_size_bytes": 0,
                 "error_path": None,
+                "repair": _empty_source_probe_repair(enabled=False),
             }
 
         request = _source_request_for(benchmark)
@@ -321,6 +332,7 @@ class LiveBenchmarkRunner:
             "compile_warnings": [],
             "stl_size_bytes": 0,
             "error_path": None,
+            "repair": _empty_source_probe_repair(enabled=source_probe_repair),
         }
         if provider_mode == "dry-run":
             return probe
@@ -373,7 +385,104 @@ class LiveBenchmarkRunner:
         probe.update(_compile_source_probe(source=source, run_dir=run_dir, artifact_dir=artifact_dir))
         if probe["compile_status"] != "compile_succeeded":
             probe["status"] = "source_compile_failed"
+            if source_probe_repair:
+                repair = self._run_source_probe_repair(
+                    benchmark=benchmark,
+                    provider=provider,
+                    run_dir=run_dir,
+                    artifact_dir=artifact_dir,
+                    failed_source=source,
+                    compiler_diagnostics=probe["compile_error_message"]
+                    or _read_text_if_present(run_dir, probe["compile_stderr_path"])
+                    or "OpenSCAD compile failed",
+                )
+                probe["repair"] = repair
+                if repair["status"] == "source_repair_succeeded":
+                    probe["status"] = "source_repair_succeeded"
         return probe
+
+    def _run_source_probe_repair(
+        self,
+        *,
+        benchmark: GenerationBenchmark,
+        provider: GeminiCliProvider,
+        run_dir: Path,
+        artifact_dir: Path,
+        failed_source: str,
+        compiler_diagnostics: str,
+    ) -> dict[str, Any]:
+        request = _source_repair_request_for(
+            benchmark=benchmark,
+            current_source=failed_source,
+            compiler_diagnostics=compiler_diagnostics,
+        )
+        repair_prompt = provider.build_prompt(request)
+        repair = _empty_source_probe_repair(enabled=True)
+        repair["prompt_sha256"] = _sha256_text(repair_prompt)
+        repair["prompt_template_version"] = provider.prompt_template_version_for(request)
+        prompt_path = artifact_dir / "source-repair-prompt.txt"
+        prompt_path.write_text(repair_prompt, encoding="utf-8")
+        repair["prompt_path"] = _relative(prompt_path, run_dir)
+
+        try:
+            result = asyncio.run(provider.generate_model(request))
+        except TimeoutError as exc:
+            repair["status"] = "repair_provider_failed"
+            repair["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return repair
+        except Exception as exc:
+            repair["status"] = "repair_provider_failed"
+            repair["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+            return repair
+
+        output_file = artifact_dir / "source-repair-raw-output.txt"
+        output_file.write_text(result.raw_output, encoding="utf-8")
+        repair["raw_output_path"] = _relative(output_file, run_dir)
+
+        try:
+            repaired_source = extract_scad_source(result.raw_output)
+        except SourceExtractionError as exc:
+            analysis_path = artifact_dir / "source-repair-parameter-analysis.json"
+            _write_json(
+                analysis_path,
+                _source_parameter_analysis(
+                    benchmark=benchmark,
+                    extracted_source=None,
+                    extraction_error=str(exc),
+                ),
+            )
+            repair["status"] = "source_repair_extraction_failed"
+            repair["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+            return repair
+
+        source_path = artifact_dir / "source-repair-extracted.scad"
+        source_path.write_text(repaired_source, encoding="utf-8")
+        analysis_path = artifact_dir / "source-repair-parameter-analysis.json"
+        _write_json(
+            analysis_path,
+            _source_parameter_analysis(
+                benchmark=benchmark,
+                extracted_source=repaired_source,
+                extraction_error=None,
+            ),
+        )
+        repair["status"] = "source_repair_parameters_analyzed"
+        repair["extracted_source_path"] = _relative(source_path, run_dir)
+        repair["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+        repair.update(
+            _compile_source_probe(
+                source=repaired_source,
+                run_dir=run_dir,
+                artifact_dir=artifact_dir,
+                workspace_dir_name="source-repair-compile-workspace",
+                job_id="source-repair",
+            )
+        )
+        if repair["compile_status"] == "compile_succeeded":
+            repair["status"] = "source_repair_succeeded"
+        else:
+            repair["status"] = "source_repair_compile_failed"
+        return repair
 
     def _select_benchmarks(
         self,
@@ -402,6 +511,7 @@ class LiveBenchmarkRunner:
                 baseline_manifest_path=config.baseline_manifest_path,
                 phase_validation=config.phase_validation,
                 source_probe=config.source_probe,
+                source_probe_repair=config.source_probe_repair,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -433,6 +543,8 @@ class LiveBenchmarkRunner:
     ) -> None:
         if config.runs_per_case < 1:
             raise ValueError("runs_per_case must be at least 1")
+        if config.source_probe_repair and not config.source_probe:
+            raise ValueError("source_probe_repair requires source_probe")
         total_runs = len(selected_benchmarks) * config.runs_per_case
         if total_runs > config.max_runs:
             raise ValueError(f"requested {total_runs} runs exceeds max_runs={config.max_runs}")
@@ -632,6 +744,11 @@ class LiveBenchmarkRunner:
         source_probe_disconnected_mesh_count = 0
         source_probe_max_connected_components = 0
         source_probe_compile_warning_count = 0
+        source_probe_repair_status_counts: dict[str, int] = {}
+        source_probe_repair_compile_status_counts: dict[str, int] = {}
+        source_probe_repair_attempt_count = 0
+        source_probe_repair_compile_success_count = 0
+        source_probe_repair_compile_warning_count = 0
         for case_run in manifest["case_runs"]:
             source_probe = case_run.get("source_probe", {})
             status = source_probe.get("status", "disabled")
@@ -669,6 +786,23 @@ class LiveBenchmarkRunner:
                         )
                         if connected_components > 1:
                             source_probe_disconnected_mesh_count += 1
+            repair = source_probe.get("repair", {})
+            if isinstance(repair, dict):
+                repair_status = repair.get("status", "disabled")
+                source_probe_repair_status_counts[repair_status] = (
+                    source_probe_repair_status_counts.get(repair_status, 0) + 1
+                )
+                if repair_status not in {"disabled", "not_attempted"}:
+                    source_probe_repair_attempt_count += 1
+                repair_compile_status = repair.get("compile_status", "disabled")
+                source_probe_repair_compile_status_counts[repair_compile_status] = (
+                    source_probe_repair_compile_status_counts.get(repair_compile_status, 0) + 1
+                )
+                if repair_compile_status == "compile_succeeded":
+                    source_probe_repair_compile_success_count += 1
+                repair_warning_count = repair.get("compile_warning_count", 0)
+                if isinstance(repair_warning_count, int):
+                    source_probe_repair_compile_warning_count += repair_warning_count
         return {
             "schema_version": LIVE_BENCHMARK_METRICS_SCHEMA_VERSION,
             "run_id": manifest["run_id"],
@@ -696,6 +830,20 @@ class LiveBenchmarkRunner:
             "source_probe_disconnected_mesh_count": source_probe_disconnected_mesh_count,
             "source_probe_max_connected_components": source_probe_max_connected_components,
             "source_probe_compile_warning_count": source_probe_compile_warning_count,
+            "source_probe_repair_enabled": bool(
+                manifest.get("config", {}).get("source_probe_repair")
+            ),
+            "source_probe_repair_status_counts": source_probe_repair_status_counts,
+            "source_probe_repair_compile_status_counts": (
+                source_probe_repair_compile_status_counts
+            ),
+            "source_probe_repair_attempt_count": source_probe_repair_attempt_count,
+            "source_probe_repair_compile_success_count": (
+                source_probe_repair_compile_success_count
+            ),
+            "source_probe_repair_compile_warning_count": (
+                source_probe_repair_compile_warning_count
+            ),
             "no_automatic_prompt_promotion": True,
         }
 
@@ -778,6 +926,49 @@ def _source_request_for(benchmark: GenerationBenchmark) -> ModelGenerationReques
     )
 
 
+def _source_repair_request_for(
+    *,
+    benchmark: GenerationBenchmark,
+    current_source: str,
+    compiler_diagnostics: str,
+) -> ModelGenerationRequest:
+    return ModelGenerationRequest(
+        project_name=f"Benchmark: {benchmark.id}",
+        original_intent=benchmark.input_prompt,
+        user_instruction=(
+            "Repair the OpenSCAD source so it compiles cleanly while preserving the benchmark "
+            "intent and expected source-probe parameters."
+        ),
+        current_source=current_source,
+        compiler_diagnostics=compiler_diagnostics,
+    )
+
+
+def _empty_source_probe_repair(*, enabled: bool) -> dict[str, Any]:
+    return {
+        "enabled": enabled,
+        "status": "not_attempted" if enabled else "disabled",
+        "prompt_sha256": None,
+        "prompt_template_version": None,
+        "prompt_path": None,
+        "raw_output_path": None,
+        "extracted_source_path": None,
+        "parameter_analysis_path": None,
+        "compile_status": "not_run" if enabled else "disabled",
+        "compiled_stl_path": None,
+        "compile_stdout_path": None,
+        "compile_stderr_path": None,
+        "mesh_metadata_path": None,
+        "compile_error_message": None,
+        "compile_timed_out": None,
+        "compile_exit_code": None,
+        "compile_warning_count": 0,
+        "compile_warnings": [],
+        "stl_size_bytes": 0,
+        "error_path": None,
+    }
+
+
 def _source_parameter_analysis(
     *,
     benchmark: GenerationBenchmark,
@@ -841,13 +1032,15 @@ def _compile_source_probe(
     source: str,
     run_dir: Path,
     artifact_dir: Path,
+    workspace_dir_name: str = "source-compile-workspace",
+    job_id: str = "source-probe",
 ) -> dict[str, Any]:
-    workspace_root = (artifact_dir / "source-compile-workspace").resolve()
+    workspace_root = (artifact_dir / workspace_dir_name).resolve()
     result = asyncio.run(
         OpenScadCliRunner(
             workspace_root=workspace_root,
             timeout_seconds=60,
-        ).compile(source, job_id="source-probe")
+        ).compile(source, job_id=job_id)
     )
     warnings = _openscad_warning_lines(result.stderr_path)
     return {
@@ -885,6 +1078,15 @@ def _openscad_warning_lines(stderr_path: Path | None) -> list[str]:
         if upper.startswith("WARNING:") or upper.startswith("DEPRECATED:"):
             warnings.append(normalized)
     return warnings
+
+
+def _read_text_if_present(run_dir: Path, relative_path: Any) -> str | None:
+    if not isinstance(relative_path, str):
+        return None
+    path = run_dir / relative_path
+    if not path.exists():
+        return None
+    return path.read_text(encoding="utf-8", errors="replace").strip() or None
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:

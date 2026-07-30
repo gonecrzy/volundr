@@ -98,7 +98,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help=(
             "Also ask the provider for direct OpenSCAD source, extract it if possible, "
-            "and write source parameter coverage artifacts. No compile is attempted."
+            "compile it, and write source parameter coverage artifacts."
+        ),
+    )
+    parser.add_argument(
+        "--source-probe-repair",
+        action="store_true",
+        help=(
+            "When --source-probe compile fails, run one compile-repair prompt, extract the "
+            "repaired source, and compile it as a separate repair metric."
         ),
     )
     args = parser.parse_args(argv)
@@ -120,6 +128,7 @@ def main(argv: list[str] | None = None) -> int:
             baseline_manifest_path=args.baseline_manifest,
             phase_validation=args.phase_validation,
             source_probe=args.source_probe,
+            source_probe_repair=args.source_probe_repair,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
@@ -142,6 +151,16 @@ def main(argv: list[str] | None = None) -> int:
             "Source probe disconnected mesh count: "
             f"{metrics.get('source_probe_disconnected_mesh_count')}"
         )
+        if metrics.get("source_probe_repair_enabled"):
+            print(f"Source probe repair statuses: {metrics.get('source_probe_repair_status_counts')}")
+            print(
+                "Source probe repair compile statuses: "
+                f"{metrics.get('source_probe_repair_compile_status_counts')}"
+            )
+            print(
+                "Source probe repair compile successes: "
+                f"{metrics.get('source_probe_repair_compile_success_count')}"
+            )
     print("Prompt promotion: disabled; manual review required")
     return 0
 

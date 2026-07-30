@@ -79,6 +79,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --run-label phase-1-baseline \
   --phase-validation \
   --source-probe \
+  --source-probe-repair \
   --provider ollama \
   --max-runs 3
 ```
@@ -94,6 +95,8 @@ Do not treat the phase run as a complete acceptance test. It is a smoke signal f
 `--source-probe` adds a lightweight direct OpenSCAD generation probe. The probe prompt includes the benchmark's expected parameter IDs as top-level control targets while explicitly keeping creative form open. It saves `source-prompt.txt`, provider raw source output, extracted `source-extracted.scad` when extraction succeeds, and `source-parameter-analysis.json`. The analysis reports extracted editable parameter IDs and exact expected-parameter coverage.
 
 When extraction succeeds, the probe also compiles the source with OpenSCAD and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.
+
+`--source-probe-repair` requires `--source-probe`. When the first source-probe compile fails, the harness sends one compile-repair prompt using the extracted failed source plus compiler diagnostics, then stores separate `source-repair-*` prompt, raw output, extracted source, parameter analysis, compile logs, STL, and mesh metadata artifacts. Repair metrics are separate from first-pass source-probe metrics so raw model quality and repair recovery can be compared directly.
 
 ## Quota Controls
 
