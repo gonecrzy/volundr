@@ -81,6 +81,31 @@ def test_legacy_initial_prompt_includes_compact_cad_pattern_examples() -> None:
     assert "keep mounting faces and holes outside decorative cuts" in prompt
 
 
+def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_cadquery_prompt(
+        ModelGenerationRequest(
+            project_name="Repair CadQuery probe",
+            original_intent="Create a mounting plate.",
+            user_instruction="Repair the CadQuery Python source.",
+            current_source=(
+                "import cadquery as cq\n\n"
+                "plate_width = 80\n\n"
+                "def build_model():\n"
+                "    return cq.Workplane('XY').box(plate_width, 35, 6).holes(4)\n"
+            ),
+            compiler_diagnostics="AttributeError: Workplane has no attribute 'holes'",
+        )
+    )
+
+    assert "cadquery-v1 source contract" in prompt
+    assert "Repair mode:" in prompt
+    assert "AttributeError: Workplane has no attribute 'holes'" in prompt
+    assert "Current CadQuery source to repair begins below" in prompt
+    assert ".holes(4)" in prompt
+    assert "Return the full corrected CadQuery Python source" in prompt
+
+
 def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     prompt = provider.build_prompt(

@@ -275,41 +275,62 @@ class GeminiCliProvider:
         return self._build_prompt(request)
 
     def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
-        return "\n".join(
+        parts = [
+            "You generate CadQuery Python for Volundr.",
+            "Return only a single fenced python block. Do not include prose outside the block.",
+            "The response must start with ```python and end with ```.",
+            "Follow these rules exactly:",
+            "- Use millimeters.",
+            "- Follow the cadquery-v1 source contract.",
+            "- The only import allowed is exactly `import cadquery as cq`.",
+            "- Top-level statements may only be that import, literal parameter constants, optional helper function definitions, and `def build_model():`.",
+            "- Simple helper functions may also be defined inside build_model() when that makes the model easier to structure.",
+            "- Do not run CadQuery operations, construct geometry, call helper functions, or do any other execution at top level.",
+            "- Define simple top-level user parameters as Python constants with literal values only.",
+            "- Define `def build_model():`; optional helper functions are allowed.",
+            "- build_model() must return one CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable object.",
+            "- Do not write files, read files, import local modules, use shell commands, network access, subprocesses, pathlib, os, sys, eval, exec, open(), getattr(), globals(), locals(), or vars().",
+            "- Do not use OpenSCAD syntax. This is Python CadQuery, not SCAD.",
+            "- Prefer real CAD operations such as box(), cylinder(), workplane(), hole(), cutBlind(), cutThruAll(), union(), cut(), extrude(), loft(), fillet(), chamfer(), translate(), rotate(), and mirror().",
+            "- For one-piece outputs, boolean-union additive solids into one returned model unless the user explicitly requests separate parts.",
+            "- Model holes and cutouts as subtractive CadQuery features such as hole(), cutBlind(), cutThruAll(), or cut().",
+            "- Keep requested creative/style geometry integrated with the functional body rather than returning loose decorative bodies.",
+            "",
+            "Known-good CadQuery patterns:",
+            "- Multiple through-holes: `wp.faces(\">Z\").workplane().pushPoints([(x, y)]).hole(hole_diameter)`.",
+            "- Translate with a single tuple: `shape.translate((x, y, z))`; do not pass x, y, z as separate translate arguments.",
+            "- Build simple decorative solids with circle()/rect()/polygon()/box()/extrude(), then union() or cut() them into the functional body.",
+            "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
+            "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.add_knurling()`, or `show_object()`.",
+            "- Do not add top-level execution such as `model = build_model()`; the runner calls build_model().",
+            "",
+        ]
+        if request.current_source or request.compiler_diagnostics:
+            parts.extend(
+                [
+                    "Repair mode:",
+                    "- Repair the current CadQuery source so it satisfies the same user intent and compiles cleanly.",
+                    "- Preserve the top-level parameter names and meanings unless a diagnostic proves one is invalid.",
+                    "- Fix the diagnosed Python/CadQuery API issue directly; do not rewrite into OpenSCAD or another CAD language.",
+                    "- Return the full corrected CadQuery Python source, not a patch.",
+                    "",
+                    "Compiler/runtime diagnostics:",
+                    request.compiler_diagnostics or "No diagnostics provided.",
+                    "",
+                    "Current CadQuery source to repair begins below:",
+                    request.current_source or "",
+                    "Current CadQuery source to repair ends above.",
+                    "",
+                ]
+            )
+        parts.extend(
             [
-                "You generate CadQuery Python for Volundr.",
-                "Return only a single fenced python block. Do not include prose outside the block.",
-                "The response must start with ```python and end with ```.",
-                "Follow these rules exactly:",
-                "- Use millimeters.",
-                "- Follow the cadquery-v1 source contract.",
-                "- The only import allowed is exactly `import cadquery as cq`.",
-                "- Top-level statements may only be that import, literal parameter constants, optional helper function definitions, and `def build_model():`.",
-                "- Simple helper functions may also be defined inside build_model() when that makes the model easier to structure.",
-                "- Do not run CadQuery operations, construct geometry, call helper functions, or do any other execution at top level.",
-                "- Define simple top-level user parameters as Python constants with literal values only.",
-                "- Define `def build_model():`; optional helper functions are allowed.",
-                "- build_model() must return one CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable object.",
-                "- Do not write files, read files, import local modules, use shell commands, network access, subprocesses, pathlib, os, sys, eval, exec, open(), getattr(), globals(), locals(), or vars().",
-                "- Do not use OpenSCAD syntax. This is Python CadQuery, not SCAD.",
-                "- Prefer real CAD operations such as box(), cylinder(), workplane(), hole(), cutBlind(), cutThruAll(), union(), cut(), extrude(), loft(), fillet(), chamfer(), translate(), rotate(), and mirror().",
-                "- For one-piece outputs, boolean-union additive solids into one returned model unless the user explicitly requests separate parts.",
-                "- Model holes and cutouts as subtractive CadQuery features such as hole(), cutBlind(), cutThruAll(), or cut().",
-                "- Keep requested creative/style geometry integrated with the functional body rather than returning loose decorative bodies.",
-                "",
-                "Known-good CadQuery patterns:",
-                "- Multiple through-holes: `wp.faces(\">Z\").workplane().pushPoints([(x, y)]).hole(hole_diameter)`.",
-                "- Translate with a single tuple: `shape.translate((x, y, z))`; do not pass x, y, z as separate translate arguments.",
-                "- Build simple decorative solids with circle()/rect()/polygon()/box()/extrude(), then union() or cut() them into the functional body.",
-                "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
-                "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.add_knurling()`, or `show_object()`.",
-                "- Do not add top-level execution such as `model = build_model()`; the runner calls build_model().",
-                "",
                 f"Project name: {request.project_name}",
                 f"Original intent: {request.original_intent}",
                 f"User instruction: {request.user_instruction}",
             ]
         )
+        return "\n".join(parts)
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return self._build_requirement_prompt(request)

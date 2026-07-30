@@ -466,16 +466,17 @@ class LiveBenchmarkRunner:
         )
         if probe["compile_status"] != "compile_succeeded":
             probe["status"] = "source_compile_failed"
-            if source_probe_repair and source_language == "openscad":
+            if source_probe_repair:
                 repair = self._run_source_probe_repair(
                     benchmark=benchmark,
                     provider=provider,
                     run_dir=run_dir,
                     artifact_dir=artifact_dir,
+                    source_language=source_language,
                     failed_source=source,
                     compiler_diagnostics=probe["compile_error_message"]
                     or _read_text_if_present(run_dir, probe["compile_stderr_path"])
-                    or "OpenSCAD compile failed",
+                    or f"{source_language} source probe compile failed",
                 )
                 probe["repair"] = repair
                 if repair["status"] == "source_repair_succeeded":
@@ -494,14 +495,16 @@ class LiveBenchmarkRunner:
                 and connected_components > expected_connected_body_count
             ):
                 probe["status"] = "source_mesh_disconnected"
-                if source_probe_repair and source_language == "openscad":
+                if source_probe_repair:
                     repair = self._run_source_probe_repair(
                         benchmark=benchmark,
                         provider=provider,
                         run_dir=run_dir,
                         artifact_dir=artifact_dir,
+                        source_language=source_language,
                         failed_source=source,
                         compiler_diagnostics=_disconnected_mesh_diagnostics(
+                            source_language=source_language,
                             expected_connected_body_count=expected_connected_body_count,
                             connected_components=connected_components,
                         ),
@@ -566,6 +569,7 @@ class LiveBenchmarkRunner:
         provider: GeminiCliProvider,
         run_dir: Path,
         artifact_dir: Path,
+        source_language: str,
         failed_source: str,
         compiler_diagnostics: str,
         expected_connected_body_count: int | None = None,
@@ -574,17 +578,22 @@ class LiveBenchmarkRunner:
             benchmark=benchmark,
             current_source=failed_source,
             compiler_diagnostics=compiler_diagnostics,
+            source_language=source_language,
         )
-        repair_prompt = provider.build_prompt(request)
+        repair_prompt = _build_source_prompt(provider, request, source_language)
         repair = _empty_source_probe_repair(enabled=True)
         repair["prompt_sha256"] = _sha256_text(repair_prompt)
-        repair["prompt_template_version"] = provider.prompt_template_version_for(request)
+        repair["prompt_template_version"] = _source_prompt_template_version(
+            provider,
+            request,
+            source_language,
+        )
         prompt_path = artifact_dir / "source-repair-prompt.txt"
         prompt_path.write_text(repair_prompt, encoding="utf-8")
         repair["prompt_path"] = _relative(prompt_path, run_dir)
 
         try:
-            result = asyncio.run(provider.generate_model(request))
+            result = asyncio.run(_generate_source_model(provider, request, source_language))
         except TimeoutError as exc:
             repair["status"] = "repair_provider_failed"
             repair["error_path"] = self._write_error(artifact_dir, run_dir, exc)
@@ -599,7 +608,7 @@ class LiveBenchmarkRunner:
         repair["raw_output_path"] = _relative(output_file, run_dir)
 
         try:
-            repaired_source = extract_scad_source(result.raw_output)
+            repaired_source = _extract_source_for_language(result.raw_output, source_language)
         except SourceExtractionError as exc:
             analysis_path = artifact_dir / "source-repair-parameter-analysis.json"
             _write_json(
@@ -608,13 +617,14 @@ class LiveBenchmarkRunner:
                     benchmark=benchmark,
                     extracted_source=None,
                     extraction_error=str(exc),
+                    source_language=source_language,
                 ),
             )
             repair["status"] = "source_repair_extraction_failed"
             repair["parameter_analysis_path"] = _relative(analysis_path, run_dir)
             return repair
 
-        source_path = artifact_dir / "source-repair-extracted.scad"
+        source_path = artifact_dir / _source_repair_filename_for_language(source_language)
         source_path.write_text(repaired_source, encoding="utf-8")
         analysis_path = artifact_dir / "source-repair-parameter-analysis.json"
         _write_json(
@@ -623,14 +633,16 @@ class LiveBenchmarkRunner:
                 benchmark=benchmark,
                 extracted_source=repaired_source,
                 extraction_error=None,
+                source_language=source_language,
             ),
         )
         repair["status"] = "source_repair_parameters_analyzed"
         repair["extracted_source_path"] = _relative(source_path, run_dir)
         repair["parameter_analysis_path"] = _relative(analysis_path, run_dir)
         repair.update(
-            _compile_source_probe(
+            _compile_source_probe_for_language(
                 source=repaired_source,
+                source_language=source_language,
                 run_dir=run_dir,
                 artifact_dir=artifact_dir,
                 workspace_dir_name="source-repair-compile-workspace",
@@ -1223,9 +1235,22 @@ def _mesh_connected_components(*, run_dir: Path, metadata_path: Any) -> int | No
 
 def _disconnected_mesh_diagnostics(
     *,
+    source_language: str = "openscad",
     expected_connected_body_count: int,
     connected_components: int,
 ) -> str:
+    if source_language == "cadquery":
+        return (
+            "CadQuery compiled successfully, but mesh validation failed: "
+            f"expected connected body count: {expected_connected_body_count}; "
+            f"actual connected components: {connected_components}. "
+            "Rewrite build_model() so every additive solid in the one-piece model is "
+            "joined with union() and physically overlaps another positive solid by at "
+            "least 0.5 mm. Sink decorative overlays, indicators, ribs, silhouettes, "
+            "fins, labels, and handles into the parent body so they fuse. Model holes "
+            "as subtractive CadQuery features such as hole(), cutThruAll(), cutBlind(), "
+            "or cut(), not as positive cylinders."
+        )
     return (
         "OpenSCAD compiled successfully, but mesh validation failed: "
         f"expected connected body count: {expected_connected_body_count}; "
@@ -1244,14 +1269,22 @@ def _source_repair_request_for(
     benchmark: GenerationBenchmark,
     current_source: str,
     compiler_diagnostics: str,
+    source_language: str = "openscad",
 ) -> ModelGenerationRequest:
+    if source_language == "cadquery":
+        instruction = (
+            "Repair the CadQuery Python source so build_model() compiles cleanly while "
+            "preserving the benchmark intent and expected source-probe parameters."
+        )
+    else:
+        instruction = (
+            "Repair the OpenSCAD source so it compiles cleanly while preserving the benchmark "
+            "intent and expected source-probe parameters."
+        )
     return ModelGenerationRequest(
         project_name=f"Benchmark: {benchmark.id}",
         original_intent=benchmark.input_prompt,
-        user_instruction=(
-            "Repair the OpenSCAD source so it compiles cleanly while preserving the benchmark "
-            "intent and expected source-probe parameters."
-        ),
+        user_instruction=instruction,
         current_source=current_source,
         compiler_diagnostics=compiler_diagnostics,
     )
@@ -1457,6 +1490,12 @@ def _source_filename_for_language(source_language: str) -> str:
     if source_language == "cadquery":
         return "source-extracted.py"
     return "source-extracted.scad"
+
+
+def _source_repair_filename_for_language(source_language: str) -> str:
+    if source_language == "cadquery":
+        return "source-repair-extracted.py"
+    return "source-repair-extracted.scad"
 
 
 def _compile_source_probe_for_language(

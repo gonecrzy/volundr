@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
         "--source-probe-repair",
         action="store_true",
         help=(
-            "For OpenSCAD source probes, run one repair prompt after compile failure or "
+            "Run one repair prompt after source-probe compile failure or "
             "source-brief connected-body validation failure, then compile the repaired "
             "source as a separate repair metric."
         ),

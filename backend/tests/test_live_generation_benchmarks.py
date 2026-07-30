@@ -583,6 +583,206 @@ def build_model():
     assert metrics["source_probe_compile_status_counts"] == {"compile_succeeded": 1}
 
 
+def test_live_benchmark_cadquery_source_probe_can_repair_failed_compile(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def __init__(self) -> None:
+            self.generation_requests = []
+
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cadquery", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_cadquery_prompt(self, request) -> str:
+            if request.compiler_diagnostics:
+                return f"cadquery repair {request.compiler_diagnostics}"
+            return f"cadquery source for {request.user_instruction}"
+
+        def cadquery_prompt_template_version(self) -> str:
+            return "cadquery-source-v1"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cadquery",
+            )
+
+        async def generate_cadquery_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            self.generation_requests.append(request)
+            if request.compiler_diagnostics:
+                assert request.current_source is not None
+                assert ".holes(" in request.current_source
+                assert "no attribute 'holes'" in request.compiler_diagnostics
+                return ModelGenerationResult(
+                    raw_output="""
+```python
+import cadquery as cq
+
+plate_width = 80
+plate_depth = 35
+plate_thickness = 6
+hole_diameter = 4
+
+def build_model():
+    return (
+        cq.Workplane("XY")
+        .box(plate_width, plate_depth, plate_thickness)
+        .faces(">Z")
+        .workplane()
+        .pushPoints([(0, 0)])
+        .hole(hole_diameter)
+    )
+```
+""",
+                    provider="ollama",
+                    provider_model="fake-cadquery",
+                )
+            return ModelGenerationResult(
+                raw_output="""
+```python
+import cadquery as cq
+
+plate_width = 80
+plate_depth = 35
+plate_thickness = 6
+hole_diameter = 4
+
+def build_model():
+    return cq.Workplane("XY").box(plate_width, plate_depth, plate_thickness).holes(hole_diameter)
+```
+""",
+                provider="ollama",
+                provider_model="fake-cadquery",
+            )
+
+    compile_calls = []
+
+    def fake_compile_cadquery_probe(
+        *,
+        source,
+        run_dir,
+        artifact_dir,
+        workspace_dir_name="source-compile-workspace",
+        job_id="source-probe",
+    ):
+        compile_calls.append((workspace_dir_name, job_id, source))
+        workspace = artifact_dir / workspace_dir_name / job_id
+        workspace.mkdir(parents=True)
+        if job_id == "source-probe":
+            stderr_path = workspace / "stderr.log"
+            stderr_path.write_text("AttributeError: no attribute 'holes'\n", encoding="utf-8")
+            return {
+                "compile_status": "compile_failed",
+                "compiled_stl_path": None,
+                "compiled_step_path": None,
+                "compile_stdout_path": None,
+                "compile_stderr_path": str(stderr_path.resolve().relative_to(run_dir.resolve())),
+                "mesh_metadata_path": None,
+                "compile_error_message": "AttributeError: no attribute 'holes'",
+                "compile_timed_out": False,
+                "compile_exit_code": 1,
+                "compile_warning_count": 0,
+                "compile_warnings": [],
+                "stl_size_bytes": 0,
+            }
+        stl_path = workspace / "model.stl"
+        stl_path.write_text("solid fake\nendsolid fake\n", encoding="utf-8")
+        metadata_path = workspace / "metadata.json"
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "size_x_mm": 80,
+                    "size_y_mm": 35,
+                    "size_z_mm": 6,
+                    "volume_mm3": 16800,
+                    "triangle_count": 12,
+                    "connected_components": 1,
+                    "is_watertight": True,
+                    "is_winding_consistent": True,
+                    "center_of_mass": [0, 0, 0],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return {
+            "compile_status": "compile_succeeded",
+            "compiled_stl_path": str(stl_path.resolve().relative_to(run_dir.resolve())),
+            "compiled_step_path": None,
+            "compile_stdout_path": None,
+            "compile_stderr_path": None,
+            "mesh_metadata_path": str(metadata_path.resolve().relative_to(run_dir.resolve())),
+            "compile_error_message": None,
+            "compile_timed_out": False,
+            "compile_exit_code": 0,
+            "compile_warning_count": 0,
+            "compile_warnings": [],
+            "stl_size_bytes": stl_path.stat().st_size,
+        }
+
+    provider = FakeOllamaProvider()
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", lambda: provider)
+    monkeypatch.setattr(live_benchmarks, "_compile_cadquery_probe", fake_compile_cadquery_probe)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+            source_probe_repair=True,
+            source_language="cadquery",
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+    repair = source_probe["repair"]
+
+    assert len(provider.generation_requests) == 2
+    assert [call[1] for call in compile_calls] == ["source-probe", "source-repair"]
+    assert source_probe["status"] == "source_repair_succeeded"
+    assert source_probe["compile_status"] == "compile_failed"
+    assert repair["enabled"] is True
+    assert repair["status"] == "source_repair_succeeded"
+    assert repair["prompt_template_version"] == "cadquery-source-v1"
+    assert repair["extracted_source_path"].endswith("source-repair-extracted.py")
+    assert repair["parameter_analysis_path"] is not None
+    assert repair["compile_status"] == "compile_succeeded"
+    assert repair["compiled_stl_path"] is not None
+    assert metrics["source_probe_status_counts"] == {"source_repair_succeeded": 1}
+    assert metrics["source_probe_compile_status_counts"] == {"compile_failed": 1}
+    assert metrics["source_probe_repair_enabled"] is True
+    assert metrics["source_probe_repair_status_counts"] == {"source_repair_succeeded": 1}
+    assert metrics["source_probe_repair_compile_status_counts"] == {"compile_succeeded": 1}
+    assert metrics["source_probe_repair_attempt_count"] == 1
+    assert metrics["source_probe_repair_compile_success_count"] == 1
+
+
 def test_live_benchmark_source_probe_compile_supports_relative_output_root(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
