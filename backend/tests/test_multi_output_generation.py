@@ -525,6 +525,7 @@ def test_multi_output_plan_creates_assembly_candidate_and_output_artifacts(tmp_p
     assert manifest["parameter_hash"] == outputs[0]["parameter_hash"]
     assert [output["output_id"] for output in manifest["outputs"]] == ["body", "lid"]
     assert manifest["outputs"][0]["parameter_hash"] == outputs[0]["parameter_hash"]
+    assert manifest["outputs"][0]["compile_ms"] is not None
     assert manifest["outputs"][0]["expected_solid_count"] == 1
     assert manifest["outputs"][0]["detected_solid_count"] == 1
     assert manifest["outputs"][0]["allow_disconnected_solids"] is False

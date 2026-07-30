@@ -7080,6 +7080,7 @@ class ProjectService:
             "quantity": output.quantity,
             "required": output.required,
             "state": output.execution_state,
+            "compile_ms": output.compile_ms,
             "expected_solid_count": output.expected_solid_count,
             "detected_solid_count": output.detected_solid_count,
             "allow_disconnected_solids": output.allow_disconnected_solids,

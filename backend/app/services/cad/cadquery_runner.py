@@ -481,6 +481,7 @@ import hashlib
 import importlib.util
 import json
 import sys
+import time
 from pathlib import Path
 
 import cadquery as cq
@@ -489,6 +490,7 @@ from volundr_cad.runtime import ParameterValues, PrintableOutput, Product
 
 
 def main() -> int:
+    started_at = time.perf_counter()
     output_dir = Path(sys.argv[1])
     result_path = Path(sys.argv[2])
     parameter_values_path = Path(sys.argv[3])
@@ -526,6 +528,9 @@ def main() -> int:
                     for output in outputs
                     if output.get("success")
                 ],
+                "execution_timing": {
+                    "total_ms": round((time.perf_counter() - started_at) * 1000, 3),
+                },
                 "outputs": outputs,
                 "worker_version": "cadquery-cli-runner-v1",
             },
