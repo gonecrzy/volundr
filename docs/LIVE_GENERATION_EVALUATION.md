@@ -69,7 +69,7 @@ Ollama uses the configured `VOLUNDR_OLLAMA_BASE_URL` and `VOLUNDR_OLLAMA_MODEL` 
 --provider gemini-api --allow-live
 ```
 
-Direct Gemini API source-generation runs default `VOLUNDR_GEMINI_API_THINKING_LEVEL` to `minimal`. Keep that setting explicit for source probes unless a run is intentionally measuring deeper reasoning; Gemini thinking models can otherwise spend the response budget on reasoning text and fail to return a complete fenced source block.
+Direct Gemini API source-generation runs should use `VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite` by default for this phase-validation path. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL` explicit as `minimal` unless a run is intentionally measuring deeper reasoning; Gemini thinking models can otherwise spend the response budget on reasoning text and fail to return a complete fenced source block.
 
 This explicit opt-in prevents accidental quota spend during routine testing.
 

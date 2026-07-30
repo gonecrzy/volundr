@@ -177,7 +177,7 @@ VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal
 
 Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, transport, non-secret auth mode, and configured thinking level so quota or policy issues can be traced without storing credentials. `gemini_cli` remains available for a configured Gemini CLI profile, but API-key operation should use `gemini_api`.
 
-For source generation, keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning. Gemini 3.5 Flash defaults to thinking, and unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
+For source generation, use `VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite` as the default Gemini endpoint unless you are deliberately comparing model tiers. In the current CadQuery validation path it avoids the tighter `gemini-3.5-flash` request-limit behavior and still returns useful geometry signals. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning; unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
 
 ## Manual Compile API
 

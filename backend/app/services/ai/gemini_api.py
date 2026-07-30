@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 from typing import Any
 
 import httpx
@@ -33,6 +34,8 @@ class GeminiApiProvider(GeminiCliProvider):
         temperature: float | None = None,
         max_output_tokens: int | None = None,
         thinking_level: str | None = None,
+        max_retries: int | None = None,
+        max_retry_sleep_seconds: float | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.api_key = api_key or settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
@@ -53,6 +56,14 @@ class GeminiApiProvider(GeminiCliProvider):
             thinking_level
             if thinking_level is not None
             else settings.gemini_api_thinking_level
+        )
+        self.max_retries = (
+            max_retries if max_retries is not None else settings.gemini_api_max_retries
+        )
+        self.max_retry_sleep_seconds = (
+            max_retry_sleep_seconds
+            if max_retry_sleep_seconds is not None
+            else settings.gemini_api_max_retry_sleep_seconds
         )
         self._transport = transport
 
@@ -138,33 +149,38 @@ class GeminiApiProvider(GeminiCliProvider):
             ],
             "generationConfig": generation_config,
         }
-        try:
-            async with httpx.AsyncClient(
-                base_url=self.base_url,
-                timeout=self.timeout_seconds,
-                transport=self._transport,
-            ) as client:
-                response = await asyncio.wait_for(
-                    client.post(
-                        self._endpoint_path(),
-                        params={"key": self.api_key},
-                        json=payload,
-                    ),
-                    timeout=self.timeout_seconds,
-                )
-        except TimeoutError as exc:
-            raise RuntimeError(
-                f"Gemini API request timed out after {self.timeout_seconds} seconds"
-            ) from exc
-        except httpx.TimeoutException as exc:
-            raise RuntimeError(
-                f"Gemini API request timed out after {self.timeout_seconds} seconds"
-            ) from exc
-        except httpx.HTTPError as exc:
-            raise RuntimeError(f"Gemini API request failed: {exc}") from exc
+        async with httpx.AsyncClient(
+            base_url=self.base_url,
+            timeout=self.timeout_seconds,
+            transport=self._transport,
+        ) as client:
+            for attempt in range(max(0, self.max_retries) + 1):
+                try:
+                    response = await asyncio.wait_for(
+                        client.post(
+                            self._endpoint_path(),
+                            params={"key": self.api_key},
+                            json=payload,
+                        ),
+                        timeout=self.timeout_seconds,
+                    )
+                except TimeoutError as exc:
+                    raise RuntimeError(
+                        f"Gemini API request timed out after {self.timeout_seconds} seconds"
+                    ) from exc
+                except httpx.TimeoutException as exc:
+                    raise RuntimeError(
+                        f"Gemini API request timed out after {self.timeout_seconds} seconds"
+                    ) from exc
+                except httpx.HTTPError as exc:
+                    raise RuntimeError(f"Gemini API request failed: {exc}") from exc
 
-        if response.status_code >= 400:
-            raise RuntimeError(self._error_message(response))
+                if response.status_code < 400:
+                    break
+                retry_delay = self._retry_delay_seconds(response)
+                if retry_delay is None or attempt >= max(0, self.max_retries):
+                    raise RuntimeError(self._error_message(response))
+                await asyncio.sleep(retry_delay)
 
         try:
             response_payload = response.json()
@@ -184,6 +200,8 @@ class GeminiApiProvider(GeminiCliProvider):
             "endpoint": self._endpoint_path(),
             "auth_mode": "api_key" if self.api_key else "missing_api_key",
             "thinking_level": self.thinking_level,
+            "max_retries": self.max_retries,
+            "max_retry_sleep_seconds": self.max_retry_sleep_seconds,
         }
 
     def _endpoint_path(self) -> str:
@@ -227,6 +245,76 @@ class GeminiApiProvider(GeminiCliProvider):
                 "or empty/off"
             )
         return value.upper()
+
+    def _retry_delay_seconds(self, response: httpx.Response) -> float | None:
+        if response.status_code not in {429, 503}:
+            return None
+
+        header_delay = self._parse_retry_delay(response.headers.get("retry-after"))
+        if header_delay is not None:
+            return min(header_delay, self.max_retry_sleep_seconds)
+
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+
+        retry_info_delay = self._retry_delay_from_details(payload)
+        if retry_info_delay is not None:
+            return min(retry_info_delay, self.max_retry_sleep_seconds)
+
+        message_delay = self._parse_retry_delay(self._error_message(response))
+        if message_delay is not None:
+            return min(message_delay, self.max_retry_sleep_seconds)
+
+        return min(2.0, self.max_retry_sleep_seconds)
+
+    def _retry_delay_from_details(self, payload: dict[str, Any]) -> float | None:
+        error = payload.get("error")
+        if not isinstance(error, dict):
+            return None
+        details = error.get("details")
+        if not isinstance(details, list):
+            return None
+        for detail in details:
+            if not isinstance(detail, dict):
+                continue
+            retry_delay = detail.get("retryDelay")
+            if isinstance(retry_delay, str):
+                parsed = self._parse_retry_delay(retry_delay)
+                if parsed is not None:
+                    return parsed
+        return None
+
+    def _parse_retry_delay(self, value: str | None) -> float | None:
+        if not value:
+            return None
+        stripped = value.strip()
+        try:
+            return max(0.0, float(stripped))
+        except ValueError:
+            pass
+
+        direct_match = re.fullmatch(r"(?P<seconds>\d+(?:\.\d+)?)s", stripped)
+        if direct_match:
+            return float(direct_match.group("seconds"))
+
+        direct_ms_match = re.fullmatch(r"(?P<milliseconds>\d+(?:\.\d+)?)ms", stripped)
+        if direct_ms_match:
+            return float(direct_ms_match.group("milliseconds")) / 1000.0
+
+        message_match = re.search(
+            r"retry\s+in\s+(?P<delay>\d+(?:\.\d+)?)\s*(?P<unit>ms|s)",
+            stripped,
+            flags=re.IGNORECASE,
+        )
+        if message_match:
+            delay = float(message_match.group("delay"))
+            if message_match.group("unit").lower() == "ms":
+                return delay / 1000.0
+            return delay
+
+        return None
 
     def _error_message(self, response: httpx.Response) -> str:
         try:

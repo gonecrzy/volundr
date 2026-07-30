@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 import httpx
 import pytest
@@ -27,6 +28,8 @@ def test_gemini_api_provider_settings_are_non_secret() -> None:
         "endpoint": "/models/gemini-3.5-flash-lite:generateContent",
         "auth_mode": "api_key",
         "thinking_level": "minimal",
+        "max_retries": 2,
+        "max_retry_sleep_seconds": 60.0,
     }
 
 
@@ -164,6 +167,104 @@ async def test_gemini_api_rejects_unknown_thinking_level() -> None:
                 user_instruction="Make a bracket.",
             )
         )
+
+
+@pytest.mark.asyncio
+async def test_gemini_api_retries_retryable_rate_limit_response() -> None:
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": (
+                            "You exceeded your current quota. "
+                            "Please retry in 0.001s."
+                        ),
+                        "status": "RESOURCE_EXHAUSTED",
+                    }
+                },
+            )
+        return httpx.Response(
+            200,
+            json={
+                "candidates": [
+                    {"content": {"parts": [{"text": "{\"outcome\":\"generation_ready\"}"}]}}
+                ]
+            },
+        )
+
+    provider = GeminiApiProvider(
+        api_key="secret-key",
+        model="gemini-3.5-flash",
+        transport=_mock_transport(handler),
+    )
+
+    started_at = time.monotonic()
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert attempts == 2
+    assert result.raw_output == "{\"outcome\":\"generation_ready\"}"
+    assert time.monotonic() - started_at < 0.5
+
+
+@pytest.mark.asyncio
+async def test_gemini_api_retries_millisecond_rate_limit_response() -> None:
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": (
+                            "You exceeded your current quota. "
+                            "Please retry in 1.0ms."
+                        ),
+                        "status": "RESOURCE_EXHAUSTED",
+                    }
+                },
+            )
+        return httpx.Response(
+            200,
+            json={
+                "candidates": [
+                    {"content": {"parts": [{"text": "{\"outcome\":\"generation_ready\"}"}]}}
+                ]
+            },
+        )
+
+    provider = GeminiApiProvider(
+        api_key="secret-key",
+        model="gemini-3.5-flash",
+        transport=_mock_transport(handler),
+    )
+
+    started_at = time.monotonic()
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert attempts == 2
+    assert result.raw_output == "{\"outcome\":\"generation_ready\"}"
+    assert time.monotonic() - started_at < 0.5
 
 
 @pytest.mark.asyncio

@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     gemini_api_temperature: float = Field(default=0.2)
     gemini_api_max_output_tokens: int = Field(default=8192)
     gemini_api_thinking_level: str | None = Field(default="minimal")
+    gemini_api_max_retries: int = Field(default=2)
+    gemini_api_max_retry_sleep_seconds: float = Field(default=60.0)
     generation_mode: str = Field(default="simple")
     enable_design_plans: bool = Field(default=False)
     enable_multi_output: bool = Field(default=False)

@@ -33,6 +33,8 @@ def build_ai_provider(config: Settings) -> AiProvider:
             temperature=config.gemini_api_temperature,
             max_output_tokens=config.gemini_api_max_output_tokens,
             thinking_level=config.gemini_api_thinking_level,
+            max_retries=config.gemini_api_max_retries,
+            max_retry_sleep_seconds=config.gemini_api_max_retry_sleep_seconds,
         )
     if provider in {"gemini", "gemini_cli"}:
         return GeminiCliProvider(
