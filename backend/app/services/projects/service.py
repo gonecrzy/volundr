@@ -5820,6 +5820,12 @@ class ProjectService:
         compile_ms = round((time.perf_counter() - started) * 1000, 3)
         compile_log_path = log_dir / "cadquery.log"
         compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
+        execution_manifest_source = getattr(result, "execution_manifest_path", None)
+        execution_manifest_relative_path: str | None = None
+        if isinstance(execution_manifest_source, Path) and execution_manifest_source.exists():
+            execution_manifest_path = revision_dir / "execution-result.json"
+            shutil.copyfile(execution_manifest_source, execution_manifest_path)
+            execution_manifest_relative_path = self._relative(execution_manifest_path)
         result_outputs = {output.output_id: output for output in getattr(result, "outputs", [])}
         for output_record in output_records:
             output_result = result_outputs.get(output_record.output_id)
@@ -5855,6 +5861,7 @@ class ProjectService:
         revision.source_path = self._relative(source_path)
         revision.source_hash = source_hash
         revision.source_contract_version = "cadquery-v1"
+        revision.execution_manifest_path = execution_manifest_relative_path
         revision.ai_output_path = ai_output_relative_path
         revision.compile_log_path = self._relative(compile_log_path)
         revision.stl_path = self._first_successful_output_stl(revision)

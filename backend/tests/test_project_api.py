@@ -72,6 +72,7 @@ class FakeCadRunner:
         stderr_path = job_dir / "stderr.log"
         metadata_path = job_dir / "metadata.json"
         topology_path = job_dir / "topology.json"
+        execution_manifest_path = job_dir / "result.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
 
@@ -114,6 +115,7 @@ class FakeCadRunner:
         step_path.write_text("STEP", encoding="utf-8")
         brep_path.write_text("BREP", encoding="utf-8")
         topology_path.write_text('{"valid": true}', encoding="utf-8")
+        execution_manifest_path.write_text('{"success": true}', encoding="utf-8")
         output = CadQueryOutputResult(
             output_id=output_id,
             entrypoint=output_id,
@@ -131,7 +133,7 @@ class FakeCadRunner:
             metadata=metadata,
             topology_metadata={"valid": True},
         )
-        return CadQueryCompileResult(
+        result = CadQueryCompileResult(
             job_id=job_id,
             success=True,
             timed_out=False,
@@ -149,6 +151,8 @@ class FakeCadRunner:
             command_args=["python", "_volundr_cadquery_runner.py"],
             outputs=[output],
         )
+        object.__setattr__(result, "execution_manifest_path", execution_manifest_path)
+        return result
 
 
 def build_client(tmp_path: Path) -> TestClient:
@@ -205,6 +209,7 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert revision["cad_backend"] == "cadquery"
     assert revision["source_language"] == "python"
     assert revision["source_contract_version"] == "cadquery-v1"
+    assert revision["execution_manifest_path"] == f"projects/{project['id']}/revisions/{revision['id']}/execution-result.json"
     assert revision["expected_output_count"] == 1
     assert revision["successful_output_count"] == 1
     assert revision["metadata"]["triangle_count"] == 12
@@ -218,6 +223,7 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert (revision_dir / "stl" / "body.stl").exists()
     assert (revision_dir / "step" / "body.step").exists()
     assert (revision_dir / "brep" / "body.brep").exists()
+    assert (revision_dir / "execution-result.json").exists()
     assert (revision_dir / "logs" / "cadquery.log").read_text(encoding="utf-8") == "Compilation finished"
     assert (revision_dir / "metadata" / "body.json").exists()
 

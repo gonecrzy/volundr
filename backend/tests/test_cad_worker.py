@@ -409,6 +409,7 @@ async def test_worker_runner_submits_job_and_reads_structured_result(tmp_path: P
 
     assert result.success is True
     assert result.command_args == ["python", "_runner.py"]
+    assert result.execution_manifest_path == tmp_path / job_id / "result.json"
     assert result.outputs[0].output_id == "body"
     assert result.outputs[0].stl_path is not None
     assert result.outputs[0].stl_path.exists()

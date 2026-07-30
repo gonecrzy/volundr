@@ -158,6 +158,7 @@ class FilesystemCadWorkerRunner:
             if isinstance(diagnostics.get("command_args"), list)
             else None,
             outputs=outputs,
+            execution_manifest_path=job_dir / "result.json",
         )
 
     def _output_result_from_worker_payload(

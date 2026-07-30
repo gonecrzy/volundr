@@ -55,6 +55,7 @@ class CadQueryCompileResult:
     error_message: str | None
     command_args: list[str] | None = None
     outputs: list[CadQueryOutputResult] = field(default_factory=list)
+    execution_manifest_path: Path | None = None
 
 
 class CadQueryCliRunner:
@@ -256,6 +257,7 @@ class CadQueryCliRunner:
             error_message=None,
             command_args=self._safe_command_args(command_args),
             outputs=outputs,
+            execution_manifest_path=execution_result_path,
         )
 
     def _screen_source(self, source: str, *, source_contract_version: str) -> str | None:
