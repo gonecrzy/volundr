@@ -19,7 +19,7 @@ Transition order:
 1. Establish CadQuery/Gemini/staged-workflow documentation authority.
 2. Replace the idle CAD worker with a real isolated execution boundary.
 3. Replace SCAD-shaped persistence with CadQuery-native source and artifact fields.
-4. Promote the CadQuery source probe into a production `cadquery-v1` contract.
+4. Promote CadQuery source validation into the production `cadquery-v1` contract.
 5. Execute single-output and multi-output CadQuery products with STEP/STL artifacts and topology validation.
 6. Make Gemini API and the staged lifecycle the default generation path.
 7. Rebuild deterministic parameter configuration around typed CadQuery execution.
@@ -181,7 +181,7 @@ Source-contract validation pass:
 - Quality issues such as missing assertions, missing print notes, excessive `$fn`, and repeated magic numbers remain advisory and attach to candidates after successful compile/validation.
 - Generated source now uses `source-contract-v1` markers documented in `docs/MODEL_GENERATION_CONTRACT.md`.
 - Contract repair is a bounded `cadquery-contract-repair-v1` mode and remains separate from execution repair.
-- Legacy accepted source remains usable and is not retroactively rejected.
+- Earlier stabilization passes allowed accepted OpenSCAD-era source to remain usable. The CadQuery-primary transition no longer treats old development source as a compatibility target.
 
 Geometric invariant validation pass:
 
@@ -189,7 +189,7 @@ Geometric invariant validation pass:
 - Supported checks include protected overall bounds, build-plate placement, common axis-aligned cylindrical holes, hole count, two-hole spacing, and coarse wall thickness.
 - Confirmed high-confidence protected invariant violations block acceptance; unverifiable protected features create warnings for human review.
 - Source markers now include `@volundr-geometry` metadata for measurable features in `openscad-generation-v3`.
-- Legacy candidates without geometric analysis remain loadable and are labeled as not evaluated.
+- Earlier stabilization passes labeled candidates without geometric analysis as not evaluated. The CadQuery-primary transition uses fresh CadQuery candidates with topology, mesh, and printability evidence.
 
 Next implementation boundary:
 

@@ -2,6 +2,13 @@
 
 This is a historical reliability plan for the OpenSCAD generation path. `docs/CADQUERY_BACKEND.md` and `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md` supersede it for the CadQuery-primary transition while preserving useful failure taxonomy and benchmark ideas.
 
+Do not use implementation-status notes in this file as current product
+architecture. OpenSCAD prompt modes, SCAD source contracts, and legacy one-step
+generation references below are archived context only; current generation uses
+the staged CadQuery lifecycle documented in `docs/CADQUERY_BACKEND.md`,
+`docs/GEMINI_PROMPT_ARCHITECTURE.md`, and
+`docs/CADQUERY_TRANSITION_EVALUATION.md`.
+
 ## Goal
 
 Make Volundr's Gemini generation measurable, reproducible, and harder to accept when it produces invalid, unprintable, or functionally weak models.

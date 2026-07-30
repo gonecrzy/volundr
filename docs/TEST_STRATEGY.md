@@ -78,7 +78,7 @@ Test:
 - analyzer failures become unverifiable findings and do not crash candidate creation
 - geometric result artifacts persist analyzer version, tolerance-profile version, mesh hash, source hash, and linked validation findings
 - geometric findings are available to candidate review and revision-from-finding context
-- legacy candidates without analysis remain loadable
+- old development candidates without analysis are not compatibility targets for the CadQuery-primary test matrix
 
 ### Revisions
 

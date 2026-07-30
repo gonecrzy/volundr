@@ -183,4 +183,4 @@ unverifiable
 - no arbitrary assembly fit proof
 - no automatic geometry correction
 - no slicer integration
-- legacy revisions without ownership markers remain loadable but cannot prove narrow preservation
+- old development revisions without CadQuery ownership metadata are not component-targeted revision inputs; regenerate them through the staged CadQuery workflow

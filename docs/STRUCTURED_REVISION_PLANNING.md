@@ -225,9 +225,9 @@ Candidate review may start a Revision Plan from a selected validation finding. T
 
 Finding-driven revisions still require explicit plan approval. Compiler repair is not used for geometric, printability, or product-scope violations.
 
-## Legacy Compatibility
+## Development Data Policy
 
-Accepted legacy revisions without an approved Design Plan remain loadable. Structured revision planning requires an accepted base revision with an approved Design Plan and output manifest. Legacy AI source editing paths may remain only as compatibility paths and should be clearly labeled when used.
+Structured revision planning requires an accepted CadQuery base revision with an approved Design Plan and output manifest. Old development revisions without that staged context are not compatibility targets for the CadQuery-primary architecture; recreate or regenerate them through the staged workflow instead of preserving legacy AI source-editing paths.
 
 ## Known Limitations
 
