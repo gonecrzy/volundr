@@ -558,6 +558,11 @@ async def test_cadquery_execution_manifest_records_source_parameter_and_contract
     assert payload["outputs"][0]["stl_hash"] == result.outputs[0].stl_hash
     assert payload["outputs"][0]["step_hash"] == result.outputs[0].step_hash
     assert payload["outputs"][0]["brep_hash"] == result.outputs[0].brep_hash
+    assert payload["outputs"][0]["topology_metadata"]["shell_count"] == 1
+    assert payload["outputs"][0]["topology_metadata"]["bounding_box_mm"]["size_x"] == 2.0
+    assert result.outputs[0].topology_metadata is not None
+    assert result.outputs[0].topology_metadata["shell_count"] == 1
+    assert result.outputs[0].topology_metadata["bounding_box_mm"]["size_x"] == 2.0
     assert payload["worker_version"] == "cadquery-cli-runner-v1"
 
 

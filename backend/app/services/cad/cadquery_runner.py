@@ -716,6 +716,8 @@ def _topology_metadata(
         "valid": valid,
         "outcome": outcome,
         "volume_mm3": volume,
+        "shell_count": _shell_count(model, shape),
+        "bounding_box_mm": _bounding_box_metadata(shape),
         "detected_solid_count": detected_solid_count,
         "expected_solid_count": expected_solid_count,
         "allow_disconnected_solids": allow_disconnected_solids,
@@ -728,6 +730,8 @@ def _unsupported_shape_topology_metadata(*, output_id, expected_solid_count, all
         "valid": False,
         "outcome": "unsupported_shape",
         "volume_mm3": None,
+        "shell_count": 0,
+        "bounding_box_mm": None,
         "detected_solid_count": 0,
         "expected_solid_count": expected_solid_count,
         "allow_disconnected_solids": allow_disconnected_solids,
@@ -740,6 +744,8 @@ def _execution_failed_topology_metadata(*, output_id, expected_solid_count, allo
         "valid": False,
         "outcome": "execution_failed",
         "volume_mm3": None,
+        "shell_count": 0,
+        "bounding_box_mm": None,
         "detected_solid_count": 0,
         "expected_solid_count": expected_solid_count,
         "allow_disconnected_solids": allow_disconnected_solids,
@@ -752,6 +758,8 @@ def _empty_topology_metadata(*, output_id, expected_solid_count, allow_disconnec
         "valid": False,
         "outcome": "empty",
         "volume_mm3": 0,
+        "shell_count": 0,
+        "bounding_box_mm": None,
         "detected_solid_count": 0,
         "expected_solid_count": expected_solid_count,
         "allow_disconnected_solids": allow_disconnected_solids,
@@ -790,6 +798,51 @@ def _solid_count(model, shape):
         except Exception:
             pass
     return 1
+
+
+def _shell_count(model, shape):
+    if hasattr(model, "shells"):
+        try:
+            shells = model.shells()
+            if hasattr(shells, "size"):
+                return int(shells.size())
+        except Exception:
+            pass
+    if hasattr(shape, "Shells"):
+        try:
+            return len(shape.Shells())
+        except Exception:
+            pass
+    return None
+
+
+def _bounding_box_metadata(shape):
+    if not hasattr(shape, "BoundingBox"):
+        return None
+    try:
+        bounding_box = shape.BoundingBox()
+    except Exception:
+        return None
+    return {
+        "x_min": _numeric_attr(bounding_box, "xmin"),
+        "x_max": _numeric_attr(bounding_box, "xmax"),
+        "y_min": _numeric_attr(bounding_box, "ymin"),
+        "y_max": _numeric_attr(bounding_box, "ymax"),
+        "z_min": _numeric_attr(bounding_box, "zmin"),
+        "z_max": _numeric_attr(bounding_box, "zmax"),
+        "size_x": _numeric_attr(bounding_box, "xlen"),
+        "size_y": _numeric_attr(bounding_box, "ylen"),
+        "size_z": _numeric_attr(bounding_box, "zlen"),
+    }
+
+
+def _numeric_attr(value, name):
+    attribute = getattr(value, name, None)
+    if callable(attribute):
+        attribute = attribute()
+    if isinstance(attribute, (int, float)):
+        return float(attribute)
+    return None
 
 
 def _file_sha256(path):
