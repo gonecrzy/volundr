@@ -12,7 +12,8 @@ This file explains exactly what belongs in each project document.
 | `docs/DOCKER_BASELINE.md` | Canonical service/container names, network name, volume boundaries, and Compose skeleton. |
 | `docs/ARCHITECTURE.md` | Approved V1 components, interfaces, Docker service names, runtime flow, storage, and deployment. |
 | `docs/PARAMETRIC_PRODUCT_MODEL.md` | High-level Parametric Product Model concepts and links to Design Plan, configuration, revision planning, and output behavior. |
-| `docs/MODEL_GENERATION_CONTRACT.md` | Historical OpenSCAD source-contract behavior; superseded for product CAD by the `cadquery-v1` contract in `CADQUERY_BACKEND.md`. |
+| `docs/MODEL_GENERATION_CONTRACT.md` | Archived historical OpenSCAD source-contract behavior. It is not controlling product CAD behavior. |
+| `docs/GEMINI_RULESET.md` | Active Gemini ruleset for CadQuery staged generation, repair, configuration, revision, and failure behavior. |
 | `docs/MULTI_OUTPUT_GENERATION.md` | Canonical CadQuery output model, per-output lifecycle, assembly classification, retry, and ZIP export behavior. |
 | `docs/PARAMETER_CONFIGURATION.md` | Direct parameter editing, preset switching, deterministic CadQuery parameter regeneration, configuration-change persistence, and limits that escalate to revision planning. |
 | `docs/STRUCTURED_REVISION_PLANNING.md` | Immutable revision-plan lifecycle, scoped change model, compliance checks, success criteria, and finding-driven revision behavior. |
@@ -31,6 +32,6 @@ When information conflicts:
 2. `PRODUCT_DIRECTION.md` controls product intent when it does not conflict with `CADQUERY_BACKEND.md`.
 3. `MVP_SCOPE.md` controls scope when it does not conflict with the approved CadQuery architecture.
 4. `ARCHITECTURE.md` controls implementation defaults after being reconciled with `CADQUERY_BACKEND.md`.
-5. `MODEL_GENERATION_CONTRACT.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, and `CAD_EXECUTION_SECURITY.md` control generated CAD behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, and execution safety.
+5. `GEMINI_RULESET.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, and `CAD_EXECUTION_SECURITY.md` control generated CadQuery behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, and execution safety.
 6. `CURRENT_STAGE_ROADMAP.md` controls work order.
 7. `LIVE_GENERATION_EVALUATION.md` controls how live benchmark evidence is collected before changing that work order.

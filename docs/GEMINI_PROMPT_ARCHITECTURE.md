@@ -102,15 +102,15 @@ Input context:
 - persisted Design Specification artifact path or hash
 - clarification decision with `action=generate`
 - design plan
-- `docs/GEMINI_RULESET.md` version
+- archived OpenSCAD ruleset context, only for historical benchmark review
 - target printer profile summary
 
 Output:
 
 - exactly one fenced `openscad` block
 - no prose outside the block
-- strict source skeleton from `docs/GEMINI_RULESET.md`
-- protected requirement markers and feature markers as defined in `docs/MODEL_GENERATION_CONTRACT.md`
+- strict historical OpenSCAD source skeleton
+- protected requirement markers and feature markers as defined in the archived OpenSCAD contract
 - source-assisted geometry markers for measurable bounds, holes, hole groups, and wall-thickness regions as defined in `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
 - protected values copied exactly from the Design Specification and exposed as named parameters
 
@@ -124,7 +124,7 @@ Input context:
 
 - Design Specification JSON as requirements authority
 - approved Design Plan JSON as product-structure authority
-- Gemini ruleset and source contract
+- archived OpenSCAD ruleset and source contract
 - printer profile/default context
 - raw user request as secondary intent only
 
@@ -377,29 +377,31 @@ Initial generation should not receive old failed source unless it is explicitly 
 ## Token And History Management
 
 - Store large artifacts as files and pass summaries unless the stage requires full source.
-- Include full OpenSCAD only for revision and repair stages.
+- Include full CadQuery source only for revision and repair stages.
 - Summarize printability results as rule id, severity, detected value, and suggested correction.
 - Keep prompt examples short and canonical.
 - Version every prompt independently.
 
 ## Prompt Versioning
 
-Use stable stage IDs:
+Use these active stable stage IDs for product generation:
 
 ```text
 requirements-v1
 clarification-v1
 design-plan-v1
-openscad-generation-v1
-openscad-generation-v2
-openscad-generation-v3
-openscad-generation-v5
-revision-v1
-contract-repair-v1
-contract-repair-v2
-compile-repair-v1
+cadquery-generation-v1
+cadquery-contract-repair-v1
+cadquery-execution-repair-v1
+revision-planning-v1
+cadquery-component-revision-v1
+cadquery-scope-correction-v1
 validation-feedback-v1
 ```
+
+Historical `openscad-*`, `contract-repair-*`, and `compile-repair-*` stage IDs
+may appear in archived generation attempts and benchmark notes, but they are not
+active product prompt versions.
 
 Persist per attempt:
 

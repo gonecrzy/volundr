@@ -4,10 +4,10 @@ This document defines what Volundr is, who it serves, the value it should provid
 
 ## CadQuery Transition Status
 
-`docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims that
-OpenSCAD is the strategic V1 kernel, Gemini CLI is the primary runtime provider,
-Ollama is the intended default, or simple chat generation is the main product
-path. The product direction is CadQuery-primary and staged-workflow-primary.
+`docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims about an
+OpenSCAD-first CAD kernel, Gemini CLI-first provider choice, Ollama defaults, or
+simple chat-first generation. The product direction is CadQuery-primary and
+staged-workflow-primary.
 
 ## Working Description
 
