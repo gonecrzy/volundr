@@ -568,6 +568,10 @@ def test_required_output_failure_blocks_assembly_but_preserves_successful_artifa
     assert outputs[1]["output_id"] == "lid"
     assert outputs[1]["execution_state"] == "failed"
     assert outputs[0]["stl_path"] is not None
+    assert outputs[0]["step_path"] is not None
+    step_response = client.get(f"/api/revision-outputs/{outputs[0]['id']}/step")
+    assert step_response.status_code == 200
+    assert step_response.content == b"STEP"
     findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
     assert any(finding["rule_id"] == "assembly.required_output_failed" for finding in findings)
     assert client.post(f"/api/candidates/{candidate['id']}/accept").status_code == 409

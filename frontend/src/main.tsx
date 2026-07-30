@@ -15,7 +15,9 @@ import {
   revisionPromptFromCandidateFinding,
   revisionPromptFromGeometricFinding,
   outputDimensionsLabel,
+  outputSolidCountLabel,
   outputStateLabel,
+  outputTopologyLabel,
   canRetryOutput,
   sourceCheckSummary,
   type CandidateFinding,
@@ -229,6 +231,7 @@ type DesignPlan = {
   approved_at: string | null;
   rejected_at: string | null;
   created_at: string;
+  generated_revision_id: string | null;
   clarification_questions: Array<{
     id: string;
     project_id: string;
@@ -2063,6 +2066,13 @@ function App() {
 
           <section className="revision-panel" aria-label="Revisions">
             {ADVANCED_WORKFLOW_ENABLED ? (
+              <LifecycleStatus
+                designPlan={designPlan}
+                designSpecification={designSpecification}
+                revision={selectedRevision}
+              />
+            ) : null}
+            {ADVANCED_WORKFLOW_ENABLED ? (
               <>
                 <DesignSpecificationReview
                   answers={clarificationAnswers}
@@ -2237,6 +2247,77 @@ function App() {
       </section>
     </main>
   );
+}
+
+function LifecycleStatus({
+  designPlan,
+  designSpecification,
+  revision,
+}: {
+  designPlan: DesignPlan | null;
+  designSpecification: DesignSpecification | null;
+  revision: Revision | null;
+}) {
+  const steps = [
+    "Describe",
+    "Requirements",
+    "Design Plan",
+    "Approve",
+    "Generate",
+    "Executing CadQuery",
+    "Validating topology",
+    "Candidate",
+    "Accept or revise",
+  ];
+  const currentIndex = lifecycleIndex({ designPlan, designSpecification, revision });
+  return (
+    <section className="lifecycle-strip" aria-label="Staged CadQuery workflow">
+      {steps.map((step, index) => (
+        <span
+          className={index < currentIndex ? "complete" : index === currentIndex ? "current" : ""}
+          key={step}
+        >
+          {step}
+        </span>
+      ))}
+    </section>
+  );
+}
+
+function lifecycleIndex({
+  designPlan,
+  designSpecification,
+  revision,
+}: {
+  designPlan: DesignPlan | null;
+  designSpecification: DesignSpecification | null;
+  revision: Revision | null;
+}): number {
+  if (revision?.review_state === "accepted") {
+    return 8;
+  }
+  if (revision?.review_state === "ready" || revision?.review_state === "ready_with_warnings" || revision?.review_state === "blocked") {
+    return 7;
+  }
+  if (revision?.status === "running" || revision?.status === "compiling") {
+    return 5;
+  }
+  if (revision?.status === "validating") {
+    return 6;
+  }
+  if (designPlan?.generated_revision_id || designPlan?.review_state === "approved") {
+    return 4;
+  }
+  if (designPlan?.review_state === "pending_review") {
+    return 3;
+  }
+  if (designPlan) {
+    return 2;
+  }
+  if (designSpecification?.generation_ready || designSpecification?.clarification_required) {
+    return 1;
+  }
+  return 0;
 }
 
 function DesignSpecificationReview({
@@ -2997,13 +3078,24 @@ function OutputReview({
               <dd>{output.quantity}</dd>
               <dt>Need</dt>
               <dd>{output.required ? "Required" : "Optional"}</dd>
+              <dt>Components</dt>
+              <dd>{output.component_ids.length > 0 ? output.component_ids.join(", ") : output.component_id ?? "Unassigned"}</dd>
               <dt>Size</dt>
               <dd>{outputDimensionsLabel(output)}</dd>
+              <dt>Topology</dt>
+              <dd>{outputTopologyLabel(output)}</dd>
+              <dt>Solid count</dt>
+              <dd>{outputSolidCountLabel(output)}</dd>
               <dt>Warnings</dt>
               <dd>{output.validation_summary.advisory_count}</dd>
             </dl>
             {output.compile_error ? <p className="blocked-reason">{output.compile_error}</p> : null}
             <div className="actions">
+              {output.step_path && !output.id.startsWith("legacy-") ? (
+                <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/step`}>
+                  STEP
+                </a>
+              ) : null}
               {output.stl_path && !output.id.startsWith("legacy-") ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/stl`}>
                   STL

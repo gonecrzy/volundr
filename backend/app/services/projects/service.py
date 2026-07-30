@@ -6341,6 +6341,13 @@ class ProjectService:
         path = self.data_dir / output.stl_path
         return path if path.exists() else None
 
+    def resolve_revision_output_step(self, output_artifact_id: str) -> Path | None:
+        output = self.db.get(RevisionOutput, output_artifact_id)
+        if output is None or output.step_path is None:
+            return None
+        path = self.data_dir / output.step_path
+        return path if path.exists() else None
+
     def read_revision_output_compile_log(self, output_artifact_id: str) -> str | None:
         output = self.db.get(RevisionOutput, output_artifact_id)
         if output is None or output.compile_log_path is None:

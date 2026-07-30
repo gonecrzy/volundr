@@ -345,6 +345,35 @@ textarea {
   padding-top: 0;
 }
 
+.lifecycle-strip {
+  border: 1px solid #d9ded7;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+}
+
+.lifecycle-strip span {
+  background: #eef2ee;
+  border-radius: 999px;
+  color: #68736d;
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.lifecycle-strip span.complete {
+  background: #dcebe3;
+  color: #2f6e59;
+}
+
+.lifecycle-strip span.current {
+  background: #285f72;
+  color: #ffffff;
+}
+
 .project-list,
 .revision-list,
 .message-list {

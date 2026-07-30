@@ -1184,6 +1184,20 @@ def get_revision_output_stl(
     return FileResponse(stl_path, media_type="model/stl", filename=output.filename)
 
 
+@router.get("/revision-outputs/{output_artifact_id}/step")
+def get_revision_output_step(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    output = service.get_revision_output(output_artifact_id)
+    step_path = service.resolve_revision_output_step(output_artifact_id)
+    if output is None or step_path is None:
+        raise HTTPException(status_code=404, detail="revision output STEP not found")
+    return FileResponse(step_path, media_type="model/step", filename=Path(output.filename).with_suffix(".step").name)
+
+
 @router.get("/revision-outputs/{output_artifact_id}/compile-log")
 def get_revision_output_compile_log(
     output_artifact_id: str,

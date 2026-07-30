@@ -5,6 +5,7 @@ type Revision = {
   parent_revision_id: string | null;
   design_specification_id: string | null;
   design_plan_id: string | null;
+  configuration_change_id: string | null;
   revision_number: number;
   source_type: string;
   status: string;
@@ -43,19 +44,27 @@ type Revision = {
 
 const source = `
 import cadquery as cq
-from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component
 
 PARAMETERS = [
     ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm"),
     ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=4.0, unit="mm"),
 ]
 
+@component("body")
+def body_model(params):
+    return cq.Workplane("XY").box(params["body_width"], 50, 24)
+
+@component("lid")
+def lid_model(params):
+    return cq.Workplane("XY").box(params["body_width"], 50, params["lid_thickness"])
+
 def build(params):
-    body = cq.Workplane("XY").box(params["body_width"], 50, 24)
-    lid = cq.Workplane("XY").box(params["body_width"], 50, params["lid_thickness"])
+    body = body_model(params)
+    lid = lid_model(params)
     return Product(parameters=PARAMETERS, outputs=[
-        PrintableOutput(output_id="body", label="Body", component_id="body", model=body),
-        PrintableOutput(output_id="lid", label="Lid", component_id="lid", model=lid),
+        PrintableOutput(output_id="body", label="Body", component_id="body", model=body, expected_solid_count=1, allow_disconnected_solids=False),
+        PrintableOutput(output_id="lid", label="Lid", component_id="lid", model=lid, expected_solid_count=1, allow_disconnected_solids=False),
     ])
 `;
 
@@ -216,13 +225,16 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
       return route.fulfill({ body: source, contentType: "text/plain" });
     }
     if (request.method() === "GET" && path.endsWith("/compile-log")) {
-      return route.fulfill({ body: "CadQuery worker completed", contentType: "text/plain" });
+      return route.fulfill({ body: "CadQuery execution completed", contentType: "text/plain" });
     }
     if (request.method() === "GET" && path.endsWith("/diff")) {
       return route.fulfill({ status: 404, json: { detail: "not found" } });
     }
     if (request.method() === "GET" && path.endsWith("/stl")) {
       return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && path.endsWith("/step")) {
+      return route.fulfill({ body: "ISO-10303-21;", contentType: "model/step" });
     }
     if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
       return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
@@ -251,6 +263,15 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   });
 
   await page.goto("/");
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Describe", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Requirements", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Design Plan", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Approve", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Generate", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Executing CadQuery", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Validating topology", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Candidate", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Accept or revise", { exact: true })).toBeVisible();
   await page.getByLabel("AI chat message").fill("Create a shelf bracket for a board.");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByLabel("Requirements").getByText("Waiting for clarification")).toBeVisible();
@@ -271,8 +292,12 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await expect(page.getByText("Candidate - R1 - Ready")).toBeVisible();
   await expect(page.getByRole("link", { name: "Python" })).toBeVisible();
   await expect(page.getByLabel("Python source")).toBeVisible();
-  await expect(page.getByLabel("Candidate review").getByText("1/1")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("1/1", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Bracket/ })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("link", { name: "STEP" })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("link", { name: "STL" })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("Topology valid")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("Solids 1/1")).toBeVisible();
   await expect(page.getByText("Geometric checks")).toBeVisible();
   await expect(page.getByText("0 verified, 0 violated, 0 unable to verify")).toBeVisible();
 });
@@ -373,6 +398,9 @@ test("structured revision planning preserves active revision until scoped candid
     }
     if (request.method() === "GET" && path.endsWith("/stl")) {
       return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && path.endsWith("/step")) {
+      return route.fulfill({ body: "ISO-10303-21;", contentType: "model/step" });
     }
     if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
       return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
@@ -559,6 +587,216 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByText("R2 active")).toBeVisible();
 });
 
+test("deterministic configuration generates a CadQuery candidate without replacing the active revision", async ({ page }) => {
+  const project = {
+    id: "project-1",
+    name: "Configured Rail",
+    original_intent: "Create a configurable mounting rail.",
+    status: "active",
+    active_revision_id: "rev-active",
+  };
+  const revisions: Revision[] = [
+    revision({
+      id: "rev-active",
+      revision_number: 1,
+      source_type: "ai_initial",
+      is_accepted: true,
+      review_state: "accepted",
+      design_specification_id: "spec-1",
+      design_plan_id: "plan-1",
+      output_manifest_path: "projects/project-1/revisions/rev-active/output-manifest.json",
+      expected_output_count: 1,
+      required_output_count: 1,
+      successful_output_count: 1,
+    }),
+  ];
+  const configuredCandidate = revision({
+    id: "rev-config",
+    parent_revision_id: "rev-active",
+    configuration_change_id: "config-1",
+    revision_number: 2,
+    source_type: "ai_revision",
+    is_accepted: false,
+    review_state: "ready",
+    design_specification_id: "spec-1",
+    design_plan_id: "plan-1",
+    output_manifest_path: "projects/project-1/revisions/rev-config/output-manifest.json",
+    expected_output_count: 1,
+    required_output_count: 1,
+    successful_output_count: 1,
+  });
+  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>([
+    [
+      "rev-active",
+      [
+        revisionOutput({
+          id: "active-rail",
+          revision_id: "rev-active",
+          output_id: "rail",
+          label: "Rail body",
+          component_id: "rail_body",
+          component_ids: ["rail_body"],
+        }),
+      ],
+    ],
+    [
+      "rev-config",
+      [
+        revisionOutput({
+          id: "configured-rail",
+          revision_id: "rev-config",
+          output_id: "rail",
+          label: "Rail body",
+          component_id: "rail_body",
+          component_ids: ["rail_body"],
+          metadata: {
+            size_x_mm: 90,
+            size_y_mm: 50,
+            size_z_mm: 24,
+            volume_mm3: 108000,
+            triangle_count: 12,
+            connected_components: 1,
+            is_watertight: true,
+            is_winding_consistent: true,
+            center_of_mass: [45, 25, 12],
+          },
+        }),
+      ],
+    ],
+  ]);
+  let preview = configurationChange({ generated_revision_id: null });
+
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname.replace(/^\/api/, "");
+
+    if (request.method() === "GET" && path === "/projects") {
+      return route.fulfill({ json: [project] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1") {
+      return route.fulfill({ json: project });
+    }
+    if (request.method() === "GET" && path === "/printability-profiles") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/messages") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-specification") {
+      return route.fulfill({ json: designSpecification() });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-plan") {
+      return route.fulfill({
+        json: designPlan({ review_state: "approved", approved_at: "2026-07-30T16:35:00Z", generated_revision_id: "rev-active" }),
+      });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revision-plan") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/configuration/parameters") {
+      return route.fulfill({
+        json: [
+          {
+            id: "body_width",
+            label: "Body width",
+            value: 80,
+            unit: "mm",
+            type: "number",
+            editable: true,
+            protected: false,
+            source_mapped: true,
+            minimum: 60,
+            maximum: 120,
+            allowed_values: [],
+            affected_components: ["rail_body"],
+            affected_outputs: ["rail"],
+          },
+        ],
+      });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/configuration/presets") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "POST" && path === "/projects/project-1/configuration/preview") {
+      const body = await request.postDataJSON();
+      expect(body.parameter_values).toEqual({ body_width: 90 });
+      preview = configurationChange({ generated_revision_id: null });
+      return route.fulfill({ status: 201, json: preview });
+    }
+    if (request.method() === "POST" && path === "/configuration-changes/config-1/generate") {
+      revisions.push(configuredCandidate);
+      preview = configurationChange({ generated_revision_id: "rev-config" });
+      return route.fulfill({ status: 201, json: configuredCandidate });
+    }
+    if (request.method() === "GET" && path === "/configuration-changes/config-1") {
+      return route.fulfill({ json: preview });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revisions") {
+      return route.fulfill({ json: revisions });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/outputs$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({ json: outputsByRevision.get(revisionId) ?? [] });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/output-manifest$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({
+        json: {
+          schema_version: "output-manifest-v1",
+          project_id: "project-1",
+          revision_id: revisionId,
+          source: { filename: "source.py", sha256: "source-hash" },
+          outputs: outputsByRevision.get(revisionId) ?? [],
+        },
+      });
+    }
+    if (request.method() === "GET" && path.endsWith("/source")) {
+      return route.fulfill({ body: source, contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/compile-log")) {
+      return route.fulfill({ body: "CadQuery execution completed with parameter values", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/diff")) {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path.endsWith("/stl")) {
+      return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && path.endsWith("/step")) {
+      return route.fulfill({ body: "ISO-10303-21;", contentType: "model/step" });
+    }
+    if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
+      return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && /^\/candidates\/[^/]+\/findings$/.test(path)) {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && /^\/candidates\/[^/]+\/geometric-analysis$/.test(path)) {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+
+    return route.fulfill({ status: 404, json: { detail: `unhandled ${request.method()} ${path}` } });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Projects" }).click();
+  await page.getByRole("button", { name: "Configured Rail" }).click();
+  await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
+  await expect(page.getByLabel("Configure parameters").getByText("Body width (mm)")).toBeVisible();
+
+  await page.getByLabel("Body width (mm)").fill("90");
+  await page.getByRole("button", { name: "Preview configuration" }).click();
+  await expect(page.getByLabel("Configure parameters").getByText("Configuration ready")).toBeVisible();
+  await expect(page.getByLabel("Configure parameters").getByText("1 component, 1 output")).toBeVisible();
+
+  await page.getByLabel("Configure parameters").getByRole("button", { name: "Generate candidate" }).click();
+  await expect(page.getByText("Candidate - R2 - Ready candidate")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("90 x 50 x 24 mm")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("Topology valid")).toBeVisible();
+  await expect(page.getByText("R1 active")).toBeVisible();
+});
+
 test("blocked CadQuery candidate shows partial outputs and solid-count rejection", async ({ page }) => {
   const project = {
     id: "project-1",
@@ -620,7 +858,7 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
           revision_id: "rev-blocked",
           output_id: "base",
           label: "Base",
-          output_state: "ready",
+          execution_state: "ready",
           required: true,
         }),
         revisionOutput({
@@ -628,9 +866,21 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
           revision_id: "rev-blocked",
           output_id: "alignment_bosses",
           label: "Alignment bosses",
-          output_state: "blocked",
+          execution_state: "blocked",
           required: true,
           stl_path: null,
+          step_path: null,
+          expected_solid_count: 1,
+          detected_solid_count: 3,
+          allow_disconnected_solids: false,
+          topology_metadata: {
+            valid: false,
+            failure_reason: "solid_count_mismatch",
+            expected_solid_count: 1,
+            detected_solid_count: 3,
+            allow_disconnected_solids: false,
+            shell_count: 3,
+          },
           compile_error:
             "Solid-count mismatch: expected_solid_count=1, detected_solid_count=3; disconnected solids are not allowed.",
           validation_summary: { blocking_count: 1, advisory_count: 0, dismissed_count: 0 },
@@ -685,13 +935,16 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
       return route.fulfill({ body: source, contentType: "text/plain" });
     }
     if (request.method() === "GET" && path.endsWith("/compile-log")) {
-      return route.fulfill({ body: "CadQuery worker completed", contentType: "text/plain" });
+      return route.fulfill({ body: "CadQuery execution completed", contentType: "text/plain" });
     }
     if (request.method() === "GET" && path.endsWith("/diff")) {
       return route.fulfill({ status: 404, json: { detail: "not found" } });
     }
     if (request.method() === "GET" && path.endsWith("/stl")) {
       return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && path.endsWith("/step")) {
+      return route.fulfill({ body: "ISO-10303-21;", contentType: "model/step" });
     }
     if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
       return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
@@ -725,6 +978,8 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
   await expect(page.getByLabel("Candidate review").getByText("1/2")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Base/ })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Alignment bosses/ })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("Topology failed: solid count mismatch")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("Solids 3/1")).toBeVisible();
   await expect(page.getByText("Solid-count mismatch: expected_solid_count=1, detected_solid_count=3")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByText("topology.solid_count_mismatch", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeDisabled();
@@ -737,6 +992,7 @@ function revision(overrides: Partial<Revision>): Revision {
     parent_revision_id: null,
     design_specification_id: null,
     design_plan_id: null,
+    configuration_change_id: null,
     revision_number: 1,
     source_type: "ai_revision",
     status: "succeeded",
@@ -940,7 +1196,7 @@ function revisionOutput(overrides: Record<string, unknown>) {
     output_id: "body",
     component_id: "body",
     component_ids: ["body"],
-    output_state: "ready",
+    execution_state: "ready",
     output_type: "printable_component",
     label: "Body",
     filename: "body.stl",
@@ -950,10 +1206,22 @@ function revisionOutput(overrides: Record<string, unknown>) {
     source_hash: "source-hash",
     stl_path: "projects/project-1/revisions/revision/stl/body.stl",
     stl_hash: "stl-hash",
+    step_path: "projects/project-1/revisions/revision/step/body.step",
+    step_hash: "step-hash",
     compile_log_path: "projects/project-1/revisions/revision/logs/body.log",
     compile_ms: 25,
     compile_error: null,
     execution_command: ["python", "_volundr_cadquery_runner.py"],
+    expected_solid_count: 1,
+    detected_solid_count: 1,
+    allow_disconnected_solids: false,
+    topology_metadata: {
+      valid: true,
+      expected_solid_count: 1,
+      detected_solid_count: 1,
+      allow_disconnected_solids: false,
+      shell_count: 1,
+    },
     metadata: {
       size_x_mm: 80,
       size_y_mm: 50,
@@ -1058,6 +1326,36 @@ function revisionPlanPayload() {
     outcome: "revision_ready",
     revision_ready: true,
     clarification_required: false,
+  };
+}
+
+function configurationChange(overrides: Record<string, unknown>) {
+  return {
+    id: "config-1",
+    project_id: "project-1",
+    base_revision_id: "rev-active",
+    generated_revision_id: null,
+    design_specification_id: "spec-1",
+    design_plan_id: "plan-1",
+    schema_version: "configuration-change-v1",
+    reason: "user_configuration",
+    selected_preset_id: null,
+    validation_state: "configuration_ready",
+    base_source_hash: "source-hash",
+    content_hash: "configuration-hash",
+    requested_changes: { body_width: 90 },
+    preset_values: {},
+    user_overrides: {},
+    resolved_parameters: { body_width: 90 },
+    affected_parameters: ["body_width"],
+    affected_components: ["rail_body"],
+    affected_outputs: ["rail"],
+    validation_errors: [],
+    override_manifest_path: "projects/project-1/configuration-changes/config-1/parameter-overrides.json",
+    configuration_path: "projects/project-1/configuration-changes/config-1/configuration.json",
+    created_at: "2026-07-30T16:40:00Z",
+    approved_at: null,
+    ...overrides,
   };
 }
 

@@ -50,6 +50,9 @@ export type RevisionOutput = {
   step_hash?: string | null;
   brep_path?: string | null;
   brep_hash?: string | null;
+  expected_solid_count?: number | null;
+  detected_solid_count?: number | null;
+  allow_disconnected_solids?: boolean | null;
   compile_log_path: string | null;
   compile_error: string | null;
   execution_command?: string[];
@@ -199,8 +202,38 @@ export function outputDimensionsLabel(output: RevisionOutput): string {
   return `${formatDimension(size_x_mm)} x ${formatDimension(size_y_mm)} x ${formatDimension(size_z_mm)} mm`;
 }
 
+export function outputSolidCountLabel(output: RevisionOutput): string {
+  const expected = output.expected_solid_count ?? numberFromTopology(output, "expected_solid_count");
+  const detected = output.detected_solid_count ?? numberFromTopology(output, "detected_solid_count");
+  if (expected === null && detected === null) {
+    return "Solid count unavailable";
+  }
+  return `Solids ${detected ?? "?"}/${expected ?? "?"}`;
+}
+
+export function outputTopologyLabel(output: RevisionOutput): string {
+  const topology = output.topology_metadata;
+  if (!topology) {
+    return "Topology not reported";
+  }
+  const valid = topology.valid;
+  if (valid === true) {
+    return "Topology valid";
+  }
+  if (valid === false) {
+    const reason = typeof topology.failure_reason === "string" ? topology.failure_reason : null;
+    return reason ? `Topology failed: ${reason.replaceAll("_", " ")}` : "Topology failed";
+  }
+  return "Topology reported";
+}
+
 export function canRetryOutput(output: RevisionOutput): boolean {
   return output.execution_state === "failed";
+}
+
+function numberFromTopology(output: RevisionOutput, key: string): number | null {
+  const value = output.topology_metadata?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 export function canAcceptRevision(revision: CandidateRevision | null): boolean {

@@ -12,7 +12,9 @@ import {
   revisionPromptFromGeometricFinding,
   revisionPromptFromCandidateFinding,
   outputDimensionsLabel,
+  outputSolidCountLabel,
   outputStateLabel,
+  outputTopologyLabel,
   canRetryOutput,
   type GeometricFinding,
   type CandidateFinding,
@@ -94,8 +96,19 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
     entrypoint: "body",
     stl_path: "projects/example/body.stl",
     stl_hash: "hash",
+    step_path: "projects/example/body.step",
+    step_hash: "step-hash",
+    expected_solid_count: 1,
+    detected_solid_count: 1,
+    allow_disconnected_solids: false,
     compile_log_path: "projects/example/body.log",
     compile_error: null,
+    topology_metadata: {
+      valid: true,
+      expected_solid_count: 1,
+      detected_solid_count: 1,
+      shell_count: 1,
+    },
     metadata: {
       size_x_mm: 80,
       size_y_mm: 50,
@@ -303,6 +316,27 @@ describe("candidate view helpers", () => {
     expect(outputStateLabel(revisionOutput({ execution_state: "blocked" }))).toBe("Blocked");
     expect(outputDimensionsLabel(revisionOutput({}))).toBe("80 x 50 x 6 mm");
     expect(outputDimensionsLabel(revisionOutput({ metadata: null }))).toBe("Dimensions unavailable");
+  });
+
+  it("labels output topology and solid-count checks", () => {
+    expect(outputTopologyLabel(revisionOutput({}))).toBe("Topology valid");
+    expect(outputSolidCountLabel(revisionOutput({}))).toBe("Solids 1/1");
+    expect(
+      outputTopologyLabel(
+        revisionOutput({
+          topology_metadata: { valid: false, failure_reason: "solid_count_mismatch" },
+        }),
+      ),
+    ).toBe("Topology failed: solid count mismatch");
+    expect(
+      outputSolidCountLabel(
+        revisionOutput({
+          expected_solid_count: null,
+          detected_solid_count: null,
+          topology_metadata: null,
+        }),
+      ),
+    ).toBe("Solid count unavailable");
   });
 
   it("shows retry only for failed outputs", () => {
