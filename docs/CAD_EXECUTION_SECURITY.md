@@ -135,16 +135,7 @@ The CadQuery target rejects dangerous Python before execution, including unautho
 
 AST validation is defense in depth. It does not replace the worker sandbox.
 
-Transitional OpenSCAD screening rejects or flags:
-
-- `import(`
-- `surface(`
-- unexpected absolute paths
-- parent directory traversal
-- disallowed `use` or `include` paths
-- source beyond size limits
-
-OpenSCAD is more constrained than general-purpose Python, but source validation is still required.
+The runner validates generated artifacts before returning success. STL output must be parseable mesh data, STEP output must be present and recognizable as ISO-10303-21 content, and worker result paths must remain inside the job directory. A required output with malformed or escaped artifacts fails the job instead of becoming an accepted candidate.
 
 ## Logging
 

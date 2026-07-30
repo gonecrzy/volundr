@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import pytest
+import trimesh
 
 from app.services.cad.cadquery_runner import (
     CadQueryCliRunner,
@@ -236,6 +237,59 @@ def test_cad_worker_container_policy_removes_provider_access() -> None:
     assert "USER volundr-cad" in dockerfile
 
 
+def test_cadquery_runner_rejects_successful_output_with_malformed_step(
+    tmp_path: Path,
+) -> None:
+    job_dir = tmp_path / "job"
+    job_dir.mkdir()
+    stl_path = job_dir / "body.stl"
+    step_path = job_dir / "body.step"
+    trimesh.creation.box(extents=(1, 1, 1)).export(stl_path)
+    step_path.write_text("not a STEP file", encoding="utf-8")
+
+    outputs = CadQueryCliRunner(workspace_root=tmp_path / "jobs")._collect_output_results(
+        job_dir,
+        {
+            "outputs": [
+                {
+                    "output_id": "body",
+                    "required": True,
+                    "success": True,
+                    "stl_path": "body.stl",
+                    "step_path": "body.step",
+                }
+            ]
+        },
+    )
+
+    assert outputs[0].success is False
+    assert outputs[0].compile_error is not None
+    assert "STEP" in outputs[0].compile_error
+
+
+@pytest.mark.asyncio
+async def test_worker_rejects_output_artifact_paths_outside_job_directory(
+    tmp_path: Path,
+) -> None:
+    queue = FilesystemCadJobQueue(tmp_path)
+    job_dir = queue.submit_cadquery_source(
+        source=VALID_CADQUERY_SOURCE,
+        job_id="escaped-output",
+        requested_outputs=[{"output_id": "body", "required": True}],
+        timeout_seconds=5,
+    )
+    outside_stl = tmp_path / "outside.stl"
+    outside_stl.write_text("outside", encoding="utf-8")
+
+    result = await execute_job_directory(job_dir, runner=EscapingArtifactRunner(outside_stl))
+
+    assert result["success"] is False
+    assert result["failure_class"] == "execution_failed"
+    assert result["outputs"][0]["success"] is False
+    assert result["outputs"][0]["stl_path"] is None
+    assert "outside job directory" in result["outputs"][0]["compile_error"]
+
+
 async def _wait_briefly() -> None:
     import asyncio
 
@@ -317,5 +371,55 @@ class MultiOutputCadQueryRunner:
                     topology_metadata=None,
                     compile_error="optional failed",
                 ),
+            ],
+        )
+
+
+class EscapingArtifactRunner:
+    def __init__(self, artifact_path: Path) -> None:
+        self.artifact_path = artifact_path
+
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        parameter_values: dict | None = None,
+        requested_outputs: list[dict] | None = None,
+    ) -> CadQueryCompileResult:
+        return CadQueryCompileResult(
+            job_id=job_id,
+            success=True,
+            timed_out=False,
+            exit_code=0,
+            source_path=None,
+            stl_path=self.artifact_path,
+            step_path=None,
+            stdout_path=None,
+            stderr_path=None,
+            metadata_path=None,
+            source_hash="0" * 64,
+            output_size_bytes=self.artifact_path.stat().st_size,
+            metadata=None,
+            error_message=None,
+            command_args=["python", "_runner.py"],
+            outputs=[
+                CadQueryOutputResult(
+                    output_id="body",
+                    entrypoint="body",
+                    required=True,
+                    success=True,
+                    stl_path=self.artifact_path,
+                    step_path=None,
+                    brep_path=None,
+                    metadata_path=None,
+                    topology_metadata_path=None,
+                    stl_hash="1" * 64,
+                    step_hash=None,
+                    brep_hash=None,
+                    output_size_bytes=self.artifact_path.stat().st_size,
+                    metadata=None,
+                    topology_metadata=None,
+                )
             ],
         )

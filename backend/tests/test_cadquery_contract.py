@@ -117,6 +117,9 @@ def build_model():
     [
         "import os\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
         "from subprocess import run\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
+        "import socket\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
+        "import requests\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
+        "from urllib.request import urlopen\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
         "import cadquery\n\ndef build_model():\n    return cadquery.Workplane('XY')\n",
         "from cadquery import Workplane\n\ndef build_model():\n    return Workplane('XY')\n",
     ],
@@ -150,6 +153,18 @@ def build_model():
 """
 
     with pytest.raises(CadQueryContractError, match=call_name):
+        validate_cadquery_source(source)
+
+
+def test_cadquery_contract_rejects_environment_inspection_attempt() -> None:
+    source = """
+import cadquery as cq
+
+def build_model():
+    return __import__("os").environ.get("GEMINI_API_KEY")
+"""
+
+    with pytest.raises(CadQueryContractError, match="__import__"):
         validate_cadquery_source(source)
 
 

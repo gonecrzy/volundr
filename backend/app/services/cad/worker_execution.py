@@ -50,14 +50,15 @@ async def execute_job_directory(
         "exit_code": compile_result.exit_code,
         "command_args": compile_result.command_args,
     }
-    outputs: list[dict[str, Any]] = []
     outputs = _result_outputs(job_dir, compile_result)
+    output_failure = any(output["required"] and not output["success"] for output in outputs)
     failure_class = None
-    if not compile_result.success:
+    success = bool(compile_result.success and not output_failure)
+    if not success:
         failure_class = "timeout" if compile_result.timed_out else "execution_failed"
     result = result_payload(
         job_id=job.job_id,
-        success=compile_result.success,
+        success=success,
         failure_class=failure_class,
         duration_seconds=_duration(started),
         outputs=outputs,
@@ -92,32 +93,53 @@ def _relative_path(job_dir: Path, path: Path | None) -> str | None:
     try:
         return str(path.resolve().relative_to(job_dir.resolve()))
     except ValueError:
-        return path.name
+        return None
 
 
 def _result_outputs(job_dir: Path, compile_result: Any) -> list[dict[str, Any]]:
     if getattr(compile_result, "outputs", None):
-        return [
-            {
+        results = []
+        for output in compile_result.outputs:
+            stl_path = _relative_path(job_dir, output.stl_path)
+            step_path = _relative_path(job_dir, output.step_path)
+            brep_path = _relative_path(job_dir, output.brep_path)
+            metadata_path = _relative_path(job_dir, output.metadata_path)
+            topology_metadata_path = _relative_path(job_dir, output.topology_metadata_path)
+            success = bool(output.success)
+            compile_error = output.compile_error
+            if success and any(
+                original_path is not None and relative_path is None
+                for original_path, relative_path in (
+                    (output.stl_path, stl_path),
+                    (output.step_path, step_path),
+                    (output.brep_path, brep_path),
+                    (output.metadata_path, metadata_path),
+                    (output.topology_metadata_path, topology_metadata_path),
+                )
+            ):
+                success = False
+                compile_error = "output artifact path is outside job directory"
+            results.append(
+                {
                 "output_id": output.output_id,
                 "entrypoint": output.entrypoint,
                 "required": output.required,
-                "success": output.success,
-                "stl_path": _relative_path(job_dir, output.stl_path),
-                "step_path": _relative_path(job_dir, output.step_path),
-                "brep_path": _relative_path(job_dir, output.brep_path),
-                "metadata_path": _relative_path(job_dir, output.metadata_path),
-                "topology_metadata_path": _relative_path(job_dir, output.topology_metadata_path),
+                "success": success,
+                "stl_path": stl_path,
+                "step_path": step_path,
+                "brep_path": brep_path,
+                "metadata_path": metadata_path,
+                "topology_metadata_path": topology_metadata_path,
                 "source_hash": compile_result.source_hash,
                 "stl_hash": output.stl_hash,
                 "step_hash": output.step_hash,
                 "brep_hash": output.brep_hash,
                 "stl_size_bytes": output.output_size_bytes,
                 "topology_metadata": output.topology_metadata,
-                "compile_error": output.compile_error,
+                "compile_error": compile_error,
             }
-            for output in compile_result.outputs
-        ]
+            )
+        return results
     if not compile_result.success:
         return []
     return [

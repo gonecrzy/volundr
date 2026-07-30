@@ -387,6 +387,13 @@ class CadQueryCliRunner:
                 except ValueError as exc:
                     success = False
                     compile_error = str(exc)
+            if success:
+                if step_path is None or not step_path.exists():
+                    success = False
+                    compile_error = "STEP artifact is missing"
+                elif not _step_file_looks_valid(step_path):
+                    success = False
+                    compile_error = "STEP artifact is malformed"
             outputs.append(
                 CadQueryOutputResult(
                     output_id=output_id,
@@ -463,6 +470,15 @@ class CadQueryCliRunner:
         env["HOME"] = str(self.workspace_root / ".home")
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[3])
         return env
+
+
+def _step_file_looks_valid(path: Path) -> bool:
+    try:
+        with path.open("rb") as handle:
+            prefix = handle.read(512).decode("ascii", errors="ignore").upper()
+    except OSError:
+        return False
+    return "ISO-10303-21" in prefix and "HEADER" in prefix
 
 
 _CADQUERY_RUNNER_SOURCE = """
