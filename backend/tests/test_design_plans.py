@@ -72,7 +72,7 @@ def test_printable_output_schema_does_not_promote_module_name_alias() -> None:
             "id": "body",
             "label": "Body",
             "component_ids": ["body"],
-            "module_name": "legacy_body_module",
+            "module_name": "old_body_module",
         }
     )
 

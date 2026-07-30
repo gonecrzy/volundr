@@ -68,13 +68,7 @@ class GeminiApiProvider(GeminiCliProvider):
         self._transport = transport
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
-        prompt = self.build_prompt(request)
-        raw_output = await self._run_prompt(prompt)
-        return ModelGenerationResult(
-            raw_output=raw_output,
-            provider="gemini_api",
-            provider_model=self.model,
-        )
+        return await self.generate_cadquery_model(request)
 
     async def generate_cadquery_model(
         self,

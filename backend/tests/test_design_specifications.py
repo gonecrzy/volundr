@@ -402,7 +402,7 @@ def test_clarification_required_persists_questions_and_creates_no_candidate(tmp_
     assert client.get(f"/api/projects/{project['id']}/revisions").json() == []
 
 
-def test_unsupported_request_does_not_generate_placeholder_scad(tmp_path: Path) -> None:
+def test_unsupported_request_does_not_generate_placeholder_source(tmp_path: Path) -> None:
     provider = StagedAiProvider(UNSUPPORTED_SPEC)
     client, _SessionLocal = build_client(tmp_path, provider)
     project = create_project(client)

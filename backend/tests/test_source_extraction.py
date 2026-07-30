@@ -22,7 +22,7 @@ def build(params):
 """.strip()
 
 
-def test_rejects_fenced_python_source_with_legacy_build_model() -> None:
+def test_rejects_fenced_python_source_with_obsolete_build_model() -> None:
     raw_output = """
 ```python
 import cadquery as cq

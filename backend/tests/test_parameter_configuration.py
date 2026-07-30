@@ -556,7 +556,7 @@ def test_invalid_and_structural_configuration_changes_do_not_compile(tmp_path: P
     assert runner.calls == []
 
 
-def test_configuration_generation_uses_parameter_values_without_legacy_provider_and_keeps_active_revision(
+def test_configuration_generation_uses_parameter_values_without_provider_and_keeps_active_revision(
     tmp_path: Path,
 ) -> None:
     provider = ConfigurationProvider()

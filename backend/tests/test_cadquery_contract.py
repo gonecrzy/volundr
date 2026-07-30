@@ -77,7 +77,7 @@ def build_model():
         validate_cadquery_source(source)
 
 
-def test_cadquery_contract_rejects_legacy_probe_contract_version() -> None:
+def test_cadquery_contract_rejects_obsolete_probe_contract_version() -> None:
     source = """
 import cadquery as cq
 

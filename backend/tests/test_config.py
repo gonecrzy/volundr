@@ -35,4 +35,3 @@ def test_settings_default_to_staged_generation_mode() -> None:
     assert settings.enable_design_plans is True
     assert settings.enable_multi_output is True
     assert settings.enable_structured_revisions is True
-    assert settings.enable_strict_marker_contract is True

@@ -534,7 +534,7 @@ function App() {
 
   const selectedOutput =
     revisionOutputs.find((output) => output.id === selectedOutputId) ?? revisionOutputs[0] ?? null;
-  const selectedOutputIsPersisted = Boolean(selectedOutput && !selectedOutput.id.startsWith("legacy-"));
+  const selectedOutputIsPersisted = Boolean(selectedOutput);
   const activeMetadata = selectedOutput?.metadata ?? selectedRevision?.metadata ?? null;
   const stlUrl = selectedOutput?.stl_path && selectedOutputIsPersisted
     ? `${API_BASE}/revision-outputs/${selectedOutput.id}/stl`
@@ -3091,17 +3091,17 @@ function OutputReview({
             </dl>
             {output.compile_error ? <p className="blocked-reason">{output.compile_error}</p> : null}
             <div className="actions">
-              {output.step_path && !output.id.startsWith("legacy-") ? (
+              {output.step_path ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/step`}>
                   STEP
                 </a>
               ) : null}
-              {output.stl_path && !output.id.startsWith("legacy-") ? (
+              {output.stl_path ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/stl`}>
                   STL
                 </a>
               ) : null}
-              {output.compile_log_path && !output.id.startsWith("legacy-") ? (
+              {output.compile_log_path ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/compile-log`}>
                   Log
                 </a>

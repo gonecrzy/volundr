@@ -412,8 +412,6 @@ class ProjectService:
                 .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
             )
         )
-        if not outputs and revision.stl_path is not None:
-            return [self._compat_revision_output_read(revision)]
         return [self._revision_output_read(output) for output in outputs]
 
     def get_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
@@ -1403,10 +1401,7 @@ class ProjectService:
 
         self._record_generation_result(generation_attempt, generation_result)
         try:
-            revised_source = self._extract_generated_source(
-                generation_result.raw_output,
-                cadquery=base_revision.cad_backend == "cadquery",
-            )
+            revised_source = self._extract_generated_source(generation_result.raw_output)
         except SourceExtractionError as exc:
             self._finish_generation_attempt(
                 generation_attempt,
@@ -1643,10 +1638,7 @@ class ProjectService:
             raise
         self._record_generation_result(correction_attempt, correction_result)
         try:
-            corrected_source = self._extract_generated_source(
-                correction_result.raw_output,
-                cadquery=cad_backend == "cadquery",
-            )
+            corrected_source = self._extract_generated_source(correction_result.raw_output)
         except SourceExtractionError as exc:
             self._finish_generation_attempt(
                 correction_attempt,
@@ -2230,10 +2222,7 @@ class ProjectService:
 
         self._record_generation_result(repair_attempt, repair_result)
         try:
-            repaired_source = self._extract_generated_source(
-                repair_result.raw_output,
-                cadquery=self._uses_cadquery_generation(repair_request),
-            )
+            repaired_source = self._extract_generated_source(repair_result.raw_output)
         except SourceExtractionError as exc:
             failed_repair = self._create_failed_ai_revision(
                 project=project,
@@ -2310,12 +2299,8 @@ class ProjectService:
         design_plan_payload: dict[str, Any] | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
-        cadquery_generation = design_plan_payload is not None
         try:
-            source = self._extract_generated_source(
-                generation_result.raw_output,
-                cadquery=cadquery_generation,
-            )
+            source = self._extract_generated_source(generation_result.raw_output)
         except SourceExtractionError as exc:
             failed_revision = self._create_failed_ai_revision(
                 project=project,
@@ -2390,10 +2375,7 @@ class ProjectService:
 
         self._record_generation_result(repair_attempt, repair_result)
         try:
-            repaired_source = self._extract_generated_source(
-                repair_result.raw_output,
-                cadquery=cadquery_generation,
-            )
+            repaired_source = self._extract_generated_source(repair_result.raw_output)
         except SourceExtractionError as exc:
             self._finish_generation_attempt(
                 repair_attempt,
@@ -2406,7 +2388,7 @@ class ProjectService:
         self._record_generation_extracted_source(
             repair_attempt,
             repaired_source,
-            source_language="python" if cadquery_generation else "unknown",
+            source_language="python",
         )
         repaired_validation = self._persist_source_contract_validation(
             project=project,
@@ -2467,14 +2449,12 @@ class ProjectService:
         )
 
     async def _generate_source_model(self, request: ModelGenerationRequest):
-        if self._uses_cadquery_generation(request):
-            generator = getattr(self.ai_provider, "generate_cadquery_model", None)
-            if not callable(generator):
-                raise RuntimeError("AI provider does not support CadQuery generation")
-            return await generator(request)
-        return await self.ai_provider.generate_model(request)  # type: ignore[union-attr]
+        generator = getattr(self.ai_provider, "generate_cadquery_model", None)
+        if not callable(generator):
+            raise RuntimeError("AI provider does not support CadQuery generation")
+        return await generator(request)
 
-    def _extract_generated_source(self, raw_output: str, *, cadquery: bool) -> str:
+    def _extract_generated_source(self, raw_output: str) -> str:
         return extract_python_source(raw_output)
 
     def _start_generation_attempt(
@@ -2500,10 +2480,9 @@ class ProjectService:
             status="started",
             failure_class=FailureClass.NONE.value,
         )
-        if self._uses_cadquery_generation(request):
-            attempt.cad_backend = "cadquery"
-            attempt.source_language = "python"
-            attempt.source_contract_version = "cadquery-v1"
+        attempt.cad_backend = "cadquery"
+        attempt.source_language = "python"
+        attempt.source_contract_version = "cadquery-v1"
         self.db.add(attempt)
         self.db.flush()
 
@@ -2519,7 +2498,7 @@ class ProjectService:
         prompt_path.write_text(self._render_prompt(request), encoding="utf-8")
         self._write_json(
             design_spec_path,
-            design_specification_payload or self._legacy_design_spec(request),
+            design_specification_payload or self._cadquery_design_spec_placeholder(request),
         )
         if design_plan_payload is not None:
             self._write_json(design_plan_path, design_plan_payload)
@@ -2554,15 +2533,13 @@ class ProjectService:
         source_language: str = "python",
     ) -> None:
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
-        suffix = "py" if source_language == "python" else "scad"
-        source_path = run_dir / f"extracted-source.{suffix}"
+        source_path = run_dir / "extracted-source.py"
         source_path.write_text(source, encoding="utf-8")
         attempt.source_path = self._relative(source_path)
         attempt.source_hash = self._sha256(source)
-        if source_language == "python":
-            attempt.cad_backend = "cadquery"
-            attempt.source_language = "python"
-            attempt.source_contract_version = "cadquery-v1"
+        attempt.cad_backend = "cadquery"
+        attempt.source_language = "python"
+        attempt.source_contract_version = "cadquery-v1"
         self._update_attempt_chain(attempt, status=attempt.status)
         self.db.commit()
 
@@ -3612,9 +3589,9 @@ class ProjectService:
             ],
         }
 
-    def _legacy_design_spec(self, request: ModelGenerationRequest) -> dict:
+    def _cadquery_design_spec_placeholder(self, request: ModelGenerationRequest) -> dict:
         return {
-            "design_specification_version": "legacy-design-spec-placeholder-v1",
+            "design_specification_version": "cadquery-design-spec-placeholder-v1",
             "artifact_status": "placeholder_until_staged_requirements",
             "sources": [
                 "user",
@@ -3630,13 +3607,9 @@ class ProjectService:
         }
 
     def _render_prompt(self, request: ModelGenerationRequest) -> str:
-        if self._uses_cadquery_generation(request):
-            build_cadquery_prompt = getattr(self.ai_provider, "build_cadquery_prompt", None)
-            if callable(build_cadquery_prompt):
-                return build_cadquery_prompt(request)
-        build_prompt = getattr(self.ai_provider, "build_prompt", None)
-        if callable(build_prompt):
-            return build_prompt(request)
+        build_cadquery_prompt = getattr(self.ai_provider, "build_cadquery_prompt", None)
+        if callable(build_cadquery_prompt):
+            return build_cadquery_prompt(request)
         return ""
 
     def _render_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
@@ -3658,45 +3631,20 @@ class ProjectService:
         return ""
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
-        if self._uses_cadquery_generation(request):
-            if request.compiler_diagnostics:
-                return "cadquery-execution-repair-v1"
-            if request.contract_diagnostics:
-                return "cadquery-contract-repair-v1"
-            if request.scope_diagnostics:
-                return "cadquery-scope-correction-v1"
-            if request.revision_plan and request.scoped_revision_context:
-                return "cadquery-component-revision-v1"
-            if request.revision_plan:
-                return "cadquery-revision-v1"
-            version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
-            if callable(version):
-                return str(version())
-            return "cadquery-generation-v1"
-        version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
-        if callable(version_for):
-            return str(version_for(request))
-        if request.contract_diagnostics:
-            return "cadquery-contract-repair-v1"
         if request.compiler_diagnostics:
             return "cadquery-execution-repair-v1"
+        if request.contract_diagnostics:
+            return "cadquery-contract-repair-v1"
+        if request.scope_diagnostics:
+            return "cadquery-scope-correction-v1"
+        if request.revision_plan and request.scoped_revision_context:
+            return "cadquery-component-revision-v1"
         if request.revision_plan:
-            return CADQUERY_REVISION_PROMPT_VERSION
-        if request.current_source:
-            return CADQUERY_GENERATION_PROMPT_VERSION
-        if request.design_plan:
-            return CADQUERY_GENERATION_PROMPT_VERSION
-        if request.design_specification:
-            return CADQUERY_GENERATION_PROMPT_VERSION
-        return CADQUERY_GENERATION_PROMPT_VERSION
-
-    def _uses_cadquery_generation(self, request: ModelGenerationRequest) -> bool:
-        if request.design_plan is None:
-            return False
-        if request.revision_plan is None:
-            return True
-        source = request.current_source or ""
-        return "from volundr_cad.runtime import" in source or "import cadquery as cq" in source
+            return "cadquery-revision-v1"
+        version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return "cadquery-generation-v1"
 
     def _requirement_prompt_template_version(self) -> str:
         version = getattr(self.ai_provider, "requirement_prompt_template_version", None)
@@ -7254,38 +7202,6 @@ class ProjectService:
         if isinstance(value, str):
             return {"description": value}
         return {"value": value}
-
-    def _compat_revision_output_read(self, revision: Revision) -> RevisionOutputRead:
-        metadata = self._read_revision_metadata(revision)
-        return RevisionOutputRead(
-            id=f"legacy-{revision.id}",
-            revision_id=revision.id,
-            design_plan_id=revision.design_plan_id,
-            design_specification_id=revision.design_specification_id,
-            output_id="model",
-            component_id=None,
-            component_ids=[],
-            execution_state="ready" if revision.status == "succeeded" else revision.status,
-            output_type="printable_component",
-            label="Model",
-            filename="model.stl",
-            quantity=1,
-            required=True,
-            entrypoint="model",
-            source_hash=None,
-            parameter_hash=None,
-            stl_path=revision.stl_path,
-            stl_hash=None,
-            compile_log_path=revision.compile_log_path,
-            compile_ms=None,
-            compile_error=None,
-            execution_command=[],
-            metadata=metadata,
-            validation_summary=self._validation_summary(revision.id),
-            preferred_orientation=None,
-            created_at=revision.created_at,
-            updated_at=revision.created_at,
-        )
 
     def _planned_printable_outputs(self, design_plan_payload: dict[str, Any]) -> list[dict[str, Any]]:
         outputs: list[dict[str, Any]] = []

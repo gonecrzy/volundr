@@ -43,7 +43,6 @@ class Settings(BaseSettings):
     enable_design_plans: bool = Field(default=True)
     enable_multi_output: bool = Field(default=True)
     enable_structured_revisions: bool = Field(default=True)
-    enable_strict_marker_contract: bool = Field(default=True)
 
     @cached_property
     def database_url(self) -> str:

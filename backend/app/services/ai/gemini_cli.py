@@ -442,7 +442,7 @@ class GeminiCliProvider:
                 [
                     "Initial generation mode:",
                     "- Generate from the approved staged product definition, not from the raw user prompt alone.",
-                    "- Return the complete Python source for the whole product; do not return snippets, patches, prose, JSON, OpenSCAD, or helper-only fragments.",
+                    "- Return the complete Python source for the whole product; do not return snippets, patches, prose, JSON, other CAD languages, or helper-only fragments.",
                     "- Implement every planned component, feature, dependency, parameter, and printable output unless the plan explicitly marks it optional.",
                     "- Preserve protected requirement values and topology expectations exactly.",
                     "",

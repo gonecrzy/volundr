@@ -68,7 +68,7 @@ UNSAFE_IMPORT_CADQUERY_SOURCE = VALID_CADQUERY_SOURCE.replace(
     "import cadquery as cq\nimport os\n",
 )
 
-LEGACY_PROBE_CADQUERY_SOURCE = (
+OBSOLETE_PROBE_CADQUERY_SOURCE = (
     "import cadquery as cq\n\n"
     "def build_model():\n"
     "    return cq.Workplane('XY').box(1, 1, 1)\n"
@@ -181,7 +181,7 @@ async def test_worker_records_structured_failure_for_malformed_manifest(
 
 @pytest.mark.asyncio
 async def test_worker_ignores_non_queue_workspace_directories(tmp_path: Path) -> None:
-    workspace_dir = tmp_path / "legacy-runner-workspace"
+    workspace_dir = tmp_path / "obsolete-runner-workspace"
     workspace_dir.mkdir()
 
     assert await process_next_job(tmp_path) is None
@@ -273,7 +273,7 @@ async def test_cadquery_runner_rejects_probe_build_model_sources(tmp_path: Path)
     result = await CadQueryCliRunner(
         workspace_root=tmp_path / "jobs",
         timeout_seconds=10,
-    ).compile(LEGACY_PROBE_CADQUERY_SOURCE, job_id="legacy-probe-source")
+    ).compile(OBSOLETE_PROBE_CADQUERY_SOURCE, job_id="obsolete-probe-source")
 
     assert result.success is False
     assert result.exit_code is None
