@@ -2,6 +2,10 @@
 
 This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, and project conversation history.
 
+## CadQuery Transition Status
+
+The target data model is CadQuery-native and provider-neutral. `Revision.scad_source_path`, `RevisionOutput.module_name`, `selected_output`, OpenSCAD compile defines, and `gemini_ruleset_version` are transitional implementation fields. The completed transition stores backend/source-language metadata, CadQuery source paths and hashes, execution manifests, STEP/STL artifact hashes, topology metadata, mesh metadata, and validation summaries without permanent SCAD aliases.
+
 ## Project
 
 Represents one design effort.
@@ -116,7 +120,29 @@ Manual source compilation establishes the first active accepted revision when no
 
 For approved Design Plan generation, the revision represents the assembly-level candidate. Individual printable artifacts are represented by `RevisionOutput` rows. `stl_path` remains as a compatibility pointer to the first successful printable output when one exists.
 
-Configuration-generated revisions link to `configuration_change_id`. They copy the accepted source unchanged and use persisted OpenSCAD `-D` overrides during per-output compilation.
+Configuration-generated revisions link to `configuration_change_id`. In the CadQuery target they copy accepted source unchanged, validate typed parameter values, and execute through the isolated worker without source rewriting or provider calls. The current OpenSCAD implementation uses persisted `-D` overrides during per-output compilation until Phase 7 replaces that path.
+
+## CadQuery Target Revision Fields
+
+The completed CadQuery revision model stores fields equivalent to:
+
+```text
+cad_backend
+source_language
+source_path
+source_hash
+source_contract_version
+execution_manifest_path
+```
+
+For normal product revisions:
+
+```text
+cad_backend = cadquery
+source_language = python
+```
+
+Each successful output stores STEP and STL paths/hashes, optional BREP paths/hashes, topology metadata, mesh metadata, validation summary, expected and detected solid counts, and disconnected-solid policy.
 
 ## ConfigurationChange
 
@@ -230,11 +256,11 @@ failed
 skipped
 ```
 
-Output artifacts are immutable product evidence for a candidate revision except when a failed output is explicitly retried from the same authoritative source hash and output selector. Output retry does not call Gemini.
+Output artifacts are immutable product evidence for a candidate revision except when a failed output is explicitly retried from the same authoritative source hash, parameter hash, and output ID. Output retry does not call Gemini.
 
 ## DesignSpecification
 
-Represents an immutable structured interpretation of a user request before OpenSCAD generation. New initial AI generations require a ready Design Specification. Clarification answers create a new specification version rather than mutating the prior one.
+Represents an immutable structured interpretation of a user request before CadQuery generation. New initial AI generations require a ready Design Specification. Clarification answers create a new specification version rather than mutating the prior one.
 
 Fields:
 
@@ -364,7 +390,7 @@ Protected by default: user or clarification supplied critical dimensions, explic
 
 ## DesignPlan
 
-Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before OpenSCAD generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial OpenSCAD generation should use an approved Design Plan when one exists. Printable output semantics are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
+Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before CadQuery generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial CadQuery generation must use an approved Design Plan. Printable output semantics are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
 Fields:
 
@@ -416,7 +442,7 @@ Design Specification generation_ready
   -> design-plan-v1 extraction
   -> plan_clarification_required -> rejected | clarification answers -> superseding plan version
   -> plan_ready -> pending_review -> approved | rejected
-  -> approved -> OpenSCAD generation may start
+  -> approved -> CadQuery generation may start
   -> UI approval starts generation immediately during the current stabilization workflow
 ```
 
@@ -610,7 +636,7 @@ approved
 rejected
 ```
 
-Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. OpenSCAD revision generation requires a `revision_ready` plan in `approved` state. Component-targeted full-source revision behavior is defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
+Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. CadQuery revision generation requires a `revision_ready` plan in `approved` state. Component-targeted full-source revision behavior is defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
 ## RevisionPlanClarificationQuestion
 
@@ -705,11 +731,11 @@ completed_at
 
 The current implementation also persists `resulting_revision_id`, non-secret provider settings, prompt-template version, Gemini ruleset version, source/output hashes, and request/prompt/raw-output/extracted-source/design-spec/intermediate artifact paths.
 
-Requirement-extraction attempts store parsed Design Specifications at `parsed-design-spec.json`. OpenSCAD generation attempts store the authoritative Design Specification snapshot at `design-spec.json`.
+Requirement-extraction attempts store parsed Design Specifications at `parsed-design-spec.json`. CadQuery generation attempts store the authoritative Design Specification snapshot at `design-spec.json`.
 
 ## SourceValidationResult
 
-Represents one deterministic static validation of extracted OpenSCAD source before compilation.
+Represents one deterministic static validation of extracted CAD source before execution.
 
 Fields:
 

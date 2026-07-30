@@ -1,5 +1,7 @@
 # Generation Reliability Plan
 
+This is a historical reliability plan for the OpenSCAD generation path. `docs/CADQUERY_BACKEND.md` and `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md` supersede it for the CadQuery-primary transition while preserving useful failure taxonomy and benchmark ideas.
+
 ## Goal
 
 Make Volundr's Gemini generation measurable, reproducible, and harder to accept when it produces invalid, unprintable, or functionally weak models.

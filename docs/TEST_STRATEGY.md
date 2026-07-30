@@ -2,11 +2,15 @@
 
 This document defines the required automated coverage for CAD execution, AI-source extraction, mesh inspection, revision safety, frontend behavior, and regression fixtures.
 
+## CadQuery Transition Status
+
+The required final coverage is CadQuery-primary. Existing OpenSCAD tests should be preserved only while they keep transitional commits testable, then removed or replaced when OpenSCAD product paths are deleted.
+
 ## Testing Priorities
 
 The highest-risk areas are:
 
-1. untrusted CAD execution
+1. untrusted CadQuery execution in an isolated worker
 2. revision preservation
 3. source extraction from AI output
 4. failed-generation recovery
@@ -15,9 +19,27 @@ The highest-risk areas are:
 
 ## Backend Unit Tests
 
-### CAD runner
+### CAD runner and worker
 
 Test:
+
+- simple CadQuery solid executes
+- worker runs as non-root
+- worker environment lacks provider credentials
+- worker has no network access where testable
+- path traversal is rejected
+- duplicate job completion is prevented
+- artifact writes are atomic
+- timeout kills descendant processes
+- malformed manifests fail safely
+- API receives structured worker failure results
+- worker restart does not corrupt completed jobs
+- STEP and STL artifacts are exported and hashed
+- B-Rep topology is validated before STL mesh checks
+- solid-count mismatch blocks required outputs
+- intentional disconnected outputs require explicit policy
+
+Transitional OpenSCAD coverage remains until removal:
 
 - simple cube compiles
 - difference operation compiles
@@ -33,15 +55,19 @@ Test:
 
 Test AI responses containing:
 
-- plain SCAD
-- fenced `scad`
-- fenced `openscad`
+- fenced `python`
+- fenced `cadquery`
+- strict raw CadQuery source when configured
 - surrounding explanation
 - multiple code blocks
 - no valid source
 - truncated source
 
 ### Source-contract validation
+
+CadQuery tests must reject generated code that imports `os`, imports `subprocess`, imports network libraries, calls `open`, inspects environment variables, escapes job directories, writes arbitrary artifact paths, mutates interpreter/global state, or uses arbitrary top-level execution.
+
+Transitional OpenSCAD tests:
 
 Test:
 
@@ -84,31 +110,31 @@ Test:
 
 Test:
 
-- complete initial AI request creates a ready Design Specification before OpenSCAD generation
+- complete initial AI request creates a ready Design Specification before CadQuery generation
 - missing mating dimensions create clarification questions and no candidate
-- conflicting dimensions and unsupported requests do not generate SCAD
+- conflicting dimensions and unsupported requests do not generate CadQuery source
 - clarification answers create a new immutable Design Specification version
 - invalid requirement-extraction JSON is persisted and gets at most one schema-repair attempt
-- OpenSCAD generation cannot begin before a Design Specification is ready
+- CadQuery generation cannot begin before a Design Specification is ready
 - ready Design Specifications can create immutable `design-plan-v1` records
 - plan clarification is represented as a planning state, not a failed revision
 - invalid Design Plan JSON is persisted and repaired at most once
-- OpenSCAD generation from the new initial flow cannot begin before the Design Plan is approved
+- CadQuery generation from the new initial flow cannot begin before the Design Plan is approved
 - planned generation uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
-- approved Design Plan printable outputs compile through the canonical multi-output pipeline in `docs/MULTI_OUTPUT_GENERATION.md`
+- approved Design Plan printable outputs execute through the canonical multi-output pipeline in `docs/MULTI_OUTPUT_GENERATION.md`
 - single-output plans produce one output artifact through the same pipeline
 - multi-output plans persist one output artifact per declared printable output
 - failed required outputs block the assembly candidate while preserving successful component artifacts
 - failed optional outputs create advisory assembly findings when required outputs remain usable
-- output retry recompiles the same source hash and does not call the provider
+- output retry executes the same source hash, parameter hash, and output ID and does not call the provider
 - output manifests match persisted artifacts and exports include only the selected revision's files
 - structured revision planning creates immutable `revision-plan-v1` records from the accepted Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
 - ambiguous revision requests create revision-plan clarification questions and no source generation
-- OpenSCAD revision generation cannot begin before Revision Plan approval
-- `openscad-component-revision-v1` receives the approved Revision Plan, scoped revision context, active configuration context, selected findings, output manifest, and full base source
-- revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, output, shared-module, and interface changes before compile
-- protected output preservation compares compiled output metadata after compile and blocks confirmed drift
-- configured-base component revisions preserve override manifests and compile with the same `-D` values
+- CadQuery revision generation cannot begin before Revision Plan approval
+- `cadquery-component-revision-v1` receives the approved Revision Plan, scoped revision context, active configuration context, selected findings, output manifest, and full base source
+- revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, output, shared helper, and interface changes before execution
+- protected output preservation compares topology and mesh metadata after execution and blocks confirmed drift
+- configured-base component revisions preserve parameter manifests and execute with the same resolved values
 - `scope-correction-v1` runs at most once after source scope compliance failure and remains separate from contract/compile repair
 - Revision Success Results persist planned success checks after candidate generation
 - generated initial candidates link back to the Design Specification that produced them

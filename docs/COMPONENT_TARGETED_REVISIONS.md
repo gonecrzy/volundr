@@ -2,13 +2,17 @@
 
 This document defines Volundr's component-targeted AI revision behavior.
 
+## CadQuery Transition Status
+
+The component-targeted lifecycle remains, but the source contract moves from OpenSCAD markers and module fingerprints to CadQuery Python ownership declarations and normalized AST fingerprints. Gemini must return complete CadQuery source, not source fragments or patches.
+
 ## Scope
 
 Component-targeted revisions apply after an accepted revision has:
 
 - an approved Design Specification
 - an approved Design Plan
-- a complete authoritative OpenSCAD source
+- a complete authoritative CadQuery source
 - an output manifest
 - one or more compiled printable outputs
 
@@ -19,8 +23,8 @@ Configuration-only changes remain deterministic and are handled by `docs/PARAMET
 ```text
 accepted configured or unconfigured revision
   -> approved revision-plan-v1
-  -> openscad-component-revision-v1
-  -> SCAD extraction
+  -> cadquery-component-revision-v1
+  -> Python/CadQuery extraction
   -> source-contract validation
   -> component scope compliance
   -> full product multi-output compilation
@@ -29,7 +33,7 @@ accepted configured or unconfigured revision
   -> explicit accept or reject
 ```
 
-Gemini always returns the complete authoritative SCAD project. Volundr does not splice source fragments.
+Gemini always returns the complete authoritative CadQuery project source. Volundr does not splice source fragments.
 
 ## Revision Scope
 
@@ -46,7 +50,9 @@ A targeted component does not imply permission to change every global parameter.
 
 ## Source Ownership
 
-Generated source should use ownership markers:
+Target CadQuery source should use AST-visible ownership metadata. The exact API may use decorators or runtime registration, but it must identify components, features, shared helpers, outputs, protected interfaces, and parameters.
+
+Illustrative OpenSCAD ownership markers from the current implementation:
 
 ```scad
 // @volundr-component carry_handle
@@ -127,10 +133,10 @@ When the base revision comes from a deterministic configuration change:
 
 - the active override manifest is included in the revision prompt
 - the revised source must still expose every configured parameter
-- compilation uses the same OpenSCAD `-D` overrides
+- execution uses the same validated parameter manifest
 - the candidate remains linked to the configuration context
 
-The SCAD default assignment does not need to equal the configured override because command-line overrides are the active configuration authority.
+The source default assignment does not need to equal the configured value because the validated parameter manifest is the active configuration authority.
 
 ## Candidate Summary
 

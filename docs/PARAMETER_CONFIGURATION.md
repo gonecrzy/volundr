@@ -2,9 +2,13 @@
 
 This document defines direct parameter editing, preset switching, and deterministic regeneration without invoking Gemini.
 
+## CadQuery Transition Status
+
+The target configuration path is typed CadQuery parameter execution in the isolated worker. OpenSCAD identifier checks, source assignment discovery, and `-D` overrides are transitional implementation details.
+
 ## Scope
 
-Configuration changes apply only to parameters already declared by the approved Design Plan and exposed by the accepted OpenSCAD source. They do not add components, move feature ownership, change assembly strategy, or introduce new printable outputs.
+Configuration changes apply only to parameters already declared by the approved Design Plan and accepted CadQuery source contract. They do not add components, move feature ownership, change assembly strategy, or introduce new printable outputs.
 
 Escalate to structured AI revision when the user asks for:
 
@@ -13,7 +17,7 @@ Escalate to structured AI revision when the user asks for:
 - a change to a non-editable parameter
 - a direct edit to a derived parameter
 - a value outside the approved configurable range
-- a source parameter that is not safely exposed for `-D` override
+- a parameter that is not declared by the accepted source contract
 - a configuration that changes product structure
 
 ## Configuration Change Record
@@ -66,13 +70,27 @@ A parameter may be edited directly when all are true:
 - `editable` is `true`
 - the type is `number`, `integer`, `boolean`, or `enum`
 - the value passes type, enum, and range checks
-- the parameter ID is a valid OpenSCAD identifier
-- the accepted source exposes an assignment for that exact ID
+- the parameter ID exists in the accepted CadQuery `PARAMETERS` declaration
+- the accepted source contract marks the parameter editable
 - the change does not alter product structure
 
-Derived parameters are recalculated by OpenSCAD and are not overridden directly.
+Derived parameters are recalculated by the CadQuery build path and are not overridden directly.
 
-## OpenSCAD Override Contract
+## CadQuery Parameter Contract
+
+Generated CadQuery source declares typed parameter specifications. Configuration generation sends validated JSON values to the worker:
+
+```json
+{
+  "slot_count": 8,
+  "slot_width": 25.0,
+  "wall_thickness": 3.0
+}
+```
+
+The worker constructs the validated parameter object and calls `build(params)`. It does not rewrite source and it does not call Gemini.
+
+## Transitional OpenSCAD Override Contract
 
 Generated source should mark editable parameters:
 
@@ -117,8 +135,8 @@ Design Plan presets and project-local presets are groups of input parameter valu
 Configuration generation uses the canonical multi-output pipeline:
 
 ```text
-accepted source + override manifest
-  -> compile each planned output
+accepted source + validated parameter manifest
+  -> execute each required planned output
   -> inspect and validate each output
   -> classify assembly candidate
 ```
@@ -129,10 +147,10 @@ If a later component-targeted AI revision uses a configured revision as its base
 
 - the override manifest is included in the component revision prompt
 - revised source must still expose every active override parameter
-- output compilation uses the same OpenSCAD `-D` overrides
+- output execution uses the same resolved parameter manifest
 - the new candidate remains linked to the configuration change
 
-The source default assignment does not need to equal the configured override; the override manifest is the active configuration authority.
+The accepted source defaults do not need to equal the configured values; the parameter manifest is the active configuration authority.
 
 ## Export
 

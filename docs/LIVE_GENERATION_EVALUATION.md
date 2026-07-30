@@ -2,6 +2,8 @@
 
 This document defines Volundr's controlled live generation-quality evaluation harness. It is for measuring model quality and directing roadmap decisions; it does not promote prompts automatically.
 
+`docs/CADQUERY_BACKEND.md` supersedes older provider and backend assumptions. Dry-run remains the default. Live CadQuery transition benchmarks should use Gemini API only after deterministic execution and fake-provider lifecycle tests are reliable.
+
 ## Purpose
 
 The harness answers which area most limits successful generated products:
@@ -31,7 +33,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --max-runs 10
 ```
 
-Dry-run mode is the default and never calls a model. During development, use the local Ollama provider:
+Dry-run mode is the default and never calls a model. Ollama remains available for local provider-adapter comparison:
 
 ```bash
 PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
@@ -42,7 +44,7 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --max-runs 10
 ```
 
-Current local-primary model:
+Current local comparison model:
 
 ```bash
 VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b

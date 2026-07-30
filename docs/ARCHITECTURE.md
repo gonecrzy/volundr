@@ -1,10 +1,10 @@
 # Volundr Architecture
 
-This document defines the approved V1 technical shape of Volundr: major components, service boundaries, provider interfaces, runtime flow, storage layout, and deployment model.
+This document defines Volundr's technical shape: major components, service boundaries, provider interfaces, runtime flow, storage layout, and deployment model.
 
 ## Decision Status
 
-The technologies and boundaries in this document are approved V1 defaults. They may be revisited after the core generate, compile, preview, revise, and export workflow is proven, but Codex should not replace them without a concrete blocker.
+`docs/CADQUERY_BACKEND.md` is the current architecture authority for the CadQuery-primary transition. Sections below that describe OpenSCAD runners, Gemini CLI, or an already-isolated CAD worker are current-state or legacy-target descriptions and are superseded where they conflict with the CadQuery backend document.
 
 ## System Overview
 
@@ -15,7 +15,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │                                               │
 │ - project list                                │
 │ - prompt and revision input                   │
-│ - Monaco OpenSCAD editor                      │
+│ - source editor                               │
 │ - Three.js STL viewer                         │
 │ - revision history                            │
 └──────────────────────┬────────────────────────┘
@@ -31,7 +31,7 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 │ - generation orchestration                    │
 │ - multi-output artifact orchestration         │
 │ - candidate revision review and acceptance    │
-│ - pre-compile OpenSCAD source-contract checks │
+│ - pre-execution source-contract checks        │
 │ - post-compile geometric invariant checks     │
 │ - AI provider interface                       │
 │ - CAD runner interface                        │
@@ -43,11 +43,11 @@ The technologies and boundaries in this document are approved V1 defaults. They 
 └───────────────┬───────────────────┬───────────┘
                 │                   │
        ┌────────▼────────┐  ┌──────▼───────────┐
-       │ Gemini CLI      │  │ OpenSCAD Runner  │
+       │ Gemini API      │  │ CAD Worker       │
        │ Provider        │  │                  │
-       │                 │  │ fixed CLI args   │
-       │ local OAuth     │  │ temp workspace   │
-       │ subprocess      │  │ timeout/limits   │
+       │                 │  │ structured jobs  │
+       │ API key auth    │  │ isolated process │
+       │ no CAD exec     │  │ timeout/limits   │
        └─────────────────┘  └──────┬───────────┘
                                    │
                             ┌──────▼───────────┐
@@ -78,7 +78,7 @@ Responsibilities:
 - serve the compiled React application
 - proxy or route browser API requests to `volundr-api`
 - contain no Gemini credentials
-- contain no OpenSCAD execution tooling
+- contain no CAD execution tooling
 - expose only the web entrypoint required by Traefik
 
 ### `volundr-api`
@@ -95,18 +95,21 @@ Responsibilities:
 - project export packaging
 - controlled live generation benchmark evaluation
 - validation finding persistence and blocking/advisory enforcement
-- Gemini CLI provider
+- Gemini API provider and optional development providers
 - generation job state
 - controlled asset delivery
 - communication with `volundr-cad-worker`
 
-This is the only service allowed to mount the persistent Gemini CLI profile.
+This service may hold provider credentials. It must not execute generated CadQuery Python directly in the completed architecture.
 
 ### `volundr-cad-worker`
 
 Responsibilities:
 
-- OpenSCAD CLI execution
+- CadQuery execution
+- source-contract validation inside the worker
+- STEP/STL export
+- B-Rep topology validation
 - trimesh inspection
 - temporary job workspace
 - CAD-specific limits and cleanup
@@ -115,7 +118,7 @@ Responsibilities:
 - no access to unrelated project files
 - no outbound network access when the selected job transport permits it
 
-SQLite, projects, generated assets, and the Gemini profile remain outside the containers in persistent bind mounts.
+SQLite, projects, generated assets, and provider credentials remain outside the containers in persistent bind mounts. Provider credentials must not be mounted into the CAD worker.
 
 ## Canonical Docker Compose Names
 
@@ -227,8 +230,7 @@ OpenAIProvider
 AnthropicProvider
 ```
 
-Development defaults to `OllamaProvider` via `VOLUNDR_AI_PROVIDER=ollama`.
-Gemini CLI remains available with `VOLUNDR_AI_PROVIDER=gemini_cli`, and the direct Gemini API transport is available with `VOLUNDR_AI_PROVIDER=gemini_api`.
+The CadQuery transition default is `GeminiApiProvider` via `VOLUNDR_AI_PROVIDER=gemini_api`. `GeminiCliProvider` and `OllamaProvider` may remain available as optional adapters, but neither is the product default.
 
 ### CAD runner
 
@@ -384,7 +386,7 @@ Desktop-first V1:
 │ and revisions    │                                         │
 │                  │                                         │
 ├──────────────────┼─────────────────────────────────────────┤
-│ parameters       │ OpenSCAD editor                         │
+│ parameters       │ source editor                           │
 └──────────────────┴─────────────────────────────────────────┘
 ```
 
@@ -398,11 +400,11 @@ The exact visual design may evolve, but Volundr should prioritize:
 
 ## Deterministic Configuration Regeneration
 
-Accepted revisions with approved Design Plans expose a configuration workflow. The backend validates editable Design Plan parameters, persists a `configuration-change-v1` record, and regenerates candidates from the unchanged accepted OpenSCAD source using safe command-line `-D` overrides.
+Accepted revisions with approved Design Plans expose a configuration workflow. The target backend validates editable Design Plan parameters, persists a `configuration-change-v1` record, and regenerates candidates from the unchanged accepted CadQuery source using a typed parameter manifest in the isolated worker.
 
 This path does not call Gemini. If a requested change adds structure or touches a non-editable/derived parameter, the API returns `requires_design_revision` so the user can use structured revision planning instead.
 
-If a component-targeted AI revision is created from a configured revision, the backend preserves the configuration override manifest, verifies configured parameters still exist in source, and compiles all outputs with the same `-D` overrides.
+If a component-targeted AI revision is created from a configured revision, the backend preserves the parameter manifest, verifies configured parameters still exist in source, and executes all outputs with the same resolved values.
 
 Detailed rules are in `docs/PARAMETER_CONFIGURATION.md`.
 

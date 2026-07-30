@@ -2,6 +2,26 @@
 
 This document records the implementation sequence, current stage status, milestone goals, and exit criteria. Codex should update it whenever a milestone changes state.
 
+## Active Transition
+
+Status: In progress
+
+The active roadmap is now the CadQuery-primary architecture transition defined in `docs/CADQUERY_BACKEND.md` and planned in `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md`. The historical stages below describe how the current OpenSCAD implementation was built; they are not the strategic endpoint.
+
+Transition order:
+
+1. Establish CadQuery/Gemini/staged-workflow documentation authority.
+2. Replace the idle CAD worker with a real isolated execution boundary.
+3. Replace SCAD-shaped persistence with CadQuery-native source and artifact fields.
+4. Promote the CadQuery source probe into a production `cadquery-v1` contract.
+5. Execute single-output and multi-output CadQuery products with STEP/STL artifacts and topology validation.
+6. Make Gemini API and the staged lifecycle the default generation path.
+7. Rebuild deterministic parameter configuration around typed CadQuery execution.
+8. Rebuild structured and component-targeted revisions around CadQuery source ownership and topology evidence.
+9. Align the frontend and Playwright workflow with the staged CadQuery lifecycle.
+10. Remove OpenSCAD product paths.
+11. Run the functional CadQuery/Gemini benchmark gate.
+
 ## Stage 0 — Foundation Documents
 
 Status: Complete
@@ -189,8 +209,8 @@ Structured revision planning pass:
 
 Component-targeted revision pass:
 
-- approved Revision Plans now feed `openscad-component-revision-v1`
-- Gemini still returns the complete authoritative SCAD project; Volundr does not splice source fragments
+- approved Revision Plans currently feed `openscad-component-revision-v1`; the CadQuery transition replaces this with `cadquery-component-revision-v1`
+- Gemini must return the complete authoritative CadQuery source in the target architecture; Volundr does not splice source fragments
 - source metadata now includes shared-module ownership and normalized module fingerprints
 - protected component modules, output mappings, interface parameters, and shared modules are checked before compile
 - one bounded `scope-correction-v1` attempt can revert unauthorized source-scope changes before compilation
@@ -321,7 +341,7 @@ Current status:
 - invalid numeric edits are ignored instead of being written into source
 - approved Design Plan parameters now have a separate Configure workflow
 - configuration previews persist immutable `configuration-change-v1` records
-- configuration candidates compile from accepted source with safe OpenSCAD `-D` overrides and no Gemini call
+- configuration candidates currently compile from accepted source with safe OpenSCAD `-D` overrides and no Gemini call; the target path executes accepted CadQuery source with validated parameter manifests
 - project-local presets and Design Plan presets can feed configuration previews
 - configuration exports include `configuration.json` and `parameter-overrides.json`
 

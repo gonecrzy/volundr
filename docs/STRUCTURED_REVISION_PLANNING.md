@@ -2,9 +2,13 @@
 
 This document defines Volundr's revision-planning lifecycle. It is the authority for bounded AI revisions after an accepted Design Plan and output manifest exist.
 
+## CadQuery Transition Status
+
+Revision planning remains strategic. OpenSCAD source revision and marker-based compliance are transitional. The target path uses complete-source CadQuery revision, AST-visible source ownership metadata, source-contract validation, topology evidence, and output preservation checks based on STEP/B-Rep/STL summaries.
+
 ## Purpose
 
-Structured revision planning turns a user revision request or selected validation finding into an immutable `revision-plan-v1` artifact before Gemini is allowed to modify OpenSCAD.
+Structured revision planning turns a user revision request or selected validation finding into an immutable `revision-plan-v1` artifact before Gemini is allowed to modify accepted CadQuery source.
 
 The plan answers:
 
@@ -26,7 +30,7 @@ accepted assembly revision
   -> clarification_required | revision_conflict | unsupported_revision | planning_failed
   -> revision_ready
   -> explicit plan approval
-  -> openscad-component-revision-v1 for component/output-scoped structural revisions
+  -> cadquery-component-revision-v1 for component/output-scoped structural revisions
   -> source-contract validation
   -> revision compliance validation
   -> per-output compile and validation
@@ -34,7 +38,7 @@ accepted assembly revision
   -> explicit accept or reject
 ```
 
-OpenSCAD generation is forbidden until the Revision Plan is `revision_ready` and `approved`.
+CadQuery generation is forbidden until the Revision Plan is `revision_ready` and `approved`.
 The backend keeps approval and source generation as distinct operations. The current frontend combines them into an approve-and-generate action for ready plans, while retaining a separate generate action only for already-approved plans that have not produced a revision.
 
 ## Revision Plan Record
@@ -165,7 +169,7 @@ Questions must reference named parameters, components, outputs, or findings when
 
 ## Compliance Checks
 
-After `openscad-component-revision-v1` returns revised complete source and before compilation, Volundr compares base and revised source metadata against the approved Revision Plan.
+After `cadquery-component-revision-v1` returns revised complete source and before execution, Volundr compares base and revised source metadata against the approved Revision Plan.
 
 Blocking compliance failures include:
 

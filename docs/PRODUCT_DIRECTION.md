@@ -2,6 +2,10 @@
 
 This document defines what Volundr is, who it serves, the value it should provide, and the principles used to decide which capabilities belong in the product.
 
+## CadQuery Transition Status
+
+`docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims that OpenSCAD is the strategic V1 kernel, Gemini CLI is the primary runtime provider, Ollama is the intended default, or simple chat generation is the main product path. Existing OpenSCAD behavior remains useful implementation history during the transition, but the product direction is CadQuery-primary and staged-workflow-primary.
+
 ## Working Description
 
 Volundr is a self-hosted AI-assisted parametric modeling workspace for creating functional 3D-printable parts from plain-language instructions.
@@ -9,7 +13,7 @@ Volundr is a self-hosted AI-assisted parametric modeling workspace for creating 
 It combines:
 
 - conversational design requests
-- parameterized OpenSCAD generation
+- parameterized CadQuery generation
 - deterministic CAD compilation
 - interactive 3D preview
 - revision history
@@ -62,22 +66,22 @@ V1 has one owner and one active application user.
 The user:
 
 - hosts Volundr on their own server
-- authenticates Gemini CLI once on the host
+- configures Gemini API credentials for AI generation
 - stores projects locally
 - understands basic dimensions and 3D-printing concepts
 - wants practical printable results
-- may directly edit OpenSCAD when necessary
+- may inspect and, where supported, edit generated CadQuery source
 
 ## V1 Value Proposition
 
 The user can:
 
 1. Explain the part they need.
-2. Receive valid, parameterized OpenSCAD.
+2. Receive valid, parameterized CadQuery source.
 3. Inspect the generated model.
 4. Ask for targeted changes.
 5. Restore earlier working revisions.
-6. Download the source and printable STL.
+6. Download source, STEP, and printable STL artifacts.
 
 ## Product Principles
 
@@ -110,7 +114,7 @@ Project prompts, source files, STL outputs, and revision history remain on the s
 
 ### AI as an operator, not the kernel
 
-The AI creates and revises code. OpenSCAD remains the deterministic geometry engine.
+The AI creates and revises code. CadQuery and OpenCascade are the deterministic geometry engine. Gemini is not a CAD kernel, and mesh inspection is not a replacement for B-Rep topology validation.
 
 ### Useful failure
 
@@ -130,8 +134,9 @@ V1 is successful when the user can reliably create and revise several families o
 
 A model generation is considered successful when:
 
-- OpenSCAD compiles it
-- an STL is produced
+- CadQuery executes successfully in the isolated worker
+- STEP and STL artifacts are produced for every required output
+- B-Rep topology is valid
 - the mesh has non-zero volume
 - dimensions are plausible
 - the model is viewable
@@ -152,8 +157,6 @@ Potential later capabilities include:
 - reusable component library
 - image-assisted feedback
 - imported SVG extrusion
-- CadQuery or build123d provider
-- STEP export
 - optional multi-provider AI support
 - optional trusted multi-user operation
 

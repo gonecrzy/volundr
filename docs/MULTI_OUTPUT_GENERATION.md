@@ -2,6 +2,10 @@
 
 This document defines Volundr's canonical output pipeline for approved Design Plans.
 
+## CadQuery Transition Status
+
+The canonical target is CadQuery `Product` output execution, not OpenSCAD selector dispatch. `module_name`, `selected_output`, and `render_selected_output()` are transitional OpenSCAD implementation details. In the completed CadQuery path, every `PrintableOutput` has an output ID, component ID, quantity, required flag, STEP/STL artifacts, topology metadata, mesh metadata, expected solid count, detected solid count, and disconnected-solid policy.
+
 ## Output Model
 
 A Design Plan `printable_outputs` entry represents one generated mesh artifact, not one physical copy. Quantity is stored on the output:
@@ -30,7 +34,7 @@ Supported printable output types:
 
 Purchased hardware and non-printable reference objects may exist in a Design Plan, but they are not compiled as STL outputs.
 
-## OpenSCAD Selection Contract
+## Transitional OpenSCAD Selection Contract
 
 Approved Design Plan source uses one authoritative OpenSCAD file and command-line output selection:
 
@@ -70,11 +74,29 @@ Rules:
 - single-output plans use the same selector contract
 - legacy/manual source may still use `main_model();`
 
-## Compilation Lifecycle
+## CadQuery Execution Lifecycle
 
 ```text
 approved Design Plan
-  -> generate authoritative SCAD
+  -> generate authoritative CadQuery Python
+  -> source-contract validation
+  -> submit structured worker job
+  -> validate typed parameters
+  -> call build(params)
+  -> resolve Product outputs
+  -> validate B-Rep topology per output
+  -> export STEP and STL per output
+  -> mesh inspection per output
+  -> printability checks per output
+  -> assembly validation summary
+  -> assembly candidate classification
+```
+
+The OpenSCAD lifecycle below is the current transitional implementation:
+
+```text
+approved Design Plan
+  -> generate transitional authoritative SCAD
   -> source-contract validation
   -> resolve printable output manifest
   -> compile each output with -D selected_output="output_id"
@@ -164,9 +186,9 @@ The manifest is reproducible from persisted revision and output records.
 
 ## Retry Behavior
 
-Retry recompiles a failed output from the same authoritative source hash and same `selected_output` value.
+Retry executes a failed output from the same authoritative source hash, parameter hash, and output ID.
 
-Retry does not call Gemini and does not modify source geometry. It is intended for OpenSCAD process failures, timeouts, transient worker failures, or artifact-write failures. Source-contract violations, missing markers, empty meshes, and blocking geometry/printability violations require a new generation or later structured revision.
+Retry does not call Gemini and does not modify source geometry. It is intended for CAD process failures, timeouts, transient worker failures, or artifact-write failures. Source-contract violations, missing outputs, invalid topology, empty meshes, and blocking geometry/printability violations require a new generation or later structured revision.
 
 ## Export Package
 
@@ -179,9 +201,12 @@ project-name/
 ├── design-plan.json
 ├── configuration.json              # present for configuration-generated revisions
 ├── parameter-overrides.json        # present for configuration-generated revisions
-├── project.scad
+├── source.py
 ├── output-manifest.json
 ├── assembly-notes.md
+├── step/
+│   ├── carrier_body.step
+│   └── carry_handle.step
 └── stl/
     ├── carrier_body.stl
     └── carry_handle.stl

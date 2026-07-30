@@ -1,6 +1,8 @@
 # Volundr Model Generation Contract
 
-This document is the contract between Volundr and the AI model. It defines the required OpenSCAD output structure, revision behavior, safety restrictions, and rejection conditions.
+This document is the legacy OpenSCAD contract between Volundr and the AI model. It defines the current OpenSCAD output structure, revision behavior, safety restrictions, and rejection conditions.
+
+`docs/CADQUERY_BACKEND.md` supersedes this document for the CadQuery-primary transition. The completed architecture replaces this contract with a `cadquery-v1` Python source contract and removes OpenSCAD from normal product paths.
 
 For the implementation-ready Gemini ruleset, use `docs/GEMINI_RULESET.md`. For staged prompt responsibilities and schemas, use `docs/GEMINI_PROMPT_ARCHITECTURE.md`.
 

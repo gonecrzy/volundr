@@ -2,6 +2,10 @@
 
 This document is the V1 feature boundary. It lists what Volundr must include, what is explicitly excluded, and the test used to prevent premature scope expansion.
 
+## CadQuery Transition Status
+
+`docs/CADQUERY_BACKEND.md` supersedes the original OpenSCAD V1 scope. During the transition, OpenSCAD remains only as temporary implementation debt. The completed scope is CadQuery-primary, Gemini API-primary, staged-workflow-primary, and explicit-candidate-acceptance-primary.
+
 ## Included
 
 ### Projects
@@ -13,33 +17,34 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 
 ### AI Generation
 
-- Generate OpenSCAD through Gemini CLI.
+- Generate CadQuery Python through Gemini API.
 - Supply a controlled system prompt and model-generation contract.
 - Capture raw model output.
-- Extract SCAD from markdown or surrounding explanation when necessary.
+- Extract CadQuery Python from markdown or strict raw source when necessary.
 - Limit automatic repair attempts.
 - Store every attempt, including failures.
-- Ask for clarification before OpenSCAD generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
-- Persist a versioned Design Specification before new initial OpenSCAD generation.
+- Ask for clarification before CadQuery generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
+- Persist a versioned Design Specification before new initial CadQuery generation.
 - Generate and persist an immutable Parametric Design Plan from a ready Design Specification.
-- Require explicit Design Plan approval before new initial OpenSCAD generation in the stabilized frontend flow.
-- Use the approved Design Plan as product-structure authority for OpenSCAD generation.
+- Require explicit Design Plan approval before new initial CadQuery generation.
+- Use the approved Design Plan as product-structure authority for CadQuery generation.
 - Generate and persist immutable structured Revision Plans before scoped AI revisions.
 - Require explicit Revision Plan approval before AI source revision.
 - Support component-targeted full-source AI revisions that preserve protected components, outputs, interfaces, shared modules, and active configuration overrides.
 - Allow direct editing of approved editable Design Plan parameters and preset switching through deterministic configuration changes without invoking Gemini.
-- Validate new AI OpenSCAD against the source contract before compilation, including security rules, required structure, protected Design Specification values, and advisory quality findings.
-- Validate revised AI source against the approved Revision Plan before compilation.
+- Validate new AI CadQuery source against the source contract before execution, including security rules, required structure, protected Design Specification values, output declarations, topology expectations, and advisory quality findings.
+- Validate revised AI source against the approved Revision Plan before execution.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
 - Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
 
-### OpenSCAD Execution
+### CadQuery Execution
 
-- Compile source using OpenSCAD CLI.
-- Use isolated temporary job directories.
+- Execute source through an isolated non-root no-network CAD worker.
+- Use structured job manifests and atomic result manifests.
 - Enforce runtime and output limits.
 - Capture warnings and errors.
-- Produce STL output.
+- Validate B-Rep topology before mesh checks.
+- Produce STEP and STL artifacts for every successful required output.
 - Reject missing, empty, or implausibly large outputs.
 
 ### Model Inspection
@@ -80,7 +85,8 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 
 ### Downloads
 
-- Download `.scad`.
+- Download accepted CadQuery source.
+- Download `.step`.
 - Download `.stl`.
 - Download one STL per Design Plan printable output.
 - Download `output-manifest.json`.
@@ -124,7 +130,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Model marketplace
 - Custom AI training
 - Native-host installation as a separately supported V1 deployment path
-- Browser-side OpenSCAD as the primary engine
+- Browser-side CAD execution as the primary engine
 - Real-time collaborative editing
 
 ## Scope Guard
