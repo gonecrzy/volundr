@@ -20,21 +20,19 @@ def test_settings_ignore_unrelated_env_file_keys(tmp_path):
     assert settings.data_dir.as_posix() == "data"
 
 
-def test_settings_default_to_ollama_for_development() -> None:
-    settings = Settings()
+def test_settings_default_to_gemini_api_for_staged_generation() -> None:
+    settings = Settings(_env_file=None)
 
-    assert settings.ai_provider == "ollama"
-    assert settings.ollama_base_url == "http://10.1.20.25:11434"
-    assert settings.ollama_model == "qwen2.5-coder:14b"
-    assert settings.ollama_timeout_seconds == 300
-    assert settings.ollama_think is None
+    assert settings.ai_provider == "gemini_api"
+    assert settings.gemini_model == "gemini-3.5-flash-lite"
+    assert settings.gemini_api_thinking_level == "minimal"
 
 
-def test_settings_default_to_simple_generation_mode() -> None:
-    settings = Settings()
+def test_settings_default_to_staged_generation_mode() -> None:
+    settings = Settings(_env_file=None)
 
-    assert settings.generation_mode == "simple"
-    assert settings.enable_design_plans is False
-    assert settings.enable_multi_output is False
-    assert settings.enable_structured_revisions is False
-    assert settings.enable_strict_marker_contract is False
+    assert settings.generation_mode == "advanced"
+    assert settings.enable_design_plans is True
+    assert settings.enable_multi_output is True
+    assert settings.enable_structured_revisions is True
+    assert settings.enable_strict_marker_contract is True

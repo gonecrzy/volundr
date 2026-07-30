@@ -87,7 +87,7 @@ Required content:
 - `design_level` as `single_part`, `product`, or `assembly`
 - `plan_ready`, `clarification_required`, and `outcome`
 
-Current implementation: `design-plan-v1` is implemented for ready initial Design Specifications. Invalid JSON is classified as `design_plan_invalid`, raw output is preserved, and one bounded schema-repair planning attempt is allowed. A clarification plan enters `clarification_required`; chat answers are persisted, then planning is rerun with the previous plan and answer context to create a superseding version. A ready plan enters `pending_review`; the user must approve it before OpenSCAD generation can start, and current UI approval immediately starts generation.
+Current implementation: `design-plan-v1` is implemented for ready initial Design Specifications. Invalid JSON is classified as `design_plan_invalid`, raw output is preserved, and one bounded schema-repair planning attempt is allowed. A clarification plan enters `clarification_required`; chat answers are persisted, then planning is rerun with the previous plan and answer context to create a superseding version. A ready plan enters `pending_review`; the user must approve it before CadQuery generation can start, and current UI approval immediately starts generation.
 
 ### `openscad-generation-v3`
 
@@ -136,7 +136,7 @@ Output additions compared with `openscad-generation-v3`:
 - derived Design Plan parameters in `DERIVED VALUES`
 - assertions for invalid configurations, impossible counts, negative clearances, and too-thin walls
 
-Current implementation: `openscad-generation-v5` is used by the dedicated Design Plan generation endpoint after explicit plan approval. Output selection, compilation, retry, and export behavior are defined in `docs/MULTI_OUTPUT_GENERATION.md`. The transition replaces this with `cadquery-generation-v1` or the repository's equivalent active naming convention.
+Current implementation: `openscad-generation-v5` remains only a legacy compatibility prompt. The dedicated Design Plan generation endpoint now uses CadQuery generation after explicit plan approval.
 
 ### CadQuery Prompt Modes
 
@@ -152,7 +152,7 @@ cadquery-scope-correction-v1
 
 CadQuery generation receives the approved Design Specification, approved Design Plan, typed parameter contract, components, features, dependencies, printable outputs, printer profile, source contract, topology expectations, and security restrictions. It must return complete Python source only.
 
-Current implementation: the active CadQuery source prompt uses the `cadquery-v1` runtime contract. It requires `import cadquery as cq`, `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product`, typed `ParameterSpec` metadata, a single `build(params)` entry point, and one returned `Product` containing `PrintableOutput` records. `build_model()` remains only for the transitional probe runner until CadQuery product execution is replaced.
+Current implementation: the active `cadquery-generation-v1` prompt uses the `cadquery-v1` runtime contract. It requires `import cadquery as cq`, `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product`, typed `ParameterSpec` metadata, a single `build(params)` entry point, and one returned `Product` containing `PrintableOutput` records. `build_model()` remains only for the transitional probe runner.
 
 Contract repair may fix schema, entrypoint, import, output declaration, syntax, or API contract issues. Execution repair may fix straightforward CadQuery API or geometry-operation failures. Neither repair path may silently redesign geometry or modify protected requirements.
 

@@ -1360,7 +1360,7 @@ def _cadquery_prompt_template_version(provider: GeminiCliProvider) -> str:
     version_method = getattr(provider, "cadquery_prompt_template_version", None)
     if callable(version_method):
         return str(version_method())
-    return "cadquery-source-v2"
+    return "cadquery-generation-v1"
 
 
 def _source_parameter_analysis(

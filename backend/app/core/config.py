@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     cad_timeout_seconds: int = Field(default=60)
     max_source_bytes: int = Field(default=500 * 1024)
     max_stl_bytes: int = Field(default=100 * 1024 * 1024)
-    ai_provider: str = Field(default="ollama")
+    ai_provider: str = Field(default="gemini_api")
     ollama_base_url: str = Field(default="http://10.1.20.25:11434")
     ollama_model: str = Field(default="qwen2.5-coder:14b")
     ollama_timeout_seconds: int = Field(default=300)
@@ -40,11 +40,11 @@ class Settings(BaseSettings):
     gemini_api_thinking_level: str | None = Field(default="minimal")
     gemini_api_max_retries: int = Field(default=2)
     gemini_api_max_retry_sleep_seconds: float = Field(default=60.0)
-    generation_mode: str = Field(default="simple")
-    enable_design_plans: bool = Field(default=False)
-    enable_multi_output: bool = Field(default=False)
-    enable_structured_revisions: bool = Field(default=False)
-    enable_strict_marker_contract: bool = Field(default=False)
+    generation_mode: str = Field(default="advanced")
+    enable_design_plans: bool = Field(default=True)
+    enable_multi_output: bool = Field(default=True)
+    enable_structured_revisions: bool = Field(default=True)
+    enable_strict_marker_contract: bool = Field(default=True)
 
     @cached_property
     def database_url(self) -> str:

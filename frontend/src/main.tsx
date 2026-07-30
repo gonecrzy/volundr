@@ -73,7 +73,7 @@ type VolundrFrontendEnv = {
 };
 const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
 const ADVANCED_WORKFLOW_ENABLED =
-  (FRONTEND_ENV.VITE_VOLUNDR_GENERATION_MODE ?? "simple").toLowerCase() === "advanced";
+  (FRONTEND_ENV.VITE_VOLUNDR_GENERATION_MODE ?? "advanced").toLowerCase() === "advanced";
 
 type Project = {
   id: string;

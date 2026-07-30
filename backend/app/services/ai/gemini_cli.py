@@ -34,7 +34,7 @@ LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
 LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-source-v2"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v1"
 
 
 def _current_source_prompt_section(*, current_source: str, is_repair: bool) -> list[str]:
@@ -410,8 +410,8 @@ class GeminiCliProvider:
     def _build_source_brief_prompt(self, request: SourceBriefRequest) -> str:
         return "\n".join(
             [
-                "You create a compact structured design brief before OpenSCAD generation.",
-                "Return JSON only. Do not generate OpenSCAD.",
+                "You create a compact structured design brief before CAD source generation.",
+                "Return JSON only. Do not generate CAD source.",
                 "The brief constrains correctness without locking down the exact creative shape.",
                 "Required JSON fields:",
                 "- schema_version: exactly source-brief-v1",

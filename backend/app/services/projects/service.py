@@ -95,7 +95,13 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RevisionPlanRequest,
 )
-from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
+from app.services.ai.source_extraction import (
+    SourceExtractionError,
+    extract_python_source,
+    extract_scad_source,
+)
+from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
+from app.services.cad.cadquery_runner import CadQueryCliRunner
 from app.services.cad.runner import OpenScadCliRunner
 from app.services.generation.failure_taxonomy import FailureClass
 from app.services.geometry.invariants import (
@@ -598,6 +604,80 @@ class ProjectService:
         )
         output.updated_at = project_utcnow()
         self.db.flush()
+
+    def _cadquery_runner(self) -> Any:
+        if isinstance(self.cad_runner, OpenScadCliRunner):
+            return CadQueryCliRunner()
+        return self.cad_runner
+
+    def _design_plan_parameter_values(self, design_plan_payload: dict[str, Any]) -> dict[str, Any]:
+        values: dict[str, Any] = {}
+        for parameter in design_plan_payload.get("parameters", []):
+            if not isinstance(parameter, dict):
+                continue
+            parameter_id = str(parameter.get("id") or "").strip()
+            if parameter_id:
+                values[parameter_id] = parameter.get("value")
+        return values
+
+    def _persist_cadquery_output_artifacts(
+        self,
+        *,
+        revision: Revision,
+        output: RevisionOutput,
+        output_result: Any,
+        source: str,
+        stl_dir: Path,
+        step_dir: Path,
+        brep_dir: Path,
+        metadata_dir: Path,
+        design_specification_payload: dict[str, Any] | None,
+        design_specification_id: str | None,
+    ) -> None:
+        output.output_state = "validating"
+        stl_path = stl_dir / output.filename
+        shutil.copyfile(output_result.stl_path, stl_path)
+        output.stl_path = self._relative(stl_path)
+        output.stl_hash = self._file_sha256(stl_path)
+        if output_result.step_path is not None:
+            step_path = step_dir / f"{Path(output.filename).stem}.step"
+            shutil.copyfile(output_result.step_path, step_path)
+            output.step_path = self._relative(step_path)
+            output.step_hash = self._file_sha256(step_path)
+        if output_result.brep_path is not None:
+            brep_path = brep_dir / f"{Path(output.filename).stem}.brep"
+            shutil.copyfile(output_result.brep_path, brep_path)
+            output.brep_path = self._relative(brep_path)
+            output.brep_hash = self._file_sha256(brep_path)
+        if output_result.topology_metadata is not None:
+            output.topology_metadata_json = json.dumps(
+                output_result.topology_metadata,
+                sort_keys=True,
+            )
+        if output_result.metadata is not None:
+            metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.json"
+            metadata_path.write_text(
+                json.dumps(asdict(output_result.metadata), indent=2, sort_keys=True),
+                encoding="utf-8",
+            )
+            mesh_metadata_json = json.dumps(asdict(output_result.metadata), sort_keys=True)
+            output.mesh_metadata_json = mesh_metadata_json
+            output.metadata_json = mesh_metadata_json
+            self._persist_geometric_analysis(
+                revision=revision,
+                stl_path=stl_path,
+                scad_source=source,
+                design_specification_payload=design_specification_payload,
+                design_specification_id=design_specification_id,
+                revision_output=output,
+            )
+            self._persist_validation_findings(revision=revision, stl_path=stl_path, revision_output=output)
+        output.compile_error = output_result.compile_error
+        output.output_state = self._derive_output_state(output.id)
+        output.validation_summary_json = json.dumps(
+            self._validation_summary(output.revision_id, revision_output_id=output.id).model_dump()
+        )
+        output.updated_at = project_utcnow()
 
     def _persist_assembly_output_findings(self, revision: Revision) -> None:
         outputs = list(
@@ -1330,7 +1410,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         try:
-            generation_result = await self.ai_provider.generate_model(generation_request)
+            generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(generation_attempt)
             raise
@@ -1870,7 +1950,7 @@ class ProjectService:
         if plan is None:
             return None
         if plan.review_state != DesignPlanReviewState.APPROVED.value:
-            raise ValueError("Design Plan must be approved before OpenSCAD generation")
+            raise ValueError("Design Plan must be approved before CAD generation")
         if self._has_newer_design_plan(plan):
             raise ValueError("Design Plan has been superseded")
         specification = self.db.get(DesignSpecification, plan.design_specification_id)
@@ -2009,7 +2089,7 @@ class ProjectService:
             if design_specification is None or design_specification.project_id != project.id:
                 raise ValueError("Design Specification not found for project")
             if design_specification.outcome != RequirementOutcome.GENERATION_READY.value:
-                raise ValueError("Design Specification must be generation_ready before OpenSCAD generation")
+                raise ValueError("Design Specification must be generation_ready before CAD generation")
             if self._has_newer_design_specification(design_specification):
                 raise ValueError("Design Specification has been superseded")
             design_specification_payload = self._read_design_specification_payload(design_specification)
@@ -2047,7 +2127,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         try:
-            generation_result = await self.ai_provider.generate_model(generation_request)
+            generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(generation_attempt)
             raise
@@ -2077,18 +2157,32 @@ class ProjectService:
         except _StoppedWithRevision as exc:
             return exc.revision
         if design_plan is not None and design_plan_payload is not None:
-            initial_revision = await self._create_revision_from_planned_source(
-                project_id=project_id,
-                scad_source=scad_source,
-                user_instruction=payload.user_instruction,
-                source_type=source_type,
-                raw_ai_output=raw_ai_output,
-                design_specification_id=design_specification.id if design_specification else None,
-                design_specification_payload=design_specification_payload,
-                design_plan_id=design_plan.id,
-                design_plan_payload=design_plan_payload,
-                source_validation_result_id=source_validation.id,
-            )
+            if settings.generation_mode != "simple":
+                initial_revision = await self._create_cadquery_revision_from_planned_source(
+                    project_id=project_id,
+                    source=scad_source,
+                    user_instruction=payload.user_instruction,
+                    source_type=source_type,
+                    raw_ai_output=raw_ai_output,
+                    design_specification_id=design_specification.id if design_specification else None,
+                    design_specification_payload=design_specification_payload,
+                    design_plan_id=design_plan.id,
+                    design_plan_payload=design_plan_payload,
+                    source_validation_result_id=source_validation.id,
+                )
+            else:
+                initial_revision = await self._create_revision_from_planned_source(
+                    project_id=project_id,
+                    scad_source=scad_source,
+                    user_instruction=payload.user_instruction,
+                    source_type=source_type,
+                    raw_ai_output=raw_ai_output,
+                    design_specification_id=design_specification.id if design_specification else None,
+                    design_specification_payload=design_specification_payload,
+                    design_plan_id=design_plan.id,
+                    design_plan_payload=design_plan_payload,
+                    source_validation_result_id=source_validation.id,
+                )
         else:
             initial_revision = await self._create_revision_from_source(
                 project_id=project_id,
@@ -2135,7 +2229,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         try:
-            repair_result = await self.ai_provider.generate_model(repair_request)
+            repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
             raise
@@ -2150,7 +2244,10 @@ class ProjectService:
 
         self._record_generation_result(repair_attempt, repair_result)
         try:
-            repaired_source = extract_scad_source(repair_result.raw_output)
+            repaired_source = self._extract_generated_source(
+                repair_result.raw_output,
+                cadquery=self._uses_cadquery_generation(repair_request),
+            )
         except SourceExtractionError as exc:
             failed_repair = self._create_failed_ai_revision(
                 project=project,
@@ -2189,18 +2286,32 @@ class ProjectService:
             )
             return initial_revision
         if design_plan is not None and design_plan_payload is not None:
-            repair_revision = await self._create_revision_from_planned_source(
-                project_id=project_id,
-                scad_source=repaired_source,
-                user_instruction=payload.user_instruction,
-                source_type="ai_repair",
-                raw_ai_output=repair_result.raw_output,
-                design_specification_id=design_specification.id if design_specification else None,
-                design_specification_payload=design_specification_payload,
-                design_plan_id=design_plan.id,
-                design_plan_payload=design_plan_payload,
-                source_validation_result_id=repair_source_validation.id,
-            )
+            if settings.generation_mode != "simple":
+                repair_revision = await self._create_cadquery_revision_from_planned_source(
+                    project_id=project_id,
+                    source=repaired_source,
+                    user_instruction=payload.user_instruction,
+                    source_type="ai_repair",
+                    raw_ai_output=repair_result.raw_output,
+                    design_specification_id=design_specification.id if design_specification else None,
+                    design_specification_payload=design_specification_payload,
+                    design_plan_id=design_plan.id,
+                    design_plan_payload=design_plan_payload,
+                    source_validation_result_id=repair_source_validation.id,
+                )
+            else:
+                repair_revision = await self._create_revision_from_planned_source(
+                    project_id=project_id,
+                    scad_source=repaired_source,
+                    user_instruction=payload.user_instruction,
+                    source_type="ai_repair",
+                    raw_ai_output=repair_result.raw_output,
+                    design_specification_id=design_specification.id if design_specification else None,
+                    design_specification_payload=design_specification_payload,
+                    design_plan_id=design_plan.id,
+                    design_plan_payload=design_plan_payload,
+                    source_validation_result_id=repair_source_validation.id,
+                )
         else:
             repair_revision = await self._create_revision_from_source(
                 project_id=project_id,
@@ -2239,8 +2350,12 @@ class ProjectService:
         design_plan_payload: dict[str, Any] | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
+        cadquery_generation = design_plan_payload is not None and settings.generation_mode != "simple"
         try:
-            scad_source = extract_scad_source(generation_result.raw_output)
+            scad_source = self._extract_generated_source(
+                generation_result.raw_output,
+                cadquery=cadquery_generation,
+            )
         except SourceExtractionError as exc:
             failed_revision = self._create_failed_ai_revision(
                 project=project,
@@ -2258,7 +2373,11 @@ class ProjectService:
             )
             raise _StoppedWithRevision(failed_revision) from exc
 
-        self._record_generation_extracted_source(generation_attempt, scad_source)
+        self._record_generation_extracted_source(
+            generation_attempt,
+            scad_source,
+            source_language="python" if cadquery_generation else "openscad",
+        )
         source_validation = self._persist_source_contract_validation(
             project=project,
             attempt=generation_attempt,
@@ -2296,7 +2415,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         try:
-            repair_result = await self.ai_provider.generate_model(repair_request)
+            repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
             raise
@@ -2311,7 +2430,10 @@ class ProjectService:
 
         self._record_generation_result(repair_attempt, repair_result)
         try:
-            repaired_source = extract_scad_source(repair_result.raw_output)
+            repaired_source = self._extract_generated_source(
+                repair_result.raw_output,
+                cadquery=cadquery_generation,
+            )
         except SourceExtractionError as exc:
             self._finish_generation_attempt(
                 repair_attempt,
@@ -2321,7 +2443,11 @@ class ProjectService:
             )
             raise ValueError(str(exc)) from exc
 
-        self._record_generation_extracted_source(repair_attempt, repaired_source)
+        self._record_generation_extracted_source(
+            repair_attempt,
+            repaired_source,
+            source_language="python" if cadquery_generation else "openscad",
+        )
         repaired_validation = self._persist_source_contract_validation(
             project=project,
             attempt=repair_attempt,
@@ -2380,6 +2506,19 @@ class ProjectService:
             configuration_context=configuration_context,
         )
 
+    async def _generate_source_model(self, request: ModelGenerationRequest):
+        if self._uses_cadquery_generation(request):
+            generator = getattr(self.ai_provider, "generate_cadquery_model", None)
+            if not callable(generator):
+                raise RuntimeError("AI provider does not support CadQuery generation")
+            return await generator(request)
+        return await self.ai_provider.generate_model(request)  # type: ignore[union-attr]
+
+    def _extract_generated_source(self, raw_output: str, *, cadquery: bool) -> str:
+        if cadquery:
+            return extract_python_source(raw_output)
+        return extract_scad_source(raw_output)
+
     def _start_generation_attempt(
         self,
         *,
@@ -2403,6 +2542,10 @@ class ProjectService:
             status="started",
             failure_class=FailureClass.NONE.value,
         )
+        if self._uses_cadquery_generation(request):
+            attempt.cad_backend = "cadquery"
+            attempt.source_language = "python"
+            attempt.source_contract_version = "cadquery-v1"
         self.db.add(attempt)
         self.db.flush()
 
@@ -2445,12 +2588,23 @@ class ProjectService:
         self._update_attempt_chain(attempt, status=attempt.status)
         self.db.commit()
 
-    def _record_generation_extracted_source(self, attempt: GenerationAttempt, source: str) -> None:
+    def _record_generation_extracted_source(
+        self,
+        attempt: GenerationAttempt,
+        source: str,
+        *,
+        source_language: str = "openscad",
+    ) -> None:
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
-        source_path = run_dir / "extracted-source.scad"
+        suffix = "py" if source_language == "python" else "scad"
+        source_path = run_dir / f"extracted-source.{suffix}"
         source_path.write_text(source, encoding="utf-8")
         attempt.extracted_source_path = self._relative(source_path)
         attempt.source_hash = self._sha256(source)
+        if source_language == "python":
+            attempt.cad_backend = "cadquery"
+            attempt.source_language = "python"
+            attempt.source_contract_version = "cadquery-v1"
         self._update_attempt_chain(attempt, status=attempt.status)
         self.db.commit()
 
@@ -3518,6 +3672,10 @@ class ProjectService:
         }
 
     def _render_prompt(self, request: ModelGenerationRequest) -> str:
+        if self._uses_cadquery_generation(request):
+            build_cadquery_prompt = getattr(self.ai_provider, "build_cadquery_prompt", None)
+            if callable(build_cadquery_prompt):
+                return build_cadquery_prompt(request)
         build_prompt = getattr(self.ai_provider, "build_prompt", None)
         if callable(build_prompt):
             return build_prompt(request)
@@ -3542,6 +3700,11 @@ class ProjectService:
         return ""
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
+        if self._uses_cadquery_generation(request):
+            version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
+            if callable(version):
+                return str(version())
+            return "cadquery-generation-v1"
         version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
         if callable(version_for):
             return str(version_for(request))
@@ -3558,6 +3721,13 @@ class ProjectService:
         if request.design_specification:
             return "openscad-generation-v3"
         return "legacy-initial-v1"
+
+    def _uses_cadquery_generation(self, request: ModelGenerationRequest) -> bool:
+        return (
+            request.design_plan is not None
+            and request.revision_plan is None
+            and settings.generation_mode != "simple"
+        )
 
     def _requirement_prompt_template_version(self) -> str:
         version = getattr(self.ai_provider, "requirement_prompt_template_version", None)
@@ -3814,6 +3984,14 @@ class ProjectService:
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
     ) -> SourceValidationResult:
+        if design_plan_payload is not None and settings.generation_mode != "simple":
+            return self._persist_cadquery_source_contract_validation(
+                project=project,
+                attempt=attempt,
+                source=source,
+                source_type=source_type,
+                design_specification=design_specification,
+            )
         validator = SourceContractValidator(ruleset_version=self._ruleset_version())
         result = validator.validate(
             source,
@@ -3849,6 +4027,93 @@ class ProjectService:
                     generation_attempt_id=attempt.id,
                     design_specification_id=design_specification.id if design_specification else None,
                     source_validation_result_id=source_validation.id,
+                )
+            )
+        self._update_attempt_chain(attempt, status=attempt.status)
+        self.db.commit()
+        self.db.refresh(source_validation)
+        return source_validation
+
+    def _persist_cadquery_source_contract_validation(
+        self,
+        *,
+        project: Project,
+        attempt: GenerationAttempt,
+        source: str,
+        source_type: str,
+        design_specification: DesignSpecification | None,
+    ) -> SourceValidationResult:
+        started = time.perf_counter()
+        source_hash = self._sha256(source)
+        hard_error: str | None = None
+        metadata: dict[str, Any] | None = None
+        try:
+            metadata = asdict(validate_cadquery_source(source, contract_version="cadquery-v1"))
+        except CadQueryContractError as exc:
+            hard_error = str(exc)
+        validation_ms = round((time.perf_counter() - started) * 1000, 3)
+        run_dir = self._generation_attempt_dir(project.id, attempt.id)
+        result_path = run_dir / "source-contract.json"
+        self._write_json(
+            result_path,
+            {
+                "contract_version": "cadquery-v1",
+                "validator_version": "cadquery-ast-validator-v1",
+                "ruleset_version": self._ruleset_version(),
+                "passed_hard_checks": hard_error is None,
+                "hard_violations": []
+                if hard_error is None
+                else [
+                    {
+                        "rule_id": "cadquery.contract",
+                        "category": "source_contract",
+                        "severity": "critical",
+                        "is_blocking": True,
+                        "title": "CadQuery source contract violation",
+                        "explanation": hard_error,
+                        "suggested_correction": "Regenerate or repair the CadQuery source so it satisfies cadquery-v1.",
+                    }
+                ],
+                "quality_findings": [],
+                "specification_findings": [],
+                "source_metadata": metadata or {"source_hash": source_hash},
+                "validation_ms": validation_ms,
+                "source_type": source_type,
+            },
+        )
+        source_validation = SourceValidationResult(
+            project_id=project.id,
+            generation_attempt_id=attempt.id,
+            design_specification_id=design_specification.id if design_specification else None,
+            validator_id="cadquery-ast-validator",
+            cad_backend="cadquery",
+            source_language="python",
+            contract_version="cadquery-v1",
+            ruleset_version=self._ruleset_version(),
+            validator_version="cadquery-ast-validator-v1",
+            source_hash=source_hash,
+            result_path=self._relative(result_path),
+            passed_hard_checks=hard_error is None,
+            validation_ms=validation_ms,
+        )
+        self.db.add(source_validation)
+        self.db.flush()
+        if hard_error is not None:
+            self.db.add(
+                ValidationFinding(
+                    revision_id=None,
+                    generation_attempt_id=attempt.id,
+                    design_specification_id=design_specification.id if design_specification else None,
+                    source_validation_result_id=source_validation.id,
+                    rule_id="cadquery.contract",
+                    category="source_contract",
+                    severity="critical",
+                    is_blocking=True,
+                    title="CadQuery source contract violation",
+                    explanation=hard_error,
+                    suggested_correction="Regenerate or repair the CadQuery source so it satisfies cadquery-v1.",
+                    orientation_dependent=False,
+                    metadata_json=json.dumps({"finding_origin": "source_contract"}, sort_keys=True),
                 )
             )
         self._update_attempt_chain(attempt, status=attempt.status)
@@ -5507,6 +5772,167 @@ class ProjectService:
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision, metadata=metadata, error_message=result.error_message)
+
+    async def _create_cadquery_revision_from_planned_source(
+        self,
+        *,
+        project_id: str,
+        source: str,
+        user_instruction: str | None,
+        source_type: str,
+        raw_ai_output: str | None,
+        design_specification_id: str | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_id: str,
+        design_plan_payload: dict[str, Any],
+        source_validation_result_id: str | None,
+    ) -> RevisionRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+
+        outputs = self._planned_printable_outputs(design_plan_payload)
+        if not outputs:
+            raise ValueError("Design Plan has no printable outputs")
+
+        revision_number = self._next_revision_number(project_id)
+        revision = Revision(
+            project_id=project_id,
+            parent_revision_id=project.active_revision_id,
+            design_specification_id=design_specification_id,
+            design_plan_id=design_plan_id,
+            revision_number=revision_number,
+            source_type=source_type,
+            user_instruction=user_instruction,
+            cad_backend="cadquery",
+            source_language="python",
+            source_path="",
+            status="compiling",
+            is_accepted=False,
+            expected_output_count=len(outputs),
+            required_output_count=sum(1 for output in outputs if output["required"]),
+            successful_output_count=0,
+            blocked_output_count=0,
+            failed_output_count=0,
+        )
+        self.db.add(revision)
+        self.db.flush()
+        if source_validation_result_id is not None:
+            self._attach_source_validation_to_revision(
+                source_validation_result_id=source_validation_result_id,
+                revision_id=revision.id,
+            )
+
+        revision_dir = self._revision_dir(project_id, revision.id)
+        revision_dir.mkdir(parents=True, exist_ok=True)
+        stl_dir = revision_dir / "stl"
+        step_dir = revision_dir / "step"
+        brep_dir = revision_dir / "brep"
+        log_dir = revision_dir / "logs"
+        metadata_dir = revision_dir / "metadata"
+        for directory in (stl_dir, step_dir, brep_dir, log_dir, metadata_dir):
+            directory.mkdir(parents=True, exist_ok=True)
+
+        source_path = revision_dir / "source.py"
+        source_path.write_text(source, encoding="utf-8")
+        source_hash = self._sha256(source)
+        ai_output_relative_path: str | None = None
+        if raw_ai_output is not None:
+            ai_output_path = revision_dir / "ai-output.txt"
+            ai_output_path.write_text(raw_ai_output, encoding="utf-8")
+            ai_output_relative_path = self._relative(ai_output_path)
+
+        used_filenames: set[str] = set()
+        output_records: list[RevisionOutput] = []
+        requested_outputs: list[dict[str, Any]] = []
+        for output in outputs:
+            filename = self._safe_output_filename(output["output_id"], output["filename"], used_filenames)
+            used_filenames.add(filename.lower())
+            requested_outputs.append(
+                {
+                    "output_id": output["output_id"],
+                    "required": output["required"],
+                }
+            )
+            record = RevisionOutput(
+                revision_id=revision.id,
+                design_plan_id=design_plan_id,
+                design_specification_id=design_specification_id,
+                output_id=output["output_id"],
+                component_id=output["component_id"],
+                component_ids_json=json.dumps(output["component_ids"]),
+                output_state="queued",
+                output_type=output["output_type"],
+                label=output["label"],
+                filename=filename,
+                quantity=output["quantity"],
+                required=output["required"],
+                entrypoint=output["entrypoint"],
+                source_hash=source_hash,
+                preferred_orientation_json=json.dumps(output["preferred_orientation"])
+                if output["preferred_orientation"] is not None
+                else None,
+            )
+            self.db.add(record)
+            output_records.append(record)
+        self.db.flush()
+
+        started = time.perf_counter()
+        for output_record in output_records:
+            output_record.output_state = "compiling"
+        self.db.flush()
+        result = await self._cadquery_runner().compile(
+            source,
+            job_id=revision.id,
+            parameter_values=self._design_plan_parameter_values(design_plan_payload),
+            requested_outputs=requested_outputs,
+        )
+        compile_ms = round((time.perf_counter() - started) * 1000, 3)
+        compile_log_path = log_dir / "cadquery.log"
+        compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
+        result_outputs = {output.output_id: output for output in getattr(result, "outputs", [])}
+        for output_record in output_records:
+            output_result = result_outputs.get(output_record.output_id)
+            output_record.compile_ms = compile_ms
+            output_record.execution_command_json = json.dumps(result.command_args or [])
+            output_record.compile_log_path = self._relative(compile_log_path)
+            output_record.source_hash = source_hash
+            if output_result is None or not output_result.success or output_result.stl_path is None:
+                output_record.output_state = "failed"
+                output_record.compile_error = (
+                    output_result.compile_error if output_result is not None else "CadQuery output was not produced"
+                )
+                output_record.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
+                continue
+            self._persist_cadquery_output_artifacts(
+                revision=revision,
+                output=output_record,
+                output_result=output_result,
+                source=source,
+                stl_dir=stl_dir,
+                step_dir=step_dir,
+                brep_dir=brep_dir,
+                metadata_dir=metadata_dir,
+                design_specification_payload=design_specification_payload,
+                design_specification_id=design_specification_id,
+            )
+
+        self._persist_assembly_output_findings(revision)
+        self._refresh_revision_output_counts(revision)
+        revision.status = "succeeded"
+        revision.source_path = self._relative(source_path)
+        revision.source_hash = source_hash
+        revision.source_contract_version = "cadquery-v1"
+        revision.ai_output_path = ai_output_relative_path
+        revision.compile_log_path = self._relative(compile_log_path)
+        revision.stl_path = self._first_successful_output_stl(revision)
+        revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
+        revision.review_state = self._derive_review_state(revision.id)
+        revision.is_accepted = False
+        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+        self.db.commit()
+        self.db.refresh(revision)
+        return self._revision_read(revision)
 
     async def _create_revision_from_planned_source(
         self,

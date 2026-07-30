@@ -97,7 +97,7 @@ render_selected_output();
 5. Every component must list the features and parameters it owns.
 6. Every printable output must list component IDs and quantity; OpenSCAD generation uses the selected-output contract in `docs/MULTI_OUTPUT_GENERATION.md` even when there is one output.
 7. Ask plan clarification when component structure, output separation, assembly strategy, or configuration dependencies cannot be chosen safely.
-8. A ready Design Plan must enter review and be explicitly approved before OpenSCAD generation.
+8. A ready Design Plan must enter review and be explicitly approved before CadQuery generation.
 9. A parameter with `source_requirement_id` must copy that source requirement's value and unit within tolerance. Calculated stack, envelope, or overall dimensions must be represented as derived parameters with dependency edges, not as direct source mappings.
 
 ## Requirement Marker Rules

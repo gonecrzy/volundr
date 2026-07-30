@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 import trimesh
 
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
+from app.core.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
@@ -22,6 +23,7 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RequirementExtractionResult,
 )
+from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
@@ -194,6 +196,7 @@ class PlanningAiProvider:
         self.plan_outputs = list(plan_outputs)
         self.plan_requests: list[DesignPlanRequest] = []
         self.generation_requests: list[ModelGenerationRequest] = []
+        self.cadquery_requests: list[ModelGenerationRequest] = []
 
     @property
     def ruleset_version(self) -> str:
@@ -211,6 +214,9 @@ class PlanningAiProvider:
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         return "openscad-generation-v5" if request.design_plan else "openscad-generation-v3"
 
+    def cadquery_prompt_template_version(self) -> str:
+        return "cadquery-generation-v1"
+
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return "requirements prompt"
 
@@ -219,6 +225,9 @@ class PlanningAiProvider:
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
         return f"OpenSCAD from approved plan\n{json.dumps(request.design_plan, sort_keys=True)}"
+
+    def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        return f"CadQuery from approved plan\n{json.dumps(request.design_plan, sort_keys=True)}"
 
     async def extract_requirements(
         self,
@@ -292,6 +301,46 @@ render_selected_output();
             provider_model="fake-planning-model",
         )
 
+    async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        self.cadquery_requests.append(request)
+        return ModelGenerationResult(
+            raw_output="""
+```python
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(
+        id="mount_hole_spacing",
+        label="Mount hole spacing",
+        type="float",
+        default=60.0,
+        unit="mm",
+        min_value=20.0,
+    )
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(80, params["mount_hole_spacing"] + 20, 6)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="bracket_body_output",
+                component_id="bracket_body",
+                label="Bracket body",
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+```
+""",
+            provider="fake",
+            provider_model="fake-planning-model",
+        )
+
 
 class FakeCadRunner:
     async def compile(
@@ -301,11 +350,15 @@ class FakeCadRunner:
         *,
         selected_output: str | None = None,
         defines: dict[str, str | int | float | bool] | None = None,
+        parameter_values: dict[str, Any] | None = None,
+        requested_outputs: list[dict[str, Any]] | None = None,
     ) -> CadCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-plan-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
         source_path = job_dir / "model.scad"
         stl_path = job_dir / "model.stl"
+        step_path = job_dir / "model.step"
+        brep_path = job_dir / "model.brep"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
         metadata_path = job_dir / "metadata.json"
@@ -313,6 +366,8 @@ class FakeCadRunner:
         mesh = trimesh.creation.box(extents=(80.0, 80.0, 6.0))
         mesh.apply_translation([40.0, 40.0, 3.0])
         mesh.export(stl_path)
+        step_path.write_text("step", encoding="utf-8")
+        brep_path.write_text("brep", encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
         metadata_path.write_text("{}", encoding="utf-8")
@@ -327,6 +382,48 @@ class FakeCadRunner:
             is_winding_consistent=True,
             center_of_mass=(40.0, 40.0, 3.0),
         )
+        if requested_outputs is not None:
+            output_id = requested_outputs[0]["output_id"] if requested_outputs else "model"
+            return CadQueryCompileResult(
+                job_id=job_id,
+                success=True,
+                timed_out=False,
+                exit_code=0,
+                source_path=source_path,
+                stl_path=stl_path,
+                step_path=step_path,
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                metadata_path=metadata_path,
+                source_hash="fake-cadquery-source-hash",
+                output_size_bytes=stl_path.stat().st_size,
+                metadata=metadata,
+                error_message=None,
+                command_args=["python", "_runner.py"],
+                outputs=[
+                    CadQueryOutputResult(
+                        output_id=output_id,
+                        entrypoint=output_id,
+                        required=True,
+                        success=True,
+                        stl_path=stl_path,
+                        step_path=step_path,
+                        brep_path=brep_path,
+                        metadata_path=metadata_path,
+                        topology_metadata_path=None,
+                        stl_hash="1" * 64,
+                        step_hash="2" * 64,
+                        brep_hash="3" * 64,
+                        output_size_bytes=stl_path.stat().st_size,
+                        metadata=metadata,
+                        topology_metadata={
+                            "valid": True,
+                            "detected_solid_count": 1,
+                            "expected_solid_count": 1,
+                        },
+                    )
+                ],
+            )
         return CadCompileResult(
             job_id=job_id,
             success=True,
@@ -548,7 +645,11 @@ def test_approval_required_before_generating_from_design_plan(tmp_path: Path) ->
     assert provider.generation_requests == []
 
 
-def test_approved_design_plan_generates_candidate_from_plan_authority(tmp_path: Path) -> None:
+def test_approved_design_plan_generates_candidate_from_plan_authority(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = PlanningAiProvider(READY_PLAN)
     client, SessionLocal = build_client(tmp_path, provider)
     project, specification = create_project_and_spec(client)
@@ -561,15 +662,29 @@ def test_approved_design_plan_generates_candidate_from_plan_authority(tmp_path: 
     assert response.status_code == 201
     candidate = response.json()
     assert candidate["source_type"] == "ai_initial"
+    assert candidate["cad_backend"] == "cadquery"
+    assert candidate["source_language"] == "python"
     assert candidate["design_specification_id"] == specification["id"]
-    assert len(provider.generation_requests) == 1
-    assert provider.generation_requests[0].design_plan["components"][0]["id"] == "bracket_body"
-    assert provider.generation_requests[0].design_specification["purpose"] == READY_SPEC["purpose"]
+    assert len(provider.generation_requests) == 0
+    assert len(provider.cadquery_requests) == 1
+    assert provider.cadquery_requests[0].design_plan["components"][0]["id"] == "bracket_body"
+    assert provider.cadquery_requests[0].design_specification["purpose"] == READY_SPEC["purpose"]
     assert client.get(f"/api/projects/{project['id']}").json()["active_revision_id"] is None
+    outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
+    assert outputs[0]["entrypoint"] == "bracket_body_output"
+    assert len(outputs[0]["step_hash"]) == 64
+    assert len(outputs[0]["brep_hash"]) == 64
+    assert outputs[0]["topology_metadata"] == {
+        "valid": True,
+        "detected_solid_count": 1,
+        "expected_solid_count": 1,
+    }
 
     with SessionLocal() as session:
         attempts = list(session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)))
-        assert attempts[-1].prompt_template_version == "openscad-generation-v5"
+        assert attempts[-1].prompt_template_version == "cadquery-generation-v1"
+        assert attempts[-1].cad_backend == "cadquery"
+        assert attempts[-1].source_language == "python"
         assert attempts[-1].design_plan_path is not None
 
 

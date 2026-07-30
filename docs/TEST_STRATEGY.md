@@ -214,7 +214,7 @@ Design Plan workflow coverage:
 3. Create a Design Plan.
 4. Review parameters, derived dependencies, components, printable outputs, and risks.
 5. Approve the Design Plan.
-6. Continue to OpenSCAD generation from the approved plan.
+6. Continue to CadQuery generation from the approved plan.
 7. Confirm the resulting candidate does not replace the active accepted revision until accepted.
 
 Structured revision workflow coverage:
@@ -289,13 +289,13 @@ Track at minimum:
 - Design Plan schema success rate
 - Design Plan repair rate
 - approved-plan-to-generation rate
-- OpenSCAD generation attempts started without an approved Design Plan in the new flow
+- CadQuery generation attempts started without an approved Design Plan in the new flow
 
 The benchmark harness should persist provider, model, prompt version, request payload, raw output, extracted source, hashes, timing, validation results, and failure class for every run.
 
 Prompt templates must have snapshot tests. Snapshot failures should require an intentional prompt-template version update or explicit snapshot update.
 
-Generation-attempt tests must verify that the structured requirements/design artifact can be persisted before OpenSCAD generation, even before staged requirement extraction is implemented.
+Generation-attempt tests must verify that the structured requirements/design artifact can be persisted before CadQuery generation.
 
 Candidate tests must use fake providers and deterministic STL fixtures. Live Gemini runs are not required for candidate-state, validation, or API transition changes.
 

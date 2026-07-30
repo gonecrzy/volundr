@@ -159,15 +159,15 @@ Candidate stabilization pass:
 
 Requirement extraction pass:
 
-- New initial AI generations now pass through `requirements-v1` before OpenSCAD generation.
+- New initial AI generations now pass through `requirements-v1` before CadQuery generation.
 - Design Specifications are immutable, versioned, persisted, and linked to requirement-extraction attempts and generated revisions.
 - Clarification, conflicting requirements, and unsupported requests are normal states rather than failed generation revisions.
-- A ready Design Specification must be explicitly continued before OpenSCAD generation starts.
+- A ready Design Specification must be explicitly continued before CadQuery generation starts.
 - Legacy active-revision AI edits remain supported during the transition and attach the latest Design Specification as context when available.
 
 Source-contract validation pass:
 
-- New AI source is statically checked before OpenSCAD compilation.
+- New AI source is statically checked before CAD execution.
 - Security, hard source structure, and protected Design Specification compliance violations block compilation and persist as generation-attempt findings.
 - Quality issues such as missing assertions, missing print notes, excessive `$fn`, and repeated magic numbers remain advisory and attach to candidates after successful compile/validation.
 - Generated source now uses `source-contract-v1` markers documented in `docs/MODEL_GENERATION_CONTRACT.md`.
@@ -189,7 +189,7 @@ Completed in this pass:
 - immutable `design-plan-v1` records are persisted and linked to ready Design Specifications and planning generation attempts
 - Design Plans capture product parameters, derived parameters, dependency edges, components, component features, presets, assembly strategy, printable outputs, risks, and design level
 - plan states are explicit: `clarification_required`, `pending_review`, `approved`, and `rejected`
-- the frontend now creates a Design Plan from ready requirements, presents it for review, and starts OpenSCAD generation when the user approves the plan
+- the frontend now creates a Design Plan from ready requirements, presents it for review, and starts CadQuery generation when the user approves the plan
 - `openscad-generation-v5` uses the Design Specification as requirements authority and the approved Design Plan as product-structure authority
 - source metadata now recognizes `@volundr-component`, `@volundr-dependency`, and `@volundr-output` markers in addition to requirement, feature, and geometry markers
 - approved Design Plan printable outputs now compile into per-output STL artifacts through the selector contract in `docs/MULTI_OUTPUT_GENERATION.md`
@@ -238,7 +238,7 @@ Source-derived parameter discovery pass:
 - `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from constants and OpenSCAD Customizer-style comments
 - this is a phase gate for evaluating whether AI output exposes useful creative and functional knobs without forcing generated models into one fixed template
 - experimental CadQuery source probes now run through an AST-based `cadquery-v1` contract before execution; this keeps the probe focused on `import cadquery as cq`, literal top-level parameters, top-level or nested helper functions, and `build_model()` while rejecting unsafe imports, top-level geometry execution, and dynamic Python calls
-- `cadquery-source-v2` tightens live-generation guidance around recurring CadQuery failures: no `math`/`map()`/string parsing, numeric `thread_spec`, closed profiles before `extrude()`, and fused creative one-piece geometry instead of loose decorative bodies
+- `cadquery-generation-v1` tightens live-generation guidance around recurring CadQuery failures: no `math`/`map()`/string parsing, numeric `thread_spec`, closed profiles before `extrude()`, and fused creative one-piece geometry instead of loose decorative bodies
 
 Source-probe benchmark pass:
 
