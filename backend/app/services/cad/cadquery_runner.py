@@ -562,7 +562,17 @@ def _export_output(
     allow_disconnected_solids,
 ):
     if model is None:
-        return _failed_output(output_id, entrypoint, required, "output model is None")
+        return _failed_output(
+            output_id,
+            entrypoint,
+            required,
+            "output model is None",
+            topology_metadata=_empty_topology_metadata(
+                output_id=output_id,
+                expected_solid_count=expected_solid_count,
+                allow_disconnected_solids=allow_disconnected_solids,
+            ),
+        )
     safe_id = _safe_stem(output_id)
     artifact_dir = output_dir / safe_id
     artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -624,26 +634,41 @@ def _topology_metadata(
 ):
     shape = _shape_for(model)
     if shape is None:
-        return {
-            "output_id": output_id,
-            "valid": False,
-            "volume_mm3": 0,
-            "detected_solid_count": 0,
-            "expected_solid_count": expected_solid_count,
-            "allow_disconnected_solids": allow_disconnected_solids,
-        }
+        return _empty_topology_metadata(
+            output_id=output_id,
+            expected_solid_count=expected_solid_count,
+            allow_disconnected_solids=allow_disconnected_solids,
+        )
     valid = bool(shape.isValid()) if hasattr(shape, "isValid") else True
     volume = float(shape.Volume()) if hasattr(shape, "Volume") else None
     detected_solid_count = _solid_count(model, shape)
+    outcome = "valid"
     if volume is not None and volume <= 0:
         valid = False
+        outcome = "empty"
     if detected_solid_count != expected_solid_count and not allow_disconnected_solids:
         valid = False
+        outcome = "solid_count_mismatch"
+    if not valid and outcome == "valid":
+        outcome = "invalid"
     return {
         "output_id": output_id,
         "valid": valid,
+        "outcome": outcome,
         "volume_mm3": volume,
         "detected_solid_count": detected_solid_count,
+        "expected_solid_count": expected_solid_count,
+        "allow_disconnected_solids": allow_disconnected_solids,
+    }
+
+
+def _empty_topology_metadata(*, output_id, expected_solid_count, allow_disconnected_solids):
+    return {
+        "output_id": output_id,
+        "valid": False,
+        "outcome": "empty",
+        "volume_mm3": 0,
+        "detected_solid_count": 0,
         "expected_solid_count": expected_solid_count,
         "allow_disconnected_solids": allow_disconnected_solids,
     }
