@@ -356,6 +356,57 @@ Final automated conclusion:
 
 The automated live Gemini API source gate passes for the required 12-case set when repair-inclusive source compilation is counted. Prompt promotion remains disabled and the harness still requires human scoring for requirement understanding, Design Plan usefulness, printability, revision preservation, configuration regeneration, and print-worthiness before declaring product-quality release readiness.
 
+## Phase 11 Scoring Addendum
+
+Scoring basis:
+
+- Live Gemini API run: `live-benchmark-20260730T152753Z-phase11-required-v4`.
+- Automated evidence: run manifest, aggregate metrics, source parameter analyses, source compile workspaces, worker execution results, topology metadata, STEP/STL/BREP export presence, and case reports.
+- Manual artifact review: generated source for clarification behavior, multipart outputs, honeycomb bracket, carrier handle, adapter repair, electronics enclosure, repeated rack, and organizer.
+- Large generated artifacts remain under ignored `output/live-benchmarks/`; this document records the committed evidence.
+
+Dimension score:
+
+| Dimension | Score | Evidence |
+| --- | --- | --- |
+| Requirement understanding | Partial pass | Requirements output was collected for all 12 cases. The vague shelf-bracket request correctly returned `clarification_required=true` and `generation_ready=false`; the honeycomb bracket understood dimensions but did not implement real hexagonal honeycomb geometry. |
+| Clarification quality | Pass for covered live case | `vague_clarification` asked for shelf dimensions, hole dimensions/spacing, load capacity, and shelf thickness, and did not mark the request generation-ready. |
+| Design Plan usefulness | Covered by deterministic workflow tests, not live-scored | The v4 live harness scored requirements and source probes. Design Plan approval/usefulness is verified by backend and Playwright staged workflow tests, but not by a live Gemini Design Plan scoring pass. |
+| Parameter quality | Pass with caveats | All 11 concrete source cases had full expected-parameter coverage. The clarification case correctly had no generation-ready parameters at requirements time, while the forced source probe later exposed synthetic parameters that should not be accepted as product output before clarification. |
+| Component decomposition | Partial pass | Multi-output cases exported separate body/lid outputs, and product cases exposed component/output IDs. The honeycomb bracket collapsed the honeycomb feature into rectangular pockets, so feature decomposition was not requirement-faithful there. |
+| Valid source rate | Pass after bounded repair | 11 of 12 direct source probes compiled; 12 of 12 compiled after one bounded repair. `parametric_adapter` required repair. |
+| Worker execution success | Pass | Every final source probe execution produced successful worker results for all required outputs. |
+| B-Rep validity | Pass | Every final output had valid topology metadata and nonzero volume. |
+| Expected solid-count compliance | Pass | Every final output reported `detected_solid_count=1` with disconnected bodies disallowed for normal outputs. |
+| STEP/STL output completeness | Pass | Every final output produced STEP, STL, BREP, and topology metadata. |
+| Printability | Partial pass | The live artifacts avoid disconnected bodies and export watertight solids, but the live harness did not run the full printability inspector per case. `honeycomb_angle_bracket` is not requirement-faithful enough to count as print-worthy honeycomb. |
+| Revision preservation | Covered by deterministic workflow tests, partial live evidence | `component_revision_lid_only` generated a valid revised lid, and deterministic backend/Playwright tests cover structured revision preservation. The v4 live harness did not execute a full accepted-source-to-revised-candidate preservation comparison. |
+| Configuration regeneration | Covered by deterministic tests, not live-scored | Deterministic configuration tests verify provider-free parameter regeneration. The v4 live harness did not execute a build-volume-exceeding configuration case. |
+| Human print-worthiness | Not a release pass | Automated validity is good, but human artifact review found at least one functional-fidelity miss (`honeycomb_angle_bracket`) and one repaired source metadata defect (`parametric_adapter` returns `parameters=params`). External/user acceptance is still required before prompt promotion. |
+
+Case-level score:
+
+| Case | Automated status | Artifact review score | Notes |
+| --- | --- | --- | --- |
+| `simple_mounting_plate` | Pass | Pass | Full parameter coverage; valid single output. |
+| `spacer_bushing` | Pass | Pass | Full parameter coverage; valid single output. |
+| `box_with_lid` | Pass | Pass | Separate `box_body` and `lid` outputs; both valid. |
+| `parametric_repeated_slot_rack` | Pass | Pass | Slot count drives repeated cuts and rack length; valid single output. |
+| `parametric_multi_part_hinged_box` | Pass | Partial pass | Separate base/lid outputs and hinge holes are present. Hinge knuckle fidelity remains a visual/mechanical review item. |
+| `parametric_case_carrier` | Pass | Partial pass | Tray count, rails, retention lip, reinforcement, and handle are modeled in one valid output. Build-volume and split-output decisions remain advisory and were not live-regenerated. |
+| `parametric_configurable_organizer` | Pass | Pass | Row/column/cell parameters drive divider layout; valid organizer output. |
+| `component_revision_lid_only` | Pass | Partial pass | Valid revised lid output. Full protected-body preservation is covered by deterministic revision tests, not by this live source probe. |
+| `vague_clarification` | Requirements pass, forced source probe not acceptable | Pass for clarification; source probe is non-acceptance evidence | Requirements stage correctly blocked generation pending clarification. The later source probe generated a generic bracket and must not be treated as an accepted candidate. |
+| `parametric_electronics_enclosure` | Pass | Pass | Separate base/lid outputs, standoffs, cable opening, and lid geometry present; both outputs valid. |
+| `honeycomb_angle_bracket` | Topology pass | Fail for feature fidelity | Valid bracket with holes/rib, but generated rectangular pockets instead of hexagonal honeycomb cutouts. |
+| `parametric_adapter` | Pass after repair | Partial pass | Repaired source produced a valid hollow loft adapter with full expected parameters. Source still returns `parameters=params` instead of `PARAMETERS`, so metadata quality needs prompt/repair hardening. |
+
+Phase 11 coverage limits:
+
+- The controlled live run covered 12 varied prompts, but the fixture set used here does not include a dedicated live case for an accepted configuration that exceeds build volume or a live source intentionally creating accidental multiple solids. Those mechanics are verified deterministically by backend printability and multi-output tests.
+- The v4 live harness is a requirements/source/worker gate, not a full staged Design Specification -> Design Plan -> approval -> generation -> acceptance benchmark.
+- Prompt promotion remains disabled because the master prompt explicitly requires more than executable source, and artifact review found requirement-fidelity gaps.
+
 ## Final Current-HEAD Verification
 
 Current HEAD verification after live-gate stabilization:
@@ -399,3 +450,50 @@ Results:
 - Worker provider environment check returned an empty list.
 - Worker network probe returned `101` (`ENETUNREACH`).
 - Deterministic queue job `docker-smoke-cadquery-final-v4` succeeded with `failure_class=null`, STEP/STL/BREP artifacts, valid topology metadata, output hashes, and structured diagnostics.
+
+## Final Completion Evidence Map
+
+1. Starting repository state: branch `cadquery-v1-backend`, audited base `e5ead43`, migration head at audit `0014_design_plan_clarifications`, with CadQuery probe-only and OpenSCAD still product-shaped.
+2. Final architecture: Gemini API primary, CadQuery Python authoritative source, isolated CadQuery worker execution, STEP primary interoperable artifact, STL derived preview/print artifact, optional BREP persistence, staged lifecycle primary.
+3. Commits created in order:
+   - `543efa7` Document CadQuery transition baseline
+   - `a55164f` Define CadQuery-primary architecture
+   - `aaaaf46` Implement isolated CAD worker execution
+   - `b0409b3` Replace CAD persistence with CadQuery-native artifacts
+   - `0ed91cd` Implement production CadQuery source contract
+   - `a5a2993` Implement CadQuery multi-output execution
+   - `8ef8a85` Integrate Gemini CadQuery generation
+   - `8556418` Implement CadQuery parameter regeneration
+   - `c4fbf2f` Implement structured CadQuery revisions
+   - `48763b9` Align staged CadQuery frontend workflow
+   - `a9cdc13` Remove OpenSCAD product paths
+   - `f68232b` Document CadQuery benchmark gate
+   - `298f922` Harden CadQuery artifact validation
+   - `dd692f1` Record Playwright transition verification
+   - `28ffe15` Record CadQuery migration verification
+   - `ed8e19c` Verify Docker CadQuery worker execution
+   - `d55b407` Reconcile CadQuery transition documentation
+   - `6382f37` Harden CadQuery live benchmark contract
+   - `70fd04e` Improve live benchmark source fallback
+   - `37a1a36` Stabilize CadQuery live source gate
+   - `75d0e04` Record final CadQuery transition verification
+4. Database/schema strategy: development migration `0015_cadquery_native_persistence` replaces OpenSCAD-shaped canonical fields with CadQuery-native source, execution, output, topology, STEP/STL/BREP, and manifest fields. Old development databases should be recreated.
+5. Worker execution and security model: filesystem-backed job queue; worker runs as non-root `volundr-cad`, with no network, no provider credentials, read-only root filesystem, bounded PID/memory/CPU, structured job/result manifests, timeout handling, artifact hashes, and diagnostics.
+6. CadQuery source contract: `cadquery-v1` Python contract with approved imports, typed `ParameterSpec`, `build(params)`, structured `Product`, named `PrintableOutput` records, source extraction, AST validation, contract repair, and worker-owned exports.
+7. Parameter model: typed editable/protected parameters with validation, ranges, enums, presets, dependency summaries, and provider-free resolved value execution.
+8. Single/multi-output behavior: one Product contract handles single and multiple named outputs; required output failures block candidate readiness, optional failures warn.
+9. STEP/BREP/STL artifact behavior: successful CadQuery outputs produce STEP and STL plus BREP where available, metadata JSON, topology summaries, hashes, and execution manifests.
+10. Topology and solid-count validation: each output validates supported shape, nonzero volume, B-Rep validity, expected/detected solid count, disconnected-solid policy, bounding box, and output identity before candidate acceptance.
+11. Gemini prompt modes: Gemini API is the default provider path; active CadQuery modes cover requirements, Design Plan, generation, contract repair, execution repair, revision planning, component revision, and scope correction.
+12. Configuration behavior: deterministic parameter changes reuse accepted source and call the isolated worker without provider calls; configuration records source/parameter hashes, overrides, affected parameters/components/outputs, and validation state.
+13. Structured revision behavior: approved Revision Plans drive complete-source CadQuery revisions with preservation checks, bounded repair/correction, and candidate review.
+14. Component-targeted revision behavior: targeted components/outputs and protected components/outputs are represented in plans and checked against generated outputs and topology/preservation evidence.
+15. Frontend lifecycle: the primary UI path is staged Describe -> Requirements -> Design Plan -> Approve -> Generate -> CadQuery execution/topology validation -> Candidate -> Accept or revise, with CadQuery source, named outputs, topology, configuration, and revision controls.
+16. OpenSCAD code removed: OpenSCAD product paths, prompt modes, parser/runner assumptions, schema aliases, UI labels, Docker package usage, and simple bypass defaults were removed or superseded by CadQuery-only paths.
+17. Tests and exact results: final current-HEAD backend tests `198 passed`; frontend unit tests `38 passed`; production build succeeded; staged Playwright workflow `1 passed`; `git diff --check` clean.
+18. Docker verification: web/API/worker running; worker non-root, no provider env, no network; deterministic CadQuery job succeeded and artifacts were visible through the jobs directory; structured failure diagnostics were previously verified.
+19. Live Gemini calls made and quota usage: Gemini CLI smoke failed before output due local tier eligibility; Gemini API smoke and required live reruns were then run with quota caps. Final v4 live run estimated `55751` tokens and did not record dollar cost.
+20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output.
+21. Remaining limitations: live benchmark scoring is not a full product-quality pass; Design Plan usefulness, full revision preservation, build-volume configuration, accidental multi-solid live behavior, and human print-worthiness still need richer live or human acceptance gates. Honeycomb bracket feature fidelity and adapter parameter metadata need prompt/repair hardening.
+22. Recommended next product task: implement a stricter staged live benchmark that exercises Design Plan approval, deterministic configuration including build-volume failure, protected-output revision preservation, accidental multi-solid rejection, printability inspection, and human scoring aggregation before prompt promotion.
+23. Final repository status: expected to be clean after committing this documentation-only scoring update.
