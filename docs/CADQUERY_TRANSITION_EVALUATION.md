@@ -355,3 +355,47 @@ Final automated aggregate result:
 Final automated conclusion:
 
 The automated live Gemini API source gate passes for the required 12-case set when repair-inclusive source compilation is counted. Prompt promotion remains disabled and the harness still requires human scoring for requirement understanding, Design Plan usefulness, printability, revision preservation, configuration regeneration, and print-worthiness before declaring product-quality release readiness.
+
+## Final Current-HEAD Verification
+
+Current HEAD verification after live-gate stabilization:
+
+```bash
+rtk .venv/bin/python -m pytest -q
+rtk npm test -- --run
+rtk npm run build
+rtk npm run test:e2e
+rtk .venv/bin/alembic heads
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration .venv/bin/alembic upgrade head
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration .venv/bin/alembic current
+rtk git diff --check
+```
+
+Results:
+
+- Backend tests: 198 passed, 1 existing Starlette/httpx deprecation warning.
+- Frontend unit tests: 38 passed across 6 files.
+- Frontend production build: succeeded.
+- Playwright staged workflow: 1 passed.
+- Alembic has a single head: `0015_cadquery_native_persistence`.
+- Fresh SQLite database migration upgraded through all migrations to `0015_cadquery_native_persistence (head)`.
+- Diff whitespace check: clean.
+
+Final Docker worker verification:
+
+```bash
+rtk docker compose ps
+rtk docker inspect volundr-cad-worker --format '{{.Config.User}} {{.HostConfig.NetworkMode}} {{.HostConfig.ReadonlyRootfs}} {{json .HostConfig.SecurityOpt}} {{json .HostConfig.PidsLimit}} {{json .HostConfig.Memory}} {{json .HostConfig.NanoCpus}}'
+rtk docker exec volundr-cad-worker python -c "import os, cadquery, volundr_cad.runtime; print(os.getuid(), os.getgid(), cadquery.__version__)"
+rtk docker exec volundr-cad-worker python -c "import os; print(sorted(k for k in os.environ if 'GEMINI' in k or 'OLLAMA' in k or k == 'VOLUNDR_AI_PROVIDER'))"
+rtk docker exec volundr-cad-worker python -c "import socket; s=socket.socket(); s.settimeout(2); print(s.connect_ex(('1.1.1.1', 443))); s.close()"
+```
+
+Results:
+
+- Compose services running: `volundr-api`, `volundr-cad-worker`, and `volundr-web`.
+- Worker policy: user `volundr-cad`, network mode `none`, read-only root filesystem, `no-new-privileges:true`, PID limit 128, memory limit 1 GiB, CPU limit 1.0.
+- Worker runtime import check: UID/GID `100/101`, CadQuery `2.8.0`, `volundr_cad.runtime` import succeeds.
+- Worker provider environment check returned an empty list.
+- Worker network probe returned `101` (`ENETUNREACH`).
+- Deterministic queue job `docker-smoke-cadquery-final-v4` succeeded with `failure_class=null`, STEP/STL/BREP artifacts, valid topology metadata, output hashes, and structured diagnostics.
