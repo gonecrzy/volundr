@@ -186,6 +186,12 @@ def test_live_benchmark_cadquery_source_probe_dry_run_writes_python_prompt(
     assert "The only import allowed is exactly `import cadquery as cq`" in source_prompt
     assert "Do not run CadQuery operations" in source_prompt
     assert "helper functions may also be defined inside build_model()" in source_prompt
+    assert "Known-good CadQuery patterns" in source_prompt
+    assert ".pushPoints([(x, y)]).hole(hole_diameter)" in source_prompt
+    assert "translate((x, y, z))" in source_prompt
+    assert "Do not call hallucinated or unavailable helpers" in source_prompt
+    assert ".holes()" in source_prompt
+    assert "model = build_model()" in source_prompt
     assert "def build_model()" in source_prompt
     assert "```python" in source_prompt
     assert "Source-probe parameter targets" in source_prompt
