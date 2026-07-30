@@ -23,6 +23,7 @@ from app.services.ai.gemini_cli import (
     STRUCTURED_REVISION_PROMPT_VERSION,
     GeminiCliProvider,
 )
+from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.ollama import OllamaProvider
 from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest, SourceBriefRequest
 from app.services.ai.source_extraction import (
@@ -177,7 +178,7 @@ class LiveBenchmarkRunner:
                 "mode": config.provider,
                 "settings": provider.provider_settings(),
                 "live_provider_calls_enabled": config.provider == "ollama"
-                or (config.provider == "gemini" and config.allow_live),
+                or (config.provider in {"gemini", "gemini_api"} and config.allow_live),
             },
             "prompt_versions": prompt_versions,
             "ruleset_version": GEMINI_RULESET_VERSION,
@@ -427,18 +428,35 @@ class LiveBenchmarkRunner:
         try:
             source = _extract_source_for_language(result.raw_output, source_language)
         except SourceExtractionError as exc:
+            extraction_error = str(exc)
             analysis_path = artifact_dir / "source-parameter-analysis.json"
             _write_json(
                 analysis_path,
                 _source_parameter_analysis(
                     benchmark=benchmark,
                     extracted_source=None,
-                    extraction_error=str(exc),
+                    extraction_error=extraction_error,
                     source_language=source_language,
                 ),
             )
             probe["status"] = "source_extraction_failed"
             probe["parameter_analysis_path"] = _relative(analysis_path, run_dir)
+            if source_probe_repair:
+                repair = self._run_source_probe_repair(
+                    benchmark=benchmark,
+                    provider=provider,
+                    run_dir=run_dir,
+                    artifact_dir=artifact_dir,
+                    source_language=source_language,
+                    failed_source=result.raw_output,
+                    compiler_diagnostics=(
+                        f"{source_language} source extraction failed: {extraction_error}. "
+                        "Return one complete fenced source block that satisfies the source contract."
+                    ),
+                )
+                probe["repair"] = repair
+                if repair["status"] == "source_repair_succeeded":
+                    probe["status"] = "source_repair_succeeded"
             return probe
 
         source_path = artifact_dir / _source_filename_for_language(source_language)
@@ -712,10 +730,12 @@ class LiveBenchmarkRunner:
         return benchmarks
 
     def _provider_for(self, config: LiveBenchmarkConfig) -> GeminiCliProvider:
-        if config.provider not in {"dry-run", "gemini", "ollama"}:
-            raise ValueError("provider must be dry-run, gemini, or ollama")
+        if config.provider not in {"dry-run", "gemini", "gemini_api", "ollama"}:
+            raise ValueError("provider must be dry-run, gemini, gemini_api, or ollama")
         if config.provider == "ollama":
             return OllamaProvider()
+        if config.provider == "gemini_api":
+            return GeminiApiProvider()
         return GeminiCliProvider()
 
     def _validate_quota(
@@ -752,8 +772,8 @@ class LiveBenchmarkRunner:
                 f"estimated cost ${estimated_cost_usd:.4f} exceeds max_estimated_cost_usd="
                 f"${config.max_estimated_cost_usd:.4f}"
             )
-        if config.provider == "gemini" and not config.allow_live:
-            raise ValueError("provider=gemini requires --allow-live")
+        if config.provider in {"gemini", "gemini_api"} and not config.allow_live:
+            raise ValueError(f"provider={config.provider} requires --allow-live")
 
     def _build_requirement_prompts(
         self,

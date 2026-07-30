@@ -2,6 +2,7 @@ import pytest
 
 from app.api.dependencies import build_ai_provider
 from app.core.config import Settings
+from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.ollama import OllamaProvider
 
@@ -31,6 +32,36 @@ def test_build_ai_provider_selects_gemini_cli() -> None:
 
     assert isinstance(provider, GeminiCliProvider)
     assert provider.model == "gemini-3.5-flash-lite"
+
+
+def test_build_ai_provider_selects_gemini_api() -> None:
+    settings = Settings(
+        ai_provider="gemini_api",
+        gemini_api_key="secret-key",
+        gemini_api_base_url="https://generativelanguage.googleapis.test/v1beta",
+        gemini_model="gemini-3.5-flash-lite",
+    )
+
+    provider = build_ai_provider(settings)
+
+    assert isinstance(provider, GeminiApiProvider)
+    assert provider.model == "gemini-3.5-flash-lite"
+    assert provider.api_key == "secret-key"
+    assert provider.thinking_level == "minimal"
+
+
+def test_settings_loads_gemini_api_key_from_parent_env_file(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    backend_dir = tmp_path / "backend"
+    backend_dir.mkdir()
+    (tmp_path / ".env").write_text("GEMINI_API_KEY=parent-env-key\n", encoding="utf-8")
+    monkeypatch.chdir(backend_dir)
+
+    settings = Settings()
+
+    assert settings.gemini_api_key == "parent-env-key"
 
 
 def test_build_ai_provider_rejects_unknown_provider() -> None:

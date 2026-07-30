@@ -164,17 +164,20 @@ ${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
 ```
 
 Authenticate Gemini CLI for that profile before using the browser Generate
-button, or use API-key based auth.
+button, or use the direct Gemini API provider with API-key based auth.
 
 For API-key based auth, set:
 
 ```bash
-VOLUNDR_AI_PROVIDER=gemini_cli
+VOLUNDR_AI_PROVIDER=gemini_api
 GEMINI_API_KEY=<your key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
+VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal
 ```
 
-Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, no-tools policy path, and non-secret auth mode (`api_key` or `gemini_profile`) so quota or policy issues can be traced without storing credentials.
+Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, transport, non-secret auth mode, and configured thinking level so quota or policy issues can be traced without storing credentials. `gemini_cli` remains available for a configured Gemini CLI profile, but API-key operation should use `gemini_api`.
+
+For source generation, keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning. Gemini 3.5 Flash defaults to thinking, and unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
 
 ## Manual Compile API
 

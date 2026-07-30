@@ -185,12 +185,14 @@ def test_live_benchmark_cadquery_source_probe_dry_run_writes_python_prompt(
     assert "cadquery-v1 source contract" in source_prompt
     assert "The only import allowed is exactly `import cadquery as cq`" in source_prompt
     assert "Do not run CadQuery operations" in source_prompt
+    assert "Do not use try/except" in source_prompt
     assert "helper functions may also be defined inside build_model()" in source_prompt
     assert "Known-good CadQuery patterns" in source_prompt
     assert ".pushPoints([(x, y)]).hole(hole_diameter)" in source_prompt
     assert "translate((x, y, z))" in source_prompt
     assert "Do not call hallucinated or unavailable helpers" in source_prompt
     assert ".holes()" in source_prompt
+    assert ".distribute()" in source_prompt
     assert "model = build_model()" in source_prompt
     assert "def build_model()" in source_prompt
     assert "```python" in source_prompt
@@ -258,6 +260,67 @@ def test_live_benchmark_source_probe_repair_requires_source_probe(tmp_path: Path
                 source_probe_repair=True,
             )
         )
+
+
+def test_live_benchmark_accepts_gemini_api_provider(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeGeminiApiProvider:
+        def provider_settings(self) -> dict:
+            return {"model": "fake-gemini-api", "auth_mode": "api_key"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def source_brief_prompt_template_version(self) -> str:
+            return "source-brief-v1"
+
+        def cadquery_prompt_template_version(self) -> str:
+            return "cadquery-source-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="gemini_api",
+                provider_model="fake-gemini-api",
+            )
+
+    monkeypatch.setattr(live_benchmarks, "GeminiApiProvider", FakeGeminiApiProvider)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="gemini_api",
+            allow_live=True,
+            max_runs=1,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+
+    assert manifest["provider"]["mode"] == "gemini_api"
+    assert manifest["provider"]["settings"]["auth_mode"] == "api_key"
+    assert manifest["provider"]["live_provider_calls_enabled"] is True
+    assert manifest["case_runs"][0]["provider_output_path"] is not None
 
 
 def test_live_benchmark_source_probe_extracts_parameter_coverage(
@@ -779,6 +842,160 @@ def build_model():
     assert metrics["source_probe_repair_enabled"] is True
     assert metrics["source_probe_repair_status_counts"] == {"source_repair_succeeded": 1}
     assert metrics["source_probe_repair_compile_status_counts"] == {"compile_succeeded": 1}
+    assert metrics["source_probe_repair_attempt_count"] == 1
+    assert metrics["source_probe_repair_compile_success_count"] == 1
+
+
+def test_live_benchmark_source_probe_can_repair_extraction_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.generation import live_benchmarks
+
+    class FakeOllamaProvider:
+        def __init__(self) -> None:
+            self.generation_requests = []
+
+        def provider_settings(self) -> dict:
+            return {"model": "fake-cadquery", "auth_mode": "local_ollama"}
+
+        def build_requirement_prompt(self, request) -> str:
+            return f"requirements for {request.user_instruction}"
+
+        def build_cadquery_prompt(self, request) -> str:
+            if request.compiler_diagnostics:
+                return f"repair extraction {request.compiler_diagnostics}"
+            return f"cadquery source for {request.user_instruction}"
+
+        def cadquery_prompt_template_version(self) -> str:
+            return "cadquery-source-v1"
+
+        def requirement_prompt_template_version(self) -> str:
+            return "requirements-v1"
+
+        def design_plan_prompt_template_version(self) -> str:
+            return "design-plan-v1"
+
+        def revision_plan_prompt_template_version(self) -> str:
+            return "revision-planning-v1"
+
+        def prompt_template_version_for(self, request) -> str:
+            return "legacy-initial-v1"
+
+        async def extract_requirements(self, request):
+            from app.services.ai.provider import RequirementExtractionResult
+
+            return RequirementExtractionResult(
+                raw_output="{}",
+                provider="ollama",
+                provider_model="fake-cadquery",
+            )
+
+        async def generate_cadquery_model(self, request):
+            from app.services.ai.provider import ModelGenerationResult
+
+            self.generation_requests.append(request)
+            if request.compiler_diagnostics:
+                assert request.current_source is not None
+                assert "I will now generate the code" in request.current_source
+                assert "source extraction failed" in request.compiler_diagnostics
+                assert "no valid Python source found" in request.compiler_diagnostics
+                return ModelGenerationResult(
+                    raw_output="""
+```python
+import cadquery as cq
+
+plate_width = 80
+plate_depth = 35
+plate_thickness = 6
+hole_diameter = 4
+
+def build_model():
+    return cq.Workplane("XY").box(plate_width, plate_depth, plate_thickness)
+```
+""",
+                    provider="ollama",
+                    provider_model="fake-cadquery",
+                )
+            return ModelGenerationResult(
+                raw_output="I will now generate the code, but forgot the fenced source.",
+                provider="ollama",
+                provider_model="fake-cadquery",
+            )
+
+    def fake_compile_cadquery_probe(
+        *,
+        source,
+        run_dir,
+        artifact_dir,
+        workspace_dir_name="source-compile-workspace",
+        job_id="source-probe",
+    ):
+        workspace = artifact_dir / workspace_dir_name / job_id
+        workspace.mkdir(parents=True)
+        stl_path = workspace / "model.stl"
+        stl_path.write_text("solid fake\nendsolid fake\n", encoding="utf-8")
+        metadata_path = workspace / "metadata.json"
+        metadata_path.write_text(
+            json.dumps(
+                {
+                    "size_x_mm": 80,
+                    "size_y_mm": 35,
+                    "size_z_mm": 6,
+                    "volume_mm3": 16800,
+                    "triangle_count": 12,
+                    "connected_components": 1,
+                    "is_watertight": True,
+                    "is_winding_consistent": True,
+                    "center_of_mass": [0, 0, 0],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return {
+            "compile_status": "compile_succeeded",
+            "compiled_stl_path": str(stl_path.resolve().relative_to(run_dir.resolve())),
+            "compiled_step_path": None,
+            "compile_stdout_path": None,
+            "compile_stderr_path": None,
+            "mesh_metadata_path": str(metadata_path.resolve().relative_to(run_dir.resolve())),
+            "compile_error_message": None,
+            "compile_timed_out": False,
+            "compile_exit_code": 0,
+            "compile_warning_count": 0,
+            "compile_warnings": [],
+            "stl_size_bytes": stl_path.stat().st_size,
+        }
+
+    provider = FakeOllamaProvider()
+    monkeypatch.setattr(live_benchmarks, "OllamaProvider", lambda: provider)
+    monkeypatch.setattr(live_benchmarks, "_compile_cadquery_probe", fake_compile_cadquery_probe)
+
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "core.json",
+            output_root=tmp_path,
+            benchmark_ids=("simple_mounting_plate",),
+            provider="ollama",
+            source_probe=True,
+            source_probe_repair=True,
+            source_language="cadquery",
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    source_probe = manifest["case_runs"][0]["source_probe"]
+    repair = source_probe["repair"]
+
+    assert len(provider.generation_requests) == 2
+    assert source_probe["status"] == "source_repair_succeeded"
+    assert source_probe["extracted_source_path"] is None
+    assert repair["status"] == "source_repair_succeeded"
+    assert repair["extracted_source_path"].endswith("source-repair-extracted.py")
+    assert repair["compile_status"] == "compile_succeeded"
+    assert metrics["source_probe_status_counts"] == {"source_repair_succeeded": 1}
+    assert metrics["source_probe_repair_status_counts"] == {"source_repair_succeeded": 1}
     assert metrics["source_probe_repair_attempt_count"] == 1
     assert metrics["source_probe_repair_compile_success_count"] == 1
 

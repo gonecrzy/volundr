@@ -70,9 +70,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=("dry-run", "gemini", "ollama"),
+        choices=("dry-run", "gemini", "gemini-api", "gemini_api", "ollama"),
         default="dry-run",
-        help="Provider mode. dry-run writes artifacts without provider calls.",
+        help=(
+            "Provider mode. dry-run writes artifacts without provider calls. "
+            "gemini uses Gemini CLI; gemini-api/gemini_api uses the direct Gemini API."
+        ),
     )
     parser.add_argument(
         "--allow-live",
@@ -138,7 +141,7 @@ def main(argv: list[str] | None = None) -> int:
             max_estimated_tokens=args.max_estimated_tokens,
             cost_per_1k_tokens_usd=args.cost_per_1k_tokens_usd,
             max_estimated_cost_usd=args.max_estimated_cost_usd,
-            provider=args.provider,
+            provider="gemini_api" if args.provider == "gemini-api" else args.provider,
             allow_live=args.allow_live,
             baseline_manifest_path=args.baseline_manifest,
             phase_validation=args.phase_validation,

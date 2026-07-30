@@ -289,6 +289,7 @@ class GeminiCliProvider:
             "- Define simple top-level user parameters as Python constants with literal values only.",
             "- Define `def build_model():`; optional helper functions are allowed.",
             "- build_model() must return one CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable object.",
+            "- Do not use try/except; generated CadQuery must fail visibly so diagnostics can identify the real API or geometry issue.",
             "- Do not write files, read files, import local modules, use shell commands, network access, subprocesses, pathlib, os, sys, eval, exec, open(), getattr(), globals(), locals(), or vars().",
             "- Do not use OpenSCAD syntax. This is Python CadQuery, not SCAD.",
             "- Prefer real CAD operations such as box(), cylinder(), workplane(), hole(), cutBlind(), cutThruAll(), union(), cut(), extrude(), loft(), fillet(), chamfer(), translate(), rotate(), and mirror().",
@@ -301,7 +302,7 @@ class GeminiCliProvider:
             "- Translate with a single tuple: `shape.translate((x, y, z))`; do not pass x, y, z as separate translate arguments.",
             "- Build simple decorative solids with circle()/rect()/polygon()/box()/extrude(), then union() or cut() them into the functional body.",
             "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
-            "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.add_knurling()`, or `show_object()`.",
+            "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.distribute()`, `.add_knurling()`, or `show_object()`.",
             "- Do not add top-level execution such as `model = build_model()`; the runner calls build_model().",
             "",
         ]

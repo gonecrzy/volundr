@@ -216,19 +216,19 @@ Implemented providers:
 
 ```text
 GeminiCliProvider
+GeminiApiProvider
 OllamaProvider
 ```
 
 Potential later implementations:
 
 ```text
-GeminiApiProvider
 OpenAIProvider
 AnthropicProvider
 ```
 
 Development defaults to `OllamaProvider` via `VOLUNDR_AI_PROVIDER=ollama`.
-Gemini CLI remains available with `VOLUNDR_AI_PROVIDER=gemini_cli`.
+Gemini CLI remains available with `VOLUNDR_AI_PROVIDER=gemini_cli`, and the direct Gemini API transport is available with `VOLUNDR_AI_PROVIDER=gemini_api`.
 
 ### CAD runner
 

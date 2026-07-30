@@ -62,11 +62,14 @@ PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --max-runs 10
 ```
 
-Ollama uses the configured `VOLUNDR_OLLAMA_BASE_URL` and `VOLUNDR_OLLAMA_MODEL` and does not require `--allow-live` because it has no external quota cost. A live Gemini run requires both:
+Ollama uses the configured `VOLUNDR_OLLAMA_BASE_URL` and `VOLUNDR_OLLAMA_MODEL` and does not require `--allow-live` because it has no external quota cost. Live Gemini runs require `--allow-live` because they can spend external quota. Use `gemini` for the Gemini CLI transport and `gemini-api` for the direct Gemini API-key transport:
 
 ```bash
 --provider gemini --allow-live
+--provider gemini-api --allow-live
 ```
+
+Direct Gemini API source-generation runs default `VOLUNDR_GEMINI_API_THINKING_LEVEL` to `minimal`. Keep that setting explicit for source probes unless a run is intentionally measuring deeper reasoning; Gemini thinking models can otherwise spend the response budget on reasoning text and fail to return a complete fenced source block.
 
 This explicit opt-in prevents accidental quota spend during routine testing.
 
@@ -103,7 +106,7 @@ The `cadquery-v1` contract is intentionally narrower than unrestricted Python: o
 
 When extraction succeeds, the probe compiles the source with the selected source-language runner and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.
 
-`--source-probe-repair` requires `--source-probe`. When the first source-probe compile fails, the harness sends one repair prompt using the extracted failed source plus compiler/runtime diagnostics. The repair path uses the selected source language, so OpenSCAD repair returns `.scad` and experimental CadQuery repair returns `.py`. When `--source-brief` is also enabled and the source compiles but mesh metadata reports more connected components than the parsed brief expects, the same bounded repair path runs with disconnected-mesh diagnostics. The harness stores separate `source-repair-*` prompt, raw output, extracted source, parameter analysis, compile logs, STL, and mesh metadata artifacts. Repair metrics are separate from first-pass source-probe metrics so raw model quality and repair recovery can be compared directly.
+`--source-probe-repair` requires `--source-probe`. When the first source-probe extraction or compile fails, the harness sends one repair prompt using the raw or extracted failed source plus extraction/compiler/runtime diagnostics. The repair path uses the selected source language, so OpenSCAD repair returns `.scad` and experimental CadQuery repair returns `.py`. When `--source-brief` is also enabled and the source compiles but mesh metadata reports more connected components than the parsed brief expects, the same bounded repair path runs with disconnected-mesh diagnostics. The harness stores separate `source-repair-*` prompt, raw output, extracted source, parameter analysis, compile logs, STL, and mesh metadata artifacts. Repair metrics are separate from first-pass source-probe metrics so raw model quality and repair recovery can be compared directly.
 
 ## Quota Controls
 

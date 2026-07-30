@@ -225,7 +225,7 @@ Source-probe benchmark pass:
 - source-probe runs can use the default OpenSCAD path or the experimental `--source-language cadquery` path for backend bakeoffs
 - source-probe runs can add `--source-brief` to force a compact structured understanding pass before source generation, then compare the brief's intended body count/features against compile and mesh artifacts
 - source probe artifacts capture raw source output, extracted source when valid, exact expected-parameter coverage from the source-derived parameter scanner, OpenSCAD compile logs, STL output, and mesh metadata
-- source-probe repair can now be enabled with `--source-probe-repair` to run one bounded repair pass after a failed source-probe compile or a source-brief connected-body mismatch while keeping first-pass and repaired metrics separate
+- source-probe repair can now be enabled with `--source-probe-repair` to run one bounded repair pass after failed source extraction, failed source-probe compile, or a source-brief connected-body mismatch while keeping first-pass and repaired metrics separate
 - bounded source-probe repair uses the selected source language, including experimental CadQuery repair with the failed Python source and traceback as context
 - `qwen2.5-coder:14b` is the primary local Ollama model for the current OpenSCAD path; Gemini remains an explicit future/provider endpoint, and every provider must pass the same source-probe validation loop
 - prompt syntax guardrails now explicitly reject pseudo-CAD method chaining, recursive modules, lowercase `pi`, invalid `circle(r1/r2)` usage, and unbounded thread/knurl tricks

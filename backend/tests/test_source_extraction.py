@@ -78,3 +78,16 @@ def build_model():
 def test_rejects_python_source_without_build_model() -> None:
     with pytest.raises(SourceExtractionError, match="build_model"):
         extract_python_source("import cadquery as cq\nresult = cq.Workplane('XY').box(1, 1, 1)")
+
+
+def test_rejects_unterminated_fenced_python_source() -> None:
+    raw_output = """
+```python
+import cadquery as cq
+
+def build_model():
+    return cq.Workplane("XY").box(1, 1,
+"""
+
+    with pytest.raises(SourceExtractionError, match="unterminated"):
+        extract_python_source(raw_output)
