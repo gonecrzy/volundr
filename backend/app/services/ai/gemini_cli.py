@@ -290,6 +290,7 @@ class GeminiCliProvider:
             "- Do not cut shallow decorative marks from faces unless the cutter overlaps the solid interior; non-overlapping or tangent cutters can create invalid fragments.",
             "- For indicator slots, use `rect(indicator_width, length).extrude(depth)` as a cutter, then cut it from the parent body.",
             "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
+            "- For hinged boxes, prefer simple overlapping hinge tabs or barrels without pin-hole cuts; valid separate base and lid solids are more important than detailed hinge mechanics.",
             "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.distribute()`, `.add_knurling()`, or `show_object()`.",
             "- Do not add top-level execution such as `product = build(params)`; Volundr calls build(params).",
             "",

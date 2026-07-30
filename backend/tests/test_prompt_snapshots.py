@@ -59,6 +59,8 @@ def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
     assert "For indicator slots, use `rect(indicator_width, length).extrude(depth)`" in prompt
     assert "Prefer one extruded 2D profile for creative one-piece brackets" in prompt
     assert "Return the main fused solid directly, not a Compound of loose solids" in prompt
+    assert "For hinged boxes, prefer simple overlapping hinge tabs or barrels without pin-hole cuts" in prompt
+    assert "valid separate base and lid solids are more important than detailed hinge mechanics" in prompt
 
 
 def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> None:

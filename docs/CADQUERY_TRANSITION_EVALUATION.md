@@ -217,3 +217,87 @@ Aggregate result:
 Conclusion:
 
 The transition is not declared fully successful from live benchmarks. The direct Gemini API path is usable and the CadQuery backend can execute most live-generated outputs, but the required 12-case gate still has one provider timeout and one unrepaired invalid-shape compile failure. The benchmark remains a human-review gate for requirement understanding, clarification quality, Design Plan usefulness, parameter quality, component decomposition, B-Rep validity, expected solid-count compliance, STEP/STL completeness, printability, revision preservation, configuration regeneration, and human print-worthiness.
+
+Follow-up focused rerun after prompt hardening for hinged boxes:
+
+```bash
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase11-required-rerun-failures \
+  --benchmark-id parametric_multi_part_hinged_box \
+  --benchmark-id honeycomb_angle_bracket \
+  --provider gemini-api \
+  --allow-live \
+  --source-probe \
+  --source-brief \
+  --source-probe-repair \
+  --max-runs 2 \
+  --max-estimated-tokens 120000
+```
+
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T145209Z-phase11-required-rerun-failures
+```
+
+Result:
+
+- Case runs: 2.
+- Requirements provider statuses: `provider_output_collected=2`.
+- Source brief statuses: `source_brief_parsed=2`.
+- Source repair compile statuses: `compile_succeeded=2`.
+- Both previously failing cases compiled after repair.
+
+Latest full 12-case rerun after adding nonblocking source-brief fallback:
+
+```bash
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase11-required-v3 \
+  --benchmark-id simple_mounting_plate \
+  --benchmark-id spacer_bushing \
+  --benchmark-id box_with_lid \
+  --benchmark-id parametric_repeated_slot_rack \
+  --benchmark-id parametric_multi_part_hinged_box \
+  --benchmark-id parametric_case_carrier \
+  --benchmark-id parametric_configurable_organizer \
+  --benchmark-id component_revision_lid_only \
+  --benchmark-id vague_clarification \
+  --benchmark-id parametric_electronics_enclosure \
+  --benchmark-id honeycomb_angle_bracket \
+  --benchmark-id parametric_adapter \
+  --provider gemini-api \
+  --allow-live \
+  --source-probe \
+  --source-brief \
+  --source-probe-repair \
+  --max-runs 12 \
+  --max-estimated-tokens 500000
+```
+
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T150430Z-phase11-required-v3
+```
+
+Latest aggregate result:
+
+- Case runs: 12.
+- Requirements provider statuses: `provider_output_collected=12`.
+- Source brief statuses: `source_brief_parsed=10`, `source_brief_provider_failed=2`; source generation continued without the failed briefs.
+- Direct source compile statuses: `compile_succeeded=6`, `compile_failed=5`, `not_run=1`.
+- Source repair attempts: 5.
+- Source repair compile statuses: `compile_succeeded=3`, `compile_failed=2`, `not_run=7`.
+- Repair-inclusive source compile success: 9 of 12 cases.
+- Remaining source failures: `parametric_multi_part_hinged_box` source provider timeout, `parametric_case_carrier` invalid output shape after repair, and `honeycomb_angle_bracket` invalid output shape after repair.
+- Source expected-parameter coverage average: `0.9091`.
+- Compile warnings: `0`.
+- Disconnected mesh count: `0`.
+
+Latest conclusion:
+
+The required live gate is still not a release-quality pass. The system now handles Gemini API access, contract-level runtime mistakes, v1 parameter coverage, and source-brief provider failures more robustly, but the live model still produces invalid topology or times out on a minority of complex cases. The transition remains short of the requested live benchmark success criterion.

@@ -385,10 +385,10 @@ class LiveBenchmarkRunner:
             )
             probe["brief"] = brief
             if brief["status"] != "source_brief_parsed":
-                probe["status"] = "source_brief_failed"
-                return probe
+                source_brief = None
+                request = _source_request_for(benchmark, source_language=source_language)
             parsed_path = brief.get("parsed_brief_path")
-            if isinstance(parsed_path, str):
+            if brief["status"] == "source_brief_parsed" and isinstance(parsed_path, str):
                 source_brief = json.loads((run_dir / parsed_path).read_text(encoding="utf-8"))
                 request = _source_request_for(
                     benchmark,

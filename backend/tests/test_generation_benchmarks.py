@@ -1,14 +1,62 @@
 from pathlib import Path
 
+from app.services.ai.provider import ModelGenerationResult
 from app.services.generation.benchmarks import (
     phase_validation_benchmark_ids,
     load_benchmark_suite,
     run_deterministic_contract_check,
 )
-from app.services.generation.live_benchmarks import _source_parameter_analysis
+from app.services.generation.live_benchmarks import LiveBenchmarkRunner, _source_parameter_analysis
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "generation_benchmarks"
+
+
+class BriefTimeoutSourceProvider:
+    ruleset_version = "test-ruleset"
+
+    def cadquery_prompt_template_version(self) -> str:
+        return "cadquery-generation-v1"
+
+    def source_brief_prompt_template_version(self) -> str:
+        return "source-brief-v1"
+
+    async def create_source_brief(self, request):
+        raise TimeoutError("brief timed out")
+
+    async def generate_cadquery_model(self, request):
+        return ModelGenerationResult(
+            raw_output="""
+```python
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="plate_width", label="Plate Width", type="float", default=80.0, unit="mm"),
+    ParameterSpec(id="plate_depth", label="Plate Depth", type="float", default=35.0, unit="mm"),
+    ParameterSpec(id="plate_thickness", label="Plate Thickness", type="float", default=6.0, unit="mm"),
+    ParameterSpec(id="hole_diameter", label="Hole Diameter", type="float", default=4.5, unit="mm"),
+    ParameterSpec(id="hole_spacing", label="Hole Spacing", type="float", default=55.0, unit="mm"),
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(params["plate_width"], params["plate_depth"], params["plate_thickness"])
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model=body,
+                component_id="body",
+            )
+        ],
+    )
+```
+""",
+            provider="fake",
+            provider_model="fake-source",
+        )
 
 
 def test_core_generation_benchmark_fixture_loads_required_cases() -> None:
@@ -88,6 +136,31 @@ def build(params):
     assert analysis["missing_expected_parameters"] == []
     assert analysis["expected_parameter_coverage"] == 1.0
     assert analysis["parameter_types"]["plate_width"] == "float"
+
+
+def test_source_probe_continues_without_source_brief_after_brief_timeout(tmp_path: Path) -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    benchmark = {entry.id: entry for entry in suite.benchmarks}["simple_mounting_plate"]
+    run_dir = tmp_path / "run"
+    artifact_dir = run_dir / "artifacts" / benchmark.id / "run-001"
+    artifact_dir.mkdir(parents=True)
+
+    probe = LiveBenchmarkRunner()._run_source_probe(
+        benchmark=benchmark,
+        provider=BriefTimeoutSourceProvider(),
+        provider_mode="gemini_api",
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+        source_prompt="source prompt",
+        source_probe_repair=False,
+        source_brief_prompt="brief prompt",
+        source_language="cadquery",
+    )
+
+    assert probe["brief"]["status"] == "source_brief_provider_failed"
+    assert probe["status"] == "source_parameters_analyzed"
+    assert probe["compile_status"] == "compile_succeeded"
+    assert probe["extracted_source_path"] is not None
 
 
 def test_phase_validation_scenarios_cover_function_style_and_library_progression() -> None:
