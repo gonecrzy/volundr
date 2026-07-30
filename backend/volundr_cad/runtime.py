@@ -102,10 +102,18 @@ class PrintableOutput:
     def __post_init__(self) -> None:
         if not self.output_id.strip():
             raise ParameterValidationError("output_id cannot be blank")
+        if not self.component_id and not self.component_ids:
+            raise ParameterValidationError("PrintableOutput requires component_id or component_ids")
+        if self.component_id is not None and not self.component_id.strip():
+            raise ParameterValidationError("component_id cannot be blank")
+        if any(not component_id.strip() for component_id in self.component_ids):
+            raise ParameterValidationError("component_ids cannot include blank values")
         if self.quantity < 1:
             raise ParameterValidationError("quantity must be at least 1")
         if self.expected_solid_count < 1:
             raise ParameterValidationError("expected_solid_count must be at least 1")
+        if not isinstance(self.allow_disconnected_solids, bool):
+            raise ParameterValidationError("allow_disconnected_solids must be a bool")
 
 
 @dataclass(frozen=True)
@@ -120,6 +128,13 @@ class Product:
             raise ParameterValidationError("Product schema_version must be cadquery-v1")
         if not self.outputs:
             raise ParameterValidationError("Product requires at least one PrintableOutput")
+        if any(not isinstance(output, PrintableOutput) for output in self.outputs):
+            raise ParameterValidationError("Product outputs must be PrintableOutput entries")
+        output_ids: set[str] = set()
+        for output in self.outputs:
+            if output.output_id in output_ids:
+                raise ParameterValidationError(f"duplicate output_id {output.output_id}")
+            output_ids.add(output.output_id)
         if not isinstance(self.parameters, Sequence) or isinstance(self.parameters, str | bytes):
             raise ParameterValidationError("Product parameters must be ParameterSpec entries")
         if any(not isinstance(parameter, ParameterSpec) for parameter in self.parameters):

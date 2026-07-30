@@ -52,6 +52,8 @@ def test_product_requires_printable_outputs() -> None:
         component_id="body",
         label="Body",
         model=object(),
+        expected_solid_count=1,
+        allow_disconnected_solids=False,
     )
 
     assert Product(outputs=[output]).schema_version == "cadquery-v1"
@@ -66,7 +68,53 @@ def test_product_requires_parameter_specs() -> None:
         component_id="body",
         label="Body",
         model=object(),
+        expected_solid_count=1,
+        allow_disconnected_solids=False,
     )
 
     with pytest.raises(ParameterValidationError, match="parameters must be ParameterSpec"):
         Product(outputs=[output], parameters={"width": 10})
+
+
+def test_printable_output_requires_component_identity_and_topology_policy() -> None:
+    with pytest.raises(ParameterValidationError, match="component_id"):
+        PrintableOutput(
+            output_id="body",
+            label="Body",
+            model=object(),
+            expected_solid_count=1,
+            allow_disconnected_solids=False,
+        )
+    with pytest.raises(ParameterValidationError, match="allow_disconnected_solids"):
+        PrintableOutput(
+            output_id="body",
+            component_id="body",
+            label="Body",
+            model=object(),
+            expected_solid_count=1,
+            allow_disconnected_solids="false",  # type: ignore[arg-type]
+        )
+
+
+def test_product_rejects_duplicate_and_non_printable_outputs() -> None:
+    first = PrintableOutput(
+        output_id="body",
+        component_id="body",
+        label="Body",
+        model=object(),
+        expected_solid_count=1,
+        allow_disconnected_solids=False,
+    )
+    duplicate = PrintableOutput(
+        output_id="body",
+        component_id="body_copy",
+        label="Body copy",
+        model=object(),
+        expected_solid_count=1,
+        allow_disconnected_solids=False,
+    )
+
+    with pytest.raises(ParameterValidationError, match="duplicate output_id"):
+        Product(outputs=[first, duplicate])
+    with pytest.raises(ParameterValidationError, match="outputs must be PrintableOutput"):
+        Product(outputs=[object()])  # type: ignore[list-item]
