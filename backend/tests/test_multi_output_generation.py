@@ -565,7 +565,7 @@ def test_retry_failed_output_uses_same_source_hash_and_does_not_call_provider(tm
     assert refreshed_candidate["review_state"] in {"ready", "ready_with_warnings"}
 
 
-def test_export_zip_contains_project_manifest_source_and_stls(tmp_path: Path) -> None:
+def test_export_zip_contains_project_manifest_source_and_cadquery_artifacts(tmp_path: Path) -> None:
     provider = MultiOutputProvider()
     runner = MultiOutputCadRunner()
     client, _SessionLocal = build_client(tmp_path, provider, runner)
@@ -587,6 +587,10 @@ def test_export_zip_contains_project_manifest_source_and_stls(tmp_path: Path) ->
         assert any(name.endswith("/assembly-notes.md") for name in names)
         assert any(name.endswith("/stl/body.stl") for name in names)
         assert any(name.endswith("/stl/lid.stl") for name in names)
+        assert any(name.endswith("/step/body.step") for name in names)
+        assert any(name.endswith("/step/lid.step") for name in names)
+        assert any(name.endswith("/brep/body.brep") for name in names)
+        assert any(name.endswith("/brep/lid.brep") for name in names)
         readme_name = next(name for name in names if name.endswith("/README.md"))
         readme = archive.read(readme_name).decode("utf-8")
         assert "source.py" in readme

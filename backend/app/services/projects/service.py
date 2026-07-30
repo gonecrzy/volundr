@@ -6031,6 +6031,14 @@ class ProjectService:
                 stl_path = self.data_dir / output.stl_path
                 if stl_path.exists():
                     archive.write(stl_path, f"{root}/stl/{output.filename}")
+                if output.step_path:
+                    step_path = self.data_dir / output.step_path
+                    if step_path.exists():
+                        archive.write(step_path, f"{root}/step/{Path(output.step_path).name}")
+                if output.brep_path:
+                    brep_path = self.data_dir / output.brep_path
+                    if brep_path.exists():
+                        archive.write(brep_path, f"{root}/brep/{Path(output.brep_path).name}")
         return export_path
 
     async def retry_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
