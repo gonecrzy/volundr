@@ -6416,6 +6416,19 @@ class ProjectService:
                     )
                 )
                 continue
+            if bool(parameter.get("protected", False)) and value != parameter.get("value"):
+                structural_errors.append(
+                    self._configuration_error(
+                        "protected_parameter_change",
+                        parameter_id,
+                        "Protected Design Plan parameter values require a structured design revision.",
+                        {
+                            "expected_value": parameter.get("value"),
+                            "detected_value": value,
+                        },
+                    )
+                )
+                continue
             if not self._parameter_has_source_mapping(parameter_id, source_metadata):
                 structural_errors.append(
                     self._configuration_error(

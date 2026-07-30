@@ -99,6 +99,18 @@ READY_PLAN: dict[str, Any] = {
             "component_id": "body",
         },
         {
+            "id": "body_depth",
+            "label": "Body depth",
+            "value": 50,
+            "unit": "mm",
+            "type": "number",
+            "minimum": 30,
+            "maximum": 80,
+            "editable": True,
+            "protected": False,
+            "component_id": "body",
+        },
+        {
             "id": "lid_enabled",
             "label": "Include lid",
             "value": True,
@@ -134,13 +146,13 @@ READY_PLAN: dict[str, Any] = {
         {
             "id": "slot_spacing",
             "label": "Slot spacing",
-            "expression": "body_width / slot_count",
+            "expression": "body_depth / slot_count",
             "unit": "mm",
-            "depends_on": ["body_width", "slot_count"],
+            "depends_on": ["body_depth", "slot_count"],
         }
     ],
     "dependency_edges": [
-        {"from": "body_width", "to": "slot_spacing", "relationship": "Width controls spacing"},
+        {"from": "body_depth", "to": "slot_spacing", "relationship": "Depth controls spacing"},
         {"from": "slot_count", "to": "slot_spacing", "relationship": "Count controls spacing"},
     ],
     "components": [
@@ -149,14 +161,14 @@ READY_PLAN: dict[str, Any] = {
             "label": "Body",
             "description": "Configurable body",
             "features": ["body_shell"],
-            "parameters": ["body_width", "slot_count", "wall_thickness", "slot_spacing"],
+            "parameters": ["body_width", "body_depth", "slot_count", "wall_thickness", "slot_spacing"],
         },
         {
             "id": "lid",
             "label": "Lid",
             "description": "Lid",
             "features": ["lid_panel"],
-            "parameters": ["body_width", "lid_enabled", "fit_class"],
+            "parameters": ["body_width", "body_depth", "lid_enabled", "fit_class"],
         },
     ],
     "features": [
@@ -165,7 +177,7 @@ READY_PLAN: dict[str, Any] = {
             "component_id": "body",
             "type": "shell",
             "description": "Body shell",
-            "parameters": ["body_width", "slot_count", "slot_spacing"],
+            "parameters": ["body_width", "body_depth", "slot_count", "slot_spacing"],
             "protected": True,
         },
         {
@@ -173,7 +185,7 @@ READY_PLAN: dict[str, Any] = {
             "component_id": "lid",
             "type": "cover",
             "description": "Lid panel",
-            "parameters": ["body_width", "lid_enabled", "fit_class"],
+            "parameters": ["body_width", "body_depth", "lid_enabled", "fit_class"],
             "protected": False,
         },
     ],
@@ -181,7 +193,7 @@ READY_PLAN: dict[str, Any] = {
         {
             "id": "wide",
             "label": "Wide",
-            "parameter_values": {"body_width": 100, "slot_count": 5},
+            "parameter_values": {"body_depth": 60, "slot_count": 5},
         }
     ],
     "assembly_strategy": {"type": "separate_parts", "relationships": []},
@@ -224,6 +236,7 @@ from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
 PARAMETERS = [
     ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", min_value=50.0, max_value=120.0, editable=True, protected=True),
     ParameterSpec(id="slot_count", label="Slot count", type="int", default=4, min_value=1.0, max_value=12.0, editable=True),
+    ParameterSpec(id="body_depth", label="Body depth", type="float", default=50.0, unit="mm", min_value=30.0, max_value=80.0, editable=True),
     ParameterSpec(id="lid_enabled", label="Include lid", type="bool", default=True, editable=True),
     ParameterSpec(id="fit_class", label="Fit class", type="enum", default="standard", choices=("loose", "standard", "tight"), editable=True),
     ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", min_value=1.6, max_value=5.0, editable=False, protected=True),
@@ -231,8 +244,8 @@ PARAMETERS = [
 
 
 def build(params):
-    body = cq.Workplane("XY").box(float(params["body_width"]), 50, float(params["wall_thickness"]))
-    lid = cq.Workplane("XY").box(float(params["body_width"]), 50, 3)
+    body = cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), float(params["wall_thickness"]))
+    lid = cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), 3)
     return Product(
         parameters=PARAMETERS,
         outputs=[
@@ -351,6 +364,7 @@ class ConfigurationRunner:
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
         body_width = float(parameter_values.get("body_width", 80))
+        body_depth = float(parameter_values.get("body_depth", 50))
         outputs: list[CadQueryOutputResult] = []
         first_stl: Path | None = None
         first_step: Path | None = None
@@ -363,7 +377,7 @@ class ConfigurationRunner:
             metadata_path = job_dir / f"{output_id}-metadata.json"
             topology_path = job_dir / f"{output_id}-topology.json"
             thickness = 3.0 if output_id == "body" else 4.0
-            extents = (body_width, 50.0, thickness)
+            extents = (body_width, body_depth, thickness)
             mesh = trimesh.creation.box(extents=extents)
             mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
             mesh.export(stl_path)
@@ -489,7 +503,10 @@ def test_lists_editable_configuration_parameters_with_source_mapping(tmp_path: P
     by_id = {parameter["id"]: parameter for parameter in parameters}
     assert by_id["body_width"]["type"] == "number"
     assert by_id["body_width"]["editable"] is True
+    assert by_id["body_width"]["protected"] is True
     assert by_id["body_width"]["source_mapped"] is True
+    assert by_id["body_depth"]["type"] == "number"
+    assert by_id["body_depth"]["protected"] is False
     assert by_id["slot_count"]["type"] == "integer"
     assert by_id["lid_enabled"]["type"] == "boolean"
     assert by_id["fit_class"]["allowed_values"] == ["loose", "standard", "tight"]
@@ -501,13 +518,13 @@ def test_preview_configuration_change_persists_dependency_effects(tmp_path: Path
 
     response = client.post(
         f"/api/projects/{context['project']['id']}/configuration/preview",
-        json={"parameter_values": {"body_width": 100, "slot_count": 5}},
+        json={"parameter_values": {"body_depth": 60, "slot_count": 5}},
     )
 
     assert response.status_code == 201
     change = response.json()
     assert change["validation_state"] == "configuration_ready"
-    assert change["resolved_parameters"]["body_width"] == 100
+    assert change["resolved_parameters"]["body_depth"] == 60
     assert "slot_spacing" in change["affected_parameters"]
     assert set(change["affected_outputs"]) == {"body", "lid"}
     assert change["generated_revision_id"] is None
@@ -527,9 +544,15 @@ def test_invalid_and_structural_configuration_changes_do_not_compile(tmp_path: P
         f"/api/projects/{context['project']['id']}/configuration/preview",
         json={"parameter_values": {"new_handle": True}},
     ).json()
+    protected = client.post(
+        f"/api/projects/{context['project']['id']}/configuration/preview",
+        json={"parameter_values": {"body_width": 100}},
+    ).json()
 
     assert invalid["validation_state"] == "invalid_configuration"
     assert structural["validation_state"] == "requires_design_revision"
+    assert protected["validation_state"] == "requires_design_revision"
+    assert protected["validation_errors"][0]["code"] == "protected_parameter_change"
     assert runner.calls == []
 
 
@@ -544,7 +567,7 @@ def test_configuration_generation_uses_parameter_values_without_legacy_provider_
     provider.generate_model = _fail_generate_model  # type: ignore[method-assign]
     change = client.post(
         f"/api/projects/{context['project']['id']}/configuration/preview",
-        json={"parameter_values": {"body_width": 100, "slot_count": 5}},
+        json={"parameter_values": {"body_depth": 60, "slot_count": 5}},
     ).json()
     assert change["validation_state"] == "configuration_ready"
 
@@ -555,7 +578,7 @@ def test_configuration_generation_uses_parameter_values_without_legacy_provider_
     assert revision["configuration_change_id"] == change["id"]
     assert revision["review_state"] in {"ready", "ready_with_warnings"}
     assert len(runner.calls) == 1
-    assert runner.calls[0]["parameter_values"]["body_width"] == 100
+    assert runner.calls[0]["parameter_values"]["body_depth"] == 60
     assert runner.calls[0]["parameter_values"]["slot_count"] == 5
     assert "defines" not in runner.calls[0]
     refreshed_project = client.get(f"/api/projects/{context['project']['id']}").json()
@@ -577,7 +600,7 @@ def test_cadquery_configuration_generation_uses_parameter_values_without_provide
     provider.generate_cadquery_model = _fail_generate_cadquery_model  # type: ignore[method-assign]
     change = client.post(
         f"/api/projects/{context['project']['id']}/configuration/preview",
-        json={"parameter_values": {"body_width": 100, "slot_count": 5}},
+        json={"parameter_values": {"body_depth": 60, "slot_count": 5}},
     ).json()
 
     generated = client.post(f"/api/configuration-changes/{change['id']}/generate")
@@ -589,7 +612,7 @@ def test_cadquery_configuration_generation_uses_parameter_values_without_provide
     assert revision["source_language"] == "python"
     assert revision["source_hash"] == base_source_hash
     assert len(runner.calls) == 1
-    assert runner.calls[0]["parameter_values"]["body_width"] == 100
+    assert runner.calls[0]["parameter_values"]["body_depth"] == 60
     assert runner.calls[0]["parameter_values"]["slot_count"] == 5
     assert runner.calls[0]["parameter_values"]["wall_thickness"] == 3
     assert {output["output_id"] for output in runner.calls[0]["requested_outputs"]} == {"body", "lid"}
@@ -597,7 +620,7 @@ def test_cadquery_configuration_generation_uses_parameter_values_without_provide
     manifest = client.get(f"/api/configuration-changes/{change['id']}/override-manifest").json()
     assert manifest["cad_backend"] == "cadquery"
     assert manifest["source_language"] == "python"
-    assert manifest["parameter_values"]["body_width"] == 100
+    assert manifest["parameter_values"]["body_depth"] == 60
     assert manifest["parameter_values"]["slot_count"] == 5
     assert manifest["parameter_hash"]
 
@@ -615,11 +638,11 @@ def test_cadquery_configuration_parameters_and_hash_are_stable(
     parameters_response = client.get(f"/api/projects/{context['project']['id']}/configuration/parameters")
     first_change = client.post(
         f"/api/projects/{context['project']['id']}/configuration/preview",
-        json={"parameter_values": {"body_width": 100, "slot_count": 5}},
+        json={"parameter_values": {"body_depth": 60, "slot_count": 5}},
     ).json()
     second_change = client.post(
         f"/api/projects/{context['project']['id']}/configuration/preview",
-        json={"parameter_values": {"slot_count": 5, "body_width": 100}},
+        json={"parameter_values": {"slot_count": 5, "body_depth": 60}},
     ).json()
 
     assert parameters_response.status_code == 200
@@ -651,7 +674,7 @@ def test_project_local_preset_and_export_include_configuration_files(tmp_path: P
             "design_plan_id": context["design_plan"]["id"],
             "preset_id": "five_slot",
             "label": "Five slot",
-            "parameter_values": {"slot_count": 5, "body_width": 100},
+            "parameter_values": {"slot_count": 5, "body_depth": 60},
         },
     ).json()
     change = client.post(
