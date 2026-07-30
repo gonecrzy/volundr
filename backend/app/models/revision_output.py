@@ -36,7 +36,7 @@ class RevisionOutput(Base):
     output_id: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     component_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
     component_ids_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
-    output_state: Mapped[str] = mapped_column(String(40), nullable=False, default="queued")
+    execution_state: Mapped[str] = mapped_column(String(40), nullable=False, default="queued")
     output_type: Mapped[str] = mapped_column(String(80), nullable=False, default="printable_component")
     label: Mapped[str] = mapped_column(String(200), nullable=False)
     filename: Mapped[str] = mapped_column(String(240), nullable=False)

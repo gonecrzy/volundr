@@ -497,7 +497,7 @@ def test_multi_output_plan_creates_assembly_candidate_and_output_artifacts(tmp_p
 
     outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
     assert [output["output_id"] for output in outputs] == ["body", "lid"]
-    assert all(output["output_state"] in {"ready", "ready_with_warnings"} for output in outputs)
+    assert all(output["execution_state"] in {"ready", "ready_with_warnings"} for output in outputs)
     assert outputs[0]["stl_hash"]
     assert outputs[0]["metadata"]["size_x_mm"] == 80.0
     assert outputs[0]["expected_solid_count"] == 1
@@ -545,9 +545,9 @@ def test_required_output_failure_blocks_assembly_but_preserves_successful_artifa
     assert candidate["failed_output_count"] == 1
     outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
     assert outputs[0]["output_id"] == "body"
-    assert outputs[0]["output_state"] in {"ready", "ready_with_warnings"}
+    assert outputs[0]["execution_state"] in {"ready", "ready_with_warnings"}
     assert outputs[1]["output_id"] == "lid"
-    assert outputs[1]["output_state"] == "failed"
+    assert outputs[1]["execution_state"] == "failed"
     assert outputs[0]["stl_path"] is not None
     findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
     assert any(finding["rule_id"] == "assembly.required_output_failed" for finding in findings)
@@ -568,7 +568,7 @@ def test_single_component_output_with_disconnected_bodies_blocks_candidate(tmp_p
 
     assert candidate["review_state"] == "blocked"
     outputs = client.get(f"/api/revisions/{candidate['id']}/outputs").json()
-    assert outputs[0]["output_state"] == "blocked"
+    assert outputs[0]["execution_state"] == "blocked"
     findings = client.get(f"/api/candidates/{candidate['id']}/findings").json()
     disconnected = next(
         finding for finding in findings if finding["rule_id"] == "mesh.disconnected_components"
@@ -589,7 +589,7 @@ def test_invalid_topology_failure_preserves_output_topology_fields(tmp_path: Pat
         for output in client.get(f"/api/revisions/{candidate['id']}/outputs").json()
         if output["output_id"] == "body"
     )
-    assert body_output["output_state"] == "failed"
+    assert body_output["execution_state"] == "failed"
     assert body_output["expected_solid_count"] == 1
     assert body_output["detected_solid_count"] == 2
     assert body_output["allow_disconnected_solids"] is False
@@ -629,7 +629,7 @@ def test_retry_failed_output_uses_same_source_hash_and_does_not_call_provider(tm
 
     assert retry_response.status_code == 200
     retried = retry_response.json()
-    assert retried["output_state"] in {"ready", "ready_with_warnings"}
+    assert retried["execution_state"] in {"ready", "ready_with_warnings"}
     assert retried["source_hash"] == original_source_hash
     assert len(provider.generation_requests) == 1
     refreshed_candidate = client.get(f"/api/candidates/{candidate['id']}").json()

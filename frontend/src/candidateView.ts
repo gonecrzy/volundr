@@ -37,7 +37,7 @@ export type RevisionOutput = {
   output_id: string;
   component_id: string | null;
   component_ids: string[];
-  output_state: RevisionOutputState;
+  execution_state: RevisionOutputState;
   output_type: string;
   label: string;
   filename: string;
@@ -169,7 +169,7 @@ export function revisionWorkflowLabel(revision: CandidateRevision | null): strin
 }
 
 export function outputStateLabel(output: RevisionOutput): string {
-  switch (output.output_state) {
+  switch (output.execution_state) {
     case "ready":
       return "Ready";
     case "ready_with_warnings":
@@ -187,7 +187,7 @@ export function outputStateLabel(output: RevisionOutput): string {
     case "skipped":
       return "Skipped";
     default:
-      return output.output_state;
+      return output.execution_state;
   }
 }
 
@@ -200,7 +200,7 @@ export function outputDimensionsLabel(output: RevisionOutput): string {
 }
 
 export function canRetryOutput(output: RevisionOutput): boolean {
-  return output.output_state === "failed";
+  return output.execution_state === "failed";
 }
 
 export function canAcceptRevision(revision: CandidateRevision | null): boolean {

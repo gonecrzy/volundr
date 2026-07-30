@@ -604,7 +604,7 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
     ) -> None:
-        output.output_state = "validating"
+        output.execution_state = "validating"
         stl_path = stl_dir / output.filename
         shutil.copyfile(output_result.stl_path, stl_path)
         output.stl_path = self._relative(stl_path)
@@ -644,7 +644,7 @@ class ProjectService:
             )
             self._persist_validation_findings(revision=revision, stl_path=stl_path, revision_output=output)
         output.compile_error = output_result.compile_error
-        output.output_state = self._derive_output_state(output.id)
+        output.execution_state = self._derive_execution_state(output.id)
         output.validation_summary_json = json.dumps(
             self._validation_summary(output.revision_id, revision_output_id=output.id).model_dump()
         )
@@ -672,7 +672,7 @@ class ProjectService:
                 )
             )
         for output in outputs:
-            if output.required and output.output_state == "failed":
+            if output.required and output.execution_state == "failed":
                 self.db.add(
                     self._assembly_finding(
                         revision.id,
@@ -685,7 +685,7 @@ class ProjectService:
                         detected_value=output.output_id,
                     )
                 )
-            elif not output.required and output.output_state == "failed":
+            elif not output.required and output.execution_state == "failed":
                 self.db.add(
                     self._assembly_finding(
                         revision.id,
@@ -735,12 +735,12 @@ class ProjectService:
         )
         revision.expected_output_count = len(outputs)
         revision.required_output_count = sum(1 for output in outputs if output.required)
-        revision.successful_output_count = sum(1 for output in outputs if output.output_state in OUTPUT_READY_STATES)
-        revision.blocked_output_count = sum(1 for output in outputs if output.output_state == "blocked")
-        revision.failed_output_count = sum(1 for output in outputs if output.output_state == "failed")
+        revision.successful_output_count = sum(1 for output in outputs if output.execution_state in OUTPUT_READY_STATES)
+        revision.blocked_output_count = sum(1 for output in outputs if output.execution_state == "blocked")
+        revision.failed_output_count = sum(1 for output in outputs if output.execution_state == "failed")
         self.db.flush()
 
-    def _derive_output_state(self, output_artifact_id: str) -> str:
+    def _derive_execution_state(self, output_artifact_id: str) -> str:
         findings = list(
             self.db.scalars(
                 select(ValidationFinding).where(
@@ -759,7 +759,7 @@ class ProjectService:
             select(RevisionOutput)
             .where(
                 RevisionOutput.revision_id == revision.id,
-                RevisionOutput.output_state.in_(OUTPUT_READY_STATES),
+                RevisionOutput.execution_state.in_(OUTPUT_READY_STATES),
                 RevisionOutput.stl_path.is_not(None),
             )
             .order_by(RevisionOutput.required.desc(), RevisionOutput.created_at.asc())
@@ -777,7 +777,7 @@ class ProjectService:
         )
         lines = ["Multi-output compilation summary"]
         for output in outputs:
-            lines.append(f"{output.output_id}: {output.output_state}")
+            lines.append(f"{output.output_id}: {output.execution_state}")
             if output.compile_error:
                 lines.append(output.compile_error)
         path.write_text("\n".join(lines), encoding="utf-8")
@@ -4871,8 +4871,8 @@ class ProjectService:
                     explanation = f"{target_id} does not match the Revision Plan success criterion."
             elif criterion_type == "output_exists":
                 output = outputs.get(target_id)
-                detected = output.output_state if output is not None else None
-                if output is not None and output.output_state in OUTPUT_READY_STATES:
+                detected = output.execution_state if output is not None else None
+                if output is not None and output.execution_state in OUTPUT_READY_STATES:
                     state = "success_verified"
                     explanation = f"Output {target_id} exists and is available for review."
                 else:
@@ -5024,7 +5024,7 @@ class ProjectService:
         base_output: RevisionOutput | None,
         revised_output: RevisionOutput | None,
     ) -> dict[str, Any]:
-        if revised_output is None or revised_output.output_state not in OUTPUT_READY_STATES:
+        if revised_output is None or revised_output.execution_state not in OUTPUT_READY_STATES:
             return {
                 "output_id": output_id,
                 "change_state": "changed_but_failed_validation",
@@ -5061,7 +5061,7 @@ class ProjectService:
                 )
             )
             return {"output_id": output_id, "preservation_state": "unexpected_change"}
-        if revised_output.output_state not in OUTPUT_READY_STATES:
+        if revised_output.execution_state not in OUTPUT_READY_STATES:
             self.db.add(
                 self._output_preservation_finding(
                     revision.id,
@@ -5840,7 +5840,7 @@ class ProjectService:
                 output_id=output["output_id"],
                 component_id=output["component_id"],
                 component_ids_json=json.dumps(output["component_ids"]),
-                output_state="queued",
+                execution_state="queued",
                 output_type=output["output_type"],
                 label=output["label"],
                 filename=filename,
@@ -5860,7 +5860,7 @@ class ProjectService:
 
         started = time.perf_counter()
         for output_record in output_records:
-            output_record.output_state = "compiling"
+            output_record.execution_state = "compiling"
         self.db.flush()
         result = await self._cadquery_runner().compile(
             source,
@@ -5885,7 +5885,7 @@ class ProjectService:
             output_record.compile_log_path = self._relative(compile_log_path)
             output_record.source_hash = source_hash
             if output_result is None or not output_result.success or output_result.stl_path is None:
-                output_record.output_state = "failed"
+                output_record.execution_state = "failed"
                 output_record.compile_error = (
                     output_result.compile_error
                     if output_result is not None
@@ -6109,7 +6109,7 @@ class ProjectService:
         output = self.db.get(RevisionOutput, output_artifact_id)
         if output is None:
             return None
-        if output.output_state != "failed":
+        if output.execution_state != "failed":
             raise ValueError("Only failed outputs can be retried")
         revision = self.db.get(Revision, output.revision_id)
         if revision is None:
@@ -6145,7 +6145,7 @@ class ProjectService:
         if output.allow_disconnected_solids is not None:
             requested_output["allow_disconnected_solids"] = output.allow_disconnected_solids
         requested_outputs = [requested_output]
-        output.output_state = "compiling"
+        output.execution_state = "compiling"
         self.db.flush()
         started = time.perf_counter()
         result = await self._cadquery_runner().compile(
@@ -6166,7 +6166,7 @@ class ProjectService:
         output.compile_log_path = self._relative(compile_log_path)
         output.source_hash = expected_hash
         if output_result is None or not output_result.success or output_result.stl_path is None:
-            output.output_state = "failed"
+            output.execution_state = "failed"
             output.compile_error = (
                 output_result.compile_error
                 if output_result is not None
@@ -6845,7 +6845,7 @@ class ProjectService:
             output_id=output.output_id,
             component_id=output.component_id,
             component_ids=json.loads(output.component_ids_json),
-            output_state=output.output_state,
+            execution_state=output.execution_state,
             output_type=output.output_type,
             label=output.label,
             filename=output.filename,
@@ -6905,7 +6905,7 @@ class ProjectService:
             output_id="model",
             component_id=None,
             component_ids=[],
-            output_state="ready" if revision.status == "succeeded" else revision.status,
+            execution_state="ready" if revision.status == "succeeded" else revision.status,
             output_type="printable_component",
             label="Model",
             filename="model.stl",
@@ -7052,7 +7052,7 @@ class ProjectService:
             "entrypoint": output.entrypoint,
             "quantity": output.quantity,
             "required": output.required,
-            "state": output.output_state,
+            "state": output.execution_state,
             "expected_solid_count": output.expected_solid_count,
             "detected_solid_count": output.detected_solid_count,
             "allow_disconnected_solids": output.allow_disconnected_solids,
@@ -7127,7 +7127,7 @@ class ProjectService:
         lines.extend(["", "## Printable Outputs"])
         for output in outputs:
             lines.append(
-                f"- {output.label}: {output.filename}, quantity {output.quantity}, state {output.output_state}"
+                f"- {output.label}: {output.filename}, quantity {output.quantity}, state {output.execution_state}"
             )
         lines.extend(
             [

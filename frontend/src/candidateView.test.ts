@@ -85,7 +85,7 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
     output_id: "body",
     component_id: "body",
     component_ids: ["body"],
-    output_state: "ready",
+    execution_state: "ready",
     output_type: "printable_component",
     label: "Body",
     filename: "body.stl",
@@ -297,17 +297,17 @@ describe("candidate view helpers", () => {
   });
 
   it("labels output states and dimensions", () => {
-    expect(outputStateLabel(revisionOutput({ output_state: "ready_with_warnings" }))).toBe(
+    expect(outputStateLabel(revisionOutput({ execution_state: "ready_with_warnings" }))).toBe(
       "Ready with warnings",
     );
-    expect(outputStateLabel(revisionOutput({ output_state: "blocked" }))).toBe("Blocked");
+    expect(outputStateLabel(revisionOutput({ execution_state: "blocked" }))).toBe("Blocked");
     expect(outputDimensionsLabel(revisionOutput({}))).toBe("80 x 50 x 6 mm");
     expect(outputDimensionsLabel(revisionOutput({ metadata: null }))).toBe("Dimensions unavailable");
   });
 
   it("shows retry only for failed outputs", () => {
-    expect(canRetryOutput(revisionOutput({ output_state: "failed" }))).toBe(true);
-    expect(canRetryOutput(revisionOutput({ output_state: "blocked" }))).toBe(false);
-    expect(canRetryOutput(revisionOutput({ output_state: "ready" }))).toBe(false);
+    expect(canRetryOutput(revisionOutput({ execution_state: "failed" }))).toBe(true);
+    expect(canRetryOutput(revisionOutput({ execution_state: "blocked" }))).toBe(false);
+    expect(canRetryOutput(revisionOutput({ execution_state: "ready" }))).toBe(false);
   });
 });

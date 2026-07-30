@@ -2990,7 +2990,7 @@ function OutputReview({
           >
             <button className="output-select" onClick={() => onSelectOutput(output.id)}>
               <span>{output.label}</span>
-              <span className={`review-state ${output.output_state}`}>{outputStateLabel(output)}</span>
+              <span className={`review-state ${output.execution_state}`}>{outputStateLabel(output)}</span>
             </button>
             <dl className="review-facts compact">
               <dt>Quantity</dt>

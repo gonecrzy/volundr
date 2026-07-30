@@ -46,6 +46,7 @@ def test_cadquery_native_persistence_columns_are_canonical() -> None:
         "step_hash",
         "brep_path",
         "brep_hash",
+        "execution_state",
         "topology_metadata_json",
         "expected_solid_count",
         "detected_solid_count",
@@ -53,6 +54,7 @@ def test_cadquery_native_persistence_columns_are_canonical() -> None:
         "mesh_metadata_json",
         "execution_command_json",
     }.issubset(output_columns)
+    assert "output_state" not in output_columns
     assert "module_name" not in output_columns
     assert "compile_command_json" not in output_columns
 

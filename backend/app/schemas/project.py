@@ -732,7 +732,7 @@ class RevisionOutputRead(BaseModel):
     output_id: str
     component_id: str | None = None
     component_ids: list[str] = Field(default_factory=list)
-    output_state: str
+    execution_state: str
     output_type: str
     label: str
     filename: str
