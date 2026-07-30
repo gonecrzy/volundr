@@ -151,18 +151,22 @@ Use Vitest for:
 
 Use Playwright for critical workflows:
 
-1. Open an accepted staged CadQuery project.
-2. Confirm Python source and multi-output artifacts are visible.
-3. Plan a scoped revision from chat.
-4. Confirm generation is disabled before Revision Plan approval.
-5. Approve the plan and generate the scoped candidate.
-6. Confirm the active revision remains accessible until candidate acceptance.
-7. Review Revision Plan compliance, success criteria, printable outputs, and advisory findings.
-8. Accept the scoped candidate.
-9. Plan a second revision that violates protected scope.
-10. Confirm the rejected-before-compile scope findings are shown and the active revision remains unchanged.
-11. Open a blocked CadQuery candidate with one successful required output and one failed required output.
-12. Confirm solid-count topology rejection is visible, Accept is disabled, and the active accepted revision remains unchanged.
+1. Start from a prompt that requires requirement clarification.
+2. Answer the clarification from chat and reach `requirements_ready`.
+3. Create, review, approve, and generate from a Design Plan.
+4. Confirm the generated CadQuery candidate exposes Python source, printable outputs, and geometric checks.
+5. Open an accepted staged CadQuery project.
+6. Confirm Python source and multi-output artifacts are visible.
+7. Plan a scoped revision from chat.
+8. Confirm generation is disabled before Revision Plan approval.
+9. Approve the plan and generate the scoped candidate.
+10. Confirm the active revision remains accessible until candidate acceptance.
+11. Review Revision Plan compliance, success criteria, printable outputs, and advisory findings.
+12. Accept the scoped candidate.
+13. Plan a second revision that violates protected scope.
+14. Confirm the rejected-before-compile scope findings are shown and the active revision remains unchanged.
+15. Open a blocked CadQuery candidate with one successful required output and one failed required output.
+16. Confirm solid-count topology rejection is visible, Accept is disabled, and the active accepted revision remains unchanged.
 
 After Gemini integration:
 

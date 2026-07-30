@@ -59,6 +59,224 @@ def build(params):
     ])
 `;
 
+test("requirements clarification flows into Design Plan approval and CadQuery candidate review", async ({ page }) => {
+  const project = {
+    id: "project-1",
+    name: "Untitled draft",
+    original_intent: "",
+    status: "draft",
+    active_revision_id: null,
+  };
+  const revisions: Revision[] = [];
+  let currentSpecification = designSpecification({
+    outcome: "clarification_required",
+    clarification_required: true,
+    generation_ready: false,
+    clarification_questions: [
+      {
+        id: "question-depth",
+        project_id: "project-1",
+        design_specification_id: "spec-1",
+        requirement_id: "fit_depth",
+        question: "What shelf depth should the bracket support?",
+        reason: "Shelf depth affects the bracket leg length.",
+        display_order: 1,
+        created_at: "2026-07-30T16:30:00Z",
+      },
+    ],
+  });
+  let currentPlan: ReturnType<typeof designPlan> | null = null;
+  const candidate = revision({
+    id: "rev-generated",
+    design_specification_id: "spec-1",
+    design_plan_id: "plan-1",
+    revision_number: 1,
+    source_type: "ai_initial",
+    review_state: "ready",
+    is_accepted: false,
+    output_manifest_path: "projects/project-1/revisions/rev-generated/output-manifest.json",
+    expected_output_count: 1,
+    required_output_count: 1,
+    successful_output_count: 1,
+  });
+  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>([
+    [
+      "rev-generated",
+      [
+        revisionOutput({
+          id: "generated-bracket",
+          revision_id: "rev-generated",
+          output_id: "bracket",
+          label: "Bracket",
+          component_id: "bracket",
+          component_ids: ["bracket"],
+        }),
+      ],
+    ],
+  ]);
+
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname.replace(/^\/api/, "");
+
+    if (request.method() === "GET" && path === "/projects") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/printability-profiles") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "POST" && path === "/projects/draft") {
+      return route.fulfill({ status: 201, json: project });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/messages") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "POST" && path === "/projects/project-1/requirements") {
+      return route.fulfill({ status: 201, json: currentSpecification });
+    }
+    if (request.method() === "POST" && path === "/design-specifications/spec-1/clarification-answers") {
+      currentSpecification = designSpecification({
+        outcome: "generation_ready",
+        clarification_required: false,
+        generation_ready: true,
+        clarification_questions: [],
+        specification: {
+          purpose: "Adjustable shelf bracket",
+          critical_dimensions: [
+            {
+              id: "shelf_depth",
+              label: "Shelf depth",
+              value: 180,
+              unit: "mm",
+              source: "clarification",
+              importance: "critical",
+              protected: true,
+            },
+          ],
+          functional_requirements: [
+            {
+              id: "mounting_holes",
+              description: "Two wall mounting holes",
+              source: "user",
+              importance: "critical",
+              protected: true,
+            },
+          ],
+          assumptions: [
+            {
+              id: "material_thickness",
+              description: "Use 5 mm printable material thickness",
+              source: "product_default",
+              requires_approval: false,
+            },
+          ],
+        },
+      });
+      return route.fulfill({ json: currentSpecification });
+    }
+    if (request.method() === "POST" && path === "/design-specifications/spec-1/design-plan") {
+      currentPlan = designPlan();
+      return route.fulfill({ status: 201, json: currentPlan });
+    }
+    if (request.method() === "POST" && path === "/design-plans/plan-1/approve") {
+      currentPlan = designPlan({ review_state: "approved", approved_at: "2026-07-30T16:35:00Z" });
+      return route.fulfill({ json: currentPlan });
+    }
+    if (request.method() === "POST" && path === "/design-plans/plan-1/generate") {
+      revisions.push(candidate);
+      currentPlan = designPlan({
+        review_state: "approved",
+        approved_at: "2026-07-30T16:35:00Z",
+        generated_revision_id: "rev-generated",
+      });
+      return route.fulfill({ status: 201, json: candidate });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revisions") {
+      return route.fulfill({ json: revisions });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/outputs$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({ json: outputsByRevision.get(revisionId) ?? [] });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/output-manifest$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({
+        json: {
+          schema_version: "output-manifest-v1",
+          project_id: "project-1",
+          revision_id: revisionId,
+          design_plan_id: "plan-1",
+          source: { filename: "source.py", sha256: "source-hash" },
+          outputs: outputsByRevision.get(revisionId) ?? [],
+        },
+      });
+    }
+    if (request.method() === "GET" && path.endsWith("/source")) {
+      return route.fulfill({ body: source, contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/compile-log")) {
+      return route.fulfill({ body: "CadQuery worker completed", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/diff")) {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path.endsWith("/stl")) {
+      return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
+      return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-generated/findings") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-generated/geometric-analysis") {
+      return route.fulfill({
+        json: {
+          id: "analysis-rev-generated",
+          revision_id: "rev-generated",
+          design_specification_id: "spec-1",
+          analysis_version: "geometric-invariants-v1",
+          tolerance_profile_version: "geometry-tolerance-v1",
+          mesh_hash: "mesh-generated",
+          source_hash: "source-hash",
+          analysis_ms: 8.1,
+          created_at: "2026-07-30T16:36:00Z",
+          findings: [],
+        },
+      });
+    }
+
+    return route.fulfill({ status: 404, json: { detail: `unhandled ${request.method()} ${path}` } });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("AI chat message").fill("Create a shelf bracket for a board.");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByLabel("Requirements").getByText("Waiting for clarification")).toBeVisible();
+  await expect(page.getByLabel("Requirements").getByRole("textbox")).toBeVisible();
+
+  await page.getByLabel("AI chat message").fill("180 mm shelf depth");
+  await page.getByRole("button", { name: "Answer", exact: true }).click();
+  await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
+  await expect(page.getByText("Shelf depth: 180 mm (clarification)")).toBeVisible();
+
+  await page.getByRole("button", { name: "Create Design Plan" }).click();
+  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
+  await expect(page.getByText("Mounting holes (hole_group)")).toBeVisible();
+  await expect(page.getByText("Bracket: bracket x1")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve and generate" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Approve and generate" }).click();
+  await expect(page.getByText("Candidate - R1 - Ready")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Python" })).toBeVisible();
+  await expect(page.getByLabel("Python source")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("1/1")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Bracket/ })).toBeVisible();
+  await expect(page.getByText("Geometric checks")).toBeVisible();
+  await expect(page.getByText("0 verified, 0 violated, 0 unable to verify")).toBeVisible();
+});
+
 test("structured revision planning preserves active revision until scoped candidate is accepted", async ({ page }) => {
   const project = {
     id: "project-1",
@@ -552,6 +770,162 @@ function revision(overrides: Partial<Revision>): Revision {
       blocking_count: 0,
       advisory_count: 0,
       dismissed_count: 0,
+    },
+    ...overrides,
+  };
+}
+
+function designSpecification(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "spec-1",
+    project_id: "project-1",
+    generation_attempt_id: "attempt-requirements",
+    superseded_specification_id: null,
+    version_number: 1,
+    schema_version: "design-specification-v1",
+    prompt_template_version: "requirements-v1",
+    ruleset_version: "cadquery-ruleset-v1",
+    provider: "fake",
+    provider_model: "fake-model",
+    user_instruction: "Create a shelf bracket for a board.",
+    raw_response_path: null,
+    specification_path: "projects/project-1/design-specifications/spec-1.json",
+    content_hash: "spec-hash",
+    outcome: "generation_ready",
+    supported_scope: true,
+    clarification_required: false,
+    generation_ready: true,
+    created_at: "2026-07-30T16:30:00Z",
+    specification: {
+      purpose: "Adjustable shelf bracket",
+      critical_dimensions: [
+        {
+          id: "shelf_depth",
+          label: "Shelf depth",
+          value: 180,
+          unit: "mm",
+          source: "clarification",
+          importance: "critical",
+          protected: true,
+        },
+      ],
+      functional_requirements: [
+        {
+          id: "mounting_holes",
+          description: "Two wall mounting holes",
+          source: "user",
+          importance: "critical",
+          protected: true,
+        },
+      ],
+      assumptions: [],
+    },
+    clarification_questions: [],
+    ...overrides,
+  };
+}
+
+function designPlan(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "plan-1",
+    project_id: "project-1",
+    design_specification_id: "spec-1",
+    generation_attempt_id: "attempt-plan",
+    superseded_design_plan_id: null,
+    version_number: 1,
+    schema_version: "design-plan-v1",
+    prompt_template_version: "design-plan-v1",
+    ruleset_version: "cadquery-ruleset-v1",
+    provider: "fake",
+    provider_model: "fake-model",
+    raw_response_path: null,
+    plan_path: "projects/project-1/design-plans/plan-1.json",
+    content_hash: "plan-hash",
+    outcome: "plan_ready",
+    review_state: "pending_review",
+    clarification_required: false,
+    plan_ready: true,
+    approved_at: null,
+    rejected_at: null,
+    created_at: "2026-07-30T16:34:00Z",
+    generated_revision_id: null,
+    clarification_questions: [],
+    plan: {
+      purpose: "Shelf bracket with protected shelf depth",
+      design_level: "single_part",
+      parameters: [
+        {
+          id: "shelf_depth",
+          label: "Shelf depth",
+          value: 180,
+          unit: "mm",
+          editable: true,
+          protected: true,
+          component_id: "bracket",
+        },
+        {
+          id: "hole_spacing",
+          label: "Hole spacing",
+          value: 48,
+          unit: "mm",
+          editable: true,
+          protected: false,
+          component_id: "bracket",
+        },
+      ],
+      derived_parameters: [
+        {
+          id: "leg_length",
+          label: "Leg length",
+          expression: "shelf_depth - 20",
+          unit: "mm",
+          depends_on: ["shelf_depth"],
+        },
+      ],
+      dependency_edges: [
+        {
+          from: "shelf_depth",
+          to: "leg_length",
+          relationship: "drives",
+        },
+      ],
+      components: [
+        {
+          id: "bracket",
+          label: "Bracket",
+          description: "One-piece shelf bracket",
+          features: ["mounting_holes"],
+          parameters: ["shelf_depth", "hole_spacing"],
+        },
+      ],
+      features: [
+        {
+          id: "mounting_holes",
+          component_id: "bracket",
+          type: "hole_group",
+          description: "Mounting holes",
+          parameters: ["hole_spacing"],
+          protected: true,
+        },
+      ],
+      presets: [],
+      assembly_strategy: { type: "single_output", instructions: ["Print flat on the wall face."] },
+      printable_outputs: [
+        {
+          id: "bracket",
+          label: "Bracket",
+          component_ids: ["bracket"],
+          quantity: 1,
+          orientation: "wall face on build plate",
+        },
+      ],
+      risks: [
+        {
+          id: "load_capacity",
+          severity: "warning",
+          description: "Load capacity requires user validation.",
+        },
+      ],
     },
     ...overrides,
   };
