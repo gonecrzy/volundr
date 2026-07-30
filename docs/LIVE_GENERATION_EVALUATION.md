@@ -101,7 +101,7 @@ Do not treat the phase run as a complete acceptance test. It is a smoke signal f
 
 When extraction succeeds, the probe also compiles the source with OpenSCAD and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.
 
-`--source-probe-repair` requires `--source-probe`. When the first source-probe compile fails, the harness sends one compile-repair prompt using the extracted failed source plus compiler diagnostics, then stores separate `source-repair-*` prompt, raw output, extracted source, parameter analysis, compile logs, STL, and mesh metadata artifacts. Repair metrics are separate from first-pass source-probe metrics so raw model quality and repair recovery can be compared directly.
+`--source-probe-repair` requires `--source-probe`. When the first source-probe compile fails, the harness sends one repair prompt using the extracted failed source plus compiler diagnostics. When `--source-brief` is also enabled and the source compiles but mesh metadata reports more connected components than the parsed brief expects, the same bounded repair path runs with disconnected-mesh diagnostics. The harness stores separate `source-repair-*` prompt, raw output, extracted source, parameter analysis, compile logs, STL, and mesh metadata artifacts. Repair metrics are separate from first-pass source-probe metrics so raw model quality and repair recovery can be compared directly.
 
 ## Quota Controls
 

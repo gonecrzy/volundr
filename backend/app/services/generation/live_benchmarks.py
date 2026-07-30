@@ -444,6 +444,36 @@ class LiveBenchmarkRunner:
                 probe["repair"] = repair
                 if repair["status"] == "source_repair_succeeded":
                     probe["status"] = "source_repair_succeeded"
+        else:
+            expected_connected_body_count = _source_brief_expected_connected_body_count(
+                source_brief
+            )
+            connected_components = _mesh_connected_components(
+                run_dir=run_dir,
+                metadata_path=probe["mesh_metadata_path"],
+            )
+            if (
+                expected_connected_body_count is not None
+                and connected_components is not None
+                and connected_components > expected_connected_body_count
+            ):
+                probe["status"] = "source_mesh_disconnected"
+                if source_probe_repair:
+                    repair = self._run_source_probe_repair(
+                        benchmark=benchmark,
+                        provider=provider,
+                        run_dir=run_dir,
+                        artifact_dir=artifact_dir,
+                        failed_source=source,
+                        compiler_diagnostics=_disconnected_mesh_diagnostics(
+                            expected_connected_body_count=expected_connected_body_count,
+                            connected_components=connected_components,
+                        ),
+                        expected_connected_body_count=expected_connected_body_count,
+                    )
+                    probe["repair"] = repair
+                    if repair["status"] == "source_repair_succeeded":
+                        probe["status"] = "source_mesh_repair_succeeded"
         return probe
 
     def _run_source_brief(
@@ -502,6 +532,7 @@ class LiveBenchmarkRunner:
         artifact_dir: Path,
         failed_source: str,
         compiler_diagnostics: str,
+        expected_connected_body_count: int | None = None,
     ) -> dict[str, Any]:
         request = _source_repair_request_for(
             benchmark=benchmark,
@@ -571,7 +602,18 @@ class LiveBenchmarkRunner:
             )
         )
         if repair["compile_status"] == "compile_succeeded":
-            repair["status"] = "source_repair_succeeded"
+            connected_components = _mesh_connected_components(
+                run_dir=run_dir,
+                metadata_path=repair["mesh_metadata_path"],
+            )
+            if (
+                expected_connected_body_count is not None
+                and connected_components is not None
+                and connected_components > expected_connected_body_count
+            ):
+                repair["status"] = "source_repair_mesh_disconnected"
+            else:
+                repair["status"] = "source_repair_succeeded"
         else:
             repair["status"] = "source_repair_compile_failed"
         return repair
@@ -1068,6 +1110,57 @@ def _source_brief_request_for(benchmark: GenerationBenchmark) -> SourceBriefRequ
         expected_parameters=list(benchmark.expected_parameters),
         expected_geometric_invariants=list(benchmark.expected_geometric_invariants),
         mesh_expectation=benchmark.mesh_expectation,
+    )
+
+
+def _source_brief_expected_connected_body_count(source_brief: dict[str, Any] | None) -> int | None:
+    if not isinstance(source_brief, dict):
+        return None
+    planned_outputs = source_brief.get("planned_outputs")
+    if not isinstance(planned_outputs, list) or not planned_outputs:
+        return None
+
+    counts: list[int] = []
+    for output in planned_outputs:
+        if not isinstance(output, dict):
+            return None
+        expected_count = output.get("expected_connected_body_count")
+        if isinstance(expected_count, int) and expected_count > 0:
+            counts.append(expected_count)
+            continue
+        if len(planned_outputs) == 1 and output.get("must_be_connected") is True:
+            counts.append(1)
+            continue
+        return None
+    return sum(counts) if counts else None
+
+
+def _mesh_connected_components(*, run_dir: Path, metadata_path: Any) -> int | None:
+    if not isinstance(metadata_path, str):
+        return None
+    metadata_file = run_dir / metadata_path
+    if not metadata_file.exists():
+        return None
+    metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+    connected_components = metadata.get("connected_components")
+    return connected_components if isinstance(connected_components, int) else None
+
+
+def _disconnected_mesh_diagnostics(
+    *,
+    expected_connected_body_count: int,
+    connected_components: int,
+) -> str:
+    return (
+        "OpenSCAD compiled successfully, but mesh validation failed: "
+        f"expected connected body count: {expected_connected_body_count}; "
+        f"actual connected components: {connected_components}. "
+        "Rewrite the SCAD so every positive solid in the one-piece model overlaps another "
+        "positive solid by at least 0.5 mm or is joined with hull() or a bridge. "
+        "Do not rely on face-touching, edge-touching, or coplanar contact. "
+        "Sink decorative overlays, indicators, ribs, silhouettes, fins, labels, and handles "
+        "into the parent body so they fuse. Model holes as subtractive cutters inside "
+        "difference(), not positive cylinders inside union()."
     )
 
 

@@ -36,6 +36,22 @@ CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
 LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
 
 
+def _current_source_prompt_section(*, current_source: str, is_repair: bool) -> list[str]:
+    if is_repair:
+        return [
+            "",
+            "Current OpenSCAD source requiring repair. Preserve only geometry that is not contradicted by the diagnostics, user request, or source contract.",
+            "Fix the diagnosed issue directly; do not preserve disconnected, non-compiling, invalid, or incorrectly positive/subtractive geometry:",
+            current_source,
+        ]
+    return [
+        "",
+        "Current accepted OpenSCAD source. Preserve working geometry that is not contradicted by the user request.",
+        "If the user requests a stylistic or functional redesign, make that requested change while preserving the functional core and source contract:",
+        current_source,
+    ]
+
+
 class GeminiCliProvider:
     def __init__(
         self,
@@ -288,12 +304,10 @@ class GeminiCliProvider:
                     ]
                 )
             parts.extend(
-                [
-                    "",
-                    "Current accepted OpenSCAD source. Preserve working geometry that is not contradicted by the user request.",
-                    "If the user requests a stylistic or functional redesign, make that requested change while preserving the functional core and source contract:",
-                    request.current_source,
-                ]
+                _current_source_prompt_section(
+                    current_source=request.current_source,
+                    is_repair=bool(request.compiler_diagnostics),
+                )
             )
         if request.compiler_diagnostics:
             parts.extend(["", "Compiler diagnostics to account for:", request.compiler_diagnostics])

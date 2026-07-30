@@ -48,8 +48,8 @@ Project name: Repairable output
 Original intent: Create a generated part.
 User instruction: Create a cube.
 
-Current accepted OpenSCAD source. Preserve working geometry that is not contradicted by the user request.
-If the user requests a stylistic or functional redesign, make that requested change while preserving the functional core and source contract:
+Current OpenSCAD source requiring repair. Preserve only geometry that is not contradicted by the diagnostics, user request, or source contract.
+Fix the diagnosed issue directly; do not preserve disconnected, non-compiling, invalid, or incorrectly positive/subtractive geometry:
 module main_model() {
   broken(
 }

@@ -113,8 +113,9 @@ def main(argv: list[str] | None = None) -> int:
         "--source-probe-repair",
         action="store_true",
         help=(
-            "When --source-probe compile fails, run one compile-repair prompt, extract the "
-            "repaired source, and compile it as a separate repair metric."
+            "When --source-probe compile or source-brief connected-body validation fails, "
+            "run one repair prompt, extract the repaired source, and compile it as a "
+            "separate repair metric."
         ),
     )
     args = parser.parse_args(argv)
