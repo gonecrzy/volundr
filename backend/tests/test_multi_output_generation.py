@@ -142,6 +142,8 @@ def design_plan(*, optional_lid: bool = False) -> dict[str, Any]:
                 "filename": "body.stl",
                 "quantity": 1,
                 "required": True,
+                "expected_solid_count": 1,
+                "allow_disconnected_solids": False,
                 "output_type": "printable_component",
             },
             {
@@ -153,6 +155,8 @@ def design_plan(*, optional_lid: bool = False) -> dict[str, Any]:
                 "filename": "lid.stl",
                 "quantity": 1,
                 "required": not optional_lid,
+                "expected_solid_count": 1,
+                "allow_disconnected_solids": False,
                 "output_type": "optional_printable_component"
                 if optional_lid
                 else "printable_component",
@@ -252,9 +256,11 @@ class MultiOutputCadRunner:
         self,
         *,
         fail_outputs: set[str] | None = None,
+        invalid_topology_outputs: set[str] | None = None,
         disconnected_outputs: set[str] | None = None,
     ) -> None:
         self.fail_outputs = fail_outputs or set()
+        self.invalid_topology_outputs = invalid_topology_outputs or set()
         self.disconnected_outputs = disconnected_outputs or set()
         self.calls: list[dict[str, Any]] = []
 
@@ -292,6 +298,36 @@ class MultiOutputCadRunner:
         first_metadata: MeshMetadata | None = None
         total_bytes = 0
         for output_id in output_ids:
+            if output_id in self.invalid_topology_outputs:
+                topology_metadata = {
+                    "valid": False,
+                    "expected_solid_count": 1,
+                    "detected_solid_count": 2,
+                    "allow_disconnected_solids": False,
+                }
+                topology_metadata_path = job_dir / f"{output_id}-topology.json"
+                topology_metadata_path.write_text(json.dumps(topology_metadata), encoding="utf-8")
+                outputs.append(
+                    CadQueryOutputResult(
+                        output_id=output_id,
+                        entrypoint=output_id,
+                        required=True,
+                        success=False,
+                        stl_path=None,
+                        step_path=None,
+                        brep_path=None,
+                        metadata_path=None,
+                        topology_metadata_path=topology_metadata_path,
+                        stl_hash=None,
+                        step_hash=None,
+                        brep_hash=None,
+                        output_size_bytes=0,
+                        metadata=None,
+                        topology_metadata=topology_metadata,
+                        compile_error="output shape is invalid",
+                    )
+                )
+                continue
             if output_id in self.fail_outputs:
                 outputs.append(
                     CadQueryOutputResult(
@@ -345,7 +381,12 @@ class MultiOutputCadRunner:
                 is_winding_consistent=True,
                 center_of_mass=tuple(float(value) for value in mesh.center_mass),
             )
-            topology_metadata = {"solid_count": connected_components}
+            topology_metadata = {
+                "valid": connected_components == 1,
+                "expected_solid_count": 1,
+                "detected_solid_count": connected_components,
+                "allow_disconnected_solids": False,
+            }
             metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
             topology_metadata_path.write_text(json.dumps(topology_metadata), encoding="utf-8")
             total_bytes += stl_path.stat().st_size
@@ -459,10 +500,16 @@ def test_multi_output_plan_creates_assembly_candidate_and_output_artifacts(tmp_p
     assert all(output["output_state"] in {"ready", "ready_with_warnings"} for output in outputs)
     assert outputs[0]["stl_hash"]
     assert outputs[0]["metadata"]["size_x_mm"] == 80.0
+    assert outputs[0]["expected_solid_count"] == 1
+    assert outputs[0]["detected_solid_count"] == 1
+    assert outputs[0]["allow_disconnected_solids"] is False
 
     manifest = client.get(f"/api/revisions/{candidate['id']}/output-manifest").json()
     assert manifest["schema_version"] == "output-manifest-v1"
     assert [output["output_id"] for output in manifest["outputs"]] == ["body", "lid"]
+    assert manifest["outputs"][0]["expected_solid_count"] == 1
+    assert manifest["outputs"][0]["detected_solid_count"] == 1
+    assert manifest["outputs"][0]["allow_disconnected_solids"] is False
 
 
 def test_revision_outputs_normalize_string_preferred_orientation(tmp_path: Path) -> None:
@@ -527,6 +574,26 @@ def test_single_component_output_with_disconnected_bodies_blocks_candidate(tmp_p
         finding for finding in findings if finding["rule_id"] == "mesh.disconnected_components"
     )
     assert disconnected["is_blocking"] is True
+
+
+def test_invalid_topology_failure_preserves_output_topology_fields(tmp_path: Path) -> None:
+    provider = MultiOutputProvider()
+    runner = MultiOutputCadRunner(invalid_topology_outputs={"body"})
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_approved_plan(client)
+
+    candidate = client.post(f"/api/design-plans/{context['plan']['id']}/generate").json()
+
+    body_output = next(
+        output
+        for output in client.get(f"/api/revisions/{candidate['id']}/outputs").json()
+        if output["output_id"] == "body"
+    )
+    assert body_output["output_state"] == "failed"
+    assert body_output["expected_solid_count"] == 1
+    assert body_output["detected_solid_count"] == 2
+    assert body_output["allow_disconnected_solids"] is False
+    assert body_output["topology_metadata"]["valid"] is False
 
 
 def test_optional_output_failure_keeps_assembly_reviewable_with_warnings(tmp_path: Path) -> None:

@@ -340,6 +340,8 @@ class DesignPlanPrintableOutput(BaseModel):
     filename: str | None = None
     quantity: int = Field(default=1, ge=1)
     required: bool = True
+    expected_solid_count: int | None = Field(default=None, ge=0)
+    allow_disconnected_solids: bool | None = None
     output_type: str = "printable_component"
     orientation: str | None = None
     preferred_orientation: str | None = None
@@ -747,6 +749,9 @@ class RevisionOutputRead(BaseModel):
     brep_hash: str | None = None
     stl_path: str | None = None
     stl_hash: str | None = None
+    expected_solid_count: int | None = None
+    detected_solid_count: int | None = None
+    allow_disconnected_solids: bool | None = None
     compile_log_path: str | None = None
     compile_ms: float | None = None
     compile_error: str | None = None

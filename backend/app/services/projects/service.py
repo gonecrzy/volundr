@@ -547,6 +547,49 @@ class ProjectService:
                 values[parameter_id] = parameter.get("value")
         return values
 
+    def _optional_int(self, value: Any) -> int | None:
+        if value is None or value == "":
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _optional_bool(self, value: Any) -> bool | None:
+        if value is None or value == "":
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"true", "1", "yes"}:
+                return True
+            if normalized in {"false", "0", "no"}:
+                return False
+            return None
+        if isinstance(value, (int, float)):
+            return bool(value)
+        return None
+
+    def _apply_topology_metadata_fields(
+        self,
+        output: RevisionOutput,
+        topology_metadata: dict[str, Any] | None,
+    ) -> None:
+        if topology_metadata is None:
+            return
+        expected_solid_count = self._optional_int(topology_metadata.get("expected_solid_count"))
+        detected_solid_count = self._optional_int(topology_metadata.get("detected_solid_count"))
+        allow_disconnected_solids = self._optional_bool(
+            topology_metadata.get("allow_disconnected_solids")
+        )
+        if expected_solid_count is not None:
+            output.expected_solid_count = expected_solid_count
+        if detected_solid_count is not None:
+            output.detected_solid_count = detected_solid_count
+        if allow_disconnected_solids is not None:
+            output.allow_disconnected_solids = allow_disconnected_solids
+
     def _persist_cadquery_output_artifacts(
         self,
         *,
@@ -581,6 +624,7 @@ class ProjectService:
                 output_result.topology_metadata,
                 sort_keys=True,
             )
+            self._apply_topology_metadata_fields(output, output_result.topology_metadata)
         if output_result.metadata is not None:
             metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.json"
             metadata_path.write_text(
@@ -5778,12 +5822,17 @@ class ProjectService:
         for output in outputs:
             filename = self._safe_output_filename(output["output_id"], output["filename"], used_filenames)
             used_filenames.add(filename.lower())
-            requested_outputs.append(
-                {
-                    "output_id": output["output_id"],
-                    "required": output["required"],
-                }
-            )
+            requested_output = {
+                "output_id": output["output_id"],
+                "required": output["required"],
+            }
+            if output["expected_solid_count"] is not None:
+                requested_output["expected_solid_count"] = output["expected_solid_count"]
+            if output["allow_disconnected_solids"] is not None:
+                requested_output["allow_disconnected_solids"] = output[
+                    "allow_disconnected_solids"
+                ]
+            requested_outputs.append(requested_output)
             record = RevisionOutput(
                 revision_id=revision.id,
                 design_plan_id=design_plan_id,
@@ -5799,6 +5848,8 @@ class ProjectService:
                 required=output["required"],
                 entrypoint=output["entrypoint"],
                 source_hash=source_hash,
+                expected_solid_count=output["expected_solid_count"],
+                allow_disconnected_solids=output["allow_disconnected_solids"],
                 preferred_orientation_json=json.dumps(output["preferred_orientation"])
                 if output["preferred_orientation"] is not None
                 else None,
@@ -5840,6 +5891,15 @@ class ProjectService:
                     if output_result is not None
                     else result.error_message or "CadQuery output was not produced"
                 )
+                if output_result is not None and output_result.topology_metadata is not None:
+                    output_record.topology_metadata_json = json.dumps(
+                        output_result.topology_metadata,
+                        sort_keys=True,
+                    )
+                    self._apply_topology_metadata_fields(
+                        output_record,
+                        output_result.topology_metadata,
+                    )
                 output_record.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
                 continue
             self._persist_cadquery_output_artifacts(
@@ -6079,7 +6139,12 @@ class ProjectService:
         metadata_dir = revision_dir / "metadata"
         for directory in (stl_dir, step_dir, brep_dir, log_dir, metadata_dir):
             directory.mkdir(parents=True, exist_ok=True)
-        requested_outputs = [{"output_id": output.output_id, "required": output.required}]
+        requested_output = {"output_id": output.output_id, "required": output.required}
+        if output.expected_solid_count is not None:
+            requested_output["expected_solid_count"] = output.expected_solid_count
+        if output.allow_disconnected_solids is not None:
+            requested_output["allow_disconnected_solids"] = output.allow_disconnected_solids
+        requested_outputs = [requested_output]
         output.output_state = "compiling"
         self.db.flush()
         started = time.perf_counter()
@@ -6107,6 +6172,12 @@ class ProjectService:
                 if output_result is not None
                 else result.error_message or "CadQuery output was not produced"
             )
+            if output_result is not None and output_result.topology_metadata is not None:
+                output.topology_metadata_json = json.dumps(
+                    output_result.topology_metadata,
+                    sort_keys=True,
+                )
+                self._apply_topology_metadata_fields(output, output_result.topology_metadata)
             output.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
         else:
             output.compile_error = None
@@ -6791,6 +6862,9 @@ class ProjectService:
             compile_log_path=output.compile_log_path,
             compile_ms=output.compile_ms,
             compile_error=output.compile_error,
+            expected_solid_count=output.expected_solid_count,
+            detected_solid_count=output.detected_solid_count,
+            allow_disconnected_solids=output.allow_disconnected_solids,
             execution_command=json.loads(output.execution_command_json),
             topology_metadata=json.loads(output.topology_metadata_json)
             if output.topology_metadata_json
@@ -6887,6 +6961,12 @@ class ProjectService:
                     "filename": str(output.get("filename") or f"{output_id}.stl"),
                     "quantity": int(output.get("quantity") or 1),
                     "required": required,
+                    "expected_solid_count": self._optional_int(
+                        output.get("expected_solid_count")
+                    ),
+                    "allow_disconnected_solids": self._optional_bool(
+                        output.get("allow_disconnected_solids")
+                    ),
                     "output_type": output_type,
                     "preferred_orientation": preferred_orientation,
                 }
@@ -6975,6 +7055,9 @@ class ProjectService:
             "quantity": output.quantity,
             "required": output.required,
             "state": output.output_state,
+            "expected_solid_count": output.expected_solid_count,
+            "detected_solid_count": output.detected_solid_count,
+            "allow_disconnected_solids": output.allow_disconnected_solids,
             "step": {"path": output.step_path, "sha256": output.step_hash},
             "brep": {"path": output.brep_path, "sha256": output.brep_hash},
             "stl": {"path": output.stl_path, "sha256": output.stl_hash},

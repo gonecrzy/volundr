@@ -47,6 +47,9 @@ def test_cadquery_native_persistence_columns_are_canonical() -> None:
         "brep_path",
         "brep_hash",
         "topology_metadata_json",
+        "expected_solid_count",
+        "detected_solid_count",
+        "allow_disconnected_solids",
         "mesh_metadata_json",
         "execution_command_json",
     }.issubset(output_columns)
