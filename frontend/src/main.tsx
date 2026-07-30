@@ -19,9 +19,11 @@ import {
   outputStateLabel,
   outputTopologyLabel,
   canRetryOutput,
+  designConsistencyLabel,
   sourceCheckSummary,
   type CandidateFinding,
   type CandidateFindingRecoveryActionKind,
+  type DesignConsistency,
   type GeometricAnalysis,
   type GeometricFinding,
   type ReviewState,
@@ -138,6 +140,7 @@ type Revision = {
   metadata: MeshMetadata | null;
   error_message: string | null;
   validation_summary: ValidationSummary;
+  design_consistency?: DesignConsistency | null;
 };
 
 type ClarificationQuestion = {
@@ -2161,6 +2164,13 @@ function App() {
             onReject={() => void rejectSelectedCandidate()}
             onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
             onRecoverFinding={handleCandidateFindingRecovery}
+            onRegenerateFromPlan={() => {
+              if (designPlan && designPlan.id === selectedRevision?.design_plan_id) {
+                void continueGenerationFromDesignPlan(designPlan);
+                return;
+              }
+              setMessage("Open the approved Design Plan before regenerating this candidate");
+            }}
             onReviseFromGeometricFinding={(finding) => {
               setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
               setPendingRevisionFindingIds(
@@ -2940,6 +2950,7 @@ function CandidateReview({
   onReject,
   onSelectOutput,
   onRecoverFinding,
+  onRegenerateFromPlan,
   onReviseFromGeometricFinding,
   retryingOutputId,
 }: {
@@ -2963,6 +2974,7 @@ function CandidateReview({
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) => void;
+  onRegenerateFromPlan: () => void;
   onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
   retryingOutputId: string | null;
 }) {
@@ -2974,6 +2986,8 @@ function CandidateReview({
   const nonGeometricFindings = findings.filter((finding) => finding.category !== "geometry");
   const buckets = candidateFindingBuckets(nonGeometricFindings);
   const sourceChecks = sourceCheckSummary(findings);
+  const consistency = revision.design_consistency ?? null;
+  const consistencyFindings = consistency?.findings.filter((finding) => finding.is_blocking) ?? [];
 
   return (
     <section className="candidate-review" aria-label="Candidate review">
@@ -2994,6 +3008,8 @@ function CandidateReview({
         <dd>{revision.validation_summary.blocking_count}</dd>
         <dt>Warnings</dt>
         <dd>{revision.validation_summary.advisory_count}</dd>
+        <dt>Design consistency</dt>
+        <dd>{designConsistencyLabel(revision)}</dd>
       </dl>
       <OutputReview
         outputs={outputs}
@@ -3014,6 +3030,39 @@ function CandidateReview({
       ) : null}
       {isCandidate && !canAccept && acceptDisabledReason ? (
         <p className="blocked-reason">{acceptDisabledReason}</p>
+      ) : null}
+      {consistency && consistency.status !== "passed" ? (
+        <div className="consistency-block">
+          <h3>This design cannot be safely revised yet.</h3>
+          <p>Volundr found an internal mismatch between the approved design plan and generated model.</p>
+          {consistencyFindings.length > 0 ? (
+            <>
+              <h4>Internal alignment issues</h4>
+              <ul>
+                {consistencyFindings.slice(0, 5).map((finding) => (
+                  <li key={`${finding.rule_id}-${finding.explanation}`}>{finding.explanation}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <div className="actions compact">
+            <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>
+              Regenerate from approved plan
+            </button>
+          </div>
+          {consistency.findings.length > 0 ? (
+            <details>
+              <summary>View technical details</summary>
+              <ul>
+                {consistency.findings.map((finding) => (
+                  <li key={`${finding.rule_id}-${finding.explanation}`}>
+                    {finding.rule_id}: {finding.explanation}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
       ) : null}
       <SourceCheckSummary
         findings={sourceChecks.blocking.concat(sourceChecks.advisory)}

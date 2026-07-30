@@ -43,7 +43,7 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-generation-v2"
+    assert provider.prompt_template_version_for(request) == "cadquery-generation-v3"
     assert provider.ruleset_version == "gemini-ruleset-v1"
     assert "You generate CadQuery Python for Volundr." in prompt
     assert "Return only a single fenced python block" in prompt
@@ -54,16 +54,21 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
     assert "Define `def build(params):`" in prompt
     assert "Return exactly one `Product`" in prompt
     assert "Do not define `build_model()`" in prompt
-    assert "ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False)" in prompt
+    assert "ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False, source_requirement_id=None, source=None)" in prompt
     assert "Do not use unsupported ParameterSpec aliases such as description, min, max, minimum, maximum, value, default_value, units, or help" in prompt
     assert "ParameterSpec type must be exactly one of float, int, bool, str, or enum; never use number" in prompt
     assert "ParameterSpec default must be a literal value, not a variable reference" in prompt
+    assert "copy those fields into its ParameterSpec exactly" in prompt
     assert "Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params)" in prompt
     assert "Always quote ParameterSpec type values, for example type=\"float\"; never write type=float" in prompt
     assert "Initial generation mode:" in prompt
     assert "Authoritative Design Specification JSON:" in prompt
     assert '"printer_profile_id": "default-fdm-256"' in prompt
     assert "Authoritative Design Plan JSON:" in prompt
+    assert "Required stable identity table:" in prompt
+    assert '"required_components": [' in prompt
+    assert '"required_outputs": [' in prompt
+    assert '"required_parameters": [' in prompt
     assert '"dependency_edges": [' in prompt
     assert '"components": [' in prompt
     assert '"features": [' in prompt

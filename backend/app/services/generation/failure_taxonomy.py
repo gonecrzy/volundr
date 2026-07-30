@@ -21,6 +21,7 @@ class FailureClass(StrEnum):
     DESIGN_SPEC_MISSING = "design_spec_missing"
     DESIGN_SPEC_INVALID = "design_spec_invalid"
     DESIGN_PLAN_INVALID = "design_plan_invalid"
+    DESIGN_ARTIFACT_INCONSISTENT = "design_artifact_inconsistent"
     REVISION_REGRESSION = "revision_regression"
     REPAIR_OVERREACH = "repair_overreach"
     BENCHMARK_FIXTURE_INVALID = "benchmark_fixture_invalid"

@@ -23,6 +23,8 @@ from app.services.ai.provider import (
     ModelGenerationResult,
     RequirementExtractionRequest,
     RequirementExtractionResult,
+    RevisionPlanRequest,
+    RevisionPlanResult,
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
@@ -174,17 +176,29 @@ def design_plan(*, optional_lid: bool = False) -> dict[str, Any]:
 MULTI_OUTPUT_SOURCE = """
 import cadquery as cq
 
-from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
 
 PARAMETERS = [
-    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm"),
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True, source_requirement_id="body_width"),
 ]
+
+@component("body")
+@feature("body_shell", component="body")
+def build_body(params):
+    body_width = params.get("body_width", 80.0)
+    return cq.Workplane("XY").box(body_width, 50.0, 6.0)
+
+
+@component("lid")
+@feature("lid_panel", component="lid")
+def build_lid(params):
+    body_width = params.get("body_width", 80.0)
+    return cq.Workplane("XY").box(body_width, 50.0, 3.0)
 
 
 def build(params):
-    body_width = params.get("body_width", 80.0)
-    body = cq.Workplane("XY").box(body_width, 50.0, 6.0)
-    lid = cq.Workplane("XY").box(body_width, 50.0, 3.0)
+    body = build_body(params)
+    lid = build_lid(params)
     return Product(
         parameters=PARAMETERS,
         outputs=[
@@ -209,11 +223,26 @@ def build(params):
 """
 
 
+SINGLE_OUTPUT_SOURCE = MULTI_OUTPUT_SOURCE.replace(
+    """            PrintableOutput(
+                output_id=\"lid\",
+                label=\"Lid\",
+                model=lid,
+                component_id=\"lid\",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            ),
+""",
+    "",
+)
+
+
 class MultiOutputProvider:
     def __init__(self, *, plan: dict[str, Any] | None = None, source: str = MULTI_OUTPUT_SOURCE) -> None:
         self.plan = plan or design_plan()
         self.source = source
         self.generation_requests: list[ModelGenerationRequest] = []
+        self.revision_plan_requests: list[RevisionPlanRequest] = []
 
     @property
     def ruleset_version(self) -> str:
@@ -265,6 +294,32 @@ class MultiOutputProvider:
             provider_model="fake-multi-output-model",
         )
 
+    async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
+        self.revision_plan_requests.append(request)
+        return RevisionPlanResult(
+            raw_output=json.dumps(
+                {
+                    "schema_version": "revision-plan-v1",
+                    "outcome": "revision_ready",
+                    "revision_ready": True,
+                    "clarification_required": False,
+                    "summary": "Add a small revision.",
+                    "reason": "user_request",
+                    "target_components": ["body"],
+                    "target_outputs": ["body"],
+                    "protected_components": ["lid"],
+                    "protected_outputs": ["lid"],
+                    "parameter_changes": [],
+                    "required_source_changes": [],
+                    "preservation_requirements": [],
+                    "verification_plan": [],
+                    "clarification_questions": [],
+                }
+            ),
+            provider="fake",
+            provider_model="fake-multi-output-model",
+        )
+
 
 class MultiOutputCadRunner:
     def __init__(
@@ -305,7 +360,9 @@ class MultiOutputCadRunner:
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
-        execution_manifest_path.write_text('{"success": true}', encoding="utf-8")
+        requested_by_id = {
+            str(output["output_id"]): output for output in requested_outputs or []
+        }
 
         outputs: list[CadQueryOutputResult] = []
         first_stl_path: Path | None = None
@@ -326,7 +383,7 @@ class MultiOutputCadRunner:
                     CadQueryOutputResult(
                         output_id=output_id,
                         entrypoint=output_id,
-                        required=True,
+                        required=bool(requested_by_id.get(output_id, {}).get("required", True)),
                         success=False,
                         stl_path=None,
                         step_path=None,
@@ -348,7 +405,7 @@ class MultiOutputCadRunner:
                     CadQueryOutputResult(
                         output_id=output_id,
                         entrypoint=output_id,
-                        required=True,
+                        required=bool(requested_by_id.get(output_id, {}).get("required", True)),
                         success=False,
                         stl_path=None,
                         step_path=None,
@@ -412,7 +469,7 @@ class MultiOutputCadRunner:
                 CadQueryOutputResult(
                     output_id=output_id,
                     entrypoint=output_id,
-                    required=True,
+                    required=bool(requested_by_id.get(output_id, {}).get("required", True)),
                     success=True,
                     stl_path=stl_path,
                     step_path=step_path,
@@ -447,6 +504,44 @@ class MultiOutputCadRunner:
             outputs=outputs,
         )
         object.__setattr__(result, "execution_manifest_path", execution_manifest_path)
+        execution_manifest_path.write_text(
+            json.dumps(
+                {
+                    "cad_backend": "cadquery",
+                    "source_language": "python",
+                    "source_contract_version": "cadquery-v1",
+                    "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                    "parameter_hash": hashlib.sha256(
+                        json.dumps(
+                            parameter_values or {},
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest(),
+                    "parameters": parameter_values or {},
+                    "requested_output_ids": output_ids,
+                    "output_ids": [
+                        output.output_id for output in outputs if output.success
+                    ],
+                    "outputs": [
+                        {
+                            "output_id": output.output_id,
+                            "required": output.required,
+                            "success": output.success,
+                            "topology_metadata": output.topology_metadata,
+                            "compile_error": output.compile_error,
+                            "stl_hash": output.stl_hash,
+                            "step_hash": output.step_hash,
+                            "brep_hash": output.brep_hash,
+                        }
+                        for output in outputs
+                    ],
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
         return result
 
 
@@ -582,7 +677,7 @@ def test_single_component_output_with_disconnected_bodies_blocks_candidate(tmp_p
     single_output_plan["printable_outputs"] = [single_output_plan["printable_outputs"][0]]
     single_output_plan["components"] = [single_output_plan["components"][0]]
     single_output_plan["features"] = [single_output_plan["features"][0]]
-    provider = MultiOutputProvider(plan=single_output_plan)
+    provider = MultiOutputProvider(plan=single_output_plan, source=SINGLE_OUTPUT_SOURCE)
     runner = MultiOutputCadRunner(disconnected_outputs={"body"})
     client, _SessionLocal = build_client(tmp_path, provider, runner)
     context = create_approved_plan(client)
@@ -720,3 +815,33 @@ def test_export_zip_contains_project_manifest_source_and_cadquery_artifacts(tmp_
         readme_name = next(name for name in names if name.endswith("/README.md"))
         readme = archive.read(readme_name).decode("utf-8")
         assert "source.py" in readme
+
+
+def test_inconsistent_accepted_base_blocks_revision_plan_before_provider(
+    tmp_path: Path,
+) -> None:
+    provider = MultiOutputProvider()
+    runner = MultiOutputCadRunner()
+    client, _SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_approved_plan(client)
+    candidate = client.post(f"/api/design-plans/{context['plan']['id']}/generate").json()
+    accepted = client.post(f"/api/candidates/{candidate['id']}/accept").json()
+    source_path = tmp_path / "data" / accepted["source_path"]
+    source_path.write_text(
+        MULTI_OUTPUT_SOURCE.replace('output_id="body"', 'output_id="base_body"', 1),
+        encoding="utf-8",
+    )
+    provider.revision_plan_requests.clear()
+
+    response = client.post(
+        f"/api/projects/{context['project']['id']}/revision-plans",
+        json={
+            "base_revision_id": accepted["id"],
+            "user_instruction": "Add a recessed grip to the lid.",
+        },
+    )
+
+    assert response.status_code == 409
+    assert "internal mismatch" in response.json()["detail"]
+    assert "planned output `body`" in response.json()["detail"]
+    assert provider.revision_plan_requests == []

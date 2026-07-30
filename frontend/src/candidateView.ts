@@ -10,6 +10,29 @@ export type ValidationSummary = {
   dismissed_count: number;
 };
 
+export type DesignConsistencyFinding = {
+  rule_id: string;
+  explanation: string;
+  is_blocking: boolean;
+};
+
+export type DesignConsistencyStatus =
+  | "passed"
+  | "blocked"
+  | "needs_execution_evidence"
+  | "legacy_unverified";
+
+export type DesignConsistency = {
+  status: DesignConsistencyStatus;
+  pre_execution_passed: boolean;
+  post_execution_passed: boolean;
+  revision_base_ready: boolean;
+  configuration_ready: boolean;
+  blocking_count: number;
+  advisory_count: number;
+  findings: DesignConsistencyFinding[];
+};
+
 export type CandidateRevision = {
   id: string;
   revision_number: number;
@@ -18,6 +41,7 @@ export type CandidateRevision = {
   is_accepted: boolean;
   review_state: ReviewState | null;
   validation_summary: ValidationSummary;
+  design_consistency?: DesignConsistency | null;
 };
 
 export type RevisionOutputState =
@@ -240,6 +264,9 @@ export function canAcceptRevision(revision: CandidateRevision | null): boolean {
   if (!revision) {
     return false;
   }
+  if (revision.design_consistency && revision.design_consistency.status !== "passed") {
+    return false;
+  }
   return (
     (revision.review_state === "ready" || revision.review_state === "ready_with_warnings") &&
     revision.validation_summary.blocking_count === 0
@@ -249,6 +276,13 @@ export function canAcceptRevision(revision: CandidateRevision | null): boolean {
 export function acceptDisabledReason(revision: CandidateRevision | null): string | null {
   if (!revision) {
     return "Select a candidate before accepting.";
+  }
+  if (revision.design_consistency && revision.design_consistency.status !== "passed") {
+    const count = revision.design_consistency.blocking_count;
+    if (count > 0) {
+      return `Resolve ${count} internal design ${count === 1 ? "mismatch" : "mismatches"} before accepting.`;
+    }
+    return "Design consistency must pass before accepting.";
   }
   if (revision.validation_summary.blocking_count > 0) {
     const count = revision.validation_summary.blocking_count;
@@ -264,6 +298,23 @@ export function acceptDisabledReason(revision: CandidateRevision | null): string
     return "Only ready candidates can be accepted.";
   }
   return null;
+}
+
+export function designConsistencyLabel(revision: CandidateRevision | null): string {
+  const consistency = revision?.design_consistency;
+  if (!consistency) {
+    return "Not applicable";
+  }
+  if (consistency.status === "passed") {
+    return "Passed";
+  }
+  if (consistency.status === "blocked") {
+    return `Blocked - ${consistency.blocking_count} internal ${consistency.blocking_count === 1 ? "mismatch" : "mismatches"}`;
+  }
+  if (consistency.status === "needs_execution_evidence") {
+    return "Needs execution evidence";
+  }
+  return "Unverified";
 }
 
 export function candidateFindingBuckets(findings: CandidateFinding[]): {

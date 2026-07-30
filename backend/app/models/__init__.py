@@ -1,6 +1,7 @@
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
+from app.models.design_artifact_consistency import DesignArtifactConsistencyResult
 from app.models.design_specification import DesignSpecification
 from app.models.design_plan import (
     DesignPlan,
@@ -30,6 +31,7 @@ __all__ = [
     "ClarificationQuestion",
     "ConfigurationChange",
     "ConfigurationPreset",
+    "DesignArtifactConsistencyResult",
     "DesignSpecification",
     "DesignPlan",
     "DesignPlanClarificationAnswer",

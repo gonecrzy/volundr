@@ -27,7 +27,7 @@ DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v1"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v2"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v3"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v1"
 
 
@@ -253,13 +253,14 @@ class GeminiCliProvider:
             "- Follow the cadquery-v1 source contract.",
             "- The only imports allowed are exactly `import cadquery as cq` and `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface`.",
             "- Define typed `ParameterSpec` entries for user-adjustable dimensions and options.",
-            "- Runtime signatures: `ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False)`, `PrintableOutput(output_id, label, model, component_id=None, component_ids=(), quantity=1, required=True, expected_solid_count=1, allow_disconnected_solids=False, metadata={})`, and `Product(outputs, parameters=(), schema_version=\"cadquery-v1\", metadata={})`.",
+            "- Runtime signatures: `ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False, source_requirement_id=None, source=None)`, `PrintableOutput(output_id, label, model, component_id=None, component_ids=(), quantity=1, required=True, expected_solid_count=1, allow_disconnected_solids=False, metadata={})`, and `Product(outputs, parameters=(), schema_version=\"cadquery-v1\", metadata={})`.",
             "- Use static ownership decorators on top-level helpers: `@component(\"component_id\")`, `@feature(\"feature_id\", component=\"component_id\")`, `@shared_helper(\"helper_id\")`, and `@protected_interface(\"interface_id\", parameters=(\"parameter_id\",))`.",
             "- Decorators are metadata only; still return the complete authoritative source from build(params), never source fragments.",
             "- Do not use unsupported ParameterSpec aliases such as description, min, max, minimum, maximum, value, default_value, units, or help; use `min_value` and `max_value` exactly for numeric ranges.",
             "- ParameterSpec type must be exactly one of float, int, bool, str, or enum; never use number.",
             "- Always quote ParameterSpec type values, for example type=\"float\"; never write type=float.",
             "- ParameterSpec default must be a literal value, not a variable reference.",
+            "- When a Design Plan parameter has source_requirement_id or source, copy those fields into its ParameterSpec exactly.",
             "- Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params).",
             "- Define `def build(params):` with exactly one parameter named params.",
             "- Do not define `build_model()`; generated source must use `build(params)`.",
@@ -423,6 +424,44 @@ class GeminiCliProvider:
             design_specification = request.design_specification or {}
             design_plan = request.design_plan or {}
             printable_outputs = list(design_plan.get("printable_outputs", []))
+            identity_table = {
+                "required_components": [
+                    component.get("id")
+                    for component in design_plan.get("components", [])
+                    if isinstance(component, dict) and component.get("id")
+                ],
+                "required_features": [
+                    {
+                        "id": feature.get("id"),
+                        "component_id": feature.get("component_id"),
+                        "protected": bool(feature.get("protected")),
+                    }
+                    for feature in design_plan.get("features", [])
+                    if isinstance(feature, dict) and feature.get("id")
+                ],
+                "required_outputs": [
+                    {
+                        "id": output.get("id") or output.get("output_id"),
+                        "component_ids": output.get("component_ids", []),
+                        "required": output.get("required", True),
+                    }
+                    for output in printable_outputs
+                    if isinstance(output, dict)
+                ],
+                "required_parameters": [
+                    {
+                        "id": parameter.get("id"),
+                        "value": parameter.get("value"),
+                        "unit": parameter.get("unit"),
+                        "type": parameter.get("type") or parameter.get("parameter_type"),
+                        "protected": bool(parameter.get("protected")),
+                        "source_requirement_id": parameter.get("source_requirement_id"),
+                        "source": parameter.get("source"),
+                    }
+                    for parameter in design_plan.get("parameters", [])
+                    if isinstance(parameter, dict) and parameter.get("id")
+                ],
+            }
             topology_expectations = [
                 {
                     "output_id": output.get("id") or output.get("output_id"),
@@ -445,12 +484,18 @@ class GeminiCliProvider:
                     "- Return the complete Python source for the whole product; do not return snippets, patches, prose, JSON, other CAD languages, or helper-only fragments.",
                     "- Implement every planned component, feature, dependency, parameter, and printable output unless the plan explicitly marks it optional.",
                     "- Preserve protected requirement values and topology expectations exactly.",
+                    "- Use exact stable product IDs from the identity table for @component, @feature, ParameterSpec.id, and PrintableOutput.output_id.",
+                    "- Python function names may differ from stable product IDs, but decorators and PrintableOutput metadata must bind the exact stable IDs.",
+                    "- Do not invent replacement product IDs or fuzzy aliases such as base_body for planned output base.",
                     "",
                     "Authoritative Design Specification JSON:",
                     json.dumps(design_specification, indent=2, sort_keys=True),
                     "",
                     "Authoritative Design Plan JSON:",
                     json.dumps(design_plan, indent=2, sort_keys=True),
+                    "",
+                    "Required stable identity table:",
+                    json.dumps(identity_table, indent=2, sort_keys=True),
                     "",
                     "Typed parameter contract:",
                     json.dumps(design_plan.get("parameters", []), indent=2, sort_keys=True),

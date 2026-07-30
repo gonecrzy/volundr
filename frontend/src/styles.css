@@ -517,6 +517,34 @@ textarea {
   padding: 8px 10px;
 }
 
+.consistency-block {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  color: #431407;
+  display: grid;
+  font-size: 0.82rem;
+  gap: 8px;
+  line-height: 1.35;
+  margin-top: 12px;
+  padding: 10px;
+}
+
+.consistency-block h3,
+.consistency-block h4,
+.consistency-block p {
+  margin: 0;
+}
+
+.consistency-block ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.consistency-block details {
+  color: #7c2d12;
+}
+
 .candidate-findings {
   display: grid;
   gap: 8px;

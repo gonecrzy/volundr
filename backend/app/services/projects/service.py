@@ -21,6 +21,7 @@ from app.core.config import settings
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
+from app.models.design_artifact_consistency import DesignArtifactConsistencyResult
 from app.models.design_plan import (
     DesignPlan,
     DesignPlanClarificationAnswer,
@@ -54,6 +55,7 @@ from app.schemas.project import (
     ConfigurationPresetRead,
     ConfigurationValidationState,
     ComponentRevisionSummaryRead,
+    DesignArtifactConsistencyRead,
     DesignSpecificationPayload,
     DesignSpecificationRead,
     DesignPlanClarificationQuestionRead,
@@ -110,6 +112,10 @@ from app.services.cad.source_metadata import (
     evaluate_constants,
 )
 from app.services.generation.failure_taxonomy import FailureClass
+from app.services.projects.design_artifact_consistency import (
+    certify_design_artifact_consistency,
+    consistency_failure_message,
+)
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -525,6 +531,8 @@ class ProjectService:
             return None
         if revision.review_state not in ACCEPTABLE_CANDIDATE_STATES:
             raise ValueError("candidate state does not permit acceptance")
+        if revision.cad_backend == "cadquery" and revision.design_plan_id is not None:
+            self._require_revision_base_ready(revision, purpose="candidate acceptance")
         if self._has_blocking_findings(revision.id):
             raise ValueError("candidate has unresolved blocking validation findings")
         project = self.db.get(Project, revision.project_id)
@@ -794,6 +802,55 @@ class ProjectService:
         path.write_text("\n".join(lines), encoding="utf-8")
         return path
 
+    def _write_revision_execution_manifest(
+        self,
+        *,
+        revision: Revision,
+        source_hash: str,
+        parameter_hash: str,
+        parameter_values: dict[str, Any],
+    ) -> Path:
+        revision_dir = self._revision_dir(revision.project_id, revision.id)
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        payload = {
+            "cad_backend": revision.cad_backend,
+            "source_language": revision.source_language,
+            "source_contract_version": revision.source_contract_version,
+            "source_hash": source_hash,
+            "parameter_hash": parameter_hash,
+            "parameters": parameter_values,
+            "requested_output_ids": [output.output_id for output in outputs],
+            "output_ids": [
+                output.output_id
+                for output in outputs
+                if output.execution_state in OUTPUT_READY_STATES
+            ],
+            "outputs": [
+                {
+                    "output_id": output.output_id,
+                    "required": output.required,
+                    "success": output.execution_state in OUTPUT_READY_STATES,
+                    "topology_metadata": json.loads(output.topology_metadata_json)
+                    if output.topology_metadata_json
+                    else None,
+                    "compile_error": output.compile_error,
+                    "stl_hash": output.stl_hash,
+                    "step_hash": output.step_hash,
+                    "brep_hash": output.brep_hash,
+                }
+                for output in outputs
+            ],
+        }
+        path = revision_dir / "execution-manifest.json"
+        self._write_json(path, payload)
+        return path
+
     def reject_candidate(self, revision_id: str) -> RevisionRead | None:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
@@ -885,6 +942,7 @@ class ProjectService:
         if context is None:
             return None
         _project, base_revision, _design_plan, design_plan_payload, source, _source_hash = context
+        self._require_revision_base_ready(base_revision, purpose="configuration parameter review")
         metadata = self._configuration_source_metadata(
             source=source,
             design_plan_payload=design_plan_payload,
@@ -937,6 +995,7 @@ class ProjectService:
         if context is None:
             return None
         _project, base_revision, design_plan, design_plan_payload, source, _source_hash = context
+        self._require_revision_base_ready(base_revision, purpose="configuration preset")
         if payload.design_plan_id is not None and payload.design_plan_id != design_plan.id:
             raise ValueError("preset Design Plan does not match the active revision")
         validation = self._resolve_configuration(
@@ -970,6 +1029,7 @@ class ProjectService:
         if context is None:
             return None
         _project, base_revision, design_plan, design_plan_payload, source, source_hash = context
+        self._require_revision_base_ready(base_revision, purpose="configuration preview")
         resolution = self._resolve_configuration(
             design_plan_payload=design_plan_payload,
             source=source,
@@ -1024,6 +1084,7 @@ class ProjectService:
         design_plan = self.db.get(DesignPlan, change.design_plan_id)
         if base_revision is None or design_plan is None:
             raise ValueError("configuration base revision or Design Plan is missing")
+        self._require_revision_base_ready(base_revision, purpose="configuration generation")
         source_path = self.resolve_revision_source(base_revision.id)
         if source_path is None:
             raise ValueError("base revision source is missing")
@@ -1047,6 +1108,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
             source_validation_result_id=None,
             parameter_values=manifest["parameter_values"],
+            parameter_overrides=manifest["parameter_values"],
             parent_revision_id=base_revision.id,
             configuration_change_id=change.id,
         )
@@ -1120,6 +1182,7 @@ class ProjectService:
         design_plan = self.db.get(DesignPlan, base_revision.design_plan_id)
         if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
             raise ValueError("base revision must reference an approved Design Plan")
+        self._require_revision_base_ready(base_revision, purpose="revision planning")
         design_plan_payload = self._read_design_plan_payload(design_plan)
         design_specification = (
             self.db.get(DesignSpecification, base_revision.design_specification_id)
@@ -1248,6 +1311,7 @@ class ProjectService:
         )
         if project is None or base_revision is None or design_plan is None:
             raise ValueError("Revision Plan context is incomplete")
+        self._require_revision_base_ready(base_revision, purpose="revision planning")
         previous_payload = self._read_revision_plan_payload(plan)
         answers: list[dict[str, Any]] = []
         questions_context: list[dict[str, Any]] = []
@@ -1343,6 +1407,7 @@ class ProjectService:
         )
         if project is None or base_revision is None or design_plan is None:
             raise ValueError("Revision Plan context is incomplete")
+        self._require_revision_base_ready(base_revision, purpose="component revision generation")
         base_source = self.read_revision_source(base_revision.id)
         if base_source is None:
             raise ValueError("base revision source is missing")
@@ -1515,6 +1580,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
             source_validation_result_id=source_validation.id,
             parameter_values=cadquery_parameter_values or self._cadquery_source_parameter_values(revised_source),
+            parameter_overrides=cadquery_parameter_values,
             parent_revision_id=base_revision.id,
             configuration_change_id=configuration_change_id,
         )
@@ -1526,6 +1592,18 @@ class ProjectService:
                 error_message="revision candidate was not created",
             )
             return None
+        if candidate.status != "succeeded":
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+                if self._has_design_artifact_consistency_blockers(candidate.id)
+                else FailureClass.CADQUERY_COMPILE_FAILURE,
+                error_message=candidate.error_message,
+                resulting_revision_id=candidate.id,
+            )
+            self.db.commit()
+            return candidate
         plan.generated_revision_id = candidate.id
         compliance.revision_id = candidate.id
         self._persist_revision_success_results(
@@ -2210,10 +2288,14 @@ class ProjectService:
         self._finish_generation_attempt(
             active_attempt,
             status="failed",
-            failure_class=FailureClass.CADQUERY_COMPILE_FAILURE,
+            failure_class=FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+            if self._has_design_artifact_consistency_blockers(initial_revision.id)
+            else FailureClass.CADQUERY_COMPILE_FAILURE,
             error_message=initial_revision.error_message,
             resulting_revision_id=initial_revision.id,
         )
+        if self._has_design_artifact_consistency_blockers(initial_revision.id):
+            return initial_revision
 
         repair_request = self._generation_request(
             project=project,
@@ -2301,6 +2383,8 @@ class ProjectService:
             status="succeeded" if repair_revision and repair_revision.status == "succeeded" else "failed",
             failure_class=FailureClass.NONE
             if repair_revision and repair_revision.status == "succeeded"
+            else FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+            if repair_revision and self._has_design_artifact_consistency_blockers(repair_revision.id)
             else FailureClass.CADQUERY_COMPILE_FAILURE,
             error_message=None
             if repair_revision and repair_revision.status == "succeeded"
@@ -4109,6 +4193,193 @@ class ProjectService:
         if len(findings) > 8:
             lines.append(f"- {len(findings) - 8} additional blocking findings")
         return "\n".join(lines)
+
+    def _source_validation_generation_attempt_id(
+        self,
+        source_validation_result_id: str | None,
+    ) -> str | None:
+        if source_validation_result_id is None:
+            return None
+        source_validation = self.db.get(SourceValidationResult, source_validation_result_id)
+        return source_validation.generation_attempt_id if source_validation is not None else None
+
+    def _persist_design_artifact_consistency(
+        self,
+        *,
+        revision: Revision,
+        source: str,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any],
+        execution_parameters: dict[str, Any] | None = None,
+        execution_manifest: dict[str, Any] | None = None,
+        output_manifest: dict[str, Any] | None = None,
+        parameter_overrides: dict[str, Any] | None = None,
+        generation_attempt_id: str | None = None,
+    ) -> DesignArtifactConsistencyResult:
+        started = time.perf_counter()
+        payload = certify_design_artifact_consistency(
+            project_id=revision.project_id,
+            revision_id=revision.id,
+            design_specification_id=revision.design_specification_id,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=revision.design_plan_id,
+            design_plan_payload=design_plan_payload,
+            source=source,
+            execution_parameters=execution_parameters,
+            execution_manifest=execution_manifest,
+            output_manifest=output_manifest,
+            parameter_overrides=parameter_overrides,
+        )
+        result_dir = self._revision_dir(revision.project_id, revision.id) / "metadata"
+        result_dir.mkdir(parents=True, exist_ok=True)
+        result_path = result_dir / "design-artifact-consistency.json"
+        self._write_json(result_path, payload)
+        row = DesignArtifactConsistencyResult(
+            project_id=revision.project_id,
+            revision_id=revision.id,
+            design_specification_id=revision.design_specification_id,
+            design_plan_id=revision.design_plan_id,
+            generation_attempt_id=generation_attempt_id,
+            schema_version=str(payload["schema_version"]),
+            validator_version=str(payload["validator_version"]),
+            source_hash=payload.get("source_hash"),
+            parameter_hash=payload.get("parameter_hash"),
+            output_manifest_hash=payload.get("output_manifest_hash"),
+            result_path=self._relative(result_path),
+            pre_execution_passed=bool(payload.get("pre_execution_passed")),
+            post_execution_passed=bool(payload.get("post_execution_passed")),
+            revision_base_ready=bool(payload.get("revision_base_ready")),
+            configuration_ready=bool(payload.get("configuration_ready")),
+            validation_ms=round((time.perf_counter() - started) * 1000, 3),
+        )
+        self.db.add(row)
+        self.db.flush()
+        self._persist_design_artifact_findings(revision=revision, payload=payload)
+        return row
+
+    def _persist_design_artifact_findings(
+        self,
+        *,
+        revision: Revision,
+        payload: dict[str, Any],
+    ) -> None:
+        self.db.execute(
+            delete(ValidationFinding).where(
+                ValidationFinding.revision_id == revision.id,
+                ValidationFinding.category == "design_artifact_consistency",
+            )
+        )
+        for finding in payload.get("findings", []):
+            if not isinstance(finding, dict):
+                continue
+            self.db.add(
+                ValidationFinding(
+                    revision_id=revision.id,
+                    rule_id=str(finding.get("rule_id") or "design_artifact.consistency"),
+                    category="design_artifact_consistency",
+                    severity=str(finding.get("severity") or "critical"),
+                    is_blocking=bool(finding.get("is_blocking", True)),
+                    title=str(finding.get("title") or "Design artifact consistency"),
+                    explanation=str(finding.get("explanation") or "Design artifacts are inconsistent."),
+                    suggested_correction=str(
+                        finding.get("suggested_correction")
+                        or "Regenerate from the approved Design Plan."
+                    ),
+                    detected_value=self._value_to_text(finding.get("detected_value")),
+                    unit=finding.get("unit") if isinstance(finding.get("unit"), str) else None,
+                    threshold_value=self._value_to_text(finding.get("expected_value")),
+                    orientation_dependent=False,
+                    metadata_json=json.dumps(
+                        {
+                            "finding_origin": "design_artifact_consistency",
+                            "phase": finding.get("phase"),
+                            "parameter_id": finding.get("parameter_id"),
+                            "component_id": finding.get("component_id"),
+                            "feature_id": finding.get("feature_id"),
+                            "output_id": finding.get("output_id"),
+                        },
+                        sort_keys=True,
+                    ),
+                )
+            )
+        self.db.flush()
+
+    def _latest_design_artifact_consistency(
+        self,
+        revision_id: str,
+    ) -> DesignArtifactConsistencyResult | None:
+        return self.db.scalar(
+            select(DesignArtifactConsistencyResult)
+            .where(DesignArtifactConsistencyResult.revision_id == revision_id)
+            .order_by(DesignArtifactConsistencyResult.created_at.desc())
+        )
+
+    def _read_design_artifact_consistency_payload(
+        self,
+        result: DesignArtifactConsistencyResult,
+    ) -> dict[str, Any]:
+        return self._read_json_file(result.result_path) or {}
+
+    def _certify_revision_artifacts(
+        self,
+        revision: Revision,
+    ) -> DesignArtifactConsistencyResult:
+        source = self.read_revision_source(revision.id)
+        if source is None:
+            raise ValueError("base revision source is missing")
+        design_plan_payload = self._revision_design_plan_payload(revision)
+        if design_plan_payload is None:
+            raise ValueError("base revision must reference an approved Design Plan")
+        design_specification_payload = self._revision_design_specification_payload(revision)
+        output_manifest = self.read_output_manifest(revision.id)
+        execution_manifest = None
+        if revision.execution_manifest_path:
+            execution_manifest = self._read_json_file(revision.execution_manifest_path)
+        execution_parameters = (
+            execution_manifest.get("parameters")
+            if isinstance(execution_manifest, dict) and isinstance(execution_manifest.get("parameters"), dict)
+            else None
+        )
+        parameter_overrides = None
+        if revision.configuration_change_id is not None:
+            change = self.db.get(ConfigurationChange, revision.configuration_change_id)
+            if change is not None:
+                override_manifest = self._configuration_override_manifest(change)
+                parameter_overrides = dict(override_manifest.get("parameter_values") or {})
+        result = self._persist_design_artifact_consistency(
+            revision=revision,
+            source=source,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+            execution_parameters=execution_parameters,
+            execution_manifest=execution_manifest,
+            output_manifest=output_manifest,
+            parameter_overrides=parameter_overrides,
+        )
+        if revision.status == "succeeded":
+            revision.review_state = self._derive_review_state(revision.id)
+        self.db.flush()
+        return result
+
+    def _require_revision_base_ready(
+        self,
+        revision: Revision,
+        *,
+        purpose: str,
+    ) -> DesignArtifactConsistencyResult:
+        result = self._certify_revision_artifacts(revision)
+        if not result.revision_base_ready:
+            payload = self._read_design_artifact_consistency_payload(result)
+            self.db.commit()
+            raise ValueError(consistency_failure_message(payload))
+        return result
+
+    def _value_to_text(self, value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        return json.dumps(value, sort_keys=True)
 
     def _attach_source_validation_to_revision(
         self,
@@ -6038,6 +6309,18 @@ class ProjectService:
             or 0
         ) > 0
 
+    def _has_design_artifact_consistency_blockers(self, revision_id: str) -> bool:
+        return (
+            self.db.scalar(
+                select(func.count(ValidationFinding.id)).where(
+                    ValidationFinding.revision_id == revision_id,
+                    ValidationFinding.category == "design_artifact_consistency",
+                    ValidationFinding.is_blocking.is_(True),
+                )
+            )
+            or 0
+        ) > 0
+
     def _validation_summary(
         self,
         revision_id: str,
@@ -6114,6 +6397,7 @@ class ProjectService:
         parameter_values: dict[str, Any] | None = None,
         parent_revision_id: str | None = None,
         configuration_change_id: str | None = None,
+        parameter_overrides: dict[str, Any] | None = None,
         auto_accept: bool = False,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
@@ -6177,6 +6461,30 @@ class ProjectService:
         if explicit_inventory:
             validate_execution_parameters(compile_parameter_values, explicit_inventory)
         parameter_hash = self._configuration_parameter_hash(compile_parameter_values)
+        generation_attempt_id = self._source_validation_generation_attempt_id(source_validation_result_id)
+        if design_plan_id is not None:
+            pre_execution_consistency = self._persist_design_artifact_consistency(
+                revision=revision,
+                source=source,
+                design_specification_payload=design_specification_payload,
+                design_plan_payload=design_plan_payload,
+                execution_parameters=compile_parameter_values,
+                parameter_overrides=parameter_overrides,
+                generation_attempt_id=generation_attempt_id,
+            )
+            if not pre_execution_consistency.pre_execution_passed:
+                payload = self._read_design_artifact_consistency_payload(pre_execution_consistency)
+                error_message = consistency_failure_message(payload)
+                revision.status = "failed"
+                revision.review_state = "blocked"
+                revision.source_path = self._relative(source_path)
+                revision.source_hash = source_hash
+                revision.source_contract_version = "cadquery-v1"
+                revision.ai_output_path = ai_output_relative_path
+                self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+                self.db.commit()
+                self.db.refresh(revision)
+                return self._revision_read(revision, error_message=error_message)
         used_filenames: set[str] = set()
         output_records: list[RevisionOutput] = []
         requested_outputs: list[dict[str, Any]] = []
@@ -6288,7 +6596,26 @@ class ProjectService:
         revision.ai_output_path = ai_output_relative_path
         revision.compile_log_path = self._relative(compile_log_path)
         revision.stl_path = self._first_successful_output_stl(revision)
-        revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
+        output_manifest_path = self._write_output_manifest(revision)
+        revision.output_manifest_path = self._relative(output_manifest_path)
+        execution_manifest_payload = (
+            self._read_json_file(execution_manifest_relative_path)
+            if execution_manifest_relative_path is not None
+            else None
+        )
+        output_manifest_payload = self._read_json_file(revision.output_manifest_path)
+        if design_plan_id is not None:
+            self._persist_design_artifact_consistency(
+                revision=revision,
+                source=source,
+                design_specification_payload=design_specification_payload,
+                design_plan_payload=design_plan_payload,
+                execution_parameters=compile_parameter_values,
+                execution_manifest=execution_manifest_payload,
+                output_manifest=output_manifest_payload,
+                parameter_overrides=parameter_overrides,
+                generation_attempt_id=generation_attempt_id,
+            )
         revision.review_state = self._derive_review_state(revision.id) if revision.status == "succeeded" else None
         revision.is_accepted = False
         if (
@@ -6588,9 +6915,18 @@ class ProjectService:
         )
         revision.stl_path = self._first_successful_output_stl(revision)
         revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
+        revision.execution_manifest_path = self._relative(
+            self._write_revision_execution_manifest(
+                revision=revision,
+                source_hash=expected_hash,
+                parameter_hash=parameter_hash,
+                parameter_values=parameter_values,
+            )
+        )
         revision.compile_log_path = self._relative(
             self._write_assembly_compile_log(revision, revision_dir / "logs")
         )
+        self._certify_revision_artifacts(revision)
         revision.review_state = self._derive_review_state(revision.id)
         self.db.commit()
         self.db.refresh(output)
@@ -7228,6 +7564,45 @@ class ProjectService:
             metadata=metadata_read,
             error_message=error_message,
             validation_summary=self._validation_summary(revision.id),
+            design_consistency=self._design_artifact_consistency_read(revision),
+        )
+
+    def _design_artifact_consistency_read(
+        self,
+        revision: Revision,
+    ) -> DesignArtifactConsistencyRead | None:
+        if revision.cad_backend != "cadquery" or revision.design_plan_id is None:
+            return None
+        result = self._latest_design_artifact_consistency(revision.id)
+        if result is None:
+            return DesignArtifactConsistencyRead(status="legacy_unverified")
+        payload = self._read_design_artifact_consistency_payload(result)
+        findings = [
+            finding for finding in payload.get("findings", []) if isinstance(finding, dict)
+        ]
+        blocking_count = sum(1 for finding in findings if finding.get("is_blocking"))
+        advisory_count = len(findings) - blocking_count
+        if result.revision_base_ready:
+            status = "passed"
+        elif blocking_count:
+            status = "blocked"
+        elif result.pre_execution_passed and not result.post_execution_passed:
+            status = "needs_execution_evidence"
+        else:
+            status = "legacy_unverified"
+        return DesignArtifactConsistencyRead(
+            schema_version=result.schema_version,
+            status=status,
+            pre_execution_passed=result.pre_execution_passed,
+            post_execution_passed=result.post_execution_passed,
+            revision_base_ready=result.revision_base_ready,
+            configuration_ready=result.configuration_ready,
+            blocking_count=blocking_count,
+            advisory_count=advisory_count,
+            findings=findings,
+            result_id=result.id,
+            result_path=result.result_path,
+            certified_at=str(payload.get("certified_at") or result.created_at.isoformat()),
         )
 
     def _revision_output_read(self, output: RevisionOutput) -> RevisionOutputRead:

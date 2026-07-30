@@ -4,6 +4,7 @@ import {
   canAcceptRevision,
   candidateFindingBuckets,
   candidateFindingRecoveryActions,
+  designConsistencyLabel,
   revisionViewerLabel,
   revisionWorkflowLabel,
   sourceCheckFindings,
@@ -157,6 +158,28 @@ describe("candidate view helpers", () => {
         }),
       ),
     ).toBe(false);
+    expect(
+      canAcceptRevision(
+        revision({
+          design_consistency: {
+            status: "blocked",
+            pre_execution_passed: false,
+            post_execution_passed: false,
+            revision_base_ready: false,
+            configuration_ready: false,
+            blocking_count: 1,
+            advisory_count: 0,
+            findings: [
+              {
+                rule_id: "design_artifact.output_missing",
+                explanation: "planned output `body` has no matching CadQuery PrintableOutput",
+                is_blocking: true,
+              },
+            ],
+          },
+        }),
+      ),
+    ).toBe(false);
   });
 
   it("explains disabled acceptance for blocked candidates", () => {
@@ -168,6 +191,57 @@ describe("candidate view helpers", () => {
         }),
       ),
     ).toBe("Resolve 2 blocking findings with a new revision before accepting.");
+    expect(
+      acceptDisabledReason(
+        revision({
+          design_consistency: {
+            status: "blocked",
+            pre_execution_passed: false,
+            post_execution_passed: false,
+            revision_base_ready: false,
+            configuration_ready: false,
+            blocking_count: 1,
+            advisory_count: 0,
+            findings: [],
+          },
+        }),
+      ),
+    ).toBe("Resolve 1 internal design mismatch before accepting.");
+  });
+
+  it("labels design consistency state", () => {
+    expect(
+      designConsistencyLabel(
+        revision({
+          design_consistency: {
+            status: "passed",
+            pre_execution_passed: true,
+            post_execution_passed: true,
+            revision_base_ready: true,
+            configuration_ready: true,
+            blocking_count: 0,
+            advisory_count: 0,
+            findings: [],
+          },
+        }),
+      ),
+    ).toBe("Passed");
+    expect(
+      designConsistencyLabel(
+        revision({
+          design_consistency: {
+            status: "blocked",
+            pre_execution_passed: false,
+            post_execution_passed: false,
+            revision_base_ready: false,
+            configuration_ready: false,
+            blocking_count: 3,
+            advisory_count: 0,
+            findings: [],
+          },
+        }),
+      ),
+    ).toBe("Blocked - 3 internal mismatches");
   });
 
   it("splits blocking and advisory findings for display", () => {

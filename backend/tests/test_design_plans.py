@@ -272,7 +272,7 @@ class PlanningAiProvider:
             raw_output="""
 ```python
 import cadquery as cq
-from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
 
 PARAMETERS = [
     ParameterSpec(
@@ -282,11 +282,30 @@ PARAMETERS = [
         default=60.0,
         unit="mm",
         min_value=20.0,
+        editable=True,
+        protected=True,
+        source_requirement_id="mount_hole_spacing",
+    ),
+    ParameterSpec(
+        id="plate_thickness",
+        label="Plate thickness",
+        type="float",
+        default=6.0,
+        unit="mm",
+        min_value=2.0,
+        editable=True,
+        protected=False,
     )
 ]
 
+@component("bracket_body")
+@feature("mounting_holes", component="bracket_body")
+def build_bracket_body(params):
+    return cq.Workplane("XY").box(80, params["mount_hole_spacing"] + 20, params["plate_thickness"])
+
+
 def build(params):
-    body = cq.Workplane("XY").box(80, params["mount_hole_spacing"] + 20, 6)
+    body = build_bracket_body(params)
     return Product(
         parameters=PARAMETERS,
         outputs=[

@@ -53,6 +53,8 @@ class ParameterSpec:
     choices: tuple[str, ...] = ()
     editable: bool = True
     protected: bool = False
+    source_requirement_id: str | None = None
+    source: str | None = None
 
     def __post_init__(self) -> None:
         if not self.id.strip():

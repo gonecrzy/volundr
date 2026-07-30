@@ -194,19 +194,23 @@ READY_PLAN: dict[str, Any] = {
 
 CADQUERY_BASE_SOURCE = """
 import cadquery as cq
-from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
 
 PARAMETERS = [
-    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True),
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True, source_requirement_id="body_width"),
     ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=3.0, unit="mm", editable=True),
     ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", editable=True, protected=True),
 ]
 
 
+@component("body")
+@feature("body_shell", component="body")
 def body_model(params):
     return cq.Workplane("XY").box(float(params["body_width"]), 50, float(params["wall_thickness"]))
 
 
+@component("lid")
+@feature("lid_panel", component="lid")
 def lid_model(params):
     return cq.Workplane("XY").box(float(params["body_width"]), 50, float(params["lid_thickness"]))
 
@@ -241,7 +245,7 @@ import cadquery as cq
 from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper
 
 PARAMETERS = [
-    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True),
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True, source_requirement_id="body_width"),
     ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=3.0, unit="mm", editable=True),
     ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", editable=True, protected=True),
 ]
@@ -331,7 +335,7 @@ def ready_revision_plan() -> dict[str, Any]:
             {"type": "output_exists", "target_id": "lid"},
         ],
         "requires_design_specification_version": False,
-        "requires_design_plan_version": False,
+        "requires_design_plan_version": True,
         "clarification_questions": [],
         "outcome": "revision_ready",
     }
@@ -358,10 +362,12 @@ class RevisionPlanningProvider:
         self,
         *,
         plan: dict[str, Any] | None = None,
+        base_source: str = CADQUERY_BASE_SOURCE,
         revised_source: str = CADQUERY_REVISED_SOURCE,
         correction_source: str | None = None,
     ) -> None:
         self.plan = plan or ready_revision_plan()
+        self.base_source = base_source
         self.revised_source = revised_source
         self.correction_source = correction_source
         self.revision_plan_requests: list[Any] = []
@@ -453,7 +459,7 @@ class RevisionPlanningProvider:
                 else self.revised_source
             )
         else:
-            source = CADQUERY_BASE_SOURCE
+            source = self.base_source
         return ModelGenerationResult(
             raw_output=f"```python\n{source}\n```",
             provider="fake",
@@ -503,6 +509,7 @@ class MultiOutputCadRunner:
         source_path = job_dir / "model.py"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
+        execution_manifest_path = job_dir / "execution-manifest.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
@@ -577,7 +584,7 @@ class MultiOutputCadRunner:
             first_stl = first_stl or stl_path
             first_step = first_step or step_path
             first_metadata = first_metadata or metadata_path
-        return CadQueryCompileResult(
+        result = CadQueryCompileResult(
             job_id=job_id,
             success=True,
             timed_out=False,
@@ -594,7 +601,47 @@ class MultiOutputCadRunner:
             error_message=None,
             command_args=["python", "_volundr_cadquery_runner.py"],
             outputs=outputs,
+            execution_manifest_path=execution_manifest_path,
         )
+        execution_manifest_path.write_text(
+            json.dumps(
+                {
+                    "cad_backend": "cadquery",
+                    "source_language": "python",
+                    "source_contract_version": "cadquery-v1",
+                    "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                    "parameter_hash": hashlib.sha256(
+                        json.dumps(
+                            parameter_values,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest(),
+                    "parameters": parameter_values,
+                    "requested_output_ids": [
+                        str(output.get("output_id") or "")
+                        for output in requested_outputs
+                    ],
+                    "output_ids": [output.output_id for output in outputs],
+                    "outputs": [
+                        {
+                            "output_id": output.output_id,
+                            "required": output.required,
+                            "success": output.success,
+                            "topology_metadata": output.topology_metadata,
+                            "stl_hash": output.stl_hash,
+                            "step_hash": output.step_hash,
+                            "brep_hash": output.brep_hash,
+                        }
+                        for output in outputs
+                    ],
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        return result
 
 
 def build_client(
@@ -850,13 +897,12 @@ def test_cadquery_protected_component_function_change_blocks_before_compile(
             "allowed_parameter_changes": ["lid_thickness"],
             "required_dependency_changes": [],
         },
+        base_source=CADQUERY_DECORATED_SOURCE,
         revised_source=CADQUERY_DECORATED_SOURCE,
     )
     runner = MultiOutputCadRunner()
     client, _SessionLocal = build_client(tmp_path, provider, runner)
     context = create_accepted_multi_output_revision(client)
-    source_path = tmp_path / "data" / context["revision"]["source_path"]
-    source_path.write_text(CADQUERY_DECORATED_SOURCE, encoding="utf-8")
     provider.revised_source = CADQUERY_DECORATED_UNAUTHORIZED_COMPONENT_SOURCE
     provider.correction_source = CADQUERY_DECORATED_UNAUTHORIZED_COMPONENT_SOURCE
     runner.calls.clear()

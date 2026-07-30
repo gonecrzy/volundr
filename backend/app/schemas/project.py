@@ -684,6 +684,21 @@ class ValidationSummaryRead(BaseModel):
     dismissed_count: int = 0
 
 
+class DesignArtifactConsistencyRead(BaseModel):
+    schema_version: str = "design-artifact-consistency-v1"
+    status: str = "legacy_unverified"
+    pre_execution_passed: bool = False
+    post_execution_passed: bool = False
+    revision_base_ready: bool = False
+    configuration_ready: bool = False
+    blocking_count: int = 0
+    advisory_count: int = 0
+    findings: list[dict[str, Any]] = Field(default_factory=list)
+    result_id: str | None = None
+    result_path: str | None = None
+    certified_at: str | None = None
+
+
 class RevisionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -720,6 +735,7 @@ class RevisionRead(BaseModel):
     metadata: MeshMetadataRead | None = None
     error_message: str | None = None
     validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
+    design_consistency: DesignArtifactConsistencyRead | None = None
 
 
 class RevisionOutputRead(BaseModel):

@@ -12,6 +12,11 @@ class CadQuerySourceMetadata:
     entrypoint: str
     parameter_ids: list[str] = field(default_factory=list)
     parameter_defaults: dict[str, str | int | float | bool] = field(default_factory=dict)
+    parameter_types: dict[str, str] = field(default_factory=dict)
+    parameter_units: dict[str, str] = field(default_factory=dict)
+    parameter_protected: dict[str, bool] = field(default_factory=dict)
+    parameter_source_requirement_ids: dict[str, str] = field(default_factory=dict)
+    parameter_sources: dict[str, str] = field(default_factory=dict)
     output_ids: list[str] = field(default_factory=list)
     output_component_ids: dict[str, list[str]] = field(default_factory=dict)
     component_ids: list[str] = field(default_factory=list)
@@ -70,6 +75,8 @@ RUNTIME_CONSTRUCTOR_KEYWORDS = {
             "choices",
             "editable",
             "protected",
+            "source_requirement_id",
+            "source",
         }
     ),
     "PrintableOutput": frozenset(
@@ -537,7 +544,12 @@ def _validate_build_entrypoint(node: ast.FunctionDef) -> None:
 
 def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
     parameter_ids: list[str] = []
-    parameter_defaults: dict[str, str] = {}
+    parameter_defaults: dict[str, str | int | float | bool] = {}
+    parameter_types: dict[str, str] = {}
+    parameter_units: dict[str, str] = {}
+    parameter_protected: dict[str, bool] = {}
+    parameter_source_requirement_ids: dict[str, str] = {}
+    parameter_sources: dict[str, str] = {}
     output_ids: list[str] = []
     output_component_ids: dict[str, list[str]] = {}
     component_ids: list[str] = []
@@ -551,6 +563,21 @@ def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
                 default_value = _static_keyword_value(call, "default")
                 if default_value is not None:
                     parameter_defaults[parameter_id] = default_value
+                parameter_type = _string_keyword(call, "type")
+                if parameter_type:
+                    parameter_types[parameter_id] = parameter_type
+                parameter_unit = _string_keyword(call, "unit")
+                if parameter_unit:
+                    parameter_units[parameter_id] = parameter_unit
+                protected = _bool_keyword(call, "protected")
+                if protected is not None:
+                    parameter_protected[parameter_id] = protected
+                source_requirement_id = _string_keyword(call, "source_requirement_id")
+                if source_requirement_id:
+                    parameter_source_requirement_ids[parameter_id] = source_requirement_id
+                source = _string_keyword(call, "source")
+                if source:
+                    parameter_sources[parameter_id] = source
         elif name == "PrintableOutput":
             output_id = _string_keyword(call, "output_id")
             if output_id:
@@ -573,6 +600,11 @@ def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
         entrypoint="build",
         parameter_ids=_dedupe(parameter_ids),
         parameter_defaults=parameter_defaults,
+        parameter_types=parameter_types,
+        parameter_units=parameter_units,
+        parameter_protected=parameter_protected,
+        parameter_source_requirement_ids=parameter_source_requirement_ids,
+        parameter_sources=parameter_sources,
         output_ids=_dedupe(output_ids),
         output_component_ids=output_component_ids,
         component_ids=_dedupe(component_ids),

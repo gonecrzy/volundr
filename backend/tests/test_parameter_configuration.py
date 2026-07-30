@@ -231,10 +231,10 @@ READY_PLAN: dict[str, Any] = {
 
 CADQUERY_CONFIGURABLE_SOURCE = """
 import cadquery as cq
-from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
 
 PARAMETERS = [
-    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", min_value=50.0, max_value=120.0, editable=True, protected=True),
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", min_value=50.0, max_value=120.0, editable=True, protected=True, source_requirement_id="body_width"),
     ParameterSpec(id="slot_count", label="Slot count", type="int", default=4, min_value=1.0, max_value=12.0, editable=True),
     ParameterSpec(id="body_depth", label="Body depth", type="float", default=50.0, unit="mm", min_value=30.0, max_value=80.0, editable=True),
     ParameterSpec(id="lid_enabled", label="Include lid", type="bool", default=True, editable=True),
@@ -243,9 +243,21 @@ PARAMETERS = [
 ]
 
 
+@component("body")
+@feature("body_shell", component="body")
+def build_body(params):
+    return cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), float(params["wall_thickness"]))
+
+
+@component("lid")
+@feature("lid_panel", component="lid")
+def build_lid(params):
+    return cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), 3)
+
+
 def build(params):
-    body = cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), float(params["wall_thickness"]))
-    lid = cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), 3)
+    body = build_body(params)
+    lid = build_lid(params)
     return Product(
         parameters=PARAMETERS,
         outputs=[
@@ -360,6 +372,7 @@ class ConfigurationRunner:
         source_path = job_dir / "model.py"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
+        execution_manifest_path = job_dir / "execution-manifest.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
@@ -423,7 +436,7 @@ class ConfigurationRunner:
             first_stl = first_stl or stl_path
             first_step = first_step or step_path
             first_metadata = first_metadata or metadata_path
-        return CadQueryCompileResult(
+        result = CadQueryCompileResult(
             job_id=job_id,
             success=True,
             timed_out=False,
@@ -440,7 +453,47 @@ class ConfigurationRunner:
             error_message=None,
             command_args=["python", "_volundr_cadquery_runner.py"],
             outputs=outputs,
+            execution_manifest_path=execution_manifest_path,
         )
+        execution_manifest_path.write_text(
+            json.dumps(
+                {
+                    "cad_backend": "cadquery",
+                    "source_language": "python",
+                    "source_contract_version": "cadquery-v1",
+                    "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                    "parameter_hash": hashlib.sha256(
+                        json.dumps(
+                            parameter_values,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest(),
+                    "parameters": parameter_values,
+                    "requested_output_ids": [
+                        str(output.get("output_id") or "")
+                        for output in requested_outputs
+                    ],
+                    "output_ids": [output.output_id for output in outputs],
+                    "outputs": [
+                        {
+                            "output_id": output.output_id,
+                            "required": output.required,
+                            "success": output.success,
+                            "topology_metadata": output.topology_metadata,
+                            "stl_hash": output.stl_hash,
+                            "step_hash": output.step_hash,
+                            "brep_hash": output.brep_hash,
+                        }
+                        for output in outputs
+                    ],
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        return result
 
 
 def build_client(
