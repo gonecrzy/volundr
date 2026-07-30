@@ -13,13 +13,15 @@ PYTHON_FENCED_BLOCK_RE = re.compile(
 )
 
 
-def extract_python_source(raw_output: str) -> str:
+def extract_python_source(raw_output: str, *, allow_raw_source: bool = False) -> str:
     candidates = [
         match.group("source").strip() for match in PYTHON_FENCED_BLOCK_RE.finditer(raw_output)
     ]
-    if not candidates and re.search(r"```(?:python|py)\b", raw_output, flags=re.IGNORECASE):
+    if not candidates and re.search(r"```(?:python|py|cadquery)\b", raw_output, flags=re.IGNORECASE):
         raise SourceExtractionError("unterminated Python source block")
     if not candidates:
+        if not allow_raw_source:
+            raise SourceExtractionError("CadQuery source must be returned in a fenced source block")
         candidates = [raw_output.strip()]
 
     for candidate in candidates:
