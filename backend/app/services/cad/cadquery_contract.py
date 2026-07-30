@@ -156,6 +156,7 @@ def validate_cadquery_source(
         raise CadQueryContractError("cadquery-v1 source must define build(params)")
     _validate_build_entrypoint(build_function)
     _validate_runtime_constructor_calls(tree)
+    _validate_printable_output_contract(tree)
     _validate_parameter_spec_locations(tree)
     _validate_product_parameter_references(tree)
     metadata = _collect_cadquery_v1_metadata(tree)
@@ -305,6 +306,35 @@ def _validate_parameter_spec_type(node: ast.Call) -> None:
         raise CadQueryContractError(
             f"ParameterSpec type {type_value.value} is unsupported; allowed types are {allowed}"
         )
+
+
+def _validate_printable_output_contract(tree: ast.Module) -> None:
+    output_ids: set[str] = set()
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        if _call_name(call.func) != "PrintableOutput":
+            continue
+        output_id = _string_keyword(call, "output_id")
+        if not output_id:
+            raise CadQueryContractError("PrintableOutput output_id must be a static string")
+        if output_id in output_ids:
+            raise CadQueryContractError(f"duplicate output_id: {output_id}")
+        output_ids.add(output_id)
+        component_id = _string_keyword(call, "component_id")
+        component_ids = _string_list_keyword(call, "component_ids")
+        if not component_id and not component_ids:
+            raise CadQueryContractError(
+                f"PrintableOutput {output_id} must define component_id or component_ids"
+            )
+        expected_solid_count = _int_keyword(call, "expected_solid_count")
+        if expected_solid_count is None or expected_solid_count < 1:
+            raise CadQueryContractError(
+                f"PrintableOutput {output_id} must define expected_solid_count"
+            )
+        allow_disconnected_solids = _bool_keyword(call, "allow_disconnected_solids")
+        if allow_disconnected_solids is None:
+            raise CadQueryContractError(
+                f"PrintableOutput {output_id} must define allow_disconnected_solids"
+            )
 
 
 def _validate_parameter_spec_locations(tree: ast.Module) -> None:
@@ -506,7 +536,14 @@ def _string_keyword(node: ast.Call, name: str) -> str | None:
 
 def _int_keyword(node: ast.Call, name: str) -> int | None:
     value = _keyword(node, name)
-    if isinstance(value, ast.Constant) and isinstance(value.value, int):
+    if isinstance(value, ast.Constant) and isinstance(value.value, int) and not isinstance(value.value, bool):
+        return value.value
+    return None
+
+
+def _bool_keyword(node: ast.Call, name: str) -> bool | None:
+    value = _keyword(node, name)
+    if isinstance(value, ast.Constant) and isinstance(value.value, bool):
         return value.value
     return None
 

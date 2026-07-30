@@ -63,6 +63,8 @@ def build(params):
                 label="Body",
                 model=body,
                 component_id="body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
             )
         ],
     )
@@ -233,6 +235,8 @@ def build(params):
                 label="Body",
                 model=body,
                 component_id="body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
             )
         ],
     )

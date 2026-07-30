@@ -309,7 +309,7 @@ def build(params):
             ParameterSpec(id="width", label="Width", type="float", default={float(width)}, unit="mm"),
         ],
         outputs=[
-            PrintableOutput(output_id="body", label="Body", model=body, component_id="body"),
+            PrintableOutput(output_id="body", label="Body", model=body, component_id="body", expected_solid_count=1, allow_disconnected_solids=False),
         ],
     )
 """

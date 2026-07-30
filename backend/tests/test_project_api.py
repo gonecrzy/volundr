@@ -41,6 +41,7 @@ def build(params):
                 component_ids=("body",),
                 model=body,
                 expected_solid_count=1,
+                allow_disconnected_solids=False,
             )
         ],
     )
@@ -114,7 +115,11 @@ class FakeCadRunner:
         metadata_path.write_text('{"triangle_count": 12}', encoding="utf-8")
         step_path.write_text("STEP", encoding="utf-8")
         brep_path.write_text("BREP", encoding="utf-8")
-        topology_path.write_text('{"valid": true}', encoding="utf-8")
+        topology_path.write_text(
+            '{"valid": true, "expected_solid_count": 1, "detected_solid_count": 1, '
+            '"allow_disconnected_solids": false}',
+            encoding="utf-8",
+        )
         execution_manifest_path.write_text('{"success": true}', encoding="utf-8")
         output = CadQueryOutputResult(
             output_id=output_id,
@@ -131,7 +136,12 @@ class FakeCadRunner:
             brep_hash="3" * 64,
             output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
-            topology_metadata={"valid": True},
+            topology_metadata={
+                "valid": True,
+                "expected_solid_count": 1,
+                "detected_solid_count": 1,
+                "allow_disconnected_solids": False,
+            },
         )
         result = CadQueryCompileResult(
             job_id=job_id,

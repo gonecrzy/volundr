@@ -187,8 +187,22 @@ def build(params):
     return Product(
         parameters=PARAMETERS,
         outputs=[
-            PrintableOutput(output_id="body", label="Body", model=body, component_id="body"),
-            PrintableOutput(output_id="lid", label="Lid", model=lid, component_id="lid"),
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model=body,
+                component_id="body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            ),
+            PrintableOutput(
+                output_id="lid",
+                label="Lid",
+                model=lid,
+                component_id="lid",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            ),
         ]
     )
 """

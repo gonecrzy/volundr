@@ -36,7 +36,7 @@ def build(params):
     body = cq.Workplane("XY").box(params["width_mm"], 35, 6)
     return Product(
         parameters=PARAMETERS,
-        outputs=[PrintableOutput(output_id="body", component_id="body", label="Body", model=body)],
+        outputs=[PrintableOutput(output_id="body", component_id="body", label="Body", model=body, expected_solid_count=1, allow_disconnected_solids=False)],
     )
 ```
 """

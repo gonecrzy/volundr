@@ -123,6 +123,43 @@ def test_cadquery_v1_contract_rejects_unknown_runtime_constructor_keywords(
         validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
+def test_cadquery_v1_contract_rejects_duplicate_output_ids() -> None:
+    source = cadquery_v1_source().replace(
+        "            )\n        ],",
+        """            ),
+            PrintableOutput(
+                output_id="body",
+                component_id="body_copy",
+                label="Duplicate body",
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],""",
+    )
+
+    with pytest.raises(CadQueryContractError, match="duplicate output_id"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
+@pytest.mark.parametrize(
+    ("line", "message"),
+    [
+        ('                component_id="body",\n', "component_id"),
+        ("                expected_solid_count=1,\n", "expected_solid_count"),
+        ("                allow_disconnected_solids=False,\n", "allow_disconnected_solids"),
+    ],
+)
+def test_cadquery_v1_contract_requires_explicit_printable_output_policy(
+    line: str,
+    message: str,
+) -> None:
+    source = cadquery_v1_source().replace(line, "")
+
+    with pytest.raises(CadQueryContractError, match=message):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
 def test_cadquery_v1_contract_rejects_unsupported_parameter_type() -> None:
     source = cadquery_v1_source().replace('type="float"', 'type="number"', 1)
 
@@ -162,6 +199,8 @@ def build(params):
                 component_id="body",
                 label="Main body",
                 model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
             )
         ],
     )
@@ -201,6 +240,8 @@ def build(params):
                 component_id="body",
                 label="Main body",
                 model=body.union(build_lip(width)),
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
             )
         ],
     )
@@ -232,6 +273,8 @@ def build(params):
                 component_id="body",
                 label="Main body",
                 model=body.union(build_lip()),
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
             )
         ],
     )

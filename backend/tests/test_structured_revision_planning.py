@@ -216,8 +216,8 @@ def build(params):
     return Product(
         parameters=PARAMETERS,
         outputs=[
-            PrintableOutput(output_id="body", label="Body", component_id="body", component_ids=("body",), model=body, expected_solid_count=1),
-            PrintableOutput(output_id="lid", label="Lid", component_id="lid", component_ids=("lid",), model=lid, expected_solid_count=1),
+            PrintableOutput(output_id="body", label="Body", component_id="body", component_ids=("body",), model=body, expected_solid_count=1, allow_disconnected_solids=False),
+            PrintableOutput(output_id="lid", label="Lid", component_id="lid", component_ids=("lid",), model=lid, expected_solid_count=1, allow_disconnected_solids=False),
         ],
     )
 """
