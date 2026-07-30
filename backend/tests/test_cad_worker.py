@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import stat
@@ -7,12 +8,13 @@ from pathlib import Path
 import pytest
 import trimesh
 
+from app.api.dependencies import get_cad_runner
 from app.services.cad.cadquery_runner import (
     CadQueryCliRunner,
     CadQueryCompileResult,
     CadQueryOutputResult,
 )
-from app.services.cad.worker_client import FilesystemCadWorkerClient
+from app.services.cad.worker_client import FilesystemCadWorkerClient, FilesystemCadWorkerRunner
 from app.services.cad.worker_execution import execute_job_directory, process_next_job
 from app.services.cad.jobs import (
     CAD_EXECUTION_JOB_SCHEMA_VERSION,
@@ -370,6 +372,48 @@ def test_backend_package_declares_cadquery_runtime_dependency() -> None:
 
     assert any(dependency.startswith("cadquery") for dependency in dependencies)
     assert "volundr_cad" in packages
+
+
+def test_api_default_cad_dependency_uses_worker_queue() -> None:
+    runner = get_cad_runner()
+
+    assert type(runner).__name__ == "FilesystemCadWorkerRunner"
+    assert not isinstance(runner, CadQueryCliRunner)
+
+
+@pytest.mark.asyncio
+async def test_worker_runner_submits_job_and_reads_structured_result(tmp_path: Path) -> None:
+    job_id = "worker-backed-api"
+    fake_runner: MultiOutputCadQueryRunner | None = None
+
+    async def worker_once() -> None:
+        nonlocal fake_runner
+        job_dir = tmp_path / job_id
+        while not job_dir.exists():
+            await asyncio.sleep(0.01)
+        fake_runner = MultiOutputCadQueryRunner(job_dir)
+        await execute_job_directory(job_dir, runner=fake_runner)
+
+    worker_task = asyncio.create_task(worker_once())
+    result = await FilesystemCadWorkerRunner(
+        tmp_path,
+        poll_interval_seconds=0.01,
+        result_timeout_seconds=2,
+    ).compile(
+        VALID_CADQUERY_SOURCE,
+        job_id=job_id,
+        parameter_values={"width_mm": 2.0},
+        requested_outputs=[{"output_id": "body", "required": True}],
+    )
+    await worker_task
+
+    assert result.success is True
+    assert result.command_args == ["python", "_runner.py"]
+    assert result.outputs[0].output_id == "body"
+    assert result.outputs[0].stl_path is not None
+    assert result.outputs[0].stl_path.exists()
+    assert fake_runner is not None
+    assert fake_runner.parameter_values == {"width_mm": 2.0}
 
 
 def test_cadquery_runner_rejects_successful_output_with_malformed_step(

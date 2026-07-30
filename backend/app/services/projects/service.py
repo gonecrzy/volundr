@@ -99,7 +99,7 @@ from app.services.ai.source_extraction import (
     extract_python_source,
 )
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
-from app.services.cad.cadquery_runner import CadQueryCliRunner
+from app.services.cad.worker_client import FilesystemCadWorkerRunner
 from app.services.cad.source_metadata import (
     SourceMapping,
     SourceMetadata,
@@ -175,12 +175,12 @@ class ProjectService:
         *,
         db: Session,
         data_dir: Path | None = None,
-        cad_runner: CadQueryCliRunner | None = None,
+        cad_runner: Any | None = None,
         ai_provider: AiProvider | None = None,
     ) -> None:
         self.db = db
         self.data_dir = data_dir or settings.data_dir
-        self.cad_runner = cad_runner or CadQueryCliRunner()
+        self.cad_runner = cad_runner or FilesystemCadWorkerRunner()
         self.ai_provider = ai_provider
 
     def create_project(self, payload: ProjectCreate) -> Project:
