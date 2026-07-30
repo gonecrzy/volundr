@@ -17,7 +17,7 @@ This file explains exactly what belongs in each project document.
 | `docs/PARAMETER_CONFIGURATION.md` | Direct parameter editing, preset switching, deterministic CadQuery parameter regeneration, configuration-change persistence, and limits that escalate to revision planning. |
 | `docs/STRUCTURED_REVISION_PLANNING.md` | Immutable revision-plan lifecycle, scoped change model, compliance checks, success criteria, and finding-driven revision behavior. |
 | `docs/COMPONENT_TARGETED_REVISIONS.md` | Component-targeted full-source revision behavior, source ownership, scope compliance, output preservation, interface verification, and configuration preservation. |
-| `docs/GEOMETRIC_INVARIANT_VALIDATION.md` | Supported post-compile geometric invariant checks, marker metadata, tolerances, confidence, blocking policy, and limits. |
+| `docs/GEOMETRIC_INVARIANT_VALIDATION.md` | Supported post-compile geometric invariant checks, CadQuery/Design Plan metadata, tolerances, confidence, blocking policy, and limits. |
 | `docs/LIVE_GENERATION_EVALUATION.md` | Controlled live benchmark runner, run manifests, prompt-version comparison, human scoring forms, artifact collection, quota controls, and no-promotion policy. |
 | `docs/PRINTABILITY_INSPECTOR.md` | Orientation-aware printability rules, severity schema, and profile thresholds. |
 | `docs/CAD_EXECUTION_SECURITY.md` | Isolation, resource limits, source screening, logging, and failure handling. |

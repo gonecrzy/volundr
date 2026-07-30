@@ -4,7 +4,7 @@ Version: `gemini-ruleset-v1`
 
 This is the legacy implementation-ready ruleset for Gemini-generated functional OpenSCAD in Volundr. Rules are specific so they can become prompt assertions, source validators, and benchmark checks.
 
-`docs/CADQUERY_BACKEND.md` supersedes this ruleset for the CadQuery-primary transition. New product generation should move to CadQuery prompt modes and provider-neutral ruleset naming.
+`docs/CADQUERY_BACKEND.md` supersedes this ruleset for the CadQuery-primary transition. New product generation uses CadQuery prompt modes and provider-neutral ruleset naming.
 
 ## Output Format
 

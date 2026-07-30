@@ -5,8 +5,10 @@ This document defines Volundr's first post-compile geometric invariant checks. I
 ## Pipeline Position
 
 ```text
-SCAD contract passes
-  -> OpenSCAD compilation
+cadquery-v1 source contract passes
+  -> isolated CadQuery worker execution
+  -> B-Rep topology validation
+  -> STEP/STL artifact export
   -> mesh integrity inspection
   -> geometric invariant analysis
   -> printability analysis
@@ -14,7 +16,7 @@ SCAD contract passes
   -> candidate classification
 ```
 
-Geometric invariant analysis runs only after a mesh exists and before candidate state is derived.
+Geometric invariant analysis runs only after a mesh exists and topology validation has produced a successful printable output. It does not replace CadQuery/OpenCascade B-Rep validity checks.
 
 ## Supported Invariants
 
@@ -24,7 +26,7 @@ Tolerance profile: `geometry-tolerance-v1`
 
 Supported checks:
 
-- Overall X/Y/Z bounds declared by `@volundr-geometry type=bounds`.
+- Overall X/Y/Z bounds declared through geometry metadata.
 - Build-plate placement from mesh minimum and maximum Z.
 - Axis-aligned cylindrical through-hole diameter.
 - Declared hole-group count.
@@ -40,28 +42,21 @@ Unsupported in this pass:
 - proof that source markers physically implement feature intent
 - stress or load simulation
 
-## Geometry Markers
+## Geometry Metadata
 
-Geometry markers are valid OpenSCAD comments and extend the source-contract marker system:
+The current CadQuery product path derives source metadata from the `cadquery-v1` contract and the approved Design Plan:
 
-```scad
-// @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
-
-// @volundr-feature mounting_holes
-// @volundr-geometry type=hole_group count=2 diameter=mount_hole_diameter spacing=mount_hole_spacing axis=z
-module mounting_holes() {
-    ...
-}
-
-// @volundr-geometry type=wall_thickness value=wall_thickness region=main_body
-```
+- `ParameterSpec(...)` declarations provide source-mapped parameter defaults.
+- `PrintableOutput(...)` declarations provide output IDs and component ownership.
+- Approved Design Plan components and features provide product-structure context.
+- Supported geometry mappings, when available, bind measurable invariants such as bounds, holes, hole groups, and wall thickness to source parameters.
 
 Rules:
 
-- Markers must reference stable Design Specification IDs through named source parameters.
-- Markers are mandatory for newly generated measurable feature types in `openscad-generation-v3`.
-- Markers are optional for legacy source.
-- Markers declare what the model intended to implement; the mesh analyzer still verifies only what it can measure with confidence.
+- Geometry mappings must reference stable Design Specification IDs through named source parameters.
+- Geometry mappings are required when Volundr is expected to verify protected measurable invariants beyond generic build-plate placement.
+- Missing parseable geometry mappings on a candidate with protected design invariants produce an advisory `geometry.invariants_unverified` finding.
+- Geometry mappings declare what the model intended to implement; the mesh analyzer still verifies only what it can measure with confidence.
 
 ## Verification States
 

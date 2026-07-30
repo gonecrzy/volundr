@@ -76,7 +76,7 @@ def build(params):
     )
 ```
 
-Feature ownership is read from the approved Design Plan for now. Legacy OpenSCAD markers and module fingerprints remain available for legacy revisions. Function-level CadQuery ownership annotations are still a planned extension.
+Feature ownership is read from the approved Design Plan for now. CadQuery scope checks use parsed `ParameterSpec` and `PrintableOutput` metadata plus protected-output preservation evidence. Function-level CadQuery ownership annotations are still a planned extension.
 
 ## Source Compliance
 
@@ -84,17 +84,17 @@ After Gemini returns full source, Volundr compares parsed base and revised metad
 
 Blocking failures include:
 
-- protected module changed
-- protected component, feature, or output marker removed
+- protected component or output declaration changed
+- protected feature mapping removed from the approved Design Plan context
 - protected output mapping changed
 - protected parameter changed
 - protected interface parameter changed
-- unapproved shared module changed
-- unrelated module removed or structurally changed
+- unapproved shared helper changed
+- unrelated helper or output structure removed or changed
 - undeclared component or output added
 - source-contract hard violation
 
-Legacy OpenSCAD module comparison uses normalized structural fingerprints. CadQuery currently uses ownership-level fingerprints before compile and protected-output preservation after compile.
+CadQuery currently uses ownership-level fingerprints before compile and protected-output preservation after compile.
 
 ## Scope Correction
 
@@ -119,7 +119,7 @@ Initial checks include:
 - volume
 - connected component count
 - STL hash equality when deterministic
-- output marker/module mapping
+- output ID and component mapping
 
 Confirmed protected-output drift creates a blocking candidate finding. Unverifiable preservation is advisory.
 

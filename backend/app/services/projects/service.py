@@ -5390,7 +5390,7 @@ class ProjectService:
         ):
             result.findings.append(
                 GeometricFinding(
-                    rule_id="geometry.missing_geometry_markers",
+                    rule_id="geometry.missing_geometry_metadata",
                     requirement_id=None,
                     verification_state="unverifiable",
                     expected_value="protected geometry metadata",
@@ -5401,9 +5401,9 @@ class ProjectService:
                     severity="warning",
                     is_blocking=False,
                     title="Geometric invariants not verified",
-                    explanation="The compiled model has protected Design Specification values, but the source did not include parseable geometry markers for supported invariant checks.",
-                    suggested_correction="Review the model manually or revise the source to add geometry markers for measurable protected bounds, holes, hole groups, or wall thickness.",
-                    metadata={"marker_format": "@volundr-geometry"},
+                    explanation="The compiled model has protected Design Specification values, but the source and Design Plan did not provide parseable geometry metadata for supported invariant checks.",
+                    suggested_correction="Review the model manually or revise the source or Design Plan metadata to map measurable protected bounds, holes, hole groups, or wall thickness.",
+                    metadata={"metadata_source": "cadquery_source_and_design_plan"},
                 )
             )
         revision_dir = self._revision_dir(revision.project_id, revision.id)
@@ -7055,7 +7055,7 @@ class ProjectService:
                 "Volundr validates printable artifacts, but this export does not prove assembled fit, fastener compatibility, or load capacity.",
                 "",
                 "## Regeneration",
-                "Regenerate from the included Design Specification, Design Plan, and project.scad to reproduce these outputs.",
+                "Regenerate from the included Design Specification, Design Plan, and source.py to reproduce these outputs.",
             ]
         )
         return "\n".join(lines) + "\n"

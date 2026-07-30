@@ -4,7 +4,8 @@ This document records the implementation sequence, current stage status, milesto
 
 ## Active Transition
 
-Status: locally implemented; live Gemini benchmark gate pending provider access
+Status: locally implemented with live Gemini benchmark evidence; prompt promotion
+is still withheld pending richer product-quality and human acceptance gates
 
 The active roadmap is the CadQuery-primary architecture transition defined in
 `docs/CADQUERY_BACKEND.md`, planned in
@@ -25,8 +26,10 @@ Transition order:
 8. Rebuild structured and component-targeted revisions around CadQuery source ownership and topology evidence.
 9. Align the frontend and Playwright workflow with the staged CadQuery lifecycle.
 10. Remove OpenSCAD product paths.
-11. Run the functional CadQuery/Gemini benchmark gate. This remains blocked on
-    provider credentials/access; see `docs/CADQUERY_TRANSITION_EVALUATION.md`.
+11. Run the functional CadQuery/Gemini benchmark gate. Live Gemini API smoke,
+    12-case source-gate, Design Plan, configuration, and solid-count
+    negative-control runs are recorded in
+    `docs/CADQUERY_TRANSITION_EVALUATION.md`.
 
 ## Stage 0 — Foundation Documents
 

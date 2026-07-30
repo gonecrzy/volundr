@@ -135,7 +135,7 @@ def context(mesh: trimesh.Trimesh) -> GeometricAnalysisContext:
     )
 
 
-def test_fixture_metadata_contains_geometry_markers() -> None:
+def test_fixture_metadata_contains_geometry_mappings() -> None:
     metadata = fixture_source_metadata()
 
     assert metadata.geometry_mappings[0].geometry_type == "bounds"

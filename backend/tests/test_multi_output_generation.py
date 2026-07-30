@@ -587,3 +587,7 @@ def test_export_zip_contains_project_manifest_source_and_stls(tmp_path: Path) ->
         assert any(name.endswith("/assembly-notes.md") for name in names)
         assert any(name.endswith("/stl/body.stl") for name in names)
         assert any(name.endswith("/stl/lid.stl") for name in names)
+        readme_name = next(name for name in names if name.endswith("/README.md"))
+        readme = archive.read(readme_name).decode("utf-8")
+        assert "source.py" in readme
+        assert "project.scad" not in readme
