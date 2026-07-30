@@ -119,7 +119,7 @@ ALLOWED_CONSTANT_TYPES = (str, int, float, bool, type(None))
 def validate_cadquery_source(
     source: str,
     *,
-    contract_version: str = "cadquery-probe-v1",
+    contract_version: str = "cadquery-v1",
 ) -> CadQuerySourceMetadata:
     try:
         tree = ast.parse(source)

@@ -25,7 +25,41 @@ from app.services.cad.jobs import (
 )
 
 
-VALID_CADQUERY_SOURCE = (
+VALID_CADQUERY_SOURCE = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(
+        id="width_mm",
+        label="Width",
+        type="float",
+        default=1.0,
+        unit="mm",
+        min_value=0.1,
+        max_value=10.0,
+    )
+]
+
+def build(params):
+    width = params["width_mm"]
+    body = cq.Workplane("XY").box(width, 1, 1)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                component_id="body",
+                label="Body",
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+"""
+
+LEGACY_PROBE_CADQUERY_SOURCE = (
     "import cadquery as cq\n\n"
     "def build_model():\n"
     "    return cq.Workplane('XY').box(1, 1, 1)\n"
@@ -48,6 +82,7 @@ def test_filesystem_queue_writes_structured_cadquery_job(tmp_path: Path) -> None
     assert manifest.job_id == "job-1"
     assert manifest.cad_backend == "cadquery"
     assert manifest.source_language == "python"
+    assert manifest.source_contract_version == "cadquery-v1"
     assert manifest.source_path == Path("input/model.py")
     assert manifest.parameter_values == {"width": 20}
     assert manifest.requested_outputs == [{"output_id": "body", "required": True}]
@@ -81,6 +116,7 @@ def test_job_manifest_rejects_path_traversal(tmp_path: Path) -> None:
                 "job_id": "unsafe-job",
                 "cad_backend": "cadquery",
                 "source_language": "python",
+                "source_contract_version": "cadquery-v1",
                 "source_path": "../outside.py",
                 "source_hash": "bad",
                 "parameter_values": {},
@@ -221,6 +257,20 @@ async def test_cadquery_runner_scrubs_provider_credentials_from_environment(
     assert result.success is False
     assert result.stderr_path is not None
     assert result.stderr_path.read_text(encoding="utf-8") == ""
+
+
+@pytest.mark.asyncio
+async def test_cadquery_runner_rejects_probe_build_model_sources(tmp_path: Path) -> None:
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(LEGACY_PROBE_CADQUERY_SOURCE, job_id="legacy-probe-source")
+
+    assert result.success is False
+    assert result.exit_code is None
+    assert result.error_message is not None
+    assert "CadQuery contract violation" in result.error_message
+    assert "build(params)" in result.error_message
 
 
 @pytest.mark.asyncio
@@ -392,6 +442,7 @@ class MultiOutputCadQueryRunner:
         source: str,
         job_id: str,
         *,
+        source_contract_version: str = "cadquery-v1",
         parameter_values: dict | None = None,
         requested_outputs: list[dict] | None = None,
     ) -> CadQueryCompileResult:
@@ -469,6 +520,7 @@ class EscapingArtifactRunner:
         source: str,
         job_id: str,
         *,
+        source_contract_version: str = "cadquery-v1",
         parameter_values: dict | None = None,
         requested_outputs: list[dict] | None = None,
     ) -> CadQueryCompileResult:

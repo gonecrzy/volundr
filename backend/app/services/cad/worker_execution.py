@@ -41,6 +41,7 @@ async def execute_job_directory(
     compile_result = await active_runner.compile(
         source,
         job_id=job.job_id,
+        source_contract_version=job.source_contract_version,
         parameter_values=job.parameter_values,
         requested_outputs=job.requested_outputs,
     )
@@ -149,7 +150,7 @@ def _result_outputs(job_dir: Path, compile_result: Any) -> list[dict[str, Any]]:
     return [
         {
             "output_id": "model",
-            "entrypoint": "build_model",
+            "entrypoint": "build",
             "required": True,
             "success": True,
             "stl_path": _relative_path(job_dir, compile_result.stl_path),

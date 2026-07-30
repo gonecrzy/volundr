@@ -65,6 +65,18 @@ def build_model():
         validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
+def test_cadquery_contract_defaults_to_v1_product_source() -> None:
+    source = """
+import cadquery as cq
+
+def build_model():
+    return cq.Workplane("XY").box(1, 1, 1)
+"""
+
+    with pytest.raises(CadQueryContractError, match="build\\(params\\)"):
+        validate_cadquery_source(source)
+
+
 def test_cadquery_v1_contract_rejects_artifact_writes() -> None:
     source = cadquery_v1_source().replace(
         "return Product(",
@@ -171,7 +183,7 @@ def build_model():
     return body.union(build_lip())
 """
 
-    validate_cadquery_source(source)
+    validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 def test_cadquery_contract_accepts_nested_helper_functions() -> None:
@@ -188,7 +200,7 @@ def build_model():
     return body.union(build_lip())
 """
 
-    validate_cadquery_source(source)
+    validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 @pytest.mark.parametrize(
@@ -205,7 +217,7 @@ def build_model():
 )
 def test_cadquery_contract_rejects_unauthorized_imports(source: str) -> None:
     with pytest.raises(CadQueryContractError, match="import"):
-        validate_cadquery_source(source)
+        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 @pytest.mark.parametrize(
@@ -232,7 +244,7 @@ def build_model():
 """
 
     with pytest.raises(CadQueryContractError, match=call_name):
-        validate_cadquery_source(source)
+        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 def test_cadquery_contract_rejects_environment_inspection_attempt() -> None:
@@ -244,7 +256,7 @@ def build_model():
 """
 
     with pytest.raises(CadQueryContractError, match="__import__"):
-        validate_cadquery_source(source)
+        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 def test_cadquery_contract_rejects_unknown_direct_function_calls() -> None:
@@ -256,7 +268,7 @@ def build_model():
 """
 
     with pytest.raises(CadQueryContractError, match="dangerous_factory"):
-        validate_cadquery_source(source)
+        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 def test_cadquery_contract_rejects_top_level_execution() -> None:
@@ -270,9 +282,12 @@ def build_model():
 """
 
     with pytest.raises(CadQueryContractError, match="top-level assignment"):
-        validate_cadquery_source(source)
+        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
 
 
 def test_cadquery_contract_rejects_missing_build_model() -> None:
     with pytest.raises(CadQueryContractError, match="build_model"):
-        validate_cadquery_source("import cadquery as cq\n\nbody_width = 10\n")
+        validate_cadquery_source(
+            "import cadquery as cq\n\nbody_width = 10\n",
+            contract_version="cadquery-probe-v1",
+        )

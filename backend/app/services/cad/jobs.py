@@ -32,6 +32,7 @@ class CadExecutionJob:
     job_id: str
     cad_backend: str
     source_language: str
+    source_contract_version: str
     source_path: Path
     source_hash: str
     parameter_values: dict[str, Any] = field(default_factory=dict)
@@ -79,6 +80,7 @@ class FilesystemCadJobQueue:
             "job_id": job_id,
             "cad_backend": "cadquery",
             "source_language": "python",
+            "source_contract_version": "cadquery-v1",
             "source_path": "input/model.py",
             "source_hash": source_hash,
             "parameter_values": parameter_values or {},
@@ -113,6 +115,9 @@ def load_job_manifest(job_dir: Path) -> CadExecutionJob:
     source_language = _require_str(payload, "source_language")
     if source_language != "python":
         raise JobManifestError("source_language must be python")
+    source_contract_version = _require_str(payload, "source_contract_version")
+    if source_contract_version != "cadquery-v1":
+        raise JobManifestError("source_contract_version must be cadquery-v1")
     source_path = Path(_require_str(payload, "source_path"))
     _resolve_job_relative_path(job_dir, source_path, field_name="source_path")
     source_hash = _require_str(payload, "source_hash")
@@ -136,6 +141,7 @@ def load_job_manifest(job_dir: Path) -> CadExecutionJob:
         job_id=job_id,
         cad_backend=cad_backend,
         source_language=source_language,
+        source_contract_version=source_contract_version,
         source_path=source_path,
         source_hash=source_hash.lower(),
         parameter_values=parameter_values,

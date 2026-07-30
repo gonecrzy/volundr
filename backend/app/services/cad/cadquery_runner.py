@@ -78,11 +78,12 @@ class CadQueryCliRunner:
         source: str,
         job_id: str,
         *,
+        source_contract_version: str = "cadquery-v1",
         parameter_values: dict | None = None,
         requested_outputs: list[dict] | None = None,
     ) -> CadQueryCompileResult:
         source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
-        rejection = self._screen_source(source)
+        rejection = self._screen_source(source, source_contract_version=source_contract_version)
         if rejection is not None:
             return self._failure(
                 job_id=job_id,
@@ -257,26 +258,18 @@ class CadQueryCliRunner:
             outputs=outputs,
         )
 
-    def _screen_source(self, source: str) -> str | None:
+    def _screen_source(self, source: str, *, source_contract_version: str) -> str | None:
         if not source.strip():
             return "source is empty"
         if len(source.encode("utf-8")) > self.max_source_bytes:
             return "source exceeds size limit"
+        if source_contract_version != "cadquery-v1":
+            return "unsupported CadQuery source_contract_version"
         try:
-            validate_cadquery_source(source, contract_version=self._contract_version_for_source(source))
+            validate_cadquery_source(source, contract_version=source_contract_version)
         except CadQueryContractError as exc:
             return f"CadQuery contract violation: {exc}"
         return None
-
-    def _contract_version_for_source(self, source: str) -> str:
-        if (
-            "def build(" in source
-            or "volundr_cad.runtime" in source
-            or "PrintableOutput" in source
-            or "Product" in source
-        ):
-            return "cadquery-v1"
-        return "cadquery-probe-v1"
 
     def _job_dir(self, job_id: str) -> Path:
         safe_id = re.sub(r"[^A-Za-z0-9_.-]", "-", job_id).strip(".-")
@@ -505,24 +498,10 @@ def main() -> int:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    if hasattr(module, "build"):
-        product = _build_product(module, parameter_values)
-        outputs = _execute_product_outputs(product, requested_outputs, output_dir)
-    elif hasattr(module, "build_model"):
-        model = module.build_model()
-        if model is None:
-            raise RuntimeError("build_model() returned None")
-        outputs = [_export_output(
-            output_dir=output_dir,
-            output_id="model",
-            entrypoint="build_model",
-            required=True,
-            model=model,
-            expected_solid_count=1,
-            allow_disconnected_solids=False,
-        )]
-    else:
-        raise RuntimeError("generated source must define build(params) or build_model()")
+    if not hasattr(module, "build"):
+        raise RuntimeError("generated source must define build(params)")
+    product = _build_product(module, parameter_values)
+    outputs = _execute_product_outputs(product, requested_outputs, output_dir)
 
     result_path.write_text(json.dumps({"outputs": outputs}, indent=2, sort_keys=True), encoding="utf-8")
     return 0
