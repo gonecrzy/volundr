@@ -30,8 +30,41 @@ def test_ollama_provider_settings_are_non_secret() -> None:
         "timeout_seconds": 45,
         "endpoint": "/api/generate",
         "stream": False,
+        "think": None,
         "auth_mode": "local_ollama",
     }
+
+
+@pytest.mark.asyncio
+async def test_ollama_provider_can_disable_thinking_for_thinking_models() -> None:
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = httpx.Request(
+            request.method,
+            request.url,
+            content=request.content,
+        ).read()
+        return httpx.Response(200, json={"response": "{\"ok\": true}", "thinking": "hidden"})
+
+    provider = OllamaProvider(
+        base_url="http://ollama.local:11434",
+        model="qwen3.5:9b",
+        think=False,
+        transport=_mock_transport(handler),
+    )
+
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert result.raw_output == "{\"ok\": true}"
+    assert provider.provider_settings()["think"] is False
+    assert b'"think":false' in captured["payload"]
 
 
 @pytest.mark.asyncio

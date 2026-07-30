@@ -27,6 +27,7 @@ def test_settings_default_to_ollama_for_development() -> None:
     assert settings.ollama_base_url == "http://10.1.20.25:11434"
     assert settings.ollama_model == "qwen2.5-coder:14b"
     assert settings.ollama_timeout_seconds == 300
+    assert settings.ollama_think is None
 
 
 def test_settings_default_to_simple_generation_mode() -> None:

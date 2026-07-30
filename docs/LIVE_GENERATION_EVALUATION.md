@@ -48,6 +48,8 @@ Current local-primary model:
 VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b
 ```
 
+For thinking-capable local models, set `VOLUNDR_OLLAMA_THINK=false` when the benchmark should measure final answers only. Ollama separates reasoning into a `thinking` field when thinking is enabled, but long thinking traces can consume the timeout before a useful final response is produced.
+
 For phase checks where reproducibility matters, set it explicitly:
 
 ```bash

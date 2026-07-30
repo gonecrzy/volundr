@@ -28,11 +28,13 @@ class OllamaProvider(GeminiCliProvider):
         base_url: str | None = None,
         model: str | None = None,
         timeout_seconds: int | None = None,
+        think: bool | str | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
         self.model = model or settings.ollama_model
         self.timeout_seconds = timeout_seconds or settings.ollama_timeout_seconds
+        self.think = self._normalize_think(settings.ollama_think if think is None else think)
         self._transport = transport
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
@@ -89,6 +91,8 @@ class OllamaProvider(GeminiCliProvider):
             "prompt": prompt,
             "stream": False,
         }
+        if self.think is not None:
+            payload["think"] = self.think
         try:
             async with httpx.AsyncClient(
                 base_url=self.base_url,
@@ -126,6 +130,7 @@ class OllamaProvider(GeminiCliProvider):
             "timeout_seconds": self.timeout_seconds,
             "endpoint": "/api/generate",
             "stream": False,
+            "think": self.think,
             "auth_mode": "local_ollama",
         }
 
@@ -139,3 +144,19 @@ class OllamaProvider(GeminiCliProvider):
         if isinstance(error, str) and error.strip():
             return error.strip()
         return f"Ollama request failed with HTTP {response.status_code}"
+
+    def _normalize_think(self, value: bool | str | None) -> bool | str | None:
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        normalized = value.strip().lower()
+        if normalized in {"", "unset", "none", "null"}:
+            return None
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+        if normalized in {"low", "medium", "high", "max"}:
+            return normalized
+        return value

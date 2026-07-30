@@ -135,6 +135,8 @@ The development default is local Ollama with `qwen2.5-coder:14b`. Current phase-
 VOLUNDR_OLLAMA_BASE_URL=http://10.1.20.25:11434
 VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b
 VOLUNDR_OLLAMA_TIMEOUT_SECONDS=300
+# Optional for thinking-capable models:
+VOLUNDR_OLLAMA_THINK=false
 ```
 
 Make sure the model is available on the Ollama host:
@@ -146,6 +148,7 @@ ollama pull qwen2.5-coder:14b
 Notes from current local model testing:
 
 - `qwen2.5-coder:14b` is the primary local model.
+- Thinking-capable Ollama models can be tested with `VOLUNDR_OLLAMA_THINK=false` to suppress reasoning and keep `response` clean.
 - `deepseek-coder-v2:16b` remains a slower fallback comparison model.
 - `joshuaokolo/C3Dv0:latest` is not compatible with the current OpenSCAD prompt contract without a separate adapter.
 

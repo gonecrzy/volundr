@@ -59,6 +59,7 @@ Between implementation phases, run the same three realistic cases to get a fast 
 ```bash
 cd backend
 VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b \
+VOLUNDR_OLLAMA_THINK=false \
 PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
   --suite tests/fixtures/generation_benchmarks/core.json \
   --output-dir ../output/live-benchmarks \
