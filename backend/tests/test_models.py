@@ -42,6 +42,7 @@ def test_cadquery_native_persistence_columns_are_canonical() -> None:
     output_columns = {column["name"] for column in inspector.get_columns("revision_outputs")}
     assert {
         "entrypoint",
+        "parameter_hash",
         "step_path",
         "step_hash",
         "brep_path",

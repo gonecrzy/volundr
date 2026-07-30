@@ -15,6 +15,7 @@ from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.revision_output import RevisionOutput
 from app.services.ai.provider import (
     DesignPlanRequest,
     DesignPlanResult,
@@ -517,10 +518,13 @@ def test_multi_output_plan_creates_assembly_candidate_and_output_artifacts(tmp_p
     assert outputs[0]["expected_solid_count"] == 1
     assert outputs[0]["detected_solid_count"] == 1
     assert outputs[0]["allow_disconnected_solids"] is False
+    assert all(output["parameter_hash"] for output in outputs)
 
     manifest = client.get(f"/api/revisions/{candidate['id']}/output-manifest").json()
     assert manifest["schema_version"] == "output-manifest-v1"
+    assert manifest["parameter_hash"] == outputs[0]["parameter_hash"]
     assert [output["output_id"] for output in manifest["outputs"]] == ["body", "lid"]
+    assert manifest["outputs"][0]["parameter_hash"] == outputs[0]["parameter_hash"]
     assert manifest["outputs"][0]["expected_solid_count"] == 1
     assert manifest["outputs"][0]["detected_solid_count"] == 1
     assert manifest["outputs"][0]["allow_disconnected_solids"] is False
@@ -636,6 +640,7 @@ def test_retry_failed_output_uses_same_source_hash_and_does_not_call_provider(tm
         if output["output_id"] == "lid"
     )
     original_source_hash = failed_output["source_hash"]
+    original_parameter_hash = failed_output["parameter_hash"]
     assert len(provider.generation_requests) == 1
 
     runner.fail_outputs.clear()
@@ -645,9 +650,37 @@ def test_retry_failed_output_uses_same_source_hash_and_does_not_call_provider(tm
     retried = retry_response.json()
     assert retried["execution_state"] in {"ready", "ready_with_warnings"}
     assert retried["source_hash"] == original_source_hash
+    assert retried["parameter_hash"] == original_parameter_hash
     assert len(provider.generation_requests) == 1
     refreshed_candidate = client.get(f"/api/candidates/{candidate['id']}").json()
     assert refreshed_candidate["review_state"] in {"ready", "ready_with_warnings"}
+
+
+def test_retry_failed_output_rejects_changed_parameter_hash(tmp_path: Path) -> None:
+    provider = MultiOutputProvider()
+    runner = MultiOutputCadRunner(fail_outputs={"lid"})
+    client, SessionLocal = build_client(tmp_path, provider, runner)
+    context = create_approved_plan(client)
+    candidate = client.post(f"/api/design-plans/{context['plan']['id']}/generate").json()
+    failed_output = next(
+        output
+        for output in client.get(f"/api/revisions/{candidate['id']}/outputs").json()
+        if output["output_id"] == "lid"
+    )
+    assert failed_output["parameter_hash"]
+
+    with SessionLocal() as session:
+        stored = session.get(RevisionOutput, failed_output["id"])
+        assert stored is not None
+        stored.parameter_hash = "f" * 64
+        session.commit()
+
+    runner.fail_outputs.clear()
+    retry_response = client.post(f"/api/revision-outputs/{failed_output['id']}/retry")
+
+    assert retry_response.status_code == 409
+    assert "Parameter hash changed" in retry_response.json()["detail"]
+    assert len(provider.generation_requests) == 1
 
 
 def test_export_zip_contains_project_manifest_source_and_cadquery_artifacts(tmp_path: Path) -> None:

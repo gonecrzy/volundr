@@ -44,6 +44,7 @@ class RevisionOutput(Base):
     required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     entrypoint: Mapped[str] = mapped_column(String(120), nullable=False)
     source_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    parameter_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     step_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     step_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     brep_path: Mapped[str | None] = mapped_column(String(500), nullable=True)

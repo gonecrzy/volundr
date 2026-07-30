@@ -740,6 +740,7 @@ class RevisionOutputRead(BaseModel):
     required: bool
     entrypoint: str
     source_hash: str | None = None
+    parameter_hash: str | None = None
     step_path: str | None = None
     step_hash: str | None = None
     brep_path: str | None = None

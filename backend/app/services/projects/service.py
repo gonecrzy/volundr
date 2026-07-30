@@ -5816,6 +5816,8 @@ class ProjectService:
             ai_output_path.write_text(raw_ai_output, encoding="utf-8")
             ai_output_relative_path = self._relative(ai_output_path)
 
+        compile_parameter_values = parameter_values or self._design_plan_parameter_values(design_plan_payload)
+        parameter_hash = self._configuration_parameter_hash(compile_parameter_values)
         used_filenames: set[str] = set()
         output_records: list[RevisionOutput] = []
         requested_outputs: list[dict[str, Any]] = []
@@ -5848,6 +5850,7 @@ class ProjectService:
                 required=output["required"],
                 entrypoint=output["entrypoint"],
                 source_hash=source_hash,
+                parameter_hash=parameter_hash,
                 expected_solid_count=output["expected_solid_count"],
                 allow_disconnected_solids=output["allow_disconnected_solids"],
                 preferred_orientation_json=json.dumps(output["preferred_orientation"])
@@ -5865,7 +5868,7 @@ class ProjectService:
         result = await self._cadquery_runner().compile(
             source,
             job_id=revision.id,
-            parameter_values=parameter_values or self._design_plan_parameter_values(design_plan_payload),
+            parameter_values=compile_parameter_values,
             requested_outputs=requested_outputs,
         )
         compile_ms = round((time.perf_counter() - started) * 1000, 3)
@@ -5884,6 +5887,7 @@ class ProjectService:
             output_record.execution_command_json = json.dumps(result.command_args or [])
             output_record.compile_log_path = self._relative(compile_log_path)
             output_record.source_hash = source_hash
+            output_record.parameter_hash = parameter_hash
             if output_result is None or not output_result.success or output_result.stl_path is None:
                 output_record.execution_state = "failed"
                 output_record.compile_error = (
@@ -6126,12 +6130,20 @@ class ProjectService:
 
         revision_dir = self._revision_dir(revision.project_id, revision.id)
         parameter_values = self._cadquery_source_parameter_values(source)
+        design_plan_payload = self._revision_design_plan_payload(revision)
+        if design_plan_payload is not None:
+            parameter_values = self._design_plan_parameter_values(design_plan_payload)
         if revision.configuration_change_id is not None:
             change = self.db.get(ConfigurationChange, revision.configuration_change_id)
             if change is not None:
                 parameter_values = dict(
                     self._configuration_override_manifest(change).get("parameter_values") or {}
                 )
+        parameter_hash = self._configuration_parameter_hash(parameter_values)
+        if output.parameter_hash is None:
+            raise ValueError("Parameter hash is missing; output retry is not safe")
+        if output.parameter_hash != parameter_hash:
+            raise ValueError("Parameter hash changed; output retry is not safe")
         stl_dir = revision_dir / "stl"
         step_dir = revision_dir / "step"
         brep_dir = revision_dir / "brep"
@@ -6165,6 +6177,7 @@ class ProjectService:
         output.execution_command_json = json.dumps(result.command_args or [])
         output.compile_log_path = self._relative(compile_log_path)
         output.source_hash = expected_hash
+        output.parameter_hash = parameter_hash
         if output_result is None or not output_result.success or output_result.stl_path is None:
             output.execution_state = "failed"
             output.compile_error = (
@@ -6853,6 +6866,7 @@ class ProjectService:
             required=output.required,
             entrypoint=output.entrypoint,
             source_hash=output.source_hash,
+            parameter_hash=output.parameter_hash,
             step_path=output.step_path,
             step_hash=output.step_hash,
             brep_path=output.brep_path,
@@ -6913,6 +6927,7 @@ class ProjectService:
             required=True,
             entrypoint="model",
             source_hash=None,
+            parameter_hash=None,
             stl_path=revision.stl_path,
             stl_hash=None,
             compile_log_path=revision.compile_log_path,
@@ -7016,12 +7031,17 @@ class ProjectService:
         )
         source_path = self.resolve_revision_source(revision.id)
         source_hash = self._file_sha256(source_path) if source_path is not None else None
+        parameter_hash = next(
+            (output.parameter_hash for output in outputs if output.parameter_hash),
+            None,
+        )
         return {
             "schema_version": "output-manifest-v1",
             "project_id": revision.project_id,
             "revision_id": revision.id,
             "design_plan_id": revision.design_plan_id,
             "configuration_change_id": revision.configuration_change_id,
+            "parameter_hash": parameter_hash,
             "source": {
                 "filename": Path(revision.source_path).name if revision.source_path else None,
                 "path": revision.source_path,
@@ -7050,6 +7070,7 @@ class ProjectService:
             "component_ids": json.loads(output.component_ids_json),
             "filename": output.filename,
             "entrypoint": output.entrypoint,
+            "parameter_hash": output.parameter_hash,
             "quantity": output.quantity,
             "required": output.required,
             "state": output.execution_state,
