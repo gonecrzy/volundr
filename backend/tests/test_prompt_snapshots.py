@@ -106,6 +106,34 @@ def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> Non
     assert "Return the full corrected CadQuery Python source" in prompt
 
 
+def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_cadquery_prompt(
+        ModelGenerationRequest(
+            project_name="Fish shelf bracket",
+            original_intent=(
+                "Create a functional 90 degree shelf bracket that looks like a fish "
+                "from below."
+            ),
+            user_instruction=(
+                "Build a 90 degree shelf bracket with mounting holes, but make the "
+                "visible underside look like a fish."
+            ),
+        )
+    )
+
+    assert "Do not import or use `math`" in prompt
+    assert "Do not wrap fillet(), chamfer(), or optional details in try/except" in prompt
+    assert "Use fixed point lists or CadQuery polygon/spline profiles instead of sin/cos loops" in prompt
+    assert "Do not call `map()`, `.split()`, or parse string parameters" in prompt
+    assert "If `thread_spec` is requested, expose it as a numeric millimeter diameter" in prompt
+    assert "Extrude only closed profiles" in prompt
+    assert "For indicator slots, use `rect(indicator_width, length).extrude(depth)`" in prompt
+    assert "Prefer one extruded 2D profile for creative one-piece brackets" in prompt
+    assert "Do not cut shallow decorative marks from faces unless the cutter overlaps the solid interior" in prompt
+    assert "Return the main fused solid directly, not a Compound of loose solids" in prompt
+
+
 def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     prompt = provider.build_prompt(

@@ -34,7 +34,7 @@ LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
 LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
 CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
 LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-source-v1"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-source-v2"
 
 
 def _current_source_prompt_section(*, current_source: str, is_repair: bool) -> list[str]:
@@ -290,10 +290,17 @@ class GeminiCliProvider:
             "- Define `def build_model():`; optional helper functions are allowed.",
             "- build_model() must return one CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable object.",
             "- Do not use try/except; generated CadQuery must fail visibly so diagnostics can identify the real API or geometry issue.",
+            "- Do not wrap fillet(), chamfer(), or optional details in try/except; use a simple known-good operation or omit the detail.",
+            "- Do not import or use `math`; the only import allowed by the runner is `import cadquery as cq`.",
+            "- Avoid sin/cos/trigonometric loops. Use fixed point lists or CadQuery polygon/spline profiles instead of sin/cos loops.",
+            "- Do not call `map()`, `.split()`, or parse string parameters; use literal numeric parameters directly.",
+            "- If `thread_spec` is requested, expose it as a numeric millimeter diameter such as `thread_spec = 6.0`, not a string like `M6x1`.",
             "- Do not write files, read files, import local modules, use shell commands, network access, subprocesses, pathlib, os, sys, eval, exec, open(), getattr(), globals(), locals(), or vars().",
             "- Do not use OpenSCAD syntax. This is Python CadQuery, not SCAD.",
             "- Prefer real CAD operations such as box(), cylinder(), workplane(), hole(), cutBlind(), cutThruAll(), union(), cut(), extrude(), loft(), fillet(), chamfer(), translate(), rotate(), and mirror().",
+            "- Extrude only closed profiles such as rect(), circle(), polygon(), or polyline(...).close(); do not extrude a bare lineTo() path.",
             "- For one-piece outputs, boolean-union additive solids into one returned model unless the user explicitly requests separate parts.",
+            "- Return the main fused solid directly, not a Compound of loose solids.",
             "- Model holes and cutouts as subtractive CadQuery features such as hole(), cutBlind(), cutThruAll(), or cut().",
             "- Keep requested creative/style geometry integrated with the functional body rather than returning loose decorative bodies.",
             "",
@@ -301,6 +308,9 @@ class GeminiCliProvider:
             "- Multiple through-holes: `wp.faces(\">Z\").workplane().pushPoints([(x, y)]).hole(hole_diameter)`.",
             "- Translate with a single tuple: `shape.translate((x, y, z))`; do not pass x, y, z as separate translate arguments.",
             "- Build simple decorative solids with circle()/rect()/polygon()/box()/extrude(), then union() or cut() them into the functional body.",
+            "- Prefer one extruded 2D profile for creative one-piece brackets: draw the functional L outline and creative silhouette as one closed polyline/spline, then extrude once.",
+            "- Do not cut shallow decorative marks from faces unless the cutter overlaps the solid interior; non-overlapping or tangent cutters can create invalid fragments.",
+            "- For indicator slots, use `rect(indicator_width, length).extrude(depth)` as a cutter, then cut it from the parent body.",
             "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
             "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.distribute()`, `.add_knurling()`, or `show_object()`.",
             "- Do not add top-level execution such as `model = build_model()`; the runner calls build_model().",

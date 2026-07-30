@@ -102,6 +102,8 @@ Do not treat the phase run as a complete acceptance test. It is a smoke signal f
 
 The `cadquery-v1` contract is intentionally narrower than unrestricted Python: only `import cadquery as cq` is allowed, top-level values must be literal parameters, helper functions may be top-level or nested inside `build_model()`, top-level CadQuery execution is rejected, and unsafe/dynamic calls such as file access, `eval`, `exec`, `getattr`, `globals`, and `locals` are rejected before subprocess execution. This is a probe guardrail, not a complete sandbox; a production CadQuery backend still needs isolated execution.
 
+The `cadquery-source-v2` prompt keeps the same `cadquery-v1` execution contract but adds stronger generation guidance from live failures: do not use `math`, `map()`, or string parsing; expose `thread_spec` as a numeric millimeter diameter; extrude only closed profiles; and prefer fused single-profile creative bracket geometry over loose decorative solids.
+
 `--source-brief` requires `--source-probe`. It adds a JSON-only `source-brief-v1` stage before OpenSCAD generation. The brief captures intended object type, functional goal, style goal, planned outputs, expected connected body count, functional features, style attachment rules, hard requirements, and open questions. The parsed brief is then injected into the source prompt as compact structured context.
 
 When extraction succeeds, the probe compiles the source with the selected source-language runner and records STL/mesh validation artifacts. This is a syntax and mesh smoke check, not candidate acceptance and not a substitute for human visual review.

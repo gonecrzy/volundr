@@ -218,6 +218,7 @@ Source-derived parameter discovery pass:
 - `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from constants and OpenSCAD Customizer-style comments
 - this is a phase gate for evaluating whether AI output exposes useful creative and functional knobs without forcing generated models into one fixed template
 - experimental CadQuery source probes now run through an AST-based `cadquery-v1` contract before execution; this keeps the probe focused on `import cadquery as cq`, literal top-level parameters, top-level or nested helper functions, and `build_model()` while rejecting unsafe imports, top-level geometry execution, and dynamic Python calls
+- `cadquery-source-v2` tightens live-generation guidance around recurring CadQuery failures: no `math`/`map()`/string parsing, numeric `thread_spec`, closed profiles before `extrude()`, and fused creative one-piece geometry instead of loose decorative bodies
 
 Source-probe benchmark pass:
 
