@@ -548,6 +548,9 @@ function App() {
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
   const exportUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/export.zip` : null;
+  const selectedSourceLabel = selectedRevision?.source_language === "python" ? "Python" : "SCAD";
+  const sourcePanelLabel = selectedRevision?.source_language === "python" ? "Python source" : "OpenSCAD source";
+  const sourceEditorLanguage = selectedRevision?.source_language === "python" ? "python" : "scad";
   const sourceParameters = useMemo(() => parseSourceParameters(source), [source]);
   const printabilityHighlights = useMemo(
     () => printabilityReport?.highlights ?? [],
@@ -874,7 +877,7 @@ function App() {
 
   async function compileSource() {
     if (!canCompileSource) {
-      setMessage("Enter OpenSCAD source before compiling");
+      setMessage("Enter CAD source before compiling");
       return;
     }
     setIsCompiling(true);
@@ -1944,7 +1947,7 @@ function App() {
         <div className="topbar-actions">
           {sourceUrl ? (
             <a className="download compact-action" href={sourceUrl}>
-              SCAD
+              {selectedSourceLabel}
             </a>
           ) : null}
           {stlUrl ? (
@@ -2223,12 +2226,12 @@ function App() {
               </button>
             </div>
           ) : null}
-          <section className="source-panel" aria-label="OpenSCAD source">
+          <section className="source-panel" aria-label={sourcePanelLabel}>
             <div className="section-heading">
               <h2>Source</h2>
             </div>
             <Editor
-              defaultLanguage="scad"
+              language={sourceEditorLanguage}
               height="320px"
               options={{
                 minimap: { enabled: false },

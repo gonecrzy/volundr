@@ -177,14 +177,16 @@ Use Vitest for:
 
 Use Playwright for critical workflows:
 
-1. Create project.
-2. Enter or paste SCAD.
-3. Compile successfully.
-4. View model.
-5. Download source.
-6. Make manual edit.
-7. Compile as new revision.
-8. Restore previous revision.
+1. Open an accepted staged CadQuery project.
+2. Confirm Python source and multi-output artifacts are visible.
+3. Plan a scoped revision from chat.
+4. Confirm generation is disabled before Revision Plan approval.
+5. Approve the plan and generate the scoped candidate.
+6. Confirm the active revision remains accessible until candidate acceptance.
+7. Review Revision Plan compliance, success criteria, printable outputs, and advisory findings.
+8. Accept the scoped candidate.
+9. Plan a second revision that violates protected scope.
+10. Confirm the rejected-before-compile scope findings are shown and the active revision remains unchanged.
 
 After Gemini integration:
 

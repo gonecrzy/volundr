@@ -13,6 +13,8 @@ type Revision = {
   accepted_at: string | null;
   rejected_at: string | null;
   user_instruction: string | null;
+  cad_backend: string;
+  source_language: string;
   stl_path: string | null;
   ai_output_path: string | null;
   output_manifest_path: string | null;
@@ -40,17 +42,21 @@ type Revision = {
 };
 
 const source = `
-selected_output = "body";
-// @volundr-output body module=body required=true
-// @volundr-output lid module=lid required=true
-module body() { cube([80, 50, 24]); }
-module lid() { cube([80, 50, 4]); }
-module render_selected_output() {
-  if (selected_output == "body") { body(); }
-  else if (selected_output == "lid") { lid(); }
-  else { assert(false, "Unknown selected_output"); }
-}
-render_selected_output();
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm"),
+    ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=4.0, unit="mm"),
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(params["body_width"], 50, 24)
+    lid = cq.Workplane("XY").box(params["body_width"], 50, params["lid_thickness"])
+    return Product(parameters=PARAMETERS, outputs=[
+        PrintableOutput(output_id="body", label="Body", component_id="body", model=body),
+        PrintableOutput(output_id="lid", label="Lid", component_id="lid", model=lid),
+    ])
 `;
 
 test("structured revision planning preserves active revision until scoped candidate is accepted", async ({ page }) => {
@@ -130,7 +136,7 @@ test("structured revision planning preserves active revision until scoped candid
           project_id: "project-1",
           revision_id: revisionId,
           design_plan_id: "plan-1",
-          source: { filename: "project.scad", sha256: "source-hash" },
+          source: { filename: "source.py", sha256: "source-hash" },
           outputs: outputsByRevision.get(revisionId) ?? [],
         },
       });
@@ -299,6 +305,8 @@ test("structured revision planning preserves active revision until scoped candid
   await page.getByRole("button", { name: "Projects" }).click();
   await page.getByRole("button", { name: "Revision Workflow" }).click();
   await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Python" })).toBeVisible();
+  await expect(page.getByLabel("Python source")).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Make the lid 4 mm thick");
   await page.getByRole("button", { name: "Plan revision" }).click();
@@ -309,8 +317,6 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByRole("button", { name: "Generate revision" })).toBeDisabled();
 
   await page.getByRole("button", { name: "Approve revision plan" }).click();
-  await expect(page.getByLabel("Revision Plan").getByText("Revision plan approved")).toBeVisible();
-  await page.getByRole("button", { name: "Generate revision" }).click();
   await expect(page.getByText("Candidate - R2 - Ready with warnings")).toBeVisible();
   await expect(page.getByText("Revision scope checks")).toBeVisible();
   await expect(page.getByText("Passed approved revision scope")).toBeVisible();
@@ -328,7 +334,6 @@ test("structured revision planning preserves active revision until scoped candid
   await page.getByRole("button", { name: "Plan revision" }).click();
   await expect(page.getByLabel("Revision Plan").getByText("Revision plan review")).toBeVisible();
   await page.getByRole("button", { name: "Approve revision plan" }).click();
-  await page.getByRole("button", { name: "Generate revision" }).click();
   await expect(page.getByLabel("Revision Plan").getByText("Revision scope checks")).toBeVisible();
   await expect(page.getByLabel("Revision Plan").getByText("Rejected before compile", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Revision Plan").getByText("Unauthorized parameter change")).toBeVisible();
@@ -350,6 +355,8 @@ function revision(overrides: Partial<Revision>): Revision {
     accepted_at: null,
     rejected_at: null,
     user_instruction: "Generated",
+    cad_backend: "cadquery",
+    source_language: "python",
     stl_path: "model.stl",
     ai_output_path: null,
     output_manifest_path: null,
@@ -400,7 +407,7 @@ function revisionOutput(overrides: Record<string, unknown>) {
     compile_log_path: "projects/project-1/revisions/revision/logs/body.log",
     compile_ms: 25,
     compile_error: null,
-    execution_command: ["openscad", "-D", "selected_output=\"body\""],
+    execution_command: ["python", "_volundr_cadquery_runner.py"],
     metadata: {
       size_x_mm: 80,
       size_y_mm: 50,
