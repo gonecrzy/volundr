@@ -4,7 +4,7 @@ Date: 2026-07-30
 
 ## Phase 10 Verification
 
-The CadQuery-only product path is committed in `a9cdc13 Remove OpenSCAD product paths`.
+The CadQuery-only product path was first committed in `a9cdc13 Remove OpenSCAD product paths` and finalized after later CadQuery-only cleanup in `c63a7a4 Remove OpenSCAD product paths`.
 
 Verified commands:
 
@@ -567,7 +567,7 @@ Case findings:
 
 ## Final Current-HEAD Verification
 
-Current HEAD verification after live-gate stabilization:
+Current HEAD verification after live-gate stabilization and final OpenSCAD path cleanup:
 
 ```bash
 rtk .venv/bin/python -m pytest -q
@@ -575,19 +575,24 @@ rtk npm test -- --run
 rtk npm run build
 rtk npm run test:e2e
 rtk .venv/bin/alembic heads
-rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration-solid-count .venv/bin/alembic upgrade head
-rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration-solid-count .venv/bin/alembic current
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration-c63a7a4 .venv/bin/alembic upgrade head
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration-c63a7a4 .venv/bin/alembic current
 rtk git diff --check
+rtk .venv/bin/python -m compileall app volundr_cad tests/test_config.py tests/test_source_extraction.py tests/test_cadquery_contract.py tests/test_cad_worker.py tests/test_design_specifications.py tests/test_multi_output_generation.py tests/test_parameter_configuration.py tests/test_ollama_provider.py tests/test_gemini_api_provider.py
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py --suite tests/fixtures/generation_benchmarks/full.json --staged-product-gate --run-label phase10-remove-openscad-paths --provider dry-run
 ```
 
 Results:
 
-- Backend tests: 207 passed, 1 existing Starlette/httpx deprecation warning.
-- Frontend unit tests: 38 passed across 6 files.
+- Backend tests: 243 passed, 1 existing Starlette/httpx deprecation warning.
+- Targeted backend Phase 10 slice: 119 passed, 1 existing Starlette/httpx deprecation warning.
+- Frontend unit tests: 39 passed across 6 files.
 - Frontend production build: succeeded.
-- Playwright staged workflow: 1 passed.
-- Alembic has a single head: `0015_cadquery_native_persistence`.
-- Fresh SQLite database migration upgraded through all migrations to `0015_cadquery_native_persistence (head)`.
+- Playwright staged workflow: 4 passed.
+- Alembic has a single head: `0019_revision_output_parameter_hash`.
+- Fresh SQLite database migration upgraded through all migrations to `0019_revision_output_parameter_hash (head)`.
+- Compileall completed for backend app, runtime package, and Phase 10-focused tests.
+- Staged product gate dry-run selected 12 cases, made no provider calls, and recorded all source/design probes as `not_run` as expected for dry-run.
 - Diff whitespace check: clean.
 
 Final Docker worker verification:
@@ -639,7 +644,36 @@ Results:
    - `aed3dff` Require cadquery-v1 worker execution
    - `f42be4f` Route API CadQuery execution through worker queue
    - `cbbf501` Remove legacy CadQuery probe contract
-4. Database/schema strategy: development migration `0015_cadquery_native_persistence` replaces OpenSCAD-shaped canonical fields with CadQuery-native source, execution, output, topology, STEP/STL/BREP, and manifest fields. Old development databases should be recreated.
+   - `a0b5606` Record strict CadQuery worker hardening
+   - `02050e0` Reject unsupported CadQuery worker contracts
+   - `0f3f91b` Clarify CadQuery transition documentation policy
+   - `b42630f` Persist CadQuery execution manifests
+   - `d58bbef` Include CadQuery geometry artifacts in exports
+   - `1d103c8` Include CadQuery execution manifest in exports
+   - `ee10edf` Persist CadQuery output topology fields
+   - `50a8c88` Rename generation attempt persistence fields
+   - `2e4c3b7` Remove legacy printable output module alias
+   - `065b9fd` Rename revision output execution state
+   - `a8270fc` Require explicit CadQuery output topology policy
+   - `597919c` Reject CadQuery method artifact exports
+   - `ded5b62` Require fenced CadQuery provider source
+   - `9a8e92d` Validate CadQuery runtime output contracts
+   - `2213107` Record explicit CadQuery topology outcomes
+   - `272cf4c` Record CadQuery execution manifest metadata
+   - `ccf4786` Track CadQuery output parameter hashes
+   - `3a88fc3` Export CadQuery output metadata artifacts
+   - `9e3dc48` Revalidate CadQuery source in isolated worker
+   - `70d37fa` Emit explicit CadQuery topology failure outcomes
+   - `e669c4a` Record CadQuery topology bounds and shells
+   - `e572c74` Record CadQuery manifest execution timing
+   - `fb80212` Use CadQuery execution manifest filename
+   - `82dcc76` Include staged CadQuery prompt inputs
+   - `daae225` Record CadQuery repair prompt versions
+   - `a20390c` Protect CadQuery configuration parameters
+   - `f8a75df` Track CadQuery source ownership metadata
+   - `095e3d4` Align staged CadQuery frontend workflow
+   - `c63a7a4` Remove OpenSCAD product paths
+4. Database/schema strategy: development migration `0015_cadquery_native_persistence` replaced OpenSCAD-shaped canonical fields with CadQuery-native source, execution, output, topology, STEP/STL/BREP, and manifest fields. Later CadQuery-native migrations extend this through current head `0019_revision_output_parameter_hash`. Old development databases should be recreated.
 5. Worker execution and security model: filesystem-backed job queue; worker runs as non-root `volundr-cad`, with no network, no provider credentials, read-only root filesystem, bounded PID/memory/CPU, structured job/result manifests, timeout handling, artifact hashes, and diagnostics.
 6. CadQuery source contract: `cadquery-v1` Python contract with approved imports, typed `ParameterSpec`, `build(params)`, structured `Product`, named `PrintableOutput` records, source extraction, AST validation, contract repair, and worker-owned exports.
 7. Parameter model: typed editable/protected parameters with validation, ranges, enums, presets, dependency summaries, and provider-free resolved value execution.
@@ -652,7 +686,7 @@ Results:
 14. Component-targeted revision behavior: targeted components/outputs and protected components/outputs are represented in plans and checked against generated outputs and topology/preservation evidence.
 15. Frontend lifecycle: the primary UI path is staged Describe -> Requirements -> Design Plan -> Approve -> Generate -> CadQuery execution/topology validation -> Candidate -> Accept or revise, with CadQuery source, named outputs, topology, configuration, and revision controls.
 16. OpenSCAD code removed: OpenSCAD product paths, prompt modes, parser/runner assumptions, schema aliases, UI labels, Docker package usage, and simple bypass defaults were removed or superseded by CadQuery-only paths.
-17. Tests and exact results: final current-HEAD backend tests `207 passed`; frontend unit tests `38 passed`; production build succeeded; staged Playwright workflow `3 passed`; `git diff --check` clean.
+17. Tests and exact results: final current-HEAD backend tests `243 passed`; targeted backend Phase 10 slice `119 passed`; frontend unit tests `39 passed`; production build succeeded; staged Playwright workflow `4 passed`; compileall succeeded; staged product gate dry-run selected 12 cases with no provider calls; `git diff --check` clean.
 18. Docker verification: web/API/worker running; worker non-root, no provider env, no network; deterministic CadQuery job succeeded and artifacts were visible through the jobs directory; structured failure diagnostics were previously verified.
 19. Live Gemini calls made and quota usage: Gemini CLI smoke failed before output due local tier eligibility; Gemini API smoke and required live reruns were then run with quota caps. Final v4 live run estimated `55751` tokens and did not record dollar cost.
 20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output. Focused follow-up live runs added Design Plan probes, build-volume configuration probing, and accidental-multiple-solid prompting; the v2 configuration probe observed `profile.build_volume` for `rail_length=360`, and the solid-count negative-control live run observed `source_probe_solid_count_rejection_count=1`.

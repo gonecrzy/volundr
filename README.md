@@ -12,8 +12,8 @@ provider, and a staged Design Specification and Design Plan workflow.
 The current checkout is CadQuery-primary for product CAD generation and
 execution. Generated source is CadQuery Python, execution goes through the
 isolated `volundr-cad-worker`, STEP is the primary geometry artifact, and STL is
-derived for print preview and printing. The live Gemini benchmark gate is still
-pending provider credentials/access; current local and Docker verification is
+derived for print preview and printing. The live Gemini benchmark gate, local
+verification, Docker verification, and remaining product-quality limitations are
 recorded in `docs/CADQUERY_TRANSITION_EVALUATION.md`.
 
 The authoritative direction is defined in:
