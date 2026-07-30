@@ -33,7 +33,6 @@ def extract_python_source(raw_output: str) -> str:
 def _looks_like_python_cadquery(source: str) -> bool:
     return (
         "def build(" in source
-        or "def build_model" in source
         or "import cadquery" in source
         or "cq.Workplane" in source
         or "PrintableOutput" in source
@@ -47,10 +46,4 @@ def _validate_python_source(source: str) -> None:
         except CadQueryContractError as exc:
             raise SourceExtractionError(str(exc)) from exc
         return
-    if re.search(r"^\s*def\s+build_model\s*\(", source, flags=re.MULTILINE):
-        try:
-            validate_cadquery_source(source)
-        except CadQueryContractError as exc:
-            raise SourceExtractionError(str(exc)) from exc
-        return
-    raise SourceExtractionError("Python source must define build(params) or build_model()")
+    raise SourceExtractionError("Python source must define build(params)")

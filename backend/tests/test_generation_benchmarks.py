@@ -12,7 +12,9 @@ from app.services.generation.live_benchmarks import (
     LiveBenchmarkConfig,
     LiveBenchmarkRunner,
     _compile_source_probe_for_language,
+    _disconnected_mesh_diagnostics,
     _source_parameter_analysis,
+    _source_repair_request_for,
     _source_request_for,
 )
 from app.services.generation.live_benchmarks import _source_compile_repair_diagnostics
@@ -526,6 +528,32 @@ def test_source_compile_repair_diagnostics_expand_invalid_topology() -> None:
     assert "posts must overlap side walls or the back wall" in diagnostics
     assert "x = +/- (outer_width / 2 - wall_thickness / 2)" in diagnostics
     assert "omit the handle" in diagnostics
+
+
+def test_source_repair_prompt_uses_cadquery_v1_entrypoint() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    benchmark = {entry.id: entry for entry in suite.benchmarks}["simple_mounting_plate"]
+
+    request = _source_repair_request_for(
+        benchmark=benchmark,
+        current_source="import cadquery as cq\n\ndef build(params):\n    raise RuntimeError()\n",
+        compiler_diagnostics="runtime failed",
+        source_language="cadquery",
+    )
+
+    assert "build(params)" in request.user_instruction
+    assert "build_model()" not in request.user_instruction
+
+
+def test_disconnected_mesh_diagnostics_use_cadquery_v1_entrypoint() -> None:
+    diagnostics = _disconnected_mesh_diagnostics(
+        expected_connected_body_count=1,
+        connected_components=2,
+        source_language="cadquery",
+    )
+
+    assert "Rewrite build(params)" in diagnostics
+    assert "build_model()" not in diagnostics
 
 
 def test_phase_validation_scenarios_cover_function_style_and_library_progression() -> None:

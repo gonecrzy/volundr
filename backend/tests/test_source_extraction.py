@@ -6,7 +6,7 @@ from app.services.ai.source_extraction import (
 )
 
 
-def test_extracts_fenced_python_source_with_build_model() -> None:
+def test_rejects_fenced_python_source_with_legacy_build_model() -> None:
     raw_output = """
 ```python
 import cadquery as cq
@@ -18,10 +18,8 @@ def build_model():
 ```
 """
 
-    source = extract_python_source(raw_output)
-
-    assert "def build_model()" in source
-    assert "plate_width = 80" in source
+    with pytest.raises(SourceExtractionError, match="build\\(params\\)"):
+        extract_python_source(raw_output)
 
 
 def test_extracts_fenced_cadquery_v1_source_with_build_entrypoint() -> None:
@@ -49,8 +47,8 @@ def build(params):
     assert "PrintableOutput" in source
 
 
-def test_rejects_python_source_without_build_model() -> None:
-    with pytest.raises(SourceExtractionError, match="build_model"):
+def test_rejects_python_source_without_build_entrypoint() -> None:
+    with pytest.raises(SourceExtractionError, match="build\\(params\\)"):
         extract_python_source("import cadquery as cq\nresult = cq.Workplane('XY').box(1, 1, 1)")
 
 

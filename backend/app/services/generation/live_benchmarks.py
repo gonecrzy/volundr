@@ -1733,7 +1733,7 @@ def _disconnected_mesh_diagnostics(
         "CadQuery compiled successfully, but mesh validation failed: "
         f"expected connected body count: {expected_connected_body_count}; "
         f"actual connected components: {connected_components}. "
-        "Rewrite build_model() so every additive solid in the one-piece model is "
+        "Rewrite build(params) so every additive solid in the one-piece model is "
         "joined with union() and physically overlaps another positive solid by at "
         "least 0.5 mm. Sink decorative overlays, indicators, ribs, silhouettes, "
         "fins, labels, and handles into the parent body so they fuse. Model holes "
@@ -1776,8 +1776,9 @@ def _source_repair_request_for(
     source_language: str = "cadquery",
 ) -> ModelGenerationRequest:
     instruction = (
-        "Repair the CadQuery Python source so build_model() compiles cleanly while "
-        "preserving the benchmark intent and expected source-probe parameters."
+        "Repair the CadQuery Python source so build(params) executes cleanly and "
+        "returns a cadquery-v1 Product while preserving the benchmark intent and "
+        "expected source-probe parameters."
     )
     return ModelGenerationRequest(
         project_name=f"Benchmark: {benchmark.id}",
