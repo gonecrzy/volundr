@@ -12,6 +12,7 @@ Verified commands:
 rtk .venv/bin/python -m pytest -q
 rtk npm test -- --run
 rtk npm run build
+rtk npm run test:e2e
 rtk git diff --check
 ```
 
@@ -20,6 +21,7 @@ Results from the original Phase 10 commit:
 - Backend: 177 passed, 1 existing Starlette/httpx deprecation warning.
 - Frontend unit tests: 38 passed.
 - Frontend production build: succeeded.
+- Playwright staged workflow: 1 passed.
 - Diff whitespace check: clean.
 
 Additional local security verification added after the Phase 11 audit:
@@ -34,6 +36,16 @@ Results:
 - CadQuery contract and worker security slice: 36 passed.
 - Full backend after artifact-boundary hardening: 183 passed, 1 existing Starlette/httpx deprecation warning.
 - Added explicit coverage for network-library import rejection, environment-inspection attempts, malformed STEP rejection, and worker result rejection of artifact paths outside the job directory.
+
+Additional frontend workflow verification:
+
+```bash
+rtk npm run test:e2e
+```
+
+Result:
+
+- Playwright staged revision workflow: 1 passed.
 
 ## Live Benchmark Smoke
 
