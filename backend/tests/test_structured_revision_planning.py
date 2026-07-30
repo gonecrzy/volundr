@@ -868,7 +868,7 @@ def test_revision_plan_attempts_are_persisted_with_prompt_versions(tmp_path: Pat
     with SessionLocal() as session:
         attempt = session.scalar(
             select(GenerationAttempt)
-            .where(GenerationAttempt.prompt_template_version == "revision-planning-v1")
+            .where(GenerationAttempt.prompt_version == "revision-planning-v1")
             .order_by(GenerationAttempt.attempt_number.desc())
         )
         assert attempt is not None

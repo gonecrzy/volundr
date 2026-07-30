@@ -456,7 +456,7 @@ def test_ready_specification_creates_immutable_design_plan(tmp_path: Path) -> No
     with SessionLocal() as session:
         attempt = session.scalar(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number.desc()))
         assert attempt is not None
-        assert attempt.prompt_template_version == "design-plan-v1"
+        assert attempt.prompt_version == "design-plan-v1"
         assert attempt.design_plan_path is not None
 
     run_dir = tmp_path / "data" / "projects" / project["id"] / "generation-runs" / attempt.id
@@ -517,7 +517,7 @@ def test_design_plan_dependency_edges_must_reference_declared_parameters(tmp_pat
             attempt
             for attempt in attempts
             if attempt.project_id == project["id"]
-            and attempt.prompt_template_version == "design-plan-v1"
+            and attempt.prompt_version == "design-plan-v1"
         ]
         assert [attempt.status for attempt in planning_attempts] == ["failed", "succeeded"]
         assert planning_attempts[0].failure_class == "design_plan_invalid"
@@ -579,7 +579,7 @@ def test_design_plan_clarification_answers_create_superseding_ready_plan(tmp_pat
         planning_attempts = [
             attempt
             for attempt in attempts
-            if attempt.prompt_template_version == "design-plan-v1"
+            if attempt.prompt_version == "design-plan-v1"
         ]
         assert [attempt.status for attempt in planning_attempts] == ["succeeded", "succeeded"]
 
@@ -634,7 +634,7 @@ def test_approved_design_plan_generates_candidate_from_plan_authority(
 
     with SessionLocal() as session:
         attempts = list(session.scalars(select(GenerationAttempt).order_by(GenerationAttempt.attempt_number)))
-        assert attempts[-1].prompt_template_version == "cadquery-generation-v1"
+        assert attempts[-1].prompt_version == "cadquery-generation-v1"
         assert attempts[-1].cad_backend == "cadquery"
         assert attempts[-1].source_language == "python"
         assert attempts[-1].design_plan_path is not None

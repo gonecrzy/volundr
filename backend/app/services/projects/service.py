@@ -2489,10 +2489,10 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._prompt_template_version(request),
+            prompt_version=self._prompt_template_version(request),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
@@ -2538,8 +2538,8 @@ class ProjectService:
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
         raw_output_path = run_dir / "raw-output.txt"
         raw_output_path.write_text(generation_result.raw_output, encoding="utf-8")
-        attempt.provider = generation_result.provider
-        attempt.provider_model = generation_result.provider_model
+        attempt.provider_id = generation_result.provider
+        attempt.model_id = generation_result.provider_model
         attempt.raw_output_path = self._relative(raw_output_path)
         attempt.output_hash = self._sha256(generation_result.raw_output)
         self._update_attempt_chain(attempt, status=attempt.status)
@@ -2556,7 +2556,7 @@ class ProjectService:
         suffix = "py" if source_language == "python" else "scad"
         source_path = run_dir / f"extracted-source.{suffix}"
         source_path.write_text(source, encoding="utf-8")
-        attempt.extracted_source_path = self._relative(source_path)
+        attempt.source_path = self._relative(source_path)
         attempt.source_hash = self._sha256(source)
         if source_language == "python":
             attempt.cad_backend = "cadquery"
@@ -2853,10 +2853,10 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._revision_plan_prompt_template_version(),
+            prompt_version=self._revision_plan_prompt_template_version(),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
@@ -2901,10 +2901,10 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._design_plan_prompt_template_version(),
+            prompt_version=self._design_plan_prompt_template_version(),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
@@ -2945,10 +2945,10 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._requirement_prompt_template_version(),
+            prompt_version=self._requirement_prompt_template_version(),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
@@ -3349,10 +3349,10 @@ class ProjectService:
             superseded_specification_id=superseded_specification_id,
             version_number=self._next_design_specification_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
-            prompt_template_version=attempt.prompt_template_version,
+            prompt_template_version=attempt.prompt_version,
             ruleset_version=attempt.ruleset_version,
-            provider=attempt.provider,
-            provider_model=attempt.provider_model,
+            provider=attempt.provider_id,
+            provider_model=attempt.model_id,
             user_instruction=request.user_instruction,
             raw_response_path=raw_response_path,
             specification_path=self._relative(spec_path),
@@ -3410,10 +3410,10 @@ class ProjectService:
             superseded_design_plan_id=superseded_design_plan_id,
             version_number=self._next_design_plan_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
-            prompt_template_version=attempt.prompt_template_version,
+            prompt_template_version=attempt.prompt_version,
             ruleset_version=attempt.ruleset_version,
-            provider=attempt.provider,
-            provider_model=attempt.provider_model,
+            provider=attempt.provider_id,
+            provider_model=attempt.model_id,
             raw_response_path=raw_response_path,
             plan_path=self._relative(plan_path),
             content_hash=content_hash,
@@ -3485,10 +3485,10 @@ class ProjectService:
             superseded_revision_plan_id=superseded_revision_plan_id,
             version_number=self._next_revision_plan_version(project.id),
             schema_version=str(payload.get("schema_version", REVISION_PLAN_SCHEMA_VERSION)),
-            prompt_template_version=attempt.prompt_template_version,
+            prompt_template_version=attempt.prompt_version,
             ruleset_version=attempt.ruleset_version,
-            provider=attempt.provider,
-            provider_model=attempt.provider_model,
+            provider=attempt.provider_id,
+            provider_model=attempt.model_id,
             user_instruction=str(payload.get("user_instruction") or attempt.project.original_intent)
             if getattr(attempt, "project", None) is not None
             else str(payload.get("summary") or ""),
@@ -3588,12 +3588,12 @@ class ProjectService:
             "stages": [
                 {
                     "stage": "cadquery_generation",
-                    "prompt_template_version": attempt.prompt_template_version,
+                    "prompt_version": attempt.prompt_version,
                     "ruleset_version": attempt.ruleset_version,
                     "request_payload_path": attempt.request_payload_path,
                     "prompt_path": attempt.prompt_path,
                     "raw_output_path": attempt.raw_output_path,
-                    "extracted_source_path": attempt.extracted_source_path,
+                    "source_path": attempt.source_path,
                     "design_spec_path": attempt.design_spec_path,
                     "design_plan_path": attempt.design_plan_path,
                     "source_contract_result_path": source_validation.result_path

@@ -58,11 +58,19 @@ def test_cadquery_native_persistence_columns_are_canonical() -> None:
 
     attempt_columns = {column["name"] for column in inspector.get_columns("generation_attempts")}
     assert {
+        "provider_id",
+        "model_id",
         "ruleset_version",
+        "prompt_version",
         "cad_backend",
         "source_language",
         "source_contract_version",
+        "source_path",
     }.issubset(attempt_columns)
+    assert "provider" not in attempt_columns
+    assert "provider_model" not in attempt_columns
+    assert "prompt_template_version" not in attempt_columns
+    assert "extracted_source_path" not in attempt_columns
     assert "gemini_ruleset_version" not in attempt_columns
 
     source_validation_columns = {

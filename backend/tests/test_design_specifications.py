@@ -355,7 +355,7 @@ def test_complete_request_creates_requirements_ready_specification(tmp_path: Pat
         attempt = session.scalar(select(GenerationAttempt))
         assert attempt is not None
         assert attempt.status == "succeeded"
-        assert attempt.prompt_template_version == "requirements-v1"
+        assert attempt.prompt_version == "requirements-v1"
         assert attempt.design_spec_path is not None
 
     run_dir = tmp_path / "data" / "projects" / project["id"] / "generation-runs" / attempt.id
@@ -488,7 +488,7 @@ def test_invalid_extraction_json_is_classified_and_bounded_repair_is_attempted(t
         )
         assert [attempt.status for attempt in attempts] == ["failed", "succeeded"]
         assert attempts[0].failure_class == "design_spec_invalid"
-        assert attempts[1].prompt_template_version == "requirements-v1"
+        assert attempts[1].prompt_version == "requirements-v1"
 
 
 def test_requirement_extraction_normalizes_common_provider_schema_variants(tmp_path: Path) -> None:
