@@ -3,7 +3,7 @@ import ast
 import hashlib
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -38,6 +38,8 @@ from app.services.generation.benchmarks import (
     load_benchmark_suite,
     phase_validation_benchmark_ids,
     phase_validation_scenario_set,
+    staged_product_gate_benchmark_ids,
+    staged_product_gate_scenario_set,
 )
 from app.services.generation.failure_taxonomy import FailureClass
 from app.schemas.printability import BuildVolumeProfile, PrintabilityProfile
@@ -90,6 +92,7 @@ class LiveBenchmarkConfig:
     source_language: str = "cadquery"
     design_plan_probe: bool = False
     configuration_probe: bool = False
+    staged_product_gate: bool = False
 
 
 @dataclass(frozen=True)
@@ -105,6 +108,7 @@ class LiveBenchmarkRunner:
     """Creates reproducible benchmark artifacts without promoting prompt changes."""
 
     def run(self, config: LiveBenchmarkConfig) -> LiveBenchmarkRunResult:
+        config = self._normalize_config(config)
         suite = load_benchmark_suite(config.suite_path)
         selected_benchmarks = self._select_benchmarks(suite, config)
         provider = self._provider_for(config)
@@ -188,6 +192,7 @@ class LiveBenchmarkRunner:
                 "source_language": config.source_language,
                 "design_plan_probe": config.design_plan_probe,
                 "configuration_probe": config.configuration_probe,
+                "staged_product_gate": config.staged_product_gate,
             },
             "provider": {
                 "mode": config.provider,
@@ -209,6 +214,9 @@ class LiveBenchmarkRunner:
             "case_runs": case_runs,
             "validation_scenario_set": phase_validation_scenario_set()
             if config.phase_validation
+            else None,
+            "staged_product_gate_scenario_set": staged_product_gate_scenario_set()
+            if config.staged_product_gate
             else None,
             "artifact_collection_root": "artifacts",
             "human_scoring_root": "human-scoring",
@@ -233,6 +241,20 @@ class LiveBenchmarkRunner:
             manifest_path=manifest_path,
             metrics_path=metrics_path,
             prompt_comparison_path=prompt_comparison_path,
+        )
+
+    def _normalize_config(self, config: LiveBenchmarkConfig) -> LiveBenchmarkConfig:
+        if not config.staged_product_gate:
+            return config
+        required_run_count = len(staged_product_gate_benchmark_ids()) * config.runs_per_case
+        return replace(
+            config,
+            source_probe=True,
+            source_probe_repair=True,
+            source_brief=True,
+            design_plan_probe=True,
+            configuration_probe=True,
+            max_runs=max(config.max_runs, required_run_count),
         )
 
     def _run_case(
@@ -980,32 +1002,25 @@ class LiveBenchmarkRunner:
         config: LiveBenchmarkConfig,
     ) -> list[GenerationBenchmark]:
         benchmarks = suite.benchmarks
+        if config.staged_product_gate:
+            if config.phase_validation:
+                raise ValueError("staged_product_gate cannot be combined with phase_validation")
+            if config.benchmark_ids:
+                raise ValueError("staged_product_gate cannot be combined with explicit benchmark_ids")
+            if config.max_cases is not None:
+                raise ValueError("staged_product_gate cannot be combined with max_cases")
+            config = replace(
+                config,
+                benchmark_ids=staged_product_gate_benchmark_ids(),
+            )
         if config.phase_validation:
             if config.benchmark_ids:
                 raise ValueError("phase_validation cannot be combined with explicit benchmark_ids")
             if config.max_cases is not None:
                 raise ValueError("phase_validation cannot be combined with max_cases")
-            config = LiveBenchmarkConfig(
-                suite_path=config.suite_path,
-                output_root=config.output_root,
-                run_label=config.run_label,
+            config = replace(
+                config,
                 benchmark_ids=phase_validation_benchmark_ids(),
-                runs_per_case=config.runs_per_case,
-                max_cases=config.max_cases,
-                max_runs=config.max_runs,
-                max_estimated_tokens=config.max_estimated_tokens,
-                cost_per_1k_tokens_usd=config.cost_per_1k_tokens_usd,
-                max_estimated_cost_usd=config.max_estimated_cost_usd,
-                provider=config.provider,
-                allow_live=config.allow_live,
-                baseline_manifest_path=config.baseline_manifest_path,
-                phase_validation=config.phase_validation,
-                source_probe=config.source_probe,
-                source_probe_repair=config.source_probe_repair,
-                source_brief=config.source_brief,
-                source_language=config.source_language,
-                design_plan_probe=config.design_plan_probe,
-                configuration_probe=config.configuration_probe,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -1410,6 +1425,9 @@ class LiveBenchmarkRunner:
             "needs_human_scoring": True,
             "next_work_buckets": {category: 0 for category in SCORING_CATEGORIES},
             "phase_validation": bool(manifest.get("config", {}).get("phase_validation")),
+            "staged_product_gate": bool(
+                manifest.get("config", {}).get("staged_product_gate")
+            ),
             "source_probe_enabled": bool(manifest.get("config", {}).get("source_probe")),
             "source_probe_language_counts": source_probe_language_counts,
             "source_probe_status_counts": source_probe_status_counts,

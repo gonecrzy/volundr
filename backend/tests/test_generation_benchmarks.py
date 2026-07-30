@@ -6,6 +6,7 @@ from app.services.generation.benchmarks import (
     phase_validation_benchmark_ids,
     load_benchmark_suite,
     run_deterministic_contract_check,
+    staged_product_gate_benchmark_ids,
 )
 from app.services.generation.live_benchmarks import (
     LiveBenchmarkConfig,
@@ -166,6 +167,34 @@ def test_full_generation_benchmark_fixture_covers_all_categories() -> None:
     assert by_id["configuration_exceeds_build_volume"].expected_configuration[
         "expected_validation_state"
     ] == "configuration_blocked_build_volume"
+
+
+def test_staged_product_gate_selects_required_transition_cases() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    by_id = {benchmark.id: benchmark for benchmark in suite.benchmarks}
+
+    assert staged_product_gate_benchmark_ids() == (
+        "simple_mounting_plate",
+        "parametric_adapter",
+        "parametric_electronics_enclosure",
+        "parametric_repeated_slot_rack",
+        "parametric_multi_part_hinged_box",
+        "parametric_case_carrier",
+        "parametric_configurable_organizer",
+        "component_revision_lid_only",
+        "vague_clarification",
+        "box_with_lid",
+        "accidental_multiple_solids",
+        "configuration_exceeds_build_volume",
+    )
+    assert set(staged_product_gate_benchmark_ids()) <= set(by_id)
+    assert by_id["component_revision_lid_only"].expected_component_revision["protected_outputs"]
+    assert by_id["accidental_multiple_solids"].compile_expectation == (
+        "source_may_compile_but_candidate_blocks"
+    )
+    assert by_id["configuration_exceeds_build_volume"].expected_configuration[
+        "expected_blocking_rule"
+    ] == "profile.build_volume"
 
 
 def test_deterministic_benchmark_contract_check_passes_fixtures() -> None:

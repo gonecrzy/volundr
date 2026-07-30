@@ -97,6 +97,14 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--staged-product-gate",
+        action="store_true",
+        help=(
+            "Run the stricter CadQuery staged product-quality gate case set and enable "
+            "source, source-brief, repair, Design Plan, and configuration probes."
+        ),
+    )
+    parser.add_argument(
         "--source-probe",
         action="store_true",
         help=(
@@ -167,6 +175,7 @@ def main(argv: list[str] | None = None) -> int:
             source_language=args.source_language,
             design_plan_probe=args.design_plan_probe,
             configuration_probe=args.configuration_probe,
+            staged_product_gate=args.staged_product_gate,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
@@ -177,6 +186,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Prompt comparison: {result.prompt_comparison_path}")
     print(f"Case runs: {metrics['total_case_runs']}")
     print(f"Statuses: {metrics['status_counts']}")
+    if metrics.get("staged_product_gate"):
+        print("Staged product gate: enabled")
     if metrics.get("source_probe_enabled"):
         print(f"Source probe statuses: {metrics.get('source_probe_status_counts')}")
         print(f"Source probe compile statuses: {metrics.get('source_probe_compile_status_counts')}")

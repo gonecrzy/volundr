@@ -150,6 +150,12 @@ whether the expected blocking rule, such as `profile.build_volume`, was observed
 This measures deterministic provider-free configuration validation; it does not
 call the provider again.
 
+`--staged-product-gate` selects the CadQuery transition product-quality case set
+and enables `--source-brief`, `--source-probe`, `--source-probe-repair`,
+`--design-plan-probe`, and `--configuration-probe` together. Use it after a
+dry-run manifest check when the goal is a full pre-promotion review rather than
+a phase smoke signal.
+
 ## Quota Controls
 
 Every run validates:

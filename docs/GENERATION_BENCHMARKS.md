@@ -93,6 +93,31 @@ Compare each phase run against the previous run using the generated `run-manifes
 
 When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable CadQuery source, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STEP/STL/BREP artifacts, avoids obvious runtime warnings, and reduces disconnected mesh counts. Add `--source-brief` to require a compact structured understanding pass before source generation; the resulting brief is fed into the source prompt and stored separately so intent understanding can be compared with mesh results. Add `--source-probe-repair` when you want one bounded repair attempt after a failed CadQuery source-probe extraction/compile or after a successful compile whose mesh has more connected components than the parsed source brief expects. Add `--design-plan-probe` when you want the live harness to collect a staged Design Plan and score expected components, features, printable outputs, and dependency edges. Add `--configuration-probe` when you want the harness to rerun generated CadQuery source with fixture parameter overrides and record printability blocking rules such as `profile.build_volume`. These probes are still not a substitute for human visual review or candidate acceptance.
 
+## Staged Product Gate
+
+Before prompt promotion, run the bundled CadQuery staged product gate. It selects
+the transition-required product-quality cases and automatically enables source
+brief, source probe, bounded source repair, Design Plan, and configuration
+probes:
+
+```bash
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label staged-product-gate-dry-run \
+  --staged-product-gate \
+  --provider dry-run
+```
+
+For a live Gemini API run, use the same flag with `--provider gemini-api` and
+`--allow-live` after the dry-run manifest is reviewed. The case set covers the
+simple mounting bracket, measured adapter, electronics enclosure with lid,
+repeated-slot rack, multi-part hinged box, case/carrier, deterministic parameter
+configuration, component-targeted revision, ambiguous clarification, multi-output
+body/lid behavior, accidental multi-solid rejection, and build-volume
+configuration blocking. Prompt promotion still requires human review of the
+artifacts and scoring forms.
+
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 
 - simple bracket
