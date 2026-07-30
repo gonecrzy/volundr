@@ -66,6 +66,25 @@ class FilesystemCadWorkerRunner:
         requested_outputs: list[dict[str, Any]] | None = None,
     ) -> CadQueryCompileResult:
         source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
+        if source_contract_version != "cadquery-v1":
+            return CadQueryCompileResult(
+                job_id=job_id,
+                success=False,
+                timed_out=False,
+                exit_code=None,
+                source_path=None,
+                stl_path=None,
+                step_path=None,
+                stdout_path=None,
+                stderr_path=None,
+                metadata_path=None,
+                source_hash=source_hash,
+                output_size_bytes=0,
+                metadata=None,
+                error_message="unsupported CadQuery source_contract_version",
+                command_args=None,
+                outputs=[],
+            )
         job_dir = self.client.submit_cadquery_execution(
             source=source,
             job_id=job_id,

@@ -416,6 +416,26 @@ async def test_worker_runner_submits_job_and_reads_structured_result(tmp_path: P
     assert fake_runner.parameter_values == {"width_mm": 2.0}
 
 
+@pytest.mark.asyncio
+async def test_worker_runner_rejects_non_v1_source_contract_without_queueing(
+    tmp_path: Path,
+) -> None:
+    result = await FilesystemCadWorkerRunner(
+        tmp_path,
+        poll_interval_seconds=0.001,
+        result_timeout_seconds=0.01,
+    ).compile(
+        VALID_CADQUERY_SOURCE,
+        job_id="unsupported-contract",
+        source_contract_version="cadquery-probe-v1",
+    )
+
+    assert result.success is False
+    assert result.exit_code is None
+    assert result.error_message == "unsupported CadQuery source_contract_version"
+    assert not (tmp_path / "unsupported-contract").exists()
+
+
 def test_cadquery_runner_rejects_successful_output_with_malformed_step(
     tmp_path: Path,
 ) -> None:
