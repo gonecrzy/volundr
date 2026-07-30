@@ -121,16 +121,17 @@ def validate_cadquery_source(
     *,
     contract_version: str = "cadquery-v1",
 ) -> CadQuerySourceMetadata:
+    if contract_version != "cadquery-v1":
+        raise CadQueryContractError("unsupported CadQuery contract_version")
     try:
         tree = ast.parse(source)
     except SyntaxError as exc:
         raise CadQueryContractError(f"invalid Python syntax: {exc.msg}") from exc
 
-    strict_v1 = contract_version == "cadquery-v1"
+    strict_v1 = True
     function_names = {
         node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
     }
-    has_build_model = False
     build_function: ast.FunctionDef | None = None
     for node in tree.body:
         if isinstance(node, ast.ImportFrom):
@@ -145,34 +146,24 @@ def validate_cadquery_source(
         elif isinstance(node, ast.Assign | ast.AnnAssign):
             _validate_top_level_assignment(node, strict_v1=strict_v1)
         elif isinstance(node, ast.FunctionDef):
-            if node.name == "build_model":
-                has_build_model = True
             if node.name == "build":
                 build_function = node
             _validate_function(node, function_names=function_names, strict_v1=strict_v1)
         elif isinstance(node, ast.ClassDef):
             _validate_class(node)
 
-    if strict_v1:
-        if build_function is None:
-            raise CadQueryContractError("cadquery-v1 source must define build(params)")
-        _validate_build_entrypoint(build_function)
-        _validate_runtime_constructor_calls(tree)
-        _validate_parameter_spec_locations(tree)
-        _validate_product_parameter_references(tree)
-        metadata = _collect_cadquery_v1_metadata(tree)
-        if not metadata.output_ids:
-            raise CadQueryContractError("cadquery-v1 source must define at least one PrintableOutput")
-        if not _has_call_named(tree, "Product"):
-            raise CadQueryContractError("cadquery-v1 source must return a Product")
-        return metadata
-
-    if not has_build_model:
-        raise CadQueryContractError("source must define build_model()")
-    return CadQuerySourceMetadata(
-        contract_version=contract_version,
-        entrypoint="build_model",
-    )
+    if build_function is None:
+        raise CadQueryContractError("cadquery-v1 source must define build(params)")
+    _validate_build_entrypoint(build_function)
+    _validate_runtime_constructor_calls(tree)
+    _validate_parameter_spec_locations(tree)
+    _validate_product_parameter_references(tree)
+    metadata = _collect_cadquery_v1_metadata(tree)
+    if not metadata.output_ids:
+        raise CadQueryContractError("cadquery-v1 source must define at least one PrintableOutput")
+    if not _has_call_named(tree, "Product"):
+        raise CadQueryContractError("cadquery-v1 source must return a Product")
+    return metadata
 
 
 def _validate_import(node: ast.Import) -> None:

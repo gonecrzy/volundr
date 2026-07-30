@@ -260,7 +260,7 @@ class GeminiCliProvider:
             "- ParameterSpec default must be a literal value, not a variable reference.",
             "- Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params).",
             "- Define `def build(params):` with exactly one parameter named params.",
-            "- Do not define `build_model()`; that name is only for legacy probes.",
+            "- Do not define `build_model()`; generated source must use `build(params)`.",
             "- Return exactly one `Product` from build(params).",
             "- Every output must be a `PrintableOutput` with output_id, component_id or component_ids, label, model, quantity, required, expected_solid_count, and allow_disconnected_solids.",
             "- Top-level statements may only be the allowed imports, literal parameter metadata, optional helper function definitions, and `def build(params):`.",

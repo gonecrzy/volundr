@@ -77,6 +77,18 @@ def build_model():
         validate_cadquery_source(source)
 
 
+def test_cadquery_contract_rejects_legacy_probe_contract_version() -> None:
+    source = """
+import cadquery as cq
+
+def build_model():
+    return cq.Workplane("XY").box(1, 1, 1)
+"""
+
+    with pytest.raises(CadQueryContractError, match="unsupported CadQuery contract_version"):
+        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+
+
 def test_cadquery_v1_contract_rejects_artifact_writes() -> None:
     source = cadquery_v1_source().replace(
         "return Product(",
@@ -166,58 +178,83 @@ def test_cadquery_v1_contract_requires_product_parameters_reference_module_param
         validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
-def test_cadquery_contract_accepts_parameter_constants_and_build_functions() -> None:
+def test_cadquery_v1_contract_accepts_top_level_helper_functions() -> None:
     source = """
 import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
 
-body_width = 120.0
-body_depth = 80.0
-use_lip = True
-style = "plain"
+PARAMETERS = [
+    ParameterSpec(id="width_mm", label="Width", type="float", default=80.0, unit="mm")
+]
 
-def build_lip():
-    return cq.Workplane("XY").box(body_width, 5, 3)
+def build_lip(width):
+    return cq.Workplane("XY").box(width, 5, 3)
 
-def build_model():
-    body = cq.Workplane("XY").box(body_width, body_depth, 10)
-    return body.union(build_lip())
+def build(params):
+    width = params["width_mm"]
+    body = cq.Workplane("XY").box(width, 40, 6)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                component_id="body",
+                label="Main body",
+                model=body.union(build_lip(width)),
+            )
+        ],
+    )
 """
 
-    validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+    validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
-def test_cadquery_contract_accepts_nested_helper_functions() -> None:
+def test_cadquery_v1_contract_accepts_nested_helper_functions() -> None:
     source = """
 import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
 
-body_width = 120.0
+PARAMETERS = [
+    ParameterSpec(id="width_mm", label="Width", type="float", default=80.0, unit="mm")
+]
 
-def build_model():
+def build(params):
+    width = params["width_mm"]
     def build_lip():
-        return cq.Workplane("XY").box(body_width, 5, 3)
+        return cq.Workplane("XY").box(width, 5, 3)
 
-    body = cq.Workplane("XY").box(body_width, 80, 10)
-    return body.union(build_lip())
+    body = cq.Workplane("XY").box(width, 80, 10)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                component_id="body",
+                label="Main body",
+                model=body.union(build_lip()),
+            )
+        ],
+    )
 """
 
-    validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+    validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
 @pytest.mark.parametrize(
     "source",
     [
-        "import os\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
-        "from subprocess import run\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
-        "import socket\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
-        "import requests\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
-        "from urllib.request import urlopen\nimport cadquery as cq\n\ndef build_model():\n    return None\n",
-        "import cadquery\n\ndef build_model():\n    return cadquery.Workplane('XY')\n",
-        "from cadquery import Workplane\n\ndef build_model():\n    return Workplane('XY')\n",
+        "import os\n" + cadquery_v1_source(),
+        "from subprocess import run\n" + cadquery_v1_source(),
+        "import socket\n" + cadquery_v1_source(),
+        "import requests\n" + cadquery_v1_source(),
+        "from urllib.request import urlopen\n" + cadquery_v1_source(),
+        cadquery_v1_source().replace("import cadquery as cq", "import cadquery"),
+        cadquery_v1_source().replace("import cadquery as cq", "from cadquery import Workplane"),
     ],
 )
 def test_cadquery_contract_rejects_unauthorized_imports(source: str) -> None:
     with pytest.raises(CadQueryContractError, match="import"):
-        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+        validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
 @pytest.mark.parametrize(
@@ -235,59 +272,45 @@ def test_cadquery_contract_rejects_unauthorized_imports(source: str) -> None:
     ],
 )
 def test_cadquery_contract_rejects_unsafe_calls(call_name: str) -> None:
-    source = f"""
-import cadquery as cq
-
-def build_model():
-    {call_name}("x")
-    return cq.Workplane("XY").box(1, 1, 1)
-"""
+    source = cadquery_v1_source().replace(
+        'width = params["width_mm"]',
+        f'{call_name}("x")\n    width = params["width_mm"]',
+    )
 
     with pytest.raises(CadQueryContractError, match=call_name):
-        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+        validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
 def test_cadquery_contract_rejects_environment_inspection_attempt() -> None:
-    source = """
-import cadquery as cq
-
-def build_model():
-    return __import__("os").environ.get("GEMINI_API_KEY")
-"""
+    source = cadquery_v1_source().replace(
+        'width = params["width_mm"]',
+        '__import__("os").environ.get("GEMINI_API_KEY")\n    width = params["width_mm"]',
+    )
 
     with pytest.raises(CadQueryContractError, match="__import__"):
-        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+        validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
 def test_cadquery_contract_rejects_unknown_direct_function_calls() -> None:
-    source = """
-import cadquery as cq
-
-def build_model():
-    return dangerous_factory()
-"""
+    source = cadquery_v1_source().replace(
+        'width = params["width_mm"]',
+        'dangerous_factory()\n    width = params["width_mm"]',
+    )
 
     with pytest.raises(CadQueryContractError, match="dangerous_factory"):
-        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+        validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
 def test_cadquery_contract_rejects_top_level_execution() -> None:
-    source = """
-import cadquery as cq
-
-result = cq.Workplane("XY").box(1, 1, 1)
-
-def build_model():
-    return result
-"""
+    source = cadquery_v1_source().replace(
+        "PARAMETERS = [",
+        'result = cq.Workplane("XY").box(1, 1, 1)\n\nPARAMETERS = [',
+    )
 
     with pytest.raises(CadQueryContractError, match="top-level assignment"):
-        validate_cadquery_source(source, contract_version="cadquery-probe-v1")
+        validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
-def test_cadquery_contract_rejects_missing_build_model() -> None:
-    with pytest.raises(CadQueryContractError, match="build_model"):
-        validate_cadquery_source(
-            "import cadquery as cq\n\nbody_width = 10\n",
-            contract_version="cadquery-probe-v1",
-        )
+def test_cadquery_contract_rejects_missing_build() -> None:
+    with pytest.raises(CadQueryContractError, match="build\\(params\\)"):
+        validate_cadquery_source("import cadquery as cq\n\nbody_width = 10\n")
