@@ -122,6 +122,12 @@ type Revision = {
   accepted_at: string | null;
   rejected_at: string | null;
   user_instruction: string | null;
+  cad_backend: string;
+  source_language: string;
+  source_path: string;
+  source_hash: string | null;
+  source_contract_version: string | null;
+  execution_manifest_path: string | null;
   stl_path: string | null;
   ai_output_path: string | null;
   output_manifest_path: string | null;
@@ -155,7 +161,7 @@ type DesignSpecification = {
   version_number: number;
   schema_version: string;
   prompt_template_version: string;
-  gemini_ruleset_version: string;
+  ruleset_version: string;
   provider: string;
   provider_model: string | null;
   user_instruction: string;
@@ -217,7 +223,7 @@ type DesignPlan = {
   version_number: number;
   schema_version: string;
   prompt_template_version: string;
-  gemini_ruleset_version: string;
+  ruleset_version: string;
   provider: string;
   provider_model: string | null;
   raw_response_path: string | null;
@@ -333,7 +339,7 @@ type RevisionPlan = {
   version_number: number;
   schema_version: string;
   prompt_template_version: string;
-  gemini_ruleset_version: string;
+  ruleset_version: string;
   provider: string;
   provider_model: string | null;
   user_instruction: string;
@@ -883,7 +889,7 @@ function App() {
       const revision = await request<Revision>(`/projects/${currentProject.id}/revisions`, {
         method: "POST",
         body: JSON.stringify({
-          scad_source: source,
+          source,
           user_instruction: instruction,
         }),
       });

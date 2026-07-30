@@ -224,7 +224,7 @@ def test_successful_generation_persists_complete_attempt_chain(tmp_path: Path) -
         assert attempt.status == "succeeded"
         assert attempt.failure_class == "none"
         assert attempt.prompt_template_version == "openscad-generation-v3"
-        assert attempt.gemini_ruleset_version == "gemini-ruleset-v1"
+        assert attempt.ruleset_version == "gemini-ruleset-v1"
         assert attempt.provider == "fake"
         assert attempt.provider_model == "fake-model"
         assert attempt.resulting_revision_id == response.json()["id"]

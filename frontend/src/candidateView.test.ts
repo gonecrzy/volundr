@@ -91,7 +91,7 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
     filename: "body.stl",
     quantity: 1,
     required: true,
-    module_name: "body",
+    entrypoint: "body",
     stl_path: "projects/example/body.stl",
     stl_hash: "hash",
     compile_log_path: "projects/example/body.log",

@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 
 class RequirementSource(StrEnum):
@@ -106,14 +106,14 @@ class ProjectMessageRead(BaseModel):
 
 
 class ManualRevisionCreate(BaseModel):
-    scad_source: str = Field(min_length=1)
+    source: str = Field(min_length=1, validation_alias=AliasChoices("source", "scad_source"))
     user_instruction: str | None = None
 
-    @field_validator("scad_source")
+    @field_validator("source")
     @classmethod
     def require_non_blank_source(cls, value: str) -> str:
         if not value.strip():
-            raise ValueError("OpenSCAD source cannot be blank")
+            raise ValueError("CAD source cannot be blank")
         return value
 
 
@@ -250,7 +250,7 @@ class DesignSpecificationRead(BaseModel):
     version_number: int
     schema_version: str
     prompt_template_version: str
-    gemini_ruleset_version: str
+    ruleset_version: str
     provider: str
     provider_model: str | None
     user_instruction: str
@@ -333,7 +333,10 @@ class DesignPlanPrintableOutput(BaseModel):
     label: str = Field(min_length=1)
     component_ids: list[str] = Field(min_length=1)
     component_id: str | None = None
-    module_name: str | None = None
+    entrypoint: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("entrypoint", "module_name", "module"),
+    )
     filename: str | None = None
     quantity: int = Field(default=1, ge=1)
     required: bool = True
@@ -393,7 +396,7 @@ class DesignPlanRead(BaseModel):
     version_number: int
     schema_version: str
     prompt_template_version: str
-    gemini_ruleset_version: str
+    ruleset_version: str
     provider: str
     provider_model: str | None
     raw_response_path: str | None
@@ -596,7 +599,7 @@ class RevisionPlanRead(BaseModel):
     version_number: int
     schema_version: str
     prompt_template_version: str
-    gemini_ruleset_version: str
+    ruleset_version: str
     provider: str
     provider_model: str | None
     user_instruction: str
@@ -708,7 +711,12 @@ class RevisionRead(BaseModel):
     revision_number: int
     source_type: str
     user_instruction: str | None
-    scad_source_path: str
+    cad_backend: str = "openscad"
+    source_language: str = "openscad"
+    source_path: str
+    source_hash: str | None = None
+    source_contract_version: str | None = None
+    execution_manifest_path: str | None = None
     stl_path: str | None
     compile_log_path: str | None
     ai_output_path: str | None
@@ -745,14 +753,20 @@ class RevisionOutputRead(BaseModel):
     filename: str
     quantity: int
     required: bool
-    module_name: str
+    entrypoint: str
     source_hash: str | None = None
+    step_path: str | None = None
+    step_hash: str | None = None
+    brep_path: str | None = None
+    brep_hash: str | None = None
     stl_path: str | None = None
     stl_hash: str | None = None
     compile_log_path: str | None = None
     compile_ms: float | None = None
     compile_error: str | None = None
-    compile_command: list[str] = Field(default_factory=list)
+    execution_command: list[str] = Field(default_factory=list)
+    topology_metadata: dict[str, Any] | None = None
+    mesh_metadata: MeshMetadataRead | None = None
     metadata: MeshMetadataRead | None = None
     validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
     preferred_orientation: dict[str, Any] | None = None

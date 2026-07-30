@@ -270,7 +270,7 @@ render_selected_output();
 
 class ConfigurationProvider:
     @property
-    def gemini_ruleset_version(self) -> str:
+    def ruleset_version(self) -> str:
         return "gemini-ruleset-v1"
 
     def provider_settings(self) -> dict[str, Any]:

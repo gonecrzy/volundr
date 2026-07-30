@@ -33,6 +33,7 @@ class GeometricAnalysisResult(Base):
         nullable=True,
         index=True,
     )
+    analysis_kind: Mapped[str] = mapped_column(String(40), nullable=False, default="mesh")
     analysis_version: Mapped[str] = mapped_column(String(120), nullable=False)
     tolerance_profile_version: Mapped[str] = mapped_column(String(120), nullable=False)
     mesh_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)

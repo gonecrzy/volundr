@@ -33,7 +33,7 @@ def test_legacy_initial_prompt_matches_snapshot() -> None:
             user_instruction="Create a 10mm cube with named parameters.",
         )
     ) == "legacy-initial-v1"
-    assert provider.gemini_ruleset_version == "gemini-ruleset-v1"
+    assert provider.ruleset_version == "gemini-ruleset-v1"
     assert prompt.rstrip("\n") == read_snapshot("legacy_initial.txt")
 
 

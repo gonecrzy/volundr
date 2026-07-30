@@ -39,6 +39,9 @@ class SourceValidationResult(Base):
         nullable=True,
         index=True,
     )
+    validator_id: Mapped[str] = mapped_column(String(120), nullable=False, default="openscad-static-validator")
+    cad_backend: Mapped[str] = mapped_column(String(40), nullable=False, default="openscad")
+    source_language: Mapped[str] = mapped_column(String(40), nullable=False, default="openscad")
     contract_version: Mapped[str] = mapped_column(String(80), nullable=False)
     ruleset_version: Mapped[str] = mapped_column(String(120), nullable=False)
     validator_version: Mapped[str] = mapped_column(String(120), nullable=False)

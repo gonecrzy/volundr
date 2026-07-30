@@ -226,6 +226,10 @@ class GeminiCliProvider:
     def gemini_ruleset_version(self) -> str:
         return GEMINI_RULESET_VERSION
 
+    @property
+    def ruleset_version(self) -> str:
+        return self.gemini_ruleset_version
+
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if request.contract_diagnostics:
             return CONTRACT_REPAIR_PROMPT_VERSION

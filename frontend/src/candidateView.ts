@@ -43,11 +43,17 @@ export type RevisionOutput = {
   filename: string;
   quantity: number;
   required: boolean;
-  module_name: string;
+  entrypoint: string;
   stl_path: string | null;
   stl_hash: string | null;
+  step_path?: string | null;
+  step_hash?: string | null;
+  brep_path?: string | null;
+  brep_hash?: string | null;
   compile_log_path: string | null;
   compile_error: string | null;
+  execution_command?: string[];
+  topology_metadata?: Record<string, unknown> | null;
   metadata: {
     size_x_mm: number;
     size_y_mm: number;

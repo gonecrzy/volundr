@@ -557,7 +557,7 @@ class ProjectService:
             defines=compile_defines,
         )
         output.compile_ms = round((time.perf_counter() - started) * 1000, 3)
-        output.compile_command_json = json.dumps(result.command_args or [])
+        output.execution_command_json = json.dumps(result.command_args or [])
 
         compile_log_path = log_dir / f"{self._safe_stem(output.output_id)}.log"
         compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
@@ -579,7 +579,9 @@ class ProjectService:
         metadata_path.write_text(json.dumps(asdict(result.metadata), indent=2), encoding="utf-8")
         output.stl_path = self._relative(stl_path)
         output.stl_hash = self._file_sha256(stl_path)
-        output.metadata_json = json.dumps(asdict(result.metadata), sort_keys=True)
+        mesh_metadata_json = json.dumps(asdict(result.metadata), sort_keys=True)
+        output.mesh_metadata_json = mesh_metadata_json
+        output.metadata_json = mesh_metadata_json
 
         self._persist_geometric_analysis(
             revision=revision,
@@ -1289,7 +1291,7 @@ class ProjectService:
             finding_ids=revision_plan_payload.get("targeted_findings", []),
         )
         base_source_metadata = SourceContractValidator(
-            ruleset_version=self._gemini_ruleset_version()
+            ruleset_version=self._ruleset_version()
         ).validate(
             base_source,
             design_specification=design_specification_payload,
@@ -1979,7 +1981,7 @@ class ProjectService:
     ) -> RevisionRead | None:
         return await self._create_revision_from_source(
             project_id=project_id,
-            scad_source=payload.scad_source,
+            scad_source=payload.source,
             user_instruction=payload.user_instruction,
             source_type="manual_edit",
         )
@@ -2395,7 +2397,7 @@ class ProjectService:
             provider_model=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
             prompt_template_version=self._prompt_template_version(request),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -2744,7 +2746,7 @@ class ProjectService:
             provider_model=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
             prompt_template_version=self._revision_plan_prompt_template_version(),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -2792,7 +2794,7 @@ class ProjectService:
             provider_model=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
             prompt_template_version=self._design_plan_prompt_template_version(),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -2836,7 +2838,7 @@ class ProjectService:
             provider_model=self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
             prompt_template_version=self._requirement_prompt_template_version(),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -3237,7 +3239,7 @@ class ProjectService:
             version_number=self._next_design_specification_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
             prompt_template_version=attempt.prompt_template_version,
-            gemini_ruleset_version=attempt.gemini_ruleset_version,
+            ruleset_version=attempt.ruleset_version,
             provider=attempt.provider,
             provider_model=attempt.provider_model,
             user_instruction=request.user_instruction,
@@ -3298,7 +3300,7 @@ class ProjectService:
             version_number=self._next_design_plan_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
             prompt_template_version=attempt.prompt_template_version,
-            gemini_ruleset_version=attempt.gemini_ruleset_version,
+            ruleset_version=attempt.ruleset_version,
             provider=attempt.provider,
             provider_model=attempt.provider_model,
             raw_response_path=raw_response_path,
@@ -3373,7 +3375,7 @@ class ProjectService:
             version_number=self._next_revision_plan_version(project.id),
             schema_version=str(payload.get("schema_version", REVISION_PLAN_SCHEMA_VERSION)),
             prompt_template_version=attempt.prompt_template_version,
-            gemini_ruleset_version=attempt.gemini_ruleset_version,
+            ruleset_version=attempt.ruleset_version,
             provider=attempt.provider,
             provider_model=attempt.provider_model,
             user_instruction=str(payload.get("user_instruction") or attempt.project.original_intent)
@@ -3476,7 +3478,7 @@ class ProjectService:
                 {
                     "stage": "legacy_openscad_generation",
                     "prompt_template_version": attempt.prompt_template_version,
-                    "gemini_ruleset_version": attempt.gemini_ruleset_version,
+                    "ruleset_version": attempt.ruleset_version,
                     "request_payload_path": attempt.request_payload_path,
                     "prompt_path": attempt.prompt_path,
                     "raw_output_path": attempt.raw_output_path,
@@ -3575,8 +3577,8 @@ class ProjectService:
             return str(version())
         return REVISION_PLAN_PROMPT_VERSION
 
-    def _gemini_ruleset_version(self) -> str:
-        return str(getattr(self.ai_provider, "gemini_ruleset_version", "gemini-ruleset-v1"))
+    def _ruleset_version(self) -> str:
+        return str(getattr(self.ai_provider, "ruleset_version", "gemini-ruleset-v1"))
 
     def _provider_name(self) -> str:
         return type(self.ai_provider).__name__ if self.ai_provider is not None else "unknown"
@@ -3691,7 +3693,7 @@ class ProjectService:
             version_number=specification.version_number,
             schema_version=specification.schema_version,
             prompt_template_version=specification.prompt_template_version,
-            gemini_ruleset_version=specification.gemini_ruleset_version,
+            ruleset_version=specification.ruleset_version,
             provider=specification.provider,
             provider_model=specification.provider_model,
             user_instruction=specification.user_instruction,
@@ -3729,7 +3731,7 @@ class ProjectService:
             version_number=plan.version_number,
             schema_version=plan.schema_version,
             prompt_template_version=plan.prompt_template_version,
-            gemini_ruleset_version=plan.gemini_ruleset_version,
+            ruleset_version=plan.ruleset_version,
             provider=plan.provider,
             provider_model=plan.provider_model,
             raw_response_path=plan.raw_response_path,
@@ -3774,7 +3776,7 @@ class ProjectService:
             version_number=plan.version_number,
             schema_version=plan.schema_version,
             prompt_template_version=plan.prompt_template_version,
-            gemini_ruleset_version=plan.gemini_ruleset_version,
+            ruleset_version=plan.ruleset_version,
             provider=plan.provider,
             provider_model=plan.provider_model,
             user_instruction=plan.user_instruction,
@@ -3812,7 +3814,7 @@ class ProjectService:
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
     ) -> SourceValidationResult:
-        validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
+        validator = SourceContractValidator(ruleset_version=self._ruleset_version())
         result = validator.validate(
             source,
             design_specification=design_specification_payload,
@@ -3943,7 +3945,7 @@ class ProjectService:
         configuration_context: dict[str, Any] | None = None,
     ) -> RevisionComplianceResult:
         started = time.perf_counter()
-        validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
+        validator = SourceContractValidator(ruleset_version=self._ruleset_version())
         base_scan = validator.validate(
             base_source,
             design_specification=design_specification_payload,
@@ -4982,7 +4984,7 @@ class ProjectService:
             version_number=self._next_design_specification_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
             prompt_template_version=revision_plan.prompt_template_version,
-            gemini_ruleset_version=revision_plan.gemini_ruleset_version,
+            ruleset_version=revision_plan.ruleset_version,
             provider=revision_plan.provider,
             provider_model=revision_plan.provider_model,
             user_instruction=revision_plan.user_instruction,
@@ -5029,7 +5031,7 @@ class ProjectService:
             version_number=self._next_design_plan_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
             prompt_template_version=revision_plan.prompt_template_version,
-            gemini_ruleset_version=revision_plan.gemini_ruleset_version,
+            ruleset_version=revision_plan.ruleset_version,
             provider=revision_plan.provider,
             provider_model=revision_plan.provider_model,
             raw_response_path=None,
@@ -5381,7 +5383,9 @@ class ProjectService:
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
-            scad_source_path="",
+            cad_backend="openscad",
+            source_language="openscad",
+            source_path="",
             status="failed",
             is_accepted=False,
         )
@@ -5397,7 +5401,9 @@ class ProjectService:
         compile_log_path = revision_dir / "compile.log"
         compile_log_path.write_text(error_message, encoding="utf-8")
 
-        revision.scad_source_path = self._relative(source_path)
+        revision.source_path = self._relative(source_path)
+        revision.source_hash = self._sha256("")
+        revision.source_contract_version = "openscad-source-contract-v1"
         revision.ai_output_path = self._relative(ai_output_path)
         revision.compile_log_path = self._relative(compile_log_path)
         self._record_revision_messages(revision=revision, user_instruction=user_instruction)
@@ -5429,7 +5435,9 @@ class ProjectService:
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
-            scad_source_path="",
+            cad_backend="openscad",
+            source_language="openscad",
+            source_path="",
             status="compiling",
             is_accepted=False,
         )
@@ -5489,7 +5497,9 @@ class ProjectService:
             revision.is_accepted = False
             revision.review_state = None
 
-        revision.scad_source_path = self._relative(source_path)
+        revision.source_path = self._relative(source_path)
+        revision.source_hash = result.source_hash
+        revision.source_contract_version = "openscad-source-contract-v1"
         revision.stl_path = stl_relative_path
         revision.compile_log_path = self._relative(compile_log_path)
         revision.ai_output_path = ai_output_relative_path
@@ -5533,7 +5543,9 @@ class ProjectService:
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
-            scad_source_path="",
+            cad_backend="openscad",
+            source_language="openscad",
+            source_path="",
             status="compiling",
             is_accepted=False,
             expected_output_count=len(outputs),
@@ -5587,7 +5599,7 @@ class ProjectService:
                 filename=filename,
                 quantity=output["quantity"],
                 required=output["required"],
-                module_name=output["module_name"],
+                entrypoint=output["entrypoint"],
                 source_hash=source_hash,
                 preferred_orientation_json=json.dumps(output["preferred_orientation"])
                 if output["preferred_orientation"] is not None
@@ -5614,7 +5626,9 @@ class ProjectService:
         self._persist_assembly_output_findings(revision)
         self._refresh_revision_output_counts(revision)
         revision.status = "succeeded"
-        revision.scad_source_path = self._relative(source_path)
+        revision.source_path = self._relative(source_path)
+        revision.source_hash = source_hash
+        revision.source_contract_version = "openscad-source-contract-v1"
         revision.ai_output_path = ai_output_relative_path
         revision.compile_log_path = self._relative(self._write_assembly_compile_log(revision, log_dir))
         revision.stl_path = self._first_successful_output_stl(revision)
@@ -5644,9 +5658,9 @@ class ProjectService:
 
     def resolve_revision_source(self, revision_id: str) -> Path | None:
         revision = self.db.get(Revision, revision_id)
-        if revision is None or not revision.scad_source_path:
+        if revision is None or not revision.source_path:
             return None
-        path = self.data_dir / revision.scad_source_path
+        path = self.data_dir / revision.source_path
         return path if path.exists() else None
 
     def read_revision_compile_log(self, revision_id: str) -> str | None:
@@ -6402,7 +6416,12 @@ class ProjectService:
             revision_number=revision.revision_number,
             source_type=revision.source_type,
             user_instruction=revision.user_instruction,
-            scad_source_path=revision.scad_source_path,
+            cad_backend=revision.cad_backend,
+            source_language=revision.source_language,
+            source_path=revision.source_path,
+            source_hash=revision.source_hash,
+            source_contract_version=revision.source_contract_version,
+            execution_manifest_path=revision.execution_manifest_path,
             stl_path=revision.stl_path,
             compile_log_path=revision.compile_log_path,
             ai_output_path=revision.ai_output_path,
@@ -6442,14 +6461,24 @@ class ProjectService:
             filename=output.filename,
             quantity=output.quantity,
             required=output.required,
-            module_name=output.module_name,
+            entrypoint=output.entrypoint,
             source_hash=output.source_hash,
+            step_path=output.step_path,
+            step_hash=output.step_hash,
+            brep_path=output.brep_path,
+            brep_hash=output.brep_hash,
             stl_path=output.stl_path,
             stl_hash=output.stl_hash,
             compile_log_path=output.compile_log_path,
             compile_ms=output.compile_ms,
             compile_error=output.compile_error,
-            compile_command=json.loads(output.compile_command_json),
+            execution_command=json.loads(output.execution_command_json),
+            topology_metadata=json.loads(output.topology_metadata_json)
+            if output.topology_metadata_json
+            else None,
+            mesh_metadata=MeshMetadataRead(**json.loads(output.mesh_metadata_json))
+            if output.mesh_metadata_json
+            else None,
             metadata=metadata,
             validation_summary=self._validation_summary(
                 output.revision_id,
@@ -6489,14 +6518,14 @@ class ProjectService:
             filename="model.stl",
             quantity=1,
             required=True,
-            module_name="main_model",
+            entrypoint="main_model",
             source_hash=None,
             stl_path=revision.stl_path,
             stl_hash=None,
             compile_log_path=revision.compile_log_path,
             compile_ms=None,
             compile_error=None,
-            compile_command=[],
+            execution_command=[],
             metadata=metadata,
             validation_summary=self._validation_summary(revision.id),
             preferred_orientation=None,
@@ -6524,7 +6553,9 @@ class ProjectService:
                 if component_id
             ]
             component_id = str(output.get("component_id") or (component_ids[0] if component_ids else ""))
-            module_name = str(output.get("module_name") or output.get("module") or output_id).strip()
+            entrypoint = str(
+                output.get("entrypoint") or output.get("module_name") or output.get("module") or output_id
+            ).strip()
             required = bool(output.get("required", output_type != "optional_printable_component"))
             preferred_orientation = output.get("preferred_orientation") or output.get("orientation")
             outputs.append(
@@ -6533,7 +6564,7 @@ class ProjectService:
                     "label": str(output.get("label") or output_id),
                     "component_id": component_id or None,
                     "component_ids": component_ids,
-                    "module_name": module_name,
+                    "entrypoint": entrypoint,
                     "filename": str(output.get("filename") or f"{output_id}.stl"),
                     "quantity": int(output.get("quantity") or 1),
                     "required": required,
@@ -6596,13 +6627,19 @@ class ProjectService:
             "configuration_change_id": revision.configuration_change_id,
             "source": {
                 "filename": "project.scad" if revision.design_plan_id else "model.scad",
+                "path": revision.source_path,
                 "sha256": source_hash,
+                "cad_backend": revision.cad_backend,
+                "source_language": revision.source_language,
+                "source_contract_version": revision.source_contract_version,
             },
             "outputs": [self._output_manifest_entry(output) for output in outputs],
         }
 
     def _output_manifest_entry(self, output: RevisionOutput) -> dict[str, Any]:
-        metadata = json.loads(output.metadata_json) if output.metadata_json else None
+        metadata = json.loads(output.mesh_metadata_json or output.metadata_json) if (
+            output.mesh_metadata_json or output.metadata_json
+        ) else None
         dimensions = None
         if metadata is not None:
             dimensions = {
@@ -6615,10 +6652,17 @@ class ProjectService:
             "component_id": output.component_id,
             "component_ids": json.loads(output.component_ids_json),
             "filename": output.filename,
+            "entrypoint": output.entrypoint,
             "quantity": output.quantity,
             "required": output.required,
             "state": output.output_state,
+            "step": {"path": output.step_path, "sha256": output.step_hash},
+            "brep": {"path": output.brep_path, "sha256": output.brep_hash},
+            "stl": {"path": output.stl_path, "sha256": output.stl_hash},
             "sha256": output.stl_hash,
+            "topology": json.loads(output.topology_metadata_json)
+            if output.topology_metadata_json
+            else None,
             "dimensions_mm": dimensions,
         }
 
@@ -6831,9 +6875,9 @@ class ProjectService:
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def _read_revision_metadata(self, revision: Revision) -> MeshMetadataRead | None:
-        if revision.status != "succeeded" or not revision.scad_source_path:
+        if revision.status != "succeeded" or not revision.source_path:
             return None
-        metadata_path = (self.data_dir / revision.scad_source_path).parent / "metadata.json"
+        metadata_path = (self.data_dir / revision.source_path).parent / "metadata.json"
         if not metadata_path.exists():
             output = self.db.scalar(
                 select(RevisionOutput)

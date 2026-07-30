@@ -4,7 +4,7 @@ This document defines the persistent entities and invariants needed for projects
 
 ## CadQuery Transition Status
 
-The target data model is CadQuery-native and provider-neutral. `Revision.scad_source_path`, `RevisionOutput.module_name`, `selected_output`, OpenSCAD compile defines, and `gemini_ruleset_version` are transitional implementation fields. The completed transition stores backend/source-language metadata, CadQuery source paths and hashes, execution manifests, STEP/STL artifact hashes, topology metadata, mesh metadata, and validation summaries without permanent SCAD aliases.
+The target data model is CadQuery-native and provider-neutral. Phase 3 removes `Revision.scad_source_path`, `RevisionOutput.module_name`, `RevisionOutput.compile_command_json`, and persisted `gemini_ruleset_version` columns as canonical fields. The completed transition stores backend/source-language metadata, CadQuery source paths and hashes, execution manifests, STEP/STL artifact hashes, topology metadata, mesh metadata, and validation summaries without permanent SCAD aliases.
 
 ## Project
 
@@ -54,7 +54,12 @@ configuration_change_id
 revision_number
 source_type
 user_instruction
-scad_source_path
+cad_backend
+source_language
+source_path
+source_hash
+source_contract_version
+execution_manifest_path
 stl_path
 compile_log_path
 ai_output_path
@@ -124,16 +129,7 @@ Configuration-generated revisions link to `configuration_change_id`. In the CadQ
 
 ## CadQuery Target Revision Fields
 
-The completed CadQuery revision model stores fields equivalent to:
-
-```text
-cad_backend
-source_language
-source_path
-source_hash
-source_contract_version
-execution_manifest_path
-```
+The Phase 3 revision model now stores backend-neutral source fields directly.
 
 For normal product revisions:
 
@@ -209,7 +205,7 @@ Design Plan presets remain embedded in Design Plan JSON. Project-local presets a
 
 ## RevisionOutput
 
-Represents one printable artifact produced from a Design Plan output selector.
+Represents one printable artifact produced from a Design Plan output.
 
 Fields:
 
@@ -227,14 +223,20 @@ label
 filename
 quantity
 required
-module_name
+entrypoint
 source_hash
+step_path
+step_hash
+brep_path
+brep_hash
 stl_path
 stl_hash
 compile_log_path
 compile_ms
 compile_error
-compile_command_json
+execution_command_json
+topology_metadata_json
+mesh_metadata_json
 metadata_json
 validation_summary_json
 preferred_orientation_json
@@ -272,7 +274,7 @@ superseded_specification_id
 version_number
 schema_version
 prompt_template_version
-gemini_ruleset_version
+ruleset_version
 provider
 provider_model
 user_instruction
@@ -403,7 +405,7 @@ superseded_design_plan_id
 version_number
 schema_version
 prompt_template_version
-gemini_ruleset_version
+ruleset_version
 provider
 provider_model
 raw_response_path
@@ -596,7 +598,7 @@ revised_design_plan_id
 version_number
 schema_version
 prompt_template_version
-gemini_ruleset_version
+ruleset_version
 provider
 provider_model
 user_instruction
