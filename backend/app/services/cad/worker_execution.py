@@ -70,7 +70,11 @@ async def execute_job_directory(
 
 async def process_next_job(jobs_root: Path) -> dict[str, Any] | None:
     for job_dir in sorted(path for path in jobs_root.iterdir() if path.is_dir()):
-        if job_dir.name.startswith(".") or (job_dir / "result.json").exists():
+        if (
+            job_dir.name.startswith(".")
+            or not (job_dir / "job.json").exists()
+            or (job_dir / "result.json").exists()
+        ):
             continue
         return await execute_job_directory(job_dir)
     return None

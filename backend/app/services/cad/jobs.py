@@ -70,6 +70,7 @@ class FilesystemCadJobQueue:
 
         input_dir = tmp_dir / "input"
         input_dir.mkdir(parents=True)
+        tmp_dir.chmod(0o1777)
         source_path = input_dir / "model.py"
         source_path.write_text(source, encoding="utf-8")
         source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()

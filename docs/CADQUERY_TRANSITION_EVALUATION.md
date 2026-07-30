@@ -65,6 +65,28 @@ Results:
 - Selected pre-CadQuery baseline upgrade from `0014_design_plan_clarifications` to `0015_cadquery_native_persistence` completed.
 - Resulting schema includes CadQuery-native `revisions` fields (`source_path`, `cad_backend`, `source_language`, `source_hash`, `source_contract_version`, `execution_manifest_path`) and `revision_outputs` STEP/BREP/topology/execution manifest fields.
 
+Additional Docker worker verification:
+
+```bash
+rtk docker compose up --build -d
+rtk docker compose ps
+rtk docker inspect volundr-cad-worker --format '{{.Config.User}} {{.HostConfig.NetworkMode}} {{.HostConfig.ReadonlyRootfs}} {{json .HostConfig.SecurityOpt}} {{json .HostConfig.PidsLimit}} {{json .HostConfig.Memory}} {{json .HostConfig.NanoCpus}}'
+rtk docker exec volundr-cad-worker python -c "import os, cadquery, volundr_cad.runtime; print(os.getuid(), os.getgid(), cadquery.__version__)"
+rtk docker exec volundr-cad-worker python -c "import os; print(sorted(k for k in os.environ if 'GEMINI' in k or 'OLLAMA' in k or k == 'VOLUNDR_AI_PROVIDER'))"
+rtk docker exec volundr-cad-worker python -c "import socket; s=socket.socket(); s.settimeout(2); print(s.connect_ex(('1.1.1.1', 443))); s.close()"
+```
+
+Results:
+
+- Compose rebuilt and started `volundr-web`, `volundr-api`, and `volundr-cad-worker`.
+- CAD worker runtime policy: user `volundr-cad`, `network_mode=none`, read-only root filesystem, `no-new-privileges:true`, PID limit 128, memory limit 1 GiB, CPU limit 1.0.
+- CAD worker environment has no Gemini/Ollama/provider credential variables.
+- CAD worker imports `cadquery` 2.8.0 and `volundr_cad.runtime` successfully.
+- Worker network probe to `1.1.1.1:443` returned `101` (`ENETUNREACH`).
+- Deterministic queue job `docker-smoke-cadquery-e28ca1d3` succeeded with `failure_class=null`, STEP/STL/BREP artifacts, valid topology metadata, and artifact files visible under the shared jobs directory for API/host access.
+- Failure diagnostics were verified with job `docker-smoke-cadquery-5eefd24f`, which returned `success=false`, `failure_class=execution_failed`, command args, exit code, and traceback diagnostics.
+- Full backend regression after Docker fixes: `rtk .venv/bin/python -m pytest -q` -> 186 passed, 1 existing Starlette/httpx deprecation warning.
+
 ## Live Benchmark Smoke
 
 Attempted the required live Gemini benchmark gate with a one-case CadQuery source probe before spending broader quota:

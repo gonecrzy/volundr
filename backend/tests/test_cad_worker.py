@@ -1,5 +1,7 @@
 import json
 import os
+import stat
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -11,7 +13,7 @@ from app.services.cad.cadquery_runner import (
     CadQueryOutputResult,
 )
 from app.services.cad.worker_client import FilesystemCadWorkerClient
-from app.services.cad.worker_execution import execute_job_directory
+from app.services.cad.worker_execution import execute_job_directory, process_next_job
 from app.services.cad.jobs import (
     CAD_EXECUTION_JOB_SCHEMA_VERSION,
     DuplicateJobCompletionError,
@@ -51,6 +53,20 @@ def test_filesystem_queue_writes_structured_cadquery_job(tmp_path: Path) -> None
     assert manifest.requested_outputs == [{"output_id": "body", "required": True}]
     assert manifest.execution_limits.timeout_seconds == 7
     assert manifest.source_file(job_dir).read_text(encoding="utf-8") == VALID_CADQUERY_SOURCE
+
+
+def test_filesystem_queue_creates_non_root_worker_writable_job_directory(
+    tmp_path: Path,
+) -> None:
+    queue = FilesystemCadJobQueue(tmp_path)
+
+    job_dir = queue.submit_cadquery_source(
+        source=VALID_CADQUERY_SOURCE,
+        job_id="job-1",
+        timeout_seconds=5,
+    )
+
+    assert stat.S_IMODE(job_dir.stat().st_mode) == 0o1777
 
 
 def test_job_manifest_rejects_path_traversal(tmp_path: Path) -> None:
@@ -116,6 +132,15 @@ async def test_worker_records_structured_failure_for_malformed_manifest(
     assert result["failure_class"] == "invalid_manifest"
     persisted = load_job_result(job_dir)
     assert persisted["failure_class"] == "invalid_manifest"
+
+
+@pytest.mark.asyncio
+async def test_worker_ignores_non_queue_workspace_directories(tmp_path: Path) -> None:
+    workspace_dir = tmp_path / "legacy-runner-workspace"
+    workspace_dir.mkdir()
+
+    assert await process_next_job(tmp_path) is None
+    assert not (workspace_dir / "result.json").exists()
 
 
 @pytest.mark.asyncio
@@ -235,6 +260,20 @@ def test_cad_worker_container_policy_removes_provider_access() -> None:
     assert "VOLUNDR_OLLAMA" not in worker_block
     assert ".gemini" not in worker_block
     assert "USER volundr-cad" in dockerfile
+    assert "libgl1" in dockerfile
+    assert "XDG_CACHE_HOME=/tmp/xdg-cache" in dockerfile
+    assert "COPY backend/volundr_cad ./volundr_cad" in dockerfile
+
+
+def test_backend_package_declares_cadquery_runtime_dependency() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    pyproject = tomllib.loads((repo_root / "backend/pyproject.toml").read_text(encoding="utf-8"))
+
+    dependencies = pyproject["project"]["dependencies"]
+    packages = pyproject["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
+
+    assert any(dependency.startswith("cadquery") for dependency in dependencies)
+    assert "volundr_cad" in packages
 
 
 def test_cadquery_runner_rejects_successful_output_with_malformed_step(
