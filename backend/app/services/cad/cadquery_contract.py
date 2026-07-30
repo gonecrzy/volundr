@@ -262,6 +262,8 @@ def _validate_call(node: ast.Call, *, function_names: set[str], strict_v1: bool 
     if strict_v1 and dotted_name == "cq.exporters.export":
         raise CadQueryContractError("generated source cannot perform artifact writing")
     name = _call_name(node.func)
+    if strict_v1 and name is not None and _is_artifact_write_call_name(name):
+        raise CadQueryContractError("generated source cannot perform artifact writing")
     if name in UNSAFE_CALL_NAMES:
         raise CadQueryContractError(f"unsafe call is not allowed: {name}")
     if name is None:
@@ -423,6 +425,16 @@ def _call_name(node: ast.expr) -> str | None:
     if isinstance(node, ast.Attribute):
         return node.attr
     return None
+
+
+def _is_artifact_write_call_name(name: str) -> bool:
+    normalized = name.lower()
+    return normalized.startswith("export") or normalized in {
+        "save",
+        "write",
+        "write_bytes",
+        "write_text",
+    }
 
 
 def _call_dotted_name(node: ast.expr) -> str | None:

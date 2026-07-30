@@ -99,6 +99,17 @@ def test_cadquery_v1_contract_rejects_artifact_writes() -> None:
         validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
+@pytest.mark.parametrize("method_name", ["exportStep", "exportStl", "exportBrep"])
+def test_cadquery_v1_contract_rejects_method_artifact_exports(method_name: str) -> None:
+    source = cadquery_v1_source().replace(
+        "return Product(",
+        f'body.val().{method_name}("/tmp/body.step")\n    return Product(',
+    )
+
+    with pytest.raises(CadQueryContractError, match="artifact writing"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
 @pytest.mark.parametrize(
     ("constructor", "keyword"),
     [
