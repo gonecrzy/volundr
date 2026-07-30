@@ -135,6 +135,14 @@ def main(argv: list[str] | None = None) -> int:
             "fixture component, feature, output, and dependency coverage."
         ),
     )
+    parser.add_argument(
+        "--configuration-probe",
+        action="store_true",
+        help=(
+            "After a source probe succeeds, rerun generated CadQuery source with "
+            "fixture configuration overrides and record printability blocking rules."
+        ),
+    )
     args = parser.parse_args(argv)
 
     result = LiveBenchmarkRunner().run(
@@ -158,6 +166,7 @@ def main(argv: list[str] | None = None) -> int:
             source_brief=args.source_brief,
             source_language=args.source_language,
             design_plan_probe=args.design_plan_probe,
+            configuration_probe=args.configuration_probe,
         )
     )
     metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
@@ -209,6 +218,12 @@ def main(argv: list[str] | None = None) -> int:
         print(
             "Design Plan expected dependency coverage average: "
             f"{metrics.get('design_plan_expected_dependency_coverage_average')}"
+        )
+    if metrics.get("configuration_probe_enabled"):
+        print(f"Configuration probe statuses: {metrics.get('configuration_probe_status_counts')}")
+        print(
+            "Configuration expected block observed count: "
+            f"{metrics.get('configuration_probe_expected_block_observed_count')}"
         )
     print("Prompt promotion: disabled; manual review required")
     return 0

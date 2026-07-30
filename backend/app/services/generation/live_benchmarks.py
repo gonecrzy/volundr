@@ -40,6 +40,8 @@ from app.services.generation.benchmarks import (
     phase_validation_scenario_set,
 )
 from app.services.generation.failure_taxonomy import FailureClass
+from app.schemas.printability import BuildVolumeProfile, PrintabilityProfile
+from app.services.printability.inspector import inspect_printability
 
 
 LIVE_BENCHMARK_RUN_SCHEMA_VERSION = "live-benchmark-run-v1"
@@ -87,6 +89,7 @@ class LiveBenchmarkConfig:
     source_brief: bool = False
     source_language: str = "cadquery"
     design_plan_probe: bool = False
+    configuration_probe: bool = False
 
 
 @dataclass(frozen=True)
@@ -155,6 +158,7 @@ class LiveBenchmarkRunner:
                         source_brief_prompt=source_brief_prompts.get(benchmark.id),
                         source_language=config.source_language,
                         design_plan_prompt=design_plan_prompts.get(benchmark.id),
+                        configuration_probe=config.configuration_probe,
                     )
                 )
 
@@ -183,6 +187,7 @@ class LiveBenchmarkRunner:
                 "source_brief": config.source_brief,
                 "source_language": config.source_language,
                 "design_plan_probe": config.design_plan_probe,
+                "configuration_probe": config.configuration_probe,
             },
             "provider": {
                 "mode": config.provider,
@@ -244,6 +249,7 @@ class LiveBenchmarkRunner:
         source_brief_prompt: str | None = None,
         source_language: str = "cadquery",
         design_plan_prompt: str | None = None,
+        configuration_probe: bool = False,
     ) -> dict[str, Any]:
         case_run_id = f"{_safe_slug(benchmark.id)}-run-{run_index:03d}"
         artifact_dir = run_dir / "artifacts" / _safe_slug(benchmark.id) / f"run-{run_index:03d}"
@@ -312,6 +318,14 @@ class LiveBenchmarkRunner:
             design_specification=design_specification,
             design_plan_prompt=design_plan_prompt,
         )
+        configuration_probe_result = self._configuration_probe_for_case(
+            enabled=configuration_probe,
+            benchmark=benchmark,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            source_probe=source_probe,
+            source_language=source_language,
+        )
         scoring_form_path = self._write_scoring_form(
             run_dir=run_dir,
             benchmark=benchmark,
@@ -338,9 +352,47 @@ class LiveBenchmarkRunner:
             "error_path": error_path,
             "source_probe": source_probe,
             "design_plan_probe": design_plan_probe,
+            "configuration_probe": configuration_probe_result,
             "scoring_form_path": _relative(scoring_form_path, run_dir),
             "report_path": _relative(report_path, run_dir),
         }
+
+    def _configuration_probe_for_case(
+        self,
+        *,
+        enabled: bool,
+        benchmark: GenerationBenchmark,
+        run_dir: Path,
+        artifact_dir: Path,
+        source_probe: dict[str, Any],
+        source_language: str,
+    ) -> dict[str, Any]:
+        if not enabled:
+            return _empty_configuration_probe(enabled=False)
+        configuration = benchmark.expected_configuration
+        if not configuration.get("requested_overrides"):
+            return _empty_configuration_probe(enabled=False)
+        source_path = _configuration_source_path(source_probe)
+        if source_path is None:
+            probe = _empty_configuration_probe(enabled=True)
+            probe["status"] = "source_unavailable"
+            probe["expected_validation_state"] = configuration.get("expected_validation_state")
+            probe["expected_blocking_rule"] = configuration.get("expected_blocking_rule")
+            return probe
+        source_file = run_dir / source_path
+        if not source_file.exists():
+            probe = _empty_configuration_probe(enabled=True)
+            probe["status"] = "source_unavailable"
+            probe["expected_validation_state"] = configuration.get("expected_validation_state")
+            probe["expected_blocking_rule"] = configuration.get("expected_blocking_rule")
+            return probe
+        return self._run_configuration_probe(
+            benchmark=benchmark,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            source=source_file.read_text(encoding="utf-8"),
+            source_language=source_language,
+        )
 
     def _run_design_plan_probe(
         self,
@@ -418,6 +470,64 @@ class LiveBenchmarkRunner:
                 "expected_dependency_coverage": analysis["expected_dependency_coverage"],
             }
         )
+        return probe
+
+    def _run_configuration_probe(
+        self,
+        *,
+        benchmark: GenerationBenchmark,
+        run_dir: Path,
+        artifact_dir: Path,
+        source: str | None,
+        source_language: str,
+    ) -> dict[str, Any]:
+        configuration = benchmark.expected_configuration
+        parameter_values = configuration.get("requested_overrides") if configuration else None
+        probe = _empty_configuration_probe(enabled=bool(parameter_values))
+        if not isinstance(parameter_values, dict) or source is None:
+            return probe
+
+        probe["parameter_values"] = parameter_values
+        probe["expected_validation_state"] = configuration.get("expected_validation_state")
+        probe["expected_blocking_rule"] = configuration.get("expected_blocking_rule")
+        probe.update(
+            _compile_source_probe_for_language(
+                source=source,
+                source_language=source_language,
+                run_dir=run_dir,
+                artifact_dir=artifact_dir,
+                workspace_dir_name="configuration-compile-workspace",
+                job_id="configuration-probe",
+                parameter_values=parameter_values,
+            )
+        )
+        if probe["compile_status"] != "compile_succeeded":
+            probe["status"] = "configuration_compile_failed"
+            return probe
+
+        report_path, blocking_rule_ids = _write_printability_report_for_probe(
+            benchmark=benchmark,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            compiled_stl_path=probe["compiled_stl_path"],
+        )
+        probe["printability_report_path"] = report_path
+        probe["blocking_rule_ids"] = blocking_rule_ids
+        expected_rule = probe["expected_blocking_rule"]
+        probe["expected_blocking_rule_observed"] = (
+            isinstance(expected_rule, str) and expected_rule in blocking_rule_ids
+        )
+        expected_state = probe["expected_validation_state"]
+        if expected_state == "configuration_blocked_build_volume":
+            probe["status"] = (
+                "configuration_blocked_build_volume"
+                if probe["expected_blocking_rule_observed"]
+                else "configuration_expected_block_missing"
+            )
+        elif blocking_rule_ids:
+            probe["status"] = "configuration_blocked"
+        else:
+            probe["status"] = "configuration_ready"
         return probe
 
     def _run_source_probe(
@@ -889,6 +999,7 @@ class LiveBenchmarkRunner:
                 source_brief=config.source_brief,
                 source_language=config.source_language,
                 design_plan_probe=config.design_plan_probe,
+                configuration_probe=config.configuration_probe,
             )
         if config.benchmark_ids:
             by_id = {benchmark.id: benchmark for benchmark in benchmarks}
@@ -926,6 +1037,8 @@ class LiveBenchmarkRunner:
             raise ValueError("source_probe_repair requires source_probe")
         if config.source_brief and not config.source_probe:
             raise ValueError("source_brief requires source_probe")
+        if config.configuration_probe and not config.source_probe:
+            raise ValueError("configuration_probe requires source_probe")
         if config.source_language not in SOURCE_LANGUAGES:
             raise ValueError(
                 f"source_language must be one of: {', '.join(sorted(SOURCE_LANGUAGES))}"
@@ -1165,7 +1278,17 @@ class LiveBenchmarkRunner:
         design_plan_feature_coverages: list[float] = []
         design_plan_output_coverages: list[float] = []
         design_plan_dependency_coverages: list[float] = []
+        configuration_probe_status_counts: dict[str, int] = {}
+        configuration_probe_expected_block_observed_count = 0
         for case_run in manifest["case_runs"]:
+            configuration_probe = case_run.get("configuration_probe", {})
+            if isinstance(configuration_probe, dict):
+                configuration_status = configuration_probe.get("status", "disabled")
+                configuration_probe_status_counts[configuration_status] = (
+                    configuration_probe_status_counts.get(configuration_status, 0) + 1
+                )
+                if configuration_probe.get("expected_blocking_rule_observed") is True:
+                    configuration_probe_expected_block_observed_count += 1
             design_plan_probe = case_run.get("design_plan_probe", {})
             if isinstance(design_plan_probe, dict):
                 design_status = design_plan_probe.get("status", "disabled")
@@ -1305,6 +1428,13 @@ class LiveBenchmarkRunner:
             "design_plan_expected_dependency_coverage_average": _average_or_none(
                 design_plan_dependency_coverages
             ),
+            "configuration_probe_enabled": bool(
+                manifest.get("config", {}).get("configuration_probe")
+            ),
+            "configuration_probe_status_counts": configuration_probe_status_counts,
+            "configuration_probe_expected_block_observed_count": (
+                configuration_probe_expected_block_observed_count
+            ),
             "no_automatic_prompt_promotion": True,
         }
 
@@ -1404,6 +1534,22 @@ def _source_request_for(
                 *[f"- {parameter}" for parameter in benchmark.expected_parameters],
             ]
         )
+    configuration = benchmark.expected_configuration
+    requested_overrides = configuration.get("requested_overrides") if configuration else None
+    if isinstance(requested_overrides, dict) and requested_overrides:
+        additions.extend(
+            [
+                "Configuration-probe override targets:",
+                json.dumps(requested_overrides, sort_keys=True),
+                "ParameterSpec range must allow each override value so deterministic configuration can execute and validation can decide whether the candidate is acceptable.",
+            ]
+        )
+        expected_state = configuration.get("expected_validation_state")
+        if isinstance(expected_state, str):
+            additions.append(f"Expected configuration validation state: {expected_state}.")
+        expected_rule = configuration.get("expected_blocking_rule")
+        if isinstance(expected_rule, str):
+            additions.append(f"Expected blocking validation rule when applicable: {expected_rule}.")
     if additions:
         user_instruction = "\n".join(
             [
@@ -1491,6 +1637,16 @@ def _mesh_connected_components(*, run_dir: Path, metadata_path: Any) -> int | No
     metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
     connected_components = metadata.get("connected_components")
     return connected_components if isinstance(connected_components, int) else None
+
+
+def _configuration_source_path(source_probe: dict[str, Any]) -> str | None:
+    repair = source_probe.get("repair")
+    if isinstance(repair, dict) and repair.get("status") == "source_repair_succeeded":
+        repaired_path = repair.get("extracted_source_path")
+        if isinstance(repaired_path, str):
+            return repaired_path
+    source_path = source_probe.get("extracted_source_path")
+    return source_path if isinstance(source_path, str) else None
 
 
 def _disconnected_mesh_diagnostics(
@@ -1613,6 +1769,31 @@ def _empty_design_plan_probe(*, enabled: bool) -> dict[str, Any]:
         "expected_feature_coverage": None,
         "expected_output_coverage": None,
         "expected_dependency_coverage": None,
+    }
+
+
+def _empty_configuration_probe(*, enabled: bool) -> dict[str, Any]:
+    return {
+        "enabled": enabled,
+        "status": "not_run" if enabled else "disabled",
+        "parameter_values": {},
+        "expected_validation_state": None,
+        "expected_blocking_rule": None,
+        "expected_blocking_rule_observed": False,
+        "compile_status": "not_run" if enabled else "disabled",
+        "compiled_stl_path": None,
+        "compiled_step_path": None,
+        "compile_stdout_path": None,
+        "compile_stderr_path": None,
+        "mesh_metadata_path": None,
+        "compile_error_message": None,
+        "compile_timed_out": None,
+        "compile_exit_code": None,
+        "compile_warning_count": 0,
+        "compile_warnings": [],
+        "stl_size_bytes": 0,
+        "printability_report_path": None,
+        "blocking_rule_ids": [],
     }
 
 
@@ -1843,6 +2024,47 @@ def _average_or_none(values: list[float]) -> float | None:
     return round(sum(values) / len(values), 4)
 
 
+def _write_printability_report_for_probe(
+    *,
+    benchmark: GenerationBenchmark,
+    run_dir: Path,
+    artifact_dir: Path,
+    compiled_stl_path: str | None,
+) -> tuple[str | None, list[str]]:
+    if compiled_stl_path is None:
+        return None, []
+    stl_path = run_dir / compiled_stl_path
+    if not stl_path.exists():
+        return None, []
+    profile = _printability_profile_for_benchmark(benchmark)
+    report = inspect_printability(stl_path, profile)
+    report_path = artifact_dir / "configuration-printability-report.json"
+    _write_json(report_path, report.model_dump(mode="json"))
+    blocking_rule_ids = [
+        result.rule_id for result in report.results if result.severity == "Critical"
+    ]
+    return _relative(report_path, run_dir), sorted(blocking_rule_ids)
+
+
+def _printability_profile_for_benchmark(benchmark: GenerationBenchmark) -> PrintabilityProfile:
+    dimensions = " ".join(benchmark.required_dimensions)
+    match = re.search(
+        r"printer_build_volume\s*=\s*([0-9]+(?:\.[0-9]+)?)x([0-9]+(?:\.[0-9]+)?)x([0-9]+(?:\.[0-9]+)?)\s*mm",
+        dimensions,
+        re.IGNORECASE,
+    )
+    if match is None:
+        return PrintabilityProfile()
+    return PrintabilityProfile(
+        printer_name="Benchmark Printer",
+        build_volume=BuildVolumeProfile(
+            x_mm=float(match.group(1)),
+            y_mm=float(match.group(2)),
+            z_mm=float(match.group(3)),
+        ),
+    )
+
+
 def _extract_source_parameters(source: str, source_language: str) -> list[dict[str, Any]]:
     cadquery_parameters = _extract_cadquery_v1_parameter_specs(source)
     constant_parameters = _extract_python_constants(source)
@@ -1974,6 +2196,7 @@ def _compile_source_probe_for_language(
     artifact_dir: Path,
     workspace_dir_name: str = "source-compile-workspace",
     job_id: str = "source-probe",
+    parameter_values: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return _compile_cadquery_probe(
         source=source,
@@ -1981,6 +2204,7 @@ def _compile_source_probe_for_language(
         artifact_dir=artifact_dir,
         workspace_dir_name=workspace_dir_name,
         job_id=job_id,
+        parameter_values=parameter_values,
     )
 
 
@@ -1991,13 +2215,14 @@ def _compile_cadquery_probe(
     artifact_dir: Path,
     workspace_dir_name: str = "source-compile-workspace",
     job_id: str = "source-probe",
+    parameter_values: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     workspace_root = (artifact_dir / workspace_dir_name).resolve()
     result = asyncio.run(
         CadQueryCliRunner(
             workspace_root=workspace_root,
             timeout_seconds=60,
-        ).compile(source, job_id=job_id)
+        ).compile(source, job_id=job_id, parameter_values=parameter_values)
     )
     return {
         "compile_status": "compile_succeeded" if result.success else "compile_failed",

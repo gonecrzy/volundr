@@ -7,7 +7,12 @@ from app.services.generation.benchmarks import (
     load_benchmark_suite,
     run_deterministic_contract_check,
 )
-from app.services.generation.live_benchmarks import LiveBenchmarkConfig, LiveBenchmarkRunner, _source_parameter_analysis
+from app.services.generation.live_benchmarks import (
+    LiveBenchmarkConfig,
+    LiveBenchmarkRunner,
+    _source_parameter_analysis,
+    _source_request_for,
+)
 from app.services.generation.live_benchmarks import _source_compile_repair_diagnostics
 
 
@@ -326,6 +331,97 @@ def test_live_benchmark_run_writes_design_plan_probe_metrics(tmp_path: Path) -> 
     )
     assert metrics["design_plan_probe_enabled"] is True
     assert metrics["design_plan_probe_status_counts"] == {"not_run": 1}
+
+
+def test_live_benchmark_run_writes_configuration_probe_metrics(tmp_path: Path) -> None:
+    result = LiveBenchmarkRunner().run(
+        LiveBenchmarkConfig(
+            suite_path=FIXTURE_DIR / "full.json",
+            output_root=tmp_path,
+            run_label="configuration-dry-run",
+            benchmark_ids=("configuration_exceeds_build_volume",),
+            max_runs=1,
+            provider="dry-run",
+            source_probe=True,
+            configuration_probe=True,
+        )
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    metrics = json.loads(result.metrics_path.read_text(encoding="utf-8"))
+    case_run = manifest["case_runs"][0]
+
+    assert manifest["config"]["configuration_probe"] is True
+    assert case_run["configuration_probe"]["enabled"] is True
+    assert case_run["configuration_probe"]["status"] == "source_unavailable"
+    assert metrics["configuration_probe_enabled"] is True
+    assert metrics["configuration_probe_status_counts"] == {"source_unavailable": 1}
+
+
+def test_configuration_probe_blocks_build_volume_override(tmp_path: Path) -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["configuration_exceeds_build_volume"]
+    run_dir = tmp_path / "run"
+    artifact_dir = run_dir / "artifacts" / benchmark.id / "run-001"
+    artifact_dir.mkdir(parents=True)
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="rail_length", label="Rail Length", type="float", default=180.0, unit="mm"),
+    ParameterSpec(id="hook_count", label="Hook Count", type="int", default=6),
+    ParameterSpec(id="hook_spacing", label="Hook Spacing", type="float", default=28.0, unit="mm"),
+    ParameterSpec(id="wall_thickness", label="Wall Thickness", type="float", default=5.0, unit="mm"),
+]
+
+def build(params):
+    body = cq.Workplane("XY").box(params["rail_length"], 30.0, 12.0, centered=(True, True, False))
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="wall_rail",
+                label="Wall Rail",
+                model=body,
+                component_id="rail_body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+"""
+
+    probe = LiveBenchmarkRunner()._run_configuration_probe(
+        benchmark=benchmark,
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+        source=source,
+        source_language="cadquery",
+    )
+
+    assert probe["enabled"] is True
+    assert probe["status"] == "configuration_blocked_build_volume"
+    assert probe["compile_status"] == "compile_succeeded"
+    assert probe["expected_blocking_rule_observed"] is True
+    assert probe["blocking_rule_ids"] == ["profile.build_volume"]
+    assert probe["parameter_values"] == {"rail_length": 360}
+
+
+def test_source_request_includes_configuration_probe_targets() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["configuration_exceeds_build_volume"]
+
+    request = _source_request_for(benchmark, source_language="cadquery")
+
+    assert "Configuration-probe override targets:" in request.user_instruction
+    assert '"rail_length": 360' in request.user_instruction
+    assert "profile.build_volume" in request.user_instruction
+    assert "ParameterSpec range must allow each override value" in request.user_instruction
 
 
 def test_source_compile_repair_diagnostics_expand_invalid_topology() -> None:

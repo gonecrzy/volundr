@@ -141,6 +141,15 @@ outputs, and dependency edges. This scores planning quality separately from
 source validity; it does not approve a plan, accept a candidate, or exercise the
 browser workflow.
 
+`--configuration-probe` requires `--source-probe`. After a source probe succeeds
+or repair succeeds, the harness reruns the generated CadQuery source with the
+fixture's `expected_configuration.requested_overrides`, then runs the existing
+printability inspector against the configured output STL. The probe records
+`configuration-printability-report.json`, blocking `Critical` rule IDs, and
+whether the expected blocking rule, such as `profile.build_volume`, was observed.
+This measures deterministic provider-free configuration validation; it does not
+call the provider again.
+
 ## Quota Controls
 
 Every run validates:
@@ -177,6 +186,7 @@ output/live-benchmarks/<run-id>/
 │       ├── design-plan-raw-output.txt
 │       ├── design-plan-parsed.json
 │       ├── design-plan-analysis.json
+│       ├── configuration-printability-report.json
 │       └── source-compile-workspace/
 │           └── source-probe/
 │               ├── source.py
@@ -265,6 +275,8 @@ Reviewers should cite artifact paths in `evidence_paths` and list the recommende
 - total runtime warning/deprecation lines from source-probe execution logs
 - Design Plan probe status counts
 - average expected Design Plan component, feature, output, and dependency coverage
+- configuration-probe status counts
+- count of configuration probes where the expected blocking rule was observed
 - no-promotion flag
 
 Future evaluators may aggregate completed human scoring forms into the same next-work buckets, but prompt promotion must still remain a separate manual decision.
@@ -277,6 +289,6 @@ After the dry-run artifacts are reviewed, a small live run can be launched with 
 
 ## Limits
 
-This harness does not yet execute the complete browser-visible staged workflow end to end. The current live provider mode collects requirement-extraction provider output, optional Design Plan output, optional source-brief output, optional direct CadQuery source output, and the surrounding prompt/version artifacts. Full live product-generation scoring should extend the same manifest format rather than replace it.
+This harness does not yet execute the complete browser-visible staged workflow end to end. The current live provider mode collects requirement-extraction provider output, optional Design Plan output, optional source-brief output, optional direct CadQuery source output, optional deterministic configuration probe output, and the surrounding prompt/version artifacts. Full live product-generation scoring should extend the same manifest format rather than replace it.
 
 The harness is intentionally unable to accept candidates, update active revisions, or promote prompt versions.

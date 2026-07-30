@@ -66,3 +66,30 @@ def test_live_benchmark_cli_accepts_cadquery_source_language(
     assert len(manifests) == 1
     manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
     assert manifest["config"]["source_language"] == "cadquery"
+
+
+def test_live_benchmark_cli_accepts_configuration_probe(
+    tmp_path: Path,
+) -> None:
+    exit_code = main(
+        [
+            "--suite",
+            str(FIXTURE_DIR / "full.json"),
+            "--output-dir",
+            str(tmp_path),
+            "--run-label",
+            "configuration-cli",
+            "--benchmark-id",
+            "configuration_exceeds_build_volume",
+            "--source-probe",
+            "--configuration-probe",
+            "--provider",
+            "dry-run",
+        ]
+    )
+
+    assert exit_code == 0
+    manifests = list(tmp_path.glob("*/run-manifest.json"))
+    assert len(manifests) == 1
+    manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+    assert manifest["config"]["configuration_probe"] is True
