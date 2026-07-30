@@ -460,6 +460,38 @@ async def test_worker_runner_submits_job_and_reads_structured_result(tmp_path: P
 
 
 @pytest.mark.asyncio
+async def test_cadquery_execution_manifest_records_source_parameter_and_contract_metadata(
+    tmp_path: Path,
+) -> None:
+    parameter_values = {"width_mm": 2.0}
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(
+        VALID_CADQUERY_SOURCE,
+        job_id="manifest-metadata",
+        parameter_values=parameter_values,
+        requested_outputs=[{"output_id": "body", "required": True}],
+    )
+
+    assert result.success is True
+    assert result.execution_manifest_path is not None
+    payload = json.loads(result.execution_manifest_path.read_text(encoding="utf-8"))
+    assert payload["cad_backend"] == "cadquery"
+    assert payload["source_language"] == "python"
+    assert payload["source_contract_version"] == "cadquery-v1"
+    assert payload["source_hash"] == result.source_hash
+    assert payload["parameter_hash"]
+    assert payload["requested_output_ids"] == ["body"]
+    assert payload["output_ids"] == ["body"]
+    assert payload["outputs"][0]["stl_hash"] == result.outputs[0].stl_hash
+    assert payload["outputs"][0]["step_hash"] == result.outputs[0].step_hash
+    assert payload["outputs"][0]["brep_hash"] == result.outputs[0].brep_hash
+    assert payload["worker_version"] == "cadquery-cli-runner-v1"
+
+
+@pytest.mark.asyncio
 async def test_worker_runner_rejects_non_v1_source_contract_without_queueing(
     tmp_path: Path,
 ) -> None:

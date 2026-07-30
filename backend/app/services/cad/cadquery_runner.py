@@ -477,6 +477,7 @@ def _step_file_looks_valid(path: Path) -> bool:
 
 
 _CADQUERY_RUNNER_SOURCE = """
+import hashlib
 import importlib.util
 import json
 import sys
@@ -505,7 +506,31 @@ def main() -> int:
     product = _build_product(module, parameter_values)
     outputs = _execute_product_outputs(product, requested_outputs, output_dir)
 
-    result_path.write_text(json.dumps({"outputs": outputs}, indent=2, sort_keys=True), encoding="utf-8")
+    result_path.write_text(
+        json.dumps(
+            {
+                "cad_backend": "cadquery",
+                "source_language": "python",
+                "source_contract_version": "cadquery-v1",
+                "source_hash": _file_sha256(Path("model.py")),
+                "parameter_hash": _json_sha256(parameter_values),
+                "requested_output_ids": [
+                    str(request.get("output_id") or "")
+                    for request in requested_outputs
+                ] if requested_outputs else [output.output_id for output in product.outputs],
+                "output_ids": [
+                    output["output_id"]
+                    for output in outputs
+                    if output.get("success")
+                ],
+                "outputs": outputs,
+                "worker_version": "cadquery-cli-runner-v1",
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
     return 0
 
 
@@ -608,6 +633,9 @@ def _export_output(
             "stl_path": str(stl_path),
             "step_path": str(step_path),
             "brep_path": str(brep_path) if brep_path.exists() else None,
+            "stl_hash": _file_sha256(stl_path),
+            "step_hash": _file_sha256(step_path),
+            "brep_hash": _file_sha256(brep_path) if brep_path.exists() else None,
             "topology_metadata": topology_metadata,
         }
     except Exception as exc:
@@ -697,6 +725,19 @@ def _solid_count(model, shape):
         except Exception:
             pass
     return 1
+
+
+def _file_sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _json_sha256(payload):
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _safe_stem(value):
