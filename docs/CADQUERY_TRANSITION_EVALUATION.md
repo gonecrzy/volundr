@@ -301,3 +301,57 @@ Latest aggregate result:
 Latest conclusion:
 
 The required live gate is still not a release-quality pass. The system now handles Gemini API access, contract-level runtime mistakes, v1 parameter coverage, and source-brief provider failures more robustly, but the live model still produces invalid topology or times out on a minority of complex cases. The transition remains short of the requested live benchmark success criterion.
+
+Final automated live source-gate rerun after carrier topology prompt hardening and brief-guided source fallback:
+
+```bash
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase11-required-v4 \
+  --benchmark-id simple_mounting_plate \
+  --benchmark-id spacer_bushing \
+  --benchmark-id box_with_lid \
+  --benchmark-id parametric_repeated_slot_rack \
+  --benchmark-id parametric_multi_part_hinged_box \
+  --benchmark-id parametric_case_carrier \
+  --benchmark-id parametric_configurable_organizer \
+  --benchmark-id component_revision_lid_only \
+  --benchmark-id vague_clarification \
+  --benchmark-id parametric_electronics_enclosure \
+  --benchmark-id honeycomb_angle_bracket \
+  --benchmark-id parametric_adapter \
+  --provider gemini-api \
+  --allow-live \
+  --source-probe \
+  --source-brief \
+  --source-probe-repair \
+  --max-runs 12 \
+  --max-estimated-tokens 500000
+```
+
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T152753Z-phase11-required-v4
+```
+
+Final automated aggregate result:
+
+- Case runs: 12.
+- Requirements provider statuses: `provider_output_collected=12`.
+- Source brief statuses: `source_brief_parsed=12`.
+- Direct source compile statuses: `compile_succeeded=11`, `compile_failed=1`.
+- Source repair attempts: 1.
+- Source repair compile statuses: `compile_succeeded=1`, `not_run=11`.
+- Repair-inclusive source compile success: 12 of 12 cases.
+- Remaining source failures after repair: none.
+- Source expected-parameter coverage average: `0.9167`; all non-clarification cases had full expected-parameter coverage.
+- Compiled direct-source outputs with nonzero volume: 11.
+- Compiled direct-source watertight outputs: 11.
+- Compile warnings: `0`.
+- Disconnected mesh count: `0`.
+
+Final automated conclusion:
+
+The automated live Gemini API source gate passes for the required 12-case set when repair-inclusive source compilation is counted. Prompt promotion remains disabled and the harness still requires human scoring for requirement understanding, Design Plan usefulness, printability, revision preservation, configuration regeneration, and print-worthiness before declaring product-quality release readiness.

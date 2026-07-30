@@ -368,6 +368,7 @@ class LiveBenchmarkRunner:
             "compile_warnings": [],
             "stl_size_bytes": 0,
             "error_path": None,
+            "brief_guided_source_error_path": None,
             "repair": _empty_source_probe_repair(enabled=source_probe_repair),
             "brief": _empty_source_brief(enabled=source_brief_enabled),
         }
@@ -405,15 +406,17 @@ class LiveBenchmarkRunner:
                     source_language,
                 )
 
-        try:
-            result = asyncio.run(_generate_source_model(provider, request, source_language))
-        except TimeoutError as exc:
-            probe["status"] = "provider_failed"
-            probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
-            return probe
-        except Exception as exc:
-            probe["status"] = "provider_failed"
-            probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+        result = self._generate_source_with_optional_brief_fallback(
+            benchmark=benchmark,
+            provider=provider,
+            run_dir=run_dir,
+            artifact_dir=artifact_dir,
+            probe=probe,
+            request=request,
+            source_brief=source_brief,
+            source_language=source_language,
+        )
+        if result is None:
             return probe
 
         output_file = artifact_dir / "source-raw-output.txt"
@@ -487,9 +490,14 @@ class LiveBenchmarkRunner:
                     artifact_dir=artifact_dir,
                     source_language=source_language,
                     failed_source=source,
-                    compiler_diagnostics=probe["compile_error_message"]
-                    or _read_text_if_present(run_dir, probe["compile_stderr_path"])
-                    or f"{source_language} source probe compile failed",
+                    compiler_diagnostics=_source_compile_repair_diagnostics(
+                        source_language=source_language,
+                        compile_error_message=probe["compile_error_message"],
+                        stderr_text=_read_text_if_present(
+                            run_dir,
+                            probe["compile_stderr_path"],
+                        ),
+                    ),
                 )
                 probe["repair"] = repair
                 if repair["status"] == "source_repair_succeeded":
@@ -527,6 +535,61 @@ class LiveBenchmarkRunner:
                     if repair["status"] == "source_repair_succeeded":
                         probe["status"] = "source_mesh_repair_succeeded"
         return probe
+
+    def _generate_source_with_optional_brief_fallback(
+        self,
+        *,
+        benchmark: GenerationBenchmark,
+        provider: GeminiCliProvider,
+        run_dir: Path,
+        artifact_dir: Path,
+        probe: dict[str, Any],
+        request: ModelGenerationRequest,
+        source_brief: dict[str, Any] | None,
+        source_language: str,
+    ):
+        try:
+            return asyncio.run(_generate_source_model(provider, request, source_language))
+        except Exception as exc:
+            if source_brief is None:
+                probe["status"] = "provider_failed"
+                probe["error_path"] = self._write_error(artifact_dir, run_dir, exc)
+                return None
+
+            probe["brief_guided_source_error_path"] = self._write_error(
+                artifact_dir,
+                run_dir,
+                exc,
+            )
+            fallback_request = _source_request_for(
+                benchmark,
+                source_language=source_language,
+            )
+            fallback_prompt = _build_source_prompt(
+                provider,
+                fallback_request,
+                source_language,
+            )
+            source_prompt_path = artifact_dir / "source-prompt.txt"
+            source_prompt_path.write_text(fallback_prompt, encoding="utf-8")
+            probe["prompt_sha256"] = _sha256_text(fallback_prompt)
+            probe["prompt_template_version"] = _source_prompt_template_version(
+                provider,
+                fallback_request,
+                source_language,
+            )
+            try:
+                return asyncio.run(
+                    _generate_source_model(provider, fallback_request, source_language)
+                )
+            except Exception as fallback_exc:
+                probe["status"] = "provider_failed"
+                probe["error_path"] = self._write_error(
+                    artifact_dir,
+                    run_dir,
+                    fallback_exc,
+                )
+                return None
 
     def _run_source_brief(
         self,
@@ -1251,6 +1314,32 @@ def _disconnected_mesh_diagnostics(
         "fins, labels, and handles into the parent body so they fuse. Model holes "
         "as subtractive CadQuery features such as hole(), cutThruAll(), cutBlind(), "
         "or cut(), not as positive cylinders."
+    )
+
+
+def _source_compile_repair_diagnostics(
+    *,
+    source_language: str = "cadquery",
+    compile_error_message: str | None,
+    stderr_text: str | None,
+) -> str:
+    diagnostics = compile_error_message or stderr_text or f"{source_language} source probe compile failed"
+    if "output shape is invalid" not in diagnostics:
+        return diagnostics
+    return (
+        f"{diagnostics}\n"
+        "CadQuery topology validation failed. Rewrite invalid solids with simpler "
+        "overlapping construction: overlap ribs, rails, handles, tabs, hinge barrels, "
+        "and decorative solids into the parent by at least 0.5 mm before union(). "
+        "Avoid tangent face-only contact, deep cavity cuts that leave coincident faces, "
+        "and complex extruded L polylines. For open-top carriers, build bottom, walls, "
+        "rails, ribs, and handles from simple overlapping boxes. For angle brackets, "
+        "use two overlapping rectangular flanges plus an overlapping triangular rib. "
+        "For carrier handles, use two overlapping posts and an overlapping crossbar; "
+        "do not cut a finger hole through a standalone handle block. Carrier handle "
+        "posts must overlap side walls or the back wall; place side handle posts at "
+        "x = +/- (outer_width / 2 - wall_thickness / 2), or omit the handle rather "
+        "than returning a disconnected or invalid handle."
     )
 
 

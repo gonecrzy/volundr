@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from app.services.ai.provider import ModelGenerationResult
+from app.services.ai.provider import ModelGenerationResult, SourceBriefResult
 from app.services.generation.benchmarks import (
     phase_validation_benchmark_ids,
     load_benchmark_suite,
     run_deterministic_contract_check,
 )
 from app.services.generation.live_benchmarks import LiveBenchmarkRunner, _source_parameter_analysis
+from app.services.generation.live_benchmarks import _source_compile_repair_diagnostics
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "generation_benchmarks"
@@ -20,6 +21,9 @@ class BriefTimeoutSourceProvider:
 
     def source_brief_prompt_template_version(self) -> str:
         return "source-brief-v1"
+
+    def build_cadquery_prompt(self, request) -> str:
+        return request.user_instruction
 
     async def create_source_brief(self, request):
         raise TimeoutError("brief timed out")
@@ -57,6 +61,24 @@ def build(params):
             provider="fake",
             provider_model="fake-source",
         )
+
+
+class BriefGuidedSourceTimeoutProvider(BriefTimeoutSourceProvider):
+    def __init__(self) -> None:
+        self.source_calls = 0
+
+    async def create_source_brief(self, request):
+        return SourceBriefResult(
+            raw_output='{"planned_outputs": [{"output_id": "body", "must_be_connected": true}]}',
+            provider="fake",
+            provider_model="fake-brief",
+        )
+
+    async def generate_cadquery_model(self, request):
+        self.source_calls += 1
+        if "Structured source brief:" in request.user_instruction:
+            raise TimeoutError("brief-guided source timed out")
+        return await super().generate_cadquery_model(request)
 
 
 def test_core_generation_benchmark_fixture_loads_required_cases() -> None:
@@ -161,6 +183,52 @@ def test_source_probe_continues_without_source_brief_after_brief_timeout(tmp_pat
     assert probe["status"] == "source_parameters_analyzed"
     assert probe["compile_status"] == "compile_succeeded"
     assert probe["extracted_source_path"] is not None
+
+
+def test_source_probe_retries_without_source_brief_after_brief_guided_timeout(
+    tmp_path: Path,
+) -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "core.json")
+    benchmark = {entry.id: entry for entry in suite.benchmarks}["simple_mounting_plate"]
+    run_dir = tmp_path / "run"
+    artifact_dir = run_dir / "artifacts" / benchmark.id / "run-001"
+    artifact_dir.mkdir(parents=True)
+    provider = BriefGuidedSourceTimeoutProvider()
+
+    probe = LiveBenchmarkRunner()._run_source_probe(
+        benchmark=benchmark,
+        provider=provider,
+        provider_mode="gemini_api",
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+        source_prompt="source prompt",
+        source_probe_repair=False,
+        source_brief_prompt="brief prompt",
+        source_language="cadquery",
+    )
+
+    assert provider.source_calls == 2
+    assert probe["brief"]["status"] == "source_brief_parsed"
+    assert probe["brief_guided_source_error_path"] is not None
+    assert probe["status"] == "source_parameters_analyzed"
+    assert probe["compile_status"] == "compile_succeeded"
+
+
+def test_source_compile_repair_diagnostics_expand_invalid_topology() -> None:
+    diagnostics = _source_compile_repair_diagnostics(
+        compile_error_message="output shape is invalid",
+        stderr_text=None,
+        source_language="cadquery",
+    )
+
+    assert "topology validation failed" in diagnostics
+    assert "overlap ribs, rails, handles, tabs, hinge barrels" in diagnostics
+    assert "simple overlapping boxes" in diagnostics
+    assert "two overlapping rectangular flanges" in diagnostics
+    assert "two overlapping posts and an overlapping crossbar" in diagnostics
+    assert "posts must overlap side walls or the back wall" in diagnostics
+    assert "x = +/- (outer_width / 2 - wall_thickness / 2)" in diagnostics
+    assert "omit the handle" in diagnostics
 
 
 def test_phase_validation_scenarios_cover_function_style_and_library_progression() -> None:

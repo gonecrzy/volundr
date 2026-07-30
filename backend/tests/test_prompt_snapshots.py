@@ -61,6 +61,14 @@ def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
     assert "Return the main fused solid directly, not a Compound of loose solids" in prompt
     assert "For hinged boxes, prefer simple overlapping hinge tabs or barrels without pin-hole cuts" in prompt
     assert "valid separate base and lid solids are more important than detailed hinge mechanics" in prompt
+    assert "overlap the parent solid by at least 0.5 mm before union()" in prompt
+    assert "never leave ribs, rails, handles, tabs, or decorations merely tangent to a face" in prompt
+    assert "For tray carriers and open-top enclosures, build bottom, walls, rails, ribs, and handles from simple overlapping boxes" in prompt
+    assert "For L brackets, prefer two overlapping rectangular flanges plus an overlapping triangular rib" in prompt
+    assert "For carrier handles, use two overlapping posts and an overlapping crossbar; do not cut a finger hole through a standalone handle block" in prompt
+    assert "Carrier handle posts must overlap side walls or the back wall, never float in the open center" in prompt
+    assert "place side handle posts at x = +/- (outer_width / 2 - wall_thickness / 2)" in prompt
+    assert "omit the handle rather than returning a disconnected or invalid handle" in prompt
 
 
 def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> None:
