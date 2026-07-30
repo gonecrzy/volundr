@@ -417,6 +417,58 @@ class GeminiCliProvider:
                     "",
                 ]
             )
+        elif request.design_specification or request.design_plan:
+            design_specification = request.design_specification or {}
+            design_plan = request.design_plan or {}
+            printable_outputs = list(design_plan.get("printable_outputs", []))
+            topology_expectations = [
+                {
+                    "output_id": output.get("id") or output.get("output_id"),
+                    "component_id": output.get("component_id"),
+                    "component_ids": output.get("component_ids", []),
+                    "expected_solid_count": output.get("expected_solid_count", 1),
+                    "allow_disconnected_solids": output.get(
+                        "allow_disconnected_solids",
+                        False,
+                    ),
+                    "required": output.get("required", True),
+                }
+                for output in printable_outputs
+                if isinstance(output, dict)
+            ]
+            parts.extend(
+                [
+                    "Initial generation mode:",
+                    "- Generate from the approved staged product definition, not from the raw user prompt alone.",
+                    "- Return the complete Python source for the whole product; do not return snippets, patches, prose, JSON, OpenSCAD, or helper-only fragments.",
+                    "- Implement every planned component, feature, dependency, parameter, and printable output unless the plan explicitly marks it optional.",
+                    "- Preserve protected requirement values and topology expectations exactly.",
+                    "",
+                    "Authoritative Design Specification JSON:",
+                    json.dumps(design_specification, indent=2, sort_keys=True),
+                    "",
+                    "Authoritative Design Plan JSON:",
+                    json.dumps(design_plan, indent=2, sort_keys=True),
+                    "",
+                    "Typed parameter contract:",
+                    json.dumps(design_plan.get("parameters", []), indent=2, sort_keys=True),
+                    "",
+                    "Printer/profile requirements:",
+                    json.dumps(
+                        design_specification.get("print_requirements", {}),
+                        indent=2,
+                        sort_keys=True,
+                    ),
+                    "",
+                    "Topology expectations:",
+                    json.dumps(topology_expectations, indent=2, sort_keys=True),
+                    "",
+                    "Security restrictions:",
+                    "- The source must satisfy cadquery-v1 AST validation and use only the allowed imports, runtime constructors, and safe CadQuery operations listed above.",
+                    "- Do not access files, network, subprocesses, environment variables, local modules, shell commands, or dynamic Python execution.",
+                    "",
+                ]
+            )
         parts.extend(
             [
                 f"Project name: {request.project_name}",

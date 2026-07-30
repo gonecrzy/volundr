@@ -13,6 +13,31 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
         project_name="Generated cube",
         original_intent="Create a calibration cube.",
         user_instruction="Create a 10mm cube with named parameters.",
+        design_specification={
+            "purpose": "Create a calibration cube.",
+            "critical_dimensions": [
+                {"id": "cube_size", "value": 10, "unit": "mm", "protected": True}
+            ],
+            "print_requirements": {"printer_profile_id": "default-fdm-256"},
+        },
+        design_plan={
+            "parameters": [
+                {"id": "cube_size", "type": "float", "value": 10, "unit": "mm"}
+            ],
+            "dependency_edges": [
+                {"from": "cube_size", "to": "body", "relationship": "drives_dimension"}
+            ],
+            "components": [{"id": "body", "features": ["cube_body"]}],
+            "features": [{"id": "cube_body", "component_id": "body"}],
+            "printable_outputs": [
+                {
+                    "id": "body",
+                    "component_ids": ["body"],
+                    "expected_solid_count": 1,
+                    "allow_disconnected_solids": False,
+                }
+            ],
+        },
     )
 
     prompt = provider.build_prompt(request)
@@ -32,6 +57,21 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
     assert "ParameterSpec default must be a literal value, not a variable reference" in prompt
     assert "Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params)" in prompt
     assert "Always quote ParameterSpec type values, for example type=\"float\"; never write type=float" in prompt
+    assert "Initial generation mode:" in prompt
+    assert "Authoritative Design Specification JSON:" in prompt
+    assert '"printer_profile_id": "default-fdm-256"' in prompt
+    assert "Authoritative Design Plan JSON:" in prompt
+    assert '"dependency_edges": [' in prompt
+    assert '"components": [' in prompt
+    assert '"features": [' in prompt
+    assert '"printable_outputs": [' in prompt
+    assert "Typed parameter contract:" in prompt
+    assert '"id": "cube_size"' in prompt
+    assert "Topology expectations:" in prompt
+    assert '"expected_solid_count": 1' in prompt
+    assert '"allow_disconnected_solids": false' in prompt
+    assert "Security restrictions:" in prompt
+    assert "Return the complete Python source for the whole product" in prompt
 
 
 def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
