@@ -15,6 +15,7 @@ import {
   revisionPromptFromCandidateFinding,
   revisionPromptFromGeometricFinding,
   outputDimensionsLabel,
+  outputPlacementLabel,
   outputSolidCountLabel,
   outputStateLabel,
   outputTopologyLabel,
@@ -3145,6 +3146,8 @@ function OutputReview({
               <dd>{outputTopologyLabel(output)}</dd>
               <dt>Solid count</dt>
               <dd>{outputSolidCountLabel(output)}</dd>
+              <dt>Placement</dt>
+              <dd>{outputPlacementLabel(output)}</dd>
               <dt>Warnings</dt>
               <dd>{output.validation_summary.advisory_count}</dd>
             </dl>

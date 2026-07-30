@@ -251,8 +251,35 @@ export function outputTopologyLabel(output: RevisionOutput): string {
   return "Topology reported";
 }
 
+export function outputPlacementLabel(output: RevisionOutput): string {
+  const topology = output.topology_metadata;
+  if (!topology || topology.placement_policy !== "cadquery-output-placement-v1") {
+    return "Placement not reported";
+  }
+  const transform = topology.print_transform;
+  if (!isRecord(transform)) {
+    return "Placement not reported";
+  }
+  const translation = transform.translation;
+  if (!Array.isArray(translation) || translation.length !== 3) {
+    return "Placement not reported";
+  }
+  const zTranslation = Number(translation[2]);
+  if (!Number.isFinite(zTranslation)) {
+    return "Placement not reported";
+  }
+  if (Math.abs(zTranslation) < 0.001) {
+    return "Placed on build plate";
+  }
+  return `Raised ${formatDimension(zTranslation)} mm to build plate`;
+}
+
 export function canRetryOutput(output: RevisionOutput): boolean {
   return output.execution_state === "failed";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function numberFromTopology(output: RevisionOutput, key: string): number | null {

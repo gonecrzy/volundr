@@ -434,6 +434,58 @@ async def test_cadquery_runner_reports_execution_failed_topology_for_missing_out
 
 
 @pytest.mark.asyncio
+async def test_cadquery_runner_places_centered_output_on_build_plate(
+    tmp_path: Path,
+) -> None:
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(VALID_CADQUERY_SOURCE, job_id="centered-output-placement")
+
+    assert result.success is True
+    output = result.outputs[0]
+    assert output.stl_path is not None
+    assert output.step_path is not None
+    mesh = trimesh.load(output.stl_path, force="mesh")
+    import cadquery as cq
+
+    step_model = cq.importers.importStep(str(output.step_path))
+    step_bounds = step_model.val().BoundingBox()
+    assert float(mesh.bounds[0][2]) == pytest.approx(0.0, abs=0.001)
+    assert float(step_bounds.zmin) == pytest.approx(0.0, abs=0.001)
+    assert output.topology_metadata is not None
+    assert output.topology_metadata["placement_policy"] == "cadquery-output-placement-v1"
+    assert output.topology_metadata["model_space_bounds"]["z_min"] == pytest.approx(-0.5)
+    assert output.topology_metadata["print_transform"]["translation"] == [0.0, 0.0, 0.5]
+    assert output.topology_metadata["print_space_bounds"]["z_min"] == pytest.approx(0.0)
+    assert output.topology_metadata["detected_solid_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_cadquery_runner_uses_identity_transform_for_output_already_on_plate(
+    tmp_path: Path,
+) -> None:
+    source = VALID_CADQUERY_SOURCE.replace(
+        "body = cq.Workplane(\"XY\").box(width, 1, 1)",
+        "body = cq.Workplane(\"XY\").box(width, 1, 1).translate((0, 0, 0.5))",
+    )
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(source, job_id="on-plate-output-placement")
+
+    assert result.success is True
+    output = result.outputs[0]
+    assert output.stl_path is not None
+    mesh = trimesh.load(output.stl_path, force="mesh")
+    assert float(mesh.bounds[0][2]) == pytest.approx(0.0, abs=0.001)
+    assert output.topology_metadata is not None
+    assert output.topology_metadata["print_transform"]["translation"] == [0.0, 0.0, 0.0]
+    assert output.topology_metadata["model_space_bounds"]["z_min"] == pytest.approx(0.0)
+    assert output.topology_metadata["print_space_bounds"]["z_min"] == pytest.approx(0.0)
+
+
+@pytest.mark.asyncio
 async def test_cadquery_runner_timeout_kills_process_group(tmp_path: Path) -> None:
     marker = tmp_path / "child-finished"
     fake_python = tmp_path / "slow-python"

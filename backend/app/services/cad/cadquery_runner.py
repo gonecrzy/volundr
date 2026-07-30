@@ -488,6 +488,9 @@ import cadquery as cq
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
 from volundr_cad.runtime import ParameterValues, PrintableOutput, Product
 
+PLACEMENT_POLICY = "cadquery-output-placement-v1"
+PLACEMENT_TOLERANCE_MM = 1e-6
+
 
 def main() -> int:
     started_at = time.perf_counter()
@@ -627,24 +630,43 @@ def _export_output(
     step_path = artifact_dir / f"{safe_id}.step"
     brep_path = artifact_dir / f"{safe_id}.brep"
     try:
-        topology_metadata = _topology_metadata(
+        model_space_topology = _topology_metadata(
             output_id=output_id,
             model=model,
             expected_solid_count=expected_solid_count,
             allow_disconnected_solids=allow_disconnected_solids,
         )
-        if not topology_metadata["valid"]:
+        if not model_space_topology["valid"]:
             return _failed_output(
                 output_id,
                 entrypoint,
                 required,
                 "output shape is invalid",
+                topology_metadata=model_space_topology,
+            )
+        placement = _print_placement_metadata(model_space_topology.get("bounding_box_mm"))
+        print_model = _apply_print_transform(model, placement["print_transform"])
+        topology_metadata = _topology_metadata(
+            output_id=output_id,
+            model=print_model,
+            expected_solid_count=expected_solid_count,
+            allow_disconnected_solids=allow_disconnected_solids,
+        )
+        topology_metadata.update(placement)
+        topology_metadata["coordinate_space"] = "print_space"
+        topology_metadata["print_space_bounds"] = topology_metadata.get("bounding_box_mm")
+        if not topology_metadata["valid"]:
+            return _failed_output(
+                output_id,
+                entrypoint,
+                required,
+                "print-placed output shape is invalid",
                 topology_metadata=topology_metadata,
             )
-        cq.exporters.export(model, str(stl_path))
-        cq.exporters.export(model, str(step_path))
+        cq.exporters.export(print_model, str(stl_path))
+        cq.exporters.export(print_model, str(step_path))
         try:
-            cq.exporters.export(model, str(brep_path))
+            cq.exporters.export(print_model, str(brep_path))
         except Exception:
             brep_path.unlink(missing_ok=True)
         return {
@@ -672,6 +694,34 @@ def _export_output(
                 allow_disconnected_solids=allow_disconnected_solids,
             ),
         )
+
+
+def _print_placement_metadata(model_space_bounds):
+    z_min = None
+    if isinstance(model_space_bounds, dict):
+        z_min = model_space_bounds.get("z_min")
+    dz = 0.0
+    if isinstance(z_min, (int, float)) and z_min < -PLACEMENT_TOLERANCE_MM:
+        dz = round(float(-z_min), 6)
+    return {
+        "placement_policy": PLACEMENT_POLICY,
+        "model_space_bounds": model_space_bounds,
+        "print_transform": {
+            "translation": [0.0, 0.0, dz],
+            "rotation": [0.0, 0.0, 0.0],
+        },
+    }
+
+
+def _apply_print_transform(model, print_transform):
+    translation = print_transform.get("translation") if isinstance(print_transform, dict) else None
+    if not isinstance(translation, list) or len(translation) != 3:
+        return model
+    if all(abs(float(value)) <= PLACEMENT_TOLERANCE_MM for value in translation):
+        return model
+    if not hasattr(model, "translate"):
+        raise RuntimeError("output cannot be translated into print space")
+    return model.translate(tuple(float(value) for value in translation))
 
 
 def _failed_output(output_id, entrypoint, required, message, topology_metadata=None):

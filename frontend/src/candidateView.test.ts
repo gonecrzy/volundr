@@ -13,6 +13,7 @@ import {
   revisionPromptFromGeometricFinding,
   revisionPromptFromCandidateFinding,
   outputDimensionsLabel,
+  outputPlacementLabel,
   outputSolidCountLabel,
   outputStateLabel,
   outputTopologyLabel,
@@ -411,6 +412,32 @@ describe("candidate view helpers", () => {
         }),
       ),
     ).toBe("Solid count unavailable");
+  });
+
+  it("labels output print placement without exposing raw transforms", () => {
+    expect(outputPlacementLabel(revisionOutput({ topology_metadata: null }))).toBe("Placement not reported");
+    expect(
+      outputPlacementLabel(
+        revisionOutput({
+          topology_metadata: {
+            valid: true,
+            placement_policy: "cadquery-output-placement-v1",
+            print_transform: { translation: [0, 0, 0], rotation: [0, 0, 0] },
+          },
+        }),
+      ),
+    ).toBe("Placed on build plate");
+    expect(
+      outputPlacementLabel(
+        revisionOutput({
+          topology_metadata: {
+            valid: true,
+            placement_policy: "cadquery-output-placement-v1",
+            print_transform: { translation: [0, 0, 2], rotation: [0, 0, 0] },
+          },
+        }),
+      ),
+    ).toBe("Raised 2 mm to build plate");
   });
 
   it("shows retry only for failed outputs", () => {
