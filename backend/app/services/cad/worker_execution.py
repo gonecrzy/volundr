@@ -38,7 +38,12 @@ async def execute_job_directory(
         workspace_root=job_dir / "work",
         timeout_seconds=job.execution_limits.timeout_seconds,
     )
-    compile_result = await active_runner.compile(source, job_id=job.job_id)
+    compile_result = await active_runner.compile(
+        source,
+        job_id=job.job_id,
+        parameter_values=job.parameter_values,
+        requested_outputs=job.requested_outputs,
+    )
     diagnostics: dict[str, Any] = {
         "message": compile_result.error_message,
         "timed_out": compile_result.timed_out,
@@ -46,18 +51,7 @@ async def execute_job_directory(
         "command_args": compile_result.command_args,
     }
     outputs: list[dict[str, Any]] = []
-    if compile_result.success:
-        outputs.append(
-            {
-                "output_id": "model",
-                "required": True,
-                "stl_path": _relative_path(job_dir, compile_result.stl_path),
-                "step_path": _relative_path(job_dir, compile_result.step_path),
-                "metadata_path": _relative_path(job_dir, compile_result.metadata_path),
-                "source_hash": compile_result.source_hash,
-                "stl_size_bytes": compile_result.output_size_bytes,
-            }
-        )
+    outputs = _result_outputs(job_dir, compile_result)
     failure_class = None
     if not compile_result.success:
         failure_class = "timeout" if compile_result.timed_out else "execution_failed"
@@ -99,3 +93,50 @@ def _relative_path(job_dir: Path, path: Path | None) -> str | None:
         return str(path.resolve().relative_to(job_dir.resolve()))
     except ValueError:
         return path.name
+
+
+def _result_outputs(job_dir: Path, compile_result: Any) -> list[dict[str, Any]]:
+    if getattr(compile_result, "outputs", None):
+        return [
+            {
+                "output_id": output.output_id,
+                "entrypoint": output.entrypoint,
+                "required": output.required,
+                "success": output.success,
+                "stl_path": _relative_path(job_dir, output.stl_path),
+                "step_path": _relative_path(job_dir, output.step_path),
+                "brep_path": _relative_path(job_dir, output.brep_path),
+                "metadata_path": _relative_path(job_dir, output.metadata_path),
+                "topology_metadata_path": _relative_path(job_dir, output.topology_metadata_path),
+                "source_hash": compile_result.source_hash,
+                "stl_hash": output.stl_hash,
+                "step_hash": output.step_hash,
+                "brep_hash": output.brep_hash,
+                "stl_size_bytes": output.output_size_bytes,
+                "topology_metadata": output.topology_metadata,
+                "compile_error": output.compile_error,
+            }
+            for output in compile_result.outputs
+        ]
+    if not compile_result.success:
+        return []
+    return [
+        {
+            "output_id": "model",
+            "entrypoint": "build_model",
+            "required": True,
+            "success": True,
+            "stl_path": _relative_path(job_dir, compile_result.stl_path),
+            "step_path": _relative_path(job_dir, compile_result.step_path),
+            "brep_path": None,
+            "metadata_path": _relative_path(job_dir, compile_result.metadata_path),
+            "topology_metadata_path": None,
+            "source_hash": compile_result.source_hash,
+            "stl_hash": None,
+            "step_hash": None,
+            "brep_hash": None,
+            "stl_size_bytes": compile_result.output_size_bytes,
+            "topology_metadata": None,
+            "compile_error": None,
+        }
+    ]

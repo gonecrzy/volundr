@@ -6,6 +6,8 @@ This document defines Volundr's canonical output pipeline for approved Design Pl
 
 The canonical target is CadQuery `Product` output execution, not OpenSCAD selector dispatch. `module_name`, `selected_output`, and `render_selected_output()` are transitional OpenSCAD implementation details. In the completed CadQuery path, every `PrintableOutput` has an output ID, component ID, quantity, required flag, STEP/STL artifacts, topology metadata, mesh metadata, expected solid count, detected solid count, and disconnected-solid policy.
 
+Current implementation: the CadQuery runner and worker boundary can execute a `cadquery-v1` `Product`, select requested `PrintableOutput` records, export STEP/STL plus optional BREP artifacts, inspect STL mesh metadata, persist topology metadata, preserve optional output failures, and fail the job when a required output fails. The product API still uses the transitional OpenSCAD multi-output path until the staged Gemini CadQuery flow is enabled.
+
 ## Output Model
 
 A Design Plan `printable_outputs` entry represents one generated mesh artifact, not one physical copy. Quantity is stored on the output:

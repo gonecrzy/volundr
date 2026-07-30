@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from app.services.cad.cadquery_runner import CadQueryCliRunner
+from app.services.cad.cadquery_runner import (
+    CadQueryCliRunner,
+    CadQueryCompileResult,
+    CadQueryOutputResult,
+)
 from app.services.cad.worker_client import FilesystemCadWorkerClient
 from app.services.cad.worker_execution import execute_job_directory
 from app.services.cad.jobs import (
@@ -132,6 +136,39 @@ async def test_api_client_reads_structured_worker_failure(tmp_path: Path) -> Non
 
 
 @pytest.mark.asyncio
+async def test_worker_persists_multi_output_cadquery_result(tmp_path: Path) -> None:
+    queue = FilesystemCadJobQueue(tmp_path)
+    job_dir = queue.submit_cadquery_source(
+        source=VALID_CADQUERY_SOURCE,
+        job_id="multi-output",
+        parameter_values={"width_mm": 42},
+        requested_outputs=[
+            {"output_id": "body", "required": True},
+            {"output_id": "lid", "required": False},
+        ],
+        timeout_seconds=5,
+    )
+    runner = MultiOutputCadQueryRunner(job_dir)
+
+    result = await execute_job_directory(job_dir, runner=runner)
+
+    assert runner.parameter_values == {"width_mm": 42}
+    assert runner.requested_outputs == [
+        {"output_id": "body", "required": True},
+        {"output_id": "lid", "required": False},
+    ]
+    assert result["success"] is True
+    assert [output["output_id"] for output in result["outputs"]] == ["body", "lid"]
+    assert result["outputs"][0]["step_path"] == "work/body.step"
+    assert result["outputs"][0]["brep_path"] == "work/body.brep"
+    assert result["outputs"][0]["topology_metadata"] == {"valid": True, "detected_solid_count": 1}
+    assert result["outputs"][1]["success"] is False
+    assert result["outputs"][1]["compile_error"] == "optional failed"
+    persisted = load_job_result(job_dir)
+    assert persisted["outputs"] == result["outputs"]
+
+
+@pytest.mark.asyncio
 async def test_cadquery_runner_scrubs_provider_credentials_from_environment(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -203,3 +240,82 @@ async def _wait_briefly() -> None:
     import asyncio
 
     await asyncio.sleep(0.2)
+
+
+class MultiOutputCadQueryRunner:
+    def __init__(self, job_dir: Path) -> None:
+        self.job_dir = job_dir
+        self.parameter_values: dict | None = None
+        self.requested_outputs: list[dict] | None = None
+
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        parameter_values: dict | None = None,
+        requested_outputs: list[dict] | None = None,
+    ) -> CadQueryCompileResult:
+        self.parameter_values = parameter_values
+        self.requested_outputs = requested_outputs
+        work_dir = self.job_dir / "work"
+        work_dir.mkdir()
+        body_stl = work_dir / "body.stl"
+        body_step = work_dir / "body.step"
+        body_brep = work_dir / "body.brep"
+        for path in (body_stl, body_step, body_brep):
+            path.write_text(path.name, encoding="utf-8")
+        return CadQueryCompileResult(
+            job_id=job_id,
+            success=True,
+            timed_out=False,
+            exit_code=0,
+            source_path=self.job_dir / "input" / "model.py",
+            stl_path=body_stl,
+            step_path=body_step,
+            stdout_path=work_dir / "stdout.log",
+            stderr_path=work_dir / "stderr.log",
+            metadata_path=None,
+            source_hash="0" * 64,
+            output_size_bytes=body_stl.stat().st_size,
+            metadata=None,
+            error_message=None,
+            command_args=["python", "_runner.py"],
+            outputs=[
+                CadQueryOutputResult(
+                    output_id="body",
+                    entrypoint="body",
+                    required=True,
+                    success=True,
+                    stl_path=body_stl,
+                    step_path=body_step,
+                    brep_path=body_brep,
+                    metadata_path=None,
+                    topology_metadata_path=None,
+                    stl_hash="1" * 64,
+                    step_hash="2" * 64,
+                    brep_hash="3" * 64,
+                    output_size_bytes=body_stl.stat().st_size,
+                    metadata=None,
+                    topology_metadata={"valid": True, "detected_solid_count": 1},
+                ),
+                CadQueryOutputResult(
+                    output_id="lid",
+                    entrypoint="lid",
+                    required=False,
+                    success=False,
+                    stl_path=None,
+                    step_path=None,
+                    brep_path=None,
+                    metadata_path=None,
+                    topology_metadata_path=None,
+                    stl_hash=None,
+                    step_hash=None,
+                    brep_hash=None,
+                    output_size_bytes=0,
+                    metadata=None,
+                    topology_metadata=None,
+                    compile_error="optional failed",
+                ),
+            ],
+        )
