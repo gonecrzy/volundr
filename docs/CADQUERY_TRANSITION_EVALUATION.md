@@ -37,6 +37,20 @@ Results:
 - Full backend after artifact-boundary hardening: 183 passed, 1 existing Starlette/httpx deprecation warning.
 - Added explicit coverage for network-library import rejection, environment-inspection attempts, malformed STEP rejection, and worker result rejection of artifact paths outside the job directory.
 
+Additional CadQuery contract and worker-boundary hardening:
+
+```bash
+rtk .venv/bin/python -m pytest -q
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py --suite tests/fixtures/generation_benchmarks/full.json --staged-product-gate --provider dry-run
+rtk git diff --check
+```
+
+Results:
+
+- Full backend after strict worker/source-contract hardening: 218 passed, 1 existing Starlette/httpx deprecation warning.
+- Staged product gate dry-run selected 12 cases and made no provider calls.
+- Worker-submitted jobs now carry `source_contract_version = cadquery-v1`; API defaults route CadQuery execution through the filesystem worker queue; the legacy `cadquery-probe-v1` validator branch has been removed.
+
 Additional frontend workflow verification:
 
 ```bash
@@ -621,6 +635,10 @@ Results:
    - `70fd04e` Improve live benchmark source fallback
    - `37a1a36` Stabilize CadQuery live source gate
    - `75d0e04` Record final CadQuery transition verification
+   - `088204f` Require cadquery-v1 source extraction
+   - `aed3dff` Require cadquery-v1 worker execution
+   - `f42be4f` Route API CadQuery execution through worker queue
+   - `cbbf501` Remove legacy CadQuery probe contract
 4. Database/schema strategy: development migration `0015_cadquery_native_persistence` replaces OpenSCAD-shaped canonical fields with CadQuery-native source, execution, output, topology, STEP/STL/BREP, and manifest fields. Old development databases should be recreated.
 5. Worker execution and security model: filesystem-backed job queue; worker runs as non-root `volundr-cad`, with no network, no provider credentials, read-only root filesystem, bounded PID/memory/CPU, structured job/result manifests, timeout handling, artifact hashes, and diagnostics.
 6. CadQuery source contract: `cadquery-v1` Python contract with approved imports, typed `ParameterSpec`, `build(params)`, structured `Product`, named `PrintableOutput` records, source extraction, AST validation, contract repair, and worker-owned exports.
