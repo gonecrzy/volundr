@@ -11,6 +11,7 @@ from typing import Any
 from app.services.ai.gemini_cli import (
     CADQUERY_SOURCE_PROMPT_VERSION,
     CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION,
+    CADQUERY_COMPONENT_REVISION_PROMPT_VERSION,
     CONTRACT_REPAIR_PROMPT_VERSION,
     DESIGN_PLAN_PROMPT_VERSION,
     GEMINI_RULESET_VERSION,
@@ -34,6 +35,7 @@ from app.services.ai.source_extraction import (
 )
 from app.services.cad.cadquery_runner import CadQueryCliRunner
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
+from app.services.cad.cadquery_source_authority import build_cadquery_source_authority
 from app.services.generation.benchmarks import (
     BenchmarkSuite,
     GenerationBenchmark,
@@ -63,7 +65,6 @@ SOURCE_BRIEF_SCHEMA_VERSION = "source-brief-v1"
 DESIGN_PLAN_ANALYSIS_SCHEMA_VERSION = "design-plan-analysis-v1"
 SOURCE_LANGUAGES = frozenset({"cadquery"})
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
-CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v1"
 
 SCORING_CATEGORIES = (
     "prompt_quality",
@@ -1667,7 +1668,109 @@ def _source_request_for(
         project_name=f"Benchmark: {benchmark.id}",
         original_intent=benchmark.input_prompt,
         user_instruction=user_instruction,
+        source_authority=_benchmark_source_authority(benchmark),
     )
+
+
+def _benchmark_source_authority(benchmark: GenerationBenchmark) -> dict[str, Any] | None:
+    plan = benchmark.expected_design_plan or {}
+    explicit = benchmark.expected_explicit_requirements or {}
+    parameters: list[dict[str, Any]] = []
+    for parameter_id, requirement in explicit.items():
+        if not isinstance(requirement, dict):
+            continue
+        parameters.append(
+            {
+                "id": parameter_id,
+                "value": requirement.get("value"),
+                "unit": requirement.get("unit"),
+                "protected": True,
+                "source_requirement_id": parameter_id,
+                "source": "user",
+            }
+        )
+    for parameter_id in benchmark.expected_parameters:
+        if parameter_id in explicit:
+            continue
+        parameters.append(
+            {
+                "id": parameter_id,
+                "value": _benchmark_default_parameter_value(parameter_id),
+                "unit": "mm",
+                "protected": False,
+                "source": "product_default",
+            }
+        )
+    components = [
+        {"id": str(component_id)}
+        for component_id in plan.get("components", []) or []
+        if component_id
+    ]
+    features = [
+        {
+            "id": str(feature_id),
+            "component_id": _benchmark_feature_component(str(feature_id), components),
+            "protected": str(feature_id) in set(benchmark.protected_design_invariants),
+            "required": False,
+        }
+        for feature_id in plan.get("features", []) or []
+        if feature_id
+    ]
+    outputs = []
+    for output_id in plan.get("printable_outputs", []) or []:
+        output_id = str(output_id)
+        component_id = _benchmark_output_component(output_id, components)
+        outputs.append(
+            {
+                "id": output_id,
+                "component_ids": [component_id] if component_id else [],
+                "required": True,
+                "expected_solid_count": 1,
+                "allow_disconnected_solids": False,
+            }
+        )
+    if not any((parameters, components, features, outputs)):
+        return None
+    try:
+        return build_cadquery_source_authority(
+            {
+                "parameters": parameters,
+                "components": components,
+                "features": features,
+                "printable_outputs": outputs,
+            }
+        )
+    except Exception:
+        return None
+
+
+def _benchmark_default_parameter_value(parameter_id: str) -> int | float | bool | str:
+    lowered = parameter_id.lower()
+    if lowered.endswith("_count") or lowered in {"count", "quantity"}:
+        return 1
+    if lowered.endswith("_enabled") or lowered.startswith("has_"):
+        return True
+    return 1.0
+
+
+def _benchmark_feature_component(feature_id: str, components: list[dict[str, Any]]) -> str:
+    component_ids = [str(component["id"]) for component in components if component.get("id")]
+    for component_id in component_ids:
+        if component_id in feature_id or feature_id in component_id:
+            return component_id
+    return component_ids[0] if component_ids else ""
+
+
+def _benchmark_output_component(output_id: str, components: list[dict[str, Any]]) -> str:
+    component_ids = [str(component["id"]) for component in components if component.get("id")]
+    if output_id == "base" and "base_shell" in component_ids:
+        return "base_shell"
+    if output_id == "lid" and "snap_lid" in component_ids:
+        return "snap_lid"
+    for component_id in component_ids:
+        if output_id in component_id or component_id in output_id:
+            return component_id
+    return component_ids[0] if component_ids else ""
 
 
 def _source_brief_request_for(benchmark: GenerationBenchmark) -> SourceBriefRequest:
@@ -1878,6 +1981,7 @@ def _source_repair_request_for(
         user_instruction=instruction,
         current_source=current_source,
         compiler_diagnostics=compiler_diagnostics,
+        source_authority=_benchmark_source_authority(benchmark),
     )
 
 

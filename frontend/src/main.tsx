@@ -75,6 +75,13 @@ import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWork
 import "./styles.css";
 
 const API_BASE = "/api";
+const SOURCE_IDENTITY_REJECTION_MESSAGE =
+  "The generated model did not implement the approved design identities.";
+const SOURCE_CONTRACT_REJECTION_PREFIXES = [
+  "Model source rejected before compile",
+  "Revision source rejected before compile",
+  SOURCE_IDENTITY_REJECTION_MESSAGE,
+];
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_GENERATION_MODE?: string;
 };
@@ -470,6 +477,10 @@ const DEFAULT_PRINTABILITY_PROFILE: PrintabilityProfile = {
   nozzle_diameter_mm: 0.4,
   default_layer_height_mm: 0.2,
 };
+
+function isSourceContractRejection(message: string): boolean {
+  return SOURCE_CONTRACT_REJECTION_PREFIXES.some((prefix) => message.startsWith(prefix));
+}
 
 function App() {
   const [projectName, setProjectName] = useState("");
@@ -975,7 +986,7 @@ function App() {
       const fallback = ADVANCED_WORKFLOW_ENABLED ? "Requirement extraction failed" : "Generation failed";
       const message = error instanceof Error ? error.message : fallback;
       setMessage(message);
-      if (message.startsWith("Model source rejected before compile")) {
+      if (isSourceContractRejection(message)) {
         setSourceContractError(message);
       }
     } finally {
@@ -1118,9 +1129,9 @@ function App() {
       await loadProjectMessages(project.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Generation failed";
-      if (message.startsWith("Model source rejected before compile")) {
+      if (isSourceContractRejection(message)) {
         setSourceContractError(message);
-        setMessage("Model source rejected before compile");
+        setMessage(SOURCE_IDENTITY_REJECTION_MESSAGE);
       } else {
         setMessage(message);
       }
@@ -1384,10 +1395,7 @@ function App() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Revision failed";
       setMessage(message);
-      if (
-        message.startsWith("Revision source rejected before compile") ||
-        message.startsWith("Model source rejected before compile")
-      ) {
+      if (isSourceContractRejection(message)) {
         setSourceContractError(message);
       }
       try {

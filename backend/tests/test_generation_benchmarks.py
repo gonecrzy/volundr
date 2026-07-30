@@ -858,7 +858,7 @@ def test_component_revision_benchmarks_cover_targeted_full_source_revisions() ->
 
     assert (
         by_id["component_revision_lid_only"].expected_component_revision["prompt_template_version"]
-        == "cadquery-component-revision-v1"
+        == "cadquery-component-revision-v2"
     )
     assert (
         by_id["component_revision_unauthorized_output_drift"]

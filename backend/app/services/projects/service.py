@@ -102,6 +102,11 @@ from app.services.ai.source_extraction import (
     extract_python_source,
 )
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
+from app.services.cad.cadquery_source_authority import (
+    CadQuerySourceAuthorityError,
+    authority_from_generation_context,
+    validate_cadquery_source_authority,
+)
 from app.services.cad.worker_client import FilesystemCadWorkerRunner
 from app.services.cad.source_metadata import (
     SourceMapping,
@@ -2538,6 +2543,10 @@ class ProjectService:
         scoped_revision_context: dict[str, Any] | None = None,
         configuration_context: dict[str, Any] | None = None,
     ) -> ModelGenerationRequest:
+        source_authority = authority_from_generation_context(
+            design_plan_payload=design_plan,
+            revision_plan_payload=revision_plan,
+        )
         return ModelGenerationRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -2554,6 +2563,7 @@ class ProjectService:
             source_metadata=source_metadata,
             scoped_revision_context=scoped_revision_context,
             configuration_context=configuration_context,
+            source_authority=source_authority,
         )
 
     async def _generate_source_model(self, request: ModelGenerationRequest):
@@ -3790,13 +3800,13 @@ class ProjectService:
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
         if request.compiler_diagnostics:
-            return "cadquery-execution-repair-v1"
+            return "cadquery-execution-repair-v2"
         if request.contract_diagnostics:
-            return "cadquery-contract-repair-v1"
+            return "cadquery-contract-repair-v2"
         if request.scope_diagnostics:
-            return "cadquery-scope-correction-v1"
+            return "cadquery-scope-correction-v2"
         if request.revision_plan and request.scoped_revision_context:
-            return "cadquery-component-revision-v1"
+            return "cadquery-component-revision-v2"
         if request.revision_plan:
             return "cadquery-revision-v1"
         version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
@@ -4066,6 +4076,7 @@ class ProjectService:
             source_type=source_type,
             design_specification=design_specification,
             design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
         )
 
     def _persist_cadquery_source_contract_validation(
@@ -4077,10 +4088,11 @@ class ProjectService:
         source_type: str,
         design_specification: DesignSpecification | None,
         design_specification_payload: dict[str, Any] | None = None,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> SourceValidationResult:
         started = time.perf_counter()
         source_hash = self._sha256(source)
-        hard_error: str | None = None
+        hard_violations: list[dict[str, Any]] = []
         metadata: dict[str, Any] | None = None
         try:
             source_metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
@@ -4092,10 +4104,29 @@ class ProjectService:
                         "parameter_ids": source_metadata.parameter_ids,
                         "parameter_defaults": source_metadata.parameter_defaults,
                     },
-                    explicit_inventory,
-                )
-        except (CadQueryContractError, RequirementTraceError) as exc:
-            hard_error = str(exc)
+                        explicit_inventory,
+                    )
+            source_authority = authority_from_generation_context(
+                design_plan_payload=design_plan_payload,
+            )
+            if source_authority:
+                validate_cadquery_source_authority(source, source_authority)
+        except CadQueryContractError as exc:
+            hard_violations.append(
+                {
+                    "rule_id": "cadquery.contract",
+                    "category": "source_contract",
+                    "severity": "critical",
+                    "is_blocking": True,
+                    "title": "CadQuery source contract violation",
+                    "explanation": str(exc),
+                    "suggested_correction": "Regenerate or repair the CadQuery source so it satisfies cadquery-v1.",
+                }
+            )
+        except RequirementTraceError as exc:
+            hard_violations.extend(exc.findings)
+        except CadQuerySourceAuthorityError as exc:
+            hard_violations.extend(exc.findings)
         validation_ms = round((time.perf_counter() - started) * 1000, 3)
         run_dir = self._generation_attempt_dir(project.id, attempt.id)
         result_path = run_dir / "source-contract.json"
@@ -4103,22 +4134,10 @@ class ProjectService:
             result_path,
             {
                 "contract_version": "cadquery-v1",
-                "validator_version": "cadquery-ast-validator-v1",
+                "validator_version": "cadquery-ast-validator-v2",
                 "ruleset_version": self._ruleset_version(),
-                "passed_hard_checks": hard_error is None,
-                "hard_violations": []
-                if hard_error is None
-                else [
-                    {
-                        "rule_id": "cadquery.contract",
-                        "category": "source_contract",
-                        "severity": "critical",
-                        "is_blocking": True,
-                        "title": "CadQuery source contract violation",
-                        "explanation": hard_error,
-                        "suggested_correction": "Regenerate or repair the CadQuery source so it satisfies cadquery-v1.",
-                    }
-                ],
+                "passed_hard_checks": not hard_violations,
+                "hard_violations": hard_violations,
                 "quality_findings": [],
                 "specification_findings": [],
                 "source_metadata": metadata or {"source_hash": source_hash},
@@ -4135,30 +4154,50 @@ class ProjectService:
             source_language="python",
             contract_version="cadquery-v1",
             ruleset_version=self._ruleset_version(),
-            validator_version="cadquery-ast-validator-v1",
+            validator_version="cadquery-ast-validator-v2",
             source_hash=source_hash,
             result_path=self._relative(result_path),
-            passed_hard_checks=hard_error is None,
+            passed_hard_checks=not hard_violations,
             validation_ms=validation_ms,
         )
         self.db.add(source_validation)
         self.db.flush()
-        if hard_error is not None:
+        for violation in hard_violations:
             self.db.add(
                 ValidationFinding(
                     revision_id=None,
                     generation_attempt_id=attempt.id,
                     design_specification_id=design_specification.id if design_specification else None,
                     source_validation_result_id=source_validation.id,
-                    rule_id="cadquery.contract",
-                    category="source_contract",
-                    severity="critical",
-                    is_blocking=True,
-                    title="CadQuery source contract violation",
-                    explanation=hard_error,
-                    suggested_correction="Regenerate or repair the CadQuery source so it satisfies cadquery-v1.",
+                    rule_id=str(violation.get("rule_id") or "cadquery.contract"),
+                    category=str(violation.get("category") or "source_contract"),
+                    severity=str(violation.get("severity") or "critical"),
+                    is_blocking=bool(violation.get("is_blocking", True)),
+                    title=str(violation.get("title") or "CadQuery source contract violation"),
+                    explanation=str(violation.get("explanation") or ""),
+                    suggested_correction=str(
+                        violation.get("suggested_correction")
+                        or "Regenerate or repair the CadQuery source so it satisfies cadquery-v1."
+                    ),
+                    detected_value=json.dumps(violation.get("detected_value"), sort_keys=True)
+                    if violation.get("detected_value") is not None
+                    else None,
+                    threshold_value=json.dumps(violation.get("expected_value"), sort_keys=True)
+                    if violation.get("expected_value") is not None
+                    else None,
                     orientation_dependent=False,
-                    metadata_json=json.dumps({"finding_origin": "source_contract"}, sort_keys=True),
+                    metadata_json=json.dumps(
+                        {
+                            "finding_origin": "source_contract",
+                            "parameter_id": violation.get("parameter_id"),
+                            "component_id": violation.get("component_id"),
+                            "feature_id": violation.get("feature_id"),
+                            "output_id": violation.get("output_id"),
+                            "identity_id": violation.get("identity_id"),
+                            "metadata": violation.get("metadata"),
+                        },
+                        sort_keys=True,
+                    ),
                 )
             )
         self._update_attempt_chain(attempt, status=attempt.status)
@@ -4167,6 +4206,7 @@ class ProjectService:
         return source_validation
 
     def _source_contract_rejection_message(self, source_validation: SourceValidationResult) -> str:
+        header = "The generated model did not implement the approved design identities."
         findings = list(
             self.db.scalars(
                 select(ValidationFinding)
@@ -4176,10 +4216,10 @@ class ProjectService:
             )
         )
         if not findings:
-            return "Model source rejected before compile"
-        lines = ["Model source rejected before compile"]
+            return header
+        lines = [header, "The model was not executed."]
         for finding in findings[:8]:
-            detail = finding.title
+            detail = f"{finding.rule_id} - {finding.title}"
             if finding.explanation:
                 detail += f": {finding.explanation}"
             if finding.detected_value is not None or finding.threshold_value is not None:
@@ -4763,6 +4803,36 @@ class ProjectService:
         except CadQueryContractError:
             return {}
         return dict(metadata.parameter_defaults)
+
+    def _cadquery_execution_parameter_values(
+        self,
+        *,
+        source: str,
+        design_plan_payload: dict[str, Any],
+        overrides: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        values = self._cadquery_source_parameter_values(source)
+        values.update(self._design_plan_parameter_values(design_plan_payload))
+        if overrides is not None:
+            values.update(overrides)
+        try:
+            metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        except CadQueryContractError:
+            return values
+        return {
+            parameter_id: self._coerce_cadquery_parameter_value(
+                value,
+                parameter_type=metadata.parameter_types.get(parameter_id),
+            )
+            for parameter_id, value in values.items()
+        }
+
+    def _coerce_cadquery_parameter_value(self, value: Any, *, parameter_type: str | None) -> Any:
+        if parameter_type == "int" and isinstance(value, float) and value.is_integer():
+            return int(value)
+        if parameter_type == "float" and isinstance(value, int) and not isinstance(value, bool):
+            return float(value)
+        return value
 
     def _cadquery_manual_design_plan_payload(self, source: str) -> dict[str, Any]:
         try:
@@ -6456,7 +6526,11 @@ class ProjectService:
             ai_output_path.write_text(raw_ai_output, encoding="utf-8")
             ai_output_relative_path = self._relative(ai_output_path)
 
-        compile_parameter_values = parameter_values or self._design_plan_parameter_values(design_plan_payload)
+        compile_parameter_values = self._cadquery_execution_parameter_values(
+            source=source,
+            design_plan_payload=design_plan_payload,
+            overrides=parameter_values,
+        )
         explicit_inventory = inventory_from_design_specification(design_specification_payload)
         if explicit_inventory:
             validate_execution_parameters(compile_parameter_values, explicit_inventory)
@@ -6828,16 +6902,23 @@ class ProjectService:
             raise ValueError("output retry requires a CadQuery revision")
 
         revision_dir = self._revision_dir(revision.project_id, revision.id)
-        parameter_values = self._cadquery_source_parameter_values(source)
         design_plan_payload = self._revision_design_plan_payload(revision)
-        if design_plan_payload is not None:
-            parameter_values = self._design_plan_parameter_values(design_plan_payload)
+        parameter_overrides = None
         if revision.configuration_change_id is not None:
             change = self.db.get(ConfigurationChange, revision.configuration_change_id)
             if change is not None:
-                parameter_values = dict(
+                parameter_overrides = dict(
                     self._configuration_override_manifest(change).get("parameter_values") or {}
                 )
+        parameter_values = (
+            self._cadquery_execution_parameter_values(
+                source=source,
+                design_plan_payload=design_plan_payload,
+                overrides=parameter_overrides,
+            )
+            if design_plan_payload is not None
+            else self._cadquery_source_parameter_values(source)
+        )
         parameter_hash = self._configuration_parameter_hash(parameter_values)
         if output.parameter_hash is None:
             raise ValueError("Parameter hash is missing; output retry is not safe")

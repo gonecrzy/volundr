@@ -5,7 +5,28 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RevisionPlanRequest,
 )
+from app.services.cad.cadquery_source_authority import build_cadquery_source_authority
 from app.services.projects.service import ProjectService
+
+
+CUBE_PLAN = {
+    "parameters": [
+        {"id": "cube_size", "type": "float", "value": 10, "unit": "mm"}
+    ],
+    "dependency_edges": [
+        {"from": "cube_size", "to": "body", "relationship": "drives_dimension"}
+    ],
+    "components": [{"id": "body", "features": ["cube_body"]}],
+    "features": [{"id": "cube_body", "component_id": "body"}],
+    "printable_outputs": [
+        {
+            "id": "body",
+            "component_ids": ["body"],
+            "expected_solid_count": 1,
+            "allow_disconnected_solids": False,
+        }
+    ],
+}
 
 
 def test_cadquery_initial_prompt_uses_product_contract() -> None:
@@ -21,29 +42,13 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
             ],
             "print_requirements": {"printer_profile_id": "default-fdm-256"},
         },
-        design_plan={
-            "parameters": [
-                {"id": "cube_size", "type": "float", "value": 10, "unit": "mm"}
-            ],
-            "dependency_edges": [
-                {"from": "cube_size", "to": "body", "relationship": "drives_dimension"}
-            ],
-            "components": [{"id": "body", "features": ["cube_body"]}],
-            "features": [{"id": "cube_body", "component_id": "body"}],
-            "printable_outputs": [
-                {
-                    "id": "body",
-                    "component_ids": ["body"],
-                    "expected_solid_count": 1,
-                    "allow_disconnected_solids": False,
-                }
-            ],
-        },
+        design_plan=CUBE_PLAN,
+        source_authority=build_cadquery_source_authority(CUBE_PLAN),
     )
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-generation-v3"
+    assert provider.prompt_template_version_for(request) == "cadquery-generation-v4"
     assert provider.ruleset_version == "gemini-ruleset-v1"
     assert "You generate CadQuery Python for Volundr." in prompt
     assert "Return only a single fenced python block" in prompt
@@ -66,6 +71,9 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
     assert '"printer_profile_id": "default-fdm-256"' in prompt
     assert "Authoritative Design Plan JSON:" in prompt
     assert "Required stable identity table:" in prompt
+    assert "AUTHORITATIVE SOURCE IDENTITIES" in prompt
+    assert "Do not rename, alias, replace, shorten, or invent product IDs." in prompt
+    assert "Every required parameter must be declared as a module-level ParameterSpec" in prompt
     assert '"required_components": [' in prompt
     assert '"required_outputs": [' in prompt
     assert '"required_parameters": [' in prompt
@@ -136,7 +144,7 @@ def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> Non
 
     prompt = provider.build_cadquery_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-execution-repair-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-execution-repair-v2"
     assert "Repair mode:" in prompt
     assert "AttributeError: Workplane has no attribute 'holes'" in prompt
     assert "Current CadQuery source to repair begins below" in prompt
@@ -165,8 +173,8 @@ def test_project_service_records_distinct_cadquery_repair_prompt_versions() -> N
         design_plan={"printable_outputs": [{"id": "body"}]},
     )
 
-    assert service._prompt_template_version(contract_request) == "cadquery-contract-repair-v1"
-    assert service._prompt_template_version(execution_request) == "cadquery-execution-repair-v1"
+    assert service._prompt_template_version(contract_request) == "cadquery-contract-repair-v2"
+    assert service._prompt_template_version(execution_request) == "cadquery-execution-repair-v2"
 
 
 def test_requirement_prompt_is_json_only_and_clarification_capable() -> None:
@@ -236,16 +244,35 @@ def test_cadquery_contract_repair_prompt_is_bounded() -> None:
         current_source="import cadquery as cq\n",
         contract_diagnostics="Protected value changed: expected 60, detected 55",
         design_specification={"critical_dimensions": [{"id": "hole_spacing", "value": 60, "protected": True}]},
+        design_plan={
+            "parameters": [
+                {"id": "hole_spacing", "value": 60, "unit": "mm", "protected": True}
+            ],
+            "components": [{"id": "plate"}],
+            "features": [],
+            "printable_outputs": [{"id": "plate", "component_ids": ["plate"]}],
+        },
+        source_authority=build_cadquery_source_authority(
+            {
+                "parameters": [
+                    {"id": "hole_spacing", "value": 60, "unit": "mm", "protected": True}
+                ],
+                "components": [{"id": "plate"}],
+                "features": [],
+                "printable_outputs": [{"id": "plate", "component_ids": ["plate"]}],
+            }
+        ),
     )
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-contract-repair-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-contract-repair-v2"
     assert "Contract repair mode:" in prompt
     assert "contract repair, not design revision" in prompt
     assert "ParameterSpec ID" in prompt
     assert "PrintableOutput output_id" in prompt
     assert "Protected value changed" in prompt
+    assert "AUTHORITATIVE SOURCE IDENTITIES" in prompt
 
 
 def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
@@ -329,15 +356,27 @@ def test_cadquery_component_revision_prompt_uses_scoped_context() -> None:
         configuration_context={
             "override_manifest": {"parameter_values": {"body_width": 90}},
         },
+        source_authority=build_cadquery_source_authority(
+            {
+                "parameters": [{"id": "body_width", "value": 90, "unit": "mm"}],
+                "components": [{"id": "body"}, {"id": "lid"}],
+                "features": [],
+                "printable_outputs": [
+                    {"id": "body", "component_ids": ["body"]},
+                    {"id": "lid", "component_ids": ["lid"]},
+                ],
+            }
+        ),
     )
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-component-revision-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-component-revision-v2"
     assert "Structured revision mode:" in prompt
     assert "Scoped revision context:" in prompt
     assert "Active configuration context:" in prompt
     assert '"protected_components": [' in prompt
+    assert "AUTHORITATIVE SOURCE IDENTITIES" in prompt
 
 
 def test_cadquery_scope_correction_prompt_is_not_compile_or_contract_repair() -> None:
@@ -350,11 +389,23 @@ def test_cadquery_scope_correction_prompt_is_not_compile_or_contract_repair() ->
         revision_plan={"summary": "Modify lid only", "protected_outputs": ["body"]},
         scoped_revision_context={"protected_components": ["body"], "targeted_components": ["lid"]},
         scope_diagnostics='[{"rule_id":"revision.protected_component_changed"}]',
+        source_authority=build_cadquery_source_authority(
+            {
+                "parameters": [],
+                "components": [{"id": "body"}, {"id": "lid"}],
+                "features": [],
+                "printable_outputs": [
+                    {"id": "body", "component_ids": ["body"]},
+                    {"id": "lid", "component_ids": ["lid"]},
+                ],
+            }
+        ),
     )
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-scope-correction-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-scope-correction-v2"
     assert "Revision scope correction mode:" in prompt
     assert "This is scope correction, not a new design revision." in prompt
     assert "Revert unauthorized edits" in prompt
+    assert "Revert every unauthorized identity change" in prompt

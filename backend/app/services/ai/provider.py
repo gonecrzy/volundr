@@ -19,6 +19,7 @@ class ModelGenerationRequest:
     source_metadata: dict[str, Any] | None = None
     scoped_revision_context: dict[str, Any] | None = None
     configuration_context: dict[str, Any] | None = None
+    source_authority: dict[str, Any] | None = None
     generation_contract_version: str = "v1"
 
 

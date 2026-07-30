@@ -306,9 +306,13 @@ def _validate_metadata_decorator(node: ast.expr) -> None:
     if any(keyword.arg is None for keyword in node.keywords):
         raise CadQueryContractError("ownership decorators do not support dynamic keyword arguments")
     if node.func.id in {"component", "shared_helper"}:
-        if len(node.args) != 1 or node.keywords:
+        if len(node.args) == 1 and not node.keywords:
+            decorator_id = node.args[0]
+        elif not node.args and len(node.keywords) == 1 and node.keywords[0].arg == "id":
+            decorator_id = node.keywords[0].value
+        else:
             raise CadQueryContractError(f"{node.func.id} decorator requires one static id argument")
-        if not _is_static_string(node.args[0]):
+        if not _is_static_string(decorator_id):
             raise CadQueryContractError(f"{node.func.id} decorator id must be a static string")
         return
     if node.func.id == "feature":

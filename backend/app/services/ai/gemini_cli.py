@@ -19,16 +19,20 @@ from app.services.ai.provider import (
     SourceBriefRequest,
     SourceBriefResult,
 )
+from app.services.cad.cadquery_source_authority import (
+    format_authoritative_identity_section,
+)
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
-SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v1"
-CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v1"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v3"
-CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v1"
+SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
+CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v2"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v4"
+CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
+CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
 
 class GeminiCliProvider:
@@ -209,7 +213,7 @@ class GeminiCliProvider:
         if request.scope_diagnostics:
             return SCOPE_CORRECTION_PROMPT_VERSION
         if request.revision_plan and request.scoped_revision_context:
-            return "cadquery-component-revision-v1"
+            return CADQUERY_COMPONENT_REVISION_PROMPT_VERSION
         if request.revision_plan:
             return "cadquery-revision-v1"
         return CADQUERY_SOURCE_PROMPT_VERSION
@@ -311,7 +315,8 @@ class GeminiCliProvider:
                     "- This is contract repair, not design revision.",
                     "- Repair only violations of the CadQuery product source contract.",
                     "- Preserve geometry, user dimensions, protected design-specification values, planned outputs, and unrelated working code.",
-                    "- Keep every ParameterSpec ID and PrintableOutput output_id required by the Design Plan unless the diagnostics explicitly require a correction.",
+                    "- Keep every ParameterSpec ID, @component ID, @feature ID, and PrintableOutput output_id required by the authoritative identity inventory exactly.",
+                    "- Do not invent alternate IDs, remove parameters, hardcode protected values, redesign outputs, or change component decomposition.",
                     "- If diagnostics mention unsupported ParameterSpec keywords, remove unsupported fields such as description and replace min/max aliases with min_value/max_value.",
                     "- Return the full corrected CadQuery Python source, not a patch.",
                     "",
@@ -323,6 +328,8 @@ class GeminiCliProvider:
                     "",
                     "Authoritative Design Plan JSON:",
                     json.dumps(request.design_plan, indent=2, sort_keys=True),
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
                     "",
                     "Current CadQuery source to repair begins below:",
                     request.current_source or "",
@@ -336,6 +343,7 @@ class GeminiCliProvider:
                     "Revision scope correction mode:",
                     "- This is scope correction, not a new design revision.",
                     "- Revert unauthorized edits to protected components, protected outputs, protected parameters, and unrelated code.",
+                    "- Revert every unauthorized identity change. Do not create aliases or replacement IDs.",
                     "- Preserve the approved targeted change where it does not conflict with the scope findings.",
                     "- Return the complete corrected CadQuery Python source for the whole product.",
                     "",
@@ -344,6 +352,8 @@ class GeminiCliProvider:
                     "",
                     "Scoped revision context:",
                     json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
                     "",
                     "Scope diagnostics to correct:",
                     request.scope_diagnostics,
@@ -361,6 +371,8 @@ class GeminiCliProvider:
                     "- Return the complete revised CadQuery Python source for the whole product, not a patch.",
                     "- Make only changes approved by the Revision Plan and its scoped revision context.",
                     "- Preserve protected parameters, components, features, outputs, and interfaces exactly.",
+                    "- Target stable component and output IDs are product identities; Python symbol names are flexible implementation details.",
+                    "- New revision-local parameters are allowed only when the approved Revision Plan allows them.",
                     "- Keep every existing PrintableOutput required by the Design Plan unless the Revision Plan explicitly permits removal.",
                     "- Preserve active configuration ParameterSpec IDs so configured revisions remain executable.",
                     "- Do not rewrite to another CAD language.",
@@ -396,6 +408,8 @@ class GeminiCliProvider:
             parts.extend(
                 [
                     "",
+                    format_authoritative_identity_section(request.source_authority),
+                    "",
                     "Current accepted CadQuery source begins below:",
                     request.current_source,
                     "Current accepted CadQuery source ends above.",
@@ -407,7 +421,7 @@ class GeminiCliProvider:
                 [
                     "Repair mode:",
                     "- Repair the current CadQuery source so it satisfies the same user intent and compiles cleanly.",
-                    "- Preserve the top-level parameter names and meanings unless a diagnostic proves one is invalid.",
+                    "- Preserve the authoritative parameter inventory, component IDs, feature IDs, output IDs, expected solid counts, and protected values.",
                     "- Fix the diagnosed Python/CadQuery API issue directly; do not rewrite into another CAD language.",
                     "- Return the full corrected CadQuery Python source, not a patch.",
                     "",
@@ -417,6 +431,8 @@ class GeminiCliProvider:
                     "Current CadQuery source to repair begins below:",
                     request.current_source or "",
                     "Current CadQuery source to repair ends above.",
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
                     "",
                 ]
             )
@@ -513,6 +529,8 @@ class GeminiCliProvider:
                     "Security restrictions:",
                     "- The source must satisfy cadquery-v1 AST validation and use only the allowed imports, runtime constructors, and safe CadQuery operations listed above.",
                     "- Do not access files, network, subprocesses, environment variables, local modules, shell commands, or dynamic Python execution.",
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
                     "",
                 ]
             )

@@ -246,13 +246,22 @@ PARAMETERS = [
 @component("body")
 @feature("body_shell", component="body")
 def build_body(params):
-    return cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), float(params["wall_thickness"]))
+    slot_count = int(params["slot_count"])
+    slot_spacing = float(params["body_depth"]) / max(1, slot_count)
+    body = cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), float(params["wall_thickness"]))
+    for index in range(1, slot_count):
+        y = -float(params["body_depth"]) / 2.0 + slot_spacing * index
+        rib = cq.Workplane("XY").box(float(params["body_width"]), 0.8, float(params["wall_thickness"])).translate((0, y, float(params["wall_thickness"])))
+        body = body.union(rib)
+    return body
 
 
 @component("lid")
 @feature("lid_panel", component="lid")
 def build_lid(params):
-    return cq.Workplane("XY").box(float(params["body_width"]), float(params["body_depth"]), 3)
+    fit_offset = 0.0 if params["fit_class"] == "standard" else 0.2
+    lid_height = 3.0 if params["lid_enabled"] else 1.0
+    return cq.Workplane("XY").box(float(params["body_width"]) + fit_offset, float(params["body_depth"]) + fit_offset, lid_height)
 
 
 def build(params):

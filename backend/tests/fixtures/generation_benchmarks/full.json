@@ -597,7 +597,7 @@
       "protected_design_invariants": ["body output", "screw_spacing", "lid/body interface"],
       "unacceptable_outcomes": ["body module changes", "body output geometry drifts", "screw spacing changes"],
       "expected_component_revision": {
-        "prompt_template_version": "cadquery-component-revision-v1",
+        "prompt_template_version": "cadquery-component-revision-v2",
         "targeted_components": ["lid"],
         "targeted_outputs": ["box_lid"],
         "protected_components": ["base"],
@@ -622,7 +622,7 @@
       "protected_design_invariants": ["carrier_body output", "tray_retention output", "handle attachment interface"],
       "unacceptable_outcomes": ["body or retention source changes", "mount spacing changes", "new undeclared output"],
       "expected_component_revision": {
-        "prompt_template_version": "cadquery-component-revision-v1",
+        "prompt_template_version": "cadquery-component-revision-v2",
         "targeted_components": ["carry_handle"],
         "targeted_outputs": ["carry_handle"],
         "allowed_shared_modules": ["fastener_hole"],

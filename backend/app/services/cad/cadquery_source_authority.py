@@ -1,0 +1,697 @@
+from __future__ import annotations
+
+import ast
+import json
+from copy import deepcopy
+from typing import Any
+
+from app.services.cad.cadquery_contract import (
+    CadQueryContractError,
+    CadQuerySourceMetadata,
+    validate_cadquery_source,
+)
+from app.services.requirements.trace import values_match
+
+
+SCHEMA_VERSION = "cadquery-source-authority-v1"
+VALIDATOR_VERSION = "cadquery-source-authority-v1"
+
+
+class CadQuerySourceAuthorityError(ValueError):
+    def __init__(self, findings: list[dict[str, Any]]) -> None:
+        self.findings = findings
+        message = "; ".join(finding["rule_id"] for finding in findings)
+        super().__init__(message)
+
+
+def build_cadquery_source_authority(
+    design_plan_payload: dict[str, Any] | None,
+    *,
+    allowed_revision_parameters: list[str] | tuple[str, ...] = (),
+) -> dict[str, Any] | None:
+    if not design_plan_payload:
+        return None
+    parameters = [
+        _authority_parameter(parameter)
+        for parameter in design_plan_payload.get("parameters", []) or []
+        if isinstance(parameter, dict) and parameter.get("id")
+    ]
+    components = [
+        {"id": str(component["id"]), "required": True}
+        for component in design_plan_payload.get("components", []) or []
+        if isinstance(component, dict) and component.get("id")
+    ]
+    features = [
+        _authority_feature(feature)
+        for feature in design_plan_payload.get("features", []) or []
+        if isinstance(feature, dict) and feature.get("id")
+    ]
+    outputs = [
+        _authority_output(output)
+        for output in design_plan_payload.get("printable_outputs", []) or []
+        if isinstance(output, dict) and (output.get("id") or output.get("output_id"))
+    ]
+    authority = {
+        "schema_version": SCHEMA_VERSION,
+        "parameters": parameters,
+        "components": components,
+        "features": features,
+        "outputs": outputs,
+        "allowed_revision_parameters": sorted(str(item) for item in allowed_revision_parameters),
+    }
+    findings = validate_cadquery_source_authority_inventory(authority)
+    if findings:
+        raise CadQuerySourceAuthorityError(findings)
+    return authority
+
+
+def authority_from_generation_context(
+    *,
+    design_plan_payload: dict[str, Any] | None,
+    revision_plan_payload: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    allowed_revision_parameters: list[str] = []
+    if revision_plan_payload:
+        allowed_revision_parameters.extend(
+            str(parameter_id)
+            for parameter_id in revision_plan_payload.get("allowed_parameter_changes", []) or []
+            if parameter_id
+        )
+        for change in revision_plan_payload.get("requested_changes", []) or []:
+            if not isinstance(change, dict):
+                continue
+            if change.get("target_type") == "product_parameter" and change.get("target_id"):
+                allowed_revision_parameters.append(str(change["target_id"]))
+    return build_cadquery_source_authority(
+        design_plan_payload,
+        allowed_revision_parameters=allowed_revision_parameters,
+    )
+
+
+def validate_cadquery_source_authority_inventory(authority: dict[str, Any]) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    for collection_name in ("parameters", "components", "features", "outputs"):
+        ids = [
+            str(item.get("id"))
+            for item in authority.get(collection_name, []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        for duplicate_id in _duplicates(ids):
+            findings.append(
+                _finding(
+                    f"cadquery.authority_duplicate_{collection_name[:-1]}",
+                    f"Approved Design Plan contains duplicate {collection_name[:-1]} id `{duplicate_id}`.",
+                    identity_id=duplicate_id,
+                )
+            )
+    component_ids = {
+        str(component.get("id"))
+        for component in authority.get("components", []) or []
+        if isinstance(component, dict) and component.get("id")
+    }
+    for output in authority.get("outputs", []) or []:
+        if not isinstance(output, dict):
+            continue
+        output_id = str(output.get("id") or "")
+        output_components = [str(value) for value in output.get("component_ids", []) if value]
+        if not output_components:
+            findings.append(
+                _finding(
+                    "cadquery.authority_output_component_missing",
+                    f"Approved output `{output_id}` has no component mapping.",
+                    output_id=output_id,
+                )
+            )
+        for component_id in output_components:
+            if component_id not in component_ids:
+                findings.append(
+                    _finding(
+                        "cadquery.authority_output_component_invalid",
+                        f"Approved output `{output_id}` references unknown component `{component_id}`.",
+                        output_id=output_id,
+                        component_id=component_id,
+                    )
+                )
+        if output.get("required", True) and output.get("expected_solid_count") is None:
+            findings.append(
+                _finding(
+                    "cadquery.authority_output_solid_count_missing",
+                    f"Required output `{output_id}` has no expected solid-count policy.",
+                    output_id=output_id,
+                )
+            )
+    for parameter in authority.get("parameters", []) or []:
+        if not isinstance(parameter, dict):
+            continue
+        parameter_id = str(parameter.get("id") or "")
+        if parameter.get("required", True) and not parameter.get("type"):
+            findings.append(
+                _finding(
+                    "cadquery.authority_parameter_type_missing",
+                    f"Required parameter `{parameter_id}` has no approved type.",
+                    parameter_id=parameter_id,
+                )
+            )
+        if parameter.get("protected") and parameter.get("value") is None:
+            findings.append(
+                _finding(
+                    "cadquery.authority_protected_parameter_value_missing",
+                    f"Protected parameter `{parameter_id}` has no approved value.",
+                    parameter_id=parameter_id,
+                )
+            )
+    return findings
+
+
+def validate_cadquery_source_authority(
+    source: str,
+    authority: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if not authority:
+        return {
+            "schema_version": VALIDATOR_VERSION,
+            "passed_hard_checks": True,
+            "findings": [],
+        }
+    findings = validate_cadquery_source_authority_inventory(authority)
+    try:
+        metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+    except CadQueryContractError as exc:
+        findings.append(
+            _finding(
+                "cadquery.contract",
+                "Generated source does not satisfy the cadquery-v1 source contract.",
+                detected_value=str(exc),
+            )
+        )
+        raise CadQuerySourceAuthorityError(findings) from exc
+    findings.extend(
+        _validate_source_against_authority(
+            source=source,
+            source_metadata=metadata,
+            authority=authority,
+        )
+    )
+    if findings:
+        raise CadQuerySourceAuthorityError(findings)
+    return {
+        "schema_version": VALIDATOR_VERSION,
+        "passed_hard_checks": True,
+        "findings": [],
+    }
+
+
+def format_authoritative_identity_section(authority: dict[str, Any] | None) -> str:
+    if not authority:
+        return ""
+    lines = [
+        "AUTHORITATIVE SOURCE IDENTITIES",
+        "",
+        "You must implement every required identity below exactly.",
+        "Do not rename, alias, replace, shorten, or invent product IDs.",
+        "Python function and variable names may differ, but decorator/metadata IDs must match exactly.",
+        "Every required parameter must be declared as a module-level ParameterSpec and used through params[\"parameter_id\"].",
+        "Do not hardcode protected values instead of declaring and using the required ParameterSpec.",
+        "",
+        "Authoritative identity inventory JSON:",
+        json.dumps(authority, indent=2, sort_keys=True),
+        "",
+        "Required parameters:",
+    ]
+    for parameter in authority.get("parameters", []) or []:
+        lines.append(
+            "- {id}: type={type}, value={value}, unit={unit}, protected={protected}, required={required}".format(
+                id=parameter.get("id"),
+                type=parameter.get("type"),
+                value=parameter.get("value"),
+                unit=parameter.get("unit"),
+                protected=parameter.get("protected"),
+                required=parameter.get("required", True),
+            )
+        )
+    lines.append("Required components:")
+    for component in authority.get("components", []) or []:
+        lines.append(f"- {component.get('id')}")
+    lines.append("Required features:")
+    for feature in authority.get("features", []) or []:
+        if not feature.get("required"):
+            continue
+        lines.append(
+            f"- {feature.get('id')} on component {feature.get('component_id')} "
+            f"(protected={feature.get('protected')})"
+        )
+    lines.append("Required outputs:")
+    for output in authority.get("outputs", []) or []:
+        lines.append(
+            "- {id}: component_ids={component_ids}, expected_solid_count={expected_solid_count}, required={required}".format(
+                id=output.get("id"),
+                component_ids=output.get("component_ids"),
+                expected_solid_count=output.get("expected_solid_count"),
+                required=output.get("required", True),
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "Before returning source, verify that each required identity appears exactly once in the required role.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def _validate_source_against_authority(
+    *,
+    source: str,
+    source_metadata: CadQuerySourceMetadata,
+    authority: dict[str, Any],
+) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    ast_metadata = _ast_identity_metadata(source)
+    source_parameter_ids = set(source_metadata.parameter_ids)
+    source_component_ids = set(source_metadata.component_ids) | set(ast_metadata["component_ids"])
+    source_output_ids = set(source_metadata.output_ids)
+    source_feature_components = dict(ast_metadata["feature_components"])
+    source_param_refs = set(ast_metadata["parameter_references"])
+    source_defaults = dict(source_metadata.parameter_defaults)
+    source_types = dict(source_metadata.parameter_types)
+    source_units = dict(source_metadata.parameter_units)
+    source_protected = dict(source_metadata.parameter_protected)
+    source_requirement_ids = dict(source_metadata.parameter_source_requirement_ids)
+    source_sources = dict(source_metadata.parameter_sources)
+    approved_parameter_ids = {
+        str(parameter.get("id"))
+        for parameter in authority.get("parameters", []) or []
+        if isinstance(parameter, dict) and parameter.get("id")
+    }
+    approved_component_ids = {
+        str(component.get("id"))
+        for component in authority.get("components", []) or []
+        if isinstance(component, dict) and component.get("id")
+    }
+    approved_output_ids = {
+        str(output.get("id"))
+        for output in authority.get("outputs", []) or []
+        if isinstance(output, dict) and output.get("id")
+    }
+    for parameter in authority.get("parameters", []) or []:
+        if not isinstance(parameter, dict) or not parameter.get("id"):
+            continue
+        parameter_id = str(parameter["id"])
+        required = bool(parameter.get("required", True))
+        if required and parameter_id not in source_parameter_ids:
+            findings.append(
+                _finding(
+                    "cadquery.required_parameter_missing",
+                    f"Required parameter `{parameter_id}` is missing from source ParameterSpec metadata.",
+                    parameter_id=parameter_id,
+                )
+            )
+        if required and parameter_id not in source_param_refs:
+            findings.append(
+                _finding(
+                    "cadquery.required_parameter_unused",
+                    f"Required parameter `{parameter_id}` is not referenced through params[\"{parameter_id}\"].",
+                    parameter_id=parameter_id,
+                )
+            )
+        if parameter_id not in source_parameter_ids:
+            continue
+        mismatch = _parameter_metadata_mismatch(
+            parameter,
+            source_default=source_defaults.get(parameter_id),
+            source_type=source_types.get(parameter_id),
+            source_unit=source_units.get(parameter_id),
+            source_protected=source_protected.get(parameter_id),
+            source_requirement_id=source_requirement_ids.get(parameter_id),
+            source_source=source_sources.get(parameter_id),
+        )
+        if mismatch:
+            findings.append(mismatch)
+    allowed_revision_parameters = {
+        str(parameter_id)
+        for parameter_id in authority.get("allowed_revision_parameters", []) or []
+        if parameter_id
+    }
+    for parameter_id in sorted(source_parameter_ids - approved_parameter_ids - allowed_revision_parameters):
+        findings.append(
+            _finding(
+                "cadquery.unapproved_identity_added",
+                f"Source declares unapproved parameter identity `{parameter_id}`.",
+                parameter_id=parameter_id,
+                detected_value=parameter_id,
+            )
+        )
+    for component in authority.get("components", []) or []:
+        if not isinstance(component, dict) or not component.get("id"):
+            continue
+        component_id = str(component["id"])
+        if component.get("required", True) and component_id not in source_component_ids:
+            findings.append(
+                _finding(
+                    "cadquery.required_component_missing",
+                    f"Required component `{component_id}` is missing from source metadata.",
+                    component_id=component_id,
+                )
+            )
+    for component_id in sorted(source_component_ids - approved_component_ids):
+        findings.append(
+            _finding(
+                "cadquery.unapproved_identity_added",
+                f"Source declares unapproved component identity `{component_id}`.",
+                component_id=component_id,
+                detected_value=component_id,
+            )
+        )
+    for feature in authority.get("features", []) or []:
+        if not isinstance(feature, dict) or not feature.get("id"):
+            continue
+        feature_id = str(feature["id"])
+        required = bool(feature.get("required", feature.get("protected", False)))
+        if not required:
+            continue
+        expected_component = str(feature.get("component_id") or "")
+        detected_component = source_feature_components.get(feature_id)
+        if detected_component is None:
+            findings.append(
+                _finding(
+                    "cadquery.required_feature_missing",
+                    f"Required feature `{feature_id}` is missing from source metadata.",
+                    feature_id=feature_id,
+                    component_id=expected_component or None,
+                )
+            )
+        elif expected_component and detected_component != expected_component:
+            findings.append(
+                _finding(
+                    "cadquery.component_identity_mismatch",
+                    f"Feature `{feature_id}` is mapped to component `{detected_component}` instead of `{expected_component}`.",
+                    feature_id=feature_id,
+                    expected_value=expected_component,
+                    detected_value=detected_component,
+                )
+            )
+    for output in authority.get("outputs", []) or []:
+        if not isinstance(output, dict) or not output.get("id"):
+            continue
+        output_id = str(output["id"])
+        if output.get("required", True) and output_id not in source_output_ids:
+            findings.append(
+                _finding(
+                    "cadquery.required_output_missing",
+                    f"Required output `{output_id}` is missing from source PrintableOutput metadata.",
+                    output_id=output_id,
+                )
+            )
+            continue
+        expected_components = sorted(str(value) for value in output.get("component_ids", []) if value)
+        detected_components = sorted(source_metadata.output_component_ids.get(output_id, []))
+        if output_id in source_output_ids and expected_components != detected_components:
+            findings.append(
+                _finding(
+                    "cadquery.output_component_mismatch",
+                    f"Output `{output_id}` is mapped to components {detected_components} instead of {expected_components}.",
+                    output_id=output_id,
+                    expected_value=expected_components,
+                    detected_value=detected_components,
+                )
+            )
+        expected_solid_count = output.get("expected_solid_count")
+        detected_solid_count = source_metadata.expected_solid_counts.get(output_id)
+        if (
+            output_id in source_output_ids
+            and expected_solid_count is not None
+            and detected_solid_count is not None
+            and int(expected_solid_count) != int(detected_solid_count)
+        ):
+            findings.append(
+                _finding(
+                    "cadquery.output_identity_mismatch",
+                    f"Output `{output_id}` has expected_solid_count {detected_solid_count} instead of {expected_solid_count}.",
+                    output_id=output_id,
+                    expected_value=expected_solid_count,
+                    detected_value=detected_solid_count,
+                )
+            )
+    for output_id in sorted(source_output_ids - approved_output_ids):
+        findings.append(
+            _finding(
+                "cadquery.unapproved_identity_added",
+                f"Source declares unapproved output identity `{output_id}`.",
+                output_id=output_id,
+                detected_value=output_id,
+            )
+        )
+    return findings
+
+
+def _authority_parameter(parameter: dict[str, Any]) -> dict[str, Any]:
+    value = parameter.get("value")
+    return {
+        "id": str(parameter["id"]),
+        "type": _normalize_parameter_type(
+            str(parameter.get("type") or parameter.get("parameter_type") or _infer_parameter_type(parameter))
+        ),
+        "unit": parameter.get("unit"),
+        "value": value,
+        "protected": bool(parameter.get("protected", False)),
+        "required": bool(parameter.get("required", True)),
+        "source_requirement_id": parameter.get("source_requirement_id"),
+        "source": parameter.get("source"),
+        "component_id": parameter.get("component_id"),
+    }
+
+
+def _normalize_parameter_type(parameter_type: str) -> str:
+    return {
+        "number": "float",
+        "integer": "int",
+        "boolean": "bool",
+    }.get(parameter_type, parameter_type)
+
+
+def _authority_feature(feature: dict[str, Any]) -> dict[str, Any]:
+    protected = bool(feature.get("protected", False))
+    return {
+        "id": str(feature["id"]),
+        "component_id": str(feature.get("component_id") or ""),
+        "protected": protected,
+        "required": bool(feature.get("required", protected or feature.get("revision_targetable") or feature.get("targetable"))),
+        "parameters": [str(parameter_id) for parameter_id in feature.get("parameters", []) or []],
+    }
+
+
+def _authority_output(output: dict[str, Any]) -> dict[str, Any]:
+    output_id = str(output.get("id") or output.get("output_id"))
+    component_ids = [str(value) for value in output.get("component_ids", []) or [] if value]
+    component_id = output.get("component_id")
+    if component_id and str(component_id) not in component_ids:
+        component_ids.append(str(component_id))
+    expected_solid_count = output.get("expected_solid_count")
+    if expected_solid_count is None:
+        expected_solid_count = 1
+    return {
+        "id": output_id,
+        "component_id": component_ids[0] if len(component_ids) == 1 else None,
+        "component_ids": component_ids,
+        "required": bool(output.get("required", True)),
+        "expected_solid_count": expected_solid_count,
+        "allow_disconnected_solids": bool(output.get("allow_disconnected_solids", False)),
+        "quantity": output.get("quantity", 1),
+    }
+
+
+def _infer_parameter_type(parameter: dict[str, Any]) -> str:
+    value = parameter.get("value")
+    unit = str(parameter.get("unit") or "").lower()
+    parameter_id = str(parameter.get("id") or "").lower()
+    if isinstance(value, bool):
+        return "bool"
+    if unit == "count" or parameter_id.endswith("_count") or parameter_id in {"count", "quantity"}:
+        return "int"
+    if unit in {"mm", "millimeter", "millimeters", "deg", "degree", "degrees"}:
+        return "float"
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return "float"
+    if isinstance(value, str):
+        return "str"
+    return "float"
+
+
+def _parameter_metadata_mismatch(
+    parameter: dict[str, Any],
+    *,
+    source_default: Any,
+    source_type: str | None,
+    source_unit: str | None,
+    source_protected: bool | None,
+    source_requirement_id: str | None,
+    source_source: str | None,
+) -> dict[str, Any] | None:
+    parameter_id = str(parameter["id"])
+    if not values_match(source_default, parameter.get("value")):
+        return _finding(
+            "cadquery.protected_value_mismatch"
+            if parameter.get("protected")
+            else "cadquery.required_parameter_metadata_mismatch",
+            f"Parameter `{parameter_id}` default is {source_default!r} instead of approved value {parameter.get('value')!r}.",
+            parameter_id=parameter_id,
+            expected_value=parameter.get("value"),
+            detected_value=source_default,
+        )
+    if source_type is not None and parameter.get("type") and source_type != parameter.get("type"):
+        return _finding(
+            "cadquery.required_parameter_metadata_mismatch",
+            f"Parameter `{parameter_id}` type is `{source_type}` instead of `{parameter.get('type')}`.",
+            parameter_id=parameter_id,
+            expected_value=parameter.get("type"),
+            detected_value=source_type,
+        )
+    if parameter.get("unit") is not None and source_unit != parameter.get("unit"):
+        return _finding(
+            "cadquery.required_parameter_metadata_mismatch",
+            f"Parameter `{parameter_id}` unit is `{source_unit}` instead of `{parameter.get('unit')}`.",
+            parameter_id=parameter_id,
+            expected_value=parameter.get("unit"),
+            detected_value=source_unit,
+        )
+    if bool(source_protected) != bool(parameter.get("protected", False)):
+        return _finding(
+            "cadquery.required_parameter_metadata_mismatch",
+            f"Parameter `{parameter_id}` protected flag is `{source_protected}` instead of `{parameter.get('protected')}`.",
+            parameter_id=parameter_id,
+            expected_value=parameter.get("protected"),
+            detected_value=source_protected,
+        )
+    expected_requirement_id = parameter.get("source_requirement_id")
+    if expected_requirement_id and source_requirement_id != expected_requirement_id:
+        return _finding(
+            "cadquery.required_parameter_metadata_mismatch",
+            f"Parameter `{parameter_id}` source_requirement_id is `{source_requirement_id}` instead of `{expected_requirement_id}`.",
+            parameter_id=parameter_id,
+            expected_value=expected_requirement_id,
+            detected_value=source_requirement_id,
+        )
+    expected_source = parameter.get("source")
+    if expected_source and source_source != expected_source:
+        return _finding(
+            "cadquery.required_parameter_metadata_mismatch",
+            f"Parameter `{parameter_id}` source is `{source_source}` instead of `{expected_source}`.",
+            parameter_id=parameter_id,
+            expected_value=expected_source,
+            detected_value=source_source,
+        )
+    return None
+
+
+def _ast_identity_metadata(source: str) -> dict[str, Any]:
+    tree = ast.parse(source)
+    component_ids: list[str] = []
+    feature_components: dict[str, str] = {}
+    parameter_references: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            for decorator in node.decorator_list:
+                if isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
+                    if decorator.func.id == "component":
+                        component_id = _string_arg(decorator)
+                        if component_id:
+                            component_ids.append(component_id)
+                    if decorator.func.id == "feature":
+                        feature_id = _string_arg(decorator)
+                        component_id = _string_keyword(decorator, "component")
+                        if feature_id and component_id:
+                            feature_components[feature_id] = component_id
+        if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) and node.value.id == "params":
+            parameter_id = _subscript_string(node.slice)
+            if parameter_id:
+                parameter_references.append(parameter_id)
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "get"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "params"
+            and node.args
+        ):
+            parameter_id = _subscript_string(node.args[0])
+            if parameter_id:
+                parameter_references.append(parameter_id)
+    return {
+        "component_ids": _dedupe(component_ids),
+        "feature_components": feature_components,
+        "parameter_references": _dedupe(parameter_references),
+    }
+
+
+def _string_arg(node: ast.Call) -> str | None:
+    value = node.args[0] if node.args else None
+    if value is None:
+        for keyword in node.keywords:
+            if keyword.arg == "id":
+                value = keyword.value
+                break
+    if value is None:
+        return None
+    if isinstance(value, ast.Constant) and isinstance(value.value, str):
+        return value.value
+    return None
+
+
+def _string_keyword(node: ast.Call, name: str) -> str | None:
+    for keyword in node.keywords:
+        if keyword.arg != name:
+            continue
+        if isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, str):
+            return keyword.value.value
+    return None
+
+
+def _subscript_string(node: ast.expr) -> str | None:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
+
+
+def _finding(
+    rule_id: str,
+    message: str,
+    *,
+    parameter_id: str | None = None,
+    component_id: str | None = None,
+    feature_id: str | None = None,
+    output_id: str | None = None,
+    identity_id: str | None = None,
+    expected_value: Any = None,
+    detected_value: Any = None,
+) -> dict[str, Any]:
+    return {
+        "rule_id": rule_id,
+        "category": "source_contract",
+        "severity": "critical",
+        "is_blocking": True,
+        "title": "CadQuery source identity contract violation",
+        "explanation": message,
+        "suggested_correction": "Regenerate or repair the CadQuery source using the exact approved source identities.",
+        "parameter_id": parameter_id,
+        "component_id": component_id,
+        "feature_id": feature_id,
+        "output_id": output_id,
+        "identity_id": identity_id,
+        "expected_value": deepcopy(expected_value),
+        "detected_value": deepcopy(detected_value),
+        "metadata": {"validator_version": VALIDATOR_VERSION},
+    }
+
+
+def _duplicates(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for value in values:
+        if value in seen and value not in duplicates:
+            duplicates.append(value)
+        seen.add(value)
+    return duplicates
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    return list(dict.fromkeys(values))

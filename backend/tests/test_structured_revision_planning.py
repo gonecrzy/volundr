@@ -392,9 +392,9 @@ class RevisionPlanningProvider:
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if getattr(request, "scope_diagnostics", None):
-            return "cadquery-scope-correction-v1"
+            return "cadquery-scope-correction-v2"
         if getattr(request, "revision_plan", None) and getattr(request, "scoped_revision_context", None):
-            return "cadquery-component-revision-v1"
+            return "cadquery-component-revision-v2"
         if getattr(request, "revision_plan", None):
             return "cadquery-revision-v1"
         return "cadquery-generation-v1"
@@ -854,9 +854,7 @@ def test_cadquery_protected_parameter_change_blocks_before_compile(
 
     assert response.status_code == 409
     assert runner.calls == []
-    compliance = client.get(f"/api/revision-plans/{approved['id']}/compliance-result").json()
-    assert compliance["passed"] is False
-    assert any(finding["rule_id"] == "revision.unauthorized_parameter_change" for finding in compliance["findings"])
+    assert "cadquery.protected_value_mismatch" in response.json()["detail"]
 
 
 def test_cadquery_source_metadata_uses_ast_normalized_ownership_fingerprints() -> None:

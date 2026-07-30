@@ -223,18 +223,38 @@ def build(params):
 """
 
 
-SINGLE_OUTPUT_SOURCE = MULTI_OUTPUT_SOURCE.replace(
-    """            PrintableOutput(
-                output_id=\"lid\",
-                label=\"Lid\",
-                model=lid,
-                component_id=\"lid\",
+SINGLE_OUTPUT_SOURCE = """
+import cadquery as cq
+
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
+
+PARAMETERS = [
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True, source_requirement_id="body_width"),
+]
+
+@component("body")
+@feature("body_shell", component="body")
+def build_body(params):
+    body_width = params.get("body_width", 80.0)
+    return cq.Workplane("XY").box(body_width, 50.0, 6.0)
+
+
+def build(params):
+    body = build_body(params)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model=body,
+                component_id="body",
                 expected_solid_count=1,
                 allow_disconnected_solids=False,
             ),
-""",
-    "",
-)
+        ]
+    )
+"""
 
 
 class MultiOutputProvider:
