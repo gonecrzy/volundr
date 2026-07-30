@@ -569,6 +569,11 @@ def _execute_product_outputs(product, requested_outputs, output_dir):
                 "required": required,
                 "success": False,
                 "compile_error": f"requested output not found: {output_id}",
+                "topology_metadata": _execution_failed_topology_metadata(
+                    output_id=output_id,
+                    expected_solid_count=int(request.get("expected_solid_count") or 1),
+                    allow_disconnected_solids=bool(request.get("allow_disconnected_solids", False)),
+                ),
             })
             continue
         results.append(_export_printable_output(output_dir, printable, required=required))
@@ -650,7 +655,17 @@ def _export_output(
             "topology_metadata": topology_metadata,
         }
     except Exception as exc:
-        return _failed_output(output_id, entrypoint, required, str(exc))
+        return _failed_output(
+            output_id,
+            entrypoint,
+            required,
+            str(exc),
+            topology_metadata=_execution_failed_topology_metadata(
+                output_id=output_id,
+                expected_solid_count=expected_solid_count,
+                allow_disconnected_solids=allow_disconnected_solids,
+            ),
+        )
 
 
 def _failed_output(output_id, entrypoint, required, message, topology_metadata=None):
@@ -678,6 +693,12 @@ def _topology_metadata(
             expected_solid_count=expected_solid_count,
             allow_disconnected_solids=allow_disconnected_solids,
         )
+    if not _is_supported_shape_data(model, shape):
+        return _unsupported_shape_topology_metadata(
+            output_id=output_id,
+            expected_solid_count=expected_solid_count,
+            allow_disconnected_solids=allow_disconnected_solids,
+        )
     valid = bool(shape.isValid()) if hasattr(shape, "isValid") else True
     volume = float(shape.Volume()) if hasattr(shape, "Volume") else None
     detected_solid_count = _solid_count(model, shape)
@@ -696,6 +717,30 @@ def _topology_metadata(
         "outcome": outcome,
         "volume_mm3": volume,
         "detected_solid_count": detected_solid_count,
+        "expected_solid_count": expected_solid_count,
+        "allow_disconnected_solids": allow_disconnected_solids,
+    }
+
+
+def _unsupported_shape_topology_metadata(*, output_id, expected_solid_count, allow_disconnected_solids):
+    return {
+        "output_id": output_id,
+        "valid": False,
+        "outcome": "unsupported_shape",
+        "volume_mm3": None,
+        "detected_solid_count": 0,
+        "expected_solid_count": expected_solid_count,
+        "allow_disconnected_solids": allow_disconnected_solids,
+    }
+
+
+def _execution_failed_topology_metadata(*, output_id, expected_solid_count, allow_disconnected_solids):
+    return {
+        "output_id": output_id,
+        "valid": False,
+        "outcome": "execution_failed",
+        "volume_mm3": None,
+        "detected_solid_count": 0,
         "expected_solid_count": expected_solid_count,
         "allow_disconnected_solids": allow_disconnected_solids,
     }
@@ -720,6 +765,15 @@ def _shape_for(model):
         except Exception:
             return None
     return model
+
+
+def _is_supported_shape_data(model, shape):
+    supported_attributes = ("isValid", "Volume", "Solids")
+    return (
+        hasattr(model, "val")
+        or hasattr(model, "solids")
+        or any(hasattr(shape, attribute) for attribute in supported_attributes)
+    )
 
 
 def _solid_count(model, shape):

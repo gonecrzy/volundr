@@ -371,6 +371,69 @@ def build(params):
 
 
 @pytest.mark.asyncio
+async def test_cadquery_runner_reports_unsupported_shape_topology_outcome(
+    tmp_path: Path,
+) -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="cube_size", label="Cube Size", type="float", default=10.0, unit="mm"),
+]
+
+def build(params):
+    return Product(
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model="not-a-shape",
+                component_id="body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+        parameters=PARAMETERS,
+    )
+"""
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(source, job_id="unsupported-shape")
+
+    assert result.success is False
+    assert result.outputs[0].success is False
+    assert result.outputs[0].topology_metadata is not None
+    assert result.outputs[0].topology_metadata["valid"] is False
+    assert result.outputs[0].topology_metadata["outcome"] == "unsupported_shape"
+    assert result.outputs[0].topology_metadata_path is not None
+
+
+@pytest.mark.asyncio
+async def test_cadquery_runner_reports_execution_failed_topology_for_missing_output(
+    tmp_path: Path,
+) -> None:
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(
+        VALID_CADQUERY_SOURCE,
+        job_id="missing-requested-output",
+        requested_outputs=[{"output_id": "lid", "required": True}],
+    )
+
+    assert result.success is False
+    assert result.outputs[0].success is False
+    assert result.outputs[0].compile_error == "requested output not found: lid"
+    assert result.outputs[0].topology_metadata is not None
+    assert result.outputs[0].topology_metadata["valid"] is False
+    assert result.outputs[0].topology_metadata["outcome"] == "execution_failed"
+    assert result.outputs[0].topology_metadata_path is not None
+
+
+@pytest.mark.asyncio
 async def test_cadquery_runner_timeout_kills_process_group(tmp_path: Path) -> None:
     marker = tmp_path / "child-finished"
     fake_python = tmp_path / "slow-python"
