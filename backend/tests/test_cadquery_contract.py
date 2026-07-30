@@ -23,6 +23,23 @@ def build_model():
     validate_cadquery_source(source)
 
 
+def test_cadquery_contract_accepts_nested_helper_functions() -> None:
+    source = """
+import cadquery as cq
+
+body_width = 120.0
+
+def build_model():
+    def build_lip():
+        return cq.Workplane("XY").box(body_width, 5, 3)
+
+    body = cq.Workplane("XY").box(body_width, 80, 10)
+    return body.union(build_lip())
+"""
+
+    validate_cadquery_source(source)
+
+
 @pytest.mark.parametrize(
     "source",
     [

@@ -217,7 +217,7 @@ Source-derived parameter discovery pass:
 - revision source can now be scanned for simple top-level OpenSCAD parameters before adding richer editing UX
 - `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from constants and OpenSCAD Customizer-style comments
 - this is a phase gate for evaluating whether AI output exposes useful creative and functional knobs without forcing generated models into one fixed template
-- experimental CadQuery source probes now run through an AST-based `cadquery-v1` contract before execution; this keeps the probe focused on `import cadquery as cq`, literal top-level parameters, helper functions, and `build_model()` while rejecting unsafe imports, top-level geometry execution, and dynamic Python calls
+- experimental CadQuery source probes now run through an AST-based `cadquery-v1` contract before execution; this keeps the probe focused on `import cadquery as cq`, literal top-level parameters, top-level or nested helper functions, and `build_model()` while rejecting unsafe imports, top-level geometry execution, and dynamic Python calls
 
 Source-probe benchmark pass:
 

@@ -57,7 +57,7 @@ def validate_cadquery_source(source: str) -> None:
         raise CadQueryContractError(f"invalid Python syntax: {exc.msg}") from exc
 
     function_names = {
-        node.name for node in tree.body if isinstance(node, ast.FunctionDef)
+        node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
     }
     has_build_model = False
     for node in tree.body:
@@ -129,6 +129,13 @@ def _validate_class(node: ast.ClassDef) -> None:
 
 def _validate_body(node: ast.AST, *, function_names: set[str]) -> None:
     for child in ast.walk(node):
+        if isinstance(child, ast.FunctionDef) and child is not node:
+            if child.decorator_list:
+                raise CadQueryContractError(
+                    "function decorators are not allowed in cadquery-v1"
+                )
+            if child.args.vararg or child.args.kwarg:
+                raise CadQueryContractError("variadic function arguments are not allowed")
         if isinstance(child, ast.Import | ast.ImportFrom):
             raise CadQueryContractError("imports are only allowed at top level")
         if isinstance(child, ast.Global | ast.Nonlocal):

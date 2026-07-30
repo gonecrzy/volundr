@@ -285,6 +285,7 @@ class GeminiCliProvider:
                 "- Follow the cadquery-v1 source contract.",
                 "- The only import allowed is exactly `import cadquery as cq`.",
                 "- Top-level statements may only be that import, literal parameter constants, optional helper function definitions, and `def build_model():`.",
+                "- Simple helper functions may also be defined inside build_model() when that makes the model easier to structure.",
                 "- Do not run CadQuery operations, construct geometry, call helper functions, or do any other execution at top level.",
                 "- Define simple top-level user parameters as Python constants with literal values only.",
                 "- Define `def build_model():`; optional helper functions are allowed.",
