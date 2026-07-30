@@ -154,6 +154,35 @@ def test_cadquery_prompt_requires_runtime_product_contract() -> None:
     assert "Every output must be a `PrintableOutput`" in prompt
 
 
+def test_cadquery_revision_prompt_includes_scope_context() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_cadquery_prompt(
+        ModelGenerationRequest(
+            project_name="Two part enclosure",
+            original_intent="Create a body and lid.",
+            user_instruction="Change lid thickness to 4 mm.",
+            current_source="import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n",
+            revision_plan={
+                "summary": "Increase lid thickness",
+                "targeted_outputs": ["lid"],
+                "protected_outputs": ["body"],
+            },
+            scoped_revision_context={
+                "targeted_components": ["lid"],
+                "protected_components": ["body"],
+            },
+        )
+    )
+
+    assert "Structured revision mode:" in prompt
+    assert "Return the complete revised CadQuery Python source" in prompt
+    assert "Approved Revision Plan:" in prompt
+    assert '"targeted_outputs": [' in prompt
+    assert "Scoped revision context:" in prompt
+    assert '"protected_components": [' in prompt
+    assert "Current accepted CadQuery source begins below" in prompt
+
+
 def test_openscad_generation_prompts_reject_pseudo_cad_and_warning_prone_syntax() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     prompt = provider.build_prompt(

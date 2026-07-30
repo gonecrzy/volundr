@@ -113,6 +113,11 @@ from app.services.geometry.invariants import (
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.openscad.source_contract import (
     SourceContractFinding,
+    SourceMapping,
+    SourceMetadata,
+    SourceModuleFingerprint,
+    SourceOutputMapping,
+    SourceParameterMapping,
     SourceContractResult,
     SourceContractValidator,
     _evaluate_constants,
@@ -1159,12 +1164,13 @@ class ProjectService:
             revision_id=base_revision.id,
             finding_ids=payload.targeted_finding_ids,
         )
-        source_metadata = SourceContractValidator().validate(
-            base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        source_metadata = self._revision_source_metadata(
+            source=base_source,
+            cad_backend=base_revision.cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type=base_revision.source_type,
-        ).source_metadata.to_json()
+        ).to_json()
         request = RevisionPlanRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -1375,29 +1381,33 @@ class ProjectService:
         )
         configuration_context: dict[str, Any] | None = None
         compile_defines: dict[str, str | int | float | bool] | None = None
+        cadquery_parameter_values: dict[str, Any] | None = None
         configuration_change_id: str | None = None
         if base_revision.configuration_change_id is not None:
             change = self.db.get(ConfigurationChange, base_revision.configuration_change_id)
             if change is not None:
                 configuration_change_id = change.id
+                override_manifest = self._configuration_override_manifest(change)
                 configuration_context = {
                     "configuration_change": self._configuration_change_payload(change),
-                    "override_manifest": self._configuration_override_manifest(change),
+                    "override_manifest": override_manifest,
                 }
-                compile_defines = configuration_context["override_manifest"]["openscad_defines"]
+                if base_revision.cad_backend == "cadquery":
+                    cadquery_parameter_values = dict(override_manifest.get("parameter_values") or {})
+                else:
+                    compile_defines = override_manifest["openscad_defines"]
         selected_findings = self._selected_finding_payloads(
             project_id=project.id,
             revision_id=base_revision.id,
             finding_ids=revision_plan_payload.get("targeted_findings", []),
         )
-        base_source_metadata = SourceContractValidator(
-            ruleset_version=self._ruleset_version()
-        ).validate(
-            base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        base_source_metadata = self._revision_source_metadata(
+            source=base_source,
+            cad_backend=base_revision.cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type="ai_revision",
-        ).source_metadata.to_json()
+        ).to_json()
         scoped_revision_context = self._component_revision_scope_context(
             revision_plan_payload=revision_plan_payload,
             design_plan_payload=design_plan_payload,
@@ -1445,7 +1455,10 @@ class ProjectService:
 
         self._record_generation_result(generation_attempt, generation_result)
         try:
-            revised_source = extract_scad_source(generation_result.raw_output)
+            revised_source = self._extract_generated_source(
+                generation_result.raw_output,
+                cadquery=base_revision.cad_backend == "cadquery",
+            )
         except SourceExtractionError as exc:
             self._finish_generation_attempt(
                 generation_attempt,
@@ -1454,7 +1467,11 @@ class ProjectService:
                 error_message=str(exc),
             )
             raise ValueError(str(exc)) from exc
-        self._record_generation_extracted_source(generation_attempt, revised_source)
+        self._record_generation_extracted_source(
+            generation_attempt,
+            revised_source,
+            source_language="python" if base_revision.cad_backend == "cadquery" else "openscad",
+        )
         source_validation = self._persist_source_contract_validation(
             project=project,
             attempt=generation_attempt,
@@ -1484,6 +1501,7 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
             configuration_context=configuration_context,
+            cad_backend=base_revision.cad_backend,
         )
         if not compliance.passed:
             self._finish_generation_attempt(
@@ -1513,25 +1531,43 @@ class ProjectService:
                 scoped_revision_context=scoped_revision_context,
                 configuration_context=configuration_context,
                 compliance_findings=compliance,
+                cad_backend=base_revision.cad_backend,
             )
             generation_result_raw_output = raw_ai_output
         else:
             generation_result_raw_output = generation_result.raw_output
-        candidate = await self._create_revision_from_planned_source(
-            project_id=project.id,
-            scad_source=revised_source,
-            user_instruction=plan.user_instruction,
-            source_type="ai_revision",
-            raw_ai_output=generation_result_raw_output,
-            design_specification_id=design_specification.id if design_specification else None,
-            design_specification_payload=design_specification_payload,
-            design_plan_id=design_plan.id,
-            design_plan_payload=design_plan_payload,
-            source_validation_result_id=source_validation.id,
-            compile_defines=compile_defines,
-            parent_revision_id=base_revision.id,
-            configuration_change_id=configuration_change_id,
-        )
+        if base_revision.cad_backend == "cadquery":
+            candidate = await self._create_cadquery_revision_from_planned_source(
+                project_id=project.id,
+                source=revised_source,
+                user_instruction=plan.user_instruction,
+                source_type="ai_revision",
+                raw_ai_output=generation_result_raw_output,
+                design_specification_id=design_specification.id if design_specification else None,
+                design_specification_payload=design_specification_payload,
+                design_plan_id=design_plan.id,
+                design_plan_payload=design_plan_payload,
+                source_validation_result_id=source_validation.id,
+                parameter_values=cadquery_parameter_values or self._cadquery_source_parameter_values(revised_source),
+                parent_revision_id=base_revision.id,
+                configuration_change_id=configuration_change_id,
+            )
+        else:
+            candidate = await self._create_revision_from_planned_source(
+                project_id=project.id,
+                scad_source=revised_source,
+                user_instruction=plan.user_instruction,
+                source_type="ai_revision",
+                raw_ai_output=generation_result_raw_output,
+                design_specification_id=design_specification.id if design_specification else None,
+                design_specification_payload=design_specification_payload,
+                design_plan_id=design_plan.id,
+                design_plan_payload=design_plan_payload,
+                source_validation_result_id=source_validation.id,
+                compile_defines=compile_defines,
+                parent_revision_id=base_revision.id,
+                configuration_change_id=configuration_change_id,
+            )
         if candidate is None:
             self._finish_generation_attempt(
                 generation_attempt,
@@ -1549,6 +1585,7 @@ class ProjectService:
             revision_id=candidate.id,
             source=revised_source,
             revision_plan_payload=revision_plan_payload,
+            cad_backend=base_revision.cad_backend,
         )
         self._persist_component_revision_summary(
             project=project,
@@ -1634,6 +1671,7 @@ class ProjectService:
         scoped_revision_context: dict[str, Any],
         configuration_context: dict[str, Any] | None,
         compliance_findings: RevisionComplianceResult,
+        cad_backend: str,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult, RevisionComplianceResult]:
         payload = self._read_json_file(compliance_findings.result_path) or {}
         correction_request = self._generation_request(
@@ -1660,7 +1698,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         try:
-            correction_result = await self.ai_provider.generate_model(correction_request)  # type: ignore[union-attr]
+            correction_result = await self._generate_source_model(correction_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(correction_attempt)
             raise
@@ -1674,7 +1712,10 @@ class ProjectService:
             raise
         self._record_generation_result(correction_attempt, correction_result)
         try:
-            corrected_source = extract_scad_source(correction_result.raw_output)
+            corrected_source = self._extract_generated_source(
+                correction_result.raw_output,
+                cadquery=cad_backend == "cadquery",
+            )
         except SourceExtractionError as exc:
             self._finish_generation_attempt(
                 correction_attempt,
@@ -1683,7 +1724,11 @@ class ProjectService:
                 error_message=str(exc),
             )
             raise ValueError(str(exc)) from exc
-        self._record_generation_extracted_source(correction_attempt, corrected_source)
+        self._record_generation_extracted_source(
+            correction_attempt,
+            corrected_source,
+            source_language="python" if cad_backend == "cadquery" else "openscad",
+        )
         corrected_validation = self._persist_source_contract_validation(
             project=project,
             attempt=correction_attempt,
@@ -1713,6 +1758,7 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
             configuration_context=configuration_context,
+            cad_backend=cad_backend,
         )
         if not corrected_compliance.passed:
             message = "Revised source rejected before compile by Revision Plan compliance"
@@ -3721,6 +3767,10 @@ class ProjectService:
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
         if self._uses_cadquery_generation(request):
+            if request.revision_plan and request.scoped_revision_context:
+                return "cadquery-component-revision-v1"
+            if request.revision_plan:
+                return "cadquery-revision-v1"
             version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
             if callable(version):
                 return str(version())
@@ -3743,11 +3793,12 @@ class ProjectService:
         return "legacy-initial-v1"
 
     def _uses_cadquery_generation(self, request: ModelGenerationRequest) -> bool:
-        return (
-            request.design_plan is not None
-            and request.revision_plan is None
-            and settings.generation_mode != "simple"
-        )
+        if request.design_plan is None or settings.generation_mode == "simple":
+            return False
+        if request.revision_plan is None:
+            return True
+        source = request.current_source or ""
+        return "from volundr_cad.runtime import" in source or "import cadquery as cq" in source
 
     def _requirement_prompt_template_version(self) -> str:
         version = getattr(self.ai_provider, "requirement_prompt_template_version", None)
@@ -4228,21 +4279,23 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_plan_payload: dict[str, Any],
         configuration_context: dict[str, Any] | None = None,
+        cad_backend: str = "openscad",
     ) -> RevisionComplianceResult:
         started = time.perf_counter()
-        validator = SourceContractValidator(ruleset_version=self._ruleset_version())
-        base_scan = validator.validate(
-            base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        base_scan = self._revision_source_metadata(
+            source=base_source,
+            cad_backend=cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type="ai_revision",
-        ).source_metadata
-        revised_scan = validator.validate(
-            revised_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        )
+        revised_scan = self._revision_source_metadata(
+            source=revised_source,
+            cad_backend=cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type="ai_revision",
-        ).source_metadata
+        )
         findings = self._revision_compliance_findings(
             base_scan=base_scan,
             revised_scan=revised_scan,
@@ -4292,6 +4345,124 @@ class ProjectService:
         self.db.add(row)
         self.db.flush()
         return row
+
+    def _revision_source_metadata(
+        self,
+        *,
+        source: str,
+        cad_backend: str,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any] | None,
+        source_type: str,
+    ) -> SourceMetadata:
+        if cad_backend == "cadquery":
+            return self._cadquery_revision_source_metadata(source, design_plan_payload or {})
+        return SourceContractValidator(ruleset_version=self._ruleset_version()).validate(
+            source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type=source_type,
+        ).source_metadata
+
+    def _cadquery_revision_source_metadata(
+        self,
+        source: str,
+        design_plan_payload: dict[str, Any],
+    ) -> SourceMetadata:
+        metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        source_hash = self._sha256(source)
+        parameter_mappings = {
+            parameter_id: SourceParameterMapping(
+                parameter_id=parameter_id,
+                target_name=parameter_id,
+                target_kind="ParameterSpec",
+                line=1,
+            )
+            for parameter_id in metadata.parameter_ids
+        }
+        component_mappings = {
+            component_id: SourceMapping(
+                requirement_id=component_id,
+                marker_type="component",
+                target_name="build",
+                target_kind="function",
+                line=1,
+            )
+            for component_id in metadata.component_ids
+        }
+        output_mappings = {
+            output_id: SourceOutputMapping(
+                output_id=output_id,
+                component_ids=list(metadata.output_component_ids.get(output_id, [])),
+                target_name=output_id,
+                target_kind="PrintableOutput",
+                line=1,
+                module_name=output_id,
+                filename=f"{output_id}.stl",
+                required=True,
+            )
+            for output_id in metadata.output_ids
+        }
+        feature_mappings: dict[str, SourceMapping] = {}
+        for feature in design_plan_payload.get("features", []):
+            feature_id = str(feature.get("id") or "")
+            if not feature_id:
+                continue
+            component_id = str(feature.get("component_id") or "")
+            if component_id and component_id not in metadata.component_ids:
+                continue
+            feature_mappings[feature_id] = SourceMapping(
+                requirement_id=feature_id,
+                marker_type="feature",
+                target_name=component_id or "build",
+                target_kind="component",
+                line=1,
+            )
+        module_fingerprints = {
+            output_id: SourceModuleFingerprint(
+                module_name=output_id,
+                line=1,
+                normalized_hash=self._sha256(
+                    json.dumps(
+                        {
+                            "output_id": output_id,
+                            "component_ids": output.component_ids,
+                            "target_kind": output.target_kind,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+                component_ids=list(output.component_ids),
+                output_ids=[output_id],
+            )
+            for output_id, output in output_mappings.items()
+        }
+        return SourceMetadata(
+            source_hash=source_hash,
+            source_size_bytes=len(source.encode("utf-8")),
+            line_count=len(source.splitlines()),
+            module_names=["build"],
+            parameter_names=list(metadata.parameter_ids),
+            feature_mappings=feature_mappings,
+            component_mappings=component_mappings,
+            parameter_mappings=parameter_mappings,
+            output_mappings=output_mappings,
+            module_fingerprints=module_fingerprints,
+            assignments={
+                parameter_id: self._cadquery_assignment_literal(default)
+                for parameter_id, default in metadata.parameter_defaults.items()
+            },
+            assignment_lines={parameter_id: 1 for parameter_id in metadata.parameter_defaults},
+        )
+
+    def _cadquery_source_parameter_values(self, source: str) -> dict[str, Any]:
+        metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        return dict(metadata.parameter_defaults)
+
+    def _cadquery_assignment_literal(self, value: Any) -> str:
+        if isinstance(value, bool):
+            return "1" if value else "0"
+        return str(value)
 
     def _revision_compliance_findings(
         self,
@@ -4659,8 +4830,11 @@ class ProjectService:
             return []
         manifest = configuration_context.get("override_manifest") or {}
         findings: list[dict[str, Any]] = []
-        for parameter_id in sorted((manifest.get("openscad_defines") or {})):
-            if parameter_id not in revised_scan.assignments:
+        required_parameters = set((manifest.get("openscad_defines") or {}).keys())
+        if manifest.get("cad_backend") == "cadquery":
+            required_parameters.update((manifest.get("parameter_values") or {}).keys())
+        for parameter_id in sorted(required_parameters):
+            if not self._parameter_has_source_mapping(parameter_id, revised_scan):
                 findings.append(
                     self._revision_compliance_finding(
                         "revision.configured_parameter_removed",
@@ -4777,13 +4951,15 @@ class ProjectService:
         revision_id: str,
         source: str,
         revision_plan_payload: dict[str, Any],
+        cad_backend: str = "openscad",
     ) -> None:
-        metadata = SourceContractValidator().validate(
-            source,
-            design_specification=None,
-            design_plan=None,
+        metadata = self._revision_source_metadata(
+            source=source,
+            cad_backend=cad_backend,
+            design_specification_payload=None,
+            design_plan_payload=None,
             source_type="ai_revision",
-        ).source_metadata
+        )
         constants = _evaluate_constants(metadata.assignments)
         outputs = {
             output.output_id: output

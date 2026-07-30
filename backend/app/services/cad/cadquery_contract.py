@@ -11,7 +11,9 @@ class CadQuerySourceMetadata:
     contract_version: str
     entrypoint: str
     parameter_ids: list[str] = field(default_factory=list)
+    parameter_defaults: dict[str, str | int | float | bool] = field(default_factory=dict)
     output_ids: list[str] = field(default_factory=list)
+    output_component_ids: dict[str, list[str]] = field(default_factory=dict)
     component_ids: list[str] = field(default_factory=list)
     expected_solid_counts: dict[str, int] = field(default_factory=dict)
 
@@ -291,7 +293,9 @@ def _validate_build_entrypoint(node: ast.FunctionDef) -> None:
 
 def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
     parameter_ids: list[str] = []
+    parameter_defaults: dict[str, str] = {}
     output_ids: list[str] = []
+    output_component_ids: dict[str, list[str]] = {}
     component_ids: list[str] = []
     expected_solid_counts: dict[str, int] = {}
     for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
@@ -300,15 +304,23 @@ def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
             parameter_id = _string_keyword(call, "id")
             if parameter_id:
                 parameter_ids.append(parameter_id)
+                default_value = _static_keyword_value(call, "default")
+                if default_value is not None:
+                    parameter_defaults[parameter_id] = default_value
         elif name == "PrintableOutput":
             output_id = _string_keyword(call, "output_id")
             if output_id:
                 output_ids.append(output_id)
             component_id = _string_keyword(call, "component_id")
+            output_components: list[str] = []
             if component_id:
                 component_ids.append(component_id)
+                output_components.append(component_id)
             for value in _string_list_keyword(call, "component_ids"):
                 component_ids.append(value)
+                output_components.append(value)
+            if output_id:
+                output_component_ids[output_id] = _dedupe(output_components)
             expected_solid_count = _int_keyword(call, "expected_solid_count")
             if output_id and expected_solid_count is not None:
                 expected_solid_counts[output_id] = expected_solid_count
@@ -316,7 +328,9 @@ def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
         contract_version="cadquery-v1",
         entrypoint="build",
         parameter_ids=_dedupe(parameter_ids),
+        parameter_defaults=parameter_defaults,
         output_ids=_dedupe(output_ids),
+        output_component_ids=output_component_ids,
         component_ids=_dedupe(component_ids),
         expected_solid_counts=expected_solid_counts,
     )
@@ -340,6 +354,17 @@ def _int_keyword(node: ast.Call, name: str) -> int | None:
     value = _keyword(node, name)
     if isinstance(value, ast.Constant) and isinstance(value.value, int):
         return value.value
+    return None
+
+
+def _static_keyword_value(node: ast.Call, name: str) -> str | int | float | bool | None:
+    value = _keyword(node, name)
+    if isinstance(value, ast.Constant) and isinstance(value.value, str | int | float | bool):
+        return value.value
+    if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub | ast.UAdd):
+        operand = value.operand
+        if isinstance(operand, ast.Constant) and isinstance(operand.value, int | float):
+            return -operand.value if isinstance(value.op, ast.USub) else operand.value
     return None
 
 

@@ -50,25 +50,33 @@ A targeted component does not imply permission to change every global parameter.
 
 ## Source Ownership
 
-Target CadQuery source should use AST-visible ownership metadata. The exact API may use decorators or runtime registration, but it must identify components, features, shared helpers, outputs, protected interfaces, and parameters.
+CadQuery source uses AST-visible runtime metadata. `ParameterSpec(...)` identifies typed parameters and defaults. `PrintableOutput(...)` identifies output IDs and component ownership.
 
-Illustrative OpenSCAD ownership markers from the current implementation:
+Current CadQuery ownership metadata:
 
-```scad
-// @volundr-component carry_handle
-module carry_handle() { ... }
+```python
+PARAMETERS = [
+    ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=3.0, unit="mm")
+]
 
-// @volundr-feature grip component=carry_handle
-module handle_grip() { ... }
-
-// @volundr-shared-module fastener_hole
-module fastener_hole(diameter, depth) { ... }
-
-// @volundr-output carry_handle module=carry_handle required=true filename=carry_handle.stl components=carry_handle
-module carry_handle() { ... }
+def build(params):
+    lid = cq.Workplane("XY").box(80, 50, params["lid_thickness"])
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="lid",
+                label="Lid",
+                component_id="lid",
+                component_ids=("lid",),
+                model=lid,
+                expected_solid_count=1,
+            )
+        ],
+    )
 ```
 
-Shared modules may change only when the approved Revision Plan lists them in `allowed_shared_modules`.
+Feature ownership is read from the approved Design Plan for now. Legacy OpenSCAD markers and module fingerprints remain available for legacy revisions. Function-level CadQuery ownership annotations are still a planned extension.
 
 ## Source Compliance
 
@@ -86,7 +94,7 @@ Blocking failures include:
 - undeclared component or output added
 - source-contract hard violation
 
-Module comparison uses normalized structural fingerprints. Whitespace, comments, line movement, and harmless numeric formatting such as `3` versus `3.0` are ignored.
+Legacy OpenSCAD module comparison uses normalized structural fingerprints. CadQuery currently uses ownership-level fingerprints before compile and protected-output preservation after compile.
 
 ## Scope Correction
 

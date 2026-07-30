@@ -324,7 +324,55 @@ class GeminiCliProvider:
             "- Do not add top-level execution such as `product = build(params)`; Volundr calls build(params).",
             "",
         ]
-        if request.current_source or request.compiler_diagnostics:
+        if request.revision_plan and request.current_source:
+            parts.extend(
+                [
+                    "Structured revision mode:",
+                    "- Return the complete revised CadQuery Python source for the whole product, not a patch.",
+                    "- Make only changes approved by the Revision Plan and its scoped revision context.",
+                    "- Preserve protected parameters, components, features, outputs, and interfaces exactly.",
+                    "- Keep every existing PrintableOutput required by the Design Plan unless the Revision Plan explicitly permits removal.",
+                    "- Preserve active configuration ParameterSpec IDs so configured revisions remain executable.",
+                    "- Do not rewrite to OpenSCAD or any other CAD language.",
+                    "",
+                    "Approved Revision Plan:",
+                    json.dumps(request.revision_plan, indent=2, sort_keys=True),
+                ]
+            )
+            if request.scoped_revision_context:
+                parts.extend(
+                    [
+                        "",
+                        "Scoped revision context:",
+                        json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
+                    ]
+                )
+            if request.configuration_context:
+                parts.extend(
+                    [
+                        "",
+                        "Active configuration context:",
+                        json.dumps(request.configuration_context, indent=2, sort_keys=True),
+                    ]
+                )
+            if request.scope_diagnostics:
+                parts.extend(
+                    [
+                        "",
+                        "Revision scope diagnostics to correct:",
+                        request.scope_diagnostics,
+                    ]
+                )
+            parts.extend(
+                [
+                    "",
+                    "Current accepted CadQuery source begins below:",
+                    request.current_source,
+                    "Current accepted CadQuery source ends above.",
+                    "",
+                ]
+            )
+        elif request.current_source or request.compiler_diagnostics:
             parts.extend(
                 [
                     "Repair mode:",

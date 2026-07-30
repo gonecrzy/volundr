@@ -4,7 +4,7 @@ This document defines Volundr's revision-planning lifecycle. It is the authority
 
 ## CadQuery Transition Status
 
-Revision planning remains strategic. OpenSCAD source revision and marker-based compliance are transitional. The target path uses complete-source CadQuery revision, AST-visible source ownership metadata, source-contract validation, topology evidence, and output preservation checks based on STEP/B-Rep/STL summaries.
+Revision planning is CadQuery-primary for staged workflow revisions. OpenSCAD source revision and marker-based compliance remain for legacy revisions. CadQuery revisions use complete-source Python regeneration, AST-visible `ParameterSpec` and `PrintableOutput` metadata, source-contract validation, and output preservation checks based on persisted STEP/B-Rep/STL summaries.
 
 ## Purpose
 
@@ -189,6 +189,17 @@ Blocking compliance failures include:
 - revision source introduces a source-contract hard violation
 
 Allowed changes are limited to approved requested changes and required dependency changes. Static comparison is conservative; if a protected invariant cannot be verified from source metadata, the generation attempt fails before compile.
+
+For CadQuery source, the static compliance pass reads:
+
+- parameter IDs and defaults from `ParameterSpec(...)`
+- output IDs and component ownership from `PrintableOutput(...)`
+- component and feature ownership from the approved Design Plan
+- active configured parameter IDs from `parameter-overrides.json`
+
+Unconfigured CadQuery structured revisions execute with the revised source `ParameterSpec` defaults. Revisions based on a configured candidate preserve and execute with the active configuration manifest instead.
+
+Current CadQuery static fingerprints are ownership-level fingerprints. Function/body-level protected geometry comparison is enforced after compile through output preservation summaries until the CadQuery source contract grows explicit function ownership annotations.
 
 Component-targeted full-source revisions and post-compile output preservation are defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
