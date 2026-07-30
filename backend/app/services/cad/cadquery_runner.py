@@ -484,6 +484,7 @@ import sys
 from pathlib import Path
 
 import cadquery as cq
+from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
 from volundr_cad.runtime import ParameterValues, PrintableOutput, Product
 
 
@@ -495,7 +496,9 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
     parameter_values = json.loads(parameter_values_path.read_text(encoding="utf-8"))
     requested_outputs = json.loads(requested_outputs_path.read_text(encoding="utf-8"))
-    spec = importlib.util.spec_from_file_location("volundr_generated_model", "model.py")
+    source_path = Path("model.py")
+    _validate_source_contract(source_path)
+    spec = importlib.util.spec_from_file_location("volundr_generated_model", source_path)
     if spec is None or spec.loader is None:
         raise RuntimeError("failed to load generated model.py")
     module = importlib.util.module_from_spec(spec)
@@ -532,6 +535,14 @@ def main() -> int:
         encoding="utf-8",
     )
     return 0
+
+
+def _validate_source_contract(source_path):
+    source = source_path.read_text(encoding="utf-8")
+    try:
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+    except CadQueryContractError as exc:
+        raise RuntimeError(f"CadQuery contract violation: {exc}") from exc
 
 
 def _build_product(module, parameter_values):

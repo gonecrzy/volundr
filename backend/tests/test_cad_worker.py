@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import stat
+import sys
 import tomllib
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from app.services.cad.cadquery_runner import (
     CadQueryCliRunner,
     CadQueryCompileResult,
     CadQueryOutputResult,
+    _CADQUERY_RUNNER_SOURCE,
 )
 from app.services.cad.worker_client import FilesystemCadWorkerClient, FilesystemCadWorkerRunner
 from app.services.cad.worker_execution import execute_job_directory, process_next_job
@@ -60,6 +62,11 @@ def build(params):
         ],
     )
 """
+
+UNSAFE_IMPORT_CADQUERY_SOURCE = VALID_CADQUERY_SOURCE.replace(
+    "import cadquery as cq\n",
+    "import cadquery as cq\nimport os\n",
+)
 
 LEGACY_PROBE_CADQUERY_SOURCE = (
     "import cadquery as cq\n\n"
@@ -489,6 +496,49 @@ async def test_cadquery_execution_manifest_records_source_parameter_and_contract
     assert payload["outputs"][0]["step_hash"] == result.outputs[0].step_hash
     assert payload["outputs"][0]["brep_hash"] == result.outputs[0].brep_hash
     assert payload["worker_version"] == "cadquery-cli-runner-v1"
+
+
+@pytest.mark.asyncio
+async def test_isolated_cadquery_worker_reruns_source_contract_validation(
+    tmp_path: Path,
+) -> None:
+    job_dir = tmp_path / "isolated-validation"
+    output_dir = job_dir / "outputs"
+    job_dir.mkdir()
+    output_dir.mkdir()
+    (job_dir / "model.py").write_text(UNSAFE_IMPORT_CADQUERY_SOURCE, encoding="utf-8")
+    (job_dir / "_volundr_cadquery_runner.py").write_text(
+        _CADQUERY_RUNNER_SOURCE,
+        encoding="utf-8",
+    )
+    result_path = job_dir / "execution-result.json"
+    (job_dir / "parameter-values.json").write_text(
+        json.dumps({"width_mm": 2.0}),
+        encoding="utf-8",
+    )
+    (job_dir / "requested-outputs.json").write_text(
+        json.dumps([{"output_id": "body", "required": True}]),
+        encoding="utf-8",
+    )
+    env = CadQueryCliRunner(workspace_root=tmp_path / "jobs")._subprocess_env()
+
+    process = await asyncio.create_subprocess_exec(
+        sys.executable,
+        "_volundr_cadquery_runner.py",
+        "outputs",
+        result_path.name,
+        "parameter-values.json",
+        "requested-outputs.json",
+        cwd=job_dir,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        env=env,
+    )
+    _stdout, stderr = await process.communicate()
+
+    assert process.returncode != 0
+    assert "CadQuery contract violation" in stderr.decode("utf-8")
+    assert not result_path.exists()
 
 
 @pytest.mark.asyncio
