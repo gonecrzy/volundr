@@ -566,6 +566,9 @@ class LiveBenchmarkRunner:
                 "compile_warnings": [],
                 "stl_size_bytes": 0,
                 "error_path": None,
+                "output_topology_metadata": [],
+                "topology_rejection_count": 0,
+                "solid_count_rejection_count": 0,
                 "repair": _empty_source_probe_repair(enabled=False),
                 "brief": _empty_source_brief(enabled=False),
             }
@@ -595,6 +598,9 @@ class LiveBenchmarkRunner:
             "stl_size_bytes": 0,
             "error_path": None,
             "brief_guided_source_error_path": None,
+            "output_topology_metadata": [],
+            "topology_rejection_count": 0,
+            "solid_count_rejection_count": 0,
             "repair": _empty_source_probe_repair(enabled=source_probe_repair),
             "brief": _empty_source_brief(enabled=source_brief_enabled),
         }
@@ -1267,11 +1273,15 @@ class LiveBenchmarkRunner:
         source_probe_disconnected_mesh_count = 0
         source_probe_max_connected_components = 0
         source_probe_compile_warning_count = 0
+        source_probe_topology_rejection_count = 0
+        source_probe_solid_count_rejection_count = 0
         source_probe_repair_status_counts: dict[str, int] = {}
         source_probe_repair_compile_status_counts: dict[str, int] = {}
         source_probe_repair_attempt_count = 0
         source_probe_repair_compile_success_count = 0
         source_probe_repair_compile_warning_count = 0
+        source_probe_repair_topology_rejection_count = 0
+        source_probe_repair_solid_count_rejection_count = 0
         source_brief_status_counts: dict[str, int] = {}
         design_plan_probe_status_counts: dict[str, int] = {}
         design_plan_component_coverages: list[float] = []
@@ -1280,6 +1290,8 @@ class LiveBenchmarkRunner:
         design_plan_dependency_coverages: list[float] = []
         configuration_probe_status_counts: dict[str, int] = {}
         configuration_probe_expected_block_observed_count = 0
+        configuration_probe_topology_rejection_count = 0
+        configuration_probe_solid_count_rejection_count = 0
         for case_run in manifest["case_runs"]:
             configuration_probe = case_run.get("configuration_probe", {})
             if isinstance(configuration_probe, dict):
@@ -1289,6 +1301,12 @@ class LiveBenchmarkRunner:
                 )
                 if configuration_probe.get("expected_blocking_rule_observed") is True:
                     configuration_probe_expected_block_observed_count += 1
+                configuration_probe_topology_rejection_count += _int_value(
+                    configuration_probe.get("topology_rejection_count")
+                )
+                configuration_probe_solid_count_rejection_count += _int_value(
+                    configuration_probe.get("solid_count_rejection_count")
+                )
             design_plan_probe = case_run.get("design_plan_probe", {})
             if isinstance(design_plan_probe, dict):
                 design_status = design_plan_probe.get("status", "disabled")
@@ -1325,6 +1343,12 @@ class LiveBenchmarkRunner:
             warning_count = source_probe.get("compile_warning_count", 0)
             if isinstance(warning_count, int):
                 source_probe_compile_warning_count += warning_count
+            source_probe_topology_rejection_count += _int_value(
+                source_probe.get("topology_rejection_count")
+            )
+            source_probe_solid_count_rejection_count += _int_value(
+                source_probe.get("solid_count_rejection_count")
+            )
             analysis_path = source_probe.get("parameter_analysis_path")
             if isinstance(analysis_path, str):
                 analysis_file = run_dir / analysis_path
@@ -1368,6 +1392,12 @@ class LiveBenchmarkRunner:
                 repair_warning_count = repair.get("compile_warning_count", 0)
                 if isinstance(repair_warning_count, int):
                     source_probe_repair_compile_warning_count += repair_warning_count
+                source_probe_repair_topology_rejection_count += _int_value(
+                    repair.get("topology_rejection_count")
+                )
+                source_probe_repair_solid_count_rejection_count += _int_value(
+                    repair.get("solid_count_rejection_count")
+                )
         return {
             "schema_version": LIVE_BENCHMARK_METRICS_SCHEMA_VERSION,
             "run_id": manifest["run_id"],
@@ -1396,6 +1426,8 @@ class LiveBenchmarkRunner:
             "source_probe_disconnected_mesh_count": source_probe_disconnected_mesh_count,
             "source_probe_max_connected_components": source_probe_max_connected_components,
             "source_probe_compile_warning_count": source_probe_compile_warning_count,
+            "source_probe_topology_rejection_count": source_probe_topology_rejection_count,
+            "source_probe_solid_count_rejection_count": source_probe_solid_count_rejection_count,
             "source_probe_repair_enabled": bool(
                 manifest.get("config", {}).get("source_probe_repair")
             ),
@@ -1409,6 +1441,12 @@ class LiveBenchmarkRunner:
             ),
             "source_probe_repair_compile_warning_count": (
                 source_probe_repair_compile_warning_count
+            ),
+            "source_probe_repair_topology_rejection_count": (
+                source_probe_repair_topology_rejection_count
+            ),
+            "source_probe_repair_solid_count_rejection_count": (
+                source_probe_repair_solid_count_rejection_count
             ),
             "source_brief_enabled": bool(manifest.get("config", {}).get("source_brief")),
             "source_brief_status_counts": source_brief_status_counts,
@@ -1434,6 +1472,12 @@ class LiveBenchmarkRunner:
             "configuration_probe_status_counts": configuration_probe_status_counts,
             "configuration_probe_expected_block_observed_count": (
                 configuration_probe_expected_block_observed_count
+            ),
+            "configuration_probe_topology_rejection_count": (
+                configuration_probe_topology_rejection_count
+            ),
+            "configuration_probe_solid_count_rejection_count": (
+                configuration_probe_solid_count_rejection_count
             ),
             "no_automatic_prompt_promotion": True,
         }
@@ -1532,6 +1576,16 @@ def _source_request_for(
                 "Do not split a target into indexed parameters, arrays, renamed aliases, or derived-only values.",
                 "Do not force the silhouette or styling into a fixed template; keep the requested creative form.",
                 *[f"- {parameter}" for parameter in benchmark.expected_parameters],
+            ]
+        )
+    if benchmark.compile_expectation == "source_may_compile_but_candidate_blocks":
+        additions.extend(
+            [
+                "Negative-control topology target:",
+                "Generate the requested CadQuery source exactly enough that the execution boundary can validate it.",
+                "Keep `expected_solid_count=1` and `allow_disconnected_solids=False` on the primary PrintableOutput.",
+                "If the modeled output contains accidentally loose or separated solids, do not hide that by changing the output policy.",
+                "This benchmark passes when topology validation blocks a candidate with detected_solid_count greater than one.",
             ]
         )
     configuration = benchmark.expected_configuration
@@ -1736,6 +1790,9 @@ def _empty_source_probe_repair(*, enabled: bool) -> dict[str, Any]:
         "compile_warning_count": 0,
         "compile_warnings": [],
         "stl_size_bytes": 0,
+        "output_topology_metadata": [],
+        "topology_rejection_count": 0,
+        "solid_count_rejection_count": 0,
         "error_path": None,
     }
 
@@ -1792,6 +1849,9 @@ def _empty_configuration_probe(*, enabled: bool) -> dict[str, Any]:
         "compile_warning_count": 0,
         "compile_warnings": [],
         "stl_size_bytes": 0,
+        "output_topology_metadata": [],
+        "topology_rejection_count": 0,
+        "solid_count_rejection_count": 0,
         "printability_report_path": None,
         "blocking_rule_ids": [],
     }
@@ -2024,6 +2084,10 @@ def _average_or_none(values: list[float]) -> float | None:
     return round(sum(values) / len(values), 4)
 
 
+def _int_value(value: Any) -> int:
+    return value if isinstance(value, int) else 0
+
+
 def _write_printability_report_for_probe(
     *,
     benchmark: GenerationBenchmark,
@@ -2224,6 +2288,21 @@ def _compile_cadquery_probe(
             timeout_seconds=60,
         ).compile(source, job_id=job_id, parameter_values=parameter_values)
     )
+    output_topology_metadata = [
+        output.topology_metadata
+        for output in result.outputs
+        if isinstance(output.topology_metadata, dict)
+    ]
+    topology_rejection_count = sum(
+        1 for topology in output_topology_metadata if topology.get("valid") is False
+    )
+    solid_count_rejection_count = sum(
+        1
+        for topology in output_topology_metadata
+        if topology.get("valid") is False
+        and topology.get("allow_disconnected_solids") is False
+        and topology.get("detected_solid_count") != topology.get("expected_solid_count")
+    )
     return {
         "compile_status": "compile_succeeded" if result.success else "compile_failed",
         "compiled_stl_path": _relative(result.stl_path, run_dir)
@@ -2247,6 +2326,9 @@ def _compile_cadquery_probe(
         "compile_warning_count": 0,
         "compile_warnings": [],
         "stl_size_bytes": result.output_size_bytes,
+        "output_topology_metadata": output_topology_metadata,
+        "topology_rejection_count": topology_rejection_count,
+        "solid_count_rejection_count": solid_count_rejection_count,
     }
 
 

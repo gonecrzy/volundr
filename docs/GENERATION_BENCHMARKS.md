@@ -103,7 +103,7 @@ The full machine-readable suite also includes parametric-product Design Plan exp
 - case/carrier
 - multi-part hinged box
 - repeated-slot rack
-- accidental multiple-solid rejection
+- accidental multiple-solid rejection as a negative-control case that should be blocked by topology validation
 - configuration that exceeds build volume
 
 These cases assert generic plan shape: parameters, derived dependencies, components, features, presets where useful, assembly strategy, printable outputs, risks, and design level. The case/carrier benchmark includes a fishing-tray carrier as one acceptance case, not as a schema template.

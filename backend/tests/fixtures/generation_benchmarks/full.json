@@ -699,21 +699,21 @@
     {
       "id": "accidental_multiple_solids",
       "suite": "full",
-      "input_prompt": "Create a one-piece 70 x 30 x 6 mm mounting base with two raised alignment bosses that must be fused into the base, not loose separate bodies.",
+      "input_prompt": "Create a flawed one-output CadQuery mounting base example: a 70 x 30 x 6 mm base and two raised 8 mm alignment bosses that are accidentally left 1 mm above the base as loose separate solids. Keep the output declared as one required printable output with expected_solid_count=1 and allow_disconnected_solids=false so topology validation can reject it.",
       "required_dimensions": ["base=70x30x6 mm", "boss_count=2", "boss_diameter=8 mm", "boss_height=4 mm"],
-      "allowed_assumptions": ["boss spacing=40 mm", "bosses overlap the base by positive material"],
+      "allowed_assumptions": ["boss spacing=40 mm", "bosses are intentionally not fused for this negative-control benchmark"],
       "expected_clarification": "none",
       "expected_modules": ["base_plate", "alignment_bosses", "mounting_holes"],
       "expected_parameters": ["base_width", "base_depth", "base_thickness", "boss_diameter", "boss_spacing"],
-      "expected_printability_constraints": ["one connected body", "raised bosses fused to base", "flat on build plate"],
+      "expected_printability_constraints": ["candidate must be blocked", "raised bosses are loose separate solids", "flat on build plate"],
       "compile_expectation": "source_may_compile_but_candidate_blocks",
-      "mesh_expectation": "candidate blocks if bosses are disconnected from the base",
+      "mesh_expectation": "candidate blocks because bosses are disconnected from the base",
       "expected_geometric_invariants": [
         {"type": "bounds", "x_mm": 70, "y_mm": 30, "z_mm": 10, "verification": "verified_or_warning"},
         {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
       ],
-      "revision_expectation": "boss spacing revision preserves fused one-piece output",
-      "protected_design_invariants": ["single printable output", "bosses fused into base", "expected_solid_count=1", "allow_disconnected_solids=false"],
+      "revision_expectation": "not applicable; negative-control source must be blocked before acceptance",
+      "protected_design_invariants": ["single printable output", "bosses remain disconnected for negative-control validation", "expected_solid_count=1", "allow_disconnected_solids=false"],
       "unacceptable_outcomes": ["bosses generated as separate loose solids", "allow_disconnected_solids used to hide accidental disconnection", "candidate accepted with detected_solid_count greater than one"],
       "expected_design_plan": {
         "design_level": "single_part",

@@ -224,6 +224,52 @@ async def test_cadquery_runner_scrubs_provider_credentials_from_environment(
 
 
 @pytest.mark.asyncio
+async def test_cadquery_runner_preserves_topology_metadata_for_solid_count_failure(
+    tmp_path: Path,
+) -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="cube_size", label="Cube Size", type="float", default=10.0, unit="mm"),
+]
+
+def build(params):
+    first = cq.Workplane("XY").box(params["cube_size"], params["cube_size"], params["cube_size"])
+    second = cq.Workplane("XY").box(params["cube_size"], params["cube_size"], params["cube_size"]).translate((30, 0, 0))
+    model = first.union(second)
+    return Product(
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model=model,
+                component_id="body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+        parameters=PARAMETERS,
+    )
+"""
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(source, job_id="solid-count-failure")
+
+    assert result.success is False
+    assert result.outputs[0].success is False
+    assert result.outputs[0].compile_error == "output shape is invalid"
+    assert result.outputs[0].topology_metadata is not None
+    assert result.outputs[0].topology_metadata["valid"] is False
+    assert result.outputs[0].topology_metadata["detected_solid_count"] == 2
+    assert result.outputs[0].topology_metadata["expected_solid_count"] == 1
+    assert result.outputs[0].topology_metadata_path is not None
+
+
+@pytest.mark.asyncio
 async def test_cadquery_runner_timeout_kills_process_group(tmp_path: Path) -> None:
     marker = tmp_path / "child-finished"
     fake_python = tmp_path / "slow-python"

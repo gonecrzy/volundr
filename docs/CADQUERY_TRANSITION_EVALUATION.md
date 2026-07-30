@@ -377,7 +377,7 @@ Dimension score:
 | Valid source rate | Pass after bounded repair | 11 of 12 direct source probes compiled; 12 of 12 compiled after one bounded repair. `parametric_adapter` required repair. |
 | Worker execution success | Pass | Every final source probe execution produced successful worker results for all required outputs. |
 | B-Rep validity | Pass | Every final output had valid topology metadata and nonzero volume. |
-| Expected solid-count compliance | Pass | Every final output reported `detected_solid_count=1` with disconnected bodies disallowed for normal outputs. |
+| Expected solid-count compliance | Pass | Every final normal output reported `detected_solid_count=1` with disconnected bodies disallowed. A focused negative-control live run also generated loose bosses as separate solids and was blocked with `detected_solid_count=3` against `expected_solid_count=1`. |
 | STEP/STL output completeness | Pass | Every final output produced STEP, STL, BREP, and topology metadata. |
 | Printability | Partial pass | The live artifacts avoid disconnected bodies and export watertight solids, but the live harness did not run the full printability inspector per case. `honeycomb_angle_bracket` is not requirement-faithful enough to count as print-worthy honeycomb. |
 | Revision preservation | Covered by deterministic workflow tests, partial live evidence | `component_revision_lid_only` generated a valid revised lid, and deterministic backend/Playwright tests cover structured revision preservation. The v4 live harness did not execute a full accepted-source-to-revised-candidate preservation comparison. |
@@ -403,7 +403,7 @@ Case-level score:
 
 Phase 11 coverage limits:
 
-- The controlled v4 source gate covered 12 varied prompts. Follow-up live runs added dedicated prompts for configuration build-volume risk and accidental multiple-solid risk. The configuration probe now executes the oversized override through the printability inspector and observed `profile.build_volume`; the accidental-multiple-solid prompt produced a valid fused model rather than a rejected multi-solid candidate, so that rejection mechanic remains deterministic-test evidence.
+- The controlled v4 source gate covered 12 varied prompts. Follow-up live runs added dedicated prompts for configuration build-volume risk and accidental multiple-solid risk. The configuration probe now executes the oversized override through the printability inspector and observed `profile.build_volume`; the accidental-multiple-solid negative-control run produced disconnected loose bosses and was rejected by topology validation.
 - The v4 live harness is a requirements/source/worker gate, not a full staged Design Specification -> Design Plan -> approval -> generation -> acceptance benchmark.
 - Prompt promotion remains disabled because the master prompt explicitly requires more than executable source, and artifact review found requirement-fidelity gaps.
 
@@ -453,8 +453,52 @@ Aggregate result:
 
 Case findings:
 
-- `accidental_multiple_solids`: source output compiled to one valid solid with STEP/STL/BREP artifacts. Design Plan matched components and output, but missed mounting-hole feature coverage and all expected dependency edges.
+- `accidental_multiple_solids`: this first missing-cases run produced one valid fused solid with STEP/STL/BREP artifacts. It proved the prompt still needed a stricter negative-control source request; the later focused run below exercised the actual rejection mechanic. Design Plan matched components and output, but missed mounting-hole feature coverage and all expected dependency edges.
 - `configuration_exceeds_build_volume`: source output compiled to one valid solid with STEP/STL/BREP artifacts. Design Plan matched components and output, but missed explicit build-volume-check feature coverage and all expected dependency edges. The live run did not execute the oversized `rail_length=360` configuration override, so the `profile.build_volume` blocking behavior remains deterministic-test evidence rather than live-run evidence.
+
+## Additional Solid-Count Negative-Control Run
+
+After changing the accidental-multiple-solid fixture and source request into an explicit negative-control case, a focused Gemini API run was executed:
+
+```bash
+rtk .venv/bin/python scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase11-solid-count-negative-live \
+  --benchmark-id accidental_multiple_solids \
+  --provider gemini-api \
+  --allow-live \
+  --source-probe \
+  --source-brief \
+  --design-plan-probe \
+  --max-runs 1 \
+  --max-estimated-tokens 90000
+```
+
+Artifact directory:
+
+```text
+output/live-benchmarks/live-benchmark-20260730T161230Z-phase11-solid-count-negative-live
+```
+
+Aggregate result:
+
+- Case runs: 1.
+- Requirements provider statuses: `provider_output_collected=1`.
+- Source brief statuses: `source_brief_parsed=1`.
+- Design Plan probe statuses: `design_plan_analyzed=1`.
+- Source probe statuses: `source_compile_failed=1`.
+- Direct source compile statuses: `compile_failed=1`.
+- Source expected-parameter coverage average: `1.0`.
+- Source topology rejection count: `1`.
+- Source solid-count rejection count: `1`.
+- Estimated tokens: `4739`; dollar cost was not recorded.
+
+Case findings:
+
+- The generated source kept one declared printable output with `expected_solid_count=1` and `allow_disconnected_solids=False`.
+- The generated source intentionally constructed a compound from the base and two alignment bosses left 1 mm above the base, producing three disconnected solids.
+- The CadQuery runner rejected the output as `output shape is invalid` and preserved topology metadata showing `detected_solid_count=3`, `expected_solid_count=1`, `allow_disconnected_solids=false`, and `valid=false`.
 
 ## Additional Configuration Probe Run
 
@@ -517,14 +561,14 @@ rtk npm test -- --run
 rtk npm run build
 rtk npm run test:e2e
 rtk .venv/bin/alembic heads
-rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration .venv/bin/alembic upgrade head
-rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration .venv/bin/alembic current
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration-solid-count .venv/bin/alembic upgrade head
+rtk env VOLUNDR_DATA_DIR=/tmp/volundr-final-migration-solid-count .venv/bin/alembic current
 rtk git diff --check
 ```
 
 Results:
 
-- Backend tests: 204 passed, 1 existing Starlette/httpx deprecation warning.
+- Backend tests: 207 passed, 1 existing Starlette/httpx deprecation warning.
 - Frontend unit tests: 38 passed across 6 files.
 - Frontend production build: succeeded.
 - Playwright staged workflow: 1 passed.
@@ -590,10 +634,10 @@ Results:
 14. Component-targeted revision behavior: targeted components/outputs and protected components/outputs are represented in plans and checked against generated outputs and topology/preservation evidence.
 15. Frontend lifecycle: the primary UI path is staged Describe -> Requirements -> Design Plan -> Approve -> Generate -> CadQuery execution/topology validation -> Candidate -> Accept or revise, with CadQuery source, named outputs, topology, configuration, and revision controls.
 16. OpenSCAD code removed: OpenSCAD product paths, prompt modes, parser/runner assumptions, schema aliases, UI labels, Docker package usage, and simple bypass defaults were removed or superseded by CadQuery-only paths.
-17. Tests and exact results: final current-HEAD backend tests `204 passed`; frontend unit tests `38 passed`; production build succeeded; staged Playwright workflow `1 passed`; `git diff --check` clean.
+17. Tests and exact results: final current-HEAD backend tests `207 passed`; frontend unit tests `38 passed`; production build succeeded; staged Playwright workflow `1 passed`; `git diff --check` clean.
 18. Docker verification: web/API/worker running; worker non-root, no provider env, no network; deterministic CadQuery job succeeded and artifacts were visible through the jobs directory; structured failure diagnostics were previously verified.
 19. Live Gemini calls made and quota usage: Gemini CLI smoke failed before output due local tier eligibility; Gemini API smoke and required live reruns were then run with quota caps. Final v4 live run estimated `55751` tokens and did not record dollar cost.
-20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output. Focused follow-up live runs added Design Plan probes, build-volume configuration probing, and accidental-multiple-solid prompting; the v2 configuration probe observed `profile.build_volume` for `rail_length=360`.
-21. Remaining limitations: live benchmark scoring is not a full product-quality pass; full revision preservation, true live accidental-multi-solid rejection, and human print-worthiness still need richer live or human acceptance gates. Honeycomb bracket feature fidelity, adapter parameter metadata, generated orientation for the build-volume case, and Design Plan dependency coverage need prompt/repair hardening.
+20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output. Focused follow-up live runs added Design Plan probes, build-volume configuration probing, and accidental-multiple-solid prompting; the v2 configuration probe observed `profile.build_volume` for `rail_length=360`, and the solid-count negative-control live run observed `source_probe_solid_count_rejection_count=1`.
+21. Remaining limitations: live benchmark scoring is not a full product-quality pass; full revision preservation and human print-worthiness still need richer live or human acceptance gates. Honeycomb bracket feature fidelity, adapter parameter metadata, generated orientation for the build-volume case, and Design Plan dependency coverage need prompt/repair hardening.
 22. Recommended next product task: implement a stricter staged live benchmark that exercises Design Plan approval, deterministic configuration including build-volume failure, protected-output revision preservation, accidental multi-solid rejection, printability inspection, and human scoring aggregation before prompt promotion.
-23. Final repository status: expected to be clean after committing this documentation-only scoring update.
+23. Final repository status: expected to be clean after committing this solid-count rejection instrumentation and scoring update.

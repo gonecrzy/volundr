@@ -596,7 +596,13 @@ def _export_output(
             allow_disconnected_solids=allow_disconnected_solids,
         )
         if not topology_metadata["valid"]:
-            return _failed_output(output_id, entrypoint, required, "output shape is invalid")
+            return _failed_output(
+                output_id,
+                entrypoint,
+                required,
+                "output shape is invalid",
+                topology_metadata=topology_metadata,
+            )
         cq.exporters.export(model, str(stl_path))
         cq.exporters.export(model, str(step_path))
         try:
@@ -617,13 +623,14 @@ def _export_output(
         return _failed_output(output_id, entrypoint, required, str(exc))
 
 
-def _failed_output(output_id, entrypoint, required, message):
+def _failed_output(output_id, entrypoint, required, message, topology_metadata=None):
     return {
         "output_id": output_id,
         "entrypoint": entrypoint,
         "required": required,
         "success": False,
         "compile_error": message,
+        "topology_metadata": topology_metadata,
     }
 
 

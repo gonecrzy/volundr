@@ -270,6 +270,7 @@ Reviewers should cite artifact paths in `evidence_paths` and list the recommende
 - next-work buckets initialized for human scoring
 - source-probe extraction and compile status counts
 - average expected-parameter coverage from extracted source
+- source-probe topology and solid-count rejection counts
 - count of compiled source probes with watertight and nonzero-volume meshes
 - count of compiled source probes with disconnected meshes and the maximum connected-component count
 - total runtime warning/deprecation lines from source-probe execution logs

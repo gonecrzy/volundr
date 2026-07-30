@@ -10,6 +10,7 @@ from app.services.generation.benchmarks import (
 from app.services.generation.live_benchmarks import (
     LiveBenchmarkConfig,
     LiveBenchmarkRunner,
+    _compile_source_probe_for_language,
     _source_parameter_analysis,
     _source_request_for,
 )
@@ -422,6 +423,63 @@ def test_source_request_includes_configuration_probe_targets() -> None:
     assert '"rail_length": 360' in request.user_instruction
     assert "profile.build_volume" in request.user_instruction
     assert "ParameterSpec range must allow each override value" in request.user_instruction
+
+
+def test_source_request_marks_accidental_multiple_solids_as_negative_control() -> None:
+    suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
+    benchmark = {
+        entry.id: entry for entry in suite.benchmarks
+    }["accidental_multiple_solids"]
+
+    request = _source_request_for(benchmark, source_language="cadquery")
+
+    assert "Negative-control topology target:" in request.user_instruction
+    assert "expected_solid_count=1" in request.user_instruction
+    assert "detected_solid_count greater than one" in request.user_instruction
+
+
+def test_source_probe_reports_solid_count_rejection_metadata(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    artifact_dir = run_dir / "artifacts" / "accidental_multiple_solids" / "run-001"
+    artifact_dir.mkdir(parents=True)
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="cube_size", label="Cube Size", type="float", default=10.0, unit="mm"),
+]
+
+def build(params):
+    first = cq.Workplane("XY").box(params["cube_size"], params["cube_size"], params["cube_size"])
+    second = cq.Workplane("XY").box(params["cube_size"], params["cube_size"], params["cube_size"]).translate((30, 0, 0))
+    return Product(
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                model=first.union(second),
+                component_id="body",
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+        parameters=PARAMETERS,
+    )
+"""
+
+    result = _compile_source_probe_for_language(
+        source=source,
+        source_language="cadquery",
+        run_dir=run_dir,
+        artifact_dir=artifact_dir,
+    )
+
+    assert result["compile_status"] == "compile_failed"
+    assert result["solid_count_rejection_count"] == 1
+    assert result["topology_rejection_count"] == 1
+    assert result["output_topology_metadata"][0]["detected_solid_count"] == 2
+    assert result["output_topology_metadata"][0]["expected_solid_count"] == 1
 
 
 def test_source_compile_repair_diagnostics_expand_invalid_topology() -> None:
