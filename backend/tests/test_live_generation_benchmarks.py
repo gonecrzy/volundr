@@ -182,6 +182,9 @@ def test_live_benchmark_cadquery_source_probe_dry_run_writes_python_prompt(
         encoding="utf-8"
     )
     assert "You generate CadQuery Python for Volundr" in source_prompt
+    assert "cadquery-v1 source contract" in source_prompt
+    assert "The only import allowed is exactly `import cadquery as cq`" in source_prompt
+    assert "Do not run CadQuery operations" in source_prompt
     assert "def build_model()" in source_prompt
     assert "```python" in source_prompt
     assert "Source-probe parameter targets" in source_prompt

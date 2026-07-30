@@ -160,7 +160,9 @@ async def test_cadquery_runner_rejects_forbidden_python_file_access(tmp_path: Pa
     )
 
     assert result.success is False
-    assert result.error_message == "source contains forbidden Python access"
+    assert result.error_message == (
+        "CadQuery contract violation: only `import cadquery as cq` is allowed"
+    )
 
 
 @pytest.mark.asyncio

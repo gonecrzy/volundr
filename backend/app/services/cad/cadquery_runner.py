@@ -10,15 +10,11 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from app.core.config import settings
-from app.services.mesh.inspect import MeshMetadata, inspect_stl
-
-
-FORBIDDEN_PYTHON_PATTERNS = (
-    re.compile(r"^\s*import\s+(os|sys|subprocess|pathlib|shutil|socket|requests|httpx)\b", re.I | re.M),
-    re.compile(r"^\s*from\s+(os|sys|subprocess|pathlib|shutil|socket|requests|httpx)\b", re.I | re.M),
-    re.compile(r"\b(open|exec|eval|compile|__import__|input)\s*\(", re.I),
-    re.compile(r"\b(importlib|globals|locals|vars)\s*\(", re.I),
+from app.services.cad.cadquery_contract import (
+    CadQueryContractError,
+    validate_cadquery_source,
 )
+from app.services.mesh.inspect import MeshMetadata, inspect_stl
 
 
 @dataclass(frozen=True)
@@ -209,11 +205,10 @@ class CadQueryCliRunner:
             return "source is empty"
         if len(source.encode("utf-8")) > self.max_source_bytes:
             return "source exceeds size limit"
-        for pattern in FORBIDDEN_PYTHON_PATTERNS:
-            if pattern.search(source):
-                return "source contains forbidden Python access"
-        if not re.search(r"^\s*def\s+build_model\s*\(", source, flags=re.MULTILINE):
-            return "source must define build_model()"
+        try:
+            validate_cadquery_source(source)
+        except CadQueryContractError as exc:
+            return f"CadQuery contract violation: {exc}"
         return None
 
     def _job_dir(self, job_id: str) -> Path:
