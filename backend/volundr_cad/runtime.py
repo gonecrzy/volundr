@@ -120,3 +120,7 @@ class Product:
             raise ParameterValidationError("Product schema_version must be cadquery-v1")
         if not self.outputs:
             raise ParameterValidationError("Product requires at least one PrintableOutput")
+        if not isinstance(self.parameters, Sequence) or isinstance(self.parameters, str | bytes):
+            raise ParameterValidationError("Product parameters must be ParameterSpec entries")
+        if any(not isinstance(parameter, ParameterSpec) for parameter in self.parameters):
+            raise ParameterValidationError("Product parameters must be ParameterSpec entries")

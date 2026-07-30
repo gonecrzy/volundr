@@ -147,6 +147,13 @@ def build(params):
         validate_cadquery_source(source, contract_version="cadquery-v1")
 
 
+def test_cadquery_v1_contract_requires_product_parameters_reference_module_parameters() -> None:
+    source = cadquery_v1_source().replace("parameters=PARAMETERS", "parameters=params")
+
+    with pytest.raises(CadQueryContractError, match="Product parameters must reference module-level PARAMETERS"):
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+
+
 def test_cadquery_contract_accepts_parameter_constants_and_build_functions() -> None:
     source = """
 import cadquery as cq

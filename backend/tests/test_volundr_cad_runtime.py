@@ -58,3 +58,15 @@ def test_product_requires_printable_outputs() -> None:
 
     with pytest.raises(ParameterValidationError, match="at least one PrintableOutput"):
         Product(outputs=[])
+
+
+def test_product_requires_parameter_specs() -> None:
+    output = PrintableOutput(
+        output_id="body",
+        component_id="body",
+        label="Body",
+        model=object(),
+    )
+
+    with pytest.raises(ParameterValidationError, match="parameters must be ParameterSpec"):
+        Product(outputs=[output], parameters={"width": 10})

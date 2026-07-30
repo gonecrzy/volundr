@@ -159,6 +159,7 @@ def validate_cadquery_source(
         _validate_build_entrypoint(build_function)
         _validate_runtime_constructor_calls(tree)
         _validate_parameter_spec_locations(tree)
+        _validate_product_parameter_references(tree)
         metadata = _collect_cadquery_v1_metadata(tree)
         if not metadata.output_ids:
             raise CadQueryContractError("cadquery-v1 source must define at least one PrintableOutput")
@@ -351,6 +352,40 @@ def _validate_parameter_spec_locations(tree: ast.Module) -> None:
         if id(call) not in module_level_parameter_call_ids:
             raise CadQueryContractError(
                 "ParameterSpec entries must be defined in module-level PARAMETERS"
+            )
+
+
+def _validate_product_parameter_references(tree: ast.Module) -> None:
+    has_module_parameters = any(
+        isinstance(node, ast.Assign | ast.AnnAssign)
+        and (
+            (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == "PARAMETERS"
+            )
+            or (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id == "PARAMETERS"
+            )
+        )
+        for node in tree.body
+    )
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        if _call_name(call.func) != "Product":
+            continue
+        parameters_keyword = _keyword(call, "parameters")
+        if parameters_keyword is None:
+            if has_module_parameters:
+                raise CadQueryContractError(
+                    "Product parameters must reference module-level PARAMETERS"
+                )
+            continue
+        if not isinstance(parameters_keyword, ast.Name) or parameters_keyword.id != "PARAMETERS":
+            raise CadQueryContractError(
+                "Product parameters must reference module-level PARAMETERS"
             )
 
 
