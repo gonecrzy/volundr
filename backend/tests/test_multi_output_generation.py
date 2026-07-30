@@ -280,9 +280,11 @@ class MultiOutputCadRunner:
         source_path = job_dir / "source.py"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
+        execution_manifest_path = job_dir / "result.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
         stderr_path.write_text("Compilation finished", encoding="utf-8")
+        execution_manifest_path.write_text('{"success": true}', encoding="utf-8")
 
         outputs: list[CadQueryOutputResult] = []
         first_stl_path: Path | None = None
@@ -370,7 +372,7 @@ class MultiOutputCadRunner:
                 )
             )
         success = all(output.success or not output.required for output in outputs)
-        return CadQueryCompileResult(
+        result = CadQueryCompileResult(
             job_id=job_id,
             success=success,
             timed_out=False,
@@ -388,6 +390,8 @@ class MultiOutputCadRunner:
             command_args=["cadquery", *output_ids],
             outputs=outputs,
         )
+        object.__setattr__(result, "execution_manifest_path", execution_manifest_path)
+        return result
 
 
 def build_client(
@@ -583,6 +587,7 @@ def test_export_zip_contains_project_manifest_source_and_cadquery_artifacts(tmp_
         assert any(name.endswith("/design-specification.json") for name in names)
         assert any(name.endswith("/design-plan.json") for name in names)
         assert any(name.endswith("/source.py") for name in names)
+        assert any(name.endswith("/execution-result.json") for name in names)
         assert any(name.endswith("/output-manifest.json") for name in names)
         assert any(name.endswith("/assembly-notes.md") for name in names)
         assert any(name.endswith("/stl/body.stl") for name in names)

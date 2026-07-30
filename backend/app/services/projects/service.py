@@ -6008,6 +6008,10 @@ class ProjectService:
             source_path = self.resolve_revision_source(revision.id)
             if source_path is not None:
                 archive.write(source_path, f"{root}/{source_path.name}")
+            if revision.execution_manifest_path:
+                execution_manifest_path = self.data_dir / revision.execution_manifest_path
+                if execution_manifest_path.exists():
+                    archive.write(execution_manifest_path, f"{root}/execution-result.json")
             archive.writestr(
                 f"{root}/output-manifest.json",
                 json.dumps(payload, indent=2, sort_keys=True),
