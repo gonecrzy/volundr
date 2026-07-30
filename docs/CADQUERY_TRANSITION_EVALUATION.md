@@ -214,9 +214,9 @@ Aggregate result:
 - Compile warnings: `0`.
 - Disconnected mesh count: `0`.
 
-Conclusion:
+Initial-run conclusion:
 
-The transition is not declared fully successful from live benchmarks. The direct Gemini API path is usable and the CadQuery backend can execute most live-generated outputs, but the required 12-case gate still has one provider timeout and one unrepaired invalid-shape compile failure. The benchmark remains a human-review gate for requirement understanding, clarification quality, Design Plan usefulness, parameter quality, component decomposition, B-Rep validity, expected solid-count compliance, STEP/STL completeness, printability, revision preservation, configuration regeneration, and human print-worthiness.
+This first full-suite run did not prove a successful live gate. The direct Gemini API path was usable and the CadQuery backend executed most live-generated outputs, but this run still had one provider timeout and one unrepaired invalid-shape compile failure. Later reruns and follow-up probes below supersede those specific execution failures; the benchmark remains a human-review gate for requirement understanding, clarification quality, Design Plan usefulness, parameter quality, component decomposition, B-Rep validity, expected solid-count compliance, STEP/STL completeness, printability, revision preservation, configuration regeneration, and human print-worthiness.
 
 Follow-up focused rerun after prompt hardening for hinged boxes:
 
@@ -354,7 +354,7 @@ Final automated aggregate result:
 
 Final automated conclusion:
 
-The automated live Gemini API source gate passes for the required 12-case set when repair-inclusive source compilation is counted. Prompt promotion remains disabled and the harness still requires human scoring for requirement understanding, Design Plan usefulness, printability, revision preservation, configuration regeneration, and print-worthiness before declaring product-quality release readiness.
+The automated live Gemini API source gate passes for the required 12-case set when repair-inclusive source compilation is counted. Follow-up probes added live Design Plan coverage, deterministic configuration validation, and solid-count negative-control evidence. Prompt promotion remains disabled because the harness still requires human/product review for requirement fidelity, Design Plan usefulness beyond coverage counts, printability, revision preservation, configuration workflow quality, and print-worthiness before declaring product-quality release readiness.
 
 ## Phase 11 Scoring Addendum
 
@@ -371,7 +371,7 @@ Dimension score:
 | --- | --- | --- |
 | Requirement understanding | Partial pass | Requirements output was collected for all 12 cases. The vague shelf-bracket request correctly returned `clarification_required=true` and `generation_ready=false`; the honeycomb bracket understood dimensions but did not implement real hexagonal honeycomb geometry. |
 | Clarification quality | Pass for covered live case | `vague_clarification` asked for shelf dimensions, hole dimensions/spacing, load capacity, and shelf thickness, and did not mark the request generation-ready. |
-| Design Plan usefulness | Covered by deterministic workflow tests, not live-scored | The v4 live harness scored requirements and source probes. Design Plan approval/usefulness is verified by backend and Playwright staged workflow tests, but not by a live Gemini Design Plan scoring pass. |
+| Design Plan usefulness | Partial live score plus deterministic workflow coverage | Follow-up live Design Plan probes scored expected component, feature, output, and dependency coverage. Component/output coverage was strong in focused runs, while dependency coverage stayed at `0.0`; Design Plan approval/usefulness as a user workflow is verified by backend and Playwright staged workflow tests. |
 | Parameter quality | Pass with caveats | All 11 concrete source cases had full expected-parameter coverage. The clarification case correctly had no generation-ready parameters at requirements time, while the forced source probe later exposed synthetic parameters that should not be accepted as product output before clarification. |
 | Component decomposition | Partial pass | Multi-output cases exported separate body/lid outputs, and product cases exposed component/output IDs. The honeycomb bracket collapsed the honeycomb feature into rectangular pockets, so feature decomposition was not requirement-faithful there. |
 | Valid source rate | Pass after bounded repair | 11 of 12 direct source probes compiled; 12 of 12 compiled after one bounded repair. `parametric_adapter` required repair. |
@@ -381,7 +381,7 @@ Dimension score:
 | STEP/STL output completeness | Pass | Every final output produced STEP, STL, BREP, and topology metadata. |
 | Printability | Partial pass | The live artifacts avoid disconnected bodies and export watertight solids, but the live harness did not run the full printability inspector per case. `honeycomb_angle_bracket` is not requirement-faithful enough to count as print-worthy honeycomb. |
 | Revision preservation | Covered by deterministic workflow tests, partial live evidence | `component_revision_lid_only` generated a valid revised lid, and deterministic backend/Playwright tests cover structured revision preservation. The v4 live harness did not execute a full accepted-source-to-revised-candidate preservation comparison. |
-| Configuration regeneration | Covered by deterministic tests, not live-scored | Deterministic configuration tests verify provider-free parameter regeneration. The v4 live harness did not execute a build-volume-exceeding configuration case. |
+| Configuration regeneration | Pass for focused build-volume probe, broader workflow deterministic | Deterministic configuration tests verify provider-free parameter regeneration. A focused live configuration probe reran generated CadQuery source with `rail_length=360` and observed the expected `profile.build_volume` Critical blocking rule; full browser-visible configuration workflow quality remains deterministic/Playwright evidence rather than a live provider score. |
 | Human print-worthiness | Not a release pass | Automated validity is good, but human artifact review found at least one functional-fidelity miss (`honeycomb_angle_bracket`) and one repaired source metadata defect (`parametric_adapter` returns `parameters=params`). External/user acceptance is still required before prompt promotion. |
 
 Case-level score:
@@ -640,4 +640,4 @@ Results:
 20. Benchmark results: final v4 automated source gate collected 12/12 requirements outputs, parsed 12/12 source briefs, compiled 11/12 direct sources, repaired 1/1 failed source, and produced valid STEP/STL/BREP artifacts for every final output. Focused follow-up live runs added Design Plan probes, build-volume configuration probing, and accidental-multiple-solid prompting; the v2 configuration probe observed `profile.build_volume` for `rail_length=360`, and the solid-count negative-control live run observed `source_probe_solid_count_rejection_count=1`.
 21. Remaining limitations: live benchmark scoring is not a full product-quality pass; full revision preservation and human print-worthiness still need richer live or human acceptance gates. Honeycomb bracket feature fidelity, adapter parameter metadata, generated orientation for the build-volume case, and Design Plan dependency coverage need prompt/repair hardening.
 22. Recommended next product task: implement a stricter staged live benchmark that exercises Design Plan approval, deterministic configuration including build-volume failure, protected-output revision preservation, accidental multi-solid rejection, printability inspection, and human scoring aggregation before prompt promotion.
-23. Final repository status: expected to be clean after committing this solid-count rejection instrumentation and scoring update.
+23. Final repository status: expected to be clean after committing current transition evidence updates.
