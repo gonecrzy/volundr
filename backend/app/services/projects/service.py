@@ -626,7 +626,7 @@ class ProjectService:
             )
             self._apply_topology_metadata_fields(output, output_result.topology_metadata)
         if output_result.metadata is not None:
-            metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.json"
+            metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.metadata.json"
             metadata_path.write_text(
                 json.dumps(asdict(output_result.metadata), indent=2, sort_keys=True),
                 encoding="utf-8",
@@ -6107,6 +6107,12 @@ class ProjectService:
                     brep_path = self.data_dir / output.brep_path
                     if brep_path.exists():
                         archive.write(brep_path, f"{root}/brep/{Path(output.brep_path).name}")
+                metadata_json = output.mesh_metadata_json or output.metadata_json
+                if metadata_json:
+                    archive.writestr(
+                        f"{root}/metadata/{self._safe_stem(output.output_id)}.metadata.json",
+                        json.dumps(json.loads(metadata_json), indent=2, sort_keys=True),
+                    )
         return export_path
 
     async def retry_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:

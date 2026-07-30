@@ -235,7 +235,7 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert (revision_dir / "brep" / "body.brep").exists()
     assert (revision_dir / "execution-result.json").exists()
     assert (revision_dir / "logs" / "cadquery.log").read_text(encoding="utf-8") == "Compilation finished"
-    assert (revision_dir / "metadata" / "body.json").exists()
+    assert (revision_dir / "metadata" / "body.metadata.json").exists()
 
     source_response = client.get(f"/api/revisions/{revision['id']}/source")
     assert source_response.status_code == 200
