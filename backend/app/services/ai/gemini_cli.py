@@ -25,9 +25,10 @@ REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
-SCOPE_CORRECTION_PROMPT_VERSION = "scope-correction-v1"
-CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
+SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v1"
+CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v1"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v1"
+CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v1"
 
 
 class GeminiCliProvider:
@@ -202,7 +203,7 @@ class GeminiCliProvider:
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if request.compiler_diagnostics:
-            return CADQUERY_SOURCE_PROMPT_VERSION
+            return CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION
         if request.contract_diagnostics:
             return CONTRACT_REPAIR_PROMPT_VERSION
         if request.scope_diagnostics:

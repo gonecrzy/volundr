@@ -180,7 +180,7 @@ Source-contract validation pass:
 - Security, hard source structure, and protected Design Specification compliance violations block compilation and persist as generation-attempt findings.
 - Quality issues such as missing assertions, missing print notes, excessive `$fn`, and repeated magic numbers remain advisory and attach to candidates after successful compile/validation.
 - Generated source now uses `source-contract-v1` markers documented in `docs/MODEL_GENERATION_CONTRACT.md`.
-- Contract repair is a bounded `contract-repair-v2` mode and remains separate from compile repair.
+- Contract repair is a bounded `cadquery-contract-repair-v1` mode and remains separate from execution repair.
 - Legacy accepted source remains usable and is not retroactively rejected.
 
 Geometric invariant validation pass:
@@ -222,7 +222,7 @@ Component-targeted revision pass:
 - Gemini must return the complete authoritative CadQuery source in the target architecture; Volundr does not splice source fragments
 - source metadata now includes shared-module ownership and normalized module fingerprints
 - protected component modules, output mappings, interface parameters, and shared modules are checked before compile
-- one bounded `scope-correction-v1` attempt can revert unauthorized source-scope changes before compilation
+- one bounded `cadquery-scope-correction-v1` attempt can revert unauthorized source-scope changes before execution
 - active configuration override manifests are preserved through component AI revisions
 - all required outputs compile through the canonical multi-output pipeline
 - protected outputs are compared with `output-preservation-v1` after compile; confirmed drift blocks candidates and unverifiable preservation warns
@@ -243,21 +243,21 @@ Live generation-quality evaluation pass:
 
 Source-derived parameter discovery pass:
 
-- revision source can now be scanned for simple top-level OpenSCAD parameters before adding richer editing UX
-- `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from constants and OpenSCAD Customizer-style comments
+- accepted CadQuery source can now expose typed `ParameterSpec` metadata before adding richer editing UX
+- `GET /api/revisions/{revision_id}/parameters` returns read-only controls derived from persisted typed parameter metadata
 - this is a phase gate for evaluating whether AI output exposes useful creative and functional knobs without forcing generated models into one fixed template
-- experimental CadQuery source probes now run through an AST-based `cadquery-v1` contract before execution; this keeps the probe focused on `import cadquery as cq`, literal top-level parameters, top-level or nested helper functions, and `build_model()` while rejecting unsafe imports, top-level geometry execution, and dynamic Python calls
+- CadQuery source probes now run through an AST-based `cadquery-v1` contract before execution; this keeps the probe focused on `import cadquery as cq`, typed module-level `PARAMETERS`, `build(params)`, `Product`, and `PrintableOutput` while rejecting unsafe imports, top-level geometry execution, and dynamic Python calls
 - `cadquery-generation-v1` tightens live-generation guidance around recurring CadQuery failures: no `math`/`map()`/string parsing, numeric `thread_spec`, closed profiles before `extrude()`, and fused creative one-piece geometry instead of loose decorative bodies
 
 Source-probe benchmark pass:
 
 - phase-validation runs can now include `--source-probe` to ask the provider for direct CAD source without accepting a candidate
-- source-probe runs can use the default OpenSCAD path or the experimental `--source-language cadquery` path for backend bakeoffs
+- source-probe runs use the CadQuery path; `--source-language cadquery` is the only supported product source language
 - source-probe runs can add `--source-brief` to force a compact structured understanding pass before source generation, then compare the brief's intended body count/features against compile and mesh artifacts
-- source probe artifacts capture raw source output, extracted source when valid, exact expected-parameter coverage from the source-derived parameter scanner, OpenSCAD compile logs, STL output, and mesh metadata
+- source probe artifacts capture raw source output, extracted source when valid, exact expected-parameter coverage from `ParameterSpec` metadata, CadQuery execution logs, STEP/STL/BREP output, topology metadata, and mesh metadata
 - source-probe repair can now be enabled with `--source-probe-repair` to run one bounded repair pass after failed source extraction, failed source-probe compile, or a source-brief connected-body mismatch while keeping first-pass and repaired metrics separate
-- bounded source-probe repair uses the selected source language, including experimental CadQuery repair with the failed Python source and traceback as context
-- `qwen2.5-coder:14b` is the primary local Ollama model for the current OpenSCAD path; Gemini remains an explicit future/provider endpoint, and every provider must pass the same source-probe validation loop
+- bounded source-probe repair uses `cadquery-contract-repair-v1` or execution diagnostics with the failed Python source and traceback as context
+- Gemini API is the primary live benchmark provider; Ollama remains optional comparison only, and every provider must pass the same CadQuery source-probe validation loop
 - prompt syntax guardrails now explicitly reject pseudo-CAD method chaining, recursive modules, lowercase `pi`, invalid `circle(r1/r2)` usage, and unbounded thread/knurl tricks
 - source-probe parameter targets must be emitted as exact top-level identifiers rather than renamed aliases, arrays, indexed values, or derived-only values
 - this provides a cheap in-between signal for prompt/model changes before spending time on full CAD geometry review
@@ -345,12 +345,12 @@ Status: Complete
 Current status:
 
 - browser parses simple numeric and boolean assignments in the marked `USER PARAMETERS` section
-- parameter controls update the OpenSCAD source directly
+- parameter controls execute accepted CadQuery source with validated parameter values
 - existing Compile action recompiles parameter edits without AI
 - invalid numeric edits are ignored instead of being written into source
 - approved Design Plan parameters now have a separate Configure workflow
 - configuration previews persist immutable `configuration-change-v1` records
-- configuration candidates currently compile from accepted source with safe OpenSCAD `-D` overrides and no Gemini call; the target path executes accepted CadQuery source with validated parameter manifests
+- configuration candidates execute accepted CadQuery source with validated parameter manifests and no Gemini call
 - project-local presets and Design Plan presets can feed configuration previews
 - configuration exports include `configuration.json` and `parameter-overrides.json`
 

@@ -332,7 +332,7 @@ class RevisionPlanningProvider:
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if getattr(request, "scope_diagnostics", None):
-            return "scope-correction-v1"
+            return "cadquery-scope-correction-v1"
         if getattr(request, "revision_plan", None) and getattr(request, "scoped_revision_context", None):
             return "cadquery-component-revision-v1"
         if getattr(request, "revision_plan", None):

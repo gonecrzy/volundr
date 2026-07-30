@@ -434,6 +434,6 @@ Configuration benchmark entries should additionally include:
 - requested overrides
 - expected affected parameters, components, and outputs
 - expected validation state
-- expected OpenSCAD `-D` defines
+- expected CadQuery parameter values and resolved parameter manifest
 - expected candidate state after deterministic regeneration
 - whether a provider call is forbidden

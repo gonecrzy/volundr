@@ -98,7 +98,7 @@ CadQuery currently uses ownership-level fingerprints before compile and protecte
 
 ## Scope Correction
 
-If a component revision exceeds approved scope, Volundr may run one bounded `scope-correction-v1` provider call.
+If a component revision exceeds approved scope, Volundr may run one bounded `cadquery-scope-correction-v1` provider call.
 
 Scope correction receives:
 

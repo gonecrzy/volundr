@@ -3626,9 +3626,9 @@ class ProjectService:
         if callable(version_for):
             return str(version_for(request))
         if request.contract_diagnostics:
-            return "contract-repair-v2"
+            return "cadquery-contract-repair-v1"
         if request.compiler_diagnostics:
-            return CADQUERY_GENERATION_PROMPT_VERSION
+            return "cadquery-execution-repair-v1"
         if request.revision_plan:
             return CADQUERY_REVISION_PROMPT_VERSION
         if request.current_source:

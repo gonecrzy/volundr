@@ -88,7 +88,7 @@ def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> Non
 
     prompt = provider.build_cadquery_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-generation-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-execution-repair-v1"
     assert "Repair mode:" in prompt
     assert "AttributeError: Workplane has no attribute 'holes'" in prompt
     assert "Current CadQuery source to repair begins below" in prompt
@@ -167,7 +167,7 @@ def test_cadquery_contract_repair_prompt_is_bounded() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "contract-repair-v2"
+    assert provider.prompt_template_version_for(request) == "cadquery-contract-repair-v1"
     assert "Contract repair mode:" in prompt
     assert "contract repair, not design revision" in prompt
     assert "ParameterSpec ID" in prompt
@@ -281,7 +281,7 @@ def test_cadquery_scope_correction_prompt_is_not_compile_or_contract_repair() ->
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "scope-correction-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-scope-correction-v1"
     assert "Revision scope correction mode:" in prompt
     assert "This is scope correction, not a new design revision." in prompt
     assert "Revert unauthorized edits" in prompt

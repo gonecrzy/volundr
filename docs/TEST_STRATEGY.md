@@ -109,7 +109,7 @@ Test:
 - revision compliance validation blocks unauthorized protected parameter, component, feature, dependency, output, shared helper, and interface changes before execution
 - protected output preservation compares topology and mesh metadata after execution and blocks confirmed drift
 - configured-base component revisions preserve parameter manifests and execute with the same resolved values
-- `scope-correction-v1` runs at most once after source scope compliance failure and remains separate from contract/compile repair
+- `cadquery-scope-correction-v1` runs at most once after source scope compliance failure and remains separate from contract/execution repair
 - Revision Success Results persist planned success checks after candidate generation
 - generated initial candidates link back to the Design Specification that produced them
 - create initial revision

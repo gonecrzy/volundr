@@ -222,7 +222,7 @@ Rules:
 
 - edit only approved target components/features/outputs and allowed shared modules
 - preserve protected component modules, output mappings, interface parameters, and configuration override parameters
-- retain the selected-output dispatcher for every planned output
+- retain `PrintableOutput` declarations for every planned output
 - do not rename unrelated modules or add undeclared components/outputs
 - do not broaden scope when a shared dependency appears necessary
 
@@ -230,9 +230,9 @@ Historical implementation: `openscad-component-revision-v1` was used for
 approved Revision Plans that included scoped component/output context. Current
 product revisions use `cadquery-component-revision-v1`.
 
-### `scope-correction-v1`
+### `cadquery-scope-correction-v1`
 
-Responsibility: correct one component-scoped revision that exceeded approved source scope. This is not design revision, source-contract repair, or compiler repair.
+Responsibility: correct one component-scoped CadQuery revision that exceeded approved source scope. This is not design revision, source-contract repair, or execution repair.
 
 Input context:
 
@@ -244,7 +244,7 @@ Input context:
 
 Output:
 
-- exactly one fenced `openscad` block
+- exactly one fenced `python` or `cadquery` block
 - complete source for the whole product
 
 Rules:
@@ -285,9 +285,9 @@ Historical implementation: `openscad-revision-v2` was superseded by
 `openscad-component-revision-v1` for component-targeted full-source revisions.
 Current product revisions use CadQuery prompt modes.
 
-### `compile-repair-v1`
+### Historical `compile-repair-v1`
 
-Responsibility: repair source-level compile failures only.
+Responsibility: historical OpenSCAD repair for source-level compile failures only.
 
 Input context:
 
@@ -312,9 +312,9 @@ Prohibited changes:
 - reorienting the part
 - redesigning geometry
 
-### `contract-repair-v2`
+### `cadquery-contract-repair-v1`
 
-Responsibility: repair static source-contract failures before OpenSCAD compilation. This is separate from compiler repair and must not respond to mesh or printability validation.
+Responsibility: repair static `cadquery-v1` source-contract failures before worker execution. This is separate from execution repair and must not respond to mesh or printability validation.
 
 Input context:
 
@@ -325,9 +325,9 @@ Input context:
 
 Allowed changes:
 
-- add missing skeleton sections
-- add missing requirement or feature markers
-- add or preserve required geometry markers when the source already implements the measurable feature
+- add missing contract imports, `PARAMETERS`, `build(params)`, `Product`, or `PrintableOutput` declarations
+- add or correct output IDs, component IDs, expected solid counts, and disconnected-solid policy
+- remove prohibited imports or calls when doing so does not redesign the model
 - remove prohibited source constructs
 - make protected constants statically verifiable without changing their specified values
 - restore removed protected parameters or markers
@@ -478,14 +478,14 @@ Next quality gate: structured revision planning feeds component-targeted
 full-source CadQuery revisions. Live benchmark evidence should guide further
 revision intelligence.
 
-## Compile-Repair Flow
+## Execution-Repair Flow
 
 ```text
-failed source + compiler diagnostics
+failed source + CadQuery execution diagnostics
   -> source contract validation must already have passed
-  -> compile-repair-v1
+  -> cadquery-execution-repair-v1
   -> source contract validation
-  -> compile once
+  -> execute once
   -> stop after bounded attempt
 ```
 

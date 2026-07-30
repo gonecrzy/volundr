@@ -124,6 +124,9 @@ def test_live_benchmark_cli_staged_product_gate_enables_strict_probes(
     assert manifest["config"]["source_brief"] is True
     assert manifest["config"]["design_plan_probe"] is True
     assert manifest["config"]["configuration_probe"] is True
+    assert manifest["prompt_versions"]["cadquery_execution_repair"] == (
+        "cadquery-execution-repair-v1"
+    )
     assert manifest["selected_benchmark_ids"] == [
         "simple_mounting_plate",
         "parametric_adapter",

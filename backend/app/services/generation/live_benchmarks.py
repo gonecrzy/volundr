@@ -10,6 +10,7 @@ from typing import Any
 
 from app.services.ai.gemini_cli import (
     CADQUERY_SOURCE_PROMPT_VERSION,
+    CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION,
     CONTRACT_REPAIR_PROMPT_VERSION,
     DESIGN_PLAN_PROMPT_VERSION,
     GEMINI_RULESET_VERSION,
@@ -1136,6 +1137,7 @@ class LiveBenchmarkRunner:
             "requirements": provider.requirement_prompt_template_version(),
             "source_brief": _source_brief_prompt_template_version(provider),
             "cadquery_source": _cadquery_prompt_template_version(provider),
+            "cadquery_execution_repair": CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION,
             "design_plan": provider.design_plan_prompt_template_version(),
             "revision_plan": provider.revision_plan_prompt_template_version(),
             "cadquery_revision": CADQUERY_REVISION_PROMPT_VERSION,
