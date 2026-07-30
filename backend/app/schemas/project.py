@@ -492,9 +492,13 @@ class ConfigurationOverrideManifestRead(BaseModel):
     configuration_change_id: str
     base_revision_id: str
     base_source_hash: str | None = None
+    cad_backend: str = "openscad"
+    source_language: str = "openscad"
     selected_preset_id: str | None = None
     preset_values: dict[str, Any] = Field(default_factory=dict)
     user_overrides: dict[str, Any] = Field(default_factory=dict)
+    parameter_values: dict[str, Any] = Field(default_factory=dict)
+    parameter_hash: str | None = None
     resolved_parameters: dict[str, Any] = Field(default_factory=dict)
     openscad_defines: dict[str, Any] = Field(default_factory=dict)
     affected_parameters: list[str] = Field(default_factory=list)

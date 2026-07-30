@@ -891,12 +891,12 @@ class ProjectService:
         if context is None:
             return None
         _project, base_revision, _design_plan, design_plan_payload, source, _source_hash = context
-        metadata = SourceContractValidator().validate(
-            source,
-            design_specification=self._revision_design_specification_payload(base_revision),
-            design_plan=design_plan_payload,
-            source_type="configuration",
-        ).source_metadata
+        metadata = self._configuration_source_metadata(
+            source=source,
+            design_plan_payload=design_plan_payload,
+            cad_backend=base_revision.cad_backend,
+            design_specification_payload=self._revision_design_specification_payload(base_revision),
+        )
         return [
             self._configuration_parameter_read(parameter, design_plan_payload, metadata)
             for parameter in design_plan_payload.get("parameters", [])
@@ -942,12 +942,13 @@ class ProjectService:
         context = self._configuration_context(project_id)
         if context is None:
             return None
-        _project, _base_revision, design_plan, design_plan_payload, source, _source_hash = context
+        _project, base_revision, design_plan, design_plan_payload, source, _source_hash = context
         if payload.design_plan_id is not None and payload.design_plan_id != design_plan.id:
             raise ValueError("preset Design Plan does not match the active revision")
         validation = self._resolve_configuration(
             design_plan_payload=design_plan_payload,
             source=source,
+            cad_backend=base_revision.cad_backend,
             selected_preset_id=None,
             requested_values=payload.parameter_values,
             user_overrides={},
@@ -978,6 +979,7 @@ class ProjectService:
         resolution = self._resolve_configuration(
             design_plan_payload=design_plan_payload,
             source=source,
+            cad_backend=base_revision.cad_backend,
             selected_preset_id=payload.selected_preset_id,
             requested_values=payload.parameter_values,
             user_overrides=payload.user_overrides,
@@ -1036,21 +1038,39 @@ class ProjectService:
         if change.base_source_hash and change.base_source_hash != source_hash:
             raise ValueError("base source hash changed; configuration cannot be reproduced")
         manifest = self._configuration_override_manifest(change)
-        revision = await self._create_revision_from_planned_source(
-            project_id=change.project_id,
-            scad_source=source,
-            user_instruction=f"Configuration change {change.id}",
-            source_type="configuration_change",
-            raw_ai_output=None,
-            design_specification_id=change.design_specification_id,
-            design_specification_payload=self._configured_design_specification_payload(base_revision, change),
-            design_plan_id=change.design_plan_id,
-            design_plan_payload=self._read_design_plan_payload(design_plan),
-            source_validation_result_id=None,
-            compile_defines=manifest["openscad_defines"],
-            parent_revision_id=base_revision.id,
-            configuration_change_id=change.id,
-        )
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        if base_revision.cad_backend == "cadquery":
+            revision = await self._create_cadquery_revision_from_planned_source(
+                project_id=change.project_id,
+                source=source,
+                user_instruction=f"Configuration change {change.id}",
+                source_type="configuration_change",
+                raw_ai_output=None,
+                design_specification_id=change.design_specification_id,
+                design_specification_payload=self._configured_design_specification_payload(base_revision, change),
+                design_plan_id=change.design_plan_id,
+                design_plan_payload=design_plan_payload,
+                source_validation_result_id=None,
+                parameter_values=manifest["parameter_values"],
+                parent_revision_id=base_revision.id,
+                configuration_change_id=change.id,
+            )
+        else:
+            revision = await self._create_revision_from_planned_source(
+                project_id=change.project_id,
+                scad_source=source,
+                user_instruction=f"Configuration change {change.id}",
+                source_type="configuration_change",
+                raw_ai_output=None,
+                design_specification_id=change.design_specification_id,
+                design_specification_payload=self._configured_design_specification_payload(base_revision, change),
+                design_plan_id=change.design_plan_id,
+                design_plan_payload=design_plan_payload,
+                source_validation_result_id=None,
+                compile_defines=manifest["openscad_defines"],
+                parent_revision_id=base_revision.id,
+                configuration_change_id=change.id,
+            )
         if revision is None:
             return None
         generated_revision = self.db.get(Revision, revision.id)
@@ -5786,6 +5806,9 @@ class ProjectService:
         design_plan_id: str,
         design_plan_payload: dict[str, Any],
         source_validation_result_id: str | None,
+        parameter_values: dict[str, Any] | None = None,
+        parent_revision_id: str | None = None,
+        configuration_change_id: str | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -5798,9 +5821,10 @@ class ProjectService:
         revision_number = self._next_revision_number(project_id)
         revision = Revision(
             project_id=project_id,
-            parent_revision_id=project.active_revision_id,
+            parent_revision_id=parent_revision_id or project.active_revision_id,
             design_specification_id=design_specification_id,
             design_plan_id=design_plan_id,
+            configuration_change_id=configuration_change_id,
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
@@ -5884,7 +5908,7 @@ class ProjectService:
         result = await self._cadquery_runner().compile(
             source,
             job_id=revision.id,
-            parameter_values=self._design_plan_parameter_values(design_plan_payload),
+            parameter_values=parameter_values or self._design_plan_parameter_values(design_plan_payload),
             requested_outputs=requested_outputs,
         )
         compile_ms = round((time.perf_counter() - started) * 1000, 3)
@@ -6353,6 +6377,23 @@ class ProjectService:
             affected_outputs=affected["affected_outputs"],
         )
 
+    def _configuration_source_metadata(
+        self,
+        *,
+        source: str,
+        design_plan_payload: dict[str, Any],
+        cad_backend: str,
+        design_specification_payload: dict[str, Any] | None = None,
+    ) -> Any:
+        if cad_backend == "cadquery":
+            return validate_cadquery_source(source, contract_version="cadquery-v1")
+        return SourceContractValidator().validate(
+            source,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            source_type="configuration",
+        ).source_metadata
+
     def _configuration_preset_read(self, preset: ConfigurationPreset) -> ConfigurationPresetRead:
         return ConfigurationPresetRead(
             id=preset.id,
@@ -6370,6 +6411,7 @@ class ProjectService:
         *,
         design_plan_payload: dict[str, Any],
         source: str,
+        cad_backend: str,
         selected_preset_id: str | None,
         requested_values: dict[str, Any],
         user_overrides: dict[str, Any],
@@ -6392,12 +6434,11 @@ class ProjectService:
             project_id=project_id,
             design_plan_id=design_plan_id,
         )
-        source_metadata = SourceContractValidator().validate(
-            source,
-            design_specification=None,
-            design_plan=design_plan_payload,
-            source_type="configuration",
-        ).source_metadata
+        source_metadata = self._configuration_source_metadata(
+            source=source,
+            design_plan_payload=design_plan_payload,
+            cad_backend=cad_backend,
+        )
         combined: dict[str, Any] = {}
         combined.update(preset_values)
         combined.update(requested_values)
@@ -6438,11 +6479,11 @@ class ProjectService:
                     self._configuration_error(
                         "parameter_not_source_mapped",
                         parameter_id,
-                        "The accepted OpenSCAD source does not expose this parameter for command-line override.",
+                        "The accepted CAD source does not expose this parameter for configuration.",
                     )
                 )
                 continue
-            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", parameter_id):
+            if cad_backend != "cadquery" and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", parameter_id):
                 structural_errors.append(
                     self._configuration_error(
                         "parameter_id_not_openscad_identifier",
@@ -6568,7 +6609,12 @@ class ProjectService:
         )
 
     def _parameter_has_source_mapping(self, parameter_id: str, metadata: Any) -> bool:
-        return parameter_id in metadata.parameter_mappings or parameter_id in metadata.assignments
+        parameter_ids = set(getattr(metadata, "parameter_ids", []) or [])
+        if parameter_id in parameter_ids:
+            return True
+        parameter_mappings = getattr(metadata, "parameter_mappings", {}) or {}
+        assignments = getattr(metadata, "assignments", {}) or {}
+        return parameter_id in parameter_mappings or parameter_id in assignments
 
     def _affected_parameters(
         self,
@@ -6653,6 +6699,11 @@ class ProjectService:
             "message": message,
             "metadata": metadata or {},
         }
+
+    def _configuration_parameter_hash(self, parameter_values: dict[str, Any]) -> str:
+        return hashlib.sha256(
+            json.dumps(parameter_values, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
     def _persist_configuration_change(
         self,
@@ -6747,14 +6798,26 @@ class ProjectService:
             openscad_defines.update(json.loads(change.preset_values_json))
             openscad_defines.update(json.loads(change.requested_changes_json))
             openscad_defines.update(json.loads(change.user_overrides_json))
+        base_revision = self.db.get(Revision, change.base_revision_id)
+        cad_backend = base_revision.cad_backend if base_revision is not None else "openscad"
+        source_language = base_revision.source_language if base_revision is not None else "openscad"
+        parameter_values = (
+            json.loads(change.resolved_parameters_json)
+            if change.validation_state == ConfigurationValidationState.CONFIGURATION_READY.value
+            else {}
+        )
         return {
             "schema_version": "parameter-overrides-v1",
             "configuration_change_id": change.id,
             "base_revision_id": change.base_revision_id,
             "base_source_hash": change.base_source_hash,
+            "cad_backend": cad_backend,
+            "source_language": source_language,
             "selected_preset_id": change.selected_preset_id,
             "preset_values": json.loads(change.preset_values_json),
             "user_overrides": json.loads(change.user_overrides_json),
+            "parameter_values": parameter_values,
+            "parameter_hash": self._configuration_parameter_hash(parameter_values),
             "resolved_parameters": json.loads(change.resolved_parameters_json),
             "openscad_defines": openscad_defines,
             "affected_parameters": json.loads(change.affected_parameters_json),

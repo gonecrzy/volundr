@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
+from app.core.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
@@ -23,6 +24,7 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RequirementExtractionResult,
 )
+from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.cad.runner import CadCompileResult
 from app.services.mesh.inspect import MeshMetadata
 
@@ -268,7 +270,36 @@ render_selected_output();
 """
 
 
+CADQUERY_CONFIGURABLE_SOURCE = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", min_value=50.0, max_value=120.0, editable=True, protected=True),
+    ParameterSpec(id="slot_count", label="Slot count", type="int", default=4, min_value=1.0, max_value=12.0, editable=True),
+    ParameterSpec(id="lid_enabled", label="Include lid", type="bool", default=True, editable=True),
+    ParameterSpec(id="fit_class", label="Fit class", type="enum", default="standard", choices=("loose", "standard", "tight"), editable=True),
+    ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", min_value=1.6, max_value=5.0, editable=False, protected=True),
+]
+
+
+def build(params):
+    body = cq.Workplane("XY").box(float(params["body_width"]), 50, float(params["wall_thickness"]))
+    lid = cq.Workplane("XY").box(float(params["body_width"]), 50, 3)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(output_id="body", label="Body", component_id="body", component_ids=("body",), model=body, expected_solid_count=1),
+            PrintableOutput(output_id="lid", label="Lid", component_id="lid", component_ids=("lid",), model=lid, expected_solid_count=1),
+        ],
+    )
+"""
+
+
 class ConfigurationProvider:
+    def __init__(self) -> None:
+        self.cadquery_requests: list[ModelGenerationRequest] = []
+
     @property
     def ruleset_version(self) -> str:
         return "gemini-ruleset-v1"
@@ -288,6 +319,9 @@ class ConfigurationProvider:
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         return "openscad-generation-v5"
 
+    def cadquery_prompt_template_version(self) -> str:
+        return "cadquery-generation-v1"
+
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return "requirements prompt"
 
@@ -296,6 +330,9 @@ class ConfigurationProvider:
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
         return "model prompt"
+
+    def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        return "cadquery model prompt"
 
     async def extract_requirements(self, request: RequirementExtractionRequest) -> RequirementExtractionResult:
         return RequirementExtractionResult(
@@ -318,6 +355,14 @@ class ConfigurationProvider:
             provider_model="fake-config-model",
         )
 
+    async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        self.cadquery_requests.append(request)
+        return ModelGenerationResult(
+            raw_output=f"```python\n{CADQUERY_CONFIGURABLE_SOURCE}\n```",
+            provider="fake",
+            provider_model="fake-config-model",
+        )
+
 
 class ConfigurationRunner:
     def __init__(self) -> None:
@@ -330,7 +375,16 @@ class ConfigurationRunner:
         *,
         selected_output: str | None = None,
         defines: dict[str, str | int | float | bool] | None = None,
+        parameter_values: dict[str, Any] | None = None,
+        requested_outputs: list[dict[str, Any]] | None = None,
     ) -> CadCompileResult:
+        if requested_outputs is not None:
+            return self._compile_cadquery(
+                source=source,
+                job_id=job_id,
+                parameter_values=parameter_values or {},
+                requested_outputs=requested_outputs,
+            )
         output_id = selected_output or "body"
         defines = defines or {}
         self.calls.append(
@@ -384,6 +438,108 @@ class ConfigurationRunner:
             metadata=metadata,
             error_message=None,
             command_args=["openscad", "-D", f'selected_output="{output_id}"'],
+        )
+
+    def _compile_cadquery(
+        self,
+        *,
+        source: str,
+        job_id: str,
+        parameter_values: dict[str, Any],
+        requested_outputs: list[dict[str, Any]],
+    ) -> CadQueryCompileResult:
+        self.calls.append(
+            {
+                "job_id": job_id,
+                "source_hash": hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                "parameter_values": dict(parameter_values),
+                "requested_outputs": list(requested_outputs),
+            }
+        )
+        job_dir = Path("/tmp") / "volundr-fake-cadquery-configuration-jobs" / job_id
+        job_dir.mkdir(parents=True, exist_ok=True)
+        source_path = job_dir / "model.py"
+        stdout_path = job_dir / "stdout.log"
+        stderr_path = job_dir / "stderr.log"
+        source_path.write_text(source, encoding="utf-8")
+        stdout_path.write_text("", encoding="utf-8")
+        stderr_path.write_text("Compilation finished", encoding="utf-8")
+        body_width = float(parameter_values.get("body_width", 80))
+        outputs: list[CadQueryOutputResult] = []
+        first_stl: Path | None = None
+        first_step: Path | None = None
+        first_metadata: Path | None = None
+        for requested in requested_outputs:
+            output_id = requested["output_id"]
+            stl_path = job_dir / f"{output_id}.stl"
+            step_path = job_dir / f"{output_id}.step"
+            brep_path = job_dir / f"{output_id}.brep"
+            metadata_path = job_dir / f"{output_id}-metadata.json"
+            topology_path = job_dir / f"{output_id}-topology.json"
+            thickness = 3.0 if output_id == "body" else 4.0
+            extents = (body_width, 50.0, thickness)
+            mesh = trimesh.creation.box(extents=extents)
+            mesh.apply_translation([extents[0] / 2, extents[1] / 2, extents[2] / 2])
+            mesh.export(stl_path)
+            step_path.write_text("step", encoding="utf-8")
+            brep_path.write_text("brep", encoding="utf-8")
+            metadata = MeshMetadata(
+                size_x_mm=extents[0],
+                size_y_mm=extents[1],
+                size_z_mm=extents[2],
+                volume_mm3=extents[0] * extents[1] * extents[2],
+                triangle_count=12,
+                connected_components=1,
+                is_watertight=True,
+                is_winding_consistent=True,
+                center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
+            )
+            topology = {
+                "valid": True,
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+            }
+            metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
+            topology_path.write_text(json.dumps(topology), encoding="utf-8")
+            outputs.append(
+                CadQueryOutputResult(
+                    output_id=output_id,
+                    entrypoint=output_id,
+                    required=bool(requested.get("required", True)),
+                    success=True,
+                    stl_path=stl_path,
+                    step_path=step_path,
+                    brep_path=brep_path,
+                    metadata_path=metadata_path,
+                    topology_metadata_path=topology_path,
+                    stl_hash=hashlib.sha256(stl_path.read_bytes()).hexdigest(),
+                    step_hash=hashlib.sha256(step_path.read_bytes()).hexdigest(),
+                    brep_hash=hashlib.sha256(brep_path.read_bytes()).hexdigest(),
+                    output_size_bytes=stl_path.stat().st_size,
+                    metadata=metadata,
+                    topology_metadata=topology,
+                )
+            )
+            first_stl = first_stl or stl_path
+            first_step = first_step or step_path
+            first_metadata = first_metadata or metadata_path
+        return CadQueryCompileResult(
+            job_id=job_id,
+            success=True,
+            timed_out=False,
+            exit_code=0,
+            source_path=source_path,
+            stl_path=first_stl,
+            step_path=first_step,
+            stdout_path=stdout_path,
+            stderr_path=stderr_path,
+            metadata_path=first_metadata,
+            source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
+            output_size_bytes=sum(output.output_size_bytes for output in outputs),
+            metadata=outputs[0].metadata if outputs else None,
+            error_message=None,
+            command_args=["python", "_volundr_cadquery_runner.py"],
+            outputs=outputs,
         )
 
 
@@ -502,6 +658,7 @@ def test_configuration_generation_uses_defines_without_provider_and_keeps_active
         f"/api/projects/{context['project']['id']}/configuration/preview",
         json={"parameter_values": {"body_width": 100, "slot_count": 5}},
     ).json()
+    assert change["validation_state"] == "configuration_ready"
 
     generated = client.post(f"/api/configuration-changes/{change['id']}/generate")
 
@@ -515,7 +672,83 @@ def test_configuration_generation_uses_defines_without_provider_and_keeps_active
     assert refreshed_project["active_revision_id"] == context["revision"]["id"]
 
 
+def test_cadquery_configuration_generation_uses_parameter_values_without_provider(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setattr(settings, "generation_mode", "advanced")
+    provider = ConfigurationProvider()
+    runner = ConfigurationRunner()
+    client = build_client(tmp_path, provider, runner)
+    context = create_accepted_revision(client)
+    assert context["revision"]["cad_backend"] == "cadquery"
+    base_source_hash = context["revision"]["source_hash"]
+    runner.calls.clear()
+    provider.generate_cadquery_model = _fail_generate_cadquery_model  # type: ignore[method-assign]
+    change = client.post(
+        f"/api/projects/{context['project']['id']}/configuration/preview",
+        json={"parameter_values": {"body_width": 100, "slot_count": 5}},
+    ).json()
+
+    generated = client.post(f"/api/configuration-changes/{change['id']}/generate")
+
+    assert generated.status_code == 201
+    revision = generated.json()
+    assert revision["configuration_change_id"] == change["id"]
+    assert revision["cad_backend"] == "cadquery"
+    assert revision["source_language"] == "python"
+    assert revision["source_hash"] == base_source_hash
+    assert len(runner.calls) == 1
+    assert runner.calls[0]["parameter_values"]["body_width"] == 100
+    assert runner.calls[0]["parameter_values"]["slot_count"] == 5
+    assert runner.calls[0]["parameter_values"]["wall_thickness"] == 3
+    assert {output["output_id"] for output in runner.calls[0]["requested_outputs"]} == {"body", "lid"}
+    assert "defines" not in runner.calls[0]
+    manifest = client.get(f"/api/configuration-changes/{change['id']}/override-manifest").json()
+    assert manifest["cad_backend"] == "cadquery"
+    assert manifest["source_language"] == "python"
+    assert manifest["parameter_values"]["body_width"] == 100
+    assert manifest["parameter_values"]["slot_count"] == 5
+    assert manifest["parameter_hash"]
+
+
+def test_cadquery_configuration_parameters_and_hash_are_stable(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setattr(settings, "generation_mode", "advanced")
+    provider = ConfigurationProvider()
+    runner = ConfigurationRunner()
+    client = build_client(tmp_path, provider, runner)
+    context = create_accepted_revision(client)
+
+    parameters_response = client.get(f"/api/projects/{context['project']['id']}/configuration/parameters")
+    first_change = client.post(
+        f"/api/projects/{context['project']['id']}/configuration/preview",
+        json={"parameter_values": {"body_width": 100, "slot_count": 5}},
+    ).json()
+    second_change = client.post(
+        f"/api/projects/{context['project']['id']}/configuration/preview",
+        json={"parameter_values": {"slot_count": 5, "body_width": 100}},
+    ).json()
+
+    assert parameters_response.status_code == 200
+    parameters = {parameter["id"]: parameter for parameter in parameters_response.json()}
+    assert parameters["body_width"]["source_mapped"] is True
+    assert parameters["wall_thickness"]["editable"] is False
+    assert first_change["validation_state"] == "configuration_ready"
+    assert second_change["validation_state"] == "configuration_ready"
+    first_manifest = client.get(f"/api/configuration-changes/{first_change['id']}/override-manifest").json()
+    second_manifest = client.get(f"/api/configuration-changes/{second_change['id']}/override-manifest").json()
+    assert first_manifest["parameter_values"] == second_manifest["parameter_values"]
+    assert first_manifest["parameter_hash"] == second_manifest["parameter_hash"]
+
+
 async def _fail_generate_model(request: ModelGenerationRequest) -> ModelGenerationResult:
+    raise AssertionError("configuration generation must not call Gemini")
+
+
+async def _fail_generate_cadquery_model(request: ModelGenerationRequest) -> ModelGenerationResult:
     raise AssertionError("configuration generation must not call Gemini")
 
 

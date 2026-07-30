@@ -4,7 +4,7 @@ This document defines direct parameter editing, preset switching, and determinis
 
 ## CadQuery Transition Status
 
-The target configuration path is typed CadQuery parameter execution in the isolated worker. OpenSCAD identifier checks, source assignment discovery, and `-D` overrides are transitional implementation details.
+The primary configuration path is typed CadQuery parameter execution. OpenSCAD identifier checks, source assignment discovery, and `-D` overrides remain only for legacy OpenSCAD revisions.
 
 ## Scope
 
@@ -71,7 +71,6 @@ A parameter may be edited directly when all are true:
 - the type is `number`, `integer`, `boolean`, or `enum`
 - the value passes type, enum, and range checks
 - the parameter ID exists in the accepted CadQuery `PARAMETERS` declaration
-- the accepted source contract marks the parameter editable
 - the change does not alter product structure
 
 Derived parameters are recalculated by the CadQuery build path and are not overridden directly.
@@ -89,6 +88,25 @@ Generated CadQuery source declares typed parameter specifications. Configuration
 ```
 
 The worker constructs the validated parameter object and calls `build(params)`. It does not rewrite source and it does not call Gemini.
+
+The override manifest is provider-neutral and includes the full resolved parameter object:
+
+```json
+{
+  "schema_version": "parameter-overrides-v1",
+  "cad_backend": "cadquery",
+  "source_language": "python",
+  "parameter_values": {
+    "body_width": 100,
+    "slot_count": 5,
+    "wall_thickness": 3
+  },
+  "parameter_hash": "sha256-of-canonical-parameter-json",
+  "openscad_defines": {}
+}
+```
+
+`parameter_hash` is computed from canonical sorted JSON so the same resolved values produce the same hash regardless of request key order.
 
 ## Transitional OpenSCAD Override Contract
 
