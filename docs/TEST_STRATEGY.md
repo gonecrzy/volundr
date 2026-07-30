@@ -161,6 +161,8 @@ Use Playwright for critical workflows:
 8. Accept the scoped candidate.
 9. Plan a second revision that violates protected scope.
 10. Confirm the rejected-before-compile scope findings are shown and the active revision remains unchanged.
+11. Open a blocked CadQuery candidate with one successful required output and one failed required output.
+12. Confirm solid-count topology rejection is visible, Accept is disabled, and the active accepted revision remains unchanged.
 
 After Gemini integration:
 

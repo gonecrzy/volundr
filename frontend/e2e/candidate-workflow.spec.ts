@@ -341,6 +341,178 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByText("R2 active")).toBeVisible();
 });
 
+test("blocked CadQuery candidate shows partial outputs and solid-count rejection", async ({ page }) => {
+  const project = {
+    id: "project-1",
+    name: "Solid Count Review",
+    original_intent: "Create a mounting base with alignment bosses.",
+    status: "active",
+    active_revision_id: "rev-active",
+  };
+  const revisions: Revision[] = [
+    revision({
+      id: "rev-active",
+      revision_number: 1,
+      source_type: "ai_initial",
+      is_accepted: true,
+      review_state: "accepted",
+      design_specification_id: "spec-1",
+      design_plan_id: "plan-1",
+      output_manifest_path: "projects/project-1/revisions/rev-active/output-manifest.json",
+      expected_output_count: 1,
+      required_output_count: 1,
+      successful_output_count: 1,
+    }),
+    revision({
+      id: "rev-blocked",
+      parent_revision_id: "rev-active",
+      revision_number: 2,
+      source_type: "ai_initial",
+      is_accepted: false,
+      review_state: "blocked",
+      design_specification_id: "spec-1",
+      design_plan_id: "plan-1",
+      output_manifest_path: "projects/project-1/revisions/rev-blocked/output-manifest.json",
+      expected_output_count: 2,
+      required_output_count: 2,
+      successful_output_count: 1,
+      blocked_output_count: 1,
+      failed_output_count: 1,
+      validation_summary: { blocking_count: 1, advisory_count: 0, dismissed_count: 0 },
+      error_message: "Required output alignment_bosses failed topology validation",
+    }),
+  ];
+  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>([
+    [
+      "rev-active",
+      [
+        revisionOutput({
+          id: "active-base",
+          revision_id: "rev-active",
+          output_id: "base",
+          label: "Base",
+        }),
+      ],
+    ],
+    [
+      "rev-blocked",
+      [
+        revisionOutput({
+          id: "blocked-base",
+          revision_id: "rev-blocked",
+          output_id: "base",
+          label: "Base",
+          output_state: "ready",
+          required: true,
+        }),
+        revisionOutput({
+          id: "blocked-bosses",
+          revision_id: "rev-blocked",
+          output_id: "alignment_bosses",
+          label: "Alignment bosses",
+          output_state: "blocked",
+          required: true,
+          stl_path: null,
+          compile_error:
+            "Solid-count mismatch: expected_solid_count=1, detected_solid_count=3; disconnected solids are not allowed.",
+          validation_summary: { blocking_count: 1, advisory_count: 0, dismissed_count: 0 },
+        }),
+      ],
+    ],
+  ]);
+
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname.replace(/^\/api/, "");
+
+    if (request.method() === "GET" && path === "/projects") {
+      return route.fulfill({ json: [project] });
+    }
+    if (request.method() === "GET" && path === "/printability-profiles") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/messages") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-specification") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-plan") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revision-plan") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revisions") {
+      return route.fulfill({ json: revisions });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/outputs$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({ json: outputsByRevision.get(revisionId) ?? [] });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/output-manifest$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({
+        json: {
+          schema_version: "output-manifest-v1",
+          project_id: "project-1",
+          revision_id: revisionId,
+          source: { filename: "source.py", sha256: "source-hash" },
+          outputs: outputsByRevision.get(revisionId) ?? [],
+        },
+      });
+    }
+    if (request.method() === "GET" && path.endsWith("/source")) {
+      return route.fulfill({ body: source, contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/compile-log")) {
+      return route.fulfill({ body: "CadQuery worker completed", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/diff")) {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path.endsWith("/stl")) {
+      return route.fulfill({ body: "solid empty\nendsolid empty\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
+      return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-blocked/findings") {
+      return route.fulfill({
+        json: [
+          finding({
+            id: "finding-solid-count",
+            rule_id: "topology.solid_count_mismatch",
+            severity: "critical",
+            is_blocking: true,
+          }),
+        ],
+      });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-blocked/geometric-analysis") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+
+    return route.fulfill({ status: 404, json: { detail: `unhandled ${request.method()} ${path}` } });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Projects" }).click();
+  await page.getByRole("button", { name: "Solid Count Review" }).click();
+  await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
+
+  await page.getByRole("button", { name: /R2/ }).click();
+  await expect(page.getByText("Candidate - R2 - Blocked")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("1/2")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Base/ })).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Alignment bosses/ })).toBeVisible();
+  await expect(page.getByText("Solid-count mismatch: expected_solid_count=1, detected_solid_count=3")).toBeVisible();
+  await expect(page.getByLabel("Candidate review").getByText("topology.solid_count_mismatch", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeDisabled();
+  await expect(page.getByText("R1 active")).toBeVisible();
+});
+
 function revision(overrides: Partial<Revision>): Revision {
   return {
     id: "revision",
