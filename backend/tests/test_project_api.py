@@ -219,7 +219,7 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert revision["cad_backend"] == "cadquery"
     assert revision["source_language"] == "python"
     assert revision["source_contract_version"] == "cadquery-v1"
-    assert revision["execution_manifest_path"] == f"projects/{project['id']}/revisions/{revision['id']}/execution-result.json"
+    assert revision["execution_manifest_path"] == f"projects/{project['id']}/revisions/{revision['id']}/execution-manifest.json"
     assert revision["expected_output_count"] == 1
     assert revision["successful_output_count"] == 1
     assert revision["metadata"]["triangle_count"] == 12
@@ -233,7 +233,7 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert (revision_dir / "stl" / "body.stl").exists()
     assert (revision_dir / "step" / "body.step").exists()
     assert (revision_dir / "brep" / "body.brep").exists()
-    assert (revision_dir / "execution-result.json").exists()
+    assert (revision_dir / "execution-manifest.json").exists()
     assert (revision_dir / "logs" / "cadquery.log").read_text(encoding="utf-8") == "Compilation finished"
     assert (revision_dir / "metadata" / "body.metadata.json").exists()
 

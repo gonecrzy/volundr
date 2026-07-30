@@ -5877,7 +5877,7 @@ class ProjectService:
         execution_manifest_source = getattr(result, "execution_manifest_path", None)
         execution_manifest_relative_path: str | None = None
         if isinstance(execution_manifest_source, Path) and execution_manifest_source.exists():
-            execution_manifest_path = revision_dir / "execution-result.json"
+            execution_manifest_path = revision_dir / "execution-manifest.json"
             shutil.copyfile(execution_manifest_source, execution_manifest_path)
             execution_manifest_relative_path = self._relative(execution_manifest_path)
         result_outputs = {output.output_id: output for output in getattr(result, "outputs", [])}
@@ -6075,7 +6075,7 @@ class ProjectService:
             if revision.execution_manifest_path:
                 execution_manifest_path = self.data_dir / revision.execution_manifest_path
                 if execution_manifest_path.exists():
-                    archive.write(execution_manifest_path, f"{root}/execution-result.json")
+                    archive.write(execution_manifest_path, f"{root}/execution-manifest.json")
             archive.writestr(
                 f"{root}/output-manifest.json",
                 json.dumps(payload, indent=2, sort_keys=True),

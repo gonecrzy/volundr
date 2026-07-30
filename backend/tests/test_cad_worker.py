@@ -547,6 +547,7 @@ async def test_cadquery_execution_manifest_records_source_parameter_and_contract
 
     assert result.success is True
     assert result.execution_manifest_path is not None
+    assert result.execution_manifest_path.name == "execution-manifest.json"
     payload = json.loads(result.execution_manifest_path.read_text(encoding="utf-8"))
     assert payload["cad_backend"] == "cadquery"
     assert payload["source_language"] == "python"
@@ -580,7 +581,7 @@ async def test_isolated_cadquery_worker_reruns_source_contract_validation(
         _CADQUERY_RUNNER_SOURCE,
         encoding="utf-8",
     )
-    result_path = job_dir / "execution-result.json"
+    result_path = job_dir / "execution-manifest.json"
     (job_dir / "parameter-values.json").write_text(
         json.dumps({"width_mm": 2.0}),
         encoding="utf-8",

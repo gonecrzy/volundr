@@ -98,7 +98,7 @@ class CadQueryCliRunner:
         runner_path = job_dir / "_volundr_cadquery_runner.py"
         output_dir = job_dir / "outputs"
         output_dir.mkdir(parents=True, exist_ok=True)
-        execution_result_path = job_dir / "execution-result.json"
+        execution_result_path = job_dir / "execution-manifest.json"
         parameter_values_path = job_dir / "parameter-values.json"
         requested_outputs_path = job_dir / "requested-outputs.json"
         stdout_path = job_dir / "stdout.log"

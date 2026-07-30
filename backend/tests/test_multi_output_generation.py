@@ -702,7 +702,7 @@ def test_export_zip_contains_project_manifest_source_and_cadquery_artifacts(tmp_
         assert any(name.endswith("/design-specification.json") for name in names)
         assert any(name.endswith("/design-plan.json") for name in names)
         assert any(name.endswith("/source.py") for name in names)
-        assert any(name.endswith("/execution-result.json") for name in names)
+        assert any(name.endswith("/execution-manifest.json") for name in names)
         assert any(name.endswith("/output-manifest.json") for name in names)
         assert any(name.endswith("/assembly-notes.md") for name in names)
         assert any(name.endswith("/stl/body.stl") for name in names)
