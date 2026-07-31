@@ -94,12 +94,37 @@ npm run build
 npx playwright test e2e/workflow-gate.spec.ts e2e/configure-organizer.spec.ts e2e/enclosure-revision.spec.ts e2e/recoverable-blocked-workflow.spec.ts
 ```
 
+The Playwright harness accepts `VOLUNDR_E2E_PORT` and
+`VOLUNDR_E2E_WEB_PORT` so repeated runs cannot attach to a shared development
+server. It also accepts `VOLUNDR_E2E_VIEWPORT_WIDTH` and
+`VOLUNDR_E2E_VIEWPORT_HEIGHT` and captures screenshots only on failure.
+
+The integrity checkpoint ran all 13 tests five times against five fresh
+SQLite fixture roots: 65/65 passed. The browser runtimes were approximately
+1.5 minutes per run. No fixture server remained running and the disposable
+fixture directories were removed after the checkpoint.
+
+Responsive checks passed for the full suite at 1920x1080, 1440x900, and
+1024x768. Mobile review checks passed at 390x844 for clarification,
+candidate acceptance/export, blocked-state review, and recovery actions.
+
+Focused failure checks covered provider interruption, contract and plan repair
+lineage, stale workflow diagnosis, consistency rejection, worker timeout and
+duplicate completion, revision scope and identity rejection, blocked
+acceptance, output retry preservation, and duplicate submission. Disposable
+source-copy mutation checks detected deliberate mutations for early candidate
+acceptance, protected-output drift, provider use during configuration, a
+blocked candidate becoming acceptable, incorrect diagnosis root selection, and
+retry evidence replacement.
+
 The live Gemini group remains opt-in and is not part of the deterministic gate.
+It was not run in this checkpoint because live credentials and quota were not
+provided.
 
 ## Known Limitations
 
 The topology recovery test prepares a targeted revision request but does not
-complete a second structural revision. The broader provider, timeout, scope,
-responsive, and live-provider matrices remain separate technical gates. The
-fixture summary is intentionally a bounded test aid rather than a production
-analytics surface.
+complete a second structural revision. The fixture summary is intentionally a
+bounded test aid rather than a production analytics surface. The mutation
+checks are an ad hoc disposable-source checkpoint rather than a committed
+general mutation-testing framework.
