@@ -52,7 +52,11 @@ cleanup() {
   fi
 
   rm -f "$backend_env_file"
-  rm -rf "$live_data_dir"
+  if [[ "${VOLUNDR_KEEP_LIVE_DATA:-}" == "true" ]]; then
+    printf '%s\n' "Live E2E data preserved at $live_data_dir" >&2
+  else
+    rm -rf "$live_data_dir"
+  fi
   exit "$test_status"
 }
 trap cleanup EXIT
