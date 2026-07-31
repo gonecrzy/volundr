@@ -89,6 +89,15 @@ product workflows. The execution runner calls `build(params)`, validates
 `PrintableOutput`, and rejects required outputs with failed or malformed
 artifacts.
 
+For provider-backed generation, `cadquery-scaffold-v1` narrows provider
+ownership to geometry function bodies. Volundr renders the canonical
+parameters, component/feature/output registrations, stable identities, and
+`build(params)` entrypoint. The scaffold carries a fingerprint and a manifest
+of AI-owned geometry ranges, so repair cannot rename or replace scaffold-owned
+contract elements. The isolated worker records function, CadQuery operation,
+shape-complexity, and per-output export timing, including partial timeout
+diagnostics when execution is interrupted.
+
 ## Multi-Output Product Model
 
 The same CadQuery contract covers one output or many outputs. Each output has:
