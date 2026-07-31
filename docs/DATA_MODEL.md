@@ -1044,3 +1044,5 @@ system_event
 - File paths are stored relative to Volundr data root.
 - Large source and log content may be stored as files rather than database blobs.
 - SQLite foreign keys must be enabled.
+
+Revisions also persist `functional_status` separately from structural `review_state`; functional findings remain linked to geometric evidence.

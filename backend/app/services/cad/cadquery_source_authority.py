@@ -31,11 +31,14 @@ def build_cadquery_source_authority(
 ) -> dict[str, Any] | None:
     if not design_plan_payload:
         return None
+    functional_parameter_ids = _functional_parameter_ids(design_plan_payload)
     parameters = [
         _authority_parameter(parameter)
         for parameter in design_plan_payload.get("parameters", []) or []
         if isinstance(parameter, dict) and parameter.get("id")
     ]
+    for parameter in parameters:
+        parameter["functional"] = parameter["id"] in functional_parameter_ids
     components = [
         {"id": str(component["id"]), "required": True}
         for component in design_plan_payload.get("components", []) or []
@@ -46,6 +49,12 @@ def build_cadquery_source_authority(
         for feature in design_plan_payload.get("features", []) or []
         if isinstance(feature, dict) and feature.get("id")
     ]
+    functional_feature_ids = _functional_feature_ids(design_plan_payload)
+    for feature in features:
+        feature["functional"] = (
+            feature["id"] in functional_feature_ids
+            or str(feature.get("type") or "").lower() in {"retention", "support", "containment"}
+        )
     outputs = [
         _authority_output(output)
         for output in design_plan_payload.get("printable_outputs", []) or []
@@ -272,6 +281,9 @@ def _validate_source_against_authority(
     source_output_ids = set(source_metadata.output_ids)
     source_feature_components = dict(ast_metadata["feature_components"])
     source_param_refs = set(ast_metadata["parameter_references"])
+    source_param_geometry_effects = set(ast_metadata["parameter_geometry_effects"])
+    source_feature_invocations = dict(ast_metadata["feature_invocations"])
+    source_feature_component_builders = dict(ast_metadata["feature_component_builders"])
     source_defaults = dict(source_metadata.parameter_defaults)
     source_types = dict(source_metadata.parameter_types)
     source_units = dict(source_metadata.parameter_units)
@@ -316,6 +328,20 @@ def _validate_source_against_authority(
             )
         if parameter_id not in source_parameter_ids:
             continue
+        if (
+            parameter_id in source_param_refs
+            and parameter_id not in source_param_geometry_effects
+            and (parameter.get("protected") or parameter.get("functional"))
+        ):
+            findings.append(
+                _finding(
+                    "cadquery.protected_parameter_no_geometry_effect"
+                    if parameter.get("protected")
+                    else "cadquery.functional_parameter_unused",
+                    f"Parameter `{parameter_id}` is referenced but its value does not reach a geometry operation.",
+                    parameter_id=parameter_id,
+                )
+            )
         mismatch = _parameter_metadata_mismatch(
             parameter,
             source_default=source_defaults.get(parameter_id),
@@ -390,6 +416,24 @@ def _validate_source_against_authority(
                     detected_value=detected_component,
                 )
             )
+        elif not source_feature_invocations.get(feature_id, False):
+            findings.append(
+                _finding(
+                    "functional.feature_declared_not_invoked",
+                    f"Required feature `{feature_id}` is declared but its builder is never invoked.",
+                    feature_id=feature_id,
+                    component_id=expected_component or None,
+                )
+            )
+        elif feature.get("functional") and source_feature_component_builders.get(feature_id, False):
+            findings.append(
+                _finding(
+                    "functional.protected_feature_missing",
+                    f"Functional feature `{feature_id}` is only declared on the component builder; no dedicated feature builder was identified.",
+                    feature_id=feature_id,
+                    component_id=expected_component or None,
+                )
+            )
     for output in authority.get("outputs", []) or []:
         if not isinstance(output, dict) or not output.get("id"):
             continue
@@ -461,6 +505,36 @@ def _authority_parameter(parameter: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _functional_parameter_ids(plan: dict[str, Any] | None) -> set[str]:
+    if not isinstance(plan, dict):
+        return set()
+    contract = plan.get("functional_contract")
+    if not isinstance(contract, dict):
+        return set()
+    ids: set[str] = set()
+    for collection in ("mounting_interfaces", "support_interfaces", "containment_interfaces"):
+        for interface in contract.get(collection, []) or []:
+            if not isinstance(interface, dict):
+                continue
+            for key in ("object_requirement_id", "hole_diameter_parameter_id", "floor_thickness_parameter_id"):
+                if interface.get(key):
+                    ids.add(str(interface[key]))
+    return ids
+
+
+def _functional_feature_ids(plan: dict[str, Any] | None) -> set[str]:
+    if not isinstance(plan, dict):
+        return set()
+    contract = plan.get("functional_contract")
+    if not isinstance(contract, dict):
+        return set()
+    return {
+        str(interface["feature_id"])
+        for interface in contract.get("retention_interfaces", []) or []
+        if isinstance(interface, dict) and interface.get("feature_id")
+    }
+
+
 def _normalize_parameter_type(parameter_type: str) -> str:
     return {
         "number": "float",
@@ -474,6 +548,7 @@ def _authority_feature(feature: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(feature["id"]),
         "component_id": str(feature.get("component_id") or ""),
+        "type": feature.get("type"),
         "protected": protected,
         "required": bool(feature.get("required", protected or feature.get("revision_targetable") or feature.get("targetable"))),
         "parameters": [str(parameter_id) for parameter_id in feature.get("parameters", []) or []],
@@ -585,9 +660,45 @@ def _parameter_metadata_mismatch(
 
 def _ast_identity_metadata(source: str) -> dict[str, Any]:
     tree = ast.parse(source)
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
     component_ids: list[str] = []
     feature_components: dict[str, str] = {}
+    feature_functions: dict[str, str] = {}
+    component_function_names: set[str] = set()
     parameter_references: list[str] = []
+    parameter_geometry_effects: set[str] = set()
+    parameter_loads: dict[str, list[ast.Subscript]] = {}
+    geometry_methods = {
+        "box",
+        "chamfer",
+        "circle",
+        "cut",
+        "extrude",
+        "fillet",
+        "hole",
+        "loft",
+        "mirror",
+        "polygon",
+        "rect",
+        "rotate",
+        "translate",
+        "union",
+        "workplane",
+    }
+    geometry_call_names: set[str] = set()
+    assigned_parameter_names: dict[str, str] = {}
+    geometry_argument_names: set[str] = set()
+    geometry_function_names = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+        and any(
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Attribute)
+            and call.func.attr in geometry_methods
+            for call in ast.walk(node)
+        )
+    }
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             for decorator in node.decorator_list:
@@ -596,15 +707,18 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
                         component_id = _string_arg(decorator)
                         if component_id:
                             component_ids.append(component_id)
+                            component_function_names.add(node.name)
                     if decorator.func.id == "feature":
                         feature_id = _string_arg(decorator)
                         component_id = _string_keyword(decorator, "component")
                         if feature_id and component_id:
                             feature_components[feature_id] = component_id
+                            feature_functions[feature_id] = node.name
         if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) and node.value.id == "params":
             parameter_id = _subscript_string(node.slice)
             if parameter_id:
                 parameter_references.append(parameter_id)
+                parameter_loads.setdefault(parameter_id, []).append(node)
         if (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
@@ -616,10 +730,83 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
             parameter_id = _subscript_string(node.args[0])
             if parameter_id:
                 parameter_references.append(parameter_id)
+                parameter_loads.setdefault(parameter_id, []).append(node)
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Attribute):
+                geometry_call_names.add(node.func.attr)
+            elif isinstance(node.func, ast.Name):
+                geometry_call_names.add(node.func.id)
+            if isinstance(node.func, ast.Attribute) and node.func.attr in geometry_methods:
+                for argument in node.args + [keyword.value for keyword in node.keywords]:
+                    if isinstance(argument, ast.Name):
+                        geometry_argument_names.add(argument.id)
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            target = node.targets[0].id
+            if isinstance(node.value, ast.Subscript) and isinstance(node.value.value, ast.Name) and node.value.value.id == "params":
+                parameter_id = _subscript_string(node.value.slice)
+                if parameter_id:
+                    assigned_parameter_names[target] = parameter_id
+            elif (
+                isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Attribute)
+                and isinstance(node.value.func.value, ast.Name)
+                and node.value.func.value.id == "params"
+                and node.value.func.attr == "get"
+                and node.value.args
+            ):
+                parameter_id = _subscript_string(node.value.args[0])
+                if parameter_id:
+                    assigned_parameter_names[target] = parameter_id
+    for parameter_id, loads in parameter_loads.items():
+        for load in loads:
+            ancestor = parents.get(load)
+            while ancestor is not None and not isinstance(ancestor, ast.FunctionDef):
+                if isinstance(ancestor, ast.Call):
+                    if isinstance(ancestor.func, ast.Attribute) and ancestor.func.attr in geometry_methods:
+                        parameter_geometry_effects.add(parameter_id)
+                    elif isinstance(ancestor.func, ast.Name) and ancestor.func.id in geometry_function_names:
+                        parameter_geometry_effects.add(parameter_id)
+                    elif isinstance(ancestor.func, ast.Name) and ancestor.func.id == "range":
+                        function = next(
+                            (
+                                candidate
+                                for candidate in ast.walk(tree)
+                                if isinstance(candidate, ast.FunctionDef)
+                                and load in {descendant for descendant in ast.walk(candidate)}
+                            ),
+                            None,
+                        )
+                        if function is not None and any(
+                            isinstance(call, ast.Call)
+                            and isinstance(call.func, ast.Attribute)
+                            and call.func.attr in geometry_methods
+                            for call in ast.walk(function)
+                        ):
+                            parameter_geometry_effects.add(parameter_id)
+                ancestor = parents.get(ancestor)
+        if parameter_id in assigned_parameter_names.values():
+            if any(name in geometry_argument_names for name, value in assigned_parameter_names.items() if value == parameter_id):
+                parameter_geometry_effects.add(parameter_id)
+    call_names = {
+        node.func.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+    }
+    feature_invocations = {
+        feature_id: function_name in call_names
+        for feature_id, function_name in feature_functions.items()
+    }
+    feature_component_builders = {
+        feature_id: function_name in component_function_names
+        for feature_id, function_name in feature_functions.items()
+    }
     return {
         "component_ids": _dedupe(component_ids),
         "feature_components": feature_components,
         "parameter_references": _dedupe(parameter_references),
+        "parameter_geometry_effects": sorted(parameter_geometry_effects),
+        "feature_invocations": feature_invocations,
+        "feature_component_builders": feature_component_builders,
     }
 
 

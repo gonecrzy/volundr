@@ -613,9 +613,12 @@ class GeminiCliProvider:
                 "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
                 "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
+                "For any physical product with mounting, containment, support, retention, or removal requirements, emit schema_version 1.1 and an explicit functional_contract.",
+                "Resolve mounting plane, plane normal, hole axis, arrangement axis, support-floor decision, removal direction, and retention strategy. Never return unresolved alternatives such as 'or' choices.",
+                "Use Volundr proposals for ordinary defaults; do not ask the user for routine wall thickness, clearance, or fillet values.",
             ]
         schema = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "design_level": "single_part|product|assembly",
             "product_type": "string",
             "purpose": "string",
@@ -684,6 +687,12 @@ class GeminiCliProvider:
                     "orientation": "string",
                 }
             ],
+            "functional_contract": {
+                "coordinate_frames": [{"id": "primary_product_frame", "axes": {"x": "horizontal", "y": "normal", "z": "vertical"}}],
+                "mounting_interfaces": [{"id": "string", "type": "planar_mount", "component_id": "component_id", "mounting_plane": "XZ", "normal_axis": "Y", "fastener_count": 2, "fastener_type": "string", "hole_axis": "Y", "arrangement_axis": "Z", "hole_style": "clearance", "spacing": {"value": 0, "unit": "mm", "source": "volundr_proposal"}}],
+                "support_interfaces": [{"id": "string", "type": "contained_object_support", "component_id": "component_id", "object_requirement_id": "parameter_id", "primary_axis": "Z", "bottom_support_required": True, "minimum_floor_thickness": {"value": 0, "unit": "mm", "source": "volundr_proposal"}, "removal_direction": "+Z"}],
+                "retention_interfaces": [{"id": "string", "type": "retention", "required": True, "environment": "string", "release_behavior": "one_handed", "strategy": "reviewed_proposal", "component_id": "component_id"}],
+            },
             "risks": [
                 {
                     "id": "string",
@@ -746,7 +755,7 @@ class GeminiCliProvider:
                 "Ask clarification when the target, value, strategy, base revision, or supported complexity is ambiguous.",
             ]
         schema = {
-            "schema_version": "revision-plan-v1",
+            "schema_version": "revision-plan-v2",
             "reason": "user_request|geometric_finding|printability_finding|source_quality_finding|assembly_finding|output_failure|parameter_change|preset_change|configuration_change",
             "summary": "string",
             "requested_changes": [
@@ -777,7 +786,7 @@ class GeminiCliProvider:
             "protected_outputs": ["output_id"],
             "prohibited_changes": ["string"],
             "success_criteria": [
-                {"type": "parameter_value", "target_id": "parameter_id", "expected_value": 0}
+                {"type": "mounting_hole_axis|mounting_hole_count|mounting_hole_diameter|mounting_hole_spacing|support_floor_present|minimum_floor_thickness|required_feature_geometry_present|parameter_geometry_effect|output_exists|solid_count|bounds_preserved", "target_id": "output_or_parameter_id", "expected_value": 0}
             ],
             "requires_design_specification_version": False,
             "requires_design_plan_version": False,

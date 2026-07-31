@@ -39,3 +39,5 @@ When information conflicts:
 5. `GEMINI_RULESET.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, `CAD_EXECUTION_SECURITY.md`, and `WORKFLOW_OBSERVABILITY.md` control generated CadQuery behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, execution safety, and workflow tracing.
 6. `CURRENT_STAGE_ROADMAP.md` controls work order.
 7. `LIVE_GENERATION_EVALUATION.md` controls how live benchmark evidence is collected before changing that work order.
+
+Functional design intent and deterministic geometry verification: `FUNCTIONAL_DESIGN_INTENT.md`, `FUNCTIONAL_GEOMETRY_VERIFICATION.md`, and `FUNCTIONAL_DESIGN_VERIFICATION_EVALUATION.md`.

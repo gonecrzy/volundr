@@ -40,9 +40,16 @@ export type CandidateRevision = {
   status: string;
   is_accepted: boolean;
   review_state: ReviewState | null;
+  functional_status?: FunctionalStatus;
   validation_summary: ValidationSummary;
   design_consistency?: DesignConsistency | null;
 };
+
+export type FunctionalStatus =
+  | "functionally_verified"
+  | "functionally_partially_verified"
+  | "functionally_unverified"
+  | "functionally_violated";
 
 export type RevisionOutputState =
   | "queued"
@@ -294,6 +301,12 @@ export function canAcceptRevision(revision: CandidateRevision | null): boolean {
   if (revision.design_consistency && revision.design_consistency.status !== "passed") {
     return false;
   }
+  if (
+    revision.functional_status &&
+    !["functionally_verified", "functionally_partially_verified"].includes(revision.functional_status)
+  ) {
+    return false;
+  }
   return (
     (revision.review_state === "ready" || revision.review_state === "ready_with_warnings") &&
     revision.validation_summary.blocking_count === 0
@@ -311,6 +324,12 @@ export function acceptDisabledReason(revision: CandidateRevision | null): string
     }
     return "Design consistency must pass before accepting.";
   }
+  if (revision.functional_status === "functionally_violated") {
+    return "Critical functional checks failed. Review the design checks before accepting.";
+  }
+  if (revision.functional_status === "functionally_unverified") {
+    return "Critical functional checks are not verified for this version.";
+  }
   if (revision.validation_summary.blocking_count > 0) {
     const count = revision.validation_summary.blocking_count;
     return `Resolve ${count} blocking ${count === 1 ? "finding" : "findings"} with a new revision before accepting.`;
@@ -325,6 +344,21 @@ export function acceptDisabledReason(revision: CandidateRevision | null): string
     return "Only ready candidates can be accepted.";
   }
   return null;
+}
+
+export function functionalStatusLabel(status: FunctionalStatus | undefined): string {
+  switch (status) {
+    case "functionally_verified":
+      return "Verified";
+    case "functionally_partially_verified":
+      return "Partially verified";
+    case "functionally_violated":
+      return "Blocked";
+    case "functionally_unverified":
+      return "Not verified";
+    default:
+      return "Not reported";
+  }
 }
 
 export function designConsistencyLabel(revision: CandidateRevision | null): string {

@@ -125,6 +125,10 @@ from app.services.cad.source_metadata import (
     evaluate_constants,
 )
 from app.services.generation.failure_taxonomy import FailureClass
+from app.services.functional.intent import (
+    validate_functional_plan,
+    validate_revision_success_criteria,
+)
 from app.services.projects.design_artifact_consistency import (
     certify_design_artifact_consistency,
     consistency_failure_message,
@@ -146,6 +150,10 @@ from app.services.geometry.invariants import (
     GeometricFinding,
     GeometryAnalyzerRegistry,
     mesh_hash,
+)
+from app.services.geometry.functional import (
+    FunctionalGeometryContext,
+    FunctionalGeometryVerifierRegistry,
 )
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
@@ -3679,6 +3687,7 @@ class ProjectService:
                 else None,
                 base_design_plan_id=design_plan.id,
                 generation_attempt_id=attempt.id,
+                design_plan_payload=self._read_design_plan_payload(design_plan),
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -4089,6 +4098,14 @@ class ProjectService:
             normalized,
             design_specification_payload=design_specification_payload,
         )
+        functional_findings = validate_functional_plan(normalized)
+        if any(finding.get("is_blocking") for finding in functional_findings):
+            raise ValueError(
+                "Functional Design Plan validation failed: "
+                + "; ".join(str(finding.get("rule_id")) for finding in functional_findings)
+            )
+        if functional_findings:
+            normalized["functional_validation_findings"] = functional_findings
         explicit_inventory = inventory_from_design_specification(design_specification_payload)
         if explicit_inventory:
             validate_design_plan_trace(normalized, explicit_inventory)
@@ -4222,6 +4239,7 @@ class ProjectService:
         base_design_specification_id: str | None,
         base_design_plan_id: str | None,
         generation_attempt_id: str,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -4237,6 +4255,15 @@ class ProjectService:
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = outcome == RevisionPlanOutcome.CLARIFICATION_REQUIRED
         normalized["revision_ready"] = outcome == RevisionPlanOutcome.REVISION_READY
+        criteria_findings = validate_revision_success_criteria(
+            normalized,
+            plan=design_plan_payload,
+        )
+        if any(finding.get("is_blocking") for finding in criteria_findings):
+            raise ValueError(
+                "Revision success criteria validation failed: "
+                + "; ".join(str(finding.get("rule_id")) for finding in criteria_findings)
+            )
         return normalized
 
     def _derive_revision_plan_outcome(self, payload: dict[str, Any]) -> RevisionPlanOutcome:
@@ -6917,6 +6944,7 @@ class ProjectService:
             source,
             self._revision_design_plan_payload(revision) or {},
         )
+        design_plan_payload = self._revision_design_plan_payload(revision) or {}
         context = GeometricAnalysisContext(
             mesh=mesh,
             design_specification=design_specification_payload,
@@ -6925,6 +6953,55 @@ class ProjectService:
             mesh_hash=mesh_hash(mesh),
         )
         result = GeometryAnalyzerRegistry.default().analyze(context)
+        functional_contract = design_plan_payload.get("functional_contract")
+        if isinstance(functional_contract, dict):
+            parameter_manifest = None
+            if revision.execution_manifest_path:
+                execution_manifest = self._read_json_file(revision.execution_manifest_path)
+                if isinstance(execution_manifest, dict):
+                    parameter_manifest = execution_manifest.get("parameters")
+            result.findings.extend(
+                FunctionalGeometryVerifierRegistry.default().verify(
+                    FunctionalGeometryContext(
+                        product_plan=design_plan_payload,
+                        output_shape=mesh,
+                        source_metadata=source_metadata,
+                        parameter_manifest=parameter_manifest,
+                    )
+                )
+            )
+        authority = authority_from_generation_context(design_plan_payload=design_plan_payload)
+        if authority is not None:
+            try:
+                validate_cadquery_source_authority(source, authority)
+            except CadQuerySourceAuthorityError as error:
+                for source_finding in error.findings:
+                    if source_finding.get("rule_id") not in {
+                        "cadquery.protected_parameter_no_geometry_effect",
+                        "cadquery.functional_parameter_unused",
+                        "functional.feature_declared_not_invoked",
+                        "functional.protected_feature_missing",
+                    }:
+                        continue
+                    result.findings.append(
+                        GeometricFinding(
+                            rule_id=f"functional.{source_finding['rule_id'].split('.', 1)[-1]}",
+                            requirement_id=source_finding.get("parameter_id"),
+                            verification_state="violated",
+                            expected_value=source_finding.get("expected_value"),
+                            detected_value=source_finding.get("detected_value"),
+                            unit=None,
+                            tolerance=None,
+                            confidence=1.0,
+                            severity="critical",
+                            is_blocking=True,
+                            title="Functional parameter or feature implementation",
+                            explanation=source_finding.get("explanation") or source_finding.get("message") or "Functional source evidence is missing.",
+                            suggested_correction="Regenerate the source so the approved functional parameter or feature changes the intended geometry.",
+                            feature_id=source_finding.get("feature_id"),
+                            metadata={"source_contract_rule_id": source_finding.get("rule_id")},
+                        )
+                    )
         if not source_metadata.geometry_mappings and self._has_protected_design_invariants(
             design_specification_payload
         ):
@@ -7153,6 +7230,23 @@ class ProjectService:
         if findings:
             return "ready_with_warnings"
         return "ready"
+
+    def _derive_functional_status(self, revision_id: str) -> str:
+        findings = list(
+            self.db.scalars(
+                select(ValidationFinding).where(
+                    ValidationFinding.revision_id == revision_id,
+                    ValidationFinding.rule_id.like("functional.%"),
+                )
+            )
+        )
+        if not findings:
+            return "functionally_unverified"
+        if any(finding.is_blocking for finding in findings):
+            return "functionally_violated"
+        if any("unverifiable" in (finding.explanation or "").lower() for finding in findings):
+            return "functionally_unverified"
+        return "functionally_verified"
 
     def _should_auto_accept_revision(
         self,
@@ -7594,6 +7688,33 @@ class ProjectService:
                 parameter_overrides=parameter_overrides,
                 generation_attempt_id=generation_attempt_id,
             )
+        functional_findings = list(
+            self.db.scalars(
+                select(ValidationFinding).where(
+                    ValidationFinding.revision_id == revision.id,
+                    ValidationFinding.rule_id.like("functional.%"),
+                )
+            )
+        )
+        functional_validation_event = None
+        if functional_findings:
+            first_functional = functional_findings[0]
+            functional_validation_event = self._record_workflow_event(
+                workflow_run,
+                stage="topology_validation",
+                event_type="functional.verification.completed",
+                severity="error" if any(item.is_blocking for item in functional_findings) else "summary",
+                blocking=any(item.is_blocking for item in functional_findings),
+                rule_id=first_functional.rule_id,
+                message="Functional design checks completed.",
+                deduplication_key=f"functional-verification-{revision.id}",
+                revision_id=revision.id,
+                metadata={
+                    "finding_count": len(functional_findings),
+                    "blocking_count": sum(1 for item in functional_findings if item.is_blocking),
+                },
+            )
+        revision.functional_status = self._derive_functional_status(revision.id)
         revision.review_state = (
             self._derive_review_state(revision.id)
             if revision.status == "succeeded" or source_type != "manual_edit"
@@ -7613,11 +7734,19 @@ class ProjectService:
             caused_by_event_id=(
                 first_blocking_validation_event.id
                 if first_blocking_validation_event is not None
-                else worker_event.id
-                if revision.status == "failed" and worker_event is not None
-                else None
+                else (
+                    functional_validation_event.id
+                    if functional_validation_event is not None and functional_validation_event.blocking
+                    else worker_event.id
+                    if revision.status == "failed" and worker_event is not None
+                    else None
+                )
             ),
-            is_downstream_symptom=(first_blocking_validation_event is not None or revision.status == "failed"),
+            is_downstream_symptom=(
+                first_blocking_validation_event is not None
+                or (functional_validation_event is not None and functional_validation_event.blocking)
+                or revision.status == "failed"
+            ),
             revision_id=revision.id,
             metadata={
                 "review_state": revision.review_state,
@@ -8768,6 +8897,7 @@ class ProjectService:
             status=revision.status,
             is_accepted=revision.is_accepted,
             review_state=revision.review_state,
+            functional_status=revision.functional_status,
             accepted_at=revision.accepted_at,
             rejected_at=revision.rejected_at,
             created_at=revision.created_at,

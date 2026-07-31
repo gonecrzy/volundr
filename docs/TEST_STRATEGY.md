@@ -350,6 +350,8 @@ Structured revision tests must use fake providers and deterministic source/outpu
 Component-targeted revision tests must use fake providers and deterministic source/output fixtures. They must cover full-source prompt mode, source ownership metadata, allowed versus unapproved shared-helper changes, protected component drift, output preservation blocking, interface parameter checks, component revision summaries, and active configuration preservation.
 They must also cover that scope correction runs at most once and compilation begins only after corrected source passes scope compliance.
 
+Functional design regressions cover explicit interface validation, protected-parameter data flow, feature invocation, mounting direction, support floors, typed revision criteria, and the failed holder evidence.
+
 Parameter configuration tests must use deterministic accepted-source fixtures and must not call a provider. They must cover editable parameter listing, number/integer/boolean/enum validation, non-editable and derived-parameter rejection, preset preview, dependency impact expansion, `-D` override compilation, active-revision preservation, configuration-linked candidates, retry/export manifest behavior, and UI rendering for ready/invalid/requires-revision states.
 
 ## Frontend User Workflows

@@ -147,6 +147,11 @@ type Revision = {
   status: string;
   is_accepted: boolean;
   review_state: ReviewState | null;
+  functional_status?:
+    | "functionally_verified"
+    | "functionally_partially_verified"
+    | "functionally_unverified"
+    | "functionally_violated";
   accepted_at: string | null;
   rejected_at: string | null;
   user_instruction: string | null;
@@ -3275,6 +3280,8 @@ function CandidateReview({
         <dd>{revision.validation_summary.advisory_count}</dd>
         <dt>Design consistency</dt>
         <dd>{designConsistencyLabel(revision)}</dd>
+        <dt>Functional checks</dt>
+        <dd>{revision.functional_status?.replaceAll("functionally_", "") ?? "Not reported"}</dd>
       </dl>
       <p className={blockedRequired > 0 ? "blocked-reason" : "empty"}>
         {candidateStatusSummary({ total: outputs.length, blockedRequired, ready: outputs.filter((output) => ["ready", "ready_with_warnings"].includes(output.execution_state)).length })}

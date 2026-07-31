@@ -65,6 +65,9 @@ class Revision(Base):
     status: Mapped[str] = mapped_column(String(40), nullable=False, default="pending")
     is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     review_state: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    functional_status: Mapped[str] = mapped_column(
+        String(48), nullable=False, default="functionally_unverified"
+    )
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     rejected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

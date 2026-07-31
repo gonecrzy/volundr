@@ -406,7 +406,7 @@ Excluded from this increment:
 
 ## Stage 8 — Frontend Workflow And User Testing
 
-Status: Ready for observed user testing
+Status: Paused pending functional-design reliability
 
 Current status:
 
@@ -418,7 +418,7 @@ Current status:
 
 Next activity:
 
-- run the five scripted observed-user sessions in `docs/FRONTEND_USER_TESTING_PLAN.md`
+- complete functional-intent and deterministic physical-verification regressions
 - preserve event traces, diagnosis, and redacted debug bundles
 - address the highest repeated user consequence before further architecture work
 

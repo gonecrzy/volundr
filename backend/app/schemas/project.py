@@ -363,6 +363,66 @@ class DesignPlanPrintableOutput(BaseModel):
     notes: str | None = None
 
 
+class FunctionalCoordinateFrame(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    axes: dict[str, str] = Field(default_factory=dict)
+
+
+class FunctionalMountingInterface(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    type: str = Field(min_length=1)
+    component_id: str | None = None
+    coordinate_frame_id: str | None = None
+    mounting_plane: str | None = None
+    normal_axis: str | None = None
+    fastener_count: int | None = Field(default=None, ge=1)
+    fastener_type: str | None = None
+    hole_axis: str | None = None
+    arrangement_axis: str | None = None
+    hole_style: str | None = None
+    spacing: dict[str, Any] | None = None
+
+
+class FunctionalSupportInterface(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    type: str | None = None
+    component_id: str | None = None
+    object_requirement_id: str | None = None
+    primary_axis: str | None = None
+    bottom_support_required: bool = False
+    minimum_floor_thickness: dict[str, Any] | None = None
+    removal_direction: str | None = None
+
+
+class FunctionalRetentionInterface(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    type: str = "retention"
+    required: bool = False
+    environment: str | None = None
+    release_behavior: str | None = None
+    strategy: str | None = None
+    component_id: str | None = None
+    feature_id: str | None = None
+
+
+class FunctionalDesignContract(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    coordinate_frames: list[FunctionalCoordinateFrame] = Field(default_factory=list)
+    mounting_interfaces: list[FunctionalMountingInterface] = Field(default_factory=list)
+    support_interfaces: list[FunctionalSupportInterface] = Field(default_factory=list)
+    containment_interfaces: list[FunctionalSupportInterface] = Field(default_factory=list)
+    retention_interfaces: list[FunctionalRetentionInterface] = Field(default_factory=list)
+
+
 class DesignPlanPayload(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -382,6 +442,7 @@ class DesignPlanPayload(BaseModel):
     presets: list[DesignPlanPreset] = Field(default_factory=list)
     assembly_strategy: dict[str, Any] = Field(default_factory=dict)
     printable_outputs: list[DesignPlanPrintableOutput] = Field(default_factory=list)
+    functional_contract: FunctionalDesignContract | None = None
     risks: list[dict[str, Any]] = Field(default_factory=list)
     clarification_required: bool = False
     clarification_questions: list[dict[str, Any]] = Field(default_factory=list)
@@ -747,6 +808,7 @@ class RevisionRead(BaseModel):
     status: str
     is_accepted: bool
     review_state: str | None = None
+    functional_status: str = "functionally_unverified"
     accepted_at: datetime | None = None
     rejected_at: datetime | None = None
     created_at: datetime

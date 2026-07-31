@@ -1,0 +1,23 @@
+{
+  "schema_version": "functional-regression-v1",
+  "case_id": "failed-holder-functional-intent",
+  "source_evidence": {
+    "project_id": "9c5bb16c-f12d-4925-8c89-2d8eadcc3112",
+    "revision_id": "623cccbd-cc22-4c5f-a882-7de329b6377a",
+    "design_plan_path": "data/projects/9c5bb16c-f12d-4925-8c89-2d8eadcc3112/generation-runs/fca6a444-9a4d-461c-a6a1-4a7dfc8b3e04/design-plan.json",
+    "revision_plan_path": "data/projects/9c5bb16c-f12d-4925-8c89-2d8eadcc3112/generation-runs/ad5b4f3e-6e7b-42c4-8319-fc96a95e0d27/parsed-revision-plan.json"
+  },
+  "generic_expected_failures": [
+    "functional.mounting_hole_axis",
+    "functional.support_floor_present",
+    "cadquery.protected_parameter_no_geometry_effect",
+    "functional.protected_feature_missing"
+  ],
+  "must_not_use_product_specific_branching": true,
+  "required_assertions": [
+    "ambiguous mounting alternatives are rejected",
+    "typed revision criteria reject output IDs as parameter IDs",
+    "source or volume change alone does not establish physical success",
+    "critical functional failures cannot be functionally ready"
+  ]
+}

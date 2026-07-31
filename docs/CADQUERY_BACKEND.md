@@ -203,3 +203,5 @@ Historical benchmark notes may remain when they are clearly labeled as historica
 - Add fishing-tray-specific architecture.
 - Treat mesh-only validation as proof of valid B-Rep topology.
 - Allow generated code to choose export paths or write artifacts directly.
+
+Protected and explicitly functional parameters must reach geometry or pattern construction; see `docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md`.
