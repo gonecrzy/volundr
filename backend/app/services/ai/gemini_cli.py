@@ -22,7 +22,11 @@ from app.services.ai.provider import (
 from app.services.cad.cadquery_source_authority import (
     format_authoritative_identity_section,
 )
-from app.services.cad.source_scaffold import SCAFFOLD_VERSION, geometry_function_names
+from app.services.cad.geometry_bodies import (
+    GEOMETRY_BODIES_SCHEMA_VERSION,
+    build_geometry_function_inventory,
+)
+from app.services.cad.source_scaffold import SCAFFOLD_VERSION
 from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
@@ -32,7 +36,8 @@ DESIGN_PLAN_PROMPT_VERSION = "design-plan-v3"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v5"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v1"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -208,6 +213,8 @@ class GeminiCliProvider:
         return self.gemini_ruleset_version
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if request.geometry_body_diagnostics:
+            return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
         if request.compiler_diagnostics:
             return CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION
         if request.contract_diagnostics:
@@ -253,7 +260,7 @@ class GeminiCliProvider:
         return self.build_cadquery_prompt(request)
 
     def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
-        if request.generation_contract_version == SCAFFOLD_VERSION:
+        if request.generation_contract_version == SCAFFOLD_VERSION or request.geometry_body_diagnostics:
             return self.build_scaffold_geometry_prompt(request)
         parts = [
             "You generate CadQuery Python for Volundr.",
@@ -552,25 +559,48 @@ class GeminiCliProvider:
 
     def build_scaffold_geometry_prompt(self, request: ModelGenerationRequest) -> str:
         plan = request.design_plan or {}
-        expected_functions = geometry_function_names(plan)
-        parameter_ids = [
-            str(parameter["id"])
-            for parameter in plan.get("parameters", []) or []
-            if isinstance(parameter, dict) and parameter.get("id")
-        ]
+        inventory = build_geometry_function_inventory(plan)
+        expected_functions = inventory["expected_function_ids"]
+        parameter_ids = inventory["allowed_parameters"]
         lines = [
-            "You generate only the geometry implementation functions for Volundr.",
-            "Return exactly one fenced python block containing only the requested function definitions.",
-            "Do not return imports, decorators, ParameterSpec, Product, PrintableOutput, build(params), or any registration metadata.",
+            "You generate only structured CadQuery geometry bodies for Volundr.",
+            "Return JSON only, optionally inside one json code fence. Do not include prose outside JSON.",
+            f"Use schema_version exactly {GEOMETRY_BODIES_SCHEMA_VERSION}.",
+            "Return body_lines statements only; never return def declarations, decorators, imports, fences, or prose inside a body.",
             "Volundr deterministically owns all parameters, components, features, outputs, IDs, and the build entrypoint.",
             "Use CadQuery as `cq` and the canonical parameter IDs exactly as provided.",
-            "Component functions accept `(params)` and return a CadQuery shape.",
-            "Feature functions accept `(body, params)` and return the modified CadQuery shape.",
-            "Do not rename, omit, or add functions. Do not add imports or file/network access.",
+            "Implement every required function_id exactly once. Do not rename, omit, or add functions.",
+            "Component bodies return a CadQuery shape. Feature bodies return the modified CadQuery shape.",
+            "Do not add file, network, subprocess, or dynamic Python access.",
             "Canonical parameter IDs: " + ", ".join(parameter_ids),
-            "Required geometry functions:",
+            "Required function authority inventory:",
+            json.dumps(inventory["functions"], indent=2, sort_keys=True),
+            "",
+            "Required response shape:",
+            json.dumps(
+                {
+                    "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
+                    "functions": [
+                        {"function_id": function_id, "body_lines": ["statement", "return shape"]}
+                        for function_id in expected_functions
+                    ],
+                },
+                indent=2,
+            ),
         ]
-        lines.extend(f"- {name}" for name in expected_functions)
+        if request.geometry_body_diagnostics:
+            lines.extend(
+                [
+                    "",
+                    f"Repair mode: {CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION}",
+                    "Repair only the structured geometry-body response using the diagnostics below.",
+                    "Do not change scaffold-owned parameters, IDs, function signatures, or the Design Plan.",
+                    "Rejected response diagnostics:",
+                    request.geometry_body_diagnostics,
+                    "Rejected structured response:",
+                    request.current_source or "",
+                ]
+            )
         if request.contract_diagnostics:
             lines.extend(["", "Repair diagnostics:", request.contract_diagnostics])
         if request.compiler_diagnostics:

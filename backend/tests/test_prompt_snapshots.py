@@ -49,7 +49,7 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-generation-v5"
+    assert provider.prompt_template_version_for(request) == "cadquery-generation-v6"
     assert provider.ruleset_version == "gemini-ruleset-v1"
     assert "You generate CadQuery Python for Volundr." in prompt
     assert "Return only a single fenced python block" in prompt
@@ -103,7 +103,8 @@ def test_scaffold_prompt_requests_geometry_functions_only() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert "only the geometry implementation functions" in prompt
+    assert "only structured CadQuery geometry bodies" in prompt
+    assert "body_lines" in prompt
     assert "_ai_component_body" in prompt
     assert "Volundr deterministically owns all parameters" in prompt
 

@@ -229,7 +229,7 @@ def test_enclosure_revision_scope_and_identity_fail_before_worker(tmp_path: Path
             summary = client.get(f"/api/test-fixture/projects/{project_id}/summary").json()
             assert len(summary["worker_calls"]) == 1
             assert all(call["output_ids"] == ["base", "lid"] for call in summary["worker_calls"])
-            expected_event = "source_contract.failed" if mode == "identity_replacement" else "revision_scope.failed"
+            expected_event = "geometry_body.failed" if mode == "identity_replacement" else "revision_scope.failed"
             assert expected_event in summary["workflow_event_types"]
             failed_run = next(
                 run for run in summary["workflow_runs"] if run["workflow_type"] == "component_revision"
@@ -237,6 +237,7 @@ def test_enclosure_revision_scope_and_identity_fail_before_worker(tmp_path: Path
             diagnosis = client.get(f"/api/workflow-runs/{failed_run['id']}/diagnosis")
             assert diagnosis.status_code == 200
             assert diagnosis.json()["root_cause"]["stage"] in {
+                "source_extraction",
                 "source_contract_validation",
                 "revision_scope_validation",
                 "scope_correction",

@@ -6,6 +6,7 @@ class FailureClass(StrEnum):
     PROVIDER_FAILURE = "provider_failure"
     PROVIDER_TIMEOUT = "provider_timeout"
     SOURCE_EXTRACTION_FAILURE = "source_extraction_failure"
+    GEOMETRY_BODY_FAILURE = "geometry_body_failure"
     SOURCE_CONTRACT_HARD_REJECTION = "source_contract_hard_rejection"
     CADQUERY_COMPILE_FAILURE = "cadquery_compile_failure"
     CADQUERY_TIMEOUT = "cadquery_timeout"

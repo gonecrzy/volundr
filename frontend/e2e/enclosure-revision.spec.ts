@@ -106,7 +106,7 @@ test("revise-enclosure-lid changes only the lid through the approved revision wo
   );
   expect(candidateRevision).toBeTruthy();
   const source = await page.request.get(`/api/revisions/${candidateRevision.id}/source`);
-  expect(await source.text()).toContain("recessed finger pull");
+  expect(await source.text()).toContain(".cut(");
   const beforeAcceptanceProject = await page.request.get(`/api/projects/${projectId}`);
   expect((await beforeAcceptanceProject.json()).active_revision_id).toBe(fixture.project.active_revision_id);
 

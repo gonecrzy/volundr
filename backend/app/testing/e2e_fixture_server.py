@@ -1,3 +1,4 @@
+import ast
 import json
 import hashlib
 from collections.abc import Generator
@@ -32,6 +33,8 @@ from app.services.ai.provider import (
     SourceBriefResult,
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
+from app.services.cad.geometry_bodies import GEOMETRY_BODIES_SCHEMA_VERSION
+from app.services.cad.source_scaffold import SCAFFOLD_VERSION, _component_geometry_name, _feature_geometry_name
 from app.services.mesh.inspect import MeshMetadata
 from app.schemas.project import ProjectCreate, RequirementExtractionCreate
 from app.services.projects.service import ProjectService
@@ -332,6 +335,45 @@ ENCLOSURE_REVISION_PLAN: dict[str, Any] = {
 }
 
 
+def _structured_geometry_response(plan: dict[str, Any], source: str) -> dict[str, Any]:
+    """Adapt deterministic fixture geometry to the production body contract."""
+
+    tree = ast.parse(source)
+    builders = [
+        node
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name != "build"
+    ]
+    functions: list[dict[str, Any]] = []
+    for component, builder in zip(
+        [item for item in plan.get("components", []) if isinstance(item, dict)],
+        builders,
+    ):
+        component_id = str(component["id"])
+        function_id = _component_geometry_name(component_id)
+        if component_id == "snap_lid" and "lid_component" in source:
+            function_id = _component_geometry_name("lid_component")
+        functions.append(
+            {
+                "function_id": function_id,
+                "body_lines": [ast.unparse(statement) for statement in builder.body],
+            }
+        )
+    for feature in plan.get("features", []) or []:
+        if not isinstance(feature, dict) or not feature.get("id"):
+            continue
+        functions.append(
+            {
+                "function_id": _feature_geometry_name(str(feature["id"])),
+                "body_lines": ["return body"],
+            }
+        )
+    return {
+        "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
+        "functions": functions,
+    }
+
+
 class FixtureProvider:
     """A deterministic provider used only by browser integration tests."""
 
@@ -362,10 +404,13 @@ class FixtureProvider:
         return "fixture-revision-plan-v1"
 
     def cadquery_prompt_template_version(self) -> str:
-        return "fixture-cadquery-v1"
+        return "fixture-cadquery-v2"
+
+    def cadquery_generation_contract_version(self) -> str:
+        return SCAFFOLD_VERSION
 
     def prompt_template_version_for(self, _request: ModelGenerationRequest) -> str:
-        return "fixture-cadquery-v1"
+        return "fixture-cadquery-v2"
 
     def build_requirement_prompt(self, _request: RequirementExtractionRequest) -> str:
         return "fixture requirements prompt"
@@ -496,6 +541,7 @@ class FixtureProvider:
         is_enclosure = "enclosure" in _request.user_instruction.lower() or "enclosure" in _request.original_intent.lower()
         self._record_call(_request, "component_revision" if _request.revision_plan else "source_generation")
         if is_enclosure:
+            plan = ENCLOSURE_PLAN
             source = ENCLOSURE_REVISED_SOURCE if _request.revision_plan else ENCLOSURE_SOURCE
             if _request.revision_plan and self.revision_mode == "protected_base_drift":
                 source = source.replace(
@@ -506,9 +552,10 @@ class FixtureProvider:
             elif _request.revision_plan and self.revision_mode == "identity_replacement":
                 source = source.replace('"snap_lid"', '"lid_component"')
         else:
+            plan = ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
             source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
         return ModelGenerationResult(
-            raw_output=f"```python\n{source}\n```",
+            raw_output=json.dumps(_structured_geometry_response(plan, source)),
             provider="fixture",
             provider_model="fixture-model",
         )
@@ -653,7 +700,9 @@ class FixtureRunner:
                 second = trimesh.creation.box(extents=(8.0, 8.0, extents[2]))
                 second.apply_translation((extents[0] + 12.0, extents[1] / 2, extents[2] / 2))
                 mesh = trimesh.util.concatenate([mesh, second])
-            if output_id == "lid" and "recessed finger pull" in source:
+            # The structured geometry contract removes provider comments. Detect
+            # the executable fixture feature instead of relying on comment text.
+            if output_id == "lid" and ".cut(" in source:
                 mesh.vertices[0] += (0.1, 0.1, 0.1)
             mesh.export(stl_path)
             step_path.write_text("ISO-10303-21; END-ISO-10303-21;", encoding="utf-8")

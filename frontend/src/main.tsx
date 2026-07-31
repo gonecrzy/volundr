@@ -100,6 +100,10 @@ const SOURCE_CONTRACT_REJECTION_PREFIXES = [
   "Revision source rejected before compile",
   SOURCE_IDENTITY_REJECTION_MESSAGE,
 ];
+const GEOMETRY_BODY_FAILURE_PREFIXES = [
+  "Geometry body",
+  "geometry_body.",
+];
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_GENERATION_MODE?: string;
 };
@@ -537,6 +541,10 @@ const DEFAULT_PRINTABILITY_PROFILE: PrintabilityProfile = {
 
 function isSourceContractRejection(message: string): boolean {
   return SOURCE_CONTRACT_REJECTION_PREFIXES.some((prefix) => message.startsWith(prefix));
+}
+
+function isGeometryBodyFailure(message: string): boolean {
+  return GEOMETRY_BODY_FAILURE_PREFIXES.some((prefix) => message.startsWith(prefix));
 }
 
 function App() {
@@ -1297,6 +1305,9 @@ function App() {
       if (isSourceContractRejection(message)) {
         setSourceContractError(message);
         setMessage(SOURCE_IDENTITY_REJECTION_MESSAGE);
+      } else if (isGeometryBodyFailure(message)) {
+        setSourceContractError(message);
+        setMessage("Volundr could not assemble the generated geometry.");
       } else {
         setMessage(message);
       }

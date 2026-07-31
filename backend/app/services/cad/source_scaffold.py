@@ -330,7 +330,16 @@ def _skeleton(source: str) -> str:
 
 def _parameter_spec_expression(parameter: dict[str, Any]) -> str:
     parameter_id = _required_id(parameter, "id", "parameter")
-    parameter_type = str(parameter.get("type") or parameter.get("parameter_type") or _infer_type(parameter.get("value")))
+    parameter_type = str(
+        parameter.get("type")
+        or parameter.get("parameter_type")
+        or _infer_type(parameter)
+    )
+    parameter_type = {
+        "number": "float",
+        "integer": "int",
+        "boolean": "bool",
+    }.get(parameter_type, parameter_type)
     default = parameter.get("default", parameter.get("value"))
     if default is None:
         raise ScaffoldSourceError(f"parameter {parameter_id} has no canonical default")
@@ -410,6 +419,14 @@ def _literal_tuple(values: Any) -> str:
 
 
 def _infer_type(value: Any) -> str:
+    if isinstance(value, dict):
+        unit = str(value.get("unit") or "").lower()
+        parameter_id = str(value.get("id") or "").lower()
+        if unit == "count" or parameter_id.endswith("_count") or parameter_id in {"count", "quantity"}:
+            return "int"
+        if unit in {"mm", "millimeter", "millimeters", "deg", "degree", "degrees"}:
+            return "float"
+        value = value.get("value")
     if isinstance(value, bool):
         return "bool"
     if isinstance(value, int):

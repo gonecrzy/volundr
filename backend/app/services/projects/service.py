@@ -115,11 +115,16 @@ from app.services.cad.cadquery_source_authority import (
     authority_from_generation_context,
     validate_cadquery_source_authority,
 )
+from app.services.cad.geometry_bodies import (
+    GEOMETRY_BODIES_SCHEMA_VERSION,
+    GeometryBodyError,
+    assemble_geometry_bodies,
+    build_geometry_function_inventory,
+)
 from app.services.cad.source_scaffold import (
     SCAFFOLD_VERSION,
     ScaffoldSourceError,
     extract_geometry_functions,
-    geometry_function_names,
     render_cadquery_scaffold,
     validate_scaffold_source,
 )
@@ -1881,10 +1886,28 @@ class ProjectService:
                 role="component_revision_geometry",
             )
         except (SourceExtractionError, ScaffoldSourceError) as exc:
+            if isinstance(exc, GeometryBodyError):
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="source_extraction",
+                    event_type="geometry_body.failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id=exc.rule_id,
+                    message=str(exc),
+                    deduplication_key=f"geometry-body-failed-{generation_attempt.id}",
+                    generation_attempt_id=generation_attempt.id,
+                    revision_plan_id=plan.id,
+                    metadata=exc.details,
+                )
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
             )
             raise ValueError(str(exc)) from exc
@@ -2283,7 +2306,11 @@ class ProjectService:
             self._finish_generation_attempt(
                 correction_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
             )
             raise ValueError(str(exc)) from exc
@@ -3048,7 +3075,11 @@ class ProjectService:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
                 resulting_revision_id=failed_repair.id,
             )
@@ -3130,6 +3161,7 @@ class ProjectService:
             relative_path=generation_attempt.raw_output_path,
             redacted=False,
         )
+        active_role = "initial_generated_source"
         try:
             source = self._prepare_generated_source(
                 raw_output=generation_result.raw_output,
@@ -3139,6 +3171,50 @@ class ProjectService:
                 workflow_run=workflow_run,
                 role="initial_geometry",
             )
+        except GeometryBodyError as exc:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_body.failed",
+                severity="error",
+                blocking=True,
+                rule_id=exc.rule_id,
+                message=str(exc),
+                deduplication_key=f"geometry-body-failed-{generation_attempt.id}",
+                generation_attempt_id=generation_attempt.id,
+                metadata=exc.details,
+            )
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+                error_message=str(exc),
+            )
+            repaired = await self._attempt_geometry_body_repair(
+                project=project,
+                payload=payload,
+                failed_attempt=generation_attempt,
+                failed_response=generation_result,
+                diagnostics=exc,
+                design_specification=design_specification,
+                design_specification_payload=design_specification_payload,
+                design_plan=design_plan,
+                design_plan_payload=design_plan_payload,
+                workflow_run=workflow_run,
+            )
+            if repaired is None:
+                failed_revision = self._create_failed_ai_revision(
+                    project=project,
+                    user_instruction=payload.user_instruction,
+                    source_type=source_type,
+                    raw_ai_output=generation_result.raw_output,
+                    error_message=str(exc),
+                )
+                generation_attempt.resulting_revision_id = failed_revision.id
+                self.db.commit()
+                raise _StoppedWithRevision(failed_revision) from exc
+            source, generation_result, generation_attempt = repaired
+            active_role = "geometry_body_repaired_source"
         except (SourceExtractionError, ScaffoldSourceError) as exc:
             failed_revision = self._create_failed_ai_revision(
                 project=project,
@@ -3150,7 +3226,11 @@ class ProjectService:
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
                 resulting_revision_id=failed_revision.id,
             )
@@ -3165,7 +3245,7 @@ class ProjectService:
             workflow_run,
             stage="source_extraction",
             artifact_type="cadquery_source",
-            role="initial_generated_source",
+            role=active_role,
             relative_path=generation_attempt.source_path,
             redacted=False,
         )
@@ -3286,7 +3366,11 @@ class ProjectService:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
             )
             if repair_workflow_run is not None:
@@ -3373,6 +3457,7 @@ class ProjectService:
         source_metadata: dict[str, Any] | None = None,
         scoped_revision_context: dict[str, Any] | None = None,
         configuration_context: dict[str, Any] | None = None,
+        geometry_body_diagnostics: str | None = None,
     ) -> ModelGenerationRequest:
         source_authority = authority_from_generation_context(
             design_plan_payload=design_plan,
@@ -3395,6 +3480,7 @@ class ProjectService:
             scoped_revision_context=scoped_revision_context,
             configuration_context=configuration_context,
             source_authority=source_authority,
+            geometry_body_diagnostics=geometry_body_diagnostics,
             generation_contract_version=self._provider_generation_contract_version(),
         )
 
@@ -3424,11 +3510,28 @@ class ProjectService:
             return self._extract_generated_source(raw_output)
         if not design_plan_payload:
             raise ScaffoldSourceError("scaffold generation requires an approved Design Plan")
-        expected = set(geometry_function_names(design_plan_payload))
-        geometry_functions = extract_geometry_functions(raw_output, expected)
+        inventory = build_geometry_function_inventory(design_plan_payload)
+        assembly = assemble_geometry_bodies(raw_output, inventory)
+        geometry_functions = assembly.functions
         rendered = render_cadquery_scaffold(design_plan_payload, geometry_functions)
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        parsed_path = run_dir / "geometry-bodies.json"
+        original_path = run_dir / "geometry-bodies-original.json"
         geometry_path = run_dir / "geometry-bodies.py"
+        self._write_json(parsed_path, assembly.payload)
+        self._write_json(
+            original_path,
+            {
+                "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
+                "functions": [
+                    {
+                        "function_id": function_id,
+                        "body_lines": assembly.original_body_lines[function_id],
+                    }
+                    for function_id in assembly.original_body_lines
+                ],
+            },
+        )
         geometry_path.write_text(
             "\n\n".join(geometry_functions[name] for name in rendered.expected_geometry_functions) + "\n",
             encoding="utf-8",
@@ -3438,12 +3541,31 @@ class ProjectService:
             scaffold_manifest_path,
             {
                 "schema_version": SCAFFOLD_VERSION,
+                "geometry_body_schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
                 "scaffold_hash": rendered.scaffold_hash,
                 "expected_geometry_functions": list(rendered.expected_geometry_functions),
+                "function_body_hashes": assembly.function_body_hashes,
+                "assembled_source_hash": self._sha256(rendered.source),
                 "role": role,
             },
         )
         stage = "source_extraction" if role == "initial_geometry" else "contract_repair"
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_body_json",
+            role=f"{role}_parsed_geometry_bodies",
+            relative_path=self._relative(parsed_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_body_original",
+            role=f"{role}_original_body_statements",
+            relative_path=self._relative(original_path),
+            redacted=False,
+        )
         self._record_workflow_artifact(
             workflow_run,
             stage=stage,
@@ -3464,6 +3586,139 @@ class ProjectService:
 
     def _extract_generated_source(self, raw_output: str) -> str:
         return extract_python_source(raw_output)
+
+    async def _attempt_geometry_body_repair(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        failed_attempt: GenerationAttempt,
+        failed_response: Any,
+        diagnostics: GeometryBodyError,
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan | None,
+        design_plan_payload: dict[str, Any] | None,
+        workflow_run: WorkflowRun | None,
+    ) -> tuple[str, Any, GenerationAttempt] | None:
+        """Try one structured body repair without reopening scaffold authority."""
+
+        repair_request = self._generation_request(
+            project=project,
+            payload=payload,
+            current_source=failed_response.raw_output,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            geometry_body_diagnostics=json.dumps(
+                {"rule_id": diagnostics.rule_id, "message": str(diagnostics), "details": diagnostics.details},
+                sort_keys=True,
+            ),
+        )
+        repair_attempt = self._start_generation_attempt(
+            project=project,
+            request=repair_request,
+            base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        repair_workflow_run = None
+        if workflow_run is not None:
+            root = self.db.get(WorkflowRun, workflow_run.root_workflow_run_id) if workflow_run.root_workflow_run_id else workflow_run
+            repair_workflow_run = self._start_child_workflow_run(
+                project_id=project.id,
+                workflow_type="contract_repair",
+                parent=root or workflow_run,
+            )
+            self._record_workflow_event(
+                repair_workflow_run,
+                stage="contract_repair",
+                event_type="geometry_body.repair_started",
+                severity="summary",
+                message="Structured geometry-body repair started.",
+                deduplication_key=f"geometry-body-repair-started-{repair_attempt.id}",
+                caused_by_event_id=None,
+                generation_attempt_id=repair_attempt.id,
+                metadata={"rule_id": diagnostics.rule_id, "failed_attempt_id": failed_attempt.id},
+            )
+        try:
+            repair_result = await self._generate_source_model(repair_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(repair_attempt)
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="cancelled")
+            raise
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=self._provider_failure_class(str(exc)),
+                error_message=str(exc),
+            )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
+            return None
+
+        self._record_generation_result(repair_attempt, repair_result)
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="provider_response",
+            artifact_type="raw_provider_response",
+            role="geometry_body_repair_raw_response",
+            relative_path=repair_attempt.raw_output_path,
+            redacted=False,
+        )
+        try:
+            repaired_source = self._prepare_generated_source(
+                raw_output=repair_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=repair_request.generation_contract_version,
+                attempt=repair_attempt,
+                workflow_run=repair_workflow_run or workflow_run,
+                role="geometry_body_repair",
+            )
+        except GeometryBodyError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+                error_message=str(exc),
+            )
+            if repair_workflow_run is not None:
+                self._record_workflow_event(
+                    repair_workflow_run,
+                    stage="contract_repair",
+                    event_type="geometry_body.repair_failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id=exc.rule_id,
+                    message=str(exc),
+                    deduplication_key=f"geometry-body-repair-failed-{repair_attempt.id}",
+                    generation_attempt_id=repair_attempt.id,
+                )
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
+            return None
+
+        self._record_generation_extracted_source(repair_attempt, repaired_source)
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            artifact_type="cadquery_source",
+            role="geometry_body_repaired_source",
+            relative_path=repair_attempt.source_path,
+            redacted=False,
+        )
+        if repair_workflow_run is not None:
+            self._record_workflow_event(
+                repair_workflow_run,
+                stage="contract_repair",
+                event_type="geometry_body.repair_succeeded",
+                severity="summary",
+                message="Structured geometry-body repair produced an assembled source.",
+                deduplication_key=f"geometry-body-repair-succeeded-{repair_attempt.id}",
+                generation_attempt_id=repair_attempt.id,
+            )
+            self._workflow_recorder().complete_run(repair_workflow_run, status="completed")
+        return repaired_source, repair_result, repair_attempt
 
     def _start_generation_attempt(
         self,
@@ -4788,6 +5043,8 @@ class ProjectService:
         return ""
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
+        if request.geometry_body_diagnostics:
+            return "cadquery-geometry-body-repair-v1"
         if request.compiler_diagnostics:
             return "cadquery-execution-repair-v2"
         if request.contract_diagnostics:
@@ -5570,7 +5827,9 @@ class ProjectService:
         feature_mappings: dict[str, SourceMapping] = {}
         shared_module_mappings: dict[str, SourceMapping] = {}
         module_fingerprints: dict[str, SourceModuleFingerprint] = {}
-        for function in self._cadquery_top_level_functions(tree):
+        top_level_functions = self._cadquery_top_level_functions(tree)
+        functions_by_name = {function.name: function for function in top_level_functions}
+        for function in top_level_functions:
             ownership = self._cadquery_function_ownership(function)
             component_ids = ownership["component_ids"]
             feature_ids = ownership["feature_ids"]
@@ -5602,11 +5861,20 @@ class ProjectService:
                     line=function.lineno,
                 )
             if component_ids or feature_ids or shared_helper_ids:
+                called_modules = self._cadquery_called_functions(function)
+                fingerprint_nodes = [function]
+                fingerprint_nodes.extend(
+                    functions_by_name[name]
+                    for name in called_modules
+                    if name.startswith("_ai_") and name in functions_by_name
+                )
                 module_fingerprints[function.name] = SourceModuleFingerprint(
                     module_name=function.name,
                     line=function.lineno,
-                    normalized_hash=self._cadquery_normalized_hash(function),
-                    called_modules=self._cadquery_called_functions(function),
+                    normalized_hash=self._cadquery_normalized_hash(
+                        ast.Module(body=fingerprint_nodes, type_ignores=[])
+                    ),
+                    called_modules=called_modules,
                     referenced_parameters=self._cadquery_referenced_parameters(function),
                     component_ids=component_ids,
                     feature_ids=feature_ids,
@@ -7421,6 +7689,7 @@ class ProjectService:
         return "ready"
 
     def _derive_functional_status(self, revision_id: str) -> str:
+        revision = self.db.get(Revision, revision_id)
         findings = list(
             self.db.scalars(
                 select(ValidationFinding).where(
@@ -7430,6 +7699,22 @@ class ProjectService:
             )
         )
         if not findings:
+            plan_payload = (
+                self._read_json_file(revision.design_plan.plan_path)
+                if revision is not None and revision.design_plan is not None
+                else None
+            )
+            functional_contract = plan_payload.get("functional_contract") if isinstance(plan_payload, dict) else None
+            if not isinstance(functional_contract, dict) or not any(
+                isinstance(functional_contract.get(collection), list) and functional_contract.get(collection)
+                for collection in (
+                    "mounting_interfaces",
+                    "support_interfaces",
+                    "containment_interfaces",
+                    "retention_interfaces",
+                )
+            ):
+                return "functionally_verified"
             return "functionally_unverified"
         if any(finding.is_blocking for finding in findings):
             return "functionally_violated"
