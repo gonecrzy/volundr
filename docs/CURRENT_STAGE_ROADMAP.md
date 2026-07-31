@@ -404,7 +404,25 @@ Excluded from this increment:
 - slicer CLI integration
 - filament and print-time estimates
 
-## Stage 8 — Advanced Interaction
+## Stage 8 — Frontend Workflow And User Testing
+
+Status: Ready for observed user testing
+
+Current status:
+
+- the primary UI follows Describe, Clarify, Review requirements, Review proposed design, Generate, Review new version, and Accept or revise
+- user-provided values, Volundr proposals, calculated values, and essential decisions are distinct in review
+- Current design and New version remain distinct until explicit acceptance
+- multi-output and recoverable blocked states have user-facing explanations
+- diagnostic bundles and workflow IDs remain secondary Technical details
+
+Next activity:
+
+- run the five scripted observed-user sessions in `docs/FRONTEND_USER_TESTING_PLAN.md`
+- preserve event traces, diagnosis, and redacted debug bundles
+- address the highest repeated user consequence before further architecture work
+
+## Stage 9 — Advanced Interaction
 
 Status: Future
 

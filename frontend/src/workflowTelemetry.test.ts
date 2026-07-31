@@ -21,6 +21,8 @@ describe("workflow telemetry helpers", () => {
 
   it("rejects unknown frontend workflow event names", () => {
     expect(isRegisteredFrontendWorkflowEvent("candidate_accepted")).toBe(true);
+    expect(isRegisteredFrontendWorkflowEvent("progress_stage_shown")).toBe(true);
+    expect(isRegisteredFrontendWorkflowEvent("failure_recovery_selected")).toBe(true);
     expect(isRegisteredFrontendWorkflowEvent("keyboard_input")).toBe(false);
   });
 

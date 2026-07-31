@@ -292,4 +292,8 @@ Normal product screens should not expose IDs except in advanced technical detail
 - Cross-run ordering uses each run's deterministic `sequence_number` plus persisted run/event record times; a global root-sequence counter is not yet stored.
 - Stage trace currently derives values from emitted entity events and artifact metadata; older records without entity fields cannot produce full matrices.
 - Diagnosis is deterministic and conservative, not AI-assisted root-cause analysis.
-- The frontend diagnostic action is intentionally minimal pending the next frontend workflow audit.
+- The frontend diagnostic action is intentionally secondary to normal design work; it exposes the workflow ID, final deterministic diagnosis, and debug bundle only in Technical details.
+
+## Frontend User-Testing Correlation
+
+The frontend uses fixed, typed workflow event names for request, review, progress, candidate, configuration, revision, recovery, export, and technical-details actions. Test sessions can add `?testScenario=<safe-scenario-id>`; this produces only `testing_session` and `test_scenario_id` metadata. It does not capture observer notes or arbitrary browser activity. See `docs/FRONTEND_USER_TESTING_PLAN.md` for the five required scenarios and evidence-retention procedure.

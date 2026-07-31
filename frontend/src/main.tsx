@@ -36,11 +36,14 @@ import {
   canContinueGeneration,
   defaultProvenanceRows,
   protectedRequirementCount,
+  requirementPresentationGroups,
   requirementProvenanceRows,
   requirementStageLabel,
   traceFailureMessage,
   type RequirementOutcome,
 } from "./designSpecificationView";
+import { assistantVocabulary, provenanceLabel, reviewStepLabel } from "./terminology";
+import { candidateStatusSummary, generationProgress, recoveryPresentation } from "./workflowPresentation";
 import {
   canGenerateConfiguration,
   configurationControlKind,
@@ -122,6 +125,15 @@ type MeshMetadata = {
   triangle_count: number;
   connected_components: number;
   is_watertight: boolean;
+};
+
+type WorkflowDiagnosis = {
+  workflow_run_id: string;
+  root_cause: {
+    summary?: string;
+    confidence?: string;
+  } | null;
+  final_outcome: string;
 };
 
 type Revision = {
@@ -556,7 +568,22 @@ function App() {
     () => new Set(),
   );
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
+  const [workflowDiagnosis, setWorkflowDiagnosis] = useState<WorkflowDiagnosis | null>(null);
   const printabilitySectionRef = useRef<HTMLDivElement | null>(null);
+  const observedWorkflowViews = useRef(new Set<string>());
+
+  function recordWorkflowViewOnce(
+    key: string,
+    actionName: Parameters<typeof createFrontendWorkflowEvent>[0]["actionName"],
+    userVisibleState: string,
+    metadata: Record<string, unknown> = {},
+  ) {
+    if (observedWorkflowViews.current.has(key)) {
+      return;
+    }
+    observedWorkflowViews.current.add(key);
+    void recordFrontendWorkflowEvent(project?.id, actionName, userVisibleState, metadata);
+  }
 
   const selectedOutput =
     revisionOutputs.find((output) => output.id === selectedOutputId) ?? revisionOutputs[0] ?? null;
@@ -644,6 +671,70 @@ function App() {
     void refreshProjects();
     void refreshPrintabilityProfiles();
   }, []);
+
+  useEffect(() => {
+    if (!designSpecification || !project) {
+      return;
+    }
+    recordWorkflowViewOnce(`requirements-${designSpecification.id}`, "requirements_review_viewed", "requirements_review");
+    if (designSpecification.outcome === "clarification_required") {
+      recordWorkflowViewOnce(`clarification-${designSpecification.id}`, "clarification_displayed", "clarification");
+    }
+  }, [designSpecification?.id, designSpecification?.outcome, project?.id]);
+
+  useEffect(() => {
+    if (designPlan && project) {
+      recordWorkflowViewOnce(`proposal-${designPlan.id}`, "proposed_design_viewed", "proposed_design_review");
+    }
+  }, [designPlan?.id, project?.id]);
+
+  useEffect(() => {
+    if (designSpecification) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-label='Design requirements'] h2")?.focus());
+    }
+  }, [designSpecification?.id, designSpecification?.outcome]);
+
+  useEffect(() => {
+    if (designPlan) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-label='Proposed design'] h2")?.focus());
+    }
+  }, [designPlan?.id, designPlan?.review_state]);
+
+  useEffect(() => {
+    if (selectedRevision && isOpenCandidate(selectedRevision)) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-label='Candidate review'] h2")?.focus());
+    }
+  }, [selectedRevision?.id, selectedRevision?.review_state]);
+
+  useEffect(() => {
+    if (selectedRevision && project && isOpenCandidate(selectedRevision)) {
+      recordWorkflowViewOnce(`candidate-${selectedRevision.id}`, "candidate_opened", "new_version_review", {
+        revision_id: selectedRevision.id,
+      });
+    }
+  }, [project?.id, selectedRevision?.id, selectedRevision?.review_state]);
+
+  useEffect(() => {
+    if (!project || !selectedRevision || !["running", "compiling", "validating"].includes(selectedRevision.status)) {
+      return;
+    }
+    const stage = selectedRevision.status === "validating" ? "printability_validation" : "cad_execution";
+    recordWorkflowViewOnce(`progress-${selectedRevision.id}-${stage}`, "progress_stage_shown", "generation_progress", {
+      stage,
+      label: generationProgress(stage).label,
+    });
+  }, [project?.id, selectedRevision?.id, selectedRevision?.status]);
+
+  useEffect(() => {
+    const workflowRunId = workflowCorrelation.workflowRunId;
+    if (!workflowRunId || !selectedRevision) {
+      setWorkflowDiagnosis(null);
+      return;
+    }
+    void request<WorkflowDiagnosis>(`/workflow-runs/${workflowRunId}/diagnosis`, { method: "GET" })
+      .then((diagnosis) => setWorkflowDiagnosis(diagnosis))
+      .catch(() => setWorkflowDiagnosis(null));
+  }, [selectedRevision?.id, selectedRevision?.review_state]);
 
   async function refreshProjects() {
     try {
@@ -979,6 +1070,11 @@ function App() {
         method: "POST",
         body: JSON.stringify({ user_instruction: prompt }),
       });
+      void recordFrontendWorkflowEvent(currentProject.id, "request_started", "requirements", {});
+      void recordFrontendWorkflowEvent(currentProject.id, "request_submitted", "requirements", {
+        testing_session: userTestingMetadata().testing_session,
+        test_scenario_id: userTestingMetadata().test_scenario_id,
+      });
       setDesignSpecification(specification);
       setDesignPlan(null);
       setClarificationAnswers({});
@@ -1030,6 +1126,9 @@ function App() {
       setDesignSpecification(specification);
       setDesignPlan(null);
       setClarificationAnswers({});
+      void recordFrontendWorkflowEvent(project?.id, "clarification_answered", "clarification", {
+        question_count: Object.keys(answers).length,
+      });
       setMessage(specification.outcome === "generation_ready" ? "Requirements ready" : requirementStageLabel(specification));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Clarification failed");
@@ -1076,6 +1175,7 @@ function App() {
         method: "POST",
       });
       setDesignPlan(approved);
+      void recordFrontendWorkflowEvent(project?.id, "design_approved", "proposed_design_review", { design_plan_id: approved.id });
       if (project) {
         await loadProjectMessages(project.id);
       }
@@ -1122,6 +1222,7 @@ function App() {
     setIsContinuingGeneration(true);
     setSourceContractError(null);
     setMessage("Generating model");
+    void recordFrontendWorkflowEvent(project.id, "generation_started", "generation_progress", { design_plan_id: planToGenerate.id });
     try {
       const revision = await request<Revision>(`/design-plans/${planToGenerate.id}/generate`, {
         method: "POST",
@@ -1207,6 +1308,7 @@ function App() {
     setComponentRevisionSummary(null);
     setGenerationPrompt("");
     setMessage("Planning revision");
+    void recordFrontendWorkflowEvent(project.id, "revision_opened", "revision_request", { base_revision_id: baseRevisionId });
     try {
       const plan = await request<RevisionPlan>(`/projects/${project.id}/revision-plans`, {
         method: "POST",
@@ -1218,6 +1320,7 @@ function App() {
         }),
       });
       setRevisionPlan(plan);
+      void recordFrontendWorkflowEvent(project.id, "revision_requested", "revision_request", { base_revision_id: baseRevisionId });
       setRevisionPlanAnswers({});
       setPendingRevisionFindingIds([]);
       setMessage(plan.review_state === "pending_review" ? "Revision plan review" : revisionPlanStageLabel(plan));
@@ -1344,6 +1447,7 @@ function App() {
         method: "POST",
       });
       setRevisionPlan(approved);
+      void recordFrontendWorkflowEvent(project?.id, "revision_plan_approved", "planned_changes", { revision_plan_id: approved.id });
       if (project) {
         await loadProjectMessages(project.id);
       }
@@ -1567,6 +1671,7 @@ function App() {
         },
       );
       setConfigurationPreview(preview);
+      void recordFrontendWorkflowEvent(project.id, "configuration_previewed", "parameter_update", { configuration_change_id: preview.id });
       setMessage(configurationStateLabel(preview.validation_state));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Configuration preview failed");
@@ -1581,6 +1686,9 @@ function App() {
     }
     setIsGeneratingConfiguration(true);
     setMessage(null);
+    if (project) {
+      void recordFrontendWorkflowEvent(project.id, "configuration_submitted", "parameter_update", { configuration_change_id: configurationPreview.id });
+    }
     try {
       const revision = await request<Revision>(
         `/configuration-changes/${configurationPreview.id}/generate`,
@@ -1770,6 +1878,10 @@ function App() {
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) {
+    void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+      finding_id: finding.id,
+      recovery_kind: actionKind,
+    });
     if (actionKind === "profile") {
       printabilitySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       setMessage(
@@ -1980,42 +2092,15 @@ function App() {
           </div>
         </div>
         <div className="topbar-actions">
-          {sourceUrl ? (
-            <a className="download compact-action" href={sourceUrl}>
-              {selectedSourceLabel}
-            </a>
-          ) : null}
-          {stlUrl ? (
-            <a className="download compact-action" href={stlUrl}>
-              STL
-            </a>
-          ) : null}
-          {manifestUrl && selectedRevision?.output_manifest_path ? (
-            <a className="download compact-action" href={manifestUrl}>
-              Manifest
-            </a>
-          ) : null}
           {exportUrl && selectedRevision?.output_manifest_path ? (
-            <a className="download compact-action" href={exportUrl}>
-              ZIP
+            <a className="download compact-action" href={exportUrl} onClick={() => {
+              void recordFrontendWorkflowEvent(project?.id, "export_requested", "export", {
+                revision_id: selectedRevision.id,
+              });
+            }}>
+              Export design
             </a>
           ) : null}
-          {diagnosticBundleUrl && selectedRevision ? (
-            <a
-              className="download compact-action secondary"
-              href={diagnosticBundleUrl}
-              onClick={() => {
-                void recordFrontendWorkflowEvent(project?.id, "diagnostic_bundle_requested", "technical_details", {
-                  revision_id: selectedRevision.id,
-                });
-              }}
-            >
-              Diagnostic bundle
-            </a>
-          ) : null}
-          <button className="primary" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
-            {isCompiling ? "Compiling" : "Compile"}
-          </button>
         </div>
       </header>
 
@@ -2055,6 +2140,13 @@ function App() {
           <StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />
           <section className="prompt-dock" aria-label="Prompt chat">
             <div className="chat-log">
+              {!project ? (
+                <div className="assistant-intro">
+                  <h2>What would you like to make?</h2>
+                  <p>Describe the object, what it must fit or hold, and any measurements you already know.</p>
+                  <p>You do not need to specify every dimension. Volundr can propose noncritical details for review.</p>
+                </div>
+              ) : null}
               <MessageList messages={projectMessages} compact />
               <WorkflowChatCards
                 designPlan={designPlan}
@@ -2063,7 +2155,7 @@ function App() {
                 revisionPlan={revisionPlan}
                 findings={candidateFindings}
               />
-              {message ? <p className="message">{message}</p> : null}
+              {message ? <p className="message" aria-live="polite" role="status">{message}</p> : null}
             </div>
             <form className="prompt-row" onSubmit={(event) => {
               event.preventDefault();
@@ -2071,7 +2163,7 @@ function App() {
             }}>
               <textarea
                 aria-label="AI chat message"
-                placeholder={chatPlaceholder}
+                placeholder={project ? chatPlaceholder : "Describe the part you need"}
                 rows={2}
                 value={generationPrompt}
                 onKeyDown={handlePromptKeyDown}
@@ -2107,10 +2199,6 @@ function App() {
             <label>
               Intent
               <input required value={intent} onChange={(event) => setIntent(event.target.value)} />
-            </label>
-            <label>
-              Manual compile note
-              <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
             </label>
             {project && isDraftProject && !hasProjectName ? (
               <p className="empty">Name this draft when you want it to appear in Projects.</p>
@@ -2209,9 +2297,20 @@ function App() {
             onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
             onRetryOutput={(output) => void retryOutput(output)}
             onReject={() => void rejectSelectedCandidate()}
-            onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
+            onSelectOutput={(outputId) => {
+              setSelectedOutputId(outputId);
+              void recordFrontendWorkflowEvent(project?.id, "output_selected", "new_version_review", { output_id: outputId });
+            }}
             onRecoverFinding={handleCandidateFindingRecovery}
+            onWarningExpanded={(finding) => {
+              void recordFrontendWorkflowEvent(project?.id, "warning_expanded", "new_version_review", {
+                finding_id: finding.id,
+              });
+            }}
             onRegenerateFromPlan={() => {
+              void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+                action: "regenerate_from_plan",
+              });
               if (designPlan && designPlan.id === selectedRevision?.design_plan_id) {
                 void continueGenerationFromDesignPlan(designPlan);
                 return;
@@ -2239,7 +2338,10 @@ function App() {
               presets={configurationPresets}
               selectedPresetId={selectedConfigurationPresetId}
               onDraftChange={(parameterId, value) =>
-                setConfigurationDraft((current) => ({ ...current, [parameterId]: value }))
+                {
+                  recordWorkflowViewOnce(`configuration-${project?.id ?? "draft"}`, "configuration_opened", "parameter_update");
+                  setConfigurationDraft((current) => ({ ...current, [parameterId]: value }));
+                }
               }
               onGenerate={() => void generateConfigurationCandidate()}
               onPresetChange={(presetId) => {
@@ -2284,25 +2386,41 @@ function App() {
               </button>
             </div>
           ) : null}
-          <section className="source-panel" aria-label={sourcePanelLabel}>
-            <div className="section-heading">
-              <h2>Source</h2>
+          <details className="technical-details">
+            <summary>Technical details</summary>
+            <div className="technical-details-content">
+              <label>
+                Manual build note
+                <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
+              </label>
+              <div className="actions">
+                {sourceUrl ? <a className="download compact-action" href={sourceUrl}>{selectedSourceLabel} source</a> : null}
+                {stlUrl ? <a className="download compact-action" href={stlUrl}>STL</a> : null}
+                {manifestUrl && selectedRevision?.output_manifest_path ? <a className="download compact-action" href={manifestUrl}>Output manifest</a> : null}
+                {diagnosticBundleUrl && selectedRevision ? (
+                  <a className="download compact-action" href={diagnosticBundleUrl} onClick={() => {
+                    void recordFrontendWorkflowEvent(project?.id, "diagnostic_bundle_requested", "technical_details", { revision_id: selectedRevision.id });
+                  }}>Download diagnostic bundle</a>
+                ) : null}
+                <button className="secondary compact" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
+                  {isCompiling ? "Building" : "Build source"}
+                </button>
+              </div>
+              {workflowCorrelation.workflowRunId ? (
+                <div className="workflow-technical-summary">
+                  <p>Workflow run: <code>{workflowCorrelation.workflowRunId}</code></p>
+                  <button className="text-action" onClick={() => void copyWorkflowRunId(workflowCorrelation.workflowRunId!)}>Copy workflow run ID</button>
+                  {workflowDiagnosis ? (
+                    <p>Final workflow result: {workflowDiagnosis.final_outcome}. {workflowDiagnosis.root_cause?.summary ?? "No blocking failure was recorded."}</p>
+                  ) : null}
+                </div>
+              ) : null}
+              <section className="source-panel" aria-label={sourcePanelLabel}>
+                <Editor language={sourceEditorLanguage} height="320px" options={{ minimap: { enabled: false }, fontSize: 13, wordWrap: "on", scrollBeyondLastLine: false }} theme="vs-dark" value={source} onChange={(value) => setSource(value ?? "")} />
+              </section>
+              <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
             </div>
-            <Editor
-              language={sourceEditorLanguage}
-              height="320px"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 13,
-                wordWrap: "on",
-                scrollBeyondLastLine: false,
-              }}
-              theme="vs-dark"
-              value={source}
-              onChange={(value) => setSource(value ?? "")}
-            />
-          </section>
-          <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
+          </details>
         </section>
       </section>
     </main>
@@ -2320,18 +2438,18 @@ function LifecycleStatus({
 }) {
   const steps = [
     "Describe",
-    "Requirements",
-    "Design Plan",
-    "Approve",
+    "Clarify",
+    "Review requirements",
+    "Review proposed design",
     "Generate",
-    "Executing CadQuery",
-    "Validating topology",
-    "Candidate",
+    "Create model",
+    "Check printable parts",
+    "Review new version",
     "Accept or revise",
   ];
   const currentIndex = lifecycleIndex({ designPlan, designSpecification, revision });
   return (
-    <section className="lifecycle-strip" aria-label="Staged CadQuery workflow">
+    <section className="lifecycle-strip" aria-label="Design progress" aria-live="polite">
       {steps.map((step, index) => (
         <span
           className={index < currentIndex ? "complete" : index === currentIndex ? "current" : ""}
@@ -2408,6 +2526,7 @@ function DesignSpecificationReview({
   }
 
   const buckets = assumptionBuckets(specification);
+  const groups = requirementPresentationGroups(specification);
   const requirements = specification.specification.functional_requirements ?? [];
   const questions = specification.clarification_questions;
   const traceMessage = traceFailureMessage(specification);
@@ -2415,26 +2534,30 @@ function DesignSpecificationReview({
     questions.length > 0 && questions.every((question) => (answers[question.id] ?? "").trim().length > 0);
 
   return (
-    <section className="requirements-review" aria-label="Requirements">
+    <section className="requirements-review" aria-label="Design requirements">
       <div className="section-heading">
-        <h2>Requirements</h2>
+        <div>
+          <h2 tabIndex={-1}>{assistantVocabulary.designSpecification}</h2>
+          <p>{reviewStepLabel("requirements")}</p>
+        </div>
         <span className={`requirement-state ${specification.outcome}`}>{stageLabel}</span>
       </div>
       <dl className="review-facts">
         <dt>Purpose</dt>
         <dd>{specification.specification.purpose ?? "Unknown"}</dd>
-        <dt>Protected</dt>
+        <dt>Dimensions to preserve</dt>
         <dd>{protectedRequirementCount(specification)}</dd>
-        <dt>Version</dt>
-        <dd>{specification.version_number}</dd>
       </dl>
 
       {specification.outcome === "clarification_required" ? (
         <div className="clarification-list">
+          <h3>A few details are still needed</h3>
+          <p>These answers affect fit, function, assembly, safety, or whether the part can be printed.</p>
+          <SummaryList title="Already provided" items={groups.userProvided} />
           {questions.map((question) => (
             <label key={question.id}>
               {question.question}
-              {question.reason ? <span className="field-note">{question.reason}</span> : null}
+              {question.reason ? <span className="field-note">Why this matters: {question.reason}</span> : null}
               <input
                 value={answers[question.id] ?? ""}
                 onChange={(event) => onAnswerChange(question.id, event.target.value)}
@@ -2447,7 +2570,7 @@ function DesignSpecificationReview({
               disabled={!allAnswersPresent || isSubmittingAnswers}
               onClick={onSubmitAnswers}
             >
-              {isSubmittingAnswers ? "Submitting" : "Submit answers"}
+              {isSubmittingAnswers ? "Saving answers" : "Continue"}
             </button>
           </div>
         </div>
@@ -2456,24 +2579,22 @@ function DesignSpecificationReview({
       {specification.outcome === "generation_ready" ? (
         <>
           {traceMessage ? <p className="error-state">{traceMessage}</p> : null}
+          <SummaryList title="Your requirements" items={groups.userProvided} />
           <SummaryList
-            title="Critical dimensions"
-            items={requirementProvenanceRows(specification)}
-          />
-          <SummaryList
-            title="Protected requirements"
+            title="What must be preserved"
             items={requirements
               .filter((requirement) => requirement.protected)
-              .map((requirement) => `${requirement.description} (${requirement.source})`)}
+              .map((requirement) => `${requirement.description} - ${provenanceLabel(requirement.source)}`)}
           />
-          <SummaryList title="Defaults" items={defaultProvenanceRows(specification)} />
-          <SummaryList title="AI assumptions" items={buckets.aiAssumptions} />
+          <SummaryList title="Volundr proposes" items={groups.proposals.concat(defaultProvenanceRows(specification), buckets.aiAssumptions)} />
+          <SummaryList title="Calculated" items={groups.calculated} />
+          <SummaryList title="Decisions needed" items={groups.essentialDecisions} />
           {hasDesignPlan ? (
-            <p className="empty">Design Plan created. Review it below.</p>
+            <p className="empty">Your proposed design is ready to review below.</p>
           ) : (
             <div className="actions">
               <button className="primary" disabled={!canContinue} onClick={onContinue}>
-                {isContinuing ? "Planning" : "Create Design Plan"}
+                {isContinuing ? "Planning your design" : "Review proposed design"}
               </button>
             </div>
           )}
@@ -2536,25 +2657,24 @@ function DesignPlanReview({
   const questions = designPlanClarificationQuestions(plan);
 
   return (
-    <section className="design-plan-review" aria-label="Design Plan">
+    <section className="design-plan-review" aria-label="Proposed design">
       <div className="section-heading">
-        <h2>Design Plan</h2>
+        <div>
+          <h2 tabIndex={-1}>{assistantVocabulary.designPlan}</h2>
+          <p>{reviewStepLabel("proposal")}</p>
+        </div>
         <span className={`requirement-state ${plan.review_state}`}>{stageLabel}</span>
       </div>
       <dl className="review-facts">
-        <dt>Level</dt>
-        <dd>{plan.plan.design_level ?? "Unknown"}</dd>
         <dt>Components</dt>
         <dd>{counts.components}</dd>
-        <dt>Outputs</dt>
+        <dt>Printable parts</dt>
         <dd>{counts.outputs}</dd>
-        <dt>Version</dt>
-        <dd>{plan.version_number}</dd>
       </dl>
 
       {plan.review_state === "clarification_required" ? (
         <SummaryList
-          title="Planning questions"
+          title="Decisions needed"
           items={questions.map((question) =>
             [question.question ?? "Clarification needed", question.reason].filter(Boolean).join(" - "),
           )}
@@ -2562,41 +2682,41 @@ function DesignPlanReview({
       ) : null}
 
       <SummaryList
-        title="Editable parameters"
+        title="Volundr proposes"
         items={parameters
           .filter((parameter) => parameter.editable !== false)
           .map((parameter) =>
             `${parameter.label}: ${parameter.value ?? "unset"}${parameter.unit ? ` ${parameter.unit}` : ""}${
-              parameter.protected ? " (protected)" : ""
+              parameter.protected ? " (dimension to preserve)" : ""
             }`,
           )}
       />
       <SummaryList
-        title="Derived parameters"
+        title="Calculated"
         items={derived.map((parameter) => `${parameter.label}: ${parameter.expression}`)}
       />
       <SummaryList
-        title="Dependencies"
+        title="How the dimensions relate"
         items={(plan.plan.dependency_edges ?? []).map(
           (edge) => `${edge.from} -> ${edge.to}: ${edge.relationship}`,
         )}
       />
       <SummaryList
-        title="Components"
-        items={components.map((component) => `${component.label} (${component.id})`)}
+        title="Components and printable parts"
+        items={components.map((component) => component.label)}
       />
       <SummaryList
-        title="Features"
+        title="Design details"
         items={features.map((feature) => `${feature.description} (${feature.type})`)}
       />
       <SummaryList
-        title="Printable outputs"
+        title="Printable parts"
         items={outputs.map(
-          (output) => `${output.label}: ${output.component_ids.join(", ")} x${output.quantity}`,
+          (output) => `${output.label} - ${output.quantity === 1 ? "one part" : `${output.quantity} parts`}`,
         )}
       />
       <SummaryList
-        title="Risks"
+        title="Design considerations"
         items={risks.map((risk) =>
           [risk.severity ?? "notice", risk.description ?? risk.id ?? "Risk"].join(": "),
         )}
@@ -2611,14 +2731,14 @@ function DesignPlanReview({
           }
           onClick={onReject}
         >
-          Reject
+          Start over
         </button>
         <button className="primary" disabled={!canApprove} onClick={onApprove}>
-          {isActionPending || isGenerating ? "Starting" : "Approve and generate"}
+          {isActionPending || isGenerating ? "Starting generation" : "Generate design"}
         </button>
         {plan.review_state === "approved" ? (
           <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-            {isGenerating ? "Generating" : "Generate candidate"}
+            {isGenerating ? "Generating design" : "Generate design"}
           </button>
         ) : null}
       </div>
@@ -2691,9 +2811,12 @@ function RevisionPlanReview({
   const success = revisionSuccessBuckets(successResults);
 
   return (
-    <section className="revision-plan-review" aria-label="Revision Plan">
+    <section className="revision-plan-review" aria-label="Planned changes">
       <div className="section-heading">
-        <h2>Revision Plan</h2>
+        <div>
+          <h2>Change the design</h2>
+          <p>Volundr will plan and generate a structural change.</p>
+        </div>
         <span className={`requirement-state ${plan.review_state}`}>{stageLabel}</span>
       </div>
       <p>{plan.revision_plan.summary ?? plan.user_instruction}</p>
@@ -2704,13 +2827,13 @@ function RevisionPlanReview({
         <dd>{counts.dependencies}</dd>
         <dt>Outputs</dt>
         <dd>{counts.targetedOutputs}</dd>
-        <dt>Protected</dt>
+        <dt>Dimensions to preserve</dt>
         <dd>{counts.protectedParameters + counts.protectedOutputs}</dd>
       </dl>
 
       {questions.length > 0 ? (
         <div className="clarification-answers">
-          <h3>Revision questions</h3>
+          <h3>Details needed for this change</h3>
           {questions.map((question) => (
             <label key={question.id}>
               {question.question}
@@ -2722,7 +2845,7 @@ function RevisionPlanReview({
             </label>
           ))}
           <button className="primary" disabled={isSubmittingAnswers} onClick={onSubmitAnswers}>
-            {isSubmittingAnswers ? "Submitting" : "Submit answers"}
+            {isSubmittingAnswers ? "Saving answers" : "Continue"}
           </button>
         </div>
       ) : null}
@@ -2739,10 +2862,10 @@ function RevisionPlanReview({
           `${dependency.parameter_id} affects ${(dependency.affects ?? []).join(", ") || "declared dependents"}`,
         )}
       />
-      <SummaryList title="Affected components" items={plan.revision_plan.targeted_components ?? []} />
-      <SummaryList title="Affected outputs" items={plan.revision_plan.targeted_outputs ?? []} />
+      <SummaryList title="Parts that will change" items={plan.revision_plan.targeted_components ?? []} />
+      <SummaryList title="Printable parts that will change" items={plan.revision_plan.targeted_outputs ?? []} />
       <SummaryList
-        title="Will remain unchanged"
+        title="What will remain unchanged"
         items={[
           ...protectedParameters.map(
             (parameter) =>
@@ -2788,13 +2911,13 @@ function RevisionPlanReview({
           }
           onClick={onReject}
         >
-          Reject
+          Cancel changes
         </button>
         <button className="primary" disabled={!canApprove} onClick={onApprove}>
-          {isActionPending ? "Approving" : "Approve revision plan"}
+          {isActionPending ? "Preparing" : "Review planned changes"}
         </button>
         <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-          {isGenerating ? "Revising" : "Generate revision"}
+          {isGenerating ? "Changing design" : "Generate new version"}
         </button>
       </div>
     </section>
@@ -2889,7 +3012,8 @@ function ConfigurationPanel({
     <section className="configuration-panel" aria-label="Configure parameters">
       <div className="section-heading">
         <div>
-          <h2>Configure</h2>
+          <h2>Adjust parameters</h2>
+          <p>No AI redesign required. Change existing dimensions, counts, presets, or enabled options.</p>
           <p>{configurationStateLabel(change?.validation_state ?? null)}</p>
         </div>
       </div>
@@ -2946,8 +3070,8 @@ function ConfigurationPanel({
                 <input disabled value={String(value)} readOnly />
               )}
               <small>
-                {parameter.editable && parameter.source_mapped ? "Editable" : "Requires design revision"}
-                {parameter.affected_outputs.length > 0 ? ` - outputs: ${parameter.affected_outputs.join(", ")}` : ""}
+                {parameter.editable && parameter.source_mapped ? "Can be adjusted here" : "Change the design to modify this"}
+                {parameter.affected_outputs.length > 0 ? ` - affects ${parameter.affected_outputs.length} printable ${parameter.affected_outputs.length === 1 ? "part" : "parts"}` : ""}
               </small>
             </label>
           );
@@ -2969,10 +3093,10 @@ function ConfigurationPanel({
       ) : null}
       <div className="actions">
         <button className="secondary" disabled={isPreviewing || isGenerating} onClick={onPreview}>
-          {isPreviewing ? "Previewing" : "Preview configuration"}
+          {isPreviewing ? "Calculating effects" : "Preview effects"}
         </button>
         <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-          {isGenerating ? "Generating" : "Generate candidate"}
+          {isGenerating ? "Updating design" : "Create new version"}
         </button>
       </div>
     </section>
@@ -2997,6 +3121,7 @@ function CandidateReview({
   onReject,
   onSelectOutput,
   onRecoverFinding,
+  onWarningExpanded,
   onRegenerateFromPlan,
   onReviseFromGeometricFinding,
   retryingOutputId,
@@ -3021,6 +3146,7 @@ function CandidateReview({
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) => void;
+  onWarningExpanded: (finding: CandidateFinding) => void;
   onRegenerateFromPlan: () => void;
   onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
   retryingOutputId: string | null;
@@ -3035,29 +3161,35 @@ function CandidateReview({
   const sourceChecks = sourceCheckSummary(findings);
   const consistency = revision.design_consistency ?? null;
   const consistencyFindings = consistency?.findings.filter((finding) => finding.is_blocking) ?? [];
+  const blockedRequired = outputs.filter((output) => output.required && ["blocked", "failed"].includes(output.execution_state)).length;
+  const recovery = recoveryPresentation(blockedRequired > 0 ? "topology_validation" : "source_contract_validation");
 
   return (
     <section className="candidate-review" aria-label="Candidate review">
       <div className="section-heading">
-        <h2>Review</h2>
+        <div>
+          <h2 tabIndex={-1}>{viewerLabel === "Current design" ? "Current design" : "New version"}</h2>
+          <p>{viewerLabel === "Current design" ? "This is the version your project uses." : "Review this version before it replaces your current design."}</p>
+        </div>
         <span className={`review-state ${revision.review_state ?? "historical"}`}>{workflowLabel}</span>
       </div>
       <dl className="review-facts">
-        <dt>Viewer</dt>
-        <dd>{viewerLabel}</dd>
         {revision.expected_output_count ? (
           <>
             <dt>Outputs</dt>
             <dd>{revision.successful_output_count ?? 0}/{revision.expected_output_count}</dd>
           </>
         ) : null}
-        <dt>Blocking</dt>
+        <dt>Parts needing attention</dt>
         <dd>{revision.validation_summary.blocking_count}</dd>
         <dt>Warnings</dt>
         <dd>{revision.validation_summary.advisory_count}</dd>
         <dt>Design consistency</dt>
         <dd>{designConsistencyLabel(revision)}</dd>
       </dl>
+      <p className={blockedRequired > 0 ? "blocked-reason" : "empty"}>
+        {candidateStatusSummary({ total: outputs.length, blockedRequired, ready: outputs.filter((output) => ["ready", "ready_with_warnings"].includes(output.execution_state)).length })}
+      </p>
       <OutputReview
         outputs={outputs}
         selectedOutputId={selectedOutputId}
@@ -3068,23 +3200,30 @@ function CandidateReview({
       {isCandidate ? (
         <div className="actions">
           <button className="primary" disabled={!canAccept || isPending} onClick={onAccept}>
-            {isPending ? "Working" : "Accept"}
+            {isPending ? "Saving" : "Accept new version"}
           </button>
           <button className="secondary" disabled={isPending} onClick={onReject}>
-            Reject
+            Reject new version
           </button>
         </div>
       ) : null}
       {isCandidate && !canAccept && acceptDisabledReason ? (
-        <p className="blocked-reason">{acceptDisabledReason}</p>
+        <div className="recovery-card">
+          <h3>{recovery.title}</h3>
+          <p>{recovery.currentDesignMessage}</p>
+          <p>{acceptDisabledReason}</p>
+          <div className="actions compact">
+            <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>{recovery.primaryAction}</button>
+          </div>
+        </div>
       ) : null}
       {consistency && consistency.status !== "passed" ? (
         <div className="consistency-block">
-          <h3>This design cannot be safely revised yet.</h3>
+          <h3>Volundr needs to correct an internal design mismatch.</h3>
           <p>Volundr found an internal mismatch between the approved design plan and generated model.</p>
           {consistencyFindings.length > 0 ? (
             <>
-              <h4>Internal alignment issues</h4>
+          <h4>What needs attention</h4>
               <ul>
                 {consistencyFindings.slice(0, 5).map((finding) => (
                   <li key={`${finding.rule_id}-${finding.explanation}`}>{finding.explanation}</li>
@@ -3094,7 +3233,7 @@ function CandidateReview({
           ) : null}
           <div className="actions compact">
             <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>
-              Regenerate from approved plan
+              Try generation again
             </button>
           </div>
           {consistency.findings.length > 0 ? (
@@ -3133,6 +3272,7 @@ function CandidateReview({
           findings={buckets.advisory}
           title="Advisory warnings"
           onDismissFinding={onDismissFinding}
+          onWarningExpanded={onWarningExpanded}
         />
       ) : null}
       {isCandidate && findings.length === 0 && !geometricAnalysis ? (
@@ -3160,7 +3300,7 @@ function OutputReview({
   }
   return (
     <div className="candidate-findings output-review">
-      <h3>Printable outputs</h3>
+      <h3>Printable parts - {outputs.length}</h3>
       <div className="output-list">
         {outputs.map((output) => (
           <article
@@ -3174,15 +3314,13 @@ function OutputReview({
             <dl className="review-facts compact">
               <dt>Quantity</dt>
               <dd>{output.quantity}</dd>
-              <dt>Need</dt>
-              <dd>{output.required ? "Required" : "Optional"}</dd>
-              <dt>Components</dt>
-              <dd>{output.component_ids.length > 0 ? output.component_ids.join(", ") : output.component_id ?? "Unassigned"}</dd>
+              <dt>For this design</dt>
+              <dd>{output.required ? "Required part" : "Optional part"}</dd>
               <dt>Size</dt>
               <dd>{outputDimensionsLabel(output)}</dd>
-              <dt>Topology</dt>
+              <dt>Solid/body checks</dt>
               <dd>{outputTopologyLabel(output)}</dd>
-              <dt>Solid count</dt>
+              <dt>Solid bodies</dt>
               <dd>{outputSolidCountLabel(output)}</dd>
               <dt>Placement</dt>
               <dd>{outputPlacementLabel(output)}</dd>
@@ -3203,12 +3341,12 @@ function OutputReview({
               ) : null}
               {output.compile_log_path ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/compile-log`}>
-                  Log
+                  Build details
                 </a>
               ) : null}
               {canRetryOutput(output) ? (
                 <button className="secondary compact" disabled={retryingOutputId === output.id} onClick={() => onRetryOutput(output)}>
-                  {retryingOutputId === output.id ? "Retrying" : "Retry"}
+                  {retryingOutputId === output.id ? "Trying again" : "Try this part again"}
                 </button>
               ) : null}
             </div>
@@ -3227,13 +3365,13 @@ function ComponentRevisionSummaryView({ summary }: { summary: ComponentRevisionS
   const payload = summary.summary;
   return (
     <div className="candidate-findings component-revision-summary">
-      <h3>Component revision</h3>
+      <h3>Change one part</h3>
       <dl className="review-facts compact">
         <dt>Targets</dt>
         <dd>{counts.targetedOutputs}</dd>
-        <dt>Protected</dt>
+        <dt>Preserved parts</dt>
         <dd>{counts.protectedOutputs}</dd>
-        <dt>Drift</dt>
+        <dt>Unexpected changes</dt>
         <dd>{counts.unexpectedProtectedChanges}</dd>
         <dt>Interfaces</dt>
         <dd>{counts.verifiedInterfaces}/{counts.verifiedInterfaces + counts.violatedInterfaces}</dd>
@@ -3432,6 +3570,7 @@ function FindingGroup({
   title,
   onDismissFinding,
   onRecoverFinding,
+  onWarningExpanded,
 }: {
   findings: CandidateFinding[];
   title: string;
@@ -3440,12 +3579,17 @@ function FindingGroup({
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) => void;
+  onWarningExpanded?: (finding: CandidateFinding) => void;
 }) {
   return (
     <div className="candidate-findings">
       <h3>{title}</h3>
       {findings.map((finding) => (
-        <article className={`candidate-finding ${finding.severity}`} key={finding.id}>
+        <article
+          className={`candidate-finding ${finding.severity}`}
+          key={finding.id}
+          onClick={() => onWarningExpanded?.(finding)}
+        >
           <div className="result-row">
             <span className={`severity ${finding.severity}`}>{finding.severity}</span>
             <span className="rule-id">{finding.rule_id}</span>
@@ -3720,7 +3864,7 @@ function WorkflowChatCards({
   if (revisionPlan?.review_state === "clarification_required") {
     return (
       <ChatStageCard
-        title="Revision clarification"
+        title="A few details are needed for your change"
         body={revisionPlan.clarification_questions.map((question) => question.question).join(" ")}
       />
     );
@@ -3728,31 +3872,31 @@ function WorkflowChatCards({
   if (revisionPlan?.review_state === "pending_review") {
     return (
       <ChatStageCard
-        title="Revision plan ready"
-        body="Review the scoped change, then approve it to generate a revised candidate."
+        title="Planned changes are ready"
+        body="Review what will change and what will remain unchanged, then generate a new version."
       />
     );
   }
   if (revision?.review_state === "blocked" && blockingFindings.length > 0) {
     return (
       <ChatStageCard
-        title="Candidate blocked"
-        body={`${blockingFindings.length} blocking ${blockingFindings.length === 1 ? "finding needs" : "findings need"} a revision or clarification before acceptance.`}
+        title="This new version needs changes"
+        body={`Your current design is unchanged. ${blockingFindings.length} design ${blockingFindings.length === 1 ? "check needs" : "checks need"} attention before this version can be accepted.`}
       />
     );
   }
   if (designPlan?.review_state === "pending_review") {
     return (
       <ChatStageCard
-        title="Design Plan ready"
-        body="Review the product plan. Approving it will start model generation."
+        title="Proposed design is ready"
+        body="Review the requirements, proposed choices, components, and printable parts before generating the design."
       />
     );
   }
   if (designPlan?.review_state === "clarification_required") {
     return (
       <ChatStageCard
-        title="Plan clarification"
+        title="A few design details are needed"
         body={(designPlan.plan.clarification_questions ?? []).map((question) => question.question ?? "").join(" ")}
       />
     );
@@ -3768,8 +3912,8 @@ function WorkflowChatCards({
   if (designSpecification?.outcome === "generation_ready" && !designPlan) {
     return (
       <ChatStageCard
-        title="Requirements ready"
-        body="Create a Design Plan to turn these requirements into components, parameters, and printable outputs."
+        title="Requirements are ready"
+        body="Review the proposed design to see components, printable parts, and the dimensions Volundr proposes."
       />
     );
   }
@@ -4393,13 +4537,34 @@ async function recordFrontendWorkflowEvent(
             actionName,
             route: window.location.pathname,
             userVisibleState,
-            metadata,
+            metadata: {
+              ...userTestingMetadata(),
+              ...metadata,
+            },
           }),
         ],
       }),
     });
   } catch {
     return;
+  }
+}
+
+function userTestingMetadata(): {
+  testing_session: boolean;
+  test_scenario_id: string | null;
+} {
+  const scenario = new URLSearchParams(window.location.search).get("testScenario");
+  const testScenarioId = scenario && /^[a-z0-9-]{1,80}$/i.test(scenario) ? scenario : null;
+  return {
+    testing_session: Boolean(testScenarioId),
+    test_scenario_id: testScenarioId,
+  };
+}
+
+async function copyWorkflowRunId(workflowRunId: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(workflowRunId);
   }
 }
 

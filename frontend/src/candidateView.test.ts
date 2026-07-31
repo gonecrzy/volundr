@@ -130,22 +130,22 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
 describe("candidate view helpers", () => {
   it("labels active, candidate, and historical revisions distinctly", () => {
     expect(revisionViewerLabel(revision({ id: "active-revision", is_accepted: true }), project)).toBe(
-      "Active design",
+      "Current design",
     );
     expect(revisionViewerLabel(revision({ review_state: "ready_with_warnings" }), project)).toBe(
-      "Candidate",
+      "New version",
     );
     expect(revisionViewerLabel(revision({ id: "old", is_accepted: true }), project)).toBe(
-      "Historical revision",
+      "Earlier version",
     );
   });
 
   it("renders stable candidate state text", () => {
-    expect(revisionWorkflowLabel(revision({ review_state: "ready" }))).toBe("Ready candidate");
+    expect(revisionWorkflowLabel(revision({ review_state: "ready" }))).toBe("Ready to review");
     expect(revisionWorkflowLabel(revision({ review_state: "ready_with_warnings" }))).toBe(
       "Ready with warnings",
     );
-    expect(revisionWorkflowLabel(revision({ review_state: "blocked" }))).toBe("Blocked candidate");
+    expect(revisionWorkflowLabel(revision({ review_state: "blocked" }))).toBe("Needs changes");
   });
 
   it("enables acceptance only for ready candidates without blocking findings", () => {

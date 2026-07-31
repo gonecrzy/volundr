@@ -67,15 +67,15 @@ function success(overrides: Partial<RevisionSuccessResult>): RevisionSuccessResu
 
 describe("revision plan view helpers", () => {
   it("renders stable lifecycle labels", () => {
-    expect(revisionPlanStageLabel(null)).toBe("Revision plan not created");
+    expect(revisionPlanStageLabel(null)).toBe("Waiting for planned changes");
     expect(revisionPlanStageLabel(plan({ review_state: "pending_review" }))).toBe(
-      "Revision plan review",
+      "Ready for your review",
     );
     expect(revisionPlanStageLabel(plan({ review_state: "approved" }))).toBe(
-      "Revision plan approved",
+      "Ready to generate",
     );
     expect(revisionPlanStageLabel(plan({ review_state: "clarification_required" }))).toBe(
-      "Revision clarification required",
+      "A few change details are needed",
     );
   });
 

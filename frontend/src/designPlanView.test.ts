@@ -45,13 +45,13 @@ function plan(overrides: Partial<DesignPlanSummary>): DesignPlanSummary {
 
 describe("design plan view helpers", () => {
   it("renders stable review labels", () => {
-    expect(designPlanStageLabel(null)).toBe("Plan not created");
+    expect(designPlanStageLabel(null)).toBe("Waiting for proposed design");
     expect(designPlanStageLabel(plan({ review_state: "pending_review" }))).toBe(
-      "Plan review",
+      "Ready for your review",
     );
-    expect(designPlanStageLabel(plan({ review_state: "approved" }))).toBe("Plan approved");
+    expect(designPlanStageLabel(plan({ review_state: "approved" }))).toBe("Ready to generate");
     expect(designPlanStageLabel(plan({ review_state: "clarification_required" }))).toBe(
-      "Plan clarification required",
+      "A few design details are needed",
     );
   });
 

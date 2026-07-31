@@ -161,35 +161,35 @@ export function revisionViewerLabel(
   project: ProjectState | null,
 ): string {
   if (!revision) {
-    return "Draft workspace";
+    return "Draft design";
   }
   if (project?.active_revision_id === revision.id) {
-    return "Active design";
+    return "Current design";
   }
   if (revision.is_accepted || revision.review_state === "accepted" || revision.review_state === "rejected") {
-    return "Historical revision";
+    return "Earlier version";
   }
   if (revision.review_state && ["ready", "ready_with_warnings", "blocked"].includes(revision.review_state)) {
-    return "Candidate";
+    return "New version";
   }
-  return "Historical revision";
+  return "Earlier version";
 }
 
 export function revisionWorkflowLabel(revision: CandidateRevision | null): string {
   if (!revision) {
-    return "Draft workspace";
+    return "Draft design";
   }
   switch (revision.review_state) {
     case "ready":
-      return "Ready candidate";
+      return "Ready to review";
     case "ready_with_warnings":
       return "Ready with warnings";
     case "blocked":
-      return "Blocked candidate";
+      return "Needs changes";
     case "rejected":
-      return "Rejected candidate";
+      return "New version rejected";
     case "accepted":
-      return "Accepted revision";
+      return "Current design";
     default:
       return revision.status;
   }

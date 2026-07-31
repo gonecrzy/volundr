@@ -443,3 +443,7 @@ Do not implement these prematurely:
 - separate rendering service
 - GPU-based visual analysis
 - multiple concurrent users
+
+## Frontend Workflow Boundary
+
+The primary frontend renders an assistant journey, not lifecycle tables: Describe, Clarify, Review requirements, Review proposed design, Generate, Review new version, and Accept or revise. Source editing, manifests, diagnostics, workflow IDs, and debug-bundle download are secondary Technical details. The implementation audit is in `docs/FRONTEND_WORKFLOW_AUDIT.md`.

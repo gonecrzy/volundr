@@ -164,3 +164,7 @@ Potential later capabilities include:
 - optional trusted multi-user operation
 
 These are not V1 requirements.
+
+## User-Facing Workflow
+
+Volundr should guide a careful CAD-design conversation: describe the object, answer only essential fit/function/assembly questions, review design requirements and Volundr proposals, generate, inspect printable parts, accept a new version, and export. Users must be able to distinguish values they supplied, Volundr proposals, and calculated values without reading pipeline terminology. Technical evidence belongs in secondary details and diagnostic bundles.

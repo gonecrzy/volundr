@@ -296,6 +296,73 @@ textarea {
   width: 720px;
 }
 
+.assistant-intro {
+  border-bottom: 1px solid #d7ddd7;
+  display: grid;
+  gap: 5px;
+  padding-bottom: 10px;
+}
+
+.assistant-intro h2 {
+  color: #243b32;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.assistant-intro p {
+  color: #4f6057;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.technical-details {
+  border-top: 1px solid #d7ddd7;
+  margin-top: 18px;
+  padding-top: 12px;
+}
+
+.technical-details summary {
+  color: #285f72;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.technical-details-content {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.recovery-card {
+  background: #fff7ec;
+  border: 1px solid #d9b97c;
+  border-left: 4px solid #a66a16;
+  border-radius: 6px;
+  margin-top: 12px;
+  padding: 10px;
+}
+
+.recovery-card h3,
+.recovery-card p {
+  margin: 0;
+}
+
+.recovery-card p + p {
+  margin-top: 7px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #155f75;
+  outline-offset: 2px;
+}
+
 .prompt-row {
   align-items: end;
   display: grid;
@@ -1021,5 +1088,23 @@ textarea {
 
   .profile-buttons {
     justify-content: stretch;
+  }
+
+  .topbar-left {
+    align-items: flex-start;
+  }
+
+  .topbar h1 {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .review-facts {
+    grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.2fr);
+  }
+
+  .output-select {
+    align-items: flex-start;
+    gap: 6px;
   }
 }

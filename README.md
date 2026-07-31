@@ -215,3 +215,7 @@ data/projects/<project-id>/revisions/<revision-id>/
 ├── ai-output.txt
 └── metadata.json
 ```
+
+## Design Workflow And Diagnostics
+
+The primary workflow is describe, clarify only essential details, review design requirements and proposed design, generate, review a new version, accept, and export. Technical source/build evidence is secondary. Open **Technical details** in the workspace to download a secret-redacted diagnostic bundle for the correlated workflow run. See `docs/FRONTEND_WORKFLOW_AUDIT.md`, `docs/FRONTEND_USER_TESTING_PLAN.md`, and `docs/WORKFLOW_OBSERVABILITY.md`.

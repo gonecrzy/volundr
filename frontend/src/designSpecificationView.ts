@@ -20,6 +20,15 @@ export type DesignSpecificationSummary = {
       authority?: string;
       protected?: boolean;
     }>;
+    parameters?: Array<{
+      id: string;
+      label: string;
+      value: number | string | boolean | null;
+      unit?: string | null;
+      source: string;
+      protected?: boolean;
+      explanation?: string | null;
+    }>;
     assumptions?: Array<{
       id: string;
       description: string;
@@ -123,6 +132,30 @@ export function defaultProvenanceRows(specification: DesignSpecificationSummary 
   return assumptions
     .filter((assumption) => assumption.source === "product_default" || assumption.source === "printer_profile")
     .map((assumption) => `${assumption.description}. Source: ${sourceLabel(assumption.source)}`);
+}
+
+export function requirementPresentationGroups(specification: DesignSpecificationSummary | null): {
+  userProvided: string[];
+  proposals: string[];
+  calculated: string[];
+  essentialDecisions: string[];
+} {
+  const dimensions = specification?.specification.critical_dimensions ?? [];
+  const parameters = specification?.specification.parameters ?? [];
+  const renderValue = (entry: { label: string; value: unknown; unit?: string | null }) =>
+    `${entry.label}: ${entry.value ?? "not set"}${entry.unit ? ` ${entry.unit}` : ""}`;
+  const userProvided = dimensions
+    .filter((dimension) => dimension.source === "user" || dimension.source === "clarification")
+    .map(renderValue);
+  const groupedParameters = [...dimensions, ...parameters];
+  const proposals = groupedParameters
+    .filter((entry) => ["product_default", "printer_profile", "ai_assumption"].includes(entry.source))
+    .map(renderValue);
+  const calculated = groupedParameters.filter((entry) => entry.source === "calculated").map(renderValue);
+  const essentialDecisions = (specification?.specification.missing_requirements ?? []).map((missing) =>
+    [missing.label ?? missing.id ?? "A decision", missing.reason].filter(Boolean).join(": "),
+  );
+  return { userProvided, proposals, calculated, essentialDecisions };
 }
 
 export function traceFailureMessage(specification: DesignSpecificationSummary | null): string | null {

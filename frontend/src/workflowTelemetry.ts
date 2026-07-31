@@ -5,23 +5,31 @@ export type WorkflowCorrelation = {
 
 export type FrontendWorkflowEventName =
   | "project_created"
+  | "request_started"
   | "request_submitted"
   | "clarification_displayed"
   | "clarification_answered"
+  | "requirements_review_viewed"
+  | "proposed_design_viewed"
+  | "proposal_edited"
   | "design_review_opened"
   | "design_approved"
   | "generation_started"
+  | "progress_stage_shown"
   | "candidate_opened"
   | "output_selected"
   | "warning_expanded"
+  | "configuration_opened"
   | "configuration_previewed"
   | "configuration_submitted"
+  | "revision_opened"
   | "revision_requested"
   | "revision_plan_approved"
   | "candidate_accepted"
   | "candidate_rejected"
   | "export_requested"
   | "visible_error_displayed"
+  | "failure_recovery_selected"
   | "diagnostic_bundle_requested";
 
 export type FrontendWorkflowEventPayload = {
@@ -35,23 +43,31 @@ export type FrontendWorkflowEventPayload = {
 
 const registeredEvents = new Set<string>([
   "project_created",
+  "request_started",
   "request_submitted",
   "clarification_displayed",
   "clarification_answered",
+  "requirements_review_viewed",
+  "proposed_design_viewed",
+  "proposal_edited",
   "design_review_opened",
   "design_approved",
   "generation_started",
+  "progress_stage_shown",
   "candidate_opened",
   "output_selected",
   "warning_expanded",
+  "configuration_opened",
   "configuration_previewed",
   "configuration_submitted",
+  "revision_opened",
   "revision_requested",
   "revision_plan_approved",
   "candidate_accepted",
   "candidate_rejected",
   "export_requested",
   "visible_error_displayed",
+  "failure_recovery_selected",
   "diagnostic_bundle_requested",
 ]);
 

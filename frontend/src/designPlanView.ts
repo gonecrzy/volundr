@@ -72,17 +72,17 @@ export type DesignPlanSummary = {
 
 export function designPlanStageLabel(plan: DesignPlanSummary | null): string {
   if (!plan) {
-    return "Plan not created";
+    return "Waiting for proposed design";
   }
   switch (plan.review_state) {
     case "clarification_required":
-      return "Plan clarification required";
+      return "A few design details are needed";
     case "pending_review":
-      return "Plan review";
+      return "Ready for your review";
     case "approved":
-      return "Plan approved";
+      return "Ready to generate";
     case "rejected":
-      return "Plan rejected";
+      return "Proposal not used";
   }
 }
 

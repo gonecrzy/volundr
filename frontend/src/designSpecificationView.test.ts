@@ -4,6 +4,7 @@ import {
   canContinueGeneration,
   defaultProvenanceRows,
   protectedRequirementCount,
+  requirementPresentationGroups,
   requirementProvenanceRows,
   requirementStageLabel,
   sourceLabel,
@@ -123,5 +124,30 @@ describe("design specification view helpers", () => {
         }),
       ),
     ).toBe("Volundr could not preserve one of your supplied dimensions. The model has not been generated.");
+  });
+
+  it("separates user requirements, proposals, calculated values, and essential decisions", () => {
+    const groups = requirementPresentationGroups(
+      specification({
+        outcome: "clarification_required",
+        generation_ready: false,
+        clarification_required: true,
+        specification: {
+          ...specification({}).specification,
+          parameters: [
+            { id: "wall", label: "Wall thickness", value: 3, unit: "mm", source: "product_default" },
+            { id: "overall", label: "Overall width", value: 90, unit: "mm", source: "calculated" },
+          ],
+          missing_requirements: [
+            { id: "height", label: "Maximum height", reason: "Needed to fit the available space." },
+          ],
+        },
+      }),
+    );
+
+    expect(groups.userProvided).toEqual(["Hole spacing: 60 mm"]);
+    expect(groups.proposals).toEqual(["Wall thickness: 3 mm"]);
+    expect(groups.calculated).toEqual(["Overall width: 90 mm"]);
+    expect(groups.essentialDecisions).toEqual(["Maximum height: Needed to fit the available space."]);
   });
 });
