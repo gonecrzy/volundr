@@ -31,6 +31,29 @@ export function provenanceLabel(source: string | undefined): string {
   }
 }
 
+export function provenanceRelationshipLabel(
+  relationship: string | undefined,
+  source?: string,
+): string {
+  switch (relationship) {
+    case "direct":
+      return "You provided";
+    case "user_override":
+      return "Your override";
+    case "derived_formula":
+    case "calculated":
+      return "Calculated from the design requirements";
+    case "standard_lookup":
+      return "Volundr standard proposal";
+    case "product_default":
+    case "printer_default":
+    case "ai_proposal":
+      return "Volundr proposes";
+    default:
+      return provenanceLabel(source);
+  }
+}
+
 export function reviewStepLabel(step: "requirements" | "proposal"): string {
   return step === "requirements"
     ? "Step 1 of 2 - Your requirements"

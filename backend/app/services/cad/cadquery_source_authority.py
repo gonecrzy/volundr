@@ -32,13 +32,34 @@ def build_cadquery_source_authority(
     if not design_plan_payload:
         return None
     functional_parameter_ids = _functional_parameter_ids(design_plan_payload)
+    standard_lookup_input_ids = _standard_lookup_input_ids(design_plan_payload)
     parameters = [
         _authority_parameter(parameter)
         for parameter in design_plan_payload.get("parameters", []) or []
         if isinstance(parameter, dict) and parameter.get("id")
     ]
+    parameter_ids = {parameter["id"] for parameter in parameters}
+    for derived in design_plan_payload.get("derived_parameters", []) or []:
+        if not isinstance(derived, dict) or not derived.get("id") or derived.get("value") is None:
+            continue
+        if str(derived["id"]) in parameter_ids:
+            continue
+        parameters.append(
+            _authority_parameter(
+                {
+                    **derived,
+                    "editable": False,
+                    "protected": False,
+                    "required": False,
+                    "source": "calculated",
+                }
+            )
+        )
+        parameter_ids.add(str(derived["id"]))
     for parameter in parameters:
         parameter["functional"] = parameter["id"] in functional_parameter_ids
+        if parameter["id"] in standard_lookup_input_ids:
+            parameter["required"] = False
     components = [
         {"id": str(component["id"]), "required": True}
         for component in design_plan_payload.get("components", []) or []
@@ -533,7 +554,23 @@ def _authority_parameter(parameter: dict[str, Any]) -> dict[str, Any]:
         "source_requirement_id": parameter.get("source_requirement_id"),
         "source": parameter.get("source"),
         "component_id": parameter.get("component_id"),
+        "provenance": parameter.get("provenance"),
     }
+
+
+def _standard_lookup_input_ids(plan: dict[str, Any] | None) -> set[str]:
+    if not isinstance(plan, dict):
+        return set()
+    ids: set[str] = set()
+    for parameter in list(plan.get("parameters", []) or []) + list(plan.get("derived_parameters", []) or []):
+        if not isinstance(parameter, dict):
+            continue
+        provenance = parameter.get("provenance")
+        if not isinstance(provenance, dict) or provenance.get("relationship") != "standard_lookup":
+            continue
+        for key in ("source_requirement_ids", "source_parameter_ids"):
+            ids.update(str(value) for value in provenance.get(key, []) or [] if value)
+    return ids
 
 
 def _functional_parameter_ids(plan: dict[str, Any] | None) -> set[str]:

@@ -69,13 +69,19 @@ export type DesignPlanSummary = {
       label: string;
       value: number | string | boolean | null;
       unit?: string | null;
+      source?: string;
+      provenance?: { relationship?: string; explanation?: string | null };
       editable?: boolean;
       protected?: boolean;
     }>;
     derived_parameters?: Array<{
       id: string;
       label: string;
-      expression: string;
+      value?: number | string | boolean | null;
+      expression?: string | null;
+      unit?: string | null;
+      source?: string;
+      provenance?: { relationship?: string; explanation?: string | null };
       depends_on?: string[];
     }>;
     dependency_edges?: Array<{

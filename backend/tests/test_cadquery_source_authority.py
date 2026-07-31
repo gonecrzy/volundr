@@ -150,6 +150,83 @@ def test_builds_canonical_source_authority_from_design_plan() -> None:
     assert [output["id"] for output in authority["outputs"]] == ["base", "lid"]
 
 
+def test_resolved_derived_parameters_are_part_of_source_authority() -> None:
+    plan = {
+        **ENCLOSURE_PLAN,
+        "derived_parameters": [
+            {
+                "id": "case_height",
+                "label": "Case height",
+                "value": 80.0,
+                "unit": "mm",
+                "expression": "pcb_depth + 35",
+                "depends_on": ["pcb_depth"],
+                "source": "calculated",
+            }
+        ],
+    }
+
+    authority = build_cadquery_source_authority(plan)
+
+    assert any(parameter["id"] == "case_height" for parameter in authority["parameters"])
+
+
+def test_resolved_derived_parameters_are_not_direct_source_requirements() -> None:
+    plan = {
+        **ENCLOSURE_PLAN,
+        "derived_parameters": [
+            {
+                "id": "case_height",
+                "label": "Case height",
+                "value": 80.0,
+                "unit": "mm",
+                "expression": "pcb_depth + 35",
+                "depends_on": ["pcb_depth"],
+                "source": "calculated",
+            }
+        ],
+    }
+
+    authority = build_cadquery_source_authority(plan)
+
+    assert next(parameter for parameter in authority["parameters"] if parameter["id"] == "case_height")["required"] is False
+
+
+def test_standard_lookup_input_does_not_require_direct_geometry_reference() -> None:
+    authority = build_cadquery_source_authority(
+        {
+            "parameters": [
+                {
+                    "id": "mounting_screw_designation",
+                    "value": "#8",
+                    "provenance": {
+                        "relationship": "direct",
+                        "source_requirement_ids": ["mounting_screw_designation"],
+                    },
+                }
+            ],
+            "derived_parameters": [
+                {
+                    "id": "mounting_hole_diameter",
+                    "value": 4.2,
+                    "provenance": {
+                        "relationship": "standard_lookup",
+                        "source_parameter_ids": ["mounting_screw_designation"],
+                    },
+                }
+            ],
+            "components": [],
+            "features": [],
+            "printable_outputs": [],
+        }
+    )
+
+    designation = next(
+        parameter for parameter in authority["parameters"] if parameter["id"] == "mounting_screw_designation"
+    )
+    assert designation["required"] is False
+
+
 def test_missing_protected_parameters_fail_before_execution() -> None:
     authority = build_cadquery_source_authority(ENCLOSURE_PLAN)
     source = _source(

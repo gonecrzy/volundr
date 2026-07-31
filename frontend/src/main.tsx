@@ -42,7 +42,12 @@ import {
   traceFailureMessage,
   type RequirementOutcome,
 } from "./designSpecificationView";
-import { assistantVocabulary, provenanceLabel, reviewStepLabel } from "./terminology";
+import {
+  assistantVocabulary,
+  provenanceLabel,
+  provenanceRelationshipLabel,
+  reviewStepLabel,
+} from "./terminology";
 import { candidateStatusSummary, generationProgress, recoveryPresentation } from "./workflowPresentation";
 import {
   canGenerateConfiguration,
@@ -291,6 +296,11 @@ type DesignPlan = {
       label: string;
       value: number | string | boolean | null;
       unit?: string | null;
+      source?: string;
+      provenance?: {
+        relationship?: string;
+        explanation?: string | null;
+      };
       editable?: boolean;
       protected?: boolean;
       component_id?: string | null;
@@ -298,8 +308,14 @@ type DesignPlan = {
     derived_parameters?: Array<{
       id: string;
       label: string;
-      expression: string;
+      value?: number | string | boolean | null;
+      expression?: string | null;
       unit?: string | null;
+      source?: string;
+      provenance?: {
+        relationship?: string;
+        explanation?: string | null;
+      };
       depends_on?: string[];
     }>;
     dependency_edges?: Array<{
@@ -2716,6 +2732,29 @@ function DesignPlanReview({
   const outputs = plan.plan.printable_outputs ?? [];
   const risks = plan.plan.risks ?? [];
   const questions = designPlanClarificationQuestions(plan);
+  const valueLine = (parameter: {
+    label: string;
+    value?: number | string | boolean | null;
+    unit?: string | null;
+    source?: string;
+    provenance?: { relationship?: string; explanation?: string | null };
+    protected?: boolean;
+  }) => {
+    const relationship = provenanceRelationshipLabel(parameter.provenance?.relationship, parameter.source);
+    const explanation = parameter.provenance?.explanation;
+    return `${parameter.label}: ${parameter.value ?? "unset"}${parameter.unit ? ` ${parameter.unit}` : ""} - ${relationship}${
+      explanation ? ` - ${explanation}` : ""
+    }${parameter.protected ? " (dimension to preserve)" : ""}`;
+  };
+  const directParameters = parameters.filter(
+    (parameter) =>
+      parameter.provenance?.relationship === "direct" ||
+      parameter.source === "user" ||
+      parameter.source === "clarification",
+  );
+  const proposedParameters = parameters.filter(
+    (parameter) => !directParameters.includes(parameter) && parameter.editable !== false,
+  );
 
   return (
     <section className="design-plan-review" aria-label="Proposed design">
@@ -2743,14 +2782,12 @@ function DesignPlanReview({
       ) : null}
 
       <SummaryList
+        title="Your requirements"
+        items={directParameters.map(valueLine)}
+      />
+      <SummaryList
         title="Volundr proposes"
-        items={parameters
-          .filter((parameter) => parameter.editable !== false)
-          .map((parameter) =>
-            `${parameter.label}: ${parameter.value ?? "unset"}${parameter.unit ? ` ${parameter.unit}` : ""}${
-              parameter.protected ? " (dimension to preserve)" : ""
-            }`,
-          )}
+        items={proposedParameters.map(valueLine)}
       />
       <SummaryList
         title="Retention"
@@ -2758,7 +2795,7 @@ function DesignPlanReview({
       />
       <SummaryList
         title="Calculated"
-        items={derived.map((parameter) => `${parameter.label}: ${parameter.expression}`)}
+        items={derived.map(valueLine)}
       />
       <SummaryList
         title="How the dimensions relate"

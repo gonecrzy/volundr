@@ -436,6 +436,39 @@ def canonical_requirement_id(value: str) -> str:
 
 def _parse_requirement_text(text: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
+    number_words = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+    }
+    for count_word, designation in re.findall(
+        r"\b(one|two|three|four|five|six|seven|eight|nine|ten)\s+#([0-9]+)\s+(?:mounting\s+)?(?:screws?|fasteners?)\b",
+        text,
+        flags=re.IGNORECASE,
+    ):
+        items.append(
+            explicit_item(
+                "mounting_screw_count",
+                number_words[count_word.lower()],
+                unit="count",
+                evidence=f"{count_word} #{designation} mounting screws",
+            )
+        )
+        items.append(
+            explicit_item(
+                "mounting_screw_designation",
+                f"#{designation}",
+                requirement_type="explicit_enum",
+                evidence=f"#{designation} mounting screws",
+            )
+        )
     for raw_key, dimensions, unit in re.findall(
         r"\b([a-zA-Z][a-zA-Z0-9_]*)\s*=\s*([0-9]+(?:\.[0-9]+)?(?:\s*x\s*[0-9]+(?:\.[0-9]+)?){1,2})\s*(mm|cm|in)?\b",
         text,
@@ -568,6 +601,10 @@ def _matching_parameter(parameters: list[dict[str, Any]], requirement_id: str) -
     for parameter in parameters:
         if canonical_requirement_id(str(parameter.get("id") or "")) == requirement_id:
             return parameter
+        provenance = parameter.get("provenance")
+        relationship = provenance.get("relationship") if isinstance(provenance, dict) else None
+        if relationship in {"derived_formula", "calculated", "standard_lookup"}:
+            continue
         if canonical_requirement_id(str(parameter.get("source_requirement_id") or "")) == requirement_id:
             return parameter
     return None

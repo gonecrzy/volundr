@@ -144,7 +144,7 @@ PLATE_PLAN: dict[str, Any] = {
 ORGANIZER_SOURCE = PLATE_SOURCE.replace(
     'PARAMETERS = [',
     '''PARAMETERS = [
-    ParameterSpec(id="column_count", label="Column count", type="int", default=4, editable=True),
+    ParameterSpec(id="column_count", label="Column count", type="int", default=4, editable=True, source_requirement_id="column_count", source="user"),
     ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", editable=False, protected=True),''',
 ).replace(
     'return cq.Workplane("XY").box(params["plate_width"], 50.0, 3.0)',
@@ -167,6 +167,11 @@ ORGANIZER_PLAN: dict[str, Any] = {
             "editable": True,
             "protected": False,
             "component_id": "plate",
+            "source_requirement_id": "column_count",
+            "provenance": {
+                "relationship": "direct",
+                "source_requirement_ids": ["column_count"],
+            },
         },
         {
             "id": "wall_thickness",

@@ -297,6 +297,7 @@ class DesignPlanParameter(BaseModel):
     protected: bool = False
     component_id: str | None = None
     source_requirement_id: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
 
 
 class DesignPlanDerivedParameter(BaseModel):
@@ -304,7 +305,7 @@ class DesignPlanDerivedParameter(BaseModel):
 
     id: str = Field(min_length=1)
     label: str = Field(min_length=1)
-    expression: str = Field(min_length=1)
+    expression: str | None = None
     unit: str | None = None
     depends_on: list[str] = Field(default_factory=list)
 

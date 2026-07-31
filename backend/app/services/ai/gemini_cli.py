@@ -23,11 +23,12 @@ from app.services.cad.cadquery_source_authority import (
     format_authoritative_identity_section,
 )
 from app.services.cad.source_scaffold import SCAFFOLD_VERSION, geometry_function_names
+from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
-REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
+REQUIREMENTS_PROMPT_VERSION = "requirements-v3"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v3"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
@@ -644,6 +645,9 @@ class GeminiCliProvider:
                 "Repair this Parametric Design Plan response into valid JSON for the required schema.",
                 "Do not generate CAD source. Do not invent new critical requirements.",
                 "Preserve the original planning intent and return JSON only.",
+                "Preserve direct user requirements exactly; represent implementation dimensions as derived_formula or standard_lookup values instead of changing the user value.",
+                "Never use one parameter ID for both a nominal designation and a geometric dimension. Split mounting_screw_designation from mounting_hole_diameter.",
+                "Use only the supplied versioned standard mappings and include the lookup key, variant, and result_field when a variant exposes more than one measurement.",
                 "",
                 "Schema validation error:",
                 request.schema_validation_error or "unknown schema error",
@@ -657,7 +661,11 @@ class GeminiCliProvider:
                 "Return JSON only. Do not generate CAD source.",
                 "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
                 "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
-                "A parameter with source_requirement_id must copy that source requirement's value and unit within tolerance. Do not use source_requirement_id for calculated stack, envelope, or overall product dimensions; represent those as derived_parameters with dependency_edges.",
+                "Every parameter must include provenance.relationship: direct, derived_formula, calculated, standard_lookup, product_default, printer_default, ai_proposal, or user_override.",
+                "A parameter with source_requirement_id must copy that source requirement's value and unit only when its provenance relationship is direct. Derived implementation dimensions must not be marked direct.",
+                "Use derived_parameters or derived_formula provenance for calculated stack, envelope, or overall product dimensions, not direct source-linked values.",
+                "Use derived_formula for deterministic formulas and include source_requirement_ids, source_parameter_ids, and the arithmetic expression. The expression may be on the derived parameter or duplicated in provenance. Use standard_lookup for nominal hardware designations and include table_id, key, variant, and result_field when needed; never treat a designation as a metric dimension.",
+                "Do not use one parameter ID for both a nominal designation and a geometric dimension. Keep a screw designation such as #8 separate from a proposed clearance-hole diameter.",
                 "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
                 "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
@@ -680,20 +688,35 @@ class GeminiCliProvider:
                     "value": 0,
                     "unit": "mm",
                     "source_requirement_id": "string|null",
+                    "provenance": {
+                        "relationship": "direct|derived_formula|calculated|standard_lookup|product_default|printer_default|ai_proposal|user_override",
+                        "source_requirement_ids": ["string"],
+                        "source_parameter_ids": ["string"],
+                        "expression": "string|null",
+                        "lookup": {"table_id": "string", "key": "string", "variant": "string", "result_field": "string|null"},
+                        "explanation": "string",
+                    },
                     "editable": True,
                     "protected": False,
                     "component_id": "string|null",
                 }
             ],
-            "derived_parameters": [
-                {
-                    "id": "string",
-                    "label": "string",
-                    "expression": "string",
-                    "unit": "mm",
-                    "depends_on": ["parameter_id"],
-                }
-            ],
+                "derived_parameters": [
+                    {
+                        "id": "string",
+                        "label": "string",
+                        "expression": "string|null",
+                        "unit": "mm",
+                        "depends_on": ["parameter_id"],
+                        "provenance": {
+                            "relationship": "derived_formula|calculated|standard_lookup",
+                            "source_requirement_ids": ["string"],
+                            "source_parameter_ids": ["string"],
+                            "lookup": {"table_id": "string", "key": "string", "variant": "string", "result_field": "string|null"},
+                            "explanation": "string",
+                        },
+                    }
+                ],
                 "dependency_edges": [
                 {
                     "from": "source_parameter_id",
@@ -777,6 +800,9 @@ class GeminiCliProvider:
                 "",
                 "Versioned defaults:",
                 json.dumps(request.defaults, indent=2, sort_keys=True),
+                "",
+                "Available standard mappings:",
+                json.dumps(FASTENER_LOOKUP_TABLES, indent=2, sort_keys=True),
                 "",
                 "Required JSON shape:",
                 json.dumps(schema, indent=2, sort_keys=True),
@@ -899,8 +925,12 @@ class GeminiCliProvider:
                 "Extract a structured Volundr Design Specification from the user request.",
                 "Return JSON only. Do not generate CAD source.",
                 "Classify whether generation is ready, clarification is required, requirements conflict, or the request is unsupported.",
-            "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
-            "Do not use tools, web search, files, or external resources. Use only this prompt, supplied defaults, previous specifications, and clarification answers.",
+                "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
+                "Preserve nominal hardware designations as strings, including the # prefix. A designation such as #8 is not an 8 mm dimension; use a semantic ID such as mounting_screw_designation and leave hole diameter to a later standard lookup proposal.",
+                "When the request says wall-mounted, wall-mounted means a vertical planar wall mount unless the user states otherwise; propose ordinary screw spacing and orientation rather than asking for them.",
+                "When a moving-vehicle request requires secure retention and one-handed removal, do not ask the user to choose an implementation mechanism when a supported concrete proposal is reasonable; let the Design Plan propose one.",
+                "do not ask the user to convert a nominal designation such as #8 into a metric diameter.",
+                "Do not use tools, web search, files, or external resources. Use only this prompt, supplied defaults, previous specifications, and clarification answers.",
             ]
         schema = {
             "schema_version": "1.0",

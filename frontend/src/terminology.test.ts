@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assistantVocabulary,
   provenanceLabel,
+  provenanceRelationshipLabel,
   reviewStepLabel,
 } from "./terminology";
 
@@ -19,6 +20,12 @@ describe("assistant vocabulary", () => {
     expect(provenanceLabel("clarification")).toBe("You confirmed");
     expect(provenanceLabel("product_default")).toBe("Volundr proposes");
     expect(provenanceLabel("calculated")).toBe("Calculated");
+  });
+
+  it("distinguishes direct, derived, and standard-mapped plan values", () => {
+    expect(provenanceRelationshipLabel("direct")).toBe("You provided");
+    expect(provenanceRelationshipLabel("derived_formula")).toBe("Calculated from the design requirements");
+    expect(provenanceRelationshipLabel("standard_lookup")).toBe("Volundr standard proposal");
   });
 
   it("frames the review as two user-facing steps", () => {

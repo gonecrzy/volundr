@@ -49,12 +49,20 @@ def extract_geometry_functions(
     except SyntaxError as exc:
         raise ScaffoldSourceError(f"invalid geometry function syntax: {exc.msg}") from exc
 
-    if not tree.body or not all(isinstance(node, ast.FunctionDef) for node in tree.body):
+    function_nodes: list[ast.FunctionDef] = []
+    for node in tree.body:
+        if isinstance(node, ast.Import) and len(node.names) == 1:
+            alias = node.names[0]
+            if alias.name == "cadquery" and alias.asname == "cq":
+                continue
+        if not isinstance(node, ast.FunctionDef):
+            raise ScaffoldSourceError("only geometry function definitions are allowed")
+        function_nodes.append(node)
+    if not function_nodes:
         raise ScaffoldSourceError("only geometry function definitions are allowed")
 
     functions: dict[str, str] = {}
-    for node in tree.body:
-        assert isinstance(node, ast.FunctionDef)
+    for node in function_nodes:
         if node.decorator_list:
             raise ScaffoldSourceError("geometry functions cannot declare runtime registrations")
         if node.name not in expected_function_names:
@@ -130,7 +138,30 @@ def render_cadquery_scaffold(
         "",
         "PARAMETERS = [",
     ]
-    for parameter in design_plan.get("parameters", []) or []:
+    parameter_entries = [
+        parameter
+        for parameter in design_plan.get("parameters", []) or []
+        if isinstance(parameter, dict)
+    ]
+    parameter_ids = {
+        str(parameter.get("id"))
+        for parameter in parameter_entries
+        if parameter.get("id")
+    }
+    for derived in design_plan.get("derived_parameters", []) or []:
+        if not isinstance(derived, dict) or not derived.get("id") or derived.get("value") is None:
+            continue
+        if str(derived["id"]) in parameter_ids:
+            continue
+        parameter_entries.append(
+            {
+                **derived,
+                "editable": False,
+                "protected": False,
+                "source": "calculated",
+            }
+        )
+    for parameter in parameter_entries:
         if not isinstance(parameter, dict) or not parameter.get("id"):
             continue
         lines.append("    " + _parameter_spec_expression(parameter) + ",")

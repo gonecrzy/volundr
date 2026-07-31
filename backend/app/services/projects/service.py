@@ -142,6 +142,10 @@ from app.services.projects.design_artifact_consistency import (
     certify_design_artifact_consistency,
     consistency_failure_message,
 )
+from app.services.projects.plan_provenance import (
+    normalize_plan_provenance,
+    validate_plan_provenance,
+)
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -4255,12 +4259,25 @@ class ProjectService:
         validated = DesignPlanPayload.model_validate(payload)
         normalized = validated.model_dump(mode="json", by_alias=True)
         normalized = resolve_retention_proposals(normalized)
+        normalized = normalize_plan_provenance(
+            normalized,
+            design_specification_payload,
+        )
         outcome = self._derive_design_plan_outcome(normalized)
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = (
             outcome == DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED
         )
         normalized["plan_ready"] = outcome == DesignPlanOutcome.PLAN_READY
+        provenance_findings = validate_plan_provenance(
+            normalized,
+            design_specification_payload,
+        )
+        if any(finding.get("is_blocking") for finding in provenance_findings):
+            raise ValueError(
+                "Design Plan provenance validation failed: "
+                + "; ".join(str(finding.get("rule_id")) for finding in provenance_findings)
+            )
         self._validate_design_plan_source_requirement_links(
             normalized,
             design_specification_payload=design_specification_payload,
@@ -4296,6 +4313,9 @@ class ProjectService:
                 continue
             source_id = parameter.get("source_requirement_id")
             if not source_id or source_id not in source_values:
+                continue
+            provenance = parameter.get("provenance")
+            if isinstance(provenance, dict) and provenance.get("relationship") not in {None, "direct"}:
                 continue
             expected = source_values[source_id]
             detected = self._to_float(parameter.get("value"))

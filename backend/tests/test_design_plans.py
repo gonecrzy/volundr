@@ -295,13 +295,23 @@ PARAMETERS = [
         min_value=2.0,
         editable=True,
         protected=False,
-    )
+    ),
+    ParameterSpec(
+        id="plate_height",
+        label="Plate height",
+        type="float",
+        default=80.0,
+        unit="mm",
+        editable=False,
+        protected=False,
+        source="calculated",
+    ),
 ]
 
 @component("bracket_body")
 @feature("mounting_holes", component="bracket_body")
 def build_bracket_body(params):
-    return cq.Workplane("XY").box(80, params["mount_hole_spacing"] + 20, params["plate_thickness"])
+    return cq.Workplane("XY").box(params["mount_hole_spacing"] + 20, params["plate_height"], params["plate_thickness"])
 
 
 def build(params):
@@ -800,7 +810,7 @@ def test_design_plan_parameter_source_value_mismatch_is_repaired(tmp_path: Path)
     assert response.status_code == 201
     assert response.json()["outcome"] == "plan_ready"
     assert len(provider.plan_requests) == 2
-    assert "does not match source requirement" in (
+    assert "design_plan.direct_value_mismatch" in (
         provider.plan_requests[1].schema_validation_error or ""
     )
     with SessionLocal() as session:

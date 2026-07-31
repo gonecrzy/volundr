@@ -109,3 +109,12 @@ def test_geometry_payload_rejects_imports_and_runtime_registrations() -> None:
             "```python\nimport os\ndef _ai_component_holder_body(params):\n    return None\n```",
             {"_ai_component_holder_body"},
         )
+
+
+def test_geometry_payload_strips_only_the_duplicate_approved_cadquery_import() -> None:
+    functions = extract_geometry_functions(
+        "```python\nimport cadquery as cq\ndef _ai_component_holder_body(params):\n    return cq.Workplane(\"XY\")\n```",
+        {"_ai_component_holder_body"},
+    )
+
+    assert list(functions) == ["_ai_component_holder_body"]
