@@ -317,3 +317,7 @@ Component-targeted revision tests must use fake providers and deterministic sour
 They must also cover that scope correction runs at most once and compilation begins only after corrected source passes scope compliance.
 
 Parameter configuration tests must use deterministic accepted-source fixtures and must not call a provider. They must cover editable parameter listing, number/integer/boolean/enum validation, non-editable and derived-parameter rejection, preset preview, dependency impact expansion, `-D` override compilation, active-revision preservation, configuration-linked candidates, retry/export manifest behavior, and UI rendering for ready/invalid/requires-revision states.
+
+## Frontend User Workflows
+
+Frontend unit tests cover user-facing vocabulary, provenance grouping, progress labels, current/new-version distinction, multi-output blocking explanation, recovery language, and fixed telemetry names. Playwright covers the vertical new-project path, deterministic configuration, scoped revision, and a blocked multi-output candidate. The five observed-user scenarios and required diagnostic evidence are in `docs/FRONTEND_USER_TESTING_PLAN.md`.

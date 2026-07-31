@@ -209,6 +209,13 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
       });
       return route.fulfill({ status: 201, headers: workflowHeaders, json: candidate });
     }
+    if (request.method() === "POST" && path === "/candidates/rev-generated/accept") {
+      candidate.review_state = "accepted";
+      candidate.is_accepted = true;
+      candidate.accepted_at = "2026-07-30T16:40:00Z";
+      project.active_revision_id = candidate.id;
+      return route.fulfill({ headers: workflowHeaders, json: candidate });
+    }
     if (request.method() === "GET" && path === "/workflow-runs/workflow-run-1/debug-bundle.zip") {
       return route.fulfill({
         body: "workflow-debug-workflow-run-1",
@@ -234,6 +241,9 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
           outputs: outputsByRevision.get(revisionId) ?? [],
         },
       });
+    }
+    if (request.method() === "GET" && path === "/revisions/rev-generated/export.zip") {
+      return route.fulfill({ body: "export", contentType: "application/zip" });
     }
     if (request.method() === "GET" && path.endsWith("/source")) {
       return route.fulfill({ body: source, contentType: "text/plain" });
@@ -277,35 +287,32 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   });
 
   await page.goto("/");
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Describe", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Requirements", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Design Plan", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Approve", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Generate", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Executing CadQuery", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Validating topology", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Candidate", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Staged CadQuery workflow").getByText("Accept or revise", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Design progress").getByText("Describe", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Design progress").getByText("Review requirements", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Design progress").getByText("Review proposed design", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Design progress").getByText("Review new version", { exact: true })).toBeVisible();
+  await expect(page.getByText("You do not need to specify every dimension.")).toBeVisible();
   await page.getByLabel("AI chat message").fill("Create a shelf bracket for a board.");
   await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByLabel("Requirements").getByText("Waiting for clarification")).toBeVisible();
-  await expect(page.getByLabel("Requirements").getByRole("textbox")).toBeVisible();
+  await expect(page.getByLabel("Design requirements").getByText("Waiting for clarification")).toBeVisible();
+  await expect(page.getByLabel("Design requirements").getByText("A few details are still needed")).toBeVisible();
+  await expect(page.getByLabel("Design requirements").getByRole("textbox")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Design requirements" })).toBeFocused();
 
   await page.getByLabel("AI chat message").fill("180 mm shelf depth");
   await page.getByRole("button", { name: "Answer", exact: true }).click();
-  await expect(page.getByLabel("Requirements").getByText("Requirements ready")).toBeVisible();
-  await expect(page.getByText("Shelf depth: 180 mm. Source: Your clarification")).toBeVisible();
+  await expect(page.getByLabel("Design requirements").getByText("Requirements ready")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your requirements" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Create Design Plan" }).click();
-  await expect(page.getByLabel("Design Plan").getByText("Plan review")).toBeVisible();
+  await page.getByRole("button", { name: "Review proposed design" }).click();
+  await expect(page.getByLabel("Proposed design").getByText("Ready for your review")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Proposed design" })).toBeFocused();
   await expect(page.getByText("Mounting holes (hole_group)")).toBeVisible();
-  await expect(page.getByText("Bracket: bracket x1")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Approve and generate" })).toBeEnabled();
+  await expect(page.getByText("Bracket - one part")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Generate design" })).toBeEnabled();
 
-  await page.getByRole("button", { name: "Approve and generate" }).click();
-  await expect(page.getByText("Candidate - R1 - Ready")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Python" })).toBeVisible();
-  await expect(page.getByLabel("Python source")).toBeVisible();
+  await page.getByRole("button", { name: "Generate design" }).click();
+  await expect(page.getByText("New version - R1 - Ready to review")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByText("1/1", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Bracket/ })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("link", { name: "STEP" })).toBeVisible();
@@ -314,7 +321,11 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await expect(page.getByLabel("Candidate review").getByText("Solids 1/1")).toBeVisible();
   await expect(page.getByText("Geometric checks")).toBeVisible();
   await expect(page.getByText("0 verified, 0 violated, 0 unable to verify")).toBeVisible();
-  const diagnosticBundle = page.getByRole("link", { name: "Diagnostic bundle" });
+  await page.getByText("Technical details").click();
+  await expect(page.getByText(/^Workflow run:/)).toBeVisible();
+  await expect(page.getByText("workflow-run-1", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy workflow run ID" })).toBeVisible();
+  const diagnosticBundle = page.getByRole("link", { name: "Download diagnostic bundle" });
   await expect(diagnosticBundle).toBeVisible();
   await expect(diagnosticBundle).toHaveAttribute(
     "href",
@@ -328,6 +339,11 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await page.evaluate((href) => fetch(href), bundleHref);
   const bundleResponse = await bundleResponsePromise;
   expect(bundleResponse.ok()).toBeTruthy();
+  await page.getByRole("button", { name: "Accept new version" }).click();
+  await expect(page.getByText("Current design - R1 - Current design")).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Export design" }).click();
+  expect((await downloadPromise).suggestedFilename()).not.toBe("");
 });
 
 test("structured revision planning preserves active revision until scoped candidate is accepted", async ({ page }) => {
@@ -578,39 +594,37 @@ test("structured revision planning preserves active revision until scoped candid
   await page.goto("/");
   await page.getByRole("button", { name: "Projects" }).click();
   await page.getByRole("button", { name: "Revision Workflow" }).click();
-  await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Python" })).toBeVisible();
-  await expect(page.getByLabel("Python source")).toBeVisible();
+  await expect(page.getByText("Current design - R1 - Current design")).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Make the lid 4 mm thick");
   await page.getByRole("button", { name: "Plan revision" }).click();
-  await expect(page.getByLabel("Revision Plan").getByText("Revision plan review")).toBeVisible();
+  await expect(page.getByLabel("Planned changes").getByText("Ready for your review")).toBeVisible();
   await expect(page.getByText("Increase lid thickness from 3 mm to 4 mm")).toBeVisible();
   await expect(page.getByText("lid_thickness: 3 -> 4")).toBeVisible();
-  await expect(page.getByLabel("Revision Plan").getByText("Output body", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Generate revision" })).toBeDisabled();
+  await expect(page.getByLabel("Planned changes").getByText("Output body", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Generate new version" })).toBeDisabled();
 
-  await page.getByRole("button", { name: "Approve revision plan" }).click();
-  await expect(page.getByText("Candidate - R2 - Ready with warnings")).toBeVisible();
+  await page.getByRole("button", { name: "Review planned changes" }).click();
+  await expect(page.getByText("New version - R2 - Ready with warnings")).toBeVisible();
   await expect(page.getByText("Revision scope checks")).toBeVisible();
   await expect(page.getByText("Passed approved revision scope")).toBeVisible();
   await expect(page.getByText("Revision verification")).toBeVisible();
   await expect(page.getByText("lid_thickness: expected 4, detected 4")).toBeVisible();
-  await expect(page.getByText("Printable outputs")).toBeVisible();
+  await expect(page.getByText("Printable parts - 2")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Body/ })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Lid/ })).toBeVisible();
   await expect(page.getByText("R1 active")).toBeVisible();
 
-  await page.getByRole("button", { name: "Accept", exact: true }).click();
-  await expect(page.getByText("Active design - R2 - Accepted revision")).toBeVisible();
+  await page.getByRole("button", { name: "Accept new version", exact: true }).click();
+  await expect(page.getByText("Current design - R2 - Current design")).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Make the body width 90 mm");
   await page.getByRole("button", { name: "Plan revision" }).click();
-  await expect(page.getByLabel("Revision Plan").getByText("Revision plan review")).toBeVisible();
-  await page.getByRole("button", { name: "Approve revision plan" }).click();
-  await expect(page.getByLabel("Revision Plan").getByText("Revision scope checks")).toBeVisible();
-  await expect(page.getByLabel("Revision Plan").getByText("Rejected before compile", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Revision Plan").getByText("Unauthorized parameter change")).toBeVisible();
+  await expect(page.getByLabel("Planned changes").getByText("Ready for your review")).toBeVisible();
+  await page.getByRole("button", { name: "Review planned changes" }).click();
+  await expect(page.getByLabel("Planned changes").getByText("Revision scope checks")).toBeVisible();
+  await expect(page.getByLabel("Planned changes").getByText("Rejected before compile", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Planned changes").getByText("Unauthorized parameter change")).toBeVisible();
   await expect(page.getByLabel("Source checks").getByText("Revision source rejected before compile")).toBeVisible();
   await expect(page.getByText("R2 active")).toBeVisible();
 });
@@ -810,16 +824,16 @@ test("deterministic configuration generates a CadQuery candidate without replaci
   await page.goto("/");
   await page.getByRole("button", { name: "Projects" }).click();
   await page.getByRole("button", { name: "Configured Rail" }).click();
-  await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
+  await expect(page.getByText("Current design - R1 - Current design")).toBeVisible();
   await expect(page.getByLabel("Configure parameters").getByText("Body width (mm)")).toBeVisible();
 
   await page.getByLabel("Body width (mm)").fill("90");
-  await page.getByRole("button", { name: "Preview configuration" }).click();
+  await page.getByRole("button", { name: "Preview effects" }).click();
   await expect(page.getByLabel("Configure parameters").getByText("Configuration ready")).toBeVisible();
   await expect(page.getByLabel("Configure parameters").getByText("1 component, 1 output")).toBeVisible();
 
-  await page.getByLabel("Configure parameters").getByRole("button", { name: "Generate candidate" }).click();
-  await expect(page.getByText("Candidate - R2 - Ready candidate")).toBeVisible();
+  await page.getByLabel("Configure parameters").getByRole("button", { name: "Create new version" }).click();
+  await expect(page.getByText("New version - R2 - Ready to review")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByText("90 x 50 x 24 mm")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByText("Topology valid")).toBeVisible();
   await expect(page.getByText("R1 active")).toBeVisible();
@@ -999,10 +1013,10 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
   await page.goto("/");
   await page.getByRole("button", { name: "Projects" }).click();
   await page.getByRole("button", { name: "Solid Count Review" }).click();
-  await expect(page.getByText("Active design - R1 - Accepted revision")).toBeVisible();
+  await expect(page.getByText("Current design - R1 - Current design")).toBeVisible();
 
   await page.getByRole("button", { name: /R2/ }).click();
-  await expect(page.getByText("Candidate - R2 - Blocked")).toBeVisible();
+  await expect(page.getByText("New version - R2 - Needs changes")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByText("1/2")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Base/ })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Alignment bosses/ })).toBeVisible();
@@ -1010,7 +1024,7 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
   await expect(page.getByLabel("Candidate review").getByText("Solids 3/1")).toBeVisible();
   await expect(page.getByText("Solid-count mismatch: expected_solid_count=1, detected_solid_count=3")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByText("topology.solid_count_mismatch", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Accept new version", exact: true })).toBeDisabled();
   await expect(page.getByText("R1 active")).toBeVisible();
 });
 
