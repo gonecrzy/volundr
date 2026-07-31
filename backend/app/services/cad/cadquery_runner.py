@@ -56,6 +56,7 @@ class CadQueryCompileResult:
     command_args: list[str] | None = None
     outputs: list[CadQueryOutputResult] = field(default_factory=list)
     execution_manifest_path: Path | None = None
+    execution_timing: dict | None = None
 
 
 class CadQueryCliRunner:
@@ -159,6 +160,7 @@ class CadQueryCliRunner:
                 exit_code=exit_code,
                 error_message=f"CadQuery timed out after {self.timeout_seconds} seconds",
                 command_args=command_args,
+                execution_manifest_path=execution_result_path if execution_result_path.exists() else None,
             )
 
         if exit_code != 0:
@@ -174,6 +176,7 @@ class CadQueryCliRunner:
                 exit_code=exit_code,
                 error_message=self._diagnostic(stderr, "CadQuery failed"),
                 command_args=command_args,
+                execution_manifest_path=execution_result_path if execution_result_path.exists() else None,
             )
 
         try:
@@ -191,6 +194,7 @@ class CadQueryCliRunner:
                 exit_code=exit_code,
                 error_message="CadQuery did not produce an execution result",
                 command_args=command_args,
+                execution_manifest_path=execution_result_path if execution_result_path.exists() else None,
             )
 
         outputs = self._collect_output_results(job_dir, execution_payload)
@@ -213,6 +217,7 @@ class CadQueryCliRunner:
                 error_message=error_message,
                 command_args=command_args,
                 outputs=outputs,
+                execution_manifest_path=execution_result_path,
             )
 
         oversized_output = next(
@@ -237,6 +242,7 @@ class CadQueryCliRunner:
                 error_message="generated STL exceeds size limit",
                 command_args=command_args,
                 outputs=outputs,
+                execution_manifest_path=execution_result_path,
             )
 
         primary_output = successful_outputs[0]
@@ -258,6 +264,9 @@ class CadQueryCliRunner:
             command_args=self._safe_command_args(command_args),
             outputs=outputs,
             execution_manifest_path=execution_result_path,
+            execution_timing=execution_payload.get("execution_timing")
+            if isinstance(execution_payload.get("execution_timing"), dict)
+            else None,
         )
 
     def _screen_source(self, source: str, *, source_contract_version: str) -> str | None:
@@ -322,7 +331,15 @@ class CadQueryCliRunner:
         error_message: str,
         command_args: list[str],
         outputs: list[CadQueryOutputResult] | None = None,
+        execution_manifest_path: Path | None = None,
     ) -> CadQueryCompileResult:
+        execution_timing = None
+        if execution_manifest_path is not None and execution_manifest_path.exists():
+            try:
+                payload = json.loads(execution_manifest_path.read_text(encoding="utf-8"))
+                execution_timing = payload.get("execution_timing")
+            except (OSError, json.JSONDecodeError):
+                execution_timing = None
         return CadQueryCompileResult(
             job_id=job_id,
             success=False,
@@ -340,6 +357,8 @@ class CadQueryCliRunner:
             error_message=error_message,
             command_args=self._safe_command_args(command_args),
             outputs=outputs or [],
+            execution_manifest_path=execution_manifest_path,
+            execution_timing=execution_timing if isinstance(execution_timing, dict) else None,
         )
 
     def _collect_output_results(
@@ -480,6 +499,7 @@ _CADQUERY_RUNNER_SOURCE = """
 import hashlib
 import importlib.util
 import json
+import signal
 import sys
 import time
 from pathlib import Path
@@ -490,12 +510,109 @@ from volundr_cad.runtime import ParameterValues, PrintableOutput, Product
 
 PLACEMENT_POLICY = "cadquery-output-placement-v1"
 PLACEMENT_TOLERANCE_MM = 1e-6
+_TIMING = {"functions": [], "operations": [], "outputs": {}}
+_RESULT_PATH = None
+_STARTED_AT = None
+_ACTIVE_OPERATION = None
+
+
+class _FunctionProfiler:
+    def __init__(self):
+        self.active = {}
+        self.records = []
+
+    def __call__(self, frame, event, _arg):
+        if frame.f_globals.get("__name__") != "volundr_generated_model":
+            return self
+        key = id(frame)
+        if event == "call":
+            self.active[key] = (frame.f_code.co_name, time.perf_counter())
+        elif event in {"return", "exception"}:
+            record = self.active.pop(key, None)
+            if record is not None:
+                name, started = record
+                self.records.append({"name": name, "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)})
+        return self
+
+
+def _shape_complexity(value):
+    try:
+        shape = value.val() if hasattr(value, "val") else value
+        return {
+            "face_count": len(shape.Faces()) if hasattr(shape, "Faces") else None,
+            "edge_count": len(shape.Edges()) if hasattr(shape, "Edges") else None,
+            "solid_count": len(shape.Solids()) if hasattr(shape, "Solids") else None,
+        }
+    except Exception:
+        return {"face_count": None, "edge_count": None, "solid_count": None}
+
+
+def _install_operation_timing():
+    originals = {}
+    operation_names = ("box", "cylinder", "extrude", "cut", "cutBlind", "cutThruAll", "union", "intersect", "fillet", "chamfer", "loft", "shell", "hole", "mirror", "rotate", "translate")
+    for name in operation_names:
+        original = getattr(cq.Workplane, name, None)
+        if not callable(original):
+            continue
+        originals[name] = original
+        def timed(self, *args, _name=name, _original=original, **kwargs):
+            global _ACTIVE_OPERATION
+            started = time.perf_counter()
+            before = _shape_complexity(self)
+            _ACTIVE_OPERATION = {"name": _name, "before": before}
+            try:
+                return _original(self, *args, **kwargs)
+            finally:
+                _ACTIVE_OPERATION = None
+                _TIMING["operations"].append({
+                    "name": _name,
+                    "elapsed_ms": round((time.perf_counter() - started) * 1000, 3),
+                    "before": before,
+                })
+        setattr(cq.Workplane, name, timed)
+    return originals
+
+
+def _restore_operation_timing(originals):
+    for name, original in originals.items():
+        setattr(cq.Workplane, name, original)
+
+
+def _write_partial_result(reason):
+    if _RESULT_PATH is None:
+        return
+    try:
+        _RESULT_PATH.write_text(json.dumps({
+            "cad_backend": "cadquery",
+            "source_language": "python",
+            "source_contract_version": "cadquery-v1",
+            "success": False,
+            "failure_class": "timeout",
+            "diagnostics": {"message": reason, "operation_active": _ACTIVE_OPERATION},
+            "execution_timing": {
+                **_TIMING,
+                "total_ms": round((time.perf_counter() - _STARTED_AT) * 1000, 3) if _STARTED_AT else None,
+            },
+            "outputs": [],
+            "worker_version": "cadquery-cli-runner-v1",
+        }, indent=2, sort_keys=True), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _handle_term(_signum, _frame):
+    _write_partial_result("CAD worker terminated while execution timing was being collected")
+    raise SystemExit(143)
 
 
 def main() -> int:
+    global _RESULT_PATH, _STARTED_AT
     started_at = time.perf_counter()
+    _STARTED_AT = started_at
     output_dir = Path(sys.argv[1])
     result_path = Path(sys.argv[2])
+    _RESULT_PATH = result_path
+    signal.signal(signal.SIGTERM, _handle_term)
     parameter_values_path = Path(sys.argv[3])
     requested_outputs_path = Path(sys.argv[4])
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -511,8 +628,21 @@ def main() -> int:
 
     if not hasattr(module, "build"):
         raise RuntimeError("generated source must define build(params)")
-    product = _build_product(module, parameter_values)
-    outputs = _execute_product_outputs(product, requested_outputs, output_dir)
+    originals = _install_operation_timing()
+    profiler = _FunctionProfiler()
+    sys.setprofile(profiler)
+    try:
+        product = _build_product(module, parameter_values)
+        outputs = _execute_product_outputs(product, requested_outputs, output_dir)
+    finally:
+        sys.setprofile(None)
+        _restore_operation_timing(originals)
+    _TIMING["functions"] = profiler.records
+    _TIMING["outputs"] = {
+        output.get("output_id"): output.get("timing", {})
+        for output in outputs
+        if output.get("output_id")
+    }
 
     result_path.write_text(
         json.dumps(
@@ -534,6 +664,9 @@ def main() -> int:
                 ],
                 "execution_timing": {
                     "total_ms": round((time.perf_counter() - started_at) * 1000, 3),
+                    "functions": _TIMING["functions"],
+                    "operations": _TIMING["operations"],
+                    "outputs": _TIMING["outputs"],
                 },
                 "outputs": outputs,
                 "worker_version": "cadquery-cli-runner-v1",
@@ -585,7 +718,10 @@ def _execute_product_outputs(product, requested_outputs, output_dir):
                 ),
             })
             continue
-        results.append(_export_printable_output(output_dir, printable, required=required))
+        started = time.perf_counter()
+        result = _export_printable_output(output_dir, printable, required=required)
+        result["timing"] = {"export_ms": round((time.perf_counter() - started) * 1000, 3)}
+        results.append(result)
     return results
 
 

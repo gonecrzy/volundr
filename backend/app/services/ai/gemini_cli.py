@@ -22,6 +22,7 @@ from app.services.ai.provider import (
 from app.services.cad.cadquery_source_authority import (
     format_authoritative_identity_section,
 )
+from app.services.cad.source_scaffold import SCAFFOLD_VERSION, geometry_function_names
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
@@ -29,8 +30,8 @@ SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
-CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v2"
-CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v4"
+CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v5"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -227,6 +228,9 @@ class GeminiCliProvider:
     def cadquery_prompt_template_version(self) -> str:
         return CADQUERY_SOURCE_PROMPT_VERSION
 
+    def cadquery_generation_contract_version(self) -> str:
+        return SCAFFOLD_VERSION
+
     def design_plan_prompt_template_version(self) -> str:
         return DESIGN_PLAN_PROMPT_VERSION
 
@@ -248,6 +252,8 @@ class GeminiCliProvider:
         return self.build_cadquery_prompt(request)
 
     def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        if request.generation_contract_version == SCAFFOLD_VERSION:
+            return self.build_scaffold_geometry_prompt(request)
         parts = [
             "You generate CadQuery Python for Volundr.",
             "Return only a single fenced python block. Do not include prose outside the block.",
@@ -542,6 +548,48 @@ class GeminiCliProvider:
             ]
         )
         return "\n".join(parts)
+
+    def build_scaffold_geometry_prompt(self, request: ModelGenerationRequest) -> str:
+        plan = request.design_plan or {}
+        expected_functions = geometry_function_names(plan)
+        parameter_ids = [
+            str(parameter["id"])
+            for parameter in plan.get("parameters", []) or []
+            if isinstance(parameter, dict) and parameter.get("id")
+        ]
+        lines = [
+            "You generate only the geometry implementation functions for Volundr.",
+            "Return exactly one fenced python block containing only the requested function definitions.",
+            "Do not return imports, decorators, ParameterSpec, Product, PrintableOutput, build(params), or any registration metadata.",
+            "Volundr deterministically owns all parameters, components, features, outputs, IDs, and the build entrypoint.",
+            "Use CadQuery as `cq` and the canonical parameter IDs exactly as provided.",
+            "Component functions accept `(params)` and return a CadQuery shape.",
+            "Feature functions accept `(body, params)` and return the modified CadQuery shape.",
+            "Do not rename, omit, or add functions. Do not add imports or file/network access.",
+            "Canonical parameter IDs: " + ", ".join(parameter_ids),
+            "Required geometry functions:",
+        ]
+        lines.extend(f"- {name}" for name in expected_functions)
+        if request.contract_diagnostics:
+            lines.extend(["", "Repair diagnostics:", request.contract_diagnostics])
+        if request.compiler_diagnostics:
+            lines.extend(["", "Execution diagnostics:", request.compiler_diagnostics])
+        if request.current_source:
+            lines.extend(["", "Current scaffold source for geometry context:", request.current_source])
+        lines.extend(
+            [
+                "",
+                "Design Specification:",
+                json.dumps(request.design_specification or {}, indent=2, sort_keys=True),
+                "",
+                "Design Plan:",
+                json.dumps(plan, indent=2, sort_keys=True),
+                "",
+                "User instruction:",
+                request.user_instruction,
+            ]
+        )
+        return "\n".join(lines)
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return self._build_requirement_prompt(request)

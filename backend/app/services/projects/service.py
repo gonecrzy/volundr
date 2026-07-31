@@ -115,6 +115,14 @@ from app.services.cad.cadquery_source_authority import (
     authority_from_generation_context,
     validate_cadquery_source_authority,
 )
+from app.services.cad.source_scaffold import (
+    SCAFFOLD_VERSION,
+    ScaffoldSourceError,
+    extract_geometry_functions,
+    geometry_function_names,
+    render_cadquery_scaffold,
+    validate_scaffold_source,
+)
 from app.services.cad.worker_client import FilesystemCadWorkerRunner
 from app.services.cad.source_metadata import (
     SourceMapping,
@@ -1860,8 +1868,15 @@ class ProjectService:
             redacted=generation_attempt.raw_output_path is None,
         )
         try:
-            revised_source = self._extract_generated_source(generation_result.raw_output)
-        except SourceExtractionError as exc:
+            revised_source = self._prepare_generated_source(
+                raw_output=generation_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=generation_request.generation_contract_version,
+                attempt=generation_attempt,
+                workflow_run=workflow_run,
+                role="component_revision_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
@@ -2000,6 +2015,7 @@ class ProjectService:
                     configuration_context=configuration_context,
                     compliance_findings=compliance,
                     cad_backend=base_revision.cad_backend,
+                    workflow_run=workflow_run,
                 )
             except ValueError as exc:
                 self._record_workflow_event(
@@ -2210,6 +2226,7 @@ class ProjectService:
         configuration_context: dict[str, Any] | None,
         compliance_findings: RevisionComplianceResult,
         cad_backend: str,
+        workflow_run: WorkflowRun | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult, RevisionComplianceResult]:
         payload = self._read_json_file(compliance_findings.result_path) or {}
         correction_request = self._generation_request(
@@ -2250,8 +2267,15 @@ class ProjectService:
             raise
         self._record_generation_result(correction_attempt, correction_result)
         try:
-            corrected_source = self._extract_generated_source(correction_result.raw_output)
-        except SourceExtractionError as exc:
+            corrected_source = self._prepare_generated_source(
+                raw_output=correction_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=correction_request.generation_contract_version,
+                attempt=correction_attempt,
+                workflow_run=workflow_run,
+                role="scope_correction_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
                 correction_attempt,
                 status="failed",
@@ -2914,6 +2938,7 @@ class ProjectService:
                     design_specification_payload=design_specification_payload,
                     design_plan=design_plan,
                     design_plan_payload=design_plan_payload,
+                    generation_contract_version=generation_request.generation_contract_version,
                     workflow_run=workflow_run,
                 )
             )
@@ -3000,8 +3025,15 @@ class ProjectService:
 
         self._record_generation_result(repair_attempt, repair_result)
         try:
-            repaired_source = self._extract_generated_source(repair_result.raw_output)
-        except SourceExtractionError as exc:
+            repaired_source = self._prepare_generated_source(
+                raw_output=repair_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=repair_request.generation_contract_version,
+                attempt=repair_attempt,
+                workflow_run=workflow_run,
+                role="execution_repair_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             failed_repair = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
@@ -3082,6 +3114,7 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
+        generation_contract_version: str = "v1",
         workflow_run: WorkflowRun | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
@@ -3094,8 +3127,15 @@ class ProjectService:
             redacted=False,
         )
         try:
-            source = self._extract_generated_source(generation_result.raw_output)
-        except SourceExtractionError as exc:
+            source = self._prepare_generated_source(
+                raw_output=generation_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=generation_contract_version,
+                attempt=generation_attempt,
+                workflow_run=workflow_run,
+                role="initial_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             failed_revision = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
@@ -3230,8 +3270,15 @@ class ProjectService:
             redacted=False,
         )
         try:
-            repaired_source = self._extract_generated_source(repair_result.raw_output)
-        except SourceExtractionError as exc:
+            repaired_source = self._prepare_generated_source(
+                raw_output=repair_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=repair_request.generation_contract_version,
+                attempt=repair_attempt,
+                workflow_run=repair_workflow_run or workflow_run,
+                role="contract_repair_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
@@ -3344,6 +3391,7 @@ class ProjectService:
             scoped_revision_context=scoped_revision_context,
             configuration_context=configuration_context,
             source_authority=source_authority,
+            generation_contract_version=self._provider_generation_contract_version(),
         )
 
     async def _generate_source_model(self, request: ModelGenerationRequest):
@@ -3351,6 +3399,64 @@ class ProjectService:
         if not callable(generator):
             raise RuntimeError("AI provider does not support CadQuery generation")
         return await generator(request)
+
+    def _provider_generation_contract_version(self) -> str:
+        version = getattr(self.ai_provider, "cadquery_generation_contract_version", None)
+        if callable(version):
+            return str(version())
+        return "v1"
+
+    def _prepare_generated_source(
+        self,
+        *,
+        raw_output: str,
+        design_plan_payload: dict[str, Any] | None,
+        generation_contract_version: str,
+        attempt: GenerationAttempt,
+        workflow_run: WorkflowRun | None,
+        role: str,
+    ) -> str:
+        if generation_contract_version != SCAFFOLD_VERSION:
+            return self._extract_generated_source(raw_output)
+        if not design_plan_payload:
+            raise ScaffoldSourceError("scaffold generation requires an approved Design Plan")
+        expected = set(geometry_function_names(design_plan_payload))
+        geometry_functions = extract_geometry_functions(raw_output, expected)
+        rendered = render_cadquery_scaffold(design_plan_payload, geometry_functions)
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        geometry_path = run_dir / "geometry-bodies.py"
+        geometry_path.write_text(
+            "\n\n".join(geometry_functions[name] for name in rendered.expected_geometry_functions) + "\n",
+            encoding="utf-8",
+        )
+        scaffold_manifest_path = run_dir / "scaffold-manifest.json"
+        self._write_json(
+            scaffold_manifest_path,
+            {
+                "schema_version": SCAFFOLD_VERSION,
+                "scaffold_hash": rendered.scaffold_hash,
+                "expected_geometry_functions": list(rendered.expected_geometry_functions),
+                "role": role,
+            },
+        )
+        stage = "source_extraction" if role == "initial_geometry" else "contract_repair"
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_bodies",
+            role=role,
+            relative_path=self._relative(geometry_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_scaffold_manifest",
+            role=f"{role}_scaffold_manifest",
+            relative_path=self._relative(scaffold_manifest_path),
+            redacted=False,
+        )
+        return rendered.source
 
     def _extract_generated_source(self, raw_output: str) -> str:
         return extract_python_source(raw_output)
@@ -4983,6 +5089,7 @@ class ProjectService:
         metadata: dict[str, Any] | None = None
         try:
             source_metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+            hard_violations.extend(validate_scaffold_source(source))
             metadata = asdict(source_metadata)
             explicit_inventory = inventory_from_design_specification(design_specification_payload)
             if explicit_inventory:

@@ -6,6 +6,7 @@ from app.services.ai.provider import (
     RevisionPlanRequest,
 )
 from app.services.cad.cadquery_source_authority import build_cadquery_source_authority
+from app.services.cad.source_scaffold import SCAFFOLD_VERSION
 from app.services.projects.service import ProjectService
 
 
@@ -48,7 +49,7 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-generation-v4"
+    assert provider.prompt_template_version_for(request) == "cadquery-generation-v5"
     assert provider.ruleset_version == "gemini-ruleset-v1"
     assert "You generate CadQuery Python for Volundr." in prompt
     assert "Return only a single fenced python block" in prompt
@@ -88,6 +89,23 @@ def test_cadquery_initial_prompt_uses_product_contract() -> None:
     assert '"allow_disconnected_solids": false' in prompt
     assert "Security restrictions:" in prompt
     assert "Return the complete Python source for the whole product" in prompt
+
+
+def test_scaffold_prompt_requests_geometry_functions_only() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Scaffolded cube",
+        original_intent="Create a calibration cube.",
+        user_instruction="Create a 10mm cube.",
+        design_plan=CUBE_PLAN,
+        generation_contract_version=SCAFFOLD_VERSION,
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert "only the geometry implementation functions" in prompt
+    assert "_ai_component_body" in prompt
+    assert "Volundr deterministically owns all parameters" in prompt
 
 
 def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
@@ -267,7 +285,7 @@ def test_cadquery_contract_repair_prompt_is_bounded() -> None:
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-contract-repair-v2"
+    assert provider.prompt_template_version_for(request) == "cadquery-contract-repair-v3"
     assert "Contract repair mode:" in prompt
     assert "contract repair, not design revision" in prompt
     assert "ParameterSpec ID" in prompt
