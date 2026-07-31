@@ -85,6 +85,12 @@ class WorkflowRunComparisonService:
                     "classification": "changed",
                 }
             )
+        self._compare_component_outputs(
+            changes,
+            candidate=candidate,
+            candidate_events=candidate_events,
+            baseline_output_count=self._output_count(baseline_events),
+        )
         return {
             "baseline_workflow_run_id": baseline.id,
             "candidate_workflow_run_id": candidate.id,
@@ -163,3 +169,74 @@ class WorkflowRunComparisonService:
             metadata = json.loads(event.metadata_json or "{}")
             state = metadata.get("review_state") or metadata.get("status") or state
         return state
+
+    def _output_count(self, events: list[WorkflowEvent]) -> int | None:
+        for event in reversed(events):
+            if event.event_type != "component_revision.completed":
+                continue
+            metadata = json.loads(event.metadata_json or "{}")
+            value = metadata.get("output_count")
+            return int(value) if isinstance(value, int) else None
+        for event in reversed(events):
+            if event.event_type != "worker.submitted":
+                continue
+            metadata = json.loads(event.metadata_json or "{}")
+            output_ids = metadata.get("requested_output_ids")
+            return len(output_ids) if isinstance(output_ids, list) else None
+        return None
+
+    def _compare_component_outputs(
+        self,
+        changes: list[dict[str, Any]],
+        *,
+        candidate: WorkflowRun,
+        candidate_events: list[WorkflowEvent],
+        baseline_output_count: int | None,
+    ) -> None:
+        if candidate.workflow_type != "component_revision":
+            return
+        completion = next(
+            (
+                event
+                for event in reversed(candidate_events)
+                if event.event_type == "component_revision.completed"
+            ),
+        )
+        if completion is None:
+            return
+        metadata = json.loads(completion.metadata_json or "{}")
+        candidate_output_count = metadata.get("output_count")
+        if baseline_output_count is not None and candidate_output_count == baseline_output_count:
+            changes.append(
+                {
+                    "metric": "output_count",
+                    "baseline": baseline_output_count,
+                    "candidate": candidate_output_count,
+                    "classification": "preserved",
+                    "confidence": "confirmed",
+                }
+            )
+        for item in metadata.get("targeted_outputs", []):
+            if not isinstance(item, dict):
+                continue
+            changes.append(
+                {
+                    "metric": "output_change",
+                    "entity_id": item.get("output_id"),
+                    "candidate": item.get("change_state"),
+                    "classification": "intended_component_change",
+                    "confidence": "confirmed",
+                }
+            )
+        for item in metadata.get("protected_outputs", []):
+            if not isinstance(item, dict):
+                continue
+            changes.append(
+                {
+                    "metric": "output_preservation",
+                    "entity_id": item.get("output_id"),
+                    "candidate": item.get("preservation_state"),
+                    "classification": "preserved",
+                    "confidence": "confirmed",
+                }
+            )

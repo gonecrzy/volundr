@@ -615,6 +615,15 @@ class ProjectService:
             return None
         return self.db.get(WorkflowRun, matched_run.root_workflow_run_id or matched_run.id)
 
+    def _workflow_run_for_revision_plan(self, revision_plan_id: str) -> WorkflowRun | None:
+        matched_run = self.db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(WorkflowEvent.revision_plan_id == revision_plan_id)
+            .order_by(WorkflowRun.started_at.asc())
+        )
+        return matched_run
+
     def _ensure_initial_workflow_run(self, project: Project) -> WorkflowRun:
         existing = self._latest_root_workflow_run(project.id)
         if existing is not None:
@@ -720,6 +729,7 @@ class ProjectService:
         relative_path: str | None,
         redacted: bool = False,
         supersedes_artifact_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         if workflow_run is None or not relative_path:
             return None
@@ -731,6 +741,7 @@ class ProjectService:
             path=self.data_dir / relative_path,
             redacted=redacted,
             supersedes_artifact_id=supersedes_artifact_id,
+            metadata=metadata,
         )
 
     def _design_plan_parameter_values(self, design_plan_payload: dict[str, Any]) -> dict[str, Any]:
@@ -1533,6 +1544,19 @@ class ProjectService:
             role="system_event",
             content=f"Revision Plan v{plan.version_number} approved",
         )
+        workflow_run = self._workflow_run_for_revision_plan(plan.id)
+        self._record_workflow_event(
+            workflow_run,
+            stage="revision_planning",
+            event_type="revision_plan.approved",
+            severity="summary",
+            message="Revision Plan approved for source generation.",
+            deduplication_key=f"revision-plan-approved-{plan.id}",
+            revision_id=plan.base_revision_id,
+            revision_plan_id=plan.id,
+            design_plan_id=plan.base_design_plan_id,
+            metadata={"review_state": plan.review_state},
+        )
         self.db.commit()
         self.db.refresh(plan)
         return self._revision_plan_read(plan)
@@ -1672,6 +1696,8 @@ class ProjectService:
             raise ValueError("Revision Plan must be approved before source revision")
         if self._has_newer_revision_plan(plan):
             raise ValueError("Revision Plan has been superseded")
+        if plan.generated_revision_id is not None:
+            raise ValueError("Revision Plan has already generated a candidate")
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
         project = self.db.get(Project, plan.project_id)
@@ -1731,9 +1757,11 @@ class ProjectService:
             selected_findings=selected_findings,
             configuration_context=configuration_context,
         )
+        parent_workflow_run = self._workflow_run_for_revision_plan(plan.id)
         workflow_run = self._start_child_workflow_run(
             project_id=project.id,
             workflow_type="component_revision",
+            parent=parent_workflow_run,
         )
         self._record_workflow_event(
             workflow_run,
@@ -1834,6 +1862,13 @@ class ProjectService:
             design_plan=design_plan,
             design_plan_payload=design_plan_payload,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_contract_validation",
+            artifact_type="source_validation_result",
+            role="source_contract_result",
+            relative_path=source_validation.result_path,
+        )
         if not source_validation.passed_hard_checks:
             message = self._source_contract_rejection_message(source_validation)
             self._record_workflow_event(
@@ -1878,36 +1913,80 @@ class ProjectService:
             configuration_context=configuration_context,
             cad_backend=base_revision.cad_backend,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_scope_validation",
+            artifact_type="revision_compliance_result",
+            role="scope_compliance_result",
+            relative_path=compliance.result_path,
+        )
         if not compliance.passed:
+            first_scope_finding = next(
+                (
+                    finding
+                    for finding in (self._read_json_file(compliance.result_path) or {}).get("findings", [])
+                    if isinstance(finding, dict) and finding.get("is_blocking")
+                ),
+                {},
+            )
+            self._record_workflow_event(
+                workflow_run,
+                stage="revision_scope_validation",
+                event_type="revision_scope.failed",
+                severity="error",
+                blocking=True,
+                rule_id=str(first_scope_finding.get("rule_id") or "revision.scope_exceeded"),
+                message="Revised source exceeded the approved Revision Plan scope.",
+                deduplication_key=f"revision-scope-failed-{compliance.id}",
+                generation_attempt_id=generation_attempt.id,
+                revision_plan_id=plan.id,
+                metadata={"compliance_result_id": compliance.id},
+            )
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
                 failure_class=FailureClass.REVISION_REGRESSION,
                 error_message="Revised source exceeded approved Revision Plan scope",
             )
-            (
-                revised_source,
-                raw_ai_output,
-                generation_attempt,
-                source_validation,
-                compliance,
-            ) = await self._attempt_scope_correction(
-                project=project,
-                base_revision=base_revision,
-                revision_plan=plan,
-                failed_source=revised_source,
-                revision_plan_payload=revision_plan_payload,
-                design_specification=design_specification,
-                design_specification_payload=design_specification_payload,
-                design_plan=design_plan,
-                design_plan_payload=design_plan_payload,
-                output_manifest=self.read_output_manifest(base_revision.id),
-                selected_findings=selected_findings,
-                scoped_revision_context=scoped_revision_context,
-                configuration_context=configuration_context,
-                compliance_findings=compliance,
-                cad_backend=base_revision.cad_backend,
-            )
+            try:
+                (
+                    revised_source,
+                    raw_ai_output,
+                    generation_attempt,
+                    source_validation,
+                    compliance,
+                ) = await self._attempt_scope_correction(
+                    project=project,
+                    base_revision=base_revision,
+                    revision_plan=plan,
+                    failed_source=revised_source,
+                    revision_plan_payload=revision_plan_payload,
+                    design_specification=design_specification,
+                    design_specification_payload=design_specification_payload,
+                    design_plan=design_plan,
+                    design_plan_payload=design_plan_payload,
+                    output_manifest=self.read_output_manifest(base_revision.id),
+                    selected_findings=selected_findings,
+                    scoped_revision_context=scoped_revision_context,
+                    configuration_context=configuration_context,
+                    compliance_findings=compliance,
+                    cad_backend=base_revision.cad_backend,
+                )
+            except ValueError as exc:
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="scope_correction",
+                    event_type="scope_correction.failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id="revision.scope_exceeded",
+                    message="Scope correction did not produce an approved revision.",
+                    deduplication_key=f"scope-correction-failed-{plan.id}",
+                    revision_plan_id=plan.id,
+                    metadata={"error": str(exc)},
+                )
+                self._workflow_recorder().complete_run(workflow_run, status="failed")
+                raise
             self._record_workflow_artifact(
                 workflow_run,
                 stage="scope_correction",
@@ -1968,7 +2047,7 @@ class ProjectService:
             revision_plan_payload=revision_plan_payload,
             cad_backend=base_revision.cad_backend,
         )
-        self._persist_component_revision_summary(
+        component_summary = self._persist_component_revision_summary(
             project=project,
             revision_plan=plan,
             generation_attempt=generation_attempt,
@@ -1980,6 +2059,25 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
             compliance_result=compliance,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="component_revision_summary",
+            role="output_preservation_result",
+            relative_path=component_summary.summary_path,
+        )
+        consistency_result = self._latest_design_artifact_consistency(candidate.id)
+        if consistency_result is not None:
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="artifact_consistency",
+                artifact_type="design_consistency_result",
+                role="design_consistency_result",
+                relative_path=consistency_result.result_path,
+            )
+        component_summary_payload = self._read_json_file(component_summary.summary_path) or {}
+        targeted_outputs = component_summary_payload.get("targeted_outputs", [])
+        protected_outputs = component_summary_payload.get("protected_outputs", [])
         self._finish_generation_attempt(
             generation_attempt,
             status="succeeded",
@@ -1996,6 +2094,25 @@ class ProjectService:
             deduplication_key=f"component-revision-completed-{plan.id}",
             revision_plan_id=plan.id,
             revision_id=candidate.id,
+            metadata={
+                "targeted_outputs": [
+                    {
+                        "output_id": item.get("output_id"),
+                        "change_state": item.get("change_state"),
+                    }
+                    for item in targeted_outputs
+                    if isinstance(item, dict)
+                ],
+                "protected_outputs": [
+                    {
+                        "output_id": item.get("output_id"),
+                        "preservation_state": item.get("preservation_state"),
+                    }
+                    for item in protected_outputs
+                    if isinstance(item, dict)
+                ],
+                "output_count": candidate.expected_output_count,
+            },
         )
         self._workflow_recorder().complete_run(workflow_run, status="completed")
         revision = self.db.get(Revision, candidate.id)
@@ -3454,10 +3571,40 @@ class ProjectService:
         request: RevisionPlanRequest,
         superseded_revision_plan_id: str | None = None,
     ) -> RevisionPlanRead:
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="revision_planning",
+        )
         attempt = self._start_revision_plan_attempt(
             project=project,
             base_revision_id=base_revision.id,
             request=request,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="revision_planning",
+            event_type="revision_plan_generation.started",
+            severity="summary",
+            message="Revision Plan generation started.",
+            deduplication_key=f"revision-plan-started-{attempt.id}",
+            generation_attempt_id=attempt.id,
+            revision_id=base_revision.id,
+            design_plan_id=design_plan.id,
+            metadata={"base_revision_id": base_revision.id},
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="provider_request_metadata",
+            role="revision_plan_request",
+            relative_path=attempt.request_payload_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="rendered_prompt",
+            role="revision_plan_prompt",
+            relative_path=attempt.prompt_path,
         )
         try:
             planner = getattr(self.ai_provider, "create_revision_plan")
@@ -3472,9 +3619,17 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise
 
         self._record_generation_result(attempt, planning_result)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="raw_provider_response",
+            role="revision_plan_provider_response",
+            relative_path=attempt.raw_output_path,
+        )
         try:
             parsed_payload = self._parse_revision_plan_payload(
                 planning_result.raw_output,
@@ -3493,6 +3648,7 @@ class ProjectService:
                 failure_class=FailureClass.REVISION_REGRESSION,
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             if request.schema_repair_of_raw_output is not None:
                 raise RuntimeError("revision planning returned invalid Revision Plan") from exc
             repair_request = RevisionPlanRequest(
@@ -3537,11 +3693,32 @@ class ProjectService:
             raw_response_path=attempt.raw_output_path,
             superseded_revision_plan_id=superseded_revision_plan_id,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="revision_plan",
+            role="approved_revision_plan",
+            relative_path=plan.plan_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="revision_planning",
+            event_type="revision_plan_generation.completed",
+            severity="summary",
+            message="Revision Plan generated for review.",
+            deduplication_key=f"revision-plan-completed-{plan.id}",
+            generation_attempt_id=attempt.id,
+            revision_id=base_revision.id,
+            revision_plan_id=plan.id,
+            design_plan_id=design_plan.id,
+            metadata={"review_state": plan.review_state},
+        )
         self._finish_generation_attempt(
             attempt,
             status="succeeded",
             failure_class=FailureClass.NONE,
         )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         return self._revision_plan_read(plan)
 
     def _start_revision_plan_attempt(
@@ -7330,6 +7507,15 @@ class ProjectService:
             role="output_manifest",
             relative_path=revision.output_manifest_path,
         )
+        for output_record in output_records:
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="topology_validation",
+                artifact_type="topology_result",
+                role=f"topology_{output_record.output_id}",
+                relative_path=revision.output_manifest_path,
+                metadata={"output_id": output_record.output_id},
+            )
         execution_manifest_payload = (
             self._read_json_file(execution_manifest_relative_path)
             if execution_manifest_relative_path is not None

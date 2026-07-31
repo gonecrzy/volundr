@@ -3,6 +3,7 @@ import hashlib
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import trimesh
 from fastapi import Depends, FastAPI, HTTPException
@@ -15,6 +16,7 @@ from app.api.projects import router as projects_router
 from app.db.base import Base
 from app.db.session import get_db
 from app.models.revision import Revision
+from app.models.revision_plan import RevisionPlan
 from app.models.project import Project
 from app.models.workflow import FrontendWorkflowEvent, WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.ai.provider import (
@@ -191,6 +193,139 @@ ORGANIZER_PLAN: dict[str, Any] = {
     ],
 }
 
+ENCLOSURE_SOURCE = '''
+import cadquery as cq
+
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
+
+PARAMETERS = [
+    ParameterSpec(id="body_width", label="Body width", type="float", default=80.0, unit="mm", editable=True, protected=True, source_requirement_id="body_width"),
+    ParameterSpec(id="body_depth", label="Body depth", type="float", default=50.0, unit="mm", editable=True, protected=True, source_requirement_id="body_depth"),
+    ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", editable=False, protected=True),
+    ParameterSpec(id="lid_thickness", label="Lid thickness", type="float", default=3.0, unit="mm", editable=False, protected=True),
+    ParameterSpec(id="fit_clearance", label="Fit clearance", type="float", default=0.4, unit="mm", editable=False, protected=True),
+]
+
+@component("base_shell")
+@feature("base_shell", component="base_shell")
+def base_shell_model(params):
+    return cq.Workplane("XY").box(params["body_width"], params["body_depth"], params["wall_thickness"])
+
+@component("snap_lid")
+@feature("lid_panel", component="snap_lid")
+def snap_lid_model(params):
+    return cq.Workplane("XY").box(params["body_width"], params["body_depth"] + params["fit_clearance"] * 0.0, params["lid_thickness"])
+
+def build(params):
+    base = base_shell_model(params)
+    lid = snap_lid_model(params)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(output_id="base", label="Enclosure base", component_id="base_shell", component_ids=("base_shell",), model=base, expected_solid_count=1, allow_disconnected_solids=False),
+            PrintableOutput(output_id="lid", label="Snap lid", component_id="snap_lid", component_ids=("snap_lid",), model=lid, expected_solid_count=1, allow_disconnected_solids=False),
+        ],
+    )
+'''
+
+ENCLOSURE_REVISED_SOURCE = ENCLOSURE_SOURCE.replace(
+    'return cq.Workplane("XY").box(params["body_width"], params["body_depth"] + params["fit_clearance"] * 0.0, params["lid_thickness"])',
+    '# recessed finger pull\n    return cq.Workplane("XY").box(params["body_width"], params["body_depth"] + params["fit_clearance"] * 0.0, params["lid_thickness"]).cut(cq.Workplane("XY").box(18.0, 8.0, 1.0).translate((0.0, -18.0, 1.0)))',
+)
+
+ENCLOSURE_SPEC: dict[str, Any] = {
+    "schema_version": "1.0",
+    "object_type": "electronics_enclosure",
+    "purpose": "Protect an electronic assembly in a printable enclosure with a removable lid.",
+    "units": "mm",
+    "supported_scope": True,
+    "critical_dimensions": [
+        {"id": "body_width", "label": "Body width", "value": 80, "unit": "mm", "source": "user", "importance": "critical", "protected": True},
+        {"id": "body_depth", "label": "Body depth", "value": 50, "unit": "mm", "source": "user", "importance": "critical", "protected": True},
+    ],
+    "parameters": [],
+    "functional_requirements": [{"id": "separate_parts", "description": "Provide a base and removable snap lid.", "source": "user", "importance": "critical", "protected": True}],
+    "print_requirements": {},
+    "assumptions": [],
+    "conflicts": [],
+    "missing_requirements": [],
+    "clarification_required": False,
+    "clarification_questions": [],
+    "generation_ready": True,
+    "outcome": "generation_ready",
+}
+
+ENCLOSURE_PLAN: dict[str, Any] = {
+    "schema_version": "1.0",
+    "design_level": "assembly",
+    "product_type": "electronics_enclosure",
+    "purpose": ENCLOSURE_SPEC["purpose"],
+    "units": "mm",
+    "parameters": [
+        {"id": "body_width", "label": "Body width", "value": 80, "unit": "mm", "type": "number", "source_requirement_id": "body_width", "editable": True, "protected": True, "component_id": "base_shell"},
+        {"id": "body_depth", "label": "Body depth", "value": 50, "unit": "mm", "type": "number", "source_requirement_id": "body_depth", "editable": True, "protected": True, "component_id": "base_shell"},
+        {"id": "wall_thickness", "label": "Wall thickness", "value": 3, "unit": "mm", "type": "number", "editable": False, "protected": True, "component_id": "base_shell"},
+        {"id": "lid_thickness", "label": "Lid thickness", "value": 3, "unit": "mm", "type": "number", "editable": False, "protected": True, "component_id": "snap_lid"},
+        {"id": "fit_clearance", "label": "Fit clearance", "value": 0.4, "unit": "mm", "type": "number", "editable": False, "protected": True, "component_id": "snap_lid"},
+    ],
+    "derived_parameters": [],
+    "dependency_edges": [],
+    "components": [
+        {"id": "base_shell", "label": "Enclosure body", "description": "Protected enclosure body", "features": ["base_shell"], "parameters": ["body_width", "body_depth", "wall_thickness"]},
+        {"id": "snap_lid", "label": "Snap lid", "description": "Removable lid", "features": ["lid_panel"], "parameters": ["body_width", "body_depth", "lid_thickness", "fit_clearance"]},
+    ],
+    "features": [
+        {"id": "base_shell", "component_id": "base_shell", "type": "shell", "description": "Protected enclosure body", "parameters": ["body_width", "body_depth", "wall_thickness"], "protected": True},
+        {"id": "lid_panel", "component_id": "snap_lid", "type": "cover", "description": "Removable snap lid", "parameters": ["body_width", "body_depth", "lid_thickness", "fit_clearance"], "protected": True},
+    ],
+    "presets": [],
+    "assembly_strategy": {"type": "separate_parts", "relationships": [{"from_component_id": "snap_lid", "to_component_id": "base_shell", "relationship": "fits over"}]},
+    "printable_outputs": [
+        {"id": "base", "label": "Enclosure base", "component_id": "base_shell", "component_ids": ["base_shell"], "entrypoint": "base", "filename": "base.stl", "quantity": 1, "required": True, "expected_solid_count": 1, "allow_disconnected_solids": False, "output_type": "printable_component"},
+        {"id": "lid", "label": "Snap lid", "component_id": "snap_lid", "component_ids": ["snap_lid"], "entrypoint": "lid", "filename": "lid.stl", "quantity": 1, "required": True, "expected_solid_count": 1, "allow_disconnected_solids": False, "output_type": "printable_component"},
+    ],
+    "risks": [],
+    "clarification_required": False,
+    "clarification_questions": [],
+    "plan_ready": True,
+    "outcome": "plan_ready",
+}
+
+ENCLOSURE_REVISION_PLAN: dict[str, Any] = {
+    "schema_version": "revision-plan-v1",
+    "reason": "user_request",
+    "summary": "Add a recessed finger pull to the snap lid while preserving the enclosure body and fit.",
+    "requested_changes": [{"target_type": "feature", "target_id": "lid_panel", "current_value": "flat lid", "requested_value": "recessed finger pull", "change_type": "modify", "source": "user"}],
+    "targeted_components": ["snap_lid"],
+    "targeted_features": ["lid_panel"],
+    "targeted_outputs": ["lid"],
+    "targeted_findings": [],
+    "allowed_parameter_changes": [],
+    "required_dependency_changes": [],
+    "allowed_component_changes": ["snap_lid"],
+    "allowed_feature_changes": ["lid_panel"],
+    "protected_parameters": [
+        {"parameter_id": "body_width", "expected_value": 80, "unit": "mm"},
+        {"parameter_id": "body_depth", "expected_value": 50, "unit": "mm"},
+        {"parameter_id": "wall_thickness", "expected_value": 3, "unit": "mm"},
+        {"parameter_id": "lid_thickness", "expected_value": 3, "unit": "mm"},
+        {"parameter_id": "fit_clearance", "expected_value": 0.4, "unit": "mm"},
+    ],
+    "protected_components": ["base_shell"],
+    "protected_features": ["base_shell"],
+    "protected_outputs": ["base"],
+    "prohibited_changes": ["Do not change base_shell", "Do not change base output", "Do not change enclosure fit parameters"],
+    "success_criteria": [
+        {"type": "output_exists", "target_id": "base"},
+        {"type": "output_exists", "target_id": "lid"},
+        {"type": "parameter_unchanged", "target_id": "wall_thickness", "expected_value": 3, "unit": "mm"},
+    ],
+    "requires_design_specification_version": False,
+    "requires_design_plan_version": False,
+    "clarification_questions": [],
+    "outcome": "revision_ready",
+}
+
 
 class FixtureProvider:
     """A deterministic provider used only by browser integration tests."""
@@ -198,6 +333,7 @@ class FixtureProvider:
     def __init__(self) -> None:
         self.calls: list[str] = []
         self.calls_by_project: dict[tuple[str, str], list[str]] = {}
+        self.revision_mode = "success"
 
     def _record_call(self, request: Any, call: str) -> None:
         self.calls.append(call)
@@ -332,13 +468,18 @@ class FixtureProvider:
                     "editable": False,
                 },
             ]
+        if "enclosure" in request.user_instruction.lower() or "enclosure" in request.original_intent.lower():
+            payload = ENCLOSURE_SPEC | {"purpose": request.user_instruction}
         return RequirementExtractionResult(
             raw_output=json.dumps(payload), provider="fixture", provider_model="fixture-model"
         )
 
     async def create_design_plan(self, _request: DesignPlanRequest) -> DesignPlanResult:
         self._record_call(_request, "design_plan_generation")
-        plan = ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
+        if "enclosure" in _request.user_instruction.lower() or "enclosure" in _request.original_intent.lower():
+            plan = ENCLOSURE_PLAN
+        else:
+            plan = ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
         return DesignPlanResult(
             raw_output=json.dumps(plan), provider="fixture", provider_model="fixture-model"
         )
@@ -347,8 +488,20 @@ class FixtureProvider:
         raise AssertionError("fixture requires CadQuery generation")
 
     async def generate_cadquery_model(self, _request: ModelGenerationRequest) -> ModelGenerationResult:
-        self._record_call(_request, "source_generation")
-        source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
+        is_enclosure = "enclosure" in _request.user_instruction.lower() or "enclosure" in _request.original_intent.lower()
+        self._record_call(_request, "component_revision" if _request.revision_plan else "source_generation")
+        if is_enclosure:
+            source = ENCLOSURE_REVISED_SOURCE if _request.revision_plan else ENCLOSURE_SOURCE
+            if _request.revision_plan and self.revision_mode == "protected_base_drift":
+                source = source.replace(
+                    'cq.Workplane("XY").box(params["body_width"], params["body_depth"], params["wall_thickness"])',
+                    'cq.Workplane("XY").box(params["body_width"] + 8.0, params["body_depth"], params["wall_thickness"])',
+                    1,
+                )
+            elif _request.revision_plan and self.revision_mode == "identity_replacement":
+                source = source.replace('"snap_lid"', '"lid_component"')
+        else:
+            source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
         return ModelGenerationResult(
             raw_output=f"```python\n{source}\n```",
             provider="fixture",
@@ -356,7 +509,14 @@ class FixtureProvider:
         )
 
     async def create_revision_plan(self, _request: RevisionPlanRequest) -> RevisionPlanResult:
-        raise AssertionError("revision planning is not enabled in the initial fixture slice")
+        self._record_call(_request, "revision_plan_generation")
+        if "enclosure" not in _request.original_intent.lower():
+            raise AssertionError("revision planning fixture is only enabled for enclosure projects")
+        return RevisionPlanResult(
+            raw_output=json.dumps(ENCLOSURE_REVISION_PLAN),
+            provider="fixture",
+            provider_model="fixture-model",
+        )
 
     async def create_source_brief(self, _request: SourceBriefRequest) -> SourceBriefResult:
         raise AssertionError("source briefs are not enabled in the initial fixture slice")
@@ -377,54 +537,113 @@ class FixtureRunner:
         **_kwargs: Any,
     ) -> CadQueryCompileResult:
         values = parameter_values or {}
-        output_id = str((requested_outputs or [{"output_id": "plate"}])[0]["output_id"])
-        self.calls.append({"job_id": job_id, "parameter_values": values, "output_id": output_id})
+        output_specs = requested_outputs or [{"output_id": "plate", "required": True}]
+        output_ids = [str(spec["output_id"]) for spec in output_specs]
+        self.calls.append({"job_id": job_id, "parameter_values": values, "output_ids": output_ids})
         job_dir = self.root / "cad-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
         source_path = job_dir / "source.py"
-        stl_path = job_dir / f"{output_id}.stl"
-        step_path = job_dir / f"{output_id}.step"
-        brep_path = job_dir / f"{output_id}.brep"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
-        metadata_path = job_dir / f"{output_id}.json"
-        topology_path = job_dir / f"{output_id}-topology.json"
         manifest_path = job_dir / "execution-manifest.json"
         source_path.write_text(source, encoding="utf-8")
-        width = float(values.get("plate_width", values.get("column_count", 4) * 20))
-        mesh = trimesh.creation.box(extents=(width, 50.0, 3.0))
-        mesh.apply_translation((0.0, 0.0, 1.5))
-        mesh.export(stl_path)
-        step_path.write_text("ISO-10303-21; END-ISO-10303-21;", encoding="utf-8")
-        brep_path.write_text("BREP", encoding="utf-8")
         stdout_path.write_text("Fixture CAD execution completed", encoding="utf-8")
         stderr_path.write_text("", encoding="utf-8")
-        metadata = MeshMetadata(
-            size_x_mm=width,
-            size_y_mm=50.0,
-            size_z_mm=3.0,
-            volume_mm3=width * 150.0,
-            triangle_count=12,
-            connected_components=1,
-            is_watertight=True,
-            is_winding_consistent=True,
-            center_of_mass=(0.0, 0.0, 0.0),
-        )
-        topology = {
-            "valid": True,
-            "expected_solid_count": 1,
-            "detected_solid_count": 1,
-            "allow_disconnected_solids": False,
-        }
-        metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
-        topology_path.write_text(json.dumps(topology), encoding="utf-8")
         source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
         parameter_hash = hashlib.sha256(
             json.dumps(values, sort_keys=True, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
-        stl_hash = hashlib.sha256(stl_path.read_bytes()).hexdigest()
-        step_hash = hashlib.sha256(step_path.read_bytes()).hexdigest()
-        brep_hash = hashlib.sha256(brep_path.read_bytes()).hexdigest()
+        outputs: list[CadQueryOutputResult] = []
+        output_manifest_entries: list[dict[str, Any]] = []
+        first_stl: Path | None = None
+        first_step: Path | None = None
+        first_metadata: Path | None = None
+        for spec in output_specs:
+            output_id = str(spec["output_id"])
+            stl_path = job_dir / f"{output_id}.stl"
+            step_path = job_dir / f"{output_id}.step"
+            brep_path = job_dir / f"{output_id}.brep"
+            metadata_path = job_dir / f"{output_id}.json"
+            topology_path = job_dir / f"{output_id}-topology.json"
+            if output_id == "base":
+                extents = (
+                    float(values.get("body_width", 80.0)),
+                    float(values.get("body_depth", 50.0)),
+                    float(values.get("wall_thickness", 3.0)),
+                )
+            elif output_id == "lid":
+                extents = (
+                    float(values.get("body_width", 80.0)),
+                    float(values.get("body_depth", 50.0)),
+                    float(values.get("lid_thickness", 3.0)),
+                )
+            else:
+                extents = (float(values.get("plate_width", values.get("column_count", 4) * 20)), 50.0, 3.0)
+            mesh = trimesh.creation.box(extents=extents)
+            mesh.apply_translation((extents[0] / 2, extents[1] / 2, extents[2] / 2))
+            if output_id == "lid" and "recessed finger pull" in source:
+                mesh.vertices[0] += (0.1, 0.1, 0.1)
+            mesh.export(stl_path)
+            step_path.write_text("ISO-10303-21; END-ISO-10303-21;", encoding="utf-8")
+            brep_path.write_text("BREP", encoding="utf-8")
+            metadata = MeshMetadata(
+                size_x_mm=extents[0],
+                size_y_mm=extents[1],
+                size_z_mm=extents[2],
+                volume_mm3=extents[0] * extents[1] * extents[2],
+                triangle_count=12,
+                connected_components=1,
+                is_watertight=True,
+                is_winding_consistent=True,
+                center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
+            )
+            topology = {
+                "valid": True,
+                "expected_solid_count": 1,
+                "detected_solid_count": 1,
+                "shell_count": 1,
+                "allow_disconnected_solids": False,
+                "bounding_box_mm": {"xlen": extents[0], "ylen": extents[1], "zlen": extents[2]},
+            }
+            metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
+            topology_path.write_text(json.dumps(topology), encoding="utf-8")
+            stl_hash = hashlib.sha256(stl_path.read_bytes()).hexdigest()
+            step_hash = hashlib.sha256(step_path.read_bytes()).hexdigest()
+            brep_hash = hashlib.sha256(brep_path.read_bytes()).hexdigest()
+            outputs.append(
+                CadQueryOutputResult(
+                    output_id=output_id,
+                    entrypoint=output_id,
+                    required=bool(spec.get("required", True)),
+                    success=True,
+                    stl_path=stl_path,
+                    step_path=step_path,
+                    brep_path=brep_path,
+                    metadata_path=metadata_path,
+                    topology_metadata_path=topology_path,
+                    stl_hash=stl_hash,
+                    step_hash=step_hash,
+                    brep_hash=brep_hash,
+                    output_size_bytes=stl_path.stat().st_size,
+                    metadata=metadata,
+                    topology_metadata=topology,
+                )
+            )
+            output_manifest_entries.append(
+                {
+                    "output_id": output_id,
+                    "required": bool(spec.get("required", True)),
+                    "success": True,
+                    "topology_metadata": topology,
+                    "stl_hash": stl_hash,
+                    "step_hash": step_hash,
+                    "brep_hash": brep_hash,
+                    "placement_transform": {"translation": [0.0, 0.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0]},
+                }
+            )
+            first_stl = first_stl or stl_path
+            first_step = first_step or step_path
+            first_metadata = first_metadata or metadata_path
         manifest_path.write_text(
             json.dumps(
                 {
@@ -434,30 +653,13 @@ class FixtureRunner:
                     "source_hash": source_hash,
                     "parameter_hash": parameter_hash,
                     "parameters": values,
-                    "requested_output_ids": [output_id],
-                    "output_ids": [output_id],
-                    "outputs": [{"output_id": output_id, "required": True, "success": True, "topology_metadata": topology}],
+                    "requested_output_ids": output_ids,
+                    "output_ids": output_ids,
+                    "outputs": output_manifest_entries,
                 },
                 sort_keys=True,
             ),
             encoding="utf-8",
-        )
-        output = CadQueryOutputResult(
-            output_id=output_id,
-            entrypoint=output_id,
-            required=True,
-            success=True,
-            stl_path=stl_path,
-            step_path=step_path,
-            brep_path=brep_path,
-            metadata_path=metadata_path,
-            topology_metadata_path=topology_path,
-            stl_hash=stl_hash,
-            step_hash=step_hash,
-            brep_hash=brep_hash,
-            output_size_bytes=stl_path.stat().st_size,
-            metadata=metadata,
-            topology_metadata=topology,
         )
         return CadQueryCompileResult(
             job_id=job_id,
@@ -465,17 +667,17 @@ class FixtureRunner:
             timed_out=False,
             exit_code=0,
             source_path=source_path,
-            stl_path=stl_path,
-            step_path=step_path,
+            stl_path=first_stl,
+            step_path=first_step,
             stdout_path=stdout_path,
             stderr_path=stderr_path,
-            metadata_path=metadata_path,
+            metadata_path=first_metadata,
             source_hash=source_hash,
-            output_size_bytes=stl_path.stat().st_size,
-            metadata=metadata,
+            output_size_bytes=sum(output.output_size_bytes for output in outputs),
+            metadata=outputs[0].metadata if outputs else None,
             error_message=None,
-            command_args=["fixture-cadquery", output_id],
-            outputs=[output],
+            command_args=["fixture-cadquery", ",".join(output_ids)],
+            outputs=outputs,
             execution_manifest_path=manifest_path,
         )
 
@@ -533,7 +735,24 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
         return {
             "provider_call_count": len(project_calls),
             "provider_calls": list(project_calls),
+            "worker_calls": [
+                call
+                for call in runner.calls
+                if call["job_id"] in {revision.id for revision in db.scalars(select(Revision).where(Revision.project_id == project_id))}
+            ],
             "workflow_run_ids": [run.id for run in runs],
+            "revision_plans": [
+                {
+                    "id": plan.id,
+                    "base_revision_id": plan.base_revision_id,
+                    "generated_revision_id": plan.generated_revision_id,
+                    "review_state": plan.review_state,
+                    "payload": service._read_revision_plan_payload(plan),
+                }
+                for plan in db.scalars(
+                    select(RevisionPlan).where(RevisionPlan.project_id == project_id).order_by(RevisionPlan.created_at)
+                )
+            ],
             "workflow_runs": [
                 {
                     "id": run.id,
@@ -650,6 +869,46 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
         assert refreshed is not None
         return {
             "project": {"id": refreshed.id, "active_revision_id": refreshed.active_revision_id},
+            "current_revision": current_revision.model_dump(mode="json"),
+        }
+
+    @app.post("/api/test-fixture/scenarios/revise-enclosure-lid", status_code=201, include_in_schema=False)
+    async def seed_revise_enclosure_lid(
+        mode: str = "success",
+        db: Session = Depends(override_db),
+    ) -> dict[str, Any]:
+        if mode not in {"success", "protected_base_drift", "identity_replacement"}:
+            raise HTTPException(status_code=400, detail="unsupported enclosure fixture mode")
+        provider.revision_mode = mode
+        service = ProjectService(db=db, data_dir=data_dir, ai_provider=provider, cad_runner=runner)
+        project_name = f"Deterministic enclosure {uuid4().hex[:8]}"
+        project = service.create_project(
+            ProjectCreate(
+                name=project_name,
+                original_intent="Create a two-part electronics enclosure.",
+            )
+        )
+        specification = await service.extract_requirements(
+            project.id,
+            RequirementExtractionCreate(user_instruction="Create an electronics enclosure."),
+        )
+        assert specification is not None
+        plan = await service.create_design_plan_from_specification(specification.id)
+        assert plan is not None
+        approved_plan = service.approve_design_plan(plan.id)
+        assert approved_plan is not None
+        candidate = await service.generate_from_design_plan(approved_plan.id)
+        assert candidate is not None
+        current_revision = service.accept_candidate(candidate.id)
+        assert current_revision is not None
+        refreshed = service.get_project(project.id)
+        assert refreshed is not None
+        return {
+            "project": {
+                "id": refreshed.id,
+                "name": refreshed.name,
+                "active_revision_id": refreshed.active_revision_id,
+            },
             "current_revision": current_revision.model_dump(mode="json"),
         }
 
