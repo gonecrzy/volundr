@@ -189,6 +189,24 @@ Use Playwright for critical workflows:
 15. Open a blocked CadQuery candidate with one successful required output and one failed required output.
 16. Confirm solid-count topology rejection is visible, Accept is disabled, and the active accepted revision remains unchanged.
 
+### Deterministic browser gate
+
+`frontend/e2e/workflow-gate.spec.ts` starts a disposable FastAPI fixture server
+with the production project router, project service, workflow recorder, SQLite
+persistence, controlled provider, and controlled CAD worker. It does not route
+mock API responses in the browser. The fixture summary endpoint is test-only
+and exposes bounded run, event, artifact, provider-call, frontend-event, and
+revision assertions.
+
+The initial gate covers a no-clarification explicit part and an intent-first
+holder clarification. Both assert workflow correlation, candidate review,
+acceptance behavior, and debug-bundle download. It is run serially because the
+summary endpoint is scoped to the latest disposable fixture project.
+
+Live Gemini browser smoke tests remain opt-in and must run against a separately
+configured live application. They are not part of the deterministic Playwright
+suite or normal CI.
+
 After Gemini integration:
 
 1. Create project from prompt.

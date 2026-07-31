@@ -2479,6 +2479,19 @@ class ProjectService:
         project = self.db.get(Project, specification.project_id)
         if project is None:
             return None
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="requirement_clarification",
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="requirement_clarification",
+            event_type="requirement_clarification.answers_submitted",
+            severity="summary",
+            message="Clarification answers submitted for requirement review.",
+            deduplication_key=f"requirement-clarification-answers-{specification.id}",
+            design_specification_id=specification.id,
+        )
         request = RequirementExtractionRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -2496,11 +2509,37 @@ class ProjectService:
             clarification_answers=answers,
             defaults=DEFAULT_REQUIREMENT_PROFILE,
         )
-        return await self._run_requirement_extraction(
+        result = await self._run_requirement_extraction(
             project=project,
             request=request,
             superseded_specification_id=specification.id,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="raw_provider_response",
+            role="clarification_requirement_raw_response",
+            relative_path=result.raw_response_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="design_specification",
+            role="clarified_design_specification_version",
+            relative_path=result.specification_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="requirement_extraction",
+            event_type="requirement_clarification.completed",
+            severity="summary",
+            message="Clarification answers produced an updated requirements version.",
+            deduplication_key=f"requirement-clarification-completed-{result.id}",
+            design_specification_id=result.id,
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
+        self.db.commit()
+        return result
 
     async def generate_from_design_specification(
         self,

@@ -8,9 +8,17 @@ export default defineConfig({
     trace: "retain-on-failure",
     ...devices["Desktop Chrome"],
   },
-  webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4173",
-    reuseExistingServer: true,
-    url: "http://127.0.0.1:4173",
-  },
+  webServer: [
+    {
+      command:
+        "rtk env PYTHONPATH=../backend VOLUNDR_E2E_DATA_DIR=/tmp/volundr-playwright-fixture ../backend/.venv/bin/python -m app.testing.e2e_fixture_server",
+      reuseExistingServer: true,
+      url: "http://127.0.0.1:8000/health",
+    },
+    {
+      command: "npm run dev -- --host 127.0.0.1 --port 4173",
+      reuseExistingServer: true,
+      url: "http://127.0.0.1:4173",
+    },
+  ],
 });

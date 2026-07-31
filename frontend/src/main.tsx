@@ -1583,6 +1583,10 @@ function App() {
   }
 
   async function loadComponentRevisionSummary(revision: Revision) {
+    if (revision.source_type !== "ai_revision") {
+      setComponentRevisionSummary(null);
+      return;
+    }
     try {
       setComponentRevisionSummary(
         await request<ComponentRevisionSummary>(`/revisions/${revision.id}/component-revision-summary`, {
