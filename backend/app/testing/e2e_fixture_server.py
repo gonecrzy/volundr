@@ -31,6 +31,8 @@ from app.services.ai.provider import (
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
+from app.schemas.project import ProjectCreate, RequirementExtractionCreate
+from app.services.projects.service import ProjectService
 
 
 PLATE_SOURCE = '''
@@ -135,6 +137,58 @@ PLATE_PLAN: dict[str, Any] = {
     "clarification_questions": [],
     "plan_ready": True,
     "outcome": "plan_ready",
+}
+
+ORGANIZER_SOURCE = PLATE_SOURCE.replace(
+    'PARAMETERS = [',
+    '''PARAMETERS = [
+    ParameterSpec(id="column_count", label="Column count", type="int", default=4, editable=True),
+    ParameterSpec(id="wall_thickness", label="Wall thickness", type="float", default=3.0, unit="mm", editable=False, protected=True),''',
+).replace(
+    'return cq.Workplane("XY").box(params["plate_width"], 50.0, 3.0)',
+    'return cq.Workplane("XY").box(params["plate_width"] + params["column_count"] * 0.0, 50.0, params["wall_thickness"])',
+)
+
+ORGANIZER_PLAN: dict[str, Any] = {
+    **PLATE_PLAN,
+    "product_type": "repeated_cell_organizer",
+    "purpose": "A configurable repeated-cell organizer",
+    "parameters": [
+        PLATE_PLAN["parameters"][0],
+        {
+            "id": "column_count",
+            "label": "Column count",
+            "value": 4,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "editable": True,
+            "protected": False,
+            "component_id": "plate",
+        },
+        {
+            "id": "wall_thickness",
+            "label": "Wall thickness",
+            "value": 3,
+            "unit": "mm",
+            "type": "number",
+            "editable": False,
+            "protected": True,
+            "component_id": "plate",
+        },
+    ],
+    "derived_parameters": [
+        {
+            "id": "overall_width",
+            "label": "Overall width",
+            "expression": "column_count * 20",
+            "unit": "mm",
+            "depends_on": ["column_count"],
+        }
+    ],
+    "dependency_edges": [
+        {"from": "column_count", "to": "overall_width", "relationship": "Count sets organizer width"}
+    ],
 }
 
 
@@ -249,14 +303,38 @@ class FixtureProvider:
                     "outcome": "clarification_required",
                 }
             )
+        if "organizer" in request.user_instruction.lower():
+            payload["object_type"] = "repeated_cell_organizer"
+            payload["parameters"] = [
+                {
+                    "id": "column_count",
+                    "label": "Column count",
+                    "value": 4,
+                    "source": "user",
+                    "importance": "important",
+                    "protected": False,
+                    "editable": True,
+                },
+                {
+                    "id": "wall_thickness",
+                    "label": "Wall thickness",
+                    "value": 3,
+                    "unit": "mm",
+                    "source": "product_default",
+                    "importance": "important",
+                    "protected": True,
+                    "editable": False,
+                },
+            ]
         return RequirementExtractionResult(
             raw_output=json.dumps(payload), provider="fixture", provider_model="fixture-model"
         )
 
     async def create_design_plan(self, _request: DesignPlanRequest) -> DesignPlanResult:
         self.calls.append("design_plan_generation")
+        plan = ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
         return DesignPlanResult(
-            raw_output=json.dumps(PLATE_PLAN), provider="fixture", provider_model="fixture-model"
+            raw_output=json.dumps(plan), provider="fixture", provider_model="fixture-model"
         )
 
     async def generate_model(self, _request: ModelGenerationRequest) -> ModelGenerationResult:
@@ -264,8 +342,9 @@ class FixtureProvider:
 
     async def generate_cadquery_model(self, _request: ModelGenerationRequest) -> ModelGenerationResult:
         self.calls.append("source_generation")
+        source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
         return ModelGenerationResult(
-            raw_output=f"```python\n{PLATE_SOURCE}\n```",
+            raw_output=f"```python\n{source}\n```",
             provider="fixture",
             provider_model="fixture-model",
         )
@@ -306,7 +385,8 @@ class FixtureRunner:
         topology_path = job_dir / f"{output_id}-topology.json"
         manifest_path = job_dir / "execution-manifest.json"
         source_path.write_text(source, encoding="utf-8")
-        mesh = trimesh.creation.box(extents=(float(values.get("plate_width", 80)), 50.0, 3.0))
+        width = float(values.get("plate_width", values.get("column_count", 4) * 20))
+        mesh = trimesh.creation.box(extents=(width, 50.0, 3.0))
         mesh.apply_translation((0.0, 0.0, 1.5))
         mesh.export(stl_path)
         step_path.write_text("ISO-10303-21; END-ISO-10303-21;", encoding="utf-8")
@@ -314,10 +394,10 @@ class FixtureRunner:
         stdout_path.write_text("Fixture CAD execution completed", encoding="utf-8")
         stderr_path.write_text("", encoding="utf-8")
         metadata = MeshMetadata(
-            size_x_mm=float(values.get("plate_width", 80)),
+            size_x_mm=width,
             size_y_mm=50.0,
             size_z_mm=3.0,
-            volume_mm3=float(values.get("plate_width", 80)) * 150.0,
+            volume_mm3=width * 150.0,
             triangle_count=12,
             connected_components=1,
             is_watertight=True,
@@ -495,6 +575,32 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
         if project_id is None:
             raise HTTPException(status_code=404, detail="fixture has no projects")
         return build_summary(project_id, db)
+
+    @app.post("/api/test-fixture/scenarios/configure-organizer", status_code=201, include_in_schema=False)
+    async def seed_configure_organizer(db: Session = Depends(override_db)) -> dict[str, Any]:
+        service = ProjectService(db=db, data_dir=data_dir, ai_provider=provider, cad_runner=runner)
+        project = service.create_project(
+            ProjectCreate(name="Configurable organizer", original_intent="Create a repeated-cell organizer.")
+        )
+        specification = await service.extract_requirements(
+            project.id,
+            RequirementExtractionCreate(user_instruction="Create an organizer."),
+        )
+        assert specification is not None
+        plan = await service.create_design_plan_from_specification(specification.id)
+        assert plan is not None
+        approved_plan = service.approve_design_plan(plan.id)
+        assert approved_plan is not None
+        candidate = await service.generate_from_design_plan(approved_plan.id)
+        assert candidate is not None
+        current_revision = service.accept_candidate(candidate.id)
+        assert current_revision is not None
+        refreshed = service.get_project(project.id)
+        assert refreshed is not None
+        return {
+            "project": {"id": refreshed.id, "active_revision_id": refreshed.active_revision_id},
+            "current_revision": current_revision.model_dump(mode="json"),
+        }
 
     return app
 

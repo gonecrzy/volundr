@@ -55,3 +55,18 @@ def test_fixture_server_generates_a_real_candidate_after_plan_approval(tmp_path:
         assert "source_generation" in summary["provider_calls"]
         assert "cad_execution" in summary["artifact_stages"]
         assert "candidate.classified" in summary["workflow_event_types"]
+
+
+def test_fixture_server_seeds_an_accepted_configurable_organizer(tmp_path: Path) -> None:
+    app = create_e2e_fixture_app(tmp_path)
+    with TestClient(app) as client:
+        response = client.post("/api/test-fixture/scenarios/configure-organizer")
+
+        assert response.status_code == 201
+        fixture = response.json()
+        assert fixture["project"]["active_revision_id"] == fixture["current_revision"]["id"]
+        parameters = client.get(
+            f"/api/projects/{fixture['project']['id']}/configuration/parameters"
+        )
+        assert parameters.status_code == 200
+        assert {parameter["id"] for parameter in parameters.json()} >= {"column_count", "wall_thickness"}
