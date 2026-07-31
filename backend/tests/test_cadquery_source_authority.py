@@ -209,6 +209,51 @@ def test_function_names_may_differ_when_stable_ids_match() -> None:
     assert result["findings"] == []
 
 
+def test_transitive_parameter_effects_reach_cadquery_geometry() -> None:
+    source = '''
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component
+
+PARAMETERS = [
+    ParameterSpec(id="bottle_diameter", label="Bottle diameter", type="float", default=81.0, unit="mm", protected=True),
+    ParameterSpec(id="retention_height", label="Retention height", type="float", default=20.0, unit="mm", protected=True),
+    ParameterSpec(id="screw_spacing", label="Screw spacing", type="float", default=50.0, unit="mm", protected=True),
+]
+
+@component("holder_body")
+def build_holder(params):
+    bottle_dia = params["bottle_diameter"]
+    retention_h = params["retention_height"]
+    screw_sp = params.get("screw_spacing", 50.0)
+    inner_dia = bottle_dia + 1.0
+    outer_dia = inner_dia + 6.0
+    height = retention_h + screw_sp
+    body = cq.Workplane("XY").cylinder(retention_h, outer_dia / 2.0)
+    return body.translate((0.0, 0.0, height))
+
+def build(params):
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[PrintableOutput(output_id="print_body", component_id="holder_body", label="Body", model=build_holder(params), expected_solid_count=1, allow_disconnected_solids=False)],
+    )
+'''
+    authority = {
+        "parameters": [
+            {"id": "bottle_diameter", "type": "float", "unit": "mm", "value": 81.0, "protected": True, "required": True},
+            {"id": "retention_height", "type": "float", "unit": "mm", "value": 20.0, "protected": True, "required": True},
+            {"id": "screw_spacing", "type": "float", "unit": "mm", "value": 50.0, "protected": True, "required": True},
+        ],
+        "components": [{"id": "holder_body", "required": True}],
+        "features": [],
+        "outputs": [{"id": "print_body", "component_ids": ["holder_body"], "required": True, "expected_solid_count": 1}],
+    }
+
+    result = validate_cadquery_source_authority(source, authority)
+
+    assert result["passed_hard_checks"] is True
+    assert result["findings"] == []
+
+
 def test_keyword_decorator_ids_certify_when_stable_ids_match() -> None:
     authority = build_cadquery_source_authority(ENCLOSURE_PLAN)
     source = _source(

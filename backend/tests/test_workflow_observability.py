@@ -267,6 +267,7 @@ def test_staged_generation_closes_source_and_repair_child_runs(tmp_path: Path) -
         statuses = {run.workflow_type: run.status for run in runs}
         assert statuses["source_generation"] == "completed"
         assert statuses["contract_repair"] == "completed"
+        assert statuses["design_plan_creation"] == "completed"
         assert statuses["initial_generation"] == "completed"
 
 
@@ -612,6 +613,83 @@ def build(params):
                 provider_model="fake-planning-model",
             )
         return await super().generate_cadquery_model(request)
+
+
+class AlwaysInvalidSourceProvider(PlanningAiProvider):
+    async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        return await RepairThenValidProvider(READY_PLAN).generate_cadquery_model(request)
+
+
+class InvalidFunctionalPlanProvider(PlanningAiProvider):
+    def __init__(self) -> None:
+        invalid_plan = {
+                **READY_PLAN,
+                "schema_version": "1.1",
+                "functional_contract": {
+                    "retention_interfaces": [
+                        {
+                            "id": "retention",
+                            "required": True,
+                            "strategy": "reviewed_proposal",
+                        }
+                    ]
+                },
+            }
+        super().__init__(invalid_plan, invalid_plan)
+
+
+def test_functional_plan_failure_records_root_diagnosis(tmp_path: Path) -> None:
+    provider = InvalidFunctionalPlanProvider()
+    client, SessionLocal = build_plan_client(tmp_path, provider)
+    project = client.post(
+        "/api/projects",
+        json={"name": "Invalid functional plan project", "original_intent": "Create a holder."},
+    ).json()
+    specification = client.post(
+        f"/api/projects/{project['id']}/requirements",
+        json={"user_instruction": "Create a holder with a retention feature."},
+    ).json()
+
+    response = client.post(f"/api/design-specifications/{specification['id']}/design-plan")
+
+    assert response.status_code == 502
+    with SessionLocal() as session:
+        root = session.scalar(
+            select(WorkflowRun)
+            .where(WorkflowRun.project_id == project["id"])
+            .where(WorkflowRun.workflow_type == "initial_generation")
+        )
+        assert root is not None
+        diagnosis = WorkflowDiagnosisService(db=session).diagnose(root.id)
+        assert diagnosis.root_cause["stage"] == "design_plan_validation"
+        assert diagnosis.root_cause["rule_id"] == "functional.retention_strategy_unresolved"
+        assert diagnosis.root_cause["confidence"] == "confirmed"
+
+
+def test_failed_generation_closes_root_and_completed_plan_child(tmp_path: Path) -> None:
+    provider = AlwaysInvalidSourceProvider(READY_PLAN)
+    client, SessionLocal = build_plan_client(tmp_path, provider)
+    project = client.post(
+        "/api/projects",
+        json={"name": "Failed terminal workflow project", "original_intent": "Create a bracket."},
+    ).json()
+    specification = client.post(
+        f"/api/projects/{project['id']}/requirements",
+        json={"user_instruction": "Create a bracket with mount_hole_spacing=60 mm."},
+    ).json()
+    plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()
+    assert client.post(f"/api/design-plans/{plan['id']}/approve").status_code == 200
+
+    response = client.post(f"/api/design-plans/{plan['id']}/generate")
+
+    assert response.status_code == 409
+    with SessionLocal() as session:
+        runs = list(session.scalars(select(WorkflowRun).where(WorkflowRun.project_id == project["id"])))
+        statuses = {run.workflow_type: run.status for run in runs}
+        assert statuses["design_plan_creation"] == "completed"
+        assert statuses["source_generation"] == "failed"
+        assert statuses["contract_repair"] == "failed"
+        assert statuses["initial_generation"] == "failed"
 
 
 class ManifestCadRunner(FakeCadRunner):

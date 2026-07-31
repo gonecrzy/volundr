@@ -674,6 +674,16 @@ class ProjectService:
             worker_version=parent_run.worker_version if parent_run is not None else "cad-worker-v1",
         )
 
+    def _complete_workflow_lineage(self, workflow_run: WorkflowRun, *, status: str) -> None:
+        recorder = self._workflow_recorder()
+        recorder.complete_run(workflow_run, status=status)
+        root_id = workflow_run.root_workflow_run_id or workflow_run.id
+        if root_id == workflow_run.id:
+            return
+        root = self.db.get(WorkflowRun, root_id)
+        if root is not None and root.status == "running":
+            recorder.complete_run(root, status=status)
+
     def _record_workflow_event(
         self,
         workflow_run: WorkflowRun | None,
@@ -686,6 +696,7 @@ class ProjectService:
         rule_id: str | None = None,
         deduplication_key: str | None = None,
         caused_by_event_id: str | None = None,
+        is_root_failure: bool = False,
         is_downstream_symptom: bool = False,
         entity_type: str | None = None,
         entity_id: str | None = None,
@@ -713,6 +724,7 @@ class ProjectService:
             rule_id=rule_id,
             deduplication_key=deduplication_key,
             caused_by_event_id=caused_by_event_id,
+            is_root_failure=is_root_failure,
             is_downstream_symptom=is_downstream_symptom,
             entity_type=entity_type,
             entity_id=entity_id,
@@ -2410,12 +2422,56 @@ class ProjectService:
             design_specification=self._read_design_specification_payload(specification),
             defaults=DEFAULT_REQUIREMENT_PROFILE,
         )
-        result = await self._run_design_planning(
-            project=project,
-            specification=specification,
-            request=request,
-            superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
-        )
+        try:
+            result = await self._run_design_planning(
+                project=project,
+                specification=specification,
+                request=request,
+                superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
+            )
+        except asyncio.CancelledError:
+            self._record_workflow_event(
+                workflow_run,
+                stage="design_plan_validation",
+                event_type="design_plan.validation.cancelled",
+                severity="warning",
+                blocking=True,
+                rule_id="design_plan.cancelled",
+                message="Design Plan generation was cancelled before approval.",
+                deduplication_key=f"design-plan-validation-cancelled-{specification.id}",
+                is_root_failure=True,
+            )
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
+            raise
+        except Exception as exc:
+            error_message = str(exc)
+            cause = exc.__cause__
+            while cause is not None:
+                cause_message = str(cause)
+                if cause_message.startswith("Functional Design Plan validation failed:"):
+                    error_message = cause_message
+                    break
+                cause = cause.__cause__
+            rule_id = "design_plan.generation_failed"
+            stage = "design_plan_generation"
+            event_type = "design_plan_generation.failed"
+            if error_message.startswith("Functional Design Plan validation failed:"):
+                stage = "design_plan_validation"
+                event_type = "design_plan.validation.failed"
+                rule_id = error_message.split(":", 1)[1].split(";", 1)[0].strip() or rule_id
+            self._record_workflow_event(
+                workflow_run,
+                stage=stage,
+                event_type=event_type,
+                severity="error",
+                blocking=True,
+                rule_id=rule_id,
+                message=error_message,
+                deduplication_key=f"design-plan-failed-{specification.id}",
+                is_root_failure=True,
+            )
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            raise
         self._record_workflow_artifact(
             workflow_run,
             stage="design_plan_generation",
@@ -2438,6 +2494,7 @@ class ProjectService:
             message="Design Plan generation completed.",
             deduplication_key=f"design-plan-generation-completed-{specification.id}",
         )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         return result
 
     def approve_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
@@ -2832,6 +2889,7 @@ class ProjectService:
             generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(generation_attempt)
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -2840,6 +2898,7 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
             raise
 
         try:
@@ -2858,13 +2917,13 @@ class ProjectService:
                 )
             )
         except _StoppedWithRevision as exc:
-            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return exc.revision
         except asyncio.CancelledError:
-            self._workflow_recorder().complete_run(workflow_run, status="cancelled")
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
             raise
         except Exception:
-            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            self._complete_workflow_lineage(workflow_run, status="failed")
             raise
         initial_revision = await self._create_cadquery_revision_from_planned_source(
             project_id=project_id,
@@ -2904,7 +2963,7 @@ class ProjectService:
             resulting_revision_id=initial_revision.id,
         )
         if self._has_design_artifact_consistency_blockers(initial_revision.id):
-            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return initial_revision
 
         repair_request = self._generation_request(
@@ -2926,7 +2985,7 @@ class ProjectService:
             repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
-            self._workflow_recorder().complete_run(workflow_run, status="cancelled")
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -2935,7 +2994,7 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
-            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            self._complete_workflow_lineage(workflow_run, status="failed")
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
@@ -2956,6 +3015,7 @@ class ProjectService:
                 error_message=str(exc),
                 resulting_revision_id=failed_repair.id,
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return failed_repair
 
         self._record_generation_extracted_source(repair_attempt, repaired_source)
@@ -2977,7 +3037,7 @@ class ProjectService:
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=error_message,
             )
-            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return initial_revision
         repair_revision = await self._create_cadquery_revision_from_planned_source(
             project_id=project_id,
@@ -3005,12 +3065,8 @@ class ProjectService:
             else repair_revision.error_message if repair_revision else "repair revision was not created",
             resulting_revision_id=repair_revision.id if repair_revision else None,
         )
-        self._workflow_recorder().complete_run(
-            workflow_run,
-            status="completed"
-            if repair_revision is not None and repair_revision.status == "succeeded"
-            else "failed",
-        )
+        status = "completed" if repair_revision is not None and repair_revision.status == "succeeded" else "failed"
+        self._complete_workflow_lineage(workflow_run, status=status)
         return repair_revision
 
     async def _extract_validate_or_repair_source(

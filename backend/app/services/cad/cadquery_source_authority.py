@@ -673,12 +673,14 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
         "chamfer",
         "circle",
         "cut",
+        "cylinder",
         "extrude",
         "fillet",
         "hole",
         "loft",
         "mirror",
         "polygon",
+        "pushPoints",
         "rect",
         "rotate",
         "translate",
@@ -686,8 +688,6 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
         "workplane",
     }
     geometry_call_names: set[str] = set()
-    assigned_parameter_names: dict[str, str] = {}
-    geometry_argument_names: set[str] = set()
     geometry_function_names = {
         node.name
         for node in ast.walk(tree)
@@ -736,27 +736,38 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
                 geometry_call_names.add(node.func.attr)
             elif isinstance(node.func, ast.Name):
                 geometry_call_names.add(node.func.id)
-            if isinstance(node.func, ast.Attribute) and node.func.attr in geometry_methods:
-                for argument in node.args + [keyword.value for keyword in node.keywords]:
-                    if isinstance(argument, ast.Name):
-                        geometry_argument_names.add(argument.id)
-        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-            target = node.targets[0].id
-            if isinstance(node.value, ast.Subscript) and isinstance(node.value.value, ast.Name) and node.value.value.id == "params":
-                parameter_id = _subscript_string(node.value.slice)
-                if parameter_id:
-                    assigned_parameter_names[target] = parameter_id
-            elif (
-                isinstance(node.value, ast.Call)
-                and isinstance(node.value.func, ast.Attribute)
-                and isinstance(node.value.func.value, ast.Name)
-                and node.value.func.value.id == "params"
-                and node.value.func.attr == "get"
-                and node.value.args
-            ):
-                parameter_id = _subscript_string(node.value.args[0])
-                if parameter_id:
-                    assigned_parameter_names[target] = parameter_id
+    for function in (node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)):
+        aliases: dict[str, set[str]] = {}
+        assignments = [node for node in ast.walk(function) if isinstance(node, ast.Assign)]
+        for _ in range(len(assignments) + 1):
+            changed = False
+            for assignment in assignments:
+                if len(assignment.targets) != 1 or not isinstance(assignment.targets[0], ast.Name):
+                    continue
+                dependencies = _expression_parameter_dependencies(assignment.value, aliases)
+                target = assignment.targets[0].id
+                if dependencies and aliases.get(target) != dependencies:
+                    aliases[target] = dependencies
+                    changed = True
+            if not changed:
+                break
+        has_geometry_call = any(
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Attribute)
+            and call.func.attr in geometry_methods
+            for call in ast.walk(function)
+        )
+        for call in (node for node in ast.walk(function) if isinstance(node, ast.Call)):
+            if isinstance(call.func, ast.Attribute) and call.func.attr in geometry_methods:
+                for argument in call.args + [keyword.value for keyword in call.keywords]:
+                    parameter_geometry_effects.update(
+                        _expression_parameter_dependencies(argument, aliases)
+                    )
+            elif isinstance(call.func, ast.Name) and call.func.id == "range" and has_geometry_call:
+                for argument in call.args:
+                    parameter_geometry_effects.update(
+                        _expression_parameter_dependencies(argument, aliases)
+                    )
     for parameter_id, loads in parameter_loads.items():
         for load in loads:
             ancestor = parents.get(load)
@@ -784,9 +795,6 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
                         ):
                             parameter_geometry_effects.add(parameter_id)
                 ancestor = parents.get(ancestor)
-        if parameter_id in assigned_parameter_names.values():
-            if any(name in geometry_argument_names for name, value in assigned_parameter_names.items() if value == parameter_id):
-                parameter_geometry_effects.add(parameter_id)
     call_names = {
         node.func.id
         for node in ast.walk(tree)
@@ -808,6 +816,32 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
         "feature_invocations": feature_invocations,
         "feature_component_builders": feature_component_builders,
     }
+
+
+def _expression_parameter_dependencies(
+    expression: ast.AST,
+    aliases: dict[str, set[str]],
+) -> set[str]:
+    dependencies: set[str] = set()
+    for node in ast.walk(expression):
+        if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) and node.value.id == "params":
+            parameter_id = _subscript_string(node.slice)
+            if parameter_id:
+                dependencies.add(parameter_id)
+        elif (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "params"
+            and node.func.attr == "get"
+            and node.args
+        ):
+            parameter_id = _subscript_string(node.args[0])
+            if parameter_id:
+                dependencies.add(parameter_id)
+        elif isinstance(node, ast.Name):
+            dependencies.update(aliases.get(node.id, set()))
+    return dependencies
 
 
 def _string_arg(node: ast.Call) -> str | None:

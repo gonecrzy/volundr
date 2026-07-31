@@ -37,6 +37,13 @@ _OUTPUT_CRITERIA = {
     "solid_count",
     "bounds_preserved",
 }
+_UNRESOLVED_RETENTION_STRATEGIES = {
+    "reviewed_proposal",
+    "proposal",
+    "to_be_decided",
+    "unspecified",
+    "tbd",
+}
 
 
 def _finding(rule_id: str, message: str, **extra: Any) -> dict[str, Any]:
@@ -175,11 +182,16 @@ def validate_functional_plan(plan: dict[str, Any]) -> list[dict[str, Any]]:
 
     for interface in _items(contract, "retention_interfaces"):
         interface_id = interface.get("id")
-        if interface.get("required") and not interface.get("strategy"):
+        strategy = str(interface.get("strategy") or "").strip().lower()
+        if interface.get("required") and (
+            not strategy
+            or strategy in _UNRESOLVED_RETENTION_STRATEGIES
+            or not interface.get("feature_id")
+        ):
             findings.append(
                 _finding(
                     "functional.retention_strategy_unresolved",
-                    f"Required retention interface `{interface_id or 'unnamed'}` has no strategy.",
+                    f"Required retention interface `{interface_id or 'unnamed'}` does not identify a concrete strategy and feature.",
                     entity_type="retention_interface",
                     entity_id=interface_id,
                 )

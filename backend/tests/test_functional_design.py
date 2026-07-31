@@ -63,7 +63,8 @@ def _plan(**overrides):
                     "required": True,
                     "environment": "moving_vehicle",
                     "release_behavior": "one_handed",
-                    "strategy": "reviewed_proposal",
+                    "strategy": "retention_lip",
+                    "feature_id": "retention_feature",
                     "component_id": "holder_body",
                 }
             ],
@@ -102,6 +103,25 @@ def test_functional_plan_rejects_ambiguous_mounting_contract() -> None:
 
 def test_functional_plan_accepts_explicit_mounting_support_and_retention() -> None:
     assert validate_functional_plan(_plan()) == []
+
+
+def test_functional_plan_rejects_placeholder_retention_strategy() -> None:
+    findings = validate_functional_plan(
+        _plan(
+            functional_contract={
+                **_plan()["functional_contract"],
+                "retention_interfaces": [
+                    {
+                        **_plan()["functional_contract"]["retention_interfaces"][0],
+                        "strategy": "reviewed_proposal",
+                        "feature_id": None,
+                    }
+                ],
+            }
+        )
+    )
+
+    assert any(finding["rule_id"] == "functional.retention_strategy_unresolved" for finding in findings)
 
 
 def test_revision_criteria_reject_output_as_parameter_and_unknown_types() -> None:
