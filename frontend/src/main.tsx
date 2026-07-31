@@ -72,10 +72,18 @@ import {
   type RevisionPlanReviewState,
   type RevisionSuccessResult,
 } from "./revisionPlanView";
+import {
+  buildCorrelatedHeaders,
+  createFrontendWorkflowEvent,
+  type WorkflowCorrelation,
+} from "./workflowTelemetry";
 import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
 import "./styles.css";
 
 const API_BASE = "/api";
+const workflowCorrelation: WorkflowCorrelation = {};
+const frontendSessionId =
+  globalThis.crypto?.randomUUID?.() ?? `frontend-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const SOURCE_IDENTITY_REJECTION_MESSAGE =
   "The generated model did not implement the approved design identities.";
 const SOURCE_CONTRACT_REJECTION_PREFIXES = [
@@ -562,6 +570,9 @@ function App() {
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
   const exportUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/export.zip` : null;
+  const diagnosticBundleUrl = workflowCorrelation.workflowRunId
+    ? `${API_BASE}/workflow-runs/${workflowCorrelation.workflowRunId}/debug-bundle.zip`
+    : null;
   const selectedSourceLabel = "Python";
   const sourcePanelLabel = "Python source";
   const sourceEditorLanguage = "python";
@@ -1706,9 +1717,16 @@ function App() {
       }
       await loadCandidateFindings(accepted);
       await loadGeometricAnalysis(accepted);
+      await recordFrontendWorkflowEvent(project?.id, "candidate_accepted", "candidate_review", {
+        revision_id: accepted.id,
+      });
       setMessage(`Accepted R${accepted.revision_number}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Candidate acceptance failed");
+      const errorMessage = error instanceof Error ? error.message : "Candidate acceptance failed";
+      void recordFrontendWorkflowEvent(project?.id, "visible_error_displayed", "candidate_review", {
+        action: "candidate_acceptance",
+      });
+      setMessage(errorMessage);
     } finally {
       setIsReviewActionPending(false);
     }
@@ -1733,9 +1751,16 @@ function App() {
       if (project) {
         await loadProjectMessages(project.id);
       }
+      await recordFrontendWorkflowEvent(project?.id, "candidate_rejected", "candidate_review", {
+        revision_id: rejected.id,
+      });
       setMessage(`Rejected R${rejected.revision_number}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Candidate rejection failed");
+      const errorMessage = error instanceof Error ? error.message : "Candidate rejection failed";
+      void recordFrontendWorkflowEvent(project?.id, "visible_error_displayed", "candidate_review", {
+        action: "candidate_rejection",
+      });
+      setMessage(errorMessage);
     } finally {
       setIsReviewActionPending(false);
     }
@@ -1973,6 +1998,19 @@ function App() {
           {exportUrl && selectedRevision?.output_manifest_path ? (
             <a className="download compact-action" href={exportUrl}>
               ZIP
+            </a>
+          ) : null}
+          {diagnosticBundleUrl && selectedRevision ? (
+            <a
+              className="download compact-action secondary"
+              href={diagnosticBundleUrl}
+              onClick={() => {
+                void recordFrontendWorkflowEvent(project?.id, "diagnostic_bundle_requested", "technical_details", {
+                  revision_id: selectedRevision.id,
+                });
+              }}
+            >
+              Diagnostic bundle
             </a>
           ) : null}
           <button className="primary" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
@@ -4284,11 +4322,12 @@ function highlightColor(severity: PrintabilitySeverity): number {
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
+    headers: buildCorrelatedHeaders({
       "Content-Type": "application/json",
       ...init.headers,
-    },
+    }, workflowCorrelation),
   });
+  updateWorkflowCorrelation(response);
   if (!response.ok) {
     throw new Error(await responseErrorMessage(response));
   }
@@ -4298,11 +4337,12 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
 async function requestEmpty(path: string, init: RequestInit): Promise<void> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
+    headers: buildCorrelatedHeaders({
       "Content-Type": "application/json",
       ...init.headers,
-    },
+    }, workflowCorrelation),
   });
+  updateWorkflowCorrelation(response);
   if (!response.ok) {
     throw new Error(await responseErrorMessage(response));
   }
@@ -4310,13 +4350,57 @@ async function requestEmpty(path: string, init: RequestInit): Promise<void> {
 
 async function requestText(path: string, init: RequestInit): Promise<string> {
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: {},
     ...init,
+    headers: buildCorrelatedHeaders(init.headers, workflowCorrelation),
   });
+  updateWorkflowCorrelation(response);
   if (!response.ok) {
     throw new Error(await response.text());
   }
   return response.text();
+}
+
+function updateWorkflowCorrelation(response: Response) {
+  const workflowRunId = response.headers.get("x-workflow-run-id");
+  const correlationId = response.headers.get("x-workflow-correlation-id");
+  if (workflowRunId) {
+    workflowCorrelation.workflowRunId = workflowRunId;
+  }
+  if (correlationId) {
+    workflowCorrelation.correlationId = correlationId;
+  }
+}
+
+async function recordFrontendWorkflowEvent(
+  projectId: string | null | undefined,
+  actionName: Parameters<typeof createFrontendWorkflowEvent>[0]["actionName"],
+  userVisibleState: string,
+  metadata: Record<string, unknown> = {},
+) {
+  if (!projectId || !workflowCorrelation.workflowRunId || !workflowCorrelation.correlationId) {
+    return;
+  }
+  try {
+    await requestEmpty("/workflow/frontend-events", {
+      method: "POST",
+      body: JSON.stringify({
+        frontend_session_id: frontendSessionId,
+        workflow_run_id: workflowCorrelation.workflowRunId,
+        correlation_id: workflowCorrelation.correlationId,
+        project_id: projectId,
+        events: [
+          createFrontendWorkflowEvent({
+            actionName,
+            route: window.location.pathname,
+            userVisibleState,
+            metadata,
+          }),
+        ],
+      }),
+    });
+  } catch {
+    return;
+  }
 }
 
 function normalizeConfigurationValue(

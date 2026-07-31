@@ -25,6 +25,13 @@ from app.models.revision_plan import (
 )
 from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
+from app.models.workflow import (
+    FrontendWorkflowEvent,
+    WorkflowArtifact,
+    WorkflowDiagnosis,
+    WorkflowEvent,
+    WorkflowRun,
+)
 
 __all__ = [
     "ClarificationAnswer",
@@ -51,4 +58,9 @@ __all__ = [
     "SavedPrintabilityProfile",
     "SourceValidationResult",
     "ValidationFinding",
+    "FrontendWorkflowEvent",
+    "WorkflowArtifact",
+    "WorkflowDiagnosis",
+    "WorkflowEvent",
+    "WorkflowRun",
 ]

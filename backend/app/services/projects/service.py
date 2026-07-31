@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import time
 import zipfile
 from dataclasses import asdict
@@ -44,6 +45,13 @@ from app.models.revision_plan import (
 )
 from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
+from app.models.workflow import (
+    FrontendWorkflowEvent,
+    WorkflowArtifact,
+    WorkflowDiagnosis,
+    WorkflowEvent,
+    WorkflowRun,
+)
 from app.schemas.project import (
     ClarificationAnswersCreate,
     ClarificationQuestionRead,
@@ -141,6 +149,7 @@ from app.services.geometry.invariants import (
 )
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
+from app.services.workflow.observability import WorkflowRecorder
 
 DRAFT_RETENTION_DAYS = 14
 ARCHIVED_RETENTION_DAYS = 60
@@ -381,9 +390,13 @@ class ProjectService:
         if project is None:
             return False
         deleted_project_id = project.id
+        workflow_run_ids = list(
+            self.db.scalars(select(WorkflowRun.id).where(WorkflowRun.project_id == deleted_project_id))
+        )
         self._delete_project_records(project)
         self.db.commit()
         self._delete_project_files(deleted_project_id)
+        self._delete_workflow_debug_bundles(workflow_run_ids)
         return True
 
     def list_revisions(self, project_id: str) -> list[RevisionRead]:
@@ -543,6 +556,12 @@ class ProjectService:
         project = self.db.get(Project, revision.project_id)
         if project is None:
             return None
+        parent_run = self._latest_root_workflow_run(project.id)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="candidate_acceptance",
+            parent=parent_run,
+        )
         now = project_utcnow()
         revision.review_state = "accepted"
         revision.is_accepted = True
@@ -554,12 +573,154 @@ class ProjectService:
             role="system_event",
             content=f"Accepted R{revision.revision_number}",
         )
+        self._record_workflow_event(
+            workflow_run,
+            stage="acceptance",
+            event_type="candidate.accepted",
+            severity="summary",
+            message=f"Accepted R{revision.revision_number}.",
+            deduplication_key=f"candidate-accepted-{revision.id}",
+            revision_id=revision.id,
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
+        if parent_run is not None:
+            self._workflow_recorder().complete_run(parent_run, status="completed")
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision)
 
     def _cadquery_runner(self) -> Any:
         return self.cad_runner
+
+    def _workflow_recorder(self) -> WorkflowRecorder:
+        return WorkflowRecorder(db=self.db, data_dir=self.data_dir)
+
+    def _latest_root_workflow_run(self, project_id: str) -> WorkflowRun | None:
+        return self.db.scalar(
+            select(WorkflowRun)
+            .where(WorkflowRun.project_id == project_id)
+            .where(WorkflowRun.root_workflow_run_id == WorkflowRun.id)
+            .where(WorkflowRun.status == "running")
+            .order_by(WorkflowRun.started_at.desc())
+        )
+
+    def _ensure_initial_workflow_run(self, project: Project) -> WorkflowRun:
+        existing = self._latest_root_workflow_run(project.id)
+        if existing is not None:
+            return existing
+        return self._workflow_recorder().start_run(
+            project_id=project.id,
+            workflow_type="initial_generation",
+            logging_mode="standard",
+            provider=self._provider_name(),
+            model=self._provider_model(),
+            prompt_versions={
+                "requirements": self._requirement_prompt_template_version(),
+                "design_plan": self._design_plan_prompt_template_version(),
+                "cadquery": self._provider_cadquery_prompt_template_version(),
+                "revision_plan": self._revision_plan_prompt_template_version(),
+            },
+            application_commit=self._application_commit(),
+            worker_version="cad-worker-v1",
+        )
+
+    def _start_child_workflow_run(
+        self,
+        *,
+        project_id: str,
+        workflow_type: str,
+        parent: WorkflowRun | None = None,
+    ) -> WorkflowRun:
+        parent_run = parent or self._latest_root_workflow_run(project_id)
+        return self._workflow_recorder().start_run(
+            project_id=project_id,
+            workflow_type=workflow_type,
+            parent_workflow_run_id=parent_run.id if parent_run is not None else None,
+            logging_mode=parent_run.logging_mode if parent_run is not None else "standard",
+            provider=self._provider_name(),
+            model=self._provider_model(),
+            prompt_versions=json.loads(parent_run.prompt_versions_json)
+            if parent_run is not None
+            else {},
+            application_commit=parent_run.application_commit if parent_run is not None else self._application_commit(),
+            worker_version=parent_run.worker_version if parent_run is not None else "cad-worker-v1",
+        )
+
+    def _record_workflow_event(
+        self,
+        workflow_run: WorkflowRun | None,
+        *,
+        stage: str,
+        event_type: str,
+        severity: str = "standard",
+        message: str,
+        blocking: bool = False,
+        rule_id: str | None = None,
+        deduplication_key: str | None = None,
+        caused_by_event_id: str | None = None,
+        entity_type: str | None = None,
+        entity_id: str | None = None,
+        expected: Any = None,
+        detected: Any = None,
+        generation_attempt_id: str | None = None,
+        design_specification_id: str | None = None,
+        design_plan_id: str | None = None,
+        revision_id: str | None = None,
+        revision_output_id: str | None = None,
+        revision_plan_id: str | None = None,
+        configuration_change_id: str | None = None,
+        worker_job_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ):
+        if workflow_run is None:
+            return None
+        return self._workflow_recorder().record_event(
+            workflow_run,
+            stage=stage,
+            event_type=event_type,
+            severity=severity,
+            message=message,
+            blocking=blocking,
+            rule_id=rule_id,
+            deduplication_key=deduplication_key,
+            caused_by_event_id=caused_by_event_id,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            expected=expected,
+            detected=detected,
+            generation_attempt_id=generation_attempt_id,
+            design_specification_id=design_specification_id,
+            design_plan_id=design_plan_id,
+            revision_id=revision_id,
+            revision_output_id=revision_output_id,
+            revision_plan_id=revision_plan_id,
+            configuration_change_id=configuration_change_id,
+            worker_job_id=worker_job_id,
+            metadata=metadata,
+        )
+
+    def _record_workflow_artifact(
+        self,
+        workflow_run: WorkflowRun | None,
+        *,
+        stage: str,
+        artifact_type: str,
+        role: str,
+        relative_path: str | None,
+        redacted: bool = False,
+        supersedes_artifact_id: str | None = None,
+    ):
+        if workflow_run is None or not relative_path:
+            return None
+        return self._workflow_recorder().record_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type=artifact_type,
+            role=role,
+            path=self.data_dir / relative_path,
+            redacted=redacted,
+            supersedes_artifact_id=supersedes_artifact_id,
+        )
 
     def _design_plan_parameter_values(self, design_plan_payload: dict[str, Any]) -> dict[str, Any]:
         values: dict[str, Any] = {}
@@ -865,6 +1026,21 @@ class ProjectService:
         revision.review_state = "rejected"
         revision.is_accepted = False
         revision.rejected_at = project_utcnow()
+        parent_run = self._latest_root_workflow_run(revision.project_id)
+        workflow_run = self._start_child_workflow_run(
+            project_id=revision.project_id,
+            workflow_type="candidate_rejection",
+            parent=parent_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="rejection",
+            event_type="candidate.rejected",
+            severity="summary",
+            message="Candidate revision rejected by user.",
+            deduplication_key=f"candidate-rejected-{revision.id}",
+            revision_id=revision.id,
+        )
         self._record_message(
             project_id=revision.project_id,
             revision_id=revision.id,
@@ -872,6 +1048,7 @@ class ProjectService:
             content=f"Rejected R{revision.revision_number}",
         )
         self.db.commit()
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         self.db.refresh(revision)
         return self._revision_read(revision)
 
@@ -902,6 +1079,15 @@ class ProjectService:
             return None
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
+        workflow_run = self._ensure_initial_workflow_run(project)
+        self._record_workflow_event(
+            workflow_run,
+            stage="project_request",
+            event_type="project_request.submitted",
+            severity="summary",
+            message="Project request submitted for requirement extraction.",
+            deduplication_key=f"project-request-{project.id}-{payload.user_instruction}",
+        )
         inventory = build_explicit_requirement_inventory(payload.user_instruction)
         defaults = dict(DEFAULT_REQUIREMENT_PROFILE)
         defaults["explicit_requirements"] = {
@@ -920,7 +1106,30 @@ class ProjectService:
             user_instruction=payload.user_instruction,
             defaults=defaults,
         )
-        return await self._run_requirement_extraction(project=project, request=request)
+        result = await self._run_requirement_extraction(project=project, request=request)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="raw_provider_response",
+            role="requirement_raw_response",
+            relative_path=result.raw_response_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="design_specification",
+            role="design_specification_version",
+            relative_path=result.specification_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="requirement_extraction",
+            event_type="requirement_extraction.completed",
+            severity="summary",
+            message="Requirement extraction completed.",
+            deduplication_key=f"requirement-extraction-completed-{project.id}",
+        )
+        return result
 
     def get_current_design_specification(self, project_id: str) -> DesignSpecificationRead | None:
         if self.db.get(Project, project_id) is None:
@@ -1101,6 +1310,25 @@ class ProjectService:
         design_plan_payload = self._read_design_plan_payload(design_plan)
         if base_revision.cad_backend != "cadquery":
             raise ValueError("configuration generation requires a CadQuery base revision")
+        workflow_run = self._start_child_workflow_run(
+            project_id=change.project_id,
+            workflow_type="configuration_change",
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="configuration_execution",
+            event_type="configuration_execution.started",
+            severity="summary",
+            message="Configuration generation started.",
+            deduplication_key=f"configuration-started-{change.id}",
+            configuration_change_id=change.id,
+            revision_id=base_revision.id,
+            metadata={
+                "provider_call_count": 0,
+                "base_source_hash": source_hash,
+                "parameter_hash": self._configuration_parameter_hash(manifest["parameter_values"]),
+            },
+        )
         revision = await self._create_cadquery_revision_from_planned_source(
             project_id=change.project_id,
             source=source,
@@ -1116,8 +1344,10 @@ class ProjectService:
             parameter_overrides=manifest["parameter_values"],
             parent_revision_id=base_revision.id,
             configuration_change_id=change.id,
+            workflow_run=workflow_run,
         )
         if revision is None:
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return None
         generated_revision = self.db.get(Revision, revision.id)
         if generated_revision is not None:
@@ -1149,6 +1379,25 @@ class ProjectService:
             )
             self.db.commit()
             self.db.refresh(generated_revision)
+            self._record_workflow_event(
+                workflow_run,
+                stage="configuration_execution",
+                event_type="configuration_execution.completed",
+                severity="summary" if generated_revision.status == "succeeded" else "error",
+                blocking=generated_revision.status != "succeeded",
+                rule_id="configuration_execution.failed"
+                if generated_revision.status != "succeeded"
+                else None,
+                message="Configuration generation completed.",
+                deduplication_key=f"configuration-completed-{change.id}",
+                configuration_change_id=change.id,
+                revision_id=generated_revision.id,
+                metadata={"provider_call_count": 0, "status": generated_revision.status},
+            )
+            self._workflow_recorder().complete_run(
+                workflow_run,
+                status="completed" if generated_revision.status == "succeeded" else "failed",
+            )
             return self._revision_read(generated_revision)
         return revision
 
@@ -1456,6 +1705,21 @@ class ProjectService:
             selected_findings=selected_findings,
             configuration_context=configuration_context,
         )
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="component_revision",
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="component_revision",
+            event_type="component_revision.started",
+            severity="summary",
+            message="Component-targeted revision generation started.",
+            deduplication_key=f"component-revision-started-{plan.id}",
+            revision_plan_id=plan.id,
+            revision_id=base_revision.id,
+            metadata={"base_revision_id": base_revision.id},
+        )
         generation_request = self._generation_request(
             project=project,
             payload=GenerationCreate(
@@ -1479,6 +1743,16 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_generation",
+            event_type="provider.request_prepared",
+            severity="summary",
+            message="Revision source provider request prepared.",
+            deduplication_key=f"revision-provider-request-{generation_attempt.id}",
+            generation_attempt_id=generation_attempt.id,
+            revision_plan_id=plan.id,
+        )
         try:
             generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
@@ -1494,6 +1768,14 @@ class ProjectService:
             raise
 
         self._record_generation_result(generation_attempt, generation_result)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_generation",
+            artifact_type="raw_provider_response",
+            role="raw_revision_source_response",
+            relative_path=generation_attempt.raw_output_path,
+            redacted=generation_attempt.raw_output_path is None,
+        )
         try:
             revised_source = self._extract_generated_source(generation_result.raw_output)
         except SourceExtractionError as exc:
@@ -1509,6 +1791,13 @@ class ProjectService:
             revised_source,
             source_language="python",
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_extraction",
+            artifact_type="cadquery_source",
+            role="component_revised_source",
+            relative_path=generation_attempt.source_path,
+        )
         source_validation = self._persist_source_contract_validation(
             project=project,
             attempt=generation_attempt,
@@ -1521,13 +1810,36 @@ class ProjectService:
         )
         if not source_validation.passed_hard_checks:
             message = self._source_contract_rejection_message(source_validation)
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_contract_validation",
+                event_type="source_contract.failed",
+                severity="error",
+                blocking=True,
+                rule_id="source_contract.hard_rejection",
+                message=message,
+                deduplication_key=f"revision-source-contract-failed-{source_validation.id}",
+                generation_attempt_id=generation_attempt.id,
+                revision_plan_id=plan.id,
+            )
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=message,
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise ValueError(message)
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_contract_validation",
+            event_type="source_contract.passed",
+            severity="summary",
+            message="Revision source contract passed.",
+            deduplication_key=f"revision-source-contract-passed-{source_validation.id}",
+            generation_attempt_id=generation_attempt.id,
+            revision_plan_id=plan.id,
+        )
         compliance = self._persist_revision_compliance_result(
             project=project,
             revision_plan=plan,
@@ -1570,6 +1882,13 @@ class ProjectService:
                 compliance_findings=compliance,
                 cad_backend=base_revision.cad_backend,
             )
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="scope_correction",
+                artifact_type="cadquery_source",
+                role="scope_corrected_source",
+                relative_path=generation_attempt.source_path,
+            )
             generation_result_raw_output = raw_ai_output
         else:
             generation_result_raw_output = generation_result.raw_output
@@ -1588,6 +1907,7 @@ class ProjectService:
             parameter_overrides=cadquery_parameter_values,
             parent_revision_id=base_revision.id,
             configuration_change_id=configuration_change_id,
+            workflow_run=workflow_run,
         )
         if candidate is None:
             self._finish_generation_attempt(
@@ -1596,6 +1916,7 @@ class ProjectService:
                 failure_class=FailureClass.UNKNOWN_FAILURE,
                 error_message="revision candidate was not created",
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return None
         if candidate.status != "succeeded":
             self._finish_generation_attempt(
@@ -1608,6 +1929,7 @@ class ProjectService:
                 resulting_revision_id=candidate.id,
             )
             self.db.commit()
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return candidate
         plan.generated_revision_id = candidate.id
         compliance.revision_id = candidate.id
@@ -1639,6 +1961,17 @@ class ProjectService:
             resulting_revision_id=candidate.id,
         )
         self.db.commit()
+        self._record_workflow_event(
+            workflow_run,
+            stage="component_revision",
+            event_type="component_revision.completed",
+            severity="summary",
+            message="Component-targeted revision generation completed.",
+            deduplication_key=f"component-revision-completed-{plan.id}",
+            revision_plan_id=plan.id,
+            revision_id=candidate.id,
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         revision = self.db.get(Revision, candidate.id)
         if revision is not None:
             revision.review_state = self._derive_review_state(revision.id)
@@ -1896,6 +2229,20 @@ class ProjectService:
         if project is None:
             return None
 
+        parent_run = self._ensure_initial_workflow_run(project)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="design_plan_creation",
+            parent=parent_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="design_plan_generation",
+            event_type="design_plan_generation.started",
+            severity="summary",
+            message="Design Plan generation started.",
+            deduplication_key=f"design-plan-generation-started-{specification.id}",
+        )
         superseded_plan = self._latest_design_plan(project.id, specification_id=specification.id)
         request = DesignPlanRequest(
             project_name=project.name,
@@ -1904,12 +2251,35 @@ class ProjectService:
             design_specification=self._read_design_specification_payload(specification),
             defaults=DEFAULT_REQUIREMENT_PROFILE,
         )
-        return await self._run_design_planning(
+        result = await self._run_design_planning(
             project=project,
             specification=specification,
             request=request,
             superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="design_plan_generation",
+            artifact_type="raw_provider_response",
+            role="design_plan_raw_response",
+            relative_path=result.raw_response_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="design_plan_generation",
+            artifact_type="design_plan",
+            role="design_plan_version",
+            relative_path=result.plan_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="design_plan_generation",
+            event_type="design_plan_generation.completed",
+            severity="summary",
+            message="Design Plan generation completed.",
+            deduplication_key=f"design-plan-generation-completed-{specification.id}",
+        )
+        return result
 
     def approve_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
         plan = self.db.get(DesignPlan, design_plan_id)
@@ -2223,6 +2593,20 @@ class ProjectService:
         if design_plan is None or design_plan_payload is None:
             raise ValueError("Approved Design Plan is required before CAD generation")
 
+        parent_run = self._ensure_initial_workflow_run(project)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="source_generation",
+            parent=parent_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_generation",
+            event_type="source_generation.started",
+            severity="summary",
+            message="CadQuery source generation started.",
+            deduplication_key=f"source-generation-started-{project.id}-{design_plan.id}",
+        )
         generation_request = self._generation_request(
             project=project,
             payload=payload,
@@ -2236,6 +2620,15 @@ class ProjectService:
             base_revision_id=project.active_revision_id,
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_generation",
+            event_type="provider.request_prepared",
+            severity="standard",
+            message="Provider request prepared for CadQuery source generation.",
+            deduplication_key=f"provider-request-prepared-{generation_attempt.id}",
+            generation_attempt_id=generation_attempt.id,
         )
         try:
             generation_result = await self._generate_source_model(generation_request)
@@ -2263,6 +2656,7 @@ class ProjectService:
                     design_specification_payload=design_specification_payload,
                     design_plan=design_plan,
                     design_plan_payload=design_plan_payload,
+                    workflow_run=workflow_run,
                 )
             )
         except _StoppedWithRevision as exc:
@@ -2278,6 +2672,7 @@ class ProjectService:
             design_plan_id=design_plan.id,
             design_plan_payload=design_plan_payload,
             source_validation_result_id=source_validation.id,
+            workflow_run=workflow_run,
         )
         if initial_revision is None or initial_revision.status == "succeeded":
             self._finish_generation_attempt(
@@ -2382,6 +2777,7 @@ class ProjectService:
             design_plan_id=design_plan.id,
             design_plan_payload=design_plan_payload,
             source_validation_result_id=repair_source_validation.id,
+            workflow_run=workflow_run,
         )
         self._finish_generation_attempt(
             repair_attempt,
@@ -2410,8 +2806,17 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
+        workflow_run: WorkflowRun | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="provider_response",
+            artifact_type="raw_provider_response",
+            role="initial_raw_response",
+            relative_path=generation_attempt.raw_output_path,
+            redacted=False,
+        )
         try:
             source = self._extract_generated_source(generation_result.raw_output)
         except SourceExtractionError as exc:
@@ -2436,6 +2841,14 @@ class ProjectService:
             source,
             source_language="python",
         )
+        initial_source_artifact = self._record_workflow_artifact(
+            workflow_run,
+            stage="source_extraction",
+            artifact_type="cadquery_source",
+            role="initial_generated_source",
+            relative_path=generation_attempt.source_path,
+            redacted=False,
+        )
         source_validation = self._persist_source_contract_validation(
             project=project,
             attempt=generation_attempt,
@@ -2447,9 +2860,31 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         if source_validation.passed_hard_checks:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_contract_validation",
+                event_type="source_contract.passed",
+                severity="summary",
+                message="CadQuery source contract passed.",
+                deduplication_key=f"source-contract-passed-{generation_attempt.id}",
+                generation_attempt_id=generation_attempt.id,
+                metadata={"source_validation_result_id": source_validation.id},
+            )
             return source, generation_result.raw_output, generation_attempt, source_validation
 
         contract_diagnostics = self._source_contract_rejection_message(source_validation)
+        source_failure_event = self._record_workflow_event(
+            workflow_run,
+            stage="source_contract_validation",
+            event_type="source_contract.failed",
+            severity="error",
+            blocking=True,
+            rule_id="source_contract.failed",
+            message=contract_diagnostics,
+            deduplication_key=f"source-contract-failed-{generation_attempt.id}",
+            generation_attempt_id=generation_attempt.id,
+            metadata={"source_validation_result_id": source_validation.id},
+        )
         self._finish_generation_attempt(
             generation_attempt,
             status="failed",
@@ -2472,6 +2907,25 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        repair_workflow_run = None
+        if workflow_run is not None:
+            repair_workflow_run = self._start_child_workflow_run(
+                project_id=project.id,
+                workflow_type="contract_repair",
+                parent=self.db.get(WorkflowRun, workflow_run.root_workflow_run_id)
+                if workflow_run.root_workflow_run_id
+                else workflow_run,
+            )
+            self._record_workflow_event(
+                repair_workflow_run,
+                stage="contract_repair",
+                event_type="contract_repair.started",
+                severity="summary",
+                message="Contract repair started.",
+                deduplication_key=f"contract-repair-started-{repair_attempt.id}",
+                caused_by_event_id=source_failure_event.id if source_failure_event is not None else None,
+                generation_attempt_id=repair_attempt.id,
+            )
         try:
             repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
@@ -2487,6 +2941,14 @@ class ProjectService:
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="provider_response",
+            artifact_type="raw_provider_response",
+            role="contract_repair_raw_response",
+            relative_path=repair_attempt.raw_output_path,
+            redacted=False,
+        )
         try:
             repaired_source = self._extract_generated_source(repair_result.raw_output)
         except SourceExtractionError as exc:
@@ -2503,6 +2965,17 @@ class ProjectService:
             repaired_source,
             source_language="python",
         )
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            artifact_type="cadquery_source",
+            role="contract_repaired_source",
+            relative_path=repair_attempt.source_path,
+            redacted=False,
+            supersedes_artifact_id=initial_source_artifact.id
+            if initial_source_artifact is not None
+            else None,
+        )
         repaired_validation = self._persist_source_contract_validation(
             project=project,
             attempt=repair_attempt,
@@ -2515,6 +2988,17 @@ class ProjectService:
         )
         if not repaired_validation.passed_hard_checks:
             error_message = self._source_contract_rejection_message(repaired_validation)
+            self._record_workflow_event(
+                repair_workflow_run or workflow_run,
+                stage="contract_repair",
+                event_type="contract_repair.failed",
+                severity="error",
+                blocking=True,
+                rule_id="source_contract.failed",
+                message=error_message,
+                deduplication_key=f"contract-repair-failed-{repair_attempt.id}",
+                generation_attempt_id=repair_attempt.id,
+            )
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
@@ -2523,6 +3007,16 @@ class ProjectService:
             )
             raise ValueError(error_message)
 
+        self._record_workflow_event(
+            repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            event_type="contract_repair.succeeded",
+            severity="summary",
+            message="Contract repair produced source that passed hard checks.",
+            deduplication_key=f"contract-repair-succeeded-{repair_attempt.id}",
+            caused_by_event_id=source_failure_event.id if source_failure_event is not None else None,
+            generation_attempt_id=repair_attempt.id,
+        )
         return repaired_source, repair_result.raw_output, repair_attempt, repaired_validation
 
     def _generation_request(
@@ -3814,6 +4308,12 @@ class ProjectService:
             return str(version())
         return "cadquery-generation-v1"
 
+    def _provider_cadquery_prompt_template_version(self) -> str:
+        version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return CADQUERY_GENERATION_PROMPT_VERSION
+
     def _requirement_prompt_template_version(self) -> str:
         version = getattr(self.ai_provider, "requirement_prompt_template_version", None)
         if callable(version):
@@ -3852,6 +4352,24 @@ class ProjectService:
             if value is not None:
                 settings_payload[name] = value
         return settings_payload
+
+    def _application_commit(self) -> str | None:
+        configured = getattr(settings, "application_commit", None)
+        if configured:
+            return str(configured)
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.data_dir.parent if self.data_dir.name == "data" else Path.cwd(),
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=1,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        commit = result.stdout.strip()
+        return commit or None
 
     def _latest_design_specification(self, project_id: str) -> DesignSpecification | None:
         return self.db.scalar(
@@ -6469,6 +6987,7 @@ class ProjectService:
         configuration_change_id: str | None = None,
         parameter_overrides: dict[str, Any] | None = None,
         auto_accept: bool = False,
+        workflow_run: WorkflowRun | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -6606,6 +7125,39 @@ class ProjectService:
         for output_record in output_records:
             output_record.execution_state = "compiling"
         self.db.flush()
+        self._record_workflow_event(
+            workflow_run,
+            stage="worker_submission",
+            event_type="worker.submitted",
+            severity="summary",
+            message="CAD worker job submitted.",
+            deduplication_key=f"worker-submitted-{revision.id}",
+            revision_id=revision.id,
+            worker_job_id=revision.id,
+            metadata={
+                "requested_output_ids": [item["output_id"] for item in requested_outputs],
+                "source_hash": source_hash,
+                "parameter_hash": parameter_hash,
+            },
+        )
+        for parameter_id, parameter_value in sorted(compile_parameter_values.items()):
+            self._record_workflow_event(
+                workflow_run,
+                stage="worker_submission",
+                event_type="execution.parameter_submitted",
+                severity="standard",
+                message=f"Parameter {parameter_id} submitted to CAD worker.",
+                deduplication_key=f"worker-parameter-{revision.id}-{parameter_id}",
+                entity_type="parameter",
+                entity_id=str(parameter_id),
+                detected=parameter_value,
+                revision_id=revision.id,
+                design_specification_id=design_specification_id,
+                design_plan_id=design_plan_id,
+                configuration_change_id=configuration_change_id,
+                worker_job_id=revision.id,
+                metadata={"value_source": "submitted_parameter"},
+            )
         result = await self._cadquery_runner().compile(
             source,
             job_id=revision.id,
@@ -6613,6 +7165,19 @@ class ProjectService:
             requested_outputs=requested_outputs,
         )
         compile_ms = round((time.perf_counter() - started) * 1000, 3)
+        self._record_workflow_event(
+            workflow_run,
+            stage="cad_execution",
+            event_type="worker.completed" if result.success else "worker.failed",
+            severity="summary" if result.success else "error",
+            blocking=not result.success,
+            rule_id="cad_execution.failed" if not result.success else None,
+            message="CAD worker job completed." if result.success else result.error_message or "CAD worker job failed.",
+            deduplication_key=f"worker-completed-{revision.id}",
+            revision_id=revision.id,
+            worker_job_id=result.job_id,
+            metadata={"compile_ms": compile_ms},
+        )
         compile_log_path = log_dir / "cadquery.log"
         compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
         execution_manifest_source = getattr(result, "execution_manifest_path", None)
@@ -6672,6 +7237,34 @@ class ProjectService:
         revision.stl_path = self._first_successful_output_stl(revision)
         output_manifest_path = self._write_output_manifest(revision)
         revision.output_manifest_path = self._relative(output_manifest_path)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_generation" if source_type in {"ai_initial", "ai_revision"} else "configuration_execution",
+            artifact_type="cadquery_source",
+            role=f"{source_type}_source",
+            relative_path=revision.source_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_diagnostics",
+            role="compile_log",
+            relative_path=revision.compile_log_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_result_manifest",
+            role="execution_manifest",
+            relative_path=revision.execution_manifest_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="output_manifest",
+            role="output_manifest",
+            relative_path=revision.output_manifest_path,
+        )
         execution_manifest_payload = (
             self._read_json_file(execution_manifest_relative_path)
             if execution_manifest_relative_path is not None
@@ -6691,6 +7284,26 @@ class ProjectService:
                 generation_attempt_id=generation_attempt_id,
             )
         revision.review_state = self._derive_review_state(revision.id) if revision.status == "succeeded" else None
+        self._record_workflow_event(
+            workflow_run,
+            stage="candidate_classification",
+            event_type="candidate.classified",
+            severity="summary" if revision.review_state in ACCEPTABLE_CANDIDATE_STATES else "error",
+            blocking=revision.review_state == "blocked" or revision.status == "failed",
+            rule_id="candidate.blocked"
+            if revision.review_state == "blocked" or revision.status == "failed"
+            else None,
+            message=f"Candidate classified as {revision.review_state or revision.status}.",
+            deduplication_key=f"candidate-classified-{revision.id}",
+            revision_id=revision.id,
+            metadata={
+                "review_state": revision.review_state,
+                "status": revision.status,
+                "successful_output_count": revision.successful_output_count,
+                "failed_output_count": revision.failed_output_count,
+                "blocked_output_count": revision.blocked_output_count,
+            },
+        )
         revision.is_accepted = False
         if (
             auto_accept
@@ -6811,6 +7424,19 @@ class ProjectService:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
             return None
+        workflow_run = self._start_child_workflow_run(
+            project_id=revision.project_id,
+            workflow_type="export",
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="export",
+            event_type="export.requested",
+            severity="summary",
+            message="Revision export requested.",
+            deduplication_key=f"export-requested-{revision.id}",
+            revision_id=revision.id,
+        )
         revision_dir = self._revision_dir(revision.project_id, revision.id)
         revision_dir.mkdir(parents=True, exist_ok=True)
         export_path = revision_dir / "project-export.zip"
@@ -6880,6 +7506,24 @@ class ProjectService:
                         f"{root}/metadata/{self._safe_stem(output.output_id)}.metadata.json",
                         json.dumps(json.loads(metadata_json), indent=2, sort_keys=True),
                     )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="export",
+            artifact_type="export_zip",
+            role="revision_export",
+            relative_path=self._relative(export_path),
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="export",
+            event_type="export.completed",
+            severity="summary",
+            message="Revision export bundle created.",
+            deduplication_key=f"export-completed-{revision.id}",
+            revision_id=revision.id,
+            metadata={"path": self._relative(export_path)},
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         return export_path
 
     async def retry_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
@@ -6902,6 +7546,50 @@ class ProjectService:
             raise ValueError("output retry requires a CadQuery revision")
 
         revision_dir = self._revision_dir(revision.project_id, revision.id)
+        workflow_run = self._start_child_workflow_run(
+            project_id=revision.project_id,
+            workflow_type="output_retry",
+        )
+        pre_retry_snapshot_path = revision_dir / "logs" / f"{self._safe_stem(output.output_id)}-pre-retry.json"
+        pre_retry_snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+        self._write_json(
+            pre_retry_snapshot_path,
+            {
+                "schema_version": "workflow-output-retry-snapshot-v1",
+                "revision_output_id": output.id,
+                "revision_id": revision.id,
+                "output_id": output.output_id,
+                "execution_state": output.execution_state,
+                "compile_error": output.compile_error,
+                "compile_log_path": output.compile_log_path,
+                "source_hash": output.source_hash,
+                "parameter_hash": output.parameter_hash,
+                "topology_metadata": json.loads(output.topology_metadata_json)
+                if output.topology_metadata_json
+                else None,
+                "validation_summary": json.loads(output.validation_summary_json)
+                if output.validation_summary_json
+                else None,
+            },
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="worker_result_snapshot",
+            role="pre_retry_worker_result",
+            relative_path=self._relative(pre_retry_snapshot_path),
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="output_preservation",
+            event_type="output_retry.started",
+            severity="summary",
+            message="Output retry started.",
+            deduplication_key=f"output-retry-started-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            metadata={"output_id": output.output_id},
+        )
         design_plan_payload = self._revision_design_plan_payload(revision)
         parameter_overrides = None
         if revision.configuration_change_id is not None:
@@ -6947,6 +7635,22 @@ class ProjectService:
             requested_outputs=requested_outputs,
         )
         compile_ms = round((time.perf_counter() - started) * 1000, 3)
+        self._record_workflow_event(
+            workflow_run,
+            stage="cad_execution",
+            event_type="worker.completed" if result.success else "worker.failed",
+            severity="summary" if result.success else "error",
+            blocking=not result.success,
+            rule_id="cad_execution.failed" if not result.success else None,
+            message="Output retry worker job completed."
+            if result.success
+            else result.error_message or "Output retry worker job failed.",
+            deduplication_key=f"output-retry-worker-completed-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            worker_job_id=result.job_id,
+            metadata={"compile_ms": compile_ms, "source_hash": expected_hash, "parameter_hash": parameter_hash},
+        )
         compile_log_path = log_dir / f"{self._safe_stem(output.output_id)}-retry.log"
         compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
         output_result = next(
@@ -7009,7 +7713,38 @@ class ProjectService:
         )
         self._certify_revision_artifacts(revision)
         revision.review_state = self._derive_review_state(revision.id)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_diagnostics",
+            role="retry_compile_log",
+            relative_path=output.compile_log_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="output_manifest",
+            role="retry_output_manifest",
+            relative_path=revision.output_manifest_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="output_preservation",
+            event_type="output_retry.completed",
+            severity="summary" if output.execution_state != "failed" else "error",
+            blocking=output.execution_state == "failed",
+            rule_id="output_retry.failed" if output.execution_state == "failed" else None,
+            message="Output retry completed.",
+            deduplication_key=f"output-retry-completed-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            metadata={"execution_state": output.execution_state, "revision_status": revision.status},
+        )
         self.db.commit()
+        self._workflow_recorder().complete_run(
+            workflow_run,
+            status="completed" if output.execution_state != "failed" else "failed",
+        )
         self.db.refresh(output)
         return self._revision_output_read(output)
 
@@ -8143,9 +8878,24 @@ class ProjectService:
         if project_dir.exists():
             shutil.rmtree(project_dir)
 
+    def _delete_workflow_debug_bundles(self, workflow_run_ids: list[str]) -> None:
+        bundle_dir = self.data_dir / "workflow-debug-bundles"
+        if bundle_dir.exists():
+            for workflow_run_id in workflow_run_ids:
+                (bundle_dir / f"workflow-debug-{workflow_run_id}.zip").unlink(missing_ok=True)
+
     def _delete_project_records(self, project: Project) -> None:
         project.active_revision_id = None
         self.db.flush()
+        run_ids = list(
+            self.db.scalars(select(WorkflowRun.id).where(WorkflowRun.project_id == project.id))
+        )
+        if run_ids:
+            self.db.execute(delete(FrontendWorkflowEvent).where(FrontendWorkflowEvent.project_id == project.id))
+            self.db.execute(delete(WorkflowDiagnosis).where(WorkflowDiagnosis.workflow_run_id.in_(run_ids)))
+            self.db.execute(delete(WorkflowArtifact).where(WorkflowArtifact.project_id == project.id))
+            self.db.execute(delete(WorkflowEvent).where(WorkflowEvent.project_id == project.id))
+            self.db.execute(delete(WorkflowRun).where(WorkflowRun.project_id == project.id))
         self.db.execute(delete(ProjectMessage).where(ProjectMessage.project_id == project.id))
         self.db.execute(delete(Revision).where(Revision.project_id == project.id))
         self.db.delete(project)

@@ -69,6 +69,11 @@ def build(params):
 `;
 
 test("requirements clarification flows into Design Plan approval and CadQuery candidate review", async ({ page }) => {
+  const workflowHeaders = {
+    "x-workflow-run-id": "workflow-run-1",
+    "x-workflow-root-run-id": "workflow-run-1",
+    "x-workflow-correlation-id": "workflow-correlation-1",
+  };
   const project = {
     id: "project-1",
     name: "Untitled draft",
@@ -142,7 +147,10 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
       return route.fulfill({ json: [] });
     }
     if (request.method() === "POST" && path === "/projects/project-1/requirements") {
-      return route.fulfill({ status: 201, json: currentSpecification });
+      return route.fulfill({ status: 201, headers: workflowHeaders, json: currentSpecification });
+    }
+    if (request.method() === "POST" && path === "/workflow/frontend-events") {
+      return route.fulfill({ status: 201, json: { accepted_count: 1 } });
     }
     if (request.method() === "POST" && path === "/design-specifications/spec-1/clarification-answers") {
       currentSpecification = designSpecification({
@@ -186,7 +194,7 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
     }
     if (request.method() === "POST" && path === "/design-specifications/spec-1/design-plan") {
       currentPlan = designPlan();
-      return route.fulfill({ status: 201, json: currentPlan });
+      return route.fulfill({ status: 201, headers: workflowHeaders, json: currentPlan });
     }
     if (request.method() === "POST" && path === "/design-plans/plan-1/approve") {
       currentPlan = designPlan({ review_state: "approved", approved_at: "2026-07-30T16:35:00Z" });
@@ -199,7 +207,13 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
         approved_at: "2026-07-30T16:35:00Z",
         generated_revision_id: "rev-generated",
       });
-      return route.fulfill({ status: 201, json: candidate });
+      return route.fulfill({ status: 201, headers: workflowHeaders, json: candidate });
+    }
+    if (request.method() === "GET" && path === "/workflow-runs/workflow-run-1/debug-bundle.zip") {
+      return route.fulfill({
+        body: "workflow-debug-workflow-run-1",
+        contentType: "application/zip",
+      });
     }
     if (request.method() === "GET" && path === "/projects/project-1/revisions") {
       return route.fulfill({ json: revisions });
@@ -300,6 +314,20 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await expect(page.getByLabel("Candidate review").getByText("Solids 1/1")).toBeVisible();
   await expect(page.getByText("Geometric checks")).toBeVisible();
   await expect(page.getByText("0 verified, 0 violated, 0 unable to verify")).toBeVisible();
+  const diagnosticBundle = page.getByRole("link", { name: "Diagnostic bundle" });
+  await expect(diagnosticBundle).toBeVisible();
+  await expect(diagnosticBundle).toHaveAttribute(
+    "href",
+    /\/api\/workflow-runs\/workflow-run-1\/debug-bundle\.zip/,
+  );
+  const bundleHref = await diagnosticBundle.getAttribute("href");
+  if (!bundleHref) {
+    throw new Error("diagnostic bundle href was not rendered");
+  }
+  const bundleResponsePromise = page.waitForResponse(/\/api\/workflow-runs\/workflow-run-1\/debug-bundle\.zip/);
+  await page.evaluate((href) => fetch(href), bundleHref);
+  const bundleResponse = await bundleResponsePromise;
+  expect(bundleResponse.ok()).toBeTruthy();
 });
 
 test("structured revision planning preserves active revision until scoped candidate is accepted", async ({ page }) => {

@@ -30,6 +30,14 @@ Transition order:
     12-case source-gate, Design Plan, configuration, and solid-count
     negative-control runs are recorded in
     `docs/CADQUERY_TRANSITION_EVALUATION.md`.
+12. Add workflow observability for real project diagnosis before broad frontend
+    user testing. Workflow runs, event logs, artifact registry records,
+    first-failure diagnosis, stage traces, frontend correlation, debug bundles,
+    and run comparison are defined in `docs/WORKFLOW_OBSERVABILITY.md`.
+
+Next planned task: frontend workflow audit and user-testing preparation using
+workflow traces and debug bundles as evidence. Do not expand this into a
+general analytics platform or another broad CAD validation redesign.
 
 ## Stage 0 — Foundation Documents
 

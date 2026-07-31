@@ -40,6 +40,7 @@ superseded where they conflict with the CadQuery backend document.
 │ - persisted validation findings               │
 │ - asset delivery                              │
 │ - output manifest and ZIP export              │
+│ - workflow observability and debug bundles    │
 │ - live benchmark artifact collection          │
 │ - SQLite persistence                          │
 └───────────────┬───────────────────┬───────────┘
@@ -104,6 +105,11 @@ Responsibilities:
 
 This service may hold provider credentials. It must not execute generated
 CadQuery Python directly.
+
+Workflow tracing is part of backend orchestration. `docs/WORKFLOW_OBSERVABILITY.md`
+defines workflow runs, structured events, artifact registry records,
+first-failure diagnosis, frontend correlation, redaction, debug bundles, and
+run comparison. Console logs are not the authoritative lifecycle record.
 
 ### `volundr-cad-worker`
 

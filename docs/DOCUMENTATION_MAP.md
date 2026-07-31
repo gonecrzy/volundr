@@ -22,6 +22,7 @@ This file explains exactly what belongs in each project document.
 | `docs/LIVE_GENERATION_EVALUATION.md` | Controlled live benchmark runner, run manifests, prompt-version comparison, human scoring forms, artifact collection, quota controls, and no-promotion policy. |
 | `docs/PRINTABILITY_INSPECTOR.md` | Orientation-aware printability rules, severity schema, and profile thresholds. |
 | `docs/CAD_EXECUTION_SECURITY.md` | Isolation, resource limits, source screening, logging, and failure handling. |
+| `docs/WORKFLOW_OBSERVABILITY.md` | Workflow runs, stage vocabulary, structured events, artifact registry, diagnosis, stage traces, frontend correlation, redaction, debug bundles, run comparison, retention, and logging levels. |
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, and immutability rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |
@@ -32,6 +33,6 @@ When information conflicts:
 2. `PRODUCT_DIRECTION.md` controls product intent when it does not conflict with `CADQUERY_BACKEND.md`.
 3. `MVP_SCOPE.md` controls scope when it does not conflict with the approved CadQuery architecture.
 4. `ARCHITECTURE.md` controls implementation defaults after being reconciled with `CADQUERY_BACKEND.md`.
-5. `GEMINI_RULESET.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, and `CAD_EXECUTION_SECURITY.md` control generated CadQuery behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, and execution safety.
+5. `GEMINI_RULESET.md`, `MULTI_OUTPUT_GENERATION.md`, `PARAMETER_CONFIGURATION.md`, `STRUCTURED_REVISION_PLANNING.md`, `COMPONENT_TARGETED_REVISIONS.md`, `GEOMETRIC_INVARIANT_VALIDATION.md`, `CAD_EXECUTION_SECURITY.md`, and `WORKFLOW_OBSERVABILITY.md` control generated CadQuery behavior, output artifacts, deterministic configuration, scoped revisions, component-targeted full-source revisions, measured geometric invariants, execution safety, and workflow tracing.
 6. `CURRENT_STAGE_ROADMAP.md` controls work order.
 7. `LIVE_GENERATION_EVALUATION.md` controls how live benchmark evidence is collected before changing that work order.

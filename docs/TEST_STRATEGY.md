@@ -16,6 +16,7 @@ The highest-risk areas are:
 4. failed-generation recovery
 5. filesystem isolation
 6. viewer compatibility with generated STL files
+7. workflow observability, first-failure diagnosis, and debug-bundle redaction
 
 ## Backend Unit Tests
 
@@ -118,6 +119,26 @@ Test:
 - restore old revision
 - manual edit creates a new revision
 - AI generation creates a candidate instead of replacing the active revision
+
+### Workflow observability
+
+Test:
+
+- initial generation creates a root workflow run with trace configuration
+- requirement, Design Plan, source, repair, worker, candidate, acceptance, configuration, component revision, output retry, and export stages emit structured events
+- two nearly simultaneous events retain deterministic `sequence_number` order
+- retried submissions use deterministic deduplication keys
+- failed repair and worker retry evidence remains visible after later success
+- output retry snapshots preserve the earlier worker result before mutating latest output state
+- stale running workflows can be classified as `abandoned`
+- first-failure diagnosis separates root failures from downstream symptoms
+- stage trace reports protected/default/explicit value drift and source/output hashes
+- debug bundles include expected manifests and exclude large geometry by default
+- fake API keys, authorization headers, cookies, provider tokens, signed URLs, and database secrets are redacted or cause bundle refusal
+- unknown frontend event names and oversized/unowned frontend event batches are rejected
+- run comparison detects parameter regressions without treating every metric reduction as an improvement
+- project deletion removes workflow trace rows and generated debug bundles
+- observability records do not alter candidate classification or lifecycle behavior
 - ready and ready-with-warnings candidates can be accepted explicitly
 - blocked, rejected, and already accepted candidates cannot transition incorrectly
 - advisory validation findings can be dismissed without deletion

@@ -1,6 +1,6 @@
 # Volundr Data Model
 
-This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, and project conversation history.
+This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, workflow traces, and project conversation history.
 
 ## CadQuery Transition Status
 
@@ -41,6 +41,42 @@ Draft projects support unnamed short-lived workspaces. They are hidden from the 
 Archived projects are hidden from the default project list but remain recoverable until removed. Archived projects older than 60 days may be permanently deleted during opportunistic cleanup, including their revisions, messages, and project files.
 
 Permanent project deletion removes the project database row, dependent revisions and messages, and the project asset directory under `data/projects`.
+
+Project deletion also removes associated workflow runs, workflow events,
+workflow artifact registry rows, workflow diagnoses, frontend workflow events,
+and generated workflow debug bundles.
+
+## Workflow Observability
+
+Workflow observability tables are:
+
+```text
+workflow_runs
+workflow_events
+workflow_artifacts
+workflow_diagnoses
+frontend_workflow_events
+```
+
+`workflow_runs` stores root/child run boundaries, correlation IDs, terminal
+state, logging mode, schema versions, application commit, worker version,
+provider/model, and prompt versions.
+
+`workflow_events` is append-only and stores stage-specific structured events
+with `sequence_number`, `occurred_at`, `recorded_at`, optional deterministic
+`deduplication_key`, causal links, entity IDs, expected/detected values, and
+available lifecycle identifiers.
+
+`workflow_artifacts` is an immutable registry of paths, hashes, sizes, media
+types, roles, redaction state, and supersession links. Large geometry remains
+in the filesystem; the database stores metadata and paths.
+
+`workflow_diagnoses` stores deterministic `workflow-diagnosis-v1` outputs.
+`frontend_workflow_events` stores fixed-registry frontend actions correlated to
+backend workflow IDs.
+
+See `docs/WORKFLOW_OBSERVABILITY.md` for the authoritative schema, stage
+vocabulary, retention model, and redaction rules.
 
 ## Revision
 

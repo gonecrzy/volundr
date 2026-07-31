@@ -19,6 +19,11 @@ from app.models import (  # noqa: F401
     SavedPrintabilityProfile,
     SourceValidationResult,
     ValidationFinding,
+    FrontendWorkflowEvent,
+    WorkflowArtifact,
+    WorkflowDiagnosis,
+    WorkflowEvent,
+    WorkflowRun,
 )
 
 config = context.config

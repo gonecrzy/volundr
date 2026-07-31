@@ -101,6 +101,17 @@ Phase 2 uses filesystem-backed atomic job directories. A job directory contains 
 
 Results are written through an atomic `result.json` replacement. Duplicate completion is rejected so a worker restart or repeated processing attempt cannot silently overwrite the first terminal result.
 
+Worker submissions and results are also registered in workflow observability
+records. The registry stores job IDs, source hashes, parameter hashes, manifest
+paths, worker diagnostics, output metadata, and retry snapshots. Earlier failed
+manifests and retry snapshots must remain reconstructable even when latest
+revision/output rows are updated.
+
+Debug bundles are generated through the allowlist redactor described in
+`docs/WORKFLOW_OBSERVABILITY.md`. Provider credentials, authorization headers,
+cookies, signed URLs, environment values, and arbitrary request headers must not
+be emitted to worker logs or diagnostic bundles.
+
 ## Limits
 
 Initial configurable limits should include:
