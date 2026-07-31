@@ -2436,9 +2436,11 @@ function App() {
                 {sourceUrl ? <a className="download compact-action" href={sourceUrl}>{selectedSourceLabel} source</a> : null}
                 {stlUrl ? <a className="download compact-action" href={stlUrl}>STL</a> : null}
                 {manifestUrl && selectedRevision?.output_manifest_path ? <a className="download compact-action" href={manifestUrl}>Output manifest</a> : null}
-                {diagnosticBundleUrl && selectedRevision ? (
+                {diagnosticBundleUrl && project ? (
                   <a className="download compact-action" href={diagnosticBundleUrl} onClick={() => {
-                    void recordFrontendWorkflowEvent(project?.id, "diagnostic_bundle_requested", "technical_details", { revision_id: selectedRevision.id });
+                    void recordFrontendWorkflowEvent(project.id, "diagnostic_bundle_requested", "technical_details", {
+                      revision_id: selectedRevision?.id ?? null,
+                    });
                   }}>Download diagnostic bundle</a>
                 ) : null}
                 <button className="secondary compact" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
@@ -3609,8 +3611,8 @@ function SourceContractRejection({ message }: { message: string | null }) {
       <p className="blocked-reason">{lines[0]}</p>
       {lines.length > 1 ? (
         <ul className="source-check-list">
-          {lines.slice(1).map((line) => (
-            <li key={line}>{line.replace(/^- /, "")}</li>
+          {lines.slice(1).map((line, index) => (
+            <li key={`${line}-${index}`}>{line.replace(/^- /, "")}</li>
           ))}
         </ul>
       ) : null}

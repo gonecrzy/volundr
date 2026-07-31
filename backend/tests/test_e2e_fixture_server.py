@@ -59,6 +59,37 @@ def test_fixture_server_generates_a_real_candidate_after_plan_approval(tmp_path:
         assert "candidate.classified" in summary["workflow_event_types"]
 
 
+def test_project_generation_attempt_evidence_exposes_only_safe_metrics(tmp_path: Path) -> None:
+    app = create_e2e_fixture_app(tmp_path)
+    with TestClient(app) as client:
+        project = client.post(
+            "/api/projects",
+            json={"name": "Evidence plate", "original_intent": "Make a mounting plate."},
+        ).json()
+        specification = client.post(
+            f"/api/projects/{project['id']}/requirements",
+            json={"user_instruction": "Create an 80 mm mounting plate."},
+        ).json()
+        plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()
+        assert client.post(f"/api/design-plans/{plan['id']}/approve").status_code == 200
+        assert client.post(f"/api/design-plans/{plan['id']}/generate").status_code == 201
+
+        response = client.get(f"/api/projects/{project['id']}/generation-attempts")
+
+        assert response.status_code == 200
+        attempts = response.json()
+        assert attempts
+        assert all(attempt["provider"] == "fixture" for attempt in attempts)
+        assert all(isinstance(attempt["duration_ms"], (int, float)) for attempt in attempts)
+        assert all(isinstance(attempt["estimated_prompt_tokens"], int) for attempt in attempts)
+        assert all("prompt" not in attempt and "raw_output" not in attempt for attempt in attempts)
+
+        runs = client.get(f"/api/projects/{project['id']}/workflow-runs")
+        assert runs.status_code == 200
+        assert runs.json()
+        assert all(run["project_id"] == project["id"] for run in runs.json())
+
+
 def test_fixture_server_seeds_an_accepted_configurable_organizer(tmp_path: Path) -> None:
     app = create_e2e_fixture_app(tmp_path)
     with TestClient(app) as client:

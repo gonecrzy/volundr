@@ -208,9 +208,20 @@ without a provider call. Both blocked paths assert correlated frontend events
 and diagnostic-bundle evidence. The gate is run serially because the summary
 endpoint is scoped to disposable fixture projects.
 
-Live Gemini browser smoke tests remain opt-in and must run against a separately
-configured live application. They are not part of the deterministic Playwright
-suite or normal CI.
+Live Gemini browser smoke tests are implemented under `frontend/e2e/live/` and
+remain opt-in. Run them with:
+
+```bash
+VOLUNDR_RUN_LIVE_E2E=true npm --prefix frontend run test:e2e:live
+```
+
+The wrapper creates disposable SQLite/CAD workspace state, upgrades the real
+API database, starts the real CAD worker with blank Gemini variables, and
+sources the API key only in the backend process. It scans generated evidence
+for the exact key before cleanup. The two live cases assert durable lifecycle
+behavior, workflow correlation, provider latency, topology evidence, and
+diagnostic-bundle redaction without asserting Gemini wording or exact geometry.
+They are not part of the deterministic Playwright suite or normal CI.
 
 After Gemini integration:
 

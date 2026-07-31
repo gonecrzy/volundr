@@ -35,9 +35,9 @@ Transition order:
     first-failure diagnosis, stage traces, frontend correlation, debug bundles,
     and run comparison are defined in `docs/WORKFLOW_OBSERVABILITY.md`.
 
-Next planned task: frontend workflow audit and user-testing preparation using
-workflow traces and debug bundles as evidence. Do not expand this into a
-general analytics platform or another broad CAD validation redesign.
+Next planned task: run the opt-in live Gemini browser smoke suite, then begin
+observed user testing only after its evidence is reviewed. Do not expand this
+into a general analytics platform or another broad CAD validation redesign.
 
 ## Stage 0 — Foundation Documents
 

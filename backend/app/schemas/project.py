@@ -94,6 +94,24 @@ class ProjectRead(BaseModel):
     archived_at: datetime | None
 
 
+class GenerationAttemptEvidenceRead(BaseModel):
+    """Safe provider-attempt metadata for diagnostics and live workflow tests."""
+
+    attempt_id: str
+    attempt_number: int
+    provider: str
+    model: str | None
+    status: str
+    failure_class: str
+    prompt_version: str
+    started_at: datetime
+    completed_at: datetime | None
+    duration_ms: int | None
+    estimated_prompt_tokens: int | None
+    estimated_output_tokens: int | None
+    resulting_revision_id: str | None
+
+
 class ProjectMessageRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

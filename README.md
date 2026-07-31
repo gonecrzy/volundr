@@ -188,6 +188,23 @@ Use an API key from a dedicated Google AI/Gemini project for Volundr, with billi
 
 For source generation, use `VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite` as the default Gemini endpoint unless you are deliberately comparing model tiers. In the current CadQuery validation path it avoids the tighter `gemini-3.5-flash` request-limit behavior and still returns useful geometry signals. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning; unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
 
+### Live browser smoke tests
+
+The browser smoke suite is separate from the benchmark CLI and is never part of
+the normal Playwright command. It starts a disposable SQLite API, the real CAD
+worker, and the Vite frontend, while sourcing `GEMINI_API_KEY` only inside the
+backend process:
+
+```bash
+VOLUNDR_RUN_LIVE_E2E=true npm --prefix frontend run test:e2e:live
+```
+
+The suite runs explicit mounting-plate and intent-first holder workflows. It
+records provider timing, generation evidence, workflow traces, and a
+secret-redacted diagnostic bundle. The worker and browser never receive the
+API key, and the command fails if the key is found in generated evidence.
+Live smoke tests consume provider quota and are not run in CI.
+
 ## Manual Source API
 
 Manual source revisions use CadQuery Python satisfying the `cadquery-v1`

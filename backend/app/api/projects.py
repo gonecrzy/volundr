@@ -25,6 +25,7 @@ from app.schemas.project import (
     DesignPlanClarificationQuestionRead,
     DesignSpecificationRead,
     DesignPlanRead,
+    GenerationAttemptEvidenceRead,
     GeometricAnalysisRead,
     ManualRevisionCreate,
     GenerationCreate,
@@ -65,6 +66,8 @@ from app.services.workflow.debug_bundle import WorkflowDebugBundleService
 from app.services.workflow.diagnosis import WorkflowDiagnosisService
 from app.services.workflow.redaction import RedactionError
 from app.services.workflow.stage_trace import WorkflowStageTraceService
+from app.models.generation_attempt import GenerationAttempt
+from app.models.project import Project
 
 router = APIRouter(prefix="/api", tags=["projects"])
 _frontend_event_rate_window: dict[str, deque[float]] = defaultdict(deque)
@@ -231,6 +234,36 @@ def get_project(
         raise HTTPException(status_code=404, detail="project not found")
     _set_latest_workflow_headers(response, db, project_id)
     return project
+
+
+@router.get("/projects/{project_id}/workflow-runs", response_model=list[WorkflowRunRead])
+def list_project_workflow_runs(
+    project_id: str,
+    db: Session = Depends(get_db),
+) -> list[WorkflowRunRead]:
+    if db.get(Project, project_id) is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    runs = db.scalars(
+        select(WorkflowRun)
+        .where(WorkflowRun.project_id == project_id)
+        .order_by(WorkflowRun.started_at.asc(), WorkflowRun.id.asc())
+    ).all()
+    return [
+        WorkflowRunRead(
+            id=run.id,
+            project_id=run.project_id,
+            workflow_type=run.workflow_type,
+            parent_workflow_run_id=run.parent_workflow_run_id,
+            root_workflow_run_id=run.root_workflow_run_id,
+            correlation_id=run.correlation_id,
+            status=run.status,
+            logging_mode=run.logging_mode,
+            started_at=run.started_at,
+            completed_at=run.completed_at,
+            prompt_versions=json.loads(run.prompt_versions_json),
+        )
+        for run in runs
+    ]
 
 
 @router.get("/projects/{project_id}/messages", response_model=list[ProjectMessageRead])
@@ -1122,6 +1155,75 @@ def list_revisions(
     if service.get_project(project_id) is None:
         raise HTTPException(status_code=404, detail="project not found")
     return service.list_revisions(project_id)
+
+
+def _artifact_size_for_token_estimate(data_dir: Path, artifact_path: str | None) -> int | None:
+    if not artifact_path:
+        return None
+    relative_path = Path(artifact_path)
+    if relative_path.is_absolute():
+        return None
+    root = data_dir.resolve()
+    resolved = (root / relative_path).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError:
+        return None
+    try:
+        return resolved.stat().st_size
+    except OSError:
+        return None
+
+
+def _estimated_tokens(data_dir: Path, artifact_path: str | None) -> int | None:
+    size = _artifact_size_for_token_estimate(data_dir, artifact_path)
+    return None if size is None else max(1, (size + 3) // 4)
+
+
+@router.get(
+    "/projects/{project_id}/generation-attempts",
+    response_model=list[GenerationAttemptEvidenceRead],
+)
+def list_generation_attempt_evidence(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[GenerationAttemptEvidenceRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    if service.get_project(project_id) is None:
+        raise HTTPException(status_code=404, detail="project not found")
+
+    attempts = db.scalars(
+        select(GenerationAttempt)
+        .where(GenerationAttempt.project_id == project_id)
+        .order_by(GenerationAttempt.attempt_number.asc(), GenerationAttempt.started_at.asc())
+    ).all()
+    evidence: list[GenerationAttemptEvidenceRead] = []
+    for attempt in attempts:
+        duration_ms = None
+        if attempt.completed_at is not None:
+            duration_ms = max(
+                0,
+                round((attempt.completed_at - attempt.started_at).total_seconds() * 1000),
+            )
+        evidence.append(
+            GenerationAttemptEvidenceRead(
+                attempt_id=attempt.id,
+                attempt_number=attempt.attempt_number,
+                provider=attempt.provider_id,
+                model=attempt.model_id,
+                status=attempt.status,
+                failure_class=attempt.failure_class,
+                prompt_version=attempt.prompt_version,
+                started_at=attempt.started_at,
+                completed_at=attempt.completed_at,
+                duration_ms=duration_ms,
+                estimated_prompt_tokens=_estimated_tokens(data_dir, attempt.prompt_path),
+                estimated_output_tokens=_estimated_tokens(data_dir, attempt.raw_output_path),
+                resulting_revision_id=attempt.resulting_revision_id,
+            )
+        )
+    return evidence
 
 
 @router.get("/projects/{project_id}/candidates", response_model=list[RevisionRead])
