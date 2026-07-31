@@ -173,16 +173,35 @@ def result_payload(
     failure_class: str | None,
     duration_seconds: float,
     outputs: list[dict[str, Any]] | None = None,
+    requested_output_ids: list[str] | None = None,
     diagnostics: dict[str, Any] | None = None,
     worker_version: str = "cad-worker-v1",
 ) -> dict[str, Any]:
+    result_outputs = outputs or []
+    requested_ids = (
+        [str(output_id) for output_id in requested_output_ids if output_id]
+        if requested_output_ids is not None
+        else [
+            str(output.get("output_id"))
+            for output in result_outputs
+            if isinstance(output, dict) and output.get("output_id")
+        ]
+    )
     return {
         "schema_version": CAD_EXECUTION_RESULT_SCHEMA_VERSION,
         "job_id": job_id,
         "success": success,
         "failure_class": failure_class,
         "duration_seconds": duration_seconds,
-        "outputs": outputs or [],
+        "requested_output_ids": requested_ids,
+        "output_ids": [
+            str(output.get("output_id"))
+            for output in result_outputs
+            if isinstance(output, dict)
+            and output.get("output_id")
+            and output.get("success") is True
+        ],
+        "outputs": result_outputs,
         "diagnostics": diagnostics or {},
         "worker_version": worker_version,
     }

@@ -63,6 +63,11 @@ async def execute_job_directory(
         failure_class=failure_class,
         duration_seconds=_duration(started),
         outputs=outputs,
+        requested_output_ids=[
+            str(output.get("output_id"))
+            for output in job.requested_outputs
+            if isinstance(output, dict) and output.get("output_id")
+        ],
         diagnostics=diagnostics,
     )
     _persist_result(job_dir, result)

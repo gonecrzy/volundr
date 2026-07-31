@@ -579,6 +579,9 @@ async def test_worker_runner_submits_job_and_reads_structured_result(tmp_path: P
     assert result.outputs[0].stl_path.exists()
     assert fake_runner is not None
     assert fake_runner.parameter_values == {"width_mm": 2.0}
+    payload = load_job_result(tmp_path / job_id)
+    assert payload["requested_output_ids"] == ["body"]
+    assert payload["output_ids"] == ["body"]
 
 
 @pytest.mark.asyncio
