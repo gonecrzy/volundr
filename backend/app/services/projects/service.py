@@ -126,6 +126,7 @@ from app.services.cad.source_metadata import (
 )
 from app.services.generation.failure_taxonomy import FailureClass
 from app.services.functional.intent import (
+    resolve_retention_proposals,
     validate_functional_plan,
     validate_revision_success_criteria,
 )
@@ -185,7 +186,7 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
 )
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
@@ -3417,6 +3418,9 @@ class ProjectService:
         raw_output_path.write_text(generation_result.raw_output, encoding="utf-8")
         attempt.provider_id = generation_result.provider
         attempt.model_id = generation_result.provider_model
+        usage_metadata = getattr(generation_result, "usage_metadata", None)
+        attempt.provider_usage_json = json.dumps(usage_metadata, sort_keys=True) if usage_metadata else None
+        attempt.provider_request_id = getattr(generation_result, "provider_request_id", None)
         attempt.raw_output_path = self._relative(raw_output_path)
         attempt.output_hash = self._sha256(generation_result.raw_output)
         self._update_attempt_chain(attempt, status=attempt.status)
@@ -4144,6 +4148,7 @@ class ProjectService:
             payload["schema_version"] = DESIGN_PLAN_SCHEMA_VERSION
         validated = DesignPlanPayload.model_validate(payload)
         normalized = validated.model_dump(mode="json", by_alias=True)
+        normalized = resolve_retention_proposals(normalized)
         outcome = self._derive_design_plan_outcome(normalized)
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = (
@@ -7036,6 +7041,7 @@ class ProjectService:
                         "cadquery.protected_parameter_no_geometry_effect",
                         "cadquery.functional_parameter_unused",
                         "functional.feature_declared_not_invoked",
+                        "functional.feature_result_discarded",
                         "functional.protected_feature_missing",
                     }:
                         continue
@@ -7300,8 +7306,8 @@ class ProjectService:
             return "functionally_unverified"
         if any(finding.is_blocking for finding in findings):
             return "functionally_violated"
-        if any("unverifiable" in (finding.explanation or "").lower() for finding in findings):
-            return "functionally_unverified"
+        if any(finding.verification_state in {"partially_verified", "unverifiable"} for finding in findings):
+            return "functionally_partially_verified"
         return "functionally_verified"
 
     def _should_auto_accept_revision(

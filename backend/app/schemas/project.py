@@ -107,6 +107,8 @@ class GenerationAttemptEvidenceRead(BaseModel):
     started_at: datetime
     completed_at: datetime | None
     duration_ms: int | None
+    provider_usage: dict[str, Any] | None
+    provider_request_id: str | None
     estimated_prompt_tokens: int | None
     estimated_output_tokens: int | None
     resulting_revision_id: str | None
@@ -411,6 +413,12 @@ class FunctionalRetentionInterface(BaseModel):
     strategy: str | None = None
     component_id: str | None = None
     feature_id: str | None = None
+    retained_object_requirement_id: str | None = None
+    retention_direction: str | None = None
+    removal_direction: str | None = None
+    parameters: list[dict[str, Any]] = Field(default_factory=list)
+    parameter_free: bool = False
+    verification: dict[str, Any] = Field(default_factory=dict)
 
 
 class FunctionalDesignContract(BaseModel):

@@ -75,11 +75,13 @@ class GeminiApiProvider(GeminiCliProvider):
         request: ModelGenerationRequest,
     ) -> ModelGenerationResult:
         prompt = self.build_cadquery_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
         return ModelGenerationResult(
             raw_output=raw_output,
             provider="gemini_api",
             provider_model=self.model,
+            usage_metadata=usage_metadata,
+            provider_request_id=provider_request_id,
         )
 
     async def extract_requirements(
@@ -87,41 +89,49 @@ class GeminiApiProvider(GeminiCliProvider):
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
         prompt = self.build_requirement_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
         return RequirementExtractionResult(
             raw_output=raw_output,
             provider="gemini_api",
             provider_model=self.model,
+            usage_metadata=usage_metadata,
+            provider_request_id=provider_request_id,
         )
 
     async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
         prompt = self.build_source_brief_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
         return SourceBriefResult(
             raw_output=raw_output,
             provider="gemini_api",
             provider_model=self.model,
+            usage_metadata=usage_metadata,
+            provider_request_id=provider_request_id,
         )
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
         prompt = self.build_design_plan_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
         return DesignPlanResult(
             raw_output=raw_output,
             provider="gemini_api",
             provider_model=self.model,
+            usage_metadata=usage_metadata,
+            provider_request_id=provider_request_id,
         )
 
     async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
         prompt = self.build_revision_plan_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
         return RevisionPlanResult(
             raw_output=raw_output,
             provider="gemini_api",
             provider_model=self.model,
+            usage_metadata=usage_metadata,
+            provider_request_id=provider_request_id,
         )
 
-    async def _run_prompt(self, prompt: str) -> str:
+    async def _run_prompt(self, prompt: str) -> tuple[str, dict[str, Any] | None, str | None]:
         if not self.api_key:
             raise RuntimeError("Gemini API key is not configured")
 
@@ -184,7 +194,18 @@ class GeminiApiProvider(GeminiCliProvider):
         raw_output = self._response_text(response_payload)
         if not raw_output:
             raise RuntimeError("Gemini API response missing response text")
-        return raw_output
+        usage_metadata = response_payload.get("usageMetadata")
+        if not isinstance(usage_metadata, dict):
+            usage_metadata = None
+        provider_request_id = next(
+            (
+                response.headers.get(header)
+                for header in ("x-goog-request-id", "x-request-id", "request-id")
+                if response.headers.get(header)
+            ),
+            None,
+        )
+        return raw_output, usage_metadata, provider_request_id
 
     def provider_settings(self) -> dict[str, Any]:
         return {

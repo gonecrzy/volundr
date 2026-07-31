@@ -59,6 +59,7 @@ import {
   designPlanClarificationQuestions,
   designPlanStageLabel,
   designPlanSummaryCounts,
+  retentionProposalLines,
   type DesignPlanReviewState,
 } from "./designPlanView";
 import {
@@ -340,6 +341,20 @@ type DesignPlan = {
       description?: string;
       mitigation?: string;
     }>;
+    functional_contract?: {
+      retention_interfaces?: Array<{
+        strategy?: string;
+        release_behavior?: string;
+        removal_direction?: string;
+        parameters?: Array<{
+          id?: string;
+          label?: string;
+          value?: number | string | boolean | null;
+          unit?: string | null;
+        }>;
+        verification?: { human_review_required?: boolean };
+      }>;
+    };
     clarification_questions?: Array<{
       id?: string;
       question?: string;
@@ -2736,6 +2751,10 @@ function DesignPlanReview({
               parameter.protected ? " (dimension to preserve)" : ""
             }`,
           )}
+      />
+      <SummaryList
+        title="Retention"
+        items={retentionProposalLines(plan.plan.functional_contract)}
       />
       <SummaryList
         title="Calculated"

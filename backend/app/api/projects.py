@@ -1218,6 +1218,12 @@ def list_generation_attempt_evidence(
                 started_at=attempt.started_at,
                 completed_at=attempt.completed_at,
                 duration_ms=duration_ms,
+                provider_usage=(
+                    json.loads(attempt.provider_usage_json)
+                    if attempt.provider_usage_json
+                    else None
+                ),
+                provider_request_id=attempt.provider_request_id,
                 estimated_prompt_tokens=_estimated_tokens(data_dir, attempt.prompt_path),
                 estimated_output_tokens=_estimated_tokens(data_dir, attempt.raw_output_path),
                 resulting_revision_id=attempt.resulting_revision_id,

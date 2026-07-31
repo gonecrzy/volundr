@@ -7,7 +7,9 @@ from app.services.cad.cadquery_source_authority import (
     CadQuerySourceAuthorityError,
     validate_cadquery_source_authority,
 )
+from app.services.cad.source_metadata import SourceMetadata, SourceModuleFingerprint
 from app.services.functional.intent import (
+    resolve_retention_proposals,
     validate_functional_plan,
     validate_revision_success_criteria,
 )
@@ -63,9 +65,26 @@ def _plan(**overrides):
                     "required": True,
                     "environment": "moving_vehicle",
                     "release_behavior": "one_handed",
-                    "strategy": "retention_lip",
+                    "strategy": "retaining_lip",
                     "feature_id": "retention_feature",
                     "component_id": "holder_body",
+                    "retained_object_requirement_id": "bottle_diameter",
+                    "retention_direction": "opposes_removal_and_forward_motion",
+                    "removal_direction": "+Z",
+                    "parameters": [
+                        {
+                            "id": "retention_overlap",
+                            "value": 2.0,
+                            "unit": "mm",
+                            "source": "volundr_proposal",
+                            "editable": True,
+                        }
+                    ],
+                    "verification": {
+                        "feature_geometry_required": True,
+                        "parameter_effect_required": True,
+                        "human_review_required": True,
+                    },
                 }
             ],
         },
@@ -121,7 +140,61 @@ def test_functional_plan_rejects_placeholder_retention_strategy() -> None:
         )
     )
 
-    assert any(finding["rule_id"] == "functional.retention_strategy_unresolved" for finding in findings)
+    assert any(finding["rule_id"] == "functional.retention_strategy_placeholder" for finding in findings)
+
+
+def test_retention_proposal_resolves_supported_one_handed_vehicle_context() -> None:
+    resolved = resolve_retention_proposals(
+        _plan(
+            functional_contract={
+                **_plan()["functional_contract"],
+                "retention_interfaces": [
+                    {
+                        "id": "boat_retention",
+                        "type": "retention",
+                        "required": True,
+                        "environment": "moving_vehicle",
+                        "release_behavior": "one_handed",
+                        "strategy": "reviewed_proposal",
+                        "component_id": "holder_body",
+                    }
+                ],
+            }
+        )
+    )
+    retention = resolved["functional_contract"]["retention_interfaces"][0]
+
+    assert retention["strategy"] == "flexible_snap_arm"
+    assert retention["feature_id"] == "boat_retention_snap_arm"
+    assert retention["component_id"] == "holder_body"
+    assert retention["parameters"]
+    assert retention["verification"]["human_review_required"] is True
+    assert validate_functional_plan(resolved) == []
+
+
+def test_retention_contract_requires_release_owner_and_parameters() -> None:
+    findings = validate_functional_plan(
+        _plan(
+            functional_contract={
+                **_plan()["functional_contract"],
+                "retention_interfaces": [
+                    {
+                        "id": "boat_retention",
+                        "type": "retention",
+                        "required": True,
+                        "strategy": "flexible_snap_arm",
+                        "feature_id": "bottle_retention_snap",
+                    }
+                ],
+            }
+        )
+    )
+
+    assert {finding["rule_id"] for finding in findings} >= {
+        "functional.retention_owner_missing",
+        "functional.retention_release_behavior_missing",
+        "functional.retention_parameters_missing",
+    }
 
 
 def test_revision_criteria_reject_output_as_parameter_and_unknown_types() -> None:
@@ -211,6 +284,39 @@ def build(params):
     )
 
 
+def test_feature_result_discarded_is_rejected() -> None:
+    source = '''
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature
+
+PARAMETERS = []
+
+@component("holder_body")
+def build_holder(params):
+    body = cq.Workplane("XY").box(10, 10, 3)
+    add_retention(body, params)
+    return body
+
+@feature("retention", component="holder_body")
+def add_retention(body, params):
+    return body.union(cq.Workplane("XY").box(2, 2, 2))
+
+def build(params):
+    return Product(outputs=[PrintableOutput(output_id="print_body", label="Body", model=build_holder(params), component_id="holder_body", expected_solid_count=1, allow_disconnected_solids=False)], parameters=PARAMETERS)
+'''
+    authority = {
+        "parameters": [],
+        "components": [{"id": "holder_body", "required": True}],
+        "features": [{"id": "retention", "component_id": "holder_body", "required": True, "protected": True, "functional": True}],
+        "outputs": [{"id": "print_body", "component_ids": ["holder_body"], "required": True, "expected_solid_count": 1}],
+    }
+
+    with pytest.raises(CadQuerySourceAuthorityError) as error:
+        validate_cadquery_source_authority(source, authority)
+
+    assert any(finding["rule_id"] == "functional.feature_result_discarded" for finding in error.value.findings)
+
+
 def test_mounting_interface_without_measurable_holes_is_blocked() -> None:
     contract = _plan()["functional_contract"]
     findings = FunctionalGeometryVerifierRegistry.default().verify(
@@ -237,3 +343,43 @@ def test_support_floor_for_solid_geometry_is_verified() -> None:
 
     floor = next(finding for finding in findings if finding.rule_id == "functional.support_floor_present")
     assert floor.verification_state == "verified"
+
+
+def test_retention_without_geometry_evidence_is_blocked_for_human_review() -> None:
+    findings = FunctionalGeometryVerifierRegistry.default().verify(
+        FunctionalGeometryContext(
+            product_plan={"functional_contract": _plan()["functional_contract"]},
+            output_shape=trimesh.creation.box(extents=(20, 20, 20)),
+        )
+    )
+
+    retention = next(finding for finding in findings if finding.rule_id == "functional.retention_geometry")
+    assert retention.verification_state in {"violated", "unverifiable"}
+    assert retention.is_blocking is True
+
+
+def test_concrete_retention_with_source_and_solid_is_partially_verified() -> None:
+    metadata = SourceMetadata(
+        source_hash="a" * 64,
+        source_size_bytes=100,
+        line_count=10,
+        module_fingerprints={
+            "add_retention": SourceModuleFingerprint(
+                module_name="add_retention",
+                line=4,
+                normalized_hash="b" * 64,
+                feature_ids=["retention_feature"],
+            )
+        },
+    )
+    findings = FunctionalGeometryVerifierRegistry.default().verify(
+        FunctionalGeometryContext(
+            product_plan={"functional_contract": _plan()["functional_contract"]},
+            output_shape=trimesh.creation.box(extents=(20, 20, 20)),
+            source_metadata=metadata,
+        )
+    )
+
+    retention = next(finding for finding in findings if finding.rule_id == "functional.retention_geometry")
+    assert retention.verification_state == "partially_verified"
+    assert retention.is_blocking is False

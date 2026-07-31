@@ -662,7 +662,7 @@ def test_functional_plan_failure_records_root_diagnosis(tmp_path: Path) -> None:
         assert root is not None
         diagnosis = WorkflowDiagnosisService(db=session).diagnose(root.id)
         assert diagnosis.root_cause["stage"] == "design_plan_validation"
-        assert diagnosis.root_cause["rule_id"] == "functional.retention_strategy_unresolved"
+        assert diagnosis.root_cause["rule_id"] == "functional.retention_strategy_placeholder"
         assert diagnosis.root_cause["confidence"] == "confirmed"
 
 

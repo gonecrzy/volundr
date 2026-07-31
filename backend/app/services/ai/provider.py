@@ -28,6 +28,8 @@ class ModelGenerationResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +50,8 @@ class RequirementExtractionResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -65,6 +69,8 @@ class SourceBriefResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -86,6 +92,8 @@ class DesignPlanResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -118,6 +126,8 @@ class RevisionPlanResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
 
 
 class AiProvider(Protocol):

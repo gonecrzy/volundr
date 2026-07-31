@@ -36,6 +36,8 @@ class GenerationAttempt(Base):
     provider_id: Mapped[str] = mapped_column(String(80), nullable=False)
     model_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
     provider_settings_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    provider_usage_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    provider_request_id: Mapped[str | None] = mapped_column(String(160), nullable=True)
     prompt_version: Mapped[str] = mapped_column(String(120), nullable=False)
     ruleset_version: Mapped[str] = mapped_column(String(120), nullable=False)
     cad_backend: Mapped[str] = mapped_column(String(40), nullable=False, default="cadquery")

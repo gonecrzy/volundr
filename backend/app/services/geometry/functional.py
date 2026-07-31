@@ -38,7 +38,12 @@ class FunctionalGeometryVerifierRegistry:
 
     @classmethod
     def default(cls) -> "FunctionalGeometryVerifierRegistry":
-        return cls([MountingHoleVerifier(), SupportFloorVerifier(), ContainmentRemovalVerifier()])
+        return cls([
+            MountingHoleVerifier(),
+            SupportFloorVerifier(),
+            ContainmentRemovalVerifier(),
+            RetentionGeometryVerifier(),
+        ])
 
     def verify(self, context: FunctionalGeometryContext) -> list[GeometricFinding]:
         findings: list[GeometricFinding] = []
@@ -280,6 +285,70 @@ class ContainmentRemovalVerifier:
                         feature_id=str(interface.get("id") or "support_interface"),
                     )
                 )
+        return findings
+
+
+class RetentionGeometryVerifier:
+    verifier_id = "functional.retention_geometry"
+    supported_interface_types = {"retention"}
+
+    def verify(self, context: FunctionalGeometryContext) -> list[GeometricFinding]:
+        findings: list[GeometricFinding] = []
+        contract = context.product_plan.get("functional_contract") or {}
+        for interface in contract.get("retention_interfaces", []) or []:
+            if not isinstance(interface, dict) or not interface.get("required"):
+                continue
+            interface_id = str(interface.get("id") or "retention_interface")
+            feature_id = str(interface.get("feature_id") or "")
+            source_has_feature = bool(
+                context.source_metadata
+                and feature_id
+                and any(
+                    feature_id in fingerprint.feature_ids
+                    for fingerprint in context.source_metadata.module_fingerprints.values()
+                )
+            )
+            if not source_has_feature:
+                findings.append(
+                    _finding(
+                        "functional.retention_geometry",
+                        state="violated",
+                        expected=True,
+                        detected=False,
+                        blocking=True,
+                        title="Retention geometry",
+                        explanation="No implemented retention feature geometry was evidenced for the approved retention interface.",
+                        feature_id=feature_id or interface_id,
+                    )
+                )
+                continue
+            if not context.output_shape.is_volume:
+                findings.append(
+                    _finding(
+                        "functional.retention_geometry",
+                        state="violated",
+                        expected="valid solid with retention geometry",
+                        detected="non-solid output",
+                        blocking=True,
+                        title="Retention geometry",
+                        explanation="The retention feature source is present, but the output is not a valid solid.",
+                        feature_id=feature_id or interface_id,
+                    )
+                )
+                continue
+            findings.append(
+                _finding(
+                    "functional.retention_geometry",
+                    state="partially_verified",
+                    expected=True,
+                    detected=True,
+                    blocking=False,
+                    title="Retention geometry",
+                    explanation="A retention feature builder and valid solid output were found; retention force, fatigue, release feel, and one-handed usability require human review and print testing.",
+                    feature_id=feature_id or interface_id,
+                    metadata={"human_review_required": True},
+                )
+            )
         return findings
 
 

@@ -26,7 +26,7 @@ from app.services.cad.cadquery_source_authority import (
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v2"
@@ -615,6 +615,8 @@ class GeminiCliProvider:
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
                 "For any physical product with mounting, containment, support, retention, or removal requirements, emit schema_version 1.1 and an explicit functional_contract.",
                 "Resolve mounting plane, plane normal, hole axis, arrangement axis, support-floor decision, removal direction, and retention strategy. Never return unresolved alternatives such as 'or' choices.",
+                "Choose exactly one supported retention strategy when the functional context supports a reasonable proposal. Use one of flexible_snap_arm, retaining_lip, spring_clip, removable_strap, rotating_gate, latch, or friction_band. Do not use reviewed_proposal, unspecified, generic_retention, choose_later, or some_clip as a strategy.",
+                "For moving-vehicle containment with one-handed release, prefer a flexible_snap_arm proposal unless the Design Specification states a material, durability, or architecture constraint that makes it unsuitable. Include a stable feature_id, owning component, retained object relationship, retention direction, release behavior, removal direction, editable proposed parameters, and verification metadata.",
                 "Use Volundr proposals for ordinary defaults; do not ask the user for routine wall thickness, clearance, or fillet values.",
             ]
         schema = {
@@ -691,7 +693,7 @@ class GeminiCliProvider:
                 "coordinate_frames": [{"id": "primary_product_frame", "axes": {"x": "horizontal", "y": "normal", "z": "vertical"}}],
                 "mounting_interfaces": [{"id": "string", "type": "planar_mount", "component_id": "component_id", "mounting_plane": "XZ", "normal_axis": "Y", "fastener_count": 2, "fastener_type": "string", "hole_axis": "Y", "arrangement_axis": "Z", "hole_style": "clearance", "spacing": {"value": 0, "unit": "mm", "source": "volundr_proposal"}}],
                 "support_interfaces": [{"id": "string", "type": "contained_object_support", "component_id": "component_id", "object_requirement_id": "parameter_id", "primary_axis": "Z", "bottom_support_required": True, "minimum_floor_thickness": {"value": 0, "unit": "mm", "source": "volundr_proposal"}, "removal_direction": "+Z"}],
-                "retention_interfaces": [{"id": "string", "type": "retention", "required": True, "environment": "string", "release_behavior": "one_handed", "strategy": "reviewed_proposal", "component_id": "component_id"}],
+                "retention_interfaces": [{"id": "string", "type": "retention", "required": True, "environment": "string", "release_behavior": "one_handed_pull", "strategy": "flexible_snap_arm", "component_id": "component_id", "feature_id": "retention_feature", "retained_object_requirement_id": "parameter_id", "retention_direction": "string", "removal_direction": "+Z", "parameters": [{"id": "retention_overlap", "value": 2.0, "unit": "mm", "source": "volundr_proposal", "editable": True}], "verification": {"feature_geometry_required": True, "parameter_effect_required": True, "human_review_required": True}}],
             },
             "risks": [
                 {

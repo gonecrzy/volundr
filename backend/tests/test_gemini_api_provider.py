@@ -45,8 +45,14 @@ async def test_gemini_api_extract_requirements_posts_prompt_and_returns_text() -
             json={
                 "candidates": [
                     {"content": {"parts": [{"text": "{\"outcome\":\"generation_ready\"}"}]}}
-                ]
+                ],
+                "usageMetadata": {
+                    "promptTokenCount": 12,
+                    "candidatesTokenCount": 34,
+                    "totalTokenCount": 46,
+                },
             },
+            headers={"x-goog-request-id": "req-123"},
         )
 
     provider = GeminiApiProvider(
@@ -67,6 +73,12 @@ async def test_gemini_api_extract_requirements_posts_prompt_and_returns_text() -
     assert result.provider == "gemini_api"
     assert result.provider_model == "gemini-3.5-flash-lite"
     assert result.raw_output == "{\"outcome\":\"generation_ready\"}"
+    assert result.usage_metadata == {
+        "promptTokenCount": 12,
+        "candidatesTokenCount": 34,
+        "totalTokenCount": 46,
+    }
+    assert result.provider_request_id == "req-123"
     assert captured["url"] == (
         "https://generativelanguage.googleapis.test/v1beta/"
         "models/gemini-3.5-flash-lite:generateContent?key=secret-key"

@@ -8,6 +8,7 @@ be explicit enough for deterministic verification.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from copy import deepcopy
 from typing import Any
 
 
@@ -44,6 +45,15 @@ _UNRESOLVED_RETENTION_STRATEGIES = {
     "unspecified",
     "tbd",
 }
+SUPPORTED_RETENTION_STRATEGIES = {
+    "flexible_snap_arm",
+    "retaining_lip",
+    "spring_clip",
+    "removable_strap",
+    "rotating_gate",
+    "latch",
+    "friction_band",
+}
 
 
 def _finding(rule_id: str, message: str, **extra: Any) -> dict[str, Any]:
@@ -69,6 +79,111 @@ def _items(contract: dict[str, Any], *names: str) -> Iterable[dict[str, Any]]:
         values = contract.get(name, [])
         if isinstance(values, list):
             yield from (value for value in values if isinstance(value, dict))
+
+
+def resolve_retention_proposals(plan: dict[str, Any]) -> dict[str, Any]:
+    """Fill a safe generic retention proposal when the plan has enough context.
+
+    This is deliberately based on functional context, not product names. Plans
+    that do not establish a moving-vehicle, one-handed containment use case
+    remain unresolved and are rejected by validation rather than guessed.
+    """
+
+    resolved = deepcopy(plan)
+    contract = resolved.get("functional_contract")
+    if not isinstance(contract, dict):
+        return resolved
+    parameters = resolved.setdefault("parameters", [])
+    components = [item for item in resolved.get("components", []) or [] if isinstance(item, dict)]
+    features = resolved.setdefault("features", [])
+    support_interfaces = [
+        item
+        for item in _items(contract, "support_interfaces", "containment_interfaces")
+    ]
+    for interface in _items(contract, "retention_interfaces"):
+        strategy = str(interface.get("strategy") or "").strip().lower()
+        environment = str(interface.get("environment") or "").lower()
+        release_behavior = str(interface.get("release_behavior") or "").lower()
+        has_vehicle_context = any(token in environment for token in ("vehicle", "boat", "moving"))
+        has_one_handed_release = "one_handed" in release_behavior or "one-handed" in release_behavior
+        if (
+            not interface.get("required")
+            or strategy not in _UNRESOLVED_RETENTION_STRATEGIES
+            or not has_vehicle_context
+            or not has_one_handed_release
+        ):
+            continue
+        support = next(
+            (
+                item
+                for item in support_interfaces
+                if item.get("component_id") == interface.get("component_id")
+                or item.get("object_requirement_id")
+            ),
+            None,
+        )
+        owner = interface.get("component_id") or (support or {}).get("component_id")
+        if not owner and len(components) == 1:
+            owner = components[0].get("id")
+        if not owner:
+            continue
+        interface_id = str(interface.get("id") or "retention")
+        feature_id = str(interface.get("feature_id") or f"{interface_id}_snap_arm")
+        removal_direction = interface.get("removal_direction") or (support or {}).get("removal_direction") or "+Z"
+        retained_requirement = (
+            interface.get("retained_object_requirement_id")
+            or (support or {}).get("object_requirement_id")
+        )
+        proposal_parameters = [
+            {"id": "retention_overlap", "label": "Snap overlap", "value": 2.0, "unit": "mm"},
+            {"id": "retention_arm_thickness", "label": "Snap thickness", "value": 2.4, "unit": "mm"},
+            {"id": "retention_entry_chamfer", "label": "Entry chamfer", "value": 0.8, "unit": "mm"},
+            {"id": "retention_release_clearance", "label": "Release clearance", "value": 0.8, "unit": "mm"},
+        ]
+        for parameter in proposal_parameters:
+            parameter.update({"source": "volundr_proposal", "editable": True, "component_id": owner})
+            if not any(item.get("id") == parameter["id"] for item in parameters if isinstance(item, dict)):
+                parameters.append(parameter)
+        parameter_ids = [parameter["id"] for parameter in proposal_parameters]
+        interface.update(
+            {
+                "strategy": "flexible_snap_arm",
+                "feature_id": feature_id,
+                "component_id": owner,
+                "retained_object_requirement_id": retained_requirement,
+                "retention_direction": "opposes_removal_and_forward_motion",
+                "removal_direction": removal_direction,
+                "parameters": proposal_parameters,
+                "verification": {
+                    "feature_geometry_required": True,
+                    "parameter_effect_required": True,
+                    "human_review_required": True,
+                    "method": "source_feature_and_conservative_mesh_review",
+                },
+                "proposal_reason": "Flexible front snap arm proposed for one-handed release while resisting movement in a moving vehicle.",
+            }
+        )
+        if not any(item.get("id") == feature_id for item in features if isinstance(item, dict)):
+            features.append(
+                {
+                    "id": feature_id,
+                    "component_id": owner,
+                    "type": "retention",
+                    "description": "Flexible front snap arm for one-handed retention.",
+                    "parameters": parameter_ids,
+                    "protected": True,
+                }
+            )
+        for component in components:
+            if component.get("id") == owner:
+                component.setdefault("features", [])
+                if feature_id not in component["features"]:
+                    component["features"].append(feature_id)
+                component.setdefault("parameters", [])
+                for parameter_id in parameter_ids:
+                    if parameter_id not in component["parameters"]:
+                        component["parameters"].append(parameter_id)
+    return resolved
 
 
 def validate_functional_plan(plan: dict[str, Any]) -> list[dict[str, Any]]:
@@ -183,15 +298,75 @@ def validate_functional_plan(plan: dict[str, Any]) -> list[dict[str, Any]]:
     for interface in _items(contract, "retention_interfaces"):
         interface_id = interface.get("id")
         strategy = str(interface.get("strategy") or "").strip().lower()
-        if interface.get("required") and (
-            not strategy
-            or strategy in _UNRESOLVED_RETENTION_STRATEGIES
-            or not interface.get("feature_id")
-        ):
+        if interface.get("required") and (not strategy or strategy in _UNRESOLVED_RETENTION_STRATEGIES or strategy not in SUPPORTED_RETENTION_STRATEGIES):
             findings.append(
                 _finding(
-                    "functional.retention_strategy_unresolved",
-                    f"Required retention interface `{interface_id or 'unnamed'}` does not identify a concrete strategy and feature.",
+                    "functional.retention_strategy_placeholder",
+                    f"Required retention interface `{interface_id or 'unnamed'}` does not identify a supported concrete strategy.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        if interface.get("required") and not interface.get("feature_id"):
+            findings.append(
+                _finding(
+                    "functional.retention_feature_id_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no stable feature ID.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        if interface.get("required") and not interface.get("component_id"):
+            findings.append(
+                _finding(
+                    "functional.retention_owner_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no owning component.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        if interface.get("required") and not interface.get("release_behavior"):
+            findings.append(
+                _finding(
+                    "functional.retention_release_behavior_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no release behavior.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        if interface.get("required") and not interface.get("retained_object_requirement_id"):
+            findings.append(
+                _finding(
+                    "functional.retained_object_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no retained-object relationship.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        if interface.get("required") and not interface.get("retention_direction"):
+            findings.append(
+                _finding(
+                    "functional.retention_direction_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no retention direction.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        if interface.get("required") and not interface.get("parameters") and not interface.get("parameter_free"):
+            findings.append(
+                _finding(
+                    "functional.retention_parameters_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no editable parameters or parameter-free declaration.",
+                    entity_type="retention_interface",
+                    entity_id=interface_id,
+                )
+            )
+        verification = interface.get("verification")
+        if interface.get("required") and (not isinstance(verification, dict) or not verification.get("feature_geometry_required")):
+            findings.append(
+                _finding(
+                    "functional.retention_verification_missing",
+                    f"Required retention interface `{interface_id or 'unnamed'}` has no feature-geometry verification requirement.",
                     entity_type="retention_interface",
                     entity_id=interface_id,
                 )

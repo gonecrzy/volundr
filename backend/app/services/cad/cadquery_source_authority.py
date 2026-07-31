@@ -55,10 +55,30 @@ def build_cadquery_source_authority(
             feature["id"] in functional_feature_ids
             or str(feature.get("type") or "").lower() in {"retention", "support", "containment"}
         )
+        if feature["id"] in functional_feature_ids:
+            feature["required"] = True
     outputs = [
         _authority_output(output)
         for output in design_plan_payload.get("printable_outputs", []) or []
         if isinstance(output, dict) and (output.get("id") or output.get("output_id"))
+    ]
+    retention_interfaces = [
+        {
+            key: interface.get(key)
+            for key in (
+                "id",
+                "strategy",
+                "component_id",
+                "feature_id",
+                "retained_object_requirement_id",
+                "retention_direction",
+                "removal_direction",
+                "parameters",
+            )
+            if interface.get(key) is not None
+        }
+        for interface in (design_plan_payload.get("functional_contract") or {}).get("retention_interfaces", []) or []
+        if isinstance(interface, dict)
     ]
     authority = {
         "schema_version": SCHEMA_VERSION,
@@ -66,6 +86,7 @@ def build_cadquery_source_authority(
         "components": components,
         "features": features,
         "outputs": outputs,
+        "retention_interfaces": retention_interfaces,
         "allowed_revision_parameters": sorted(str(item) for item in allowed_revision_parameters),
     }
     findings = validate_cadquery_source_authority_inventory(authority)
@@ -283,6 +304,7 @@ def _validate_source_against_authority(
     source_param_refs = set(ast_metadata["parameter_references"])
     source_param_geometry_effects = set(ast_metadata["parameter_geometry_effects"])
     source_feature_invocations = dict(ast_metadata["feature_invocations"])
+    source_feature_result_used = dict(ast_metadata["feature_result_used"])
     source_feature_component_builders = dict(ast_metadata["feature_component_builders"])
     source_defaults = dict(source_metadata.parameter_defaults)
     source_types = dict(source_metadata.parameter_types)
@@ -424,6 +446,15 @@ def _validate_source_against_authority(
                     feature_id=feature_id,
                     component_id=expected_component or None,
                 )
+                )
+        elif feature.get("functional") and not source_feature_result_used.get(feature_id, False):
+            findings.append(
+                _finding(
+                    "functional.feature_result_discarded",
+                    f"Functional feature `{feature_id}` is invoked but its returned geometry is discarded.",
+                    feature_id=feature_id,
+                    component_id=expected_component or None,
+                )
             )
         elif feature.get("functional") and source_feature_component_builders.get(feature_id, False):
             findings.append(
@@ -512,13 +543,16 @@ def _functional_parameter_ids(plan: dict[str, Any] | None) -> set[str]:
     if not isinstance(contract, dict):
         return set()
     ids: set[str] = set()
-    for collection in ("mounting_interfaces", "support_interfaces", "containment_interfaces"):
+    for collection in ("mounting_interfaces", "support_interfaces", "containment_interfaces", "retention_interfaces"):
         for interface in contract.get(collection, []) or []:
             if not isinstance(interface, dict):
                 continue
             for key in ("object_requirement_id", "hole_diameter_parameter_id", "floor_thickness_parameter_id"):
                 if interface.get(key):
                     ids.add(str(interface[key]))
+            for parameter in interface.get("parameters", []) or []:
+                if isinstance(parameter, dict) and parameter.get("id"):
+                    ids.add(str(parameter["id"]))
     return ids
 
 
@@ -804,6 +838,16 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
         feature_id: function_name in call_names
         for feature_id, function_name in feature_functions.items()
     }
+    feature_result_used = {
+        feature_id: any(
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == function_name
+            and isinstance(parents.get(node), (ast.Assign, ast.AnnAssign, ast.Return, ast.Call, ast.Attribute, ast.keyword))
+            for node in ast.walk(tree)
+        )
+        for feature_id, function_name in feature_functions.items()
+    }
     feature_component_builders = {
         feature_id: function_name in component_function_names
         for feature_id, function_name in feature_functions.items()
@@ -814,6 +858,7 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
         "parameter_references": _dedupe(parameter_references),
         "parameter_geometry_effects": sorted(parameter_geometry_effects),
         "feature_invocations": feature_invocations,
+        "feature_result_used": feature_result_used,
         "feature_component_builders": feature_component_builders,
     }
 

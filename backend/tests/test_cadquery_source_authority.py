@@ -267,6 +267,39 @@ def test_keyword_decorator_ids_certify_when_stable_ids_match() -> None:
     assert result["findings"] == []
 
 
+def test_functional_retention_feature_is_required_even_when_not_protected() -> None:
+    authority = build_cadquery_source_authority(
+        {
+            "components": [{"id": "holder_body"}],
+            "features": [
+                {
+                    "id": "retention_snap",
+                    "component_id": "holder_body",
+                    "type": "rib",
+                    "protected": False,
+                }
+            ],
+            "printable_outputs": [],
+            "parameters": [],
+            "functional_contract": {
+                "retention_interfaces": [
+                    {
+                        "id": "retention",
+                        "required": True,
+                        "feature_id": "retention_snap",
+                        "component_id": "holder_body",
+                    }
+                ]
+            },
+        }
+    )
+
+    assert authority is not None
+    feature = authority["features"][0]
+    assert feature["functional"] is True
+    assert feature["required"] is True
+
+
 def test_execution_parameters_coerce_integral_plan_count_to_source_int() -> None:
     service = ProjectService(db=None, ai_provider=None)  # type: ignore[arg-type]
     source = _source(parameters=COMPLETE_PARAMETERS)
