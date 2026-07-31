@@ -56,7 +56,20 @@ class WorkflowDiagnosisService:
         self,
         events: list[WorkflowEvent],
     ) -> tuple[WorkflowEvent | None, str, dict[str, Any]]:
-        blocking = [event for event in events if event.blocking]
+        resolved_event_ids = {
+            event.caused_by_event_id
+            for event in events
+            if event.caused_by_event_id
+            and (
+                event.event_type.endswith(".succeeded")
+                or event.event_type.endswith(".resolved")
+            )
+        }
+        blocking = [
+            event
+            for event in events
+            if event.blocking and event.id not in resolved_event_ids
+        ]
         if not blocking:
             return None, "unknown", {"reason": "no_blocking_events"}
         explicit_root = next((event for event in blocking if event.is_root_failure), None)

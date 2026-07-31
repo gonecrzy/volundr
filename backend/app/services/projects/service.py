@@ -1050,7 +1050,9 @@ class ProjectService:
         revision.review_state = "rejected"
         revision.is_accepted = False
         revision.rejected_at = project_utcnow()
-        parent_run = self._latest_root_workflow_run(revision.project_id)
+        parent_run = self._workflow_run_for_revision(revision.id) or self._latest_root_workflow_run(
+            revision.project_id
+        )
         workflow_run = self._start_child_workflow_run(
             project_id=revision.project_id,
             workflow_type="candidate_rejection",
@@ -1073,6 +1075,8 @@ class ProjectService:
         )
         self.db.commit()
         self._workflow_recorder().complete_run(workflow_run, status="completed")
+        if parent_run is not None:
+            self._workflow_recorder().complete_run(parent_run, status="completed")
         self.db.refresh(revision)
         return self._revision_read(revision)
 
@@ -1813,6 +1817,7 @@ class ProjectService:
             generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(generation_attempt)
+            self._workflow_recorder().complete_run(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -1821,6 +1826,7 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise
 
         self._record_generation_result(generation_attempt, generation_result)
@@ -2844,7 +2850,14 @@ class ProjectService:
                 )
             )
         except _StoppedWithRevision as exc:
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return exc.revision
+        except asyncio.CancelledError:
+            self._workflow_recorder().complete_run(workflow_run, status="cancelled")
+            raise
+        except Exception:
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            raise
         initial_revision = await self._create_cadquery_revision_from_planned_source(
             project_id=project_id,
             source=source,
@@ -2867,6 +2880,10 @@ class ProjectService:
                 else FailureClass.UNKNOWN_FAILURE,
                 resulting_revision_id=initial_revision.id if initial_revision is not None else None,
             )
+            self._workflow_recorder().complete_run(
+                workflow_run,
+                status="completed" if initial_revision is not None else "failed",
+            )
             return initial_revision
 
         self._finish_generation_attempt(
@@ -2879,6 +2896,7 @@ class ProjectService:
             resulting_revision_id=initial_revision.id,
         )
         if self._has_design_artifact_consistency_blockers(initial_revision.id):
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return initial_revision
 
         repair_request = self._generation_request(
@@ -2900,6 +2918,7 @@ class ProjectService:
             repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
+            self._workflow_recorder().complete_run(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -2908,6 +2927,7 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
@@ -2949,6 +2969,7 @@ class ProjectService:
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=error_message,
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return initial_revision
         repair_revision = await self._create_cadquery_revision_from_planned_source(
             project_id=project_id,
@@ -2975,6 +2996,12 @@ class ProjectService:
             if repair_revision and repair_revision.status == "succeeded"
             else repair_revision.error_message if repair_revision else "repair revision was not created",
             resulting_revision_id=repair_revision.id if repair_revision else None,
+        )
+        self._workflow_recorder().complete_run(
+            workflow_run,
+            status="completed"
+            if repair_revision is not None and repair_revision.status == "succeeded"
+            else "failed",
         )
         return repair_revision
 
@@ -3114,6 +3141,8 @@ class ProjectService:
             repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -3122,6 +3151,8 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
@@ -3142,6 +3173,8 @@ class ProjectService:
                 failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
                 error_message=str(exc),
             )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
             raise ValueError(str(exc)) from exc
 
         self._record_generation_extracted_source(
@@ -3189,6 +3222,8 @@ class ProjectService:
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=error_message,
             )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
             raise ValueError(error_message)
 
         self._record_workflow_event(
@@ -3201,6 +3236,8 @@ class ProjectService:
             caused_by_event_id=source_failure_event.id if source_failure_event is not None else None,
             generation_attempt_id=repair_attempt.id,
         )
+        if repair_workflow_run is not None:
+            self._workflow_recorder().complete_run(repair_workflow_run, status="completed")
         return repaired_source, repair_result.raw_output, repair_attempt, repaired_validation
 
     def _generation_request(

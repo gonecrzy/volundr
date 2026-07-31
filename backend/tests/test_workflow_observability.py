@@ -203,6 +203,73 @@ def test_conservative_diagnosis_marks_candidate_block_as_symptom(tmp_path: Path)
     assert stored is not None
 
 
+def test_resolved_historical_failure_is_not_later_root_cause(tmp_path: Path) -> None:
+    session, _SessionLocal = _session(tmp_path)
+    project = _project(session)
+    recorder = WorkflowRecorder(db=session, data_dir=tmp_path / "data")
+    root = recorder.start_run(project_id=project.id, workflow_type="initial_generation")
+    source_failure = recorder.record_event(
+        root,
+        stage="source_contract_validation",
+        event_type="source_contract.failed",
+        severity="error",
+        blocking=True,
+        rule_id="cadquery.required_parameter_unused",
+        message="A required parameter was not used.",
+        deduplication_key="historical-source-failure",
+    )
+    repair = recorder.start_run(
+        project_id=project.id,
+        workflow_type="contract_repair",
+        parent_workflow_run_id=root.id,
+    )
+    recorder.record_event(
+        repair,
+        stage="contract_repair",
+        event_type="contract_repair.succeeded",
+        severity="summary",
+        message="Contract repair resolved the source failure.",
+        caused_by_event_id=source_failure.id,
+        deduplication_key="historical-source-repair-succeeded",
+    )
+    recorder.complete_run(repair, status="completed")
+    recorder.complete_run(root, status="completed")
+
+    diagnosis = WorkflowDiagnosisService(db=session).diagnose(repair.id)
+
+    assert diagnosis.root_cause["event_id"] is None
+    assert diagnosis.root_cause["confidence"] == "unknown"
+    assert diagnosis.final_outcome == "completed"
+
+
+def test_staged_generation_closes_source_and_repair_child_runs(tmp_path: Path) -> None:
+    provider = RepairThenValidProvider(READY_PLAN)
+    client, SessionLocal = build_plan_client(tmp_path, provider)
+    app.dependency_overrides[get_cad_runner] = lambda: ManifestCadRunner()
+    project = client.post(
+        "/api/projects",
+        json={"name": "Terminal workflow project", "original_intent": "Create a bracket."},
+    ).json()
+
+    specification = client.post(
+        f"/api/projects/{project['id']}/requirements",
+        json={"user_instruction": "Create a bracket with mount_hole_spacing=60 mm."},
+    ).json()
+    plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()
+    assert client.post(f"/api/design-plans/{plan['id']}/approve").status_code == 200
+    revision_response = client.post(f"/api/design-plans/{plan['id']}/generate")
+    assert revision_response.status_code == 201, revision_response.json()
+    revision = revision_response.json()
+    assert client.post(f"/api/candidates/{revision['id']}/accept").status_code == 200
+
+    with SessionLocal() as session:
+        runs = list(session.scalars(select(WorkflowRun).where(WorkflowRun.project_id == project["id"])))
+        statuses = {run.workflow_type: run.status for run in runs}
+        assert statuses["source_generation"] == "completed"
+        assert statuses["contract_repair"] == "completed"
+        assert statuses["initial_generation"] == "completed"
+
+
 def test_stale_running_workflow_can_be_diagnosed(tmp_path: Path) -> None:
     session, _SessionLocal = _session(tmp_path)
     project = _project(session)
