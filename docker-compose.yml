@@ -45,6 +45,8 @@ services:
       VOLUNDR_ENABLE_MULTI_OUTPUT: ${VOLUNDR_ENABLE_MULTI_OUTPUT:-true}
       VOLUNDR_ENABLE_STRUCTURED_REVISIONS: ${VOLUNDR_ENABLE_STRUCTURED_REVISIONS:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "${VOLUNDR_API_PORT:-8000}:8000"
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}:/app/data
       - ${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
