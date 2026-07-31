@@ -197,6 +197,12 @@ class FixtureProvider:
 
     def __init__(self) -> None:
         self.calls: list[str] = []
+        self.calls_by_project: dict[tuple[str, str], list[str]] = {}
+
+    def _record_call(self, request: Any, call: str) -> None:
+        self.calls.append(call)
+        key = (request.project_name, request.original_intent)
+        self.calls_by_project.setdefault(key, []).append(call)
 
     @property
     def ruleset_version(self) -> str:
@@ -235,7 +241,7 @@ class FixtureProvider:
     async def extract_requirements(
         self, request: RequirementExtractionRequest
     ) -> RequirementExtractionResult:
-        self.calls.append("requirement_extraction")
+        self._record_call(request, "requirement_extraction")
         payload = {
             "schema_version": "1.0",
             "object_type": "mounting_plate",
@@ -331,7 +337,7 @@ class FixtureProvider:
         )
 
     async def create_design_plan(self, _request: DesignPlanRequest) -> DesignPlanResult:
-        self.calls.append("design_plan_generation")
+        self._record_call(_request, "design_plan_generation")
         plan = ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
         return DesignPlanResult(
             raw_output=json.dumps(plan), provider="fixture", provider_model="fixture-model"
@@ -341,7 +347,7 @@ class FixtureProvider:
         raise AssertionError("fixture requires CadQuery generation")
 
     async def generate_cadquery_model(self, _request: ModelGenerationRequest) -> ModelGenerationResult:
-        self.calls.append("source_generation")
+        self._record_call(_request, "source_generation")
         source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
         return ModelGenerationResult(
             raw_output=f"```python\n{source}\n```",
@@ -517,9 +523,16 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
         )
         if not runs:
             raise HTTPException(status_code=404, detail="fixture project has no workflow runs")
+        service = ProjectService(db=db, data_dir=data_dir)
+        project = db.get(Project, project_id)
+        project_calls = (
+            provider.calls_by_project.get((project.name, project.original_intent), [])
+            if project is not None
+            else []
+        )
         return {
-            "provider_call_count": len(provider.calls),
-            "provider_calls": list(provider.calls),
+            "provider_call_count": len(project_calls),
+            "provider_calls": list(project_calls),
             "workflow_run_ids": [run.id for run in runs],
             "workflow_runs": [
                 {
@@ -531,6 +544,35 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
                 }
                 for run in runs
             ],
+            "workflow_event_details": [
+                {
+                    "id": event.id,
+                    "workflow_run_id": event.workflow_run_id,
+                    "root_workflow_run_id": event.root_workflow_run_id,
+                    "correlation_id": event.correlation_id,
+                    "sequence_number": event.sequence_number,
+                    "event_type": event.event_type,
+                    "revision_id": event.revision_id,
+                }
+                for event in db.scalars(
+                    select(WorkflowEvent)
+                    .where(WorkflowEvent.project_id == project_id)
+                    .order_by(WorkflowEvent.workflow_run_id, WorkflowEvent.sequence_number)
+                )
+            ],
+            "frontend_event_details": [
+                {
+                    "workflow_run_id": event.workflow_run_id,
+                    "correlation_id": event.correlation_id,
+                    "action_name": event.action_name,
+                    "metadata": json.loads(event.metadata_json),
+                }
+                for event in db.scalars(
+                    select(FrontendWorkflowEvent)
+                    .where(FrontendWorkflowEvent.project_id == project_id)
+                    .order_by(FrontendWorkflowEvent.recorded_at)
+                )
+            ],
             "workflow_event_types": list(
                 db.scalars(
                     select(WorkflowEvent.event_type)
@@ -541,6 +583,13 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
             "artifact_stages": list(
                 db.scalars(
                     select(WorkflowArtifact.stage)
+                    .where(WorkflowArtifact.project_id == project_id)
+                    .order_by(WorkflowArtifact.created_at)
+                )
+            ),
+            "artifact_types": list(
+                db.scalars(
+                    select(WorkflowArtifact.artifact_type)
                     .where(WorkflowArtifact.project_id == project_id)
                     .order_by(WorkflowArtifact.created_at)
                 )
@@ -558,6 +607,8 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
                     "review_state": revision.review_state,
                     "is_accepted": revision.is_accepted,
                     "source_hash": revision.source_hash,
+                    "configuration_change_id": revision.configuration_change_id,
+                    "parameter_hash": (service.read_output_manifest(revision.id) or {}).get("parameter_hash"),
                 }
                 for revision in db.scalars(
                     select(Revision).where(Revision.project_id == project_id).order_by(Revision.revision_number)

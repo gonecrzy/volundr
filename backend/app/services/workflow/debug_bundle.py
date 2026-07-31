@@ -8,7 +8,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
+from app.models.workflow import FrontendWorkflowEvent, WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.workflow.diagnosis import WorkflowDiagnosisService
 from app.services.workflow.redaction import RedactionError, RedactionService
 from app.services.workflow.stage_trace import WorkflowStageTraceService
@@ -53,6 +53,20 @@ class WorkflowDebugBundleService:
                 .order_by(WorkflowArtifact.created_at.asc())
             )
         )
+        run_ids = list(
+            self.db.scalars(
+                select(WorkflowRun.id).where(
+                    (WorkflowRun.id == root_id) | (WorkflowRun.root_workflow_run_id == root_id)
+                )
+            )
+        )
+        frontend_events = list(
+            self.db.scalars(
+                select(FrontendWorkflowEvent)
+                .where(FrontendWorkflowEvent.workflow_run_id.in_(run_ids))
+                .order_by(FrontendWorkflowEvent.recorded_at.asc())
+            )
+        )
         diagnosis = WorkflowDiagnosisService(db=self.db).diagnose(run.id)
         trace_service = WorkflowStageTraceService(db=self.db)
         report = {
@@ -86,6 +100,14 @@ class WorkflowDebugBundleService:
                 "\n".join(json.dumps(self._event_payload(event), sort_keys=True, default=str) for event in events)
                 + ("\n" if events else ""),
             )
+            archive.writestr(
+                f"{root}/frontend-events.ndjson",
+                "\n".join(
+                    json.dumps(self._frontend_event_payload(event), sort_keys=True, default=str)
+                    for event in frontend_events
+                )
+                + ("\n" if frontend_events else ""),
+            )
             self._write_json(archive, f"{root}/stage-trace.json", trace_service.build_trace(run.id))
             archive.writestr(f"{root}/stage-trace.md", trace_service.build_markdown(run.id))
             self._write_json(
@@ -94,6 +116,7 @@ class WorkflowDebugBundleService:
                 [self._artifact_payload(artifact) for artifact in artifacts],
             )
             archive.writestr(f"{root}/README.md", self._readme(run, diagnosis.root_cause))
+            written_artifact_paths: set[str] = set()
             for artifact in artifacts:
                 self._include_artifact(
                     archive=archive,
@@ -101,6 +124,7 @@ class WorkflowDebugBundleService:
                     artifact=artifact,
                     include_geometry=include_geometry,
                     report=report,
+                    written_paths=written_artifact_paths,
                 )
             self._write_json(archive, f"{root}/redaction-report.json", report)
         self._assert_archive_redacted(bundle_path)
@@ -114,6 +138,7 @@ class WorkflowDebugBundleService:
         artifact: WorkflowArtifact,
         include_geometry: bool,
         report: dict[str, Any],
+        written_paths: set[str],
     ) -> None:
         report["artifacts_inspected"].append(
             {
@@ -144,17 +169,17 @@ class WorkflowDebugBundleService:
                         }
                     )
             self.redactor.assert_text_redacted(text)
-            archive.writestr(
-                f"{root}/artifacts/{artifact.stage}/{artifact.role}-{source_path.name}",
-                text,
-            )
+            archive_path = f"{root}/artifacts/{artifact.stage}/{artifact.role}-{source_path.name}"
+            if archive_path not in written_paths:
+                archive.writestr(archive_path, text)
+                written_paths.add(archive_path)
         else:
             if artifact.artifact_type in SENSITIVE_ARTIFACT_TYPES and not artifact.redacted:
                 raise RedactionError(f"sensitive binary artifact is not confirmed redacted: {artifact.id}")
-            archive.write(
-                source_path,
-                f"{root}/artifacts/{artifact.stage}/{artifact.role}-{source_path.name}",
-            )
+            archive_path = f"{root}/artifacts/{artifact.stage}/{artifact.role}-{source_path.name}"
+            if archive_path not in written_paths:
+                archive.write(source_path, archive_path)
+                written_paths.add(archive_path)
 
     def _artifact_path(self, artifact: WorkflowArtifact) -> Path | None:
         path = Path(artifact.path)
@@ -220,6 +245,21 @@ class WorkflowDebugBundleService:
             "caused_by_event_id": event.caused_by_event_id,
             "is_root_failure": event.is_root_failure,
             "is_downstream_symptom": event.is_downstream_symptom,
+            "metadata": json.loads(event.metadata_json),
+        }
+
+    def _frontend_event_payload(self, event: FrontendWorkflowEvent) -> dict[str, Any]:
+        return {
+            "project_id": event.project_id,
+            "workflow_run_id": event.workflow_run_id,
+            "correlation_id": event.correlation_id,
+            "frontend_session_id": event.frontend_session_id,
+            "route": event.route,
+            "action_name": event.action_name,
+            "user_visible_state": event.user_visible_state,
+            "backend_request_id": event.backend_request_id,
+            "occurred_at": event.occurred_at,
+            "recorded_at": event.recorded_at,
             "metadata": json.loads(event.metadata_json),
         }
 

@@ -655,7 +655,7 @@ function App() {
     : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
       ? "Answer"
       : ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
-        ? "Plan revision"
+        ? "Change the design"
         : "Send";
   const chatPlaceholder = hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
     ? "Answer clarification"
@@ -671,6 +671,12 @@ function App() {
     void refreshProjects();
     void refreshPrintabilityProfiles();
   }, []);
+
+  useEffect(() => {
+    if (project && configurationParameters.length > 0) {
+      recordWorkflowViewOnce(`configuration-${project.id}`, "configuration_opened", "parameter_update");
+    }
+  }, [project, configurationParameters.length]);
 
   useEffect(() => {
     if (!designSpecification || !project) {
@@ -1606,18 +1612,19 @@ function App() {
 
   async function selectProject(nextProject: Project) {
     setIsProjectDrawerOpen(false);
-    setProject(nextProject);
-    setProjectName(nextProject.name);
-    setIntent(nextProject.original_intent);
-    await loadCurrentDesignSpecification(nextProject.id);
-    await loadCurrentRevisionPlan(nextProject.id);
-    await loadProjectMessages(nextProject.id);
-    const nextRevisions = await request<Revision[]>(`/projects/${nextProject.id}/revisions`, {
+    const loadedProject = await request<Project>(`/projects/${nextProject.id}`, { method: "GET" });
+    setProject(loadedProject);
+    setProjectName(loadedProject.name);
+    setIntent(loadedProject.original_intent);
+    await loadCurrentDesignSpecification(loadedProject.id);
+    await loadCurrentRevisionPlan(loadedProject.id);
+    await loadProjectMessages(loadedProject.id);
+    const nextRevisions = await request<Revision[]>(`/projects/${loadedProject.id}/revisions`, {
       method: "GET",
     });
     setRevisions(nextRevisions);
     const activeRevision =
-      nextRevisions.find((revision) => revision.id === nextProject.active_revision_id) ??
+      nextRevisions.find((revision) => revision.id === loadedProject.active_revision_id) ??
       nextRevisions.at(-1) ??
       null;
     setSelectedRevision(activeRevision);
@@ -1825,13 +1832,15 @@ function App() {
         setProjects((current) =>
           current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)),
         );
+      }
+      await recordFrontendWorkflowEvent(project?.id, "candidate_accepted", "candidate_review", {
+        revision_id: accepted.id,
+      });
+      if (project) {
         await loadProjectMessages(project.id);
       }
       await loadCandidateFindings(accepted);
       await loadGeometricAnalysis(accepted);
-      await recordFrontendWorkflowEvent(project?.id, "candidate_accepted", "candidate_review", {
-        revision_id: accepted.id,
-      });
       setMessage(`Accepted R${accepted.revision_number}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Candidate acceptance failed";
@@ -3084,6 +3093,35 @@ function ConfigurationPanel({
       {change ? (
         <div className={`configuration-summary ${change.validation_state}`}>
           <p>{configurationImpactLabel(change)}</p>
+          <h3>Direct changes</h3>
+          <ul>
+            {Object.entries(change.requested_changes).map(([parameterId, nextValue]) => {
+              const parameter = parameters.find((entry) => entry.id === parameterId);
+              return (
+                <li key={parameterId}>
+                  {parameter?.label ?? parameterId}: {configurationValueLabel(parameter?.value)} → {configurationValueLabel(nextValue)}
+                </li>
+              );
+            })}
+          </ul>
+          <h3>Calculated effects</h3>
+          <ul>
+            {change.affected_parameters
+              .filter((parameterId) => !Object.prototype.hasOwnProperty.call(change.requested_changes, parameterId))
+              .map((parameterId) => <li key={parameterId}>{parameterId}</li>)}
+          </ul>
+          <h3>Affected printable parts</h3>
+          <ul>
+            {change.affected_outputs.map((outputId) => <li key={outputId}>{outputId}</li>)}
+          </ul>
+          <h3>Unchanged values</h3>
+          <ul>
+            {parameters
+              .filter((parameter) => parameter.protected && !Object.prototype.hasOwnProperty.call(change.requested_changes, parameter.id))
+              .map((parameter) => (
+                <li key={parameter.id}>{parameter.label}: {configurationValueLabel(parameter.value)}</li>
+              ))}
+          </ul>
           {change.validation_errors.length > 0 ? (
             <ul>
               {change.validation_errors.map((error) => (
@@ -3105,6 +3143,13 @@ function ConfigurationPanel({
       </div>
     </section>
   );
+}
+
+function configurationValueLabel(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "unset";
+  }
+  return String(value);
 }
 
 function CandidateReview({

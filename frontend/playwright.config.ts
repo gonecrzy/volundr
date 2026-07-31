@@ -11,8 +11,8 @@ export default defineConfig({
   webServer: [
     {
       command:
-        "rtk env PYTHONPATH=../backend VOLUNDR_E2E_DATA_DIR=/tmp/volundr-playwright-fixture ../backend/.venv/bin/python -m app.testing.e2e_fixture_server",
-      reuseExistingServer: true,
+        "fixture_root=$(mktemp -d /tmp/volundr-playwright-fixture.XXXXXX) && exec rtk env PYTHONPATH=../backend VOLUNDR_E2E_DATA_DIR=$fixture_root ../backend/.venv/bin/python -m app.testing.e2e_fixture_server",
+      reuseExistingServer: false,
       url: "http://127.0.0.1:8000/health",
     },
     {

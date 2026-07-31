@@ -91,6 +91,10 @@ def _set_latest_workflow_headers(response: Response, db: Session, project_id: st
     )
     if run is None:
         return
+    _set_workflow_headers(response, run)
+
+
+def _set_workflow_headers(response: Response, run: WorkflowRun) -> None:
     response.headers["X-Workflow-Run-Id"] = run.id
     response.headers["X-Workflow-Root-Run-Id"] = run.root_workflow_run_id or run.id
     response.headers["X-Workflow-Correlation-Id"] = run.correlation_id
@@ -216,11 +220,16 @@ def delete_project(
 
 
 @router.get("/projects/{project_id}", response_model=ProjectRead)
-def get_project(project_id: str, db: Session = Depends(get_db)) -> ProjectRead:
+def get_project(
+    project_id: str,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> ProjectRead:
     service = ProjectService(db=db)
     project = service.get_project(project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="project not found")
+    _set_latest_workflow_headers(response, db, project_id)
     return project
 
 
@@ -475,7 +484,7 @@ def get_current_design_plan(
 
 @router.get(
     "/projects/{project_id}/revision-plan",
-    response_model=RevisionPlanRead,
+    response_model=RevisionPlanRead | None,
 )
 def get_current_revision_plan(
     project_id: str,
@@ -484,8 +493,6 @@ def get_current_revision_plan(
 ) -> RevisionPlanRead:
     service = ProjectService(db=db, data_dir=data_dir)
     plan = service.get_current_revision_plan(project_id)
-    if plan is None:
-        raise HTTPException(status_code=404, detail="Revision Plan not found")
     return plan
 
 
@@ -1264,7 +1271,19 @@ def accept_candidate_revision(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if candidate is None:
         raise HTTPException(status_code=404, detail="candidate revision not found")
-    _set_latest_workflow_headers(response, db, candidate.project_id)
+    acceptance_run = db.scalar(
+        select(WorkflowRun)
+        .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+        .where(
+            WorkflowEvent.revision_id == candidate.id,
+            WorkflowEvent.event_type == "candidate.accepted",
+        )
+        .order_by(WorkflowEvent.sequence_number.desc())
+    )
+    if acceptance_run is not None:
+        _set_workflow_headers(response, acceptance_run)
+    else:
+        _set_latest_workflow_headers(response, db, candidate.project_id)
     return candidate
 
 

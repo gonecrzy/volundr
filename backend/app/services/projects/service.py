@@ -556,7 +556,7 @@ class ProjectService:
         project = self.db.get(Project, revision.project_id)
         if project is None:
             return None
-        parent_run = self._latest_root_workflow_run(project.id)
+        parent_run = self._workflow_run_for_revision(revision.id)
         workflow_run = self._start_child_workflow_run(
             project_id=project.id,
             workflow_type="candidate_acceptance",
@@ -603,6 +603,17 @@ class ProjectService:
             .where(WorkflowRun.status == "running")
             .order_by(WorkflowRun.started_at.desc())
         )
+
+    def _workflow_run_for_revision(self, revision_id: str) -> WorkflowRun | None:
+        matched_run = self.db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(WorkflowEvent.revision_id == revision_id)
+            .order_by(WorkflowRun.started_at.asc())
+        )
+        if matched_run is None:
+            return None
+        return self.db.get(WorkflowRun, matched_run.root_workflow_run_id or matched_run.id)
 
     def _ensure_initial_workflow_run(self, project: Project) -> WorkflowRun:
         existing = self._latest_root_workflow_run(project.id)
@@ -1313,6 +1324,7 @@ class ProjectService:
         workflow_run = self._start_child_workflow_run(
             project_id=change.project_id,
             workflow_type="configuration_change",
+            parent=self._workflow_run_for_revision(base_revision.id),
         )
         self._record_workflow_event(
             workflow_run,
@@ -1368,6 +1380,20 @@ class ProjectService:
                 )
             if change.override_manifest_path:
                 self._write_json(self.data_dir / change.override_manifest_path, self._configuration_override_manifest(change))
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="configuration_execution",
+                artifact_type="configuration_change",
+                role="configuration_change_record",
+                relative_path=change.configuration_path,
+            )
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="configuration_execution",
+                artifact_type="parameter_manifest",
+                role="configuration_override_manifest",
+                relative_path=change.override_manifest_path,
+            )
             generated_revision.output_manifest_path = self._relative(
                 self._write_output_manifest(generated_revision)
             )

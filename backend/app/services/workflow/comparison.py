@@ -18,8 +18,8 @@ class WorkflowRunComparisonService:
         candidate = self.db.get(WorkflowRun, candidate_workflow_run_id)
         if baseline is None or candidate is None:
             raise ValueError("workflow run not found")
-        baseline_events = self._events_for_family(baseline)
-        candidate_events = self._events_for_family(candidate)
+        baseline_events = self._events_for_run(baseline)
+        candidate_events = self._events_for_run(candidate)
         changes: list[dict[str, Any]] = []
         regressions: list[dict[str, Any]] = []
         improvements: list[dict[str, Any]] = []
@@ -61,16 +61,19 @@ class WorkflowRunComparisonService:
                 continue
             candidate_value = candidate_parameters[parameter_id]
             if candidate_value != baseline_value:
-                regressions.append(
-                    {
-                        "metric": "parameter_value",
-                        "entity_id": parameter_id,
-                        "baseline": baseline_value,
-                        "candidate": candidate_value,
-                        "basis": "explicit/protected parameter value changed between traces",
-                        "confidence": "confirmed",
-                    }
-                )
+                change = {
+                    "metric": "parameter_value",
+                    "entity_id": parameter_id,
+                    "baseline": baseline_value,
+                    "candidate": candidate_value,
+                    "basis": "explicit/protected parameter value changed between traces",
+                    "confidence": "confirmed",
+                }
+                if candidate.workflow_type == "configuration_change":
+                    change["classification"] = "intended_parameter_change"
+                    changes.append(change)
+                else:
+                    regressions.append(change)
         baseline_state = self._candidate_state(baseline_events)
         candidate_state = self._candidate_state(candidate_events)
         if baseline_state != candidate_state:
@@ -90,16 +93,12 @@ class WorkflowRunComparisonService:
             "improvements": improvements,
         }
 
-    def _events_for_family(self, run: WorkflowRun) -> list[WorkflowEvent]:
-        root_id = run.root_workflow_run_id or run.id
+    def _events_for_run(self, run: WorkflowRun) -> list[WorkflowEvent]:
         return list(
             self.db.scalars(
                 select(WorkflowEvent)
-                .join(WorkflowRun, WorkflowEvent.workflow_run_id == WorkflowRun.id)
-                .where(WorkflowEvent.root_workflow_run_id == root_id)
+                .where(WorkflowEvent.workflow_run_id == run.id)
                 .order_by(
-                    WorkflowRun.started_at.asc(),
-                    WorkflowEvent.workflow_run_id.asc(),
                     WorkflowEvent.sequence_number.asc(),
                     WorkflowEvent.recorded_at.asc(),
                 )
@@ -143,7 +142,13 @@ class WorkflowRunComparisonService:
                 continue
             metadata = json.loads(event.metadata_json or "{}")
             value_source = metadata.get("value_source")
-            if value_source not in {"explicit_user_value", "protected_parameter", "product_default", "parameter_default"}:
+            if value_source not in {
+                "explicit_user_value",
+                "protected_parameter",
+                "product_default",
+                "parameter_default",
+                "submitted_parameter",
+            }:
                 continue
             detected = json.loads(event.detected_json) if event.detected_json is not None else None
             expected = json.loads(event.expected_json) if event.expected_json is not None else None

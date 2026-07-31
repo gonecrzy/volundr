@@ -137,6 +137,9 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
     if (request.method() === "GET" && path === "/projects") {
       return route.fulfill({ json: [] });
     }
+    if (request.method() === "GET" && path === "/projects/project-1") {
+      return route.fulfill({ json: project });
+    }
     if (request.method() === "GET" && path === "/printability-profiles") {
       return route.fulfill({ json: [] });
     }
@@ -390,6 +393,9 @@ test("structured revision planning preserves active revision until scoped candid
     if (request.method() === "GET" && path === "/projects") {
       return route.fulfill({ json: [project] });
     }
+    if (request.method() === "GET" && path === "/projects/project-1") {
+      return route.fulfill({ json: project });
+    }
     if (request.method() === "GET" && path === "/printability-profiles") {
       return route.fulfill({ json: [] });
     }
@@ -597,7 +603,7 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByText("Current design - R1 - Current design")).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Make the lid 4 mm thick");
-  await page.getByRole("button", { name: "Plan revision" }).click();
+  await page.getByRole("button", { name: "Change the design" }).click();
   await expect(page.getByLabel("Planned changes").getByText("Ready for your review")).toBeVisible();
   await expect(page.getByText("Increase lid thickness from 3 mm to 4 mm")).toBeVisible();
   await expect(page.getByText("lid_thickness: 3 -> 4")).toBeVisible();
@@ -619,7 +625,7 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByText("Current design - R2 - Current design")).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Make the body width 90 mm");
-  await page.getByRole("button", { name: "Plan revision" }).click();
+  await page.getByRole("button", { name: "Change the design" }).click();
   await expect(page.getByLabel("Planned changes").getByText("Ready for your review")).toBeVisible();
   await page.getByRole("button", { name: "Review planned changes" }).click();
   await expect(page.getByLabel("Planned changes").getByText("Revision scope checks")).toBeVisible();
@@ -938,6 +944,9 @@ test("blocked CadQuery candidate shows partial outputs and solid-count rejection
 
     if (request.method() === "GET" && path === "/projects") {
       return route.fulfill({ json: [project] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1") {
+      return route.fulfill({ json: project });
     }
     if (request.method() === "GET" && path === "/printability-profiles") {
       return route.fulfill({ json: [] });
