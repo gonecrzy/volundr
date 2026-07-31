@@ -35,4 +35,14 @@ describe("workflow presentation", () => {
       secondaryAction: "Review proposed design",
     });
   });
+
+  it("distinguishes topology recovery from a worker retry", () => {
+    expect(recoveryPresentation("topology_validation").title).toContain("separate solid bodies");
+    expect(recoveryPresentation("worker_failure")).toEqual({
+      title: "Volundr could not finish building this required printable part.",
+      currentDesignMessage: "Your current design was not changed.",
+      primaryAction: "Retry building this part",
+      secondaryAction: "Reject new version",
+    });
+  });
 });

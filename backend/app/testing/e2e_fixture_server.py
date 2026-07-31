@@ -526,6 +526,8 @@ class FixtureRunner:
     def __init__(self, root: Path) -> None:
         self.root = root
         self.calls: list[dict[str, Any]] = []
+        self.failure_mode = "success"
+        self.failure_injected = False
 
     async def compile(
         self,
@@ -553,6 +555,67 @@ class FixtureRunner:
         parameter_hash = hashlib.sha256(
             json.dumps(values, sort_keys=True, separators=(",", ":")).encode("utf-8")
         ).hexdigest()
+        if self.failure_mode == "worker_failure" and not self.failure_injected:
+            self.failure_injected = True
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "cad_backend": "cadquery",
+                        "source_hash": source_hash,
+                        "parameter_hash": parameter_hash,
+                        "requested_output_ids": output_ids,
+                        "outputs": [
+                            {
+                                "output_id": output_ids[0],
+                                "required": bool(output_specs[0].get("required", True)),
+                                "success": False,
+                                "error": "worker_timeout",
+                            }
+                        ],
+                        "worker_status": "failed",
+                    },
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+            error_message = "Volundr could not finish building this required printable part."
+            failed_output = CadQueryOutputResult(
+                output_id=output_ids[0],
+                entrypoint=output_ids[0],
+                required=bool(output_specs[0].get("required", True)),
+                success=False,
+                stl_path=None,
+                step_path=None,
+                brep_path=None,
+                metadata_path=None,
+                topology_metadata_path=None,
+                stl_hash=None,
+                step_hash=None,
+                brep_hash=None,
+                output_size_bytes=0,
+                metadata=None,
+                topology_metadata=None,
+                compile_error=error_message,
+            )
+            return CadQueryCompileResult(
+                job_id=job_id,
+                success=False,
+                timed_out=False,
+                exit_code=1,
+                source_path=source_path,
+                stl_path=None,
+                step_path=None,
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                metadata_path=None,
+                source_hash=source_hash,
+                output_size_bytes=0,
+                metadata=None,
+                error_message=error_message,
+                command_args=["fixture-cadquery", ",".join(output_ids)],
+                outputs=[failed_output],
+                execution_manifest_path=manifest_path,
+            )
         outputs: list[CadQueryOutputResult] = []
         output_manifest_entries: list[dict[str, Any]] = []
         first_stl: Path | None = None
@@ -581,6 +644,10 @@ class FixtureRunner:
                 extents = (float(values.get("plate_width", values.get("column_count", 4) * 20)), 50.0, 3.0)
             mesh = trimesh.creation.box(extents=extents)
             mesh.apply_translation((extents[0] / 2, extents[1] / 2, extents[2] / 2))
+            if self.failure_mode == "multiple_solids":
+                second = trimesh.creation.box(extents=(8.0, 8.0, extents[2]))
+                second.apply_translation((extents[0] + 12.0, extents[1] / 2, extents[2] / 2))
+                mesh = trimesh.util.concatenate([mesh, second])
             if output_id == "lid" and "recessed finger pull" in source:
                 mesh.vertices[0] += (0.1, 0.1, 0.1)
             mesh.export(stl_path)
@@ -592,17 +659,18 @@ class FixtureRunner:
                 size_z_mm=extents[2],
                 volume_mm3=extents[0] * extents[1] * extents[2],
                 triangle_count=12,
-                connected_components=1,
+                connected_components=2 if self.failure_mode == "multiple_solids" else 1,
                 is_watertight=True,
                 is_winding_consistent=True,
                 center_of_mass=(extents[0] / 2, extents[1] / 2, extents[2] / 2),
             )
             topology = {
-                "valid": True,
+                "valid": self.failure_mode != "multiple_solids",
                 "expected_solid_count": 1,
-                "detected_solid_count": 1,
-                "shell_count": 1,
+                "detected_solid_count": 2 if self.failure_mode == "multiple_solids" else 1,
+                "shell_count": 2 if self.failure_mode == "multiple_solids" else 1,
                 "allow_disconnected_solids": False,
+                "failure_reason": "solid_count_mismatch" if self.failure_mode == "multiple_solids" else None,
                 "bounding_box_mm": {"xlen": extents[0], "ylen": extents[1], "zlen": extents[2]},
             }
             metadata_path.write_text(json.dumps(metadata.__dict__), encoding="utf-8")
@@ -738,7 +806,10 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
             "worker_calls": [
                 call
                 for call in runner.calls
-                if call["job_id"] in {revision.id for revision in db.scalars(select(Revision).where(Revision.project_id == project_id))}
+                if any(
+                    call["job_id"] == revision.id or call["job_id"].startswith(f"{revision.id}-")
+                    for revision in db.scalars(select(Revision).where(Revision.project_id == project_id))
+                )
             ],
             "workflow_run_ids": [run.id for run in runs],
             "revision_plans": [
@@ -848,6 +919,8 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
 
     @app.post("/api/test-fixture/scenarios/configure-organizer", status_code=201, include_in_schema=False)
     async def seed_configure_organizer(db: Session = Depends(override_db)) -> dict[str, Any]:
+        runner.failure_mode = "success"
+        runner.failure_injected = False
         service = ProjectService(db=db, data_dir=data_dir, ai_provider=provider, cad_runner=runner)
         project = service.create_project(
             ProjectCreate(name="Configurable organizer", original_intent="Create a repeated-cell organizer.")
@@ -880,6 +953,8 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
         if mode not in {"success", "protected_base_drift", "identity_replacement"}:
             raise HTTPException(status_code=400, detail="unsupported enclosure fixture mode")
         provider.revision_mode = mode
+        runner.failure_mode = "success"
+        runner.failure_injected = False
         service = ProjectService(db=db, data_dir=data_dir, ai_provider=provider, cad_runner=runner)
         project_name = f"Deterministic enclosure {uuid4().hex[:8]}"
         project = service.create_project(
@@ -910,6 +985,67 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
                 "active_revision_id": refreshed.active_revision_id,
             },
             "current_revision": current_revision.model_dump(mode="json"),
+        }
+
+    @app.post("/api/test-fixture/scenarios/recoverable-blocked-part", status_code=201, include_in_schema=False)
+    async def seed_recoverable_blocked_part(
+        failure_mode: str = "multiple_solids",
+        db: Session = Depends(override_db),
+    ) -> dict[str, Any]:
+        if failure_mode not in {"multiple_solids", "worker_failure"}:
+            raise HTTPException(status_code=400, detail="unsupported blocked fixture mode")
+        service = ProjectService(db=db, data_dir=data_dir, ai_provider=provider, cad_runner=runner)
+        project = service.create_project(
+            ProjectCreate(
+                name=f"Recoverable blocked part {uuid4().hex[:8]}",
+                original_intent="Create a mounting plate with one required printable part.",
+            )
+        )
+        specification = await service.extract_requirements(
+            project.id,
+            RequirementExtractionCreate(user_instruction="Create a mounting plate."),
+        )
+        assert specification is not None
+        plan = await service.create_design_plan_from_specification(specification.id)
+        assert plan is not None
+        approved_plan = service.approve_design_plan(plan.id)
+        assert approved_plan is not None
+        runner.failure_mode = "success"
+        runner.failure_injected = False
+        current_revision = await service.generate_from_design_plan(approved_plan.id)
+        assert current_revision is not None
+        accepted_revision = service.accept_candidate(current_revision.id)
+        assert accepted_revision is not None
+        runner.failure_mode = failure_mode
+        runner.failure_injected = False
+        blocked_revision = await service.generate_from_design_plan(approved_plan.id)
+        assert blocked_revision is not None
+        refreshed = service.get_project(project.id)
+        assert refreshed is not None
+        current_workflow = db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(WorkflowEvent.revision_id == accepted_revision.id)
+            .where(WorkflowEvent.event_type == "candidate.accepted")
+            .order_by(WorkflowRun.started_at.desc())
+        )
+        blocked_workflow = db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(WorkflowEvent.revision_id == blocked_revision.id)
+            .where(WorkflowEvent.event_type == "candidate.classified")
+            .order_by(WorkflowRun.started_at.desc())
+        )
+        return {
+            "project": {
+                "id": refreshed.id,
+                "name": refreshed.name,
+                "active_revision_id": refreshed.active_revision_id,
+            },
+            "current_revision": accepted_revision.model_dump(mode="json"),
+            "blocked_revision": blocked_revision.model_dump(mode="json"),
+            "current_workflow_run_id": current_workflow.id if current_workflow is not None else None,
+            "blocked_workflow_run_id": blocked_workflow.id if blocked_workflow is not None else None,
         }
 
     return app

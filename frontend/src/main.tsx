@@ -721,6 +721,16 @@ function App() {
   }, [project?.id, selectedRevision?.id, selectedRevision?.review_state]);
 
   useEffect(() => {
+    if (selectedRevision?.review_state !== "blocked" || !project) {
+      return;
+    }
+    recordWorkflowViewOnce(`blocked-error-${selectedRevision.id}`, "visible_error_displayed", "candidate_review", {
+      revision_id: selectedRevision.id,
+      state: "blocked_new_version",
+    });
+  }, [project?.id, selectedRevision?.id, selectedRevision?.review_state]);
+
+  useEffect(() => {
     if (!project || !selectedRevision || !["running", "compiling", "validating"].includes(selectedRevision.status)) {
       return;
     }
@@ -1910,6 +1920,10 @@ function App() {
   async function retryOutput(output: RevisionOutput) {
     setIsRetryingOutputId(output.id);
     setMessage(null);
+    void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+      action: "retry_output",
+      output_id: output.output_id,
+    });
     try {
       const retried = await request<RevisionOutput>(`/revision-outputs/${output.id}/retry`, {
         method: "POST",
@@ -2309,6 +2323,18 @@ function App() {
             onAccept={() => void acceptSelectedCandidate()}
             onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
             onRetryOutput={(output) => void retryOutput(output)}
+            onReviseBlockedOutput={(output) => {
+              setSelectedOutputId(output.id);
+              setGenerationPrompt(
+                `Revise the ${output.label} printable part to resolve the blocked design check. Preserve the other parts and their fit.`,
+              );
+              setPendingRevisionFindingIds([]);
+              void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+                action: "revise_output",
+                output_id: output.output_id,
+              });
+              setMessage(`Revision request prepared for ${output.label}. Your current design remains active.`);
+            }}
             onReject={() => void rejectSelectedCandidate()}
             onSelectOutput={(outputId) => {
               setSelectedOutputId(outputId);
@@ -2951,8 +2977,8 @@ function FindingList({
     <div className="summary-list">
       <h3>{title}</h3>
       <ul>
-        {findings.map((finding) => (
-          <li key={finding.rule_id}>
+        {findings.map((finding, index) => (
+          <li key={`${finding.rule_id}-${index}`}>
             {finding.title}
             {finding.explanation ? ` - ${finding.explanation}` : ""}
           </li>
@@ -3167,6 +3193,7 @@ function CandidateReview({
   onAccept,
   onDismissFinding,
   onRetryOutput,
+  onReviseBlockedOutput,
   onReject,
   onSelectOutput,
   onRecoverFinding,
@@ -3189,6 +3216,7 @@ function CandidateReview({
   onAccept: () => void;
   onDismissFinding: (findingId: string) => void;
   onRetryOutput: (output: RevisionOutput) => void;
+  onReviseBlockedOutput: (output: RevisionOutput) => void;
   onReject: () => void;
   onSelectOutput: (outputId: string) => void;
   onRecoverFinding: (
@@ -3211,7 +3239,17 @@ function CandidateReview({
   const consistency = revision.design_consistency ?? null;
   const consistencyFindings = consistency?.findings.filter((finding) => finding.is_blocking) ?? [];
   const blockedRequired = outputs.filter((output) => output.required && ["blocked", "failed"].includes(output.execution_state)).length;
-  const recovery = recoveryPresentation(blockedRequired > 0 ? "topology_validation" : "source_contract_validation");
+  const blockedOutputs = outputs.filter(
+    (output) => output.required && ["blocked", "failed"].includes(output.execution_state),
+  );
+  const recovery = recoveryPresentation(
+    blockedOutputs.some((output) => output.execution_state === "failed")
+      ? "worker_failure"
+      : blockedRequired > 0
+        ? "topology_validation"
+        : "source_contract_validation",
+  );
+  const primaryBlockedOutput = blockedOutputs[0] ?? null;
 
   return (
     <section className="candidate-review" aria-label="Candidate review">
@@ -3262,7 +3300,20 @@ function CandidateReview({
           <p>{recovery.currentDesignMessage}</p>
           <p>{acceptDisabledReason}</p>
           <div className="actions compact">
-            <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>{recovery.primaryAction}</button>
+            {primaryBlockedOutput && recovery.primaryAction === "Revise this part" ? (
+              <button className="secondary" disabled={isPending} onClick={() => onReviseBlockedOutput(primaryBlockedOutput)}>
+                {recovery.primaryAction}
+              </button>
+            ) : primaryBlockedOutput && recovery.primaryAction === "Retry building this part" ? (
+              <button className="secondary" disabled={isPending || retryingOutputId === primaryBlockedOutput.id} onClick={() => onRetryOutput(primaryBlockedOutput)}>
+                {recovery.primaryAction}
+              </button>
+            ) : (
+              <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>{recovery.primaryAction}</button>
+            )}
+            {recovery.secondaryAction === "Try generation again" ? (
+              <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>{recovery.secondaryAction}</button>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -3274,8 +3325,8 @@ function CandidateReview({
             <>
           <h4>What needs attention</h4>
               <ul>
-                {consistencyFindings.slice(0, 5).map((finding) => (
-                  <li key={`${finding.rule_id}-${finding.explanation}`}>{finding.explanation}</li>
+                {consistencyFindings.slice(0, 5).map((finding, index) => (
+                  <li key={`${finding.rule_id}-${index}`}>{finding.explanation}</li>
                 ))}
               </ul>
             </>
@@ -3289,8 +3340,8 @@ function CandidateReview({
             <details>
               <summary>View technical details</summary>
               <ul>
-                {consistency.findings.map((finding) => (
-                  <li key={`${finding.rule_id}-${finding.explanation}`}>
+                {consistency.findings.map((finding, index) => (
+                  <li key={`${finding.rule_id}-${index}`}>
                     {finding.rule_id}: {finding.explanation}
                   </li>
                 ))}
@@ -3395,7 +3446,7 @@ function OutputReview({
               ) : null}
               {canRetryOutput(output) ? (
                 <button className="secondary compact" disabled={retryingOutputId === output.id} onClick={() => onRetryOutput(output)}>
-                  {retryingOutputId === output.id ? "Trying again" : "Try this part again"}
+                  {retryingOutputId === output.id ? "Retrying" : "Retry building this part"}
                 </button>
               ) : null}
             </div>
@@ -3518,8 +3569,8 @@ function GeometricFindingGroup({
   return (
     <div className="geometry-group">
       <h4>{title}</h4>
-      {findings.map((finding) => (
-        <article className={`candidate-finding ${finding.severity}`} key={`${finding.rule_id}-${finding.requirement_id ?? finding.feature_id ?? finding.title}`}>
+      {findings.map((finding, index) => (
+        <article className={`candidate-finding ${finding.severity}`} key={`${finding.rule_id}-${finding.requirement_id ?? finding.feature_id ?? finding.title}-${index}`}>
           <div className="result-row">
             <span className={`severity ${finding.severity}`}>{finding.verification_state}</span>
             <span className="rule-id">{finding.rule_id}</span>
@@ -3842,7 +3893,7 @@ function PrintabilityInspector({
             return (
               <article
                 className={`printability-result ${result.severity.toLowerCase()}${dismissed ? " dismissed" : ""}`}
-                key={result.rule_id}
+                key={`${result.rule_id}-${result.explanation}`}
               >
                 <div className="result-row">
                   <span className={`severity ${result.severity.toLowerCase()}`}>{result.severity}</span>

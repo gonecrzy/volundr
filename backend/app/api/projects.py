@@ -830,17 +830,15 @@ def get_component_revision_summary_for_plan(
 
 @router.get(
     "/revisions/{revision_id}/component-revision-summary",
-    response_model=ComponentRevisionSummaryRead,
+    response_model=ComponentRevisionSummaryRead | None,
 )
 def get_component_revision_summary_for_revision(
     revision_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-) -> ComponentRevisionSummaryRead:
+) -> ComponentRevisionSummaryRead | None:
     service = ProjectService(db=db, data_dir=data_dir)
     result = service.get_component_revision_summary_by_revision(revision_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="component revision summary not found")
     return result
 
 

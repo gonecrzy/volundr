@@ -198,10 +198,15 @@ mock API responses in the browser. The fixture summary endpoint is test-only
 and exposes bounded run, event, artifact, provider-call, frontend-event, and
 revision assertions.
 
-The initial gate covers a no-clarification explicit part and an intent-first
-holder clarification. Both assert workflow correlation, candidate review,
-acceptance behavior, and debug-bundle download. It is run serially because the
-summary endpoint is scoped to the latest disposable fixture project.
+The deterministic gate covers the explicit part, intent-first holder,
+configurable organizer, enclosure lid revision, and recoverable blocked
+candidate workflows. Scenario 5 uses separate multiple-solid and worker-failure
+fixtures and asserts that the accepted revision remains safe, blocked
+acceptance is rejected, topology recovery is routed to a part-specific
+revision request, and worker retry uses unchanged source and parameter hashes
+without a provider call. Both blocked paths assert correlated frontend events
+and diagnostic-bundle evidence. The gate is run serially because the summary
+endpoint is scoped to disposable fixture projects.
 
 Live Gemini browser smoke tests remain opt-in and must run against a separately
 configured live application. They are not part of the deterministic Playwright

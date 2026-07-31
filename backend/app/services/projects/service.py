@@ -678,6 +678,7 @@ class ProjectService:
         rule_id: str | None = None,
         deduplication_key: str | None = None,
         caused_by_event_id: str | None = None,
+        is_downstream_symptom: bool = False,
         entity_type: str | None = None,
         entity_id: str | None = None,
         expected: Any = None,
@@ -704,6 +705,7 @@ class ProjectService:
             rule_id=rule_id,
             deduplication_key=deduplication_key,
             caused_by_event_id=caused_by_event_id,
+            is_downstream_symptom=is_downstream_symptom,
             entity_type=entity_type,
             entity_id=entity_id,
             expected=expected,
@@ -7407,7 +7409,7 @@ class ProjectService:
             requested_outputs=requested_outputs,
         )
         compile_ms = round((time.perf_counter() - started) * 1000, 3)
-        self._record_workflow_event(
+        worker_event = self._record_workflow_event(
             workflow_run,
             stage="cad_execution",
             event_type="worker.completed" if result.success else "worker.failed",
@@ -7469,6 +7471,27 @@ class ProjectService:
 
         self._persist_assembly_output_findings(revision)
         self._refresh_revision_output_counts(revision)
+        first_blocking_validation_event = None
+        for output_record in output_records:
+            topology = self._output_topology_metadata(output_record)
+            if not topology or topology.get("valid", True) is not False:
+                continue
+            first_blocking_validation_event = first_blocking_validation_event or self._record_workflow_event(
+                workflow_run,
+                stage="topology_validation",
+                event_type="topology.failed",
+                severity="error",
+                blocking=True,
+                rule_id="topology.solid_count_mismatch",
+                message="A required printable part contains separate solid bodies that were expected to be connected.",
+                deduplication_key=f"topology-failed-{output_record.id}",
+                revision_id=revision.id,
+                revision_output_id=output_record.id,
+                expected=output_record.expected_solid_count,
+                detected=output_record.detected_solid_count,
+                worker_job_id=revision.id,
+                metadata={"output_id": output_record.output_id, "topology": topology},
+            )
         revision.status = "succeeded" if revision.successful_output_count > 0 else "failed"
         revision.source_path = self._relative(source_path)
         revision.source_hash = source_hash
@@ -7534,7 +7557,11 @@ class ProjectService:
                 parameter_overrides=parameter_overrides,
                 generation_attempt_id=generation_attempt_id,
             )
-        revision.review_state = self._derive_review_state(revision.id) if revision.status == "succeeded" else None
+        revision.review_state = (
+            self._derive_review_state(revision.id)
+            if revision.status == "succeeded" or source_type != "manual_edit"
+            else None
+        )
         self._record_workflow_event(
             workflow_run,
             stage="candidate_classification",
@@ -7546,6 +7573,14 @@ class ProjectService:
             else None,
             message=f"Candidate classified as {revision.review_state or revision.status}.",
             deduplication_key=f"candidate-classified-{revision.id}",
+            caused_by_event_id=(
+                first_blocking_validation_event.id
+                if first_blocking_validation_event is not None
+                else worker_event.id
+                if revision.status == "failed" and worker_event is not None
+                else None
+            ),
+            is_downstream_symptom=(first_blocking_validation_event is not None or revision.status == "failed"),
             revision_id=revision.id,
             metadata={
                 "review_state": revision.review_state,
@@ -7796,10 +7831,23 @@ class ProjectService:
         if revision.cad_backend != "cadquery":
             raise ValueError("output retry requires a CadQuery revision")
 
+        active_retry = self.db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(
+                WorkflowRun.workflow_type == "output_retry",
+                WorkflowRun.status == "running",
+                WorkflowEvent.revision_output_id == output.id,
+            )
+        )
+        if active_retry is not None:
+            raise ValueError("Output retry is already running")
+
         revision_dir = self._revision_dir(revision.project_id, revision.id)
         workflow_run = self._start_child_workflow_run(
             project_id=revision.project_id,
             workflow_type="output_retry",
+            parent=self._workflow_run_for_revision(revision.id),
         )
         pre_retry_snapshot_path = revision_dir / "logs" / f"{self._safe_stem(output.output_id)}-pre-retry.json"
         pre_retry_snapshot_path.parent.mkdir(parents=True, exist_ok=True)
@@ -7876,12 +7924,30 @@ class ProjectService:
         if output.allow_disconnected_solids is not None:
             requested_output["allow_disconnected_solids"] = output.allow_disconnected_solids
         requested_outputs = [requested_output]
+        retry_job_id = f"{revision.id}-{output.id}-retry-{time.time_ns()}"
+        self._record_workflow_event(
+            workflow_run,
+            stage="worker_submission",
+            event_type="worker.submitted",
+            severity="summary",
+            message="CAD worker retry submitted.",
+            deduplication_key=f"output-retry-worker-submitted-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            worker_job_id=retry_job_id,
+            metadata={
+                "output_id": output.output_id,
+                "source_hash": expected_hash,
+                "parameter_hash": parameter_hash,
+                "requested_output_ids": [output.output_id],
+            },
+        )
         output.execution_state = "compiling"
-        self.db.flush()
+        self.db.commit()
         started = time.perf_counter()
         result = await self._cadquery_runner().compile(
             source,
-            job_id=f"{revision.id}-{output.id}-retry-{time.time_ns()}",
+            job_id=retry_job_id,
             parameter_values=parameter_values,
             requested_outputs=requested_outputs,
         )
@@ -7978,6 +8044,13 @@ class ProjectService:
             role="retry_output_manifest",
             relative_path=revision.output_manifest_path,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_result_manifest",
+            role="retry_execution_manifest",
+            relative_path=revision.execution_manifest_path,
+        )
         self._record_workflow_event(
             workflow_run,
             stage="output_preservation",
@@ -7990,6 +8063,39 @@ class ProjectService:
             revision_id=revision.id,
             revision_output_id=output.id,
             metadata={"execution_state": output.execution_state, "revision_status": revision.status},
+        )
+        retry_worker_event = self.db.scalar(
+            select(WorkflowEvent)
+            .where(WorkflowEvent.workflow_run_id == workflow_run.id)
+            .where(WorkflowEvent.event_type.in_(("worker.completed", "worker.failed")))
+            .order_by(WorkflowEvent.sequence_number.desc())
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="candidate_classification",
+            event_type="candidate.classified",
+            severity="summary" if revision.review_state in ACCEPTABLE_CANDIDATE_STATES else "error",
+            blocking=revision.review_state == "blocked" or revision.status == "failed",
+            rule_id="candidate.blocked"
+            if revision.review_state == "blocked" or revision.status == "failed"
+            else None,
+            message=f"Candidate classified as {revision.review_state or revision.status} after output retry.",
+            deduplication_key=f"output-retry-candidate-classified-{output.id}",
+            caused_by_event_id=(
+                retry_worker_event.id
+                if retry_worker_event is not None and revision.status == "failed"
+                else None
+            ),
+            is_downstream_symptom=revision.status == "failed",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            worker_job_id=retry_job_id,
+            metadata={
+                "review_state": revision.review_state,
+                "status": revision.status,
+                "source_hash": expected_hash,
+                "parameter_hash": parameter_hash,
+            },
         )
         self.db.commit()
         self._workflow_recorder().complete_run(

@@ -25,6 +25,7 @@ This file explains exactly what belongs in each project document.
 | `docs/WORKFLOW_OBSERVABILITY.md` | Workflow runs, stage vocabulary, structured events, artifact registry, diagnosis, stage traces, frontend correlation, redaction, debug bundles, run comparison, retention, and logging levels. |
 | `docs/FRONTEND_WORKFLOW_AUDIT.md` | Repository-grounded assessment of the user-facing workflow, terminology, state mapping, recovery, responsiveness, accessibility, and priority corrections. |
 | `docs/FRONTEND_USER_TESTING_PLAN.md` | Five observed-user scenarios, measures, correlated events, preserved diagnostic evidence, and post-task questions. |
+| `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, and immutability rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |

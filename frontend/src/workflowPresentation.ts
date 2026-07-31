@@ -49,10 +49,18 @@ export type RecoveryPresentation = {
 export function recoveryPresentation(stage: string | null | undefined): RecoveryPresentation {
   if (stage === "topology_validation") {
     return {
-      title: "One printable part needs another design pass.",
+      title: "This printable part contains separate solid bodies that were expected to be connected.",
       currentDesignMessage: "Your current design was not changed.",
       primaryAction: "Revise this part",
       secondaryAction: "Try generation again",
+    };
+  }
+  if (stage === "worker_failure") {
+    return {
+      title: "Volundr could not finish building this required printable part.",
+      currentDesignMessage: "Your current design was not changed.",
+      primaryAction: "Retry building this part",
+      secondaryAction: "Reject new version",
     };
   }
   if (stage === "provider_response") {
