@@ -118,6 +118,7 @@ class ProjectLibraryRead(ProjectRead):
     printable_part_count: int = 0
     unresolved_warning_count: int = 0
     preview_revision_id: str | None = None
+    preview_snapshot_artifact_id: str | None = None
 
 
 class GenerationAttemptEvidenceRead(BaseModel):

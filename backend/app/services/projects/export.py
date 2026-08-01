@@ -289,6 +289,10 @@ class ExportService:
                 archive.write(self._resolve(output.step_path), f"step/{part_slug}.step")
             if output.brep_path and self._optional_path(output.brep_path):
                 archive.write(self._resolve(output.brep_path), f"brep/{part_slug}.brep")
+        snapshot_root = self.data_dir / "projects" / project.id / "revisions" / revision.id / "snapshots"
+        if snapshot_root.is_dir():
+            for snapshot_path in sorted(path for path in snapshot_root.rglob("*") if path.is_file()):
+                archive.write(snapshot_path, f"snapshots/{snapshot_path.relative_to(snapshot_root)}")
         archive.writestr("README.txt", "Volundr project package. Geometry units: millimeters.\n")
 
     def _artifact_manifest(self, outputs: list[RevisionOutput], export_type: str) -> list[dict[str, Any]]:

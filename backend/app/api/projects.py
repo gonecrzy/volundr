@@ -77,6 +77,8 @@ from app.services.workflow.redaction import RedactionError
 from app.services.workflow.stage_trace import WorkflowStageTraceService
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
+from app.models.revision import Revision
+from app.services.geometry.snapshots import SnapshotService
 
 router = APIRouter(prefix="/api", tags=["projects"])
 _frontend_event_rate_window: dict[str, deque[float]] = defaultdict(deque)
@@ -1698,6 +1700,62 @@ def get_revision_output_manifest(
     if manifest is None:
         raise HTTPException(status_code=404, detail="revision output manifest not found")
     return manifest
+
+
+@router.get("/revisions/{revision_id}/snapshots")
+def get_revision_snapshots(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    revision = db.get(Revision, revision_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    packet = SnapshotService(db=db, data_dir=data_dir).get_packet(
+        revision_id,
+        project_id=revision.project_id,
+    )
+    if packet is None:
+        return {"status": "snapshot_not_available"}
+    return packet
+
+
+@router.get("/revisions/{revision_id}/snapshots/images/{artifact_id}")
+def get_revision_snapshot_image(
+    revision_id: str,
+    artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    revision = db.get(Revision, revision_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    path = SnapshotService(db=db, data_dir=data_dir).resolve_registered_image_for_revision(
+        revision.project_id,
+        revision_id,
+        artifact_id,
+    )
+    if path is None:
+        raise HTTPException(status_code=404, detail="snapshot image not found")
+    return FileResponse(path, media_type="image/png", filename=path.name)
+
+
+@router.get("/revisions/{revision_id}/comparison")
+def get_revision_comparison(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    revision = db.get(Revision, revision_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    comparison = SnapshotService(db=db, data_dir=data_dir).get_comparison(
+        revision_id,
+        project_id=revision.project_id,
+    )
+    if comparison is None:
+        return {"status": "comparison_not_available"}
+    return comparison
 
 
 @router.get("/revisions/{revision_id}/export.zip")

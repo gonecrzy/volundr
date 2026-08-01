@@ -289,4 +289,6 @@ class WorkflowRecorder:
             return "text/x-python"
         if suffix == ".ndjson":
             return "application/x-ndjson"
+        if suffix == ".png":
+            return "image/png"
         return None

@@ -52,6 +52,14 @@ class Settings(BaseSettings):
     enable_multi_output: bool = Field(default=True)
     enable_structured_revisions: bool = Field(default=True)
     chat_first: bool = Field(default=False)
+    snapshots_enabled: bool = Field(default=True)
+    snapshot_image_width: int = Field(default=768, ge=128, le=2048)
+    snapshot_image_height: int = Field(default=768, ge=128, le=2048)
+    snapshot_timeout_seconds: int = Field(default=30, ge=1, le=300)
+    snapshot_max_whole_design_views: int = Field(default=5, ge=1, le=8)
+    snapshot_max_components: int = Field(default=24, ge=1, le=100)
+    snapshot_section_enabled: bool = Field(default=True)
+    snapshot_background: str = Field(default="neutral_light")
 
     @cached_property
     def database_url(self) -> str:

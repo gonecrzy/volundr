@@ -183,6 +183,7 @@ from app.services.geometry.invariants import (
     GeometryAnalyzerRegistry,
     mesh_hash,
 )
+from app.services.geometry.snapshots import SnapshotService
 from app.services.geometry.functional import (
     FunctionalGeometryContext,
     FunctionalGeometryVerifierRegistry,
@@ -337,6 +338,7 @@ class ProjectService:
     def list_project_library(self) -> list[ProjectLibraryRead]:
         projects = self.list_projects()
         results: list[ProjectLibraryRead] = []
+        snapshot_service = SnapshotService(db=self.db, data_dir=self.data_dir)
         for project in projects:
             revisions = list(
                 self.db.scalars(
@@ -347,6 +349,15 @@ class ProjectService:
             )
             latest = revisions[0] if revisions else None
             current = self.db.get(Revision, project.active_revision_id) if project.active_revision_id else None
+            latest_successful = next(
+                (
+                    revision
+                    for revision in revisions
+                    if revision.status == "succeeded"
+                    and revision.review_state in ACCEPTABLE_CANDIDATE_STATES | {"accepted"}
+                ),
+                None,
+            )
             active_workflow = self.db.scalar(
                 select(WorkflowRun)
                 .where(WorkflowRun.project_id == project.id)
@@ -377,6 +388,12 @@ class ProjectService:
                 if count_revision is not None
                 else 0
             )
+            preview_revision = current or latest_successful
+            preview_packet = (
+                snapshot_service.get_packet(preview_revision.id, project_id=project.id)
+                if preview_revision is not None
+                else None
+            )
             results.append(
                 ProjectLibraryRead(
                     **{
@@ -393,7 +410,13 @@ class ProjectService:
                         "active_workflow_status": active_workflow.status if active_workflow else None,
                         "printable_part_count": part_count,
                         "unresolved_warning_count": warning_count,
-                        "preview_revision_id": (current or latest).id if (current or latest) else None,
+                        "preview_revision_id": preview_revision.id if preview_revision else None,
+                        "preview_snapshot_artifact_id": (
+                            preview_packet.get("packet_artifact_id")
+                            if isinstance(preview_packet, dict)
+                            and preview_packet.get("status") is None
+                            else None
+                        ),
                     },
                 )
             )
@@ -474,6 +497,21 @@ class ProjectService:
                     required_paths.append(relative_path)
                     if not (self.data_dir / relative_path).is_file():
                         missing_paths.append(relative_path)
+        snapshot_artifacts = list(
+            self.db.scalars(
+                select(WorkflowArtifact)
+                .where(WorkflowArtifact.project_id == project_id)
+                .where(
+                    WorkflowArtifact.artifact_type.in_(
+                        ("geometry_snapshot_packet", "geometry_snapshot", "component_snapshot", "section_snapshot", "revision_comparison_manifest")
+                    )
+                )
+            )
+        )
+        for artifact in snapshot_artifacts:
+            required_paths.append(artifact.path)
+            if not (self.data_dir / artifact.path).is_file():
+                missing_paths.append(artifact.path)
         ledger = RequirementLedgerStore(self.db).load(project_id)
         return ProjectWorkspaceRead(
             project=project,
@@ -9334,6 +9372,15 @@ class ProjectService:
             if revision.status == "succeeded" or source_type != "manual_edit"
             else None
         )
+        self._generate_revision_snapshot_evidence(
+            project=project,
+            revision=revision,
+            output_records=output_records,
+            workflow_run=workflow_run,
+            design_plan_payload=design_plan_payload,
+            user_instruction=user_instruction,
+            generation_attempt_id=generation_attempt_id,
+        )
         self._record_workflow_event(
             workflow_run,
             stage="candidate_classification",
@@ -9394,6 +9441,68 @@ class ProjectService:
                 None,
             )
         return self._revision_read(revision, error_message=revision_error)
+
+    def _generate_revision_snapshot_evidence(
+        self,
+        *,
+        project: Project,
+        revision: Revision,
+        output_records: list[RevisionOutput],
+        workflow_run: WorkflowRun | None,
+        design_plan_payload: dict[str, Any] | None,
+        user_instruction: str | None,
+        generation_attempt_id: str | None,
+    ) -> None:
+        """Observe worker geometry without changing validation or promotion."""
+        snapshot_run = workflow_run
+        owns_run = False
+        if snapshot_run is None:
+            snapshot_run = self._workflow_recorder().start_run(
+                project_id=project.id,
+                workflow_type="snapshot_generation",
+                metadata={"revision_id": revision.id, "reason": "post_worker_observation"},
+            )
+            owns_run = True
+        service = SnapshotService(db=self.db, data_dir=self.data_dir)
+        candidate_state = "blocked" if revision.review_state == "blocked" or revision.status == "failed" else "ready"
+        try:
+            result = service.generate_for_revision(
+                workflow_run=snapshot_run,
+                revision=revision,
+                outputs=output_records,
+                candidate_state=candidate_state,
+                execution_context={"design_plan": design_plan_payload or {}},
+                attempt_id=generation_attempt_id,
+            )
+            if result.packet is not None and revision.parent_revision_id:
+                before_revision = self.db.get(Revision, revision.parent_revision_id)
+                before_packet = service.get_packet(
+                    revision.parent_revision_id,
+                    project_id=project.id,
+                )
+                if before_revision is not None and before_packet is not None:
+                    service.compare_revisions(
+                        workflow_run=snapshot_run,
+                        before_revision=before_revision,
+                        after_revision=revision,
+                        revision_instruction=user_instruction,
+                        before_packet=before_packet,
+                        after_packet=result.packet,
+                    )
+        except Exception as exc:
+            self._record_workflow_event(
+                snapshot_run,
+                stage="snapshot_generation",
+                event_type="snapshot.generation_failed",
+                severity="warning",
+                message="Deterministic geometry snapshots could not be generated.",
+                revision_id=revision.id,
+                deduplication_key=f"snapshot-generation-failed-{revision.id}",
+                metadata={"error": str(exc), "nonblocking": True},
+            )
+        finally:
+            if owns_run:
+                self._workflow_recorder().complete_run(snapshot_run, status="completed")
 
     def read_revision_source(self, revision_id: str) -> str | None:
         path = self.resolve_revision_source(revision_id)
@@ -9574,6 +9683,10 @@ class ProjectService:
                         f"{root}/metadata/{self._safe_stem(output.output_id)}.metadata.json",
                         json.dumps(json.loads(metadata_json), indent=2, sort_keys=True),
                     )
+            snapshot_root = self.data_dir / "projects" / revision.project_id / "revisions" / revision.id / "snapshots"
+            if snapshot_root.is_dir():
+                for snapshot_path in sorted(path for path in snapshot_root.rglob("*") if path.is_file()):
+                    archive.write(snapshot_path, f"{root}/snapshots/{snapshot_path.relative_to(snapshot_root)}")
         self._record_workflow_artifact(
             workflow_run,
             stage="export",
@@ -9812,6 +9925,24 @@ class ProjectService:
         )
         self._certify_revision_artifacts(revision)
         revision.review_state = self._derive_review_state(revision.id)
+        retry_outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        retry_project = self.db.get(Project, revision.project_id)
+        if retry_project is not None:
+            self._generate_revision_snapshot_evidence(
+                project=retry_project,
+                revision=revision,
+                output_records=retry_outputs,
+                workflow_run=workflow_run,
+                design_plan_payload=design_plan_payload,
+                user_instruction=revision.user_instruction,
+                generation_attempt_id=None,
+            )
         self._record_workflow_artifact(
             workflow_run,
             stage="cad_execution",
