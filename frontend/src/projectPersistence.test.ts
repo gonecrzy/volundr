@@ -12,8 +12,8 @@ describe("project persistence presentation", () => {
   it.each<[SaveStatus, string]>([
     ["saving", "Saving…"],
     ["saved", "Saved"],
-    ["failed", "Save failed — retrying"],
-    ["offline", "Offline or server unavailable"],
+    ["failed", "Save failed"],
+    ["offline", "Disconnected"],
     ["idle", ""],
   ])("labels %s from backend save state", (status, label) => {
     expect(saveStatusLabel(status)).toBe(label);

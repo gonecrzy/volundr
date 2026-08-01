@@ -16,9 +16,9 @@ export function saveStatusLabel(status: SaveStatus): string {
     case "saved":
       return "Saved";
     case "failed":
-      return "Save failed — retrying";
+      return "Save failed";
     case "offline":
-      return "Offline or server unavailable";
+      return "Disconnected";
     default:
       return "";
   }
