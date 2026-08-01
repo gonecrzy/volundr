@@ -446,6 +446,6 @@ Do not implement these prematurely:
 
 ## Frontend Workflow Boundary
 
-The primary frontend renders an assistant journey, not lifecycle tables: Describe, Clarify, Review requirements, Review proposed design, Generate, Review new version, and Accept or revise. Source editing, manifests, diagnostics, workflow IDs, and debug-bundle download are secondary Technical details. The implementation audit is in `docs/FRONTEND_WORKFLOW_AUDIT.md`.
+The primary frontend renders a chat-first assistant journey. One chat operation routes deterministic intent through the existing authoritative services; only essential clarification interrupts automatic requirements, Design Plan, generation, validation, and working-version promotion. Source editing, manifests, diagnostics, workflow IDs, and debug-bundle download are secondary Technical details. Staged controls remain behind the disabled flag during transition. The implementation audit is in `docs/FRONTEND_WORKFLOW_AUDIT.md` and `docs/CHAT_FIRST_WORKFLOW.md`.
 
 The pipeline separately evaluates source contract, execution, topology, printability, and physical-function compliance through the generic functional verifier registry.

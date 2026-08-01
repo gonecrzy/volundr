@@ -41,3 +41,5 @@ When information conflicts:
 7. `LIVE_GENERATION_EVALUATION.md` controls how live benchmark evidence is collected before changing that work order.
 
 Functional design intent and deterministic geometry verification: `FUNCTIONAL_DESIGN_INTENT.md`, `FUNCTIONAL_GEOMETRY_VERIFICATION.md`, and `FUNCTIONAL_DESIGN_VERIFICATION_EVALUATION.md`.
+
+Chat-first workflow and staged-mode transition: `CHAT_FIRST_WORKFLOW.md`.

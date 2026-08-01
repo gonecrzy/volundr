@@ -102,4 +102,4 @@ The layout is validated at desktop and compact breakpoints through the existing 
 
 ## Priority After This Pass
 
-Run observed user testing using `docs/FRONTEND_USER_TESTING_PLAN.md`. Use event trace timing, diagnosis, and debug bundles to distinguish a user-comprehension issue from a backend lifecycle failure before making further workflow changes.
+Run the deterministic chat-first scenarios and live smoke first. Observed user testing remains paused until those gates pass. Use event trace timing, diagnosis, and debug bundles to distinguish a user-comprehension issue from a backend lifecycle failure before making further workflow changes. Staged controls remain available only when `VITE_VOLUNDR_CHAT_FIRST=false`.

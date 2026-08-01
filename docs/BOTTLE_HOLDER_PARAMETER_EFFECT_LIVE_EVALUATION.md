@@ -1,51 +1,60 @@
-# Bottle Holder Parameter-Effect Live Evaluation
+# Bottle-Holder Parameter-Effect Live Evaluation
 
-Date: 2026-08-01
+Date: 2026-08-01  
+Request: “Create a wall-mounted holder for an 81 mm bottle, suitable for a moving boat, with one-handed removal and two #8 mounting screws.”
 
-## Scope
+Command: `backend/.venv/bin/python backend/scripts/run_live_bottle_holder_workflow.py --report /tmp/volundr-bottle-holder-live-result.json`
 
-The exact request was preserved without adding construction dimensions:
+This was a browserless diagnostic run through a real `GeminiApiProvider`, real
+FastAPI services, and a real CadQuery worker on `127.0.0.1`. The provider key
+was supplied through the existing environment and is not included here or in
+the JSON result.
 
-> Create a wall-mounted holder for an 81 mm bottle, suitable for a moving boat, with one-handed removal and two #8 mounting screws.
+## Result
 
-This evaluation covers only the structured CadQuery geometry-body parameter-effect correction. The structured-body JSON format, deterministic scaffold, functional Design Plan model, and frontend workflow were not broadened.
+The request was blocked accurately. No Current working version was created or
+replaced:
 
-## Deterministic contract result
+- requirements passed without clarification;
+- the Design Plan passed and was automatically approved for first-draft generation;
+- deterministic derived values resolved, including `holder_inner_diameter =
+  81.8 mm`, `holder_outer_diameter = 87.8 mm`, `holder_height = 101.25 mm`,
+  `screw_spacing_vertical = 81.0 mm`, and `mounting_screw_hole_diameter = 4.2
+  mm` for `#8`;
+- the scaffold/source path reached structured geometry-body validation;
+- the candidate and repair attempts were blocked because
+  `mounting_screw_count` did not have a statically verifiable geometry effect;
+- the final response was `blocked_attempt` with “Your current working version
+  is unchanged.”;
+- no printable output or ready candidate was produced, so no misleading ready
+  state was emitted.
 
-The implementation now derives a `cadquery-parameter-effects-v1` contract from the approved Design Plan. Each derived parameter records its expression, direct dependencies, transitive protected dependencies, resolved value, and provenance version. Each component and feature function records its required effects, direct parameter IDs, and approved derived values.
+The relevant generation attempts were:
 
-The contract distinguishes direct use from valid transitive use. For example:
+| Attempt | Prompt | Result | Time |
+| --- | --- | --- | ---: |
+| 1–2 | requirements | first invalid response repaired, then passed | 2.1 s / 1.9 s |
+| 3 | Design Plan | passed | 9.4 s |
+| 4 | geometry body | blocked: count effect unverifiable | 9.8 s |
+| 5 | geometry-body repair | blocked: count effect unverifiable | 3.3 s |
 
-- `bottle_diameter` and `removable_fit_clearance_per_side` may reach cavity geometry through `bottle_inner_diameter` and `bottle_cavity_diameter`.
-- `mounting_screw_count` must control pattern cardinality; a fixed two-point list, fixed range, or repeated literal geometry calls is blocked.
-- `mounting_hole_spacing` must control the pattern spacing rather than being replaced by fixed coordinates.
+The complete chat request elapsed time was approximately 29.8 s. The worker
+process was started and remained alive, but the source was rejected before a
+valid worker job could produce outputs. Mounting, floor/support, removal, and
+retention functional checks therefore did not run; running them without a
+validated geometry body would weaken the gate. This is a genuine semantic
+failure, not a harness or provider failure.
 
-The following blocking findings are emitted with function and parameter context:
+The persisted correlated events include chat submission and intent
+classification, automatic requirements and Design Plan progression, automatic
+generation start, and `blocked_attempt.preserved`. The redacted raw result is
+available from the command’s `--report` output when a rerun is needed.
 
-- `geometry_body.required_effect_missing`
-- `geometry_body.derived_dependency_broken`
-- `geometry_body.pattern_count_hardcoded`
-- `geometry_body.pattern_spacing_hardcoded`
-- `geometry_body.dimension_bypassed_by_literal`
-- `geometry_body.effect_unverifiable`
+## Follow-up
 
-Valid direct use, one-level derived use, and multi-level derived use pass. Unrelated derived values do not satisfy an obligation. The same manifest is supplied to body generation, bounded body repair, structured scaffold assembly, structured source validation, and geometry diagnostics.
-
-## Exact live smoke attempt
-
-The exact opt-in command was run:
-
-```text
-VOLUNDR_RUN_LIVE_E2E=true npm run test:e2e:live -- bottle-holder.live.spec.ts
-```
-
-The harness started database migration and the CAD worker, but Playwright timed out waiting for its web-server health gate before the browser request was submitted. A retained retry confirmed that the API process reached application startup and the worker reported ready; the environment rejected the frontend Vite bind with `EPERM` on `127.0.0.1:4273`. Therefore this post-correction attempt produced no Gemini generation attempt, candidate, worker timing, or physical geometry verification. It is recorded as an environment-blocked live smoke, not as a model pass or failure.
-
-The preceding preserved live evidence remains documented in [BOTTLE_HOLDER_STRUCTURED_GEOMETRY_LIVE_EVALUATION.md](BOTTLE_HOLDER_STRUCTURED_GEOMETRY_LIVE_EVALUATION.md). That run reached structured assembly and was correctly blocked before worker submission for missing canonical parameter effects; it predates this final contract implementation and is not presented as a post-change live result.
-
-## Verification
-
-The deterministic backend path verifies requirements/provenance and Design Plan propagation, resolves derived values in the scaffold, persists both manifests, validates assembled source before worker submission, and blocks poor geometry accurately. Mounting-hole, floor, one-handed-removal, retention, and worker-timing checks remain downstream of source validation; they do not run when the canonical parameter-effect contract is not satisfied.
-
-No bottle-holder-specific production branch was added. The implementation is generic over parameter IDs, derived expressions, function IDs, and approved Design Plan interfaces.
-
+The next provider attempt must use `mounting_screw_count` (or an approved
+derived cardinality) to construct the hole pattern. A fixed two-point list,
+hardcoded range, or repeated literal calls must remain blocked even though the
+current request has a count of two. Once that source contract passes, the
+existing worker, topology, consistency, and functional checks should run in
+the normal sequence.

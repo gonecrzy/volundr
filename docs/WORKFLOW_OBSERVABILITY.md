@@ -299,3 +299,9 @@ Normal product screens should not expose IDs except in advanced technical detail
 The frontend uses fixed, typed workflow event names for request, review, progress, candidate, configuration, revision, recovery, export, and technical-details actions. Test sessions can add `?testScenario=<safe-scenario-id>`; this produces only `testing_session` and `test_scenario_id` metadata. It does not capture observer notes or arbitrary browser activity. See `docs/FRONTEND_USER_TESTING_PLAN.md` for the five required scenarios and evidence-retention procedure.
 
 Functional planning, source parameter-effect, feature implementation, and deterministic geometry findings are correlated evidence and do not replace earlier artifacts.
+
+Chat-first progression records `chat.message.submitted`, `chat.intent.classified`,
+`clarification.requested`, `clarification.answered`, `requirements.progressed`,
+`design_plan.progressed`, `generation.started`, `parameter_update.routed`,
+`structural_revision.routed`, `start_over.branch_created`,
+`working_version.promoted`, `blocked_attempt.preserved`, and `export.requested`.

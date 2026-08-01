@@ -147,4 +147,4 @@ describe -> generate -> compile -> inspect -> revise -> export
 
 For the user-facing V1 workflow, this means describe -> clarify only essential details -> review requirements and proposals -> generate -> review a new version -> accept -> export. Diagnostics, source editing, and workflow IDs remain advanced details rather than primary design actions.
 
-The MVP reports conservative functional checks but does not certify loads, materials, friction, arbitrary motion, or one-handed usability.
+The MVP reports conservative functional checks but does not certify loads, materials, friction, arbitrary motion, or one-handed usability. Chat-first automatic progression is the normal flagged path; blocked attempts never replace the Current working version. Export remains explicit.

@@ -357,3 +357,10 @@ Parameter configuration tests must use deterministic accepted-source fixtures an
 ## Frontend User Workflows
 
 Frontend unit tests cover user-facing vocabulary, provenance grouping, progress labels, current/new-version distinction, multi-output blocking explanation, recovery language, and fixed telemetry names. Playwright covers the vertical new-project path, deterministic configuration, scoped revision, and a blocked multi-output candidate. The five observed-user scenarios and required diagnostic evidence are in `docs/FRONTEND_USER_TESTING_PLAN.md`.
+
+Chat-first backend tests cover automatic progression, clarification resume,
+provider-free parameter routing, persisted revision plans, idempotent chat
+submission, stale-promotion protection, working-version promotion, blocked
+attempt preservation, and export summaries. Playwright runs the chat-first
+scenarios with `VITE_VOLUNDR_CHAT_FIRST=true`; the staged suite remains
+available through `npm run test:e2e:staged` during transition.

@@ -100,3 +100,8 @@ Preserve: blocked run bundle and diagnosis. Ask: “What stopped the failed desi
 ## Session Review
 
 For each issue, attach the scenario ID, workflow run ID, relevant frontend event sequence, diagnosis confidence, and bundle path. Prioritize evidence that separates a comprehension problem from a provider, worker, model-build, or frontend-state defect.
+
+The deterministic precondition is now the chat-first suite: explicit first
+draft, essential clarification, provider-free parameter change, automatic
+component revision, blocked-attempt recovery, and start-over lineage. Do not
+resume observed testing until these pass. See `docs/CHAT_FIRST_WORKFLOW.md`.

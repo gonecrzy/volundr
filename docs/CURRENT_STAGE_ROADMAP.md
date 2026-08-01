@@ -434,3 +434,10 @@ Possible goals:
 - reusable feature library
 - CadQuery/build123d provider
 - STEP export
+
+## Current workflow gate
+
+The current product pass is the feature-flagged chat-first workflow and its
+real-provider live-smoke harness. Keep the staged/developer workflow only for
+diagnostic coverage until deterministic chat-first and exact live bottle-holder
+checks pass. See `docs/CHAT_FIRST_WORKFLOW.md`.
