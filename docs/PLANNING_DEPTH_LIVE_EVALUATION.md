@@ -28,8 +28,8 @@ live data was sent to the browser or worker.
 | Case | Route/plan evidence | Provider calls | Worker / final state |
 |---|---|---:|---|
 | Spacer plate | `direct_brief`; `cad-brief-v1`; deterministic brief; no planning-provider call | 2 (requirements, geometry) | Worker reached; STEP/STL/BREP produced; topology passed; accepted as Current working version with `ready_with_warnings` output state and `functionally_verified` revision status |
-| Bottle holder | `compact_plan`; `compact-cad-plan-v1`; compact plan persisted | 3 persisted calls in the isolated run (one requirements failure, one requirements retry, one compact-plan call) | No worker result was produced. The attempt was returned as a truthful blocked outcome; source-generation execution remained incomplete after the provider/requirements failure. No Current working version was promoted |
-| Two-piece enclosure | `detailed_plan` route selected; provider detailed-plan validation failed before a detailed plan record was persisted | 4 persisted calls across the Playwright retry (requirements calls, two detailed-plan attempts) | Worker was not reached. The provider plan failed existing pattern/provenance validation; no candidate or Current working version was created |
+| Bottle holder | `compact_plan`; `compact-cad-plan-v1`; compact plan persisted | 3 persisted calls in the isolated run (one requirements failure, one requirements retry, one compact-plan call) | No worker result was produced. The attempt was returned as a truthful blocked outcome; the source-generation child was terminally failed by the shipped cleanup path. No Current working version was promoted |
+| Two-piece enclosure | `detailed_plan` route selected on the successful retry; no plan record because provider validation failed | 4 persisted calls across the Playwright retry (requirements calls, two detailed-plan attempts) | Worker was not reached. The provider plan failed existing pattern/provenance validation; no candidate or Current working version was created |
 
 The direct case is the successful route proof: its `DesignPlan` row uses the
 `cad-brief-v1` discriminator, its workflow artifacts include the route
@@ -44,8 +44,8 @@ successful direct-run latencies were 51,558 ms for requirements and 56,232 ms
 for geometry. The live harness data was preserved separately at:
 
 - `/tmp/volundr-live-e2e.t7vcmL` — spacer/direct run;
-- `/tmp/volundr-live-e2e.qoSflA` — holder/compact run;
-- `/tmp/volundr-live-e2e.wNBTyj` — enclosure/detailed run.
+- `/tmp/volundr-live-e2e.Zf5kBP` — holder/compact run;
+- `/tmp/volundr-live-e2e.3DqO8d` — enclosure/detailed run.
 
 These paths are local diagnostic evidence, not repository artifacts.
 

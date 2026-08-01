@@ -2989,7 +2989,10 @@ class ProjectService:
             originating_message=specification.user_instruction,
         )
         active = active_requirements(ledger)
-        state = self._planning_project_state(self._read_design_specification_payload(specification))
+        state = self._planning_project_state(
+            self._read_design_specification_payload(specification),
+            project_intent=project.original_intent,
+        )
         decision = PlanningDepthRouter().route(
             active_requirements=active,
             project_state=state,
@@ -3339,11 +3342,18 @@ class ProjectService:
                 + ", ".join(sorted(unknown_feature_components))
             )
 
-    def _planning_project_state(self, specification: dict[str, Any]) -> dict[str, Any]:
+    def _planning_project_state(
+        self,
+        specification: dict[str, Any],
+        *,
+        project_intent: str | None = None,
+    ) -> dict[str, Any]:
         semantic_text = " ".join(
             str(specification.get(key) or "")
-            for key in ("purpose", "user_instruction", "object_type")
+            for key in ("purpose", "user_instruction", "object_type", "project_original_intent")
         ).lower()
+        if project_intent:
+            semantic_text = f"{semantic_text} {project_intent.lower()}"
         component_count = len(specification.get("components") or [])
         if component_count == 0 and re.search(
             r"\b(?:two|2)[ -]?piece\b|\bseparate\s+parts?\b|\bmultiple\s+parts?\b|\bmultipart\b",

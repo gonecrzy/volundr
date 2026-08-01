@@ -72,6 +72,28 @@ def test_multipart_relationships_route_to_detailed_plan() -> None:
     assert any("multiple printable components" in reason for reason in decision.reasons)
 
 
+def test_original_request_semantics_preserve_detailed_route_when_provider_spec_is_sparse() -> None:
+    state = ProjectService(db=None, ai_provider=None)._planning_project_state(
+        {
+            "purpose": "electronics enclosure",
+            "missing_requirements": [],
+            "conflicts": [],
+        },
+        project_intent="Create a two-piece enclosure with a removable lid.",
+    )
+    decision = PlanningDepthRouter().route(
+        active_requirements=[requirement("lid", "relationship", "removable lid", importance="important")],
+        project_state=state,
+        specification={
+            "purpose": "electronics enclosure",
+            "missing_requirements": [],
+            "conflicts": [],
+        },
+    )
+
+    assert decision.outcome == PlanningDepth.DETAILED_PLAN
+
+
 def test_missing_fit_critical_information_routes_to_clarification() -> None:
     decision = PlanningDepthRouter().route(
         active_requirements=[
