@@ -3264,6 +3264,21 @@ class ProjectService:
             output.setdefault("quantity", 1)
             output.setdefault("expected_solid_count", 1)
             output.setdefault("allow_disconnected_solids", False)
+        self._validate_compact_plan_semantics(
+            payload,
+            component_ids={str(item["id"]) for item in normalized_components},
+            feature_component_ids={
+                str(item.get("component_id"))
+                for item in normalized_features
+                if item.get("component_id")
+            },
+            output_component_ids={
+                str(component_id)
+                for item in outputs
+                for component_id in item.get("component_ids", []) or []
+                if component_id
+            },
+        )
         return {
             "schema_version": "compact-cad-plan-v1",
             "planning_depth": PlanningDepth.COMPACT_PLAN.value,
@@ -3299,6 +3314,30 @@ class ProjectService:
             "clarification_questions": clarification_questions,
             "plan_ready": not clarification_required,
         }
+
+    @staticmethod
+    def _validate_compact_plan_semantics(
+        payload: dict[str, Any],
+        *,
+        component_ids: set[str],
+        feature_component_ids: set[str],
+        output_component_ids: set[str],
+    ) -> None:
+        conflicts = payload.get("conflicts") or payload.get("contradictions") or []
+        if conflicts:
+            raise ValueError("compact plan contains unresolved requirement contradictions")
+        unknown_output_components = output_component_ids - component_ids
+        if unknown_output_components:
+            raise ValueError(
+                "compact plan output references unknown components: "
+                + ", ".join(sorted(unknown_output_components))
+            )
+        unknown_feature_components = feature_component_ids - component_ids
+        if unknown_feature_components:
+            raise ValueError(
+                "compact plan feature references unknown components: "
+                + ", ".join(sorted(unknown_feature_components))
+            )
 
     def _planning_project_state(self, specification: dict[str, Any]) -> dict[str, Any]:
         semantic_text = " ".join(
