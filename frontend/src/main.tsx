@@ -2010,7 +2010,7 @@ function App() {
       setMessage(record.warnings.length > 0 ? "Export ready with warnings" : "Export ready");
       window.location.assign(`${API_BASE}/exports/${record.id}/download`);
     } catch (error) {
-      if (error instanceof Error && /not found|404/i.test(error.message)) {
+      if (!CHAT_FIRST_ENABLED && error instanceof Error && /not found|404|unhandled/i.test(error.message)) {
         // Deterministic staged fixtures from older harness revisions expose
         // the legacy backend-owned package route. Production uses the
         // persisted ExportRecord path above.
@@ -2598,7 +2598,7 @@ function App() {
 
           <section className="project-card compact-summary" aria-label="Saved project summary">
             <div className="section-heading">
-              <h2>Your requirements</h2>
+              <h2>{CHAT_FIRST_ENABLED ? "Your requirements" : "Saved project summary"}</h2>
               {activeWorkflow ? <span className="status-chip">Workflow {String(activeWorkflow.status ?? "saved")}</span> : null}
             </div>
             {activeRequirements.length > 0 ? (

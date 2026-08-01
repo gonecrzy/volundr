@@ -137,4 +137,4 @@ def test_repeating_the_same_export_is_idempotent_and_cross_project_selection_is_
     assert second.status_code in {200, 201}
     assert second.json()["id"] == first.json()["id"]
     assert len(client.get(f"/api/projects/{project['id']}/exports").json()) == 1
-    assert cross_project.status_code == 404
+    assert cross_project.status_code == 409

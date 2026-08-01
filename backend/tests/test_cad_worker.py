@@ -514,7 +514,7 @@ def test_cad_worker_container_policy_removes_provider_access() -> None:
     compose = (repo_root / "docker-compose.yml").read_text(encoding="utf-8")
     dockerfile = (repo_root / "cad-worker/Dockerfile").read_text(encoding="utf-8")
 
-    worker_block = compose.split("volundr-cad-worker:", 1)[1]
+    worker_block = compose.split("\n  volundr-cad-worker:", 1)[1]
     assert "network_mode: none" in worker_block
     assert "read_only: true" in worker_block
     assert "GEMINI_API_KEY" not in worker_block

@@ -472,6 +472,42 @@ summary:focus-visible {
   white-space: nowrap;
 }
 
+.project-item small {
+  color: #68736d;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-state {
+  color: #68736d;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.status-chip {
+  background: #eef2ee;
+  border-radius: 999px;
+  color: #4f5b53;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
+.compact-summary ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.compact-summary li {
+  color: #4f5b53;
+  font-size: 0.78rem;
+}
+
 .project-item.selected,
 .revision.selected {
   border-color: #285f72;
