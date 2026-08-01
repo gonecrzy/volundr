@@ -37,7 +37,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v1"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v2"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v2"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -215,6 +216,8 @@ class GeminiCliProvider:
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
         if request.geometry_body_diagnostics:
             return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
+        if request.generation_contract_version == SCAFFOLD_VERSION:
+            return CADQUERY_GEOMETRY_BODY_PROMPT_VERSION
         if request.compiler_diagnostics:
             return CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION
         if request.contract_diagnostics:
@@ -575,6 +578,25 @@ class GeminiCliProvider:
             "Canonical parameter IDs: " + ", ".join(parameter_ids),
             "Required function authority inventory:",
             json.dumps(inventory["functions"], indent=2, sort_keys=True),
+            "",
+            "Binding per-function parameter-effect contract:",
+            "Every required direct parameter must reach the stated geometry effect directly or through one of its approved derived parameters.",
+            "A parameter reference used only in an assignment, comment, or unrelated helper does not satisfy the contract.",
+            "For pattern_count, do not use a fixed range, fixed point list, repeated literal geometry calls, or a two-point list when the approved count is two.",
+            "For pattern_spacing, do not replace the approved spacing with fixed point coordinates.",
+            "For dimension and radius_or_diameter, do not replace an approved parameter or derived value with a matching numeric literal.",
+            "When static proof is unclear, use the required parameter or approved derived value in the geometry operation explicitly; unverifiable critical effects block assembly.",
+            "Per-function obligations:",
+            *[
+                "- {function_id}: direct={direct}; derived={derived}; effects={effects}".format(
+                    function_id=function.get("function_id"),
+                    direct=function.get("required_direct_parameters", []),
+                    derived=function.get("allowed_derived_parameters", []),
+                    effects=function.get("required_parameter_effects", []),
+                )
+                for function in inventory["functions"]
+            ],
+            json.dumps(inventory["parameter_effect_contract"], indent=2, sort_keys=True),
             "",
             "Required response shape:",
             json.dumps(

@@ -15,6 +15,10 @@ from app.services.cad.source_scaffold import (
     _component_geometry_name,
     _feature_geometry_name,
 )
+from app.services.cad.parameter_effects import (
+    build_parameter_effect_contract,
+    validate_parameter_effects,
+)
 
 
 GEOMETRY_BODIES_SCHEMA_VERSION = "cadquery-geometry-bodies-v1"
@@ -78,10 +82,15 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
         for parameter in plan.get("derived_parameters", []) or []
         if isinstance(parameter, dict)
         and parameter.get("id")
-        and parameter.get("value") is not None
         and str(parameter["id"]) not in parameters
     )
     entries: list[dict[str, Any]] = []
+    effect_contract = build_parameter_effect_contract(plan)
+    effect_by_function = {
+        str(item.get("function_id")): item
+        for item in effect_contract.get("functions", [])
+        if isinstance(item, dict) and item.get("function_id")
+    }
     component_ids = {
         str(component["id"])
         for component in plan.get("components", []) or []
@@ -91,8 +100,7 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(component, dict) or not component.get("id"):
             continue
         component_id = str(component["id"])
-        entries.append(
-            {
+        entry = {
                 "function_id": _component_geometry_name(component_id),
                 "signature": "(params)",
                 "owner_component_id": component_id,
@@ -105,15 +113,15 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
                     if parameter_id
                 ],
             }
-        )
+        entry.update(_effect_inventory_fields(effect_by_function.get(entry["function_id"])))
+        entries.append(entry)
     for feature in plan.get("features", []) or []:
         if not isinstance(feature, dict) or not feature.get("id"):
             continue
         component_id = str(feature.get("component_id") or "")
         if component_id not in component_ids:
             continue
-        entries.append(
-            {
+        entry = {
                 "function_id": _feature_geometry_name(str(feature["id"])),
                 "signature": "(body, params)",
                 "owner_component_id": component_id,
@@ -126,12 +134,14 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
                     if parameter_id
                 ],
             }
-        )
+        entry.update(_effect_inventory_fields(effect_by_function.get(entry["function_id"])))
+        entries.append(entry)
     return {
         "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
         "functions": entries,
         "expected_function_ids": [entry["function_id"] for entry in entries],
         "allowed_parameters": parameters,
+        "parameter_effect_contract": effect_contract,
         "scaffold_owned_identifiers": sorted(
             _SCAFFOLD_OWNED_NAMES
             | {entry["function_id"] for entry in entries}
@@ -151,6 +161,13 @@ def assemble_geometry_bodies(
         raise GeometryBodyError(
             "geometry_body.invalid_json",
             "Geometry body response must contain a non-empty functions array.",
+        )
+    dependency_findings = list(inventory.get("parameter_effect_contract", {}).get("dependency_findings", []))
+    if dependency_findings:
+        raise GeometryBodyError(
+            "geometry_body.derived_dependency_broken",
+            str(dependency_findings[0].get("message") or "Approved derived-parameter dependency path is invalid."),
+            details={"findings": dependency_findings},
         )
     expected = list(inventory.get("expected_function_ids", []))
     specs = {
@@ -201,6 +218,18 @@ def assemble_geometry_bodies(
         )
         canonical[function_id] = canonical_lines
         functions[function_id] = function_source
+        effect_findings = validate_parameter_effects(
+            function_source,
+            spec,
+            derived_parameters=list(inventory.get("parameter_effect_contract", {}).get("derived_parameters", [])),
+        )
+        if effect_findings:
+            finding = effect_findings[0]
+            raise GeometryBodyError(
+                str(finding["rule_id"]),
+                str(finding.get("message") or "Geometry function parameter effect validation failed."),
+                details={"findings": effect_findings, "function_id": function_id},
+            )
 
     missing = [function_id for function_id in expected if function_id not in seen]
     if missing:
@@ -351,3 +380,19 @@ def _call_name(node: ast.AST) -> str:
     if isinstance(node, ast.Attribute):
         return node.attr
     return ""
+
+
+def _effect_inventory_fields(effect_manifest: dict[str, Any] | None) -> dict[str, Any]:
+    if not effect_manifest:
+        return {
+            "parameter_values": [],
+            "required_direct_parameters": [],
+            "allowed_derived_parameters": [],
+            "required_parameter_effects": [],
+        }
+    return {
+        "parameter_values": list(effect_manifest.get("parameter_values", [])),
+        "required_direct_parameters": list(effect_manifest.get("required_direct_parameters", [])),
+        "allowed_derived_parameters": list(effect_manifest.get("allowed_derived_parameters", [])),
+        "required_parameter_effects": list(effect_manifest.get("required_parameter_effects", [])),
+    }

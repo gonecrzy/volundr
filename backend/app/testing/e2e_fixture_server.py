@@ -362,10 +362,23 @@ def _structured_geometry_response(plan: dict[str, Any], source: str) -> dict[str
     for feature in plan.get("features", []) or []:
         if not isinstance(feature, dict) or not feature.get("id"):
             continue
+        feature_parameter_ids = [
+            str(parameter_id)
+            for parameter_id in feature.get("parameters", []) or []
+            if parameter_id
+        ]
+        body_lines = [
+            (
+                f'body = body.union(cq.Workplane("XY").box('
+                f'params[{parameter_id!r}] * 0.001, 0.001, 0.001))'
+            )
+            for parameter_id in feature_parameter_ids
+        ]
+        body_lines.append("return body")
         functions.append(
             {
                 "function_id": _feature_geometry_name(str(feature["id"])),
-                "body_lines": ["return body"],
+                "body_lines": body_lines,
             }
         )
     return {

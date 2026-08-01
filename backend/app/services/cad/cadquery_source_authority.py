@@ -10,6 +10,10 @@ from app.services.cad.cadquery_contract import (
     CadQuerySourceMetadata,
     validate_cadquery_source,
 )
+from app.services.cad.parameter_effects import (
+    build_parameter_effect_contract,
+    validate_parameter_effects,
+)
 from app.services.requirements.trace import values_match
 
 
@@ -110,6 +114,10 @@ def build_cadquery_source_authority(
         "retention_interfaces": retention_interfaces,
         "allowed_revision_parameters": sorted(str(item) for item in allowed_revision_parameters),
     }
+    effect_contract = build_parameter_effect_contract(design_plan_payload)
+    authority["parameter_effect_contract"] = effect_contract
+    authority["derived_parameter_manifest"] = list(effect_contract.get("derived_parameters", []))
+    authority["parameter_effect_manifest"] = list(effect_contract.get("functions", []))
     findings = validate_cadquery_source_authority_inventory(authority)
     if findings:
         raise CadQuerySourceAuthorityError(findings)
@@ -317,6 +325,9 @@ def _validate_source_against_authority(
     authority: dict[str, Any],
 ) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
+    structured_source = _is_structured_scaffold_source(source)
+    if structured_source:
+        findings.extend(_validate_parameter_effect_manifest(source, authority))
     ast_metadata = _ast_identity_metadata(source)
     source_parameter_ids = set(source_metadata.parameter_ids)
     source_component_ids = set(source_metadata.component_ids) | set(ast_metadata["component_ids"])
@@ -333,6 +344,18 @@ def _validate_source_against_authority(
     source_protected = dict(source_metadata.parameter_protected)
     source_requirement_ids = dict(source_metadata.parameter_source_requirement_ids)
     source_sources = dict(source_metadata.parameter_sources)
+    effect_parameter_ids = {
+        str(obligation.get("parameter_id"))
+        for manifest in authority.get("parameter_effect_manifest", []) or []
+        if isinstance(manifest, dict)
+        for obligation in manifest.get("required_parameter_effects", []) or []
+        if isinstance(obligation, dict) and obligation.get("parameter_id")
+    } if structured_source else set()
+    effect_invalid_parameter_ids = {
+        str(finding.get("parameter_id"))
+        for finding in findings
+        if finding.get("category") == "geometry_body" and finding.get("parameter_id")
+    }
     approved_parameter_ids = {
         str(parameter.get("id"))
         for parameter in authority.get("parameters", []) or []
@@ -361,7 +384,11 @@ def _validate_source_against_authority(
                     parameter_id=parameter_id,
                 )
             )
-        if required and parameter_id not in source_param_refs:
+        if (
+            required
+            and parameter_id not in source_param_refs
+            and (parameter_id not in effect_parameter_ids or parameter_id in effect_invalid_parameter_ids)
+        ):
             findings.append(
                 _finding(
                     "cadquery.required_parameter_unused",
@@ -375,6 +402,7 @@ def _validate_source_against_authority(
             parameter_id in source_param_refs
             and parameter_id not in source_param_geometry_effects
             and (parameter.get("protected") or parameter.get("functional"))
+            and (parameter_id not in effect_parameter_ids or parameter_id in effect_invalid_parameter_ids)
         ):
             findings.append(
                 _finding(
@@ -898,6 +926,68 @@ def _ast_identity_metadata(source: str) -> dict[str, Any]:
         "feature_result_used": feature_result_used,
         "feature_component_builders": feature_component_builders,
     }
+
+
+def _validate_parameter_effect_manifest(
+    source: str, authority: dict[str, Any]
+) -> list[dict[str, Any]]:
+    contract = authority.get("parameter_effect_contract")
+    if not isinstance(contract, dict):
+        return []
+    findings: list[dict[str, Any]] = []
+    for dependency_finding in contract.get("dependency_findings", []) or []:
+        if isinstance(dependency_finding, dict):
+            findings.append(dependency_finding)
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return findings
+    nodes_by_name = {
+        node.name: node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+    }
+    component_nodes: dict[str, ast.FunctionDef] = {}
+    feature_nodes: dict[str, ast.FunctionDef] = {}
+    for node in nodes_by_name.values():
+        for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call) or not isinstance(decorator.func, ast.Name):
+                continue
+            stable_id = _string_arg(decorator)
+            if decorator.func.id == "component" and stable_id:
+                component_nodes[stable_id] = node
+            elif decorator.func.id == "feature" and stable_id:
+                feature_nodes[stable_id] = node
+    for manifest in contract.get("functions", []) or []:
+        if not isinstance(manifest, dict) or not manifest.get("function_id"):
+            continue
+        function_id = str(manifest["function_id"])
+        node = nodes_by_name.get(function_id)
+        if node is None:
+            feature_id = manifest.get("feature_id")
+            if feature_id:
+                node = feature_nodes.get(str(feature_id))
+            if node is None and manifest.get("owner_component_id"):
+                node = component_nodes.get(str(manifest["owner_component_id"]))
+        if node is None:
+            continue
+        effect_findings = validate_parameter_effects(
+            ast.unparse(node),
+            manifest,
+            derived_parameters=list(contract.get("derived_parameters", [])),
+        )
+        for finding in effect_findings:
+            finding.setdefault("title", "Geometry parameter effect contract violation")
+            finding.setdefault(
+                "suggested_correction",
+                "Use the required direct parameter or an approved derived parameter in the intended geometry operation.",
+            )
+            findings.append(finding)
+    return findings
+
+
+def _is_structured_scaffold_source(source: str) -> bool:
+    return "# VOLUNDR_SCAFFOLD_VERSION:" in source
 
 
 def _expression_parameter_dependencies(

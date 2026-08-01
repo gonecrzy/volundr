@@ -11,8 +11,10 @@ import hashlib
 import json
 import re
 import textwrap
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
+
+from app.services.cad.parameter_effects import build_parameter_effect_contract
 
 
 SCAFFOLD_VERSION = "cadquery-scaffold-v1"
@@ -31,6 +33,8 @@ class ScaffoldRender:
     scaffold_hash: str
     scaffold_skeleton: str
     expected_geometry_functions: tuple[str, ...]
+    derived_parameter_manifest: list[dict[str, Any]] = field(default_factory=list)
+    parameter_effect_manifest: list[dict[str, Any]] = field(default_factory=list)
     version: str = SCAFFOLD_VERSION
 
 
@@ -130,6 +134,10 @@ def render_cadquery_scaffold(
     if extra:
         raise ScaffoldSourceError("unexpected geometry functions: " + ", ".join(sorted(extra)))
 
+    effect_contract = build_parameter_effect_contract(design_plan)
+    if effect_contract.get("dependency_findings"):
+        raise ScaffoldSourceError("approved derived-parameter dependency graph is invalid")
+
     lines: list[str] = [
         "# VOLUNDR_SCAFFOLD_VERSION: " + SCAFFOLD_VERSION,
         "# VOLUNDR_SCAFFOLD_HASH: __PLACEHOLDER__",
@@ -149,13 +157,25 @@ def render_cadquery_scaffold(
         if parameter.get("id")
     }
     for derived in design_plan.get("derived_parameters", []) or []:
-        if not isinstance(derived, dict) or not derived.get("id") or derived.get("value") is None:
+        if not isinstance(derived, dict) or not derived.get("id"):
             continue
         if str(derived["id"]) in parameter_ids:
             continue
+        derived_record = next(
+            (
+                item
+                for item in effect_contract.get("derived_parameters", [])
+                if item.get("parameter_id") == str(derived["id"])
+            ),
+            None,
+        )
+        resolved_value = derived_record.get("resolved_value") if derived_record else None
+        if resolved_value is None:
+            raise ScaffoldSourceError(f"derived parameter {derived['id']} could not be resolved")
         parameter_entries.append(
             {
                 **derived,
+                "value": resolved_value,
                 "editable": False,
                 "protected": False,
                 "source": "calculated",
@@ -232,6 +252,8 @@ def render_cadquery_scaffold(
         scaffold_hash=scaffold_hash,
         scaffold_skeleton=skeleton,
         expected_geometry_functions=expected,
+        derived_parameter_manifest=list(effect_contract.get("derived_parameters", [])),
+        parameter_effect_manifest=list(effect_contract.get("functions", [])),
     )
 
 

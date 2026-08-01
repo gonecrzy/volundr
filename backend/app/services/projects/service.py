@@ -205,6 +205,8 @@ REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v2"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v2"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
@@ -3545,6 +3547,8 @@ class ProjectService:
                 "scaffold_hash": rendered.scaffold_hash,
                 "expected_geometry_functions": list(rendered.expected_geometry_functions),
                 "function_body_hashes": assembly.function_body_hashes,
+                "derived_parameter_manifest": rendered.derived_parameter_manifest,
+                "parameter_effect_manifest": rendered.parameter_effect_manifest,
                 "assembled_source_hash": self._sha256(rendered.source),
                 "role": role,
             },
@@ -5044,7 +5048,9 @@ class ProjectService:
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
         if request.geometry_body_diagnostics:
-            return "cadquery-geometry-body-repair-v1"
+            return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
+        if request.generation_contract_version == SCAFFOLD_VERSION:
+            return CADQUERY_GEOMETRY_BODY_PROMPT_VERSION
         if request.compiler_diagnostics:
             return "cadquery-execution-repair-v2"
         if request.contract_diagnostics:
@@ -7438,6 +7444,12 @@ class ProjectService:
                         "functional.feature_declared_not_invoked",
                         "functional.feature_result_discarded",
                         "functional.protected_feature_missing",
+                        "geometry_body.required_effect_missing",
+                        "geometry_body.derived_dependency_broken",
+                        "geometry_body.pattern_count_hardcoded",
+                        "geometry_body.pattern_spacing_hardcoded",
+                        "geometry_body.dimension_bypassed_by_literal",
+                        "geometry_body.effect_unverifiable",
                     }:
                         continue
                     result.findings.append(

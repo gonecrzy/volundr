@@ -107,6 +107,46 @@ def test_scaffold_prompt_requests_geometry_functions_only() -> None:
     assert "body_lines" in prompt
     assert "_ai_component_body" in prompt
     assert "Volundr deterministically owns all parameters" in prompt
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-v2"
+    assert "Binding per-function parameter-effect contract" in prompt
+    assert "For pattern_count, do not use a fixed range" in prompt
+    assert '"schema_version": "cadquery-parameter-effects-v1"' in prompt
+
+
+def test_structured_geometry_body_repair_preserves_parameter_effect_manifest() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Repair structured body",
+        original_intent="Create a two-screw mounting plate.",
+        user_instruction="Repair the structured geometry body.",
+        design_plan={
+            "parameters": [
+                {"id": "mounting_screw_count", "value": 2, "unit": "count", "protected": True},
+                {"id": "mounting_hole_spacing", "value": 50.0, "unit": "mm", "protected": True},
+            ],
+            "components": [{"id": "plate", "parameters": []}],
+            "features": [
+                {
+                    "id": "mounting_holes",
+                    "component_id": "plate",
+                    "type": "mounting_hole_group",
+                    "parameters": ["mounting_screw_count", "mounting_hole_spacing"],
+                }
+            ],
+            "printable_outputs": [{"id": "plate", "component_ids": ["plate"]}],
+        },
+        generation_contract_version=SCAFFOLD_VERSION,
+        geometry_body_diagnostics='{"rule_id":"geometry_body.pattern_count_hardcoded"}',
+        current_source='{"schema_version":"cadquery-geometry-bodies-v1","functions":[]}',
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-repair-v2"
+    assert "Repair only the structured geometry-body response" in prompt
+    assert "mounting_screw_count" in prompt
+    assert "mounting_hole_spacing" in prompt
+    assert "Do not change scaffold-owned parameters, IDs, function signatures, or the Design Plan." in prompt
 
 
 def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
