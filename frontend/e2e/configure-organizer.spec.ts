@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+test.skip(
+  (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() !== "true",
+  "chat-first workflow suite; run with VITE_VOLUNDR_CHAT_FIRST=true",
+);
+
 test("organizer parameter messages route provider-free and promote the new version", async ({ page }) => {
   const seeded = await page.request.post("/api/test-fixture/scenarios/configure-organizer");
   expect(seeded.status()).toBe(201);

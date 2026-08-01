@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+test.skip(
+  (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() === "true",
+  "staged workflow suite; run with VITE_VOLUNDR_CHAT_FIRST=false",
+);
+
 type Revision = {
   id: string;
   parent_revision_id: string | null;

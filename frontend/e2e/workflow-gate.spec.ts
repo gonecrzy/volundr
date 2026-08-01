@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+test.skip(
+  (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() !== "true",
+  "chat-first workflow suite; run with VITE_VOLUNDR_CHAT_FIRST=true",
+);
+
 test.describe.configure({ mode: "serial" });
 
 test("explicit part auto-creates a Current working version and keeps export explicit", async ({ page }) => {

@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.skip(
+  (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() === "true",
+  "staged workflow suite; run with VITE_VOLUNDR_CHAT_FIRST=false",
+);
+
 async function loadBlockedFixture(page: Page, failureMode: string) {
   const seeded = await page.request.post(
     `/api/test-fixture/scenarios/recoverable-blocked-part?failure_mode=${failureMode}`,

@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+test.skip(
+  (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() !== "true",
+  "chat-first workflow suite; run with VITE_VOLUNDR_CHAT_FIRST=true",
+);
+
 test("start over preserves the prior working version and creates a new lineage", async ({ page }) => {
   await page.goto("/?testing_session=true&test_scenario_id=start-over");
   await page.getByLabel("AI chat message").fill("Create an 80 mm mounting plate.");

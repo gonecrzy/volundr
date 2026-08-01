@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.skip(
+  (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() === "true",
+  "staged workflow suite; run with VITE_VOLUNDR_CHAT_FIRST=false",
+);
+
 async function openEnclosure(page: Page, projectName: string) {
   await page.goto("/?testScenario=revise-enclosure-lid");
   await page.getByRole("button", { name: "Projects" }).click();
