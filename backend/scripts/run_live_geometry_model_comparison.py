@@ -26,7 +26,7 @@ from uuid import uuid4
 
 from app.core.config import settings
 from app.services.ai.gemini_api import GeminiApiProvider
-from app.services.ai.model_policy import GeminiModelPolicy
+from app.services.ai.model_policy import GeminiModelPolicy, PromptMode
 from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
 from app.services.cad.cadquery_source_authority import (
     CadQuerySourceAuthorityError,
@@ -271,7 +271,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--frozen-report", type=Path, required=True)
     parser.add_argument("--fast-model", default=settings.gemini_model)
-    parser.add_argument("--geometry-model", default=settings.gemini_geometry_model)
+    parser.add_argument(
+        "--geometry-model",
+        default=(
+            GeminiModelPolicy.from_settings(settings)
+            .resolve(PromptMode.CADQUERY_GEOMETRY_BODIES)
+            .selected_model
+        ),
+    )
     parser.add_argument("--runs-per-model", type=int, default=2)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--with-worker", action="store_true")

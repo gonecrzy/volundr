@@ -112,14 +112,12 @@ const GEOMETRY_BODY_FAILURE_PREFIXES = [
   "geometry_body.",
 ];
 type VolundrFrontendEnv = {
-  VITE_VOLUNDR_GENERATION_MODE?: string;
   VITE_VOLUNDR_CHAT_FIRST?: string;
 };
 const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
-const ADVANCED_WORKFLOW_ENABLED =
-  (FRONTEND_ENV.VITE_VOLUNDR_GENERATION_MODE ?? "advanced").toLowerCase() === "advanced";
+const ADVANCED_WORKFLOW_ENABLED = true;
 const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
-const STAGED_WORKFLOW_ENABLED = ADVANCED_WORKFLOW_ENABLED && !CHAT_FIRST_ENABLED;
+const STAGED_WORKFLOW_ENABLED = !CHAT_FIRST_ENABLED;
 
 type Project = {
   id: string;
@@ -1308,23 +1306,6 @@ function App() {
         setProject(currentProject);
       }
 
-      if (!ADVANCED_WORKFLOW_ENABLED) {
-        setMessage("Generating source");
-        const revision = await request<Revision>(`/projects/${currentProject.id}/generate`, {
-          method: "POST",
-          body: JSON.stringify({ user_instruction: prompt }),
-        });
-        const nextRevisions = await request<Revision[]>(`/projects/${currentProject.id}/revisions`, {
-          method: "GET",
-        });
-        setRevisions(nextRevisions);
-        await loadProjectMessages(currentProject.id);
-        setSelectedRevision(revision);
-        await selectRevision(revision);
-        setMessage(revision.status === "succeeded" ? "Candidate ready" : revision.error_message ?? "Generation failed");
-        return;
-      }
-
       setMessage("Understanding request");
       const specification = await request<DesignSpecification>(`/projects/${currentProject.id}/requirements`, {
         method: "POST",
@@ -1351,7 +1332,7 @@ function App() {
       }
       await loadProjectMessages(currentProject.id);
     } catch (error) {
-      const fallback = ADVANCED_WORKFLOW_ENABLED ? "Requirement extraction failed" : "Generation failed";
+      const fallback = "Requirement extraction failed";
       const message = error instanceof Error ? error.message : fallback;
       setMessage(message);
       if (isSourceContractRejection(message)) {

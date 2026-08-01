@@ -773,7 +773,6 @@ def test_cadquery_approved_revision_plan_generates_candidate_from_revised_source
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = RevisionPlanningProvider(
         plan={
             **ready_revision_plan(),
@@ -825,7 +824,6 @@ def test_cadquery_protected_parameter_change_blocks_before_compile(
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = RevisionPlanningProvider(
         plan={
             **ready_revision_plan(),
@@ -888,7 +886,6 @@ def test_cadquery_protected_component_function_change_blocks_before_compile(
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = RevisionPlanningProvider(
         plan={
             **ready_revision_plan(),

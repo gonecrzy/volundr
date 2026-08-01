@@ -761,7 +761,6 @@ def test_approved_design_plan_generates_candidate_from_plan_authority(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = PlanningAiProvider(READY_PLAN)
     client, SessionLocal = build_client(tmp_path, provider)
     project, specification = create_project_and_spec(client)
@@ -863,7 +862,6 @@ def test_design_plan_missing_protected_requirement_is_repaired(tmp_path: Path) -
 
 
 def test_generated_source_parameter_drift_blocks_before_cad_runner(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = DriftSourceProvider(READY_PLAN)
     client, _SessionLocal = build_client(tmp_path, provider)
     _project, specification = create_project_and_spec(client)

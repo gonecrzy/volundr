@@ -573,7 +573,6 @@ def test_requirement_extraction_normalizes_common_provider_schema_variants(tmp_p
 
 
 def test_generation_cannot_begin_before_requirements_are_ready(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = StagedAiProvider(READY_SPEC)
     client, _SessionLocal = build_client(tmp_path, provider)
     project = create_project(client)

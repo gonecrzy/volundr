@@ -651,7 +651,6 @@ def test_cadquery_configuration_generation_uses_parameter_values_without_provide
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = ConfigurationProvider()
     runner = ConfigurationRunner()
     client = build_client(tmp_path, provider, runner)
@@ -691,7 +690,6 @@ def test_cadquery_configuration_parameters_and_hash_are_stable(
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
-    monkeypatch.setattr(settings, "generation_mode", "advanced")
     provider = ConfigurationProvider()
     runner = ConfigurationRunner()
     client = build_client(tmp_path, provider, runner)

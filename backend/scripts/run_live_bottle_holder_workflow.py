@@ -169,7 +169,6 @@ def main() -> int:
         {
             "PYTHONPATH": str(backend_root),
             "VOLUNDR_AI_PROVIDER": "gemini_api",
-            "VOLUNDR_CHAT_FIRST": "true",
             "VOLUNDR_DATA_DIR": str(data_dir),
             "VOLUNDR_CAD_WORKSPACE_DIR": str(data_dir / "jobs"),
         }
