@@ -2,6 +2,8 @@ import logging
 import time
 import asyncio
 import json
+import os
+from pathlib import Path
 
 from app.core.config import settings
 from app.services.cad.worker_execution import process_next_job
@@ -10,9 +12,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger("volundr.cad_worker")
 
 
+def worker_health_path(_workspace: Path) -> Path:
+    """Return a writable heartbeat path without requiring shared-dir ownership."""
+    return Path(os.environ.get("VOLUNDR_WORKER_HEALTH_PATH", "/tmp/.worker-health.json"))
+
+
 def main() -> None:
     settings.cad_workspace_dir.mkdir(parents=True, exist_ok=True)
-    health_path = settings.cad_workspace_dir / ".worker-health.json"
+    health_path = worker_health_path(settings.cad_workspace_dir)
+    health_path.parent.mkdir(parents=True, exist_ok=True)
     logger.info("CAD worker ready; workspace=%s", settings.cad_workspace_dir)
     while True:
         health_path.write_text(

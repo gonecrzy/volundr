@@ -18,6 +18,7 @@ from app.services.cad.cadquery_runner import (
 )
 from app.services.cad.worker_client import FilesystemCadWorkerClient, FilesystemCadWorkerRunner
 from app.services.cad.worker_execution import execute_job_directory, process_next_job
+from app.workers.cad_worker import worker_health_path
 from app.services.cad.jobs import (
     CAD_EXECUTION_JOB_SCHEMA_VERSION,
     DuplicateJobCompletionError,
@@ -73,6 +74,12 @@ OBSOLETE_PROBE_CADQUERY_SOURCE = (
     "def build_model():\n"
     "    return cq.Workplane('XY').box(1, 1, 1)\n"
 )
+
+
+def test_worker_health_file_defaults_to_writable_tmpfs_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("VOLUNDR_WORKER_HEALTH_PATH", raising=False)
+
+    assert worker_health_path(tmp_path) == Path("/tmp/.worker-health.json")
 
 
 def test_filesystem_queue_writes_structured_cadquery_job(tmp_path: Path) -> None:
