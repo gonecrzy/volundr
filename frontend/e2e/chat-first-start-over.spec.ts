@@ -9,11 +9,12 @@ test("start over preserves the prior working version and creates a new lineage",
   await page.goto("/?testing_session=true&test_scenario_id=start-over");
   await page.getByLabel("AI chat message").fill("Create an 80 mm mounting plate.");
   await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+  await expect(page.getByText("Version 1", { exact: true }).first()).toBeVisible();
 
   await page.getByLabel("AI chat message").fill("Start over, but keep the 80 mm fit. Use a different approach.");
+  await expect(page.getByRole("button", { name: "Send" })).toBeEnabled();
   await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+  await expect(page.getByText("Version 2", { exact: true }).first()).toBeVisible();
 
   const projectId = await page.evaluate(async () => {
     const projects = await fetch("/api/projects").then((response) => response.json());

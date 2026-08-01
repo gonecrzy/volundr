@@ -9,8 +9,7 @@ test("ordinary feedback revisions remain available before and after an exposed c
   await page.goto("/?testing_session=true&test_scenario_id=requirement-driven-revisions");
   await page.getByLabel("AI chat message").fill("Create an 80 mm mounting plate.");
   await page.getByRole("button", { name: "Send" }).click();
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
-
+  await expect(page.getByText("Version 1", { exact: true }).first()).toBeVisible();
   await page.getByLabel("AI chat message").fill("The printed fit is too tight. Add 0.5 mm clearance per side.");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
@@ -40,5 +39,5 @@ test("ordinary feedback revisions remain available before and after an exposed c
   await page.goto(`/projects/${projectId}`);
   await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
   await page.getByRole("button", { name: "Projects" }).click();
-  await expect(page.getByRole("button", { name: new RegExp(project.name) })).toBeVisible();
+  await expect(page.locator("button.project-item", { hasText: project.name })).toBeVisible();
 });

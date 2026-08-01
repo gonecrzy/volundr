@@ -13,9 +13,8 @@ test("organizer parameter messages route provider-free and promote the new versi
 
   await page.goto("/?testScenario=configure-organizer");
   await page.getByRole("button", { name: "Projects" }).click();
-  await page.getByRole("button", { name: "Configurable organizer" }).first().click();
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
-
+  await page.locator("button.project-item", { hasText: "Configurable organizer" }).click();
+  await expect(page.getByText("Version 1", { exact: true }).first()).toBeVisible();
   const before = await page.request.get(`/api/test-fixture/projects/${projectId}/summary`).then((response) => response.json());
   expect(before.provider_call_count).toBe(3);
   await page.getByLabel("AI chat message").fill("Change columns from four to six.");
@@ -33,6 +32,6 @@ test("organizer parameter messages route provider-free and promote the new versi
   expect(currentProject.active_revision_id).not.toBe(fixture.project.active_revision_id);
   await page.reload();
   await page.getByRole("button", { name: "Projects" }).click();
-  await page.getByRole("button", { name: "Configurable organizer" }).first().click();
-  await expect(page.getByText(/R2 active/)).toBeVisible();
+  await page.locator("button.project-item", { hasText: "Configurable organizer" }).click();
+  await expect(page.getByText("Version 2", { exact: true }).first()).toBeVisible();
 });

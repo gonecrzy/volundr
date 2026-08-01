@@ -14,8 +14,7 @@ test("enclosure lid chat revision persists its Revision Plan and auto-promotes",
   await page.goto("/?testScenario=revise-enclosure-lid");
   await page.getByRole("button", { name: "Projects" }).click();
   await page.getByRole("button", { name: fixture.project.name }).click();
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
-
+  await expect(page.getByText("Version 1", { exact: true }).first()).toBeVisible();
   await page.getByLabel("AI chat message").fill("Add a recessed finger pull to the lid only. Keep the enclosure body and lid fit unchanged.");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();

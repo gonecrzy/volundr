@@ -17,17 +17,33 @@ test("explicit part auto-creates a Current working version and keeps export expl
   await page.getByLabel("AI chat message").fill("Create an 80 mm mounting plate.");
   await page.getByRole("button", { name: "Send" }).click();
 
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+  const viewportWidth = await page.evaluate(() => window.innerWidth);
+  if (viewportWidth < 1000) {
+    await page.getByRole("button", { name: "Model", exact: true }).click();
+  } else if (viewportWidth < 1280) {
+    await page.getByRole("button", { name: "Details", exact: true }).click();
+  }
+  await expect(page.getByText("Version 1", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Accept new version" })).toHaveCount(0);
-  await page.getByText("Technical details", { exact: true }).click();
+  if (viewportWidth < 1000) {
+    await page.getByRole("button", { name: "Details", exact: true }).click();
+  }
+  const technicalDetails = viewportWidth >= 1000 && viewportWidth < 1280
+    ? page.getByLabel("Design details").getByText("Technical details", { exact: true })
+    : page.getByLabel("Design summary").getByText("Technical details", { exact: true });
+  await technicalDetails.click();
   const bundle = page.getByRole("link", { name: "Download diagnostic bundle" });
   await expect(bundle).toBeVisible();
   const download = await Promise.all([page.waitForEvent("download"), bundle.click()]);
   expect((await download[0].suggestedFilename())).toContain("workflow-debug-");
 
+  if (viewportWidth >= 1000 && viewportWidth < 1280) {
+    await page.getByLabel("Design details").getByRole("button", { name: "Close" }).click();
+  }
+  await page.locator("button.topbar-export").click();
   const exportDownload = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("link", { name: "Export design" }).click(),
+    page.getByRole("button", { name: "Create project package" }).click(),
   ]);
   expect((await exportDownload[0].suggestedFilename())).toMatch(/^[a-z0-9-]+_project_r1\.zip$/);
   await expect.poll(async () => page.evaluate(async () =>
@@ -51,7 +67,7 @@ test("intent-first holder asks one essential clarification and resumes automatic
 
   await page.getByLabel("AI chat message").fill("45 mm");
   await page.getByRole("button", { name: "Answer" }).click();
-  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+  await expect(page.getByText("Version 1", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Generate design" })).toHaveCount(0);
 
   await expect.poll(async () => page.evaluate(async () =>
