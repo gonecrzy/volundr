@@ -115,13 +115,13 @@ cd backend
 VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
 ```
 
-The API container and local database must be on the current migration head. A stale runtime can continue using the legacy one-step Gemini prompt and bypass the staged Design Specification, Design Plan, source-contract, candidate, and validation gates.
+The API container and local database must be on the current migration head. A stale runtime can continue using older workflow behavior and bypass current requirement, plan, source-contract, candidate, and validation gates.
 
-When `VITE_VOLUNDR_CHAT_FIRST=true`, the frontend uses the chat-first
-Design Specification and Design Plan workflow as the normal product path.
-Passing generated revisions become the Current working version automatically;
-blocked attempts remain in history and never replace it. The staged approval UI
-remains available only when the flag is false for developer diagnostics.
+The Docker frontend build enables the chat-first Design Specification and
+Design Plan workflow. Passing generated revisions become the Current working
+version automatically; blocked attempts remain in history and never replace
+it. The maintained staged approval UI is available only to developer and
+deterministic test runs with `VITE_VOLUNDR_CHAT_FIRST=false`.
 
 If a project has an active revision, structured revision planning uses that
 revision's accepted CadQuery source, output manifest, and validation summaries
@@ -192,15 +192,13 @@ Use API-key based auth for the primary Gemini provider:
 VOLUNDR_AI_PROVIDER=gemini_api
 GEMINI_API_KEY=<your key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
-# Optional stage-specific overrides; unset values use VOLUNDR_GEMINI_MODEL.
-VOLUNDR_GEMINI_REQUIREMENTS_MODEL=gemini-3.5-flash-lite
-VOLUNDR_GEMINI_DESIGN_PLAN_MODEL=gemini-3.5-flash-lite
-VOLUNDR_GEMINI_GEOMETRY_MODEL=gemini-3.5-flash
-VOLUNDR_GEMINI_GEOMETRY_REPAIR_MODEL=gemini-3.5-flash
-VOLUNDR_GEMINI_REVISION_PLANNING_MODEL=gemini-3.5-flash-lite
-VOLUNDR_GEMINI_COMPONENT_REVISION_MODEL=gemini-3.5-flash
-VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal
 ```
+
+Stage-specific models and Gemini generation tuning use typed built-in defaults.
+For an advanced deployment, set `VOLUNDR_GEMINI_POLICY_PATH` to a credential-free
+TOML policy file. Legacy stage-model and API-tuning environment variables remain
+temporary compatibility overrides and emit deprecation warnings; see
+`docs/ENVIRONMENT_VARIABLES.md` for precedence and the policy schema.
 
 The Compose file mounts a Gemini CLI profile only into `volundr-api` for the
 optional CLI provider path. The CAD worker must never receive Gemini CLI profile
@@ -209,7 +207,11 @@ variables.
 
 Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, transport, non-secret auth mode, and configured thinking level so quota or policy issues can be traced without storing credentials. `gemini_cli` remains available for a configured Gemini CLI profile, but API-key operation should use `gemini_api`.
 
-Requirements and planning can use the inexpensive `VOLUNDR_GEMINI_MODEL` fallback. Configure `VOLUNDR_GEMINI_GEOMETRY_MODEL` and `VOLUNDR_GEMINI_GEOMETRY_REPAIR_MODEL` for CadQuery bodies and repairs when a stronger model is available. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning; unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
+Requirements, planning, and geometry use the configured policy, falling back to
+`VOLUNDR_GEMINI_MODEL` when a stage is not separately assigned. Keep the typed
+thinking default at `minimal` unless you are deliberately testing deeper
+reasoning; unbounded thinking can consume the response with reasoning text
+instead of a complete fenced CadQuery source block.
 
 ### Live browser smoke tests
 
@@ -258,7 +260,13 @@ data/projects/<project-id>/revisions/<revision-id>/
 
 ## Design Workflow And Diagnostics
 
-With `VITE_VOLUNDR_CHAT_FIRST=true`, the primary workflow is chat-first: describe, clarify only essential details, automatically create and validate a first version, revise through chat, and explicitly export. Technical source/build evidence is secondary. Open **Technical details** in the workspace to download a secret-redacted diagnostic bundle. See `docs/CHAT_FIRST_WORKFLOW.md`, `docs/FRONTEND_WORKFLOW_AUDIT.md`, `docs/FRONTEND_USER_TESTING_PLAN.md`, and `docs/WORKFLOW_OBSERVABILITY.md`.
+The primary workflow is chat-first: describe, clarify only essential details,
+automatically create and validate a first version, revise through chat, and
+explicitly export. Technical source/build evidence is secondary. Open
+**Technical details** in the workspace to download a secret-redacted
+diagnostic bundle. See `docs/CHAT_FIRST_WORKFLOW.md`,
+`docs/FRONTEND_WORKFLOW_AUDIT.md`, `docs/FRONTEND_USER_TESTING_PLAN.md`, and
+`docs/WORKFLOW_OBSERVABILITY.md`.
 
 The current workspace layout and responsive evidence are recorded in
 `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md`.

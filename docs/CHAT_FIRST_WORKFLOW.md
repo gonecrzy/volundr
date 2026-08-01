@@ -1,7 +1,7 @@
 # Chat-First Workflow
 
-When `VITE_VOLUNDR_CHAT_FIRST=true` and `VOLUNDR_CHAT_FIRST=true`, the
-conversation is the normal workflow control surface. The initial message
+When the Docker frontend build enables chat-first, the conversation is the
+normal workflow control surface. The initial message
 authorizes a first draft; no requirements, Design Plan, or generation approval
 button is required.
 

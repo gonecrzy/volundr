@@ -26,7 +26,7 @@ This file explains exactly what belongs in each project document.
 | `docs/PROJECT_PERSISTENCE.md` | Durable project/workspace authority, stable reopen URLs, stale workflow recovery, and artifact integrity. |
 | `docs/EXPORTS.md` | Explicit selected-revision exports, deterministic filenames, persisted ExportRecords, package contents, and 3MF status. |
 | `docs/DEPLOYMENT.md` | Compose services, healthchecks, persistent mounts, credential isolation, and supported deployment boundaries. |
-| `docs/ENVIRONMENT_VARIABLES.md` | Backend, frontend, provider, E2E, and deployment environment configuration. |
+| `docs/ENVIRONMENT_VARIABLES.md` | Minimal deployment configuration, typed defaults, provider policy precedence, compatibility variables, derived paths, and test-only environment inventory. |
 | `docs/FRONTEND_WORKFLOW_AUDIT.md` | Repository-grounded assessment of the user-facing workflow, terminology, state mapping, recovery, responsiveness, accessibility, and priority corrections. |
 | `docs/FRONTEND_USER_TESTING_PLAN.md` | Five observed-user scenarios, measures, correlated events, preserved diagnostic evidence, and post-task questions. |
 | `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` | Current chat-first workspace layout, conversation semantics, reconnect behavior, responsive evidence, screenshots, tests, and UX/live-track separation. |

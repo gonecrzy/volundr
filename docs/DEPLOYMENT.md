@@ -20,6 +20,14 @@ docker compose ps
 docker compose logs -f volundr-api
 ```
 
+### Minimal production-like configuration
+
+Copy the root `.env.example` and provide only the deployment ports, data root,
+provider, default model, and `GEMINI_API_KEY` for a live Gemini API deployment.
+The API workspace is derived from `{VOLUNDR_DATA_DIR}/jobs`; Gemini CLI state
+is mounted from `{VOLUNDR_DATA_DIR}/gemini`. Advanced path overrides are not
+needed for the standard Compose layout.
+
 Stop or restart without deleting data:
 
 ```bash
@@ -35,7 +43,7 @@ health check verifies that the worker process is alive, and the worker writes
 
 ## Storage and backup
 
-`VOLUNDR_DATA_DIR` is mounted at `/app/data` in the API and its `jobs`
+`VOLUNDR_DATA_DIR` is mounted at `/app/data` in the API and its derived `jobs`
 subdirectory is mounted at `/work/jobs` in the worker. This root contains the
 SQLite database, project source, registered STEP/STL/BREP artifacts, previews,
 workflow bundles, and export packages. Back up the complete directory; do not
@@ -45,9 +53,18 @@ The API is the only service that receives `GEMINI_API_KEY`. The browser gets
 only intentionally public `VITE_*` build values, and the worker receives no
 provider credentials or network access.
 
-For production, use a secret manager for the API key, a private `VOLUNDR_DATA_DIR`
-with restricted permissions, an allowlist in `VOLUNDR_CORS_ORIGINS`, and a
+For production, use a secret manager for the API key, a private
+`VOLUNDR_DATA_DIR` with restricted permissions, an allowlist in
+`VOLUNDR_CORS_ORIGINS` when the frontend is hosted separately, and a
 backup/restore procedure tested against the SQLite database and artifact
 hashes. Docker/Compose commands must be run in an environment with Docker
 installed; repository tests do not claim container runtime verification when
 it is unavailable.
+
+### Advanced overrides
+
+Operational limits, snapshot controls, provider-specific settings, and the
+credential-free Gemini policy file are documented in
+`docs/ENVIRONMENT_VARIABLES.md`. Prefer typed defaults and add overrides only
+for a proxy, separate origin, resource limit, provider choice, or isolated
+test run.
