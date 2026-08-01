@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run src",
     "test:e2e": "playwright test",
+    "test:e2e:staged": "VITE_VOLUNDR_CHAT_FIRST=false playwright test",
     "test:e2e:live": "./scripts/run-live-e2e.sh"
   },
   "dependencies": {
