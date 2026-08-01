@@ -7,6 +7,7 @@ import httpx
 
 from app.core.config import settings
 from app.services.ai.gemini_cli import GeminiCliProvider
+from app.services.ai.model_policy import GeminiModelPolicy
 from app.services.ai.provider import (
     DesignPlanRequest,
     DesignPlanResult,
@@ -37,7 +38,13 @@ class GeminiApiProvider(GeminiCliProvider):
         max_retries: int | None = None,
         max_retry_sleep_seconds: float | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
+        model_policy: GeminiModelPolicy | None = None,
     ) -> None:
+        super().__init__(
+            model=model,
+            timeout_seconds=timeout_seconds,
+            model_policy=model_policy,
+        )
         self.api_key = api_key or settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
         self.base_url = (base_url or settings.gemini_api_base_url).rstrip("/")
         self.model = model or settings.gemini_model
@@ -67,73 +74,21 @@ class GeminiApiProvider(GeminiCliProvider):
         )
         self._transport = transport
 
-    async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
-        return await self.generate_cadquery_model(request)
+    @property
+    def provider_id(self) -> str:
+        return "gemini_api"
 
-    async def generate_cadquery_model(
+    async def _run_prompt(
         self,
-        request: ModelGenerationRequest,
-    ) -> ModelGenerationResult:
-        prompt = self.build_cadquery_prompt(request)
-        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
-        return ModelGenerationResult(
-            raw_output=raw_output,
-            provider="gemini_api",
-            provider_model=self.model,
-            usage_metadata=usage_metadata,
-            provider_request_id=provider_request_id,
-        )
-
-    async def extract_requirements(
-        self,
-        request: RequirementExtractionRequest,
-    ) -> RequirementExtractionResult:
-        prompt = self.build_requirement_prompt(request)
-        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
-        return RequirementExtractionResult(
-            raw_output=raw_output,
-            provider="gemini_api",
-            provider_model=self.model,
-            usage_metadata=usage_metadata,
-            provider_request_id=provider_request_id,
-        )
-
-    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
-        prompt = self.build_source_brief_prompt(request)
-        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
-        return SourceBriefResult(
-            raw_output=raw_output,
-            provider="gemini_api",
-            provider_model=self.model,
-            usage_metadata=usage_metadata,
-            provider_request_id=provider_request_id,
-        )
-
-    async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
-        prompt = self.build_design_plan_prompt(request)
-        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
-        return DesignPlanResult(
-            raw_output=raw_output,
-            provider="gemini_api",
-            provider_model=self.model,
-            usage_metadata=usage_metadata,
-            provider_request_id=provider_request_id,
-        )
-
-    async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
-        prompt = self.build_revision_plan_prompt(request)
-        raw_output, usage_metadata, provider_request_id = await self._run_prompt(prompt)
-        return RevisionPlanResult(
-            raw_output=raw_output,
-            provider="gemini_api",
-            provider_model=self.model,
-            usage_metadata=usage_metadata,
-            provider_request_id=provider_request_id,
-        )
-
-    async def _run_prompt(self, prompt: str) -> tuple[str, dict[str, Any] | None, str | None]:
+        prompt: str,
+        *,
+        model: str | None = None,
+    ) -> tuple[str, str]:
         if not self.api_key:
             raise RuntimeError("Gemini API key is not configured")
+
+        self._last_usage_metadata = None
+        self._last_provider_request_id = None
 
         generation_config: dict[str, Any] = {
             "temperature": self.temperature,
@@ -162,7 +117,7 @@ class GeminiApiProvider(GeminiCliProvider):
                 try:
                     response = await asyncio.wait_for(
                         client.post(
-                            self._endpoint_path(),
+                            self._endpoint_path(model),
                             params={"key": self.api_key},
                             json=payload,
                         ),
@@ -205,7 +160,12 @@ class GeminiApiProvider(GeminiCliProvider):
             ),
             None,
         )
-        return raw_output, usage_metadata, provider_request_id
+        actual_model = response_payload.get("modelVersion")
+        if not isinstance(actual_model, str) or not actual_model:
+            actual_model = model or self.model or ""
+        self._last_usage_metadata = usage_metadata
+        self._last_provider_request_id = provider_request_id
+        return raw_output, actual_model
 
     def provider_settings(self) -> dict[str, Any]:
         return {
@@ -219,14 +179,14 @@ class GeminiApiProvider(GeminiCliProvider):
             "max_retry_sleep_seconds": self.max_retry_sleep_seconds,
         }
 
-    def _endpoint_path(self) -> str:
-        return f"/{self._model_path()}:generateContent"
+    def _endpoint_path(self, model: str | None = None) -> str:
+        return f"/{self._model_path(model)}:generateContent"
 
-    def _model_path(self) -> str:
-        model = self.model or "gemini-3.5-flash-lite"
-        if model.startswith("models/"):
-            return model
-        return f"models/{model}"
+    def _model_path(self, model: str | None = None) -> str:
+        selected_model = model or self.model or "gemini-3.5-flash-lite"
+        if selected_model.startswith("models/"):
+            return selected_model
+        return f"models/{selected_model}"
 
     def _response_text(self, payload: dict[str, Any]) -> str:
         candidates = payload.get("candidates")

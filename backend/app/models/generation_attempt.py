@@ -38,6 +38,8 @@ class GenerationAttempt(Base):
     provider_settings_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     provider_usage_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     provider_request_id: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    routing_metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    provider_latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     prompt_version: Mapped[str] = mapped_column(String(120), nullable=False)
     ruleset_version: Mapped[str] = mapped_column(String(120), nullable=False)
     cad_backend: Mapped[str] = mapped_column(String(40), nullable=False, default="cadquery")

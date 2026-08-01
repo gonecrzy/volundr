@@ -28,6 +28,33 @@ def test_settings_default_to_gemini_api_for_staged_generation() -> None:
     assert settings.gemini_api_thinking_level == "minimal"
 
 
+def test_settings_support_stage_specific_gemini_models(tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "VOLUNDR_GEMINI_MODEL=general-model",
+                "VOLUNDR_GEMINI_REQUIREMENTS_MODEL=requirements-model",
+                "VOLUNDR_GEMINI_DESIGN_PLAN_MODEL=plan-model",
+                "VOLUNDR_GEMINI_GEOMETRY_MODEL=geometry-model",
+                "VOLUNDR_GEMINI_GEOMETRY_REPAIR_MODEL=repair-model",
+                "VOLUNDR_GEMINI_REVISION_PLANNING_MODEL=revision-model",
+                "VOLUNDR_GEMINI_COMPONENT_REVISION_MODEL=component-model",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    configured = Settings(_env_file=env_file)
+
+    assert configured.gemini_requirements_model == "requirements-model"
+    assert configured.gemini_design_plan_model == "plan-model"
+    assert configured.gemini_geometry_model == "geometry-model"
+    assert configured.gemini_geometry_repair_model == "repair-model"
+    assert configured.gemini_revision_planning_model == "revision-model"
+    assert configured.gemini_component_revision_model == "component-model"
+
+
 def test_settings_default_to_staged_generation_mode() -> None:
     settings = Settings(_env_file=None)
 

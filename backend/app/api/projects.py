@@ -1258,6 +1258,12 @@ def list_generation_attempt_evidence(
                     else None
                 ),
                 provider_request_id=attempt.provider_request_id,
+                routing_metadata=(
+                    json.loads(attempt.routing_metadata_json)
+                    if attempt.routing_metadata_json
+                    else {}
+                ),
+                provider_latency_ms=attempt.provider_latency_ms,
                 estimated_prompt_tokens=_estimated_tokens(data_dir, attempt.prompt_path),
                 estimated_output_tokens=_estimated_tokens(data_dir, attempt.raw_output_path),
                 resulting_revision_id=attempt.resulting_revision_id,

@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     ollama_think: str | None = Field(default=None)
     gemini_binary: str = Field(default="gemini")
     gemini_model: str | None = Field(default="gemini-3.5-flash-lite")
+    gemini_requirements_model: str | None = Field(default=None)
+    gemini_design_plan_model: str | None = Field(default=None)
+    gemini_geometry_model: str | None = Field(default=None)
+    gemini_geometry_repair_model: str | None = Field(default=None)
+    gemini_revision_planning_model: str | None = Field(default=None)
+    gemini_component_revision_model: str | None = Field(default=None)
     gemini_timeout_seconds: int = Field(default=120)
     gemini_policy_path: Path | None = Field(default=None)
     gemini_api_key: str | None = Field(

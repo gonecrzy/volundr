@@ -6,11 +6,20 @@ import httpx
 import pytest
 
 from app.services.ai.gemini_api import GeminiApiProvider
+from app.services.ai.model_policy import GeminiModelPolicy
 from app.services.ai.provider import ModelGenerationRequest, RequirementExtractionRequest
 
 
 def _mock_transport(handler) -> httpx.MockTransport:
     return httpx.MockTransport(handler)
+
+
+def _policy() -> GeminiModelPolicy:
+    return GeminiModelPolicy(
+        general_model="fast-general",
+        requirements_model="fast-requirements",
+        geometry_model="strong-geometry",
+    )
 
 
 def test_gemini_api_provider_settings_are_non_secret() -> None:
@@ -89,6 +98,92 @@ async def test_gemini_api_extract_requirements_posts_prompt_and_returns_text() -
     assert captured["payload"]["generationConfig"]["thinkingConfig"] == {
         "thinkingLevel": "MINIMAL"
     }
+
+
+@pytest.mark.asyncio
+async def test_gemini_api_routes_requirements_and_geometry_to_stage_models() -> None:
+    urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        urls.append(str(request.url))
+        return httpx.Response(
+            200,
+            json={
+                "candidates": [{"content": {"parts": [{"text": "ok"}]}}],
+                "usageMetadata": {"promptTokenCount": 3, "candidatesTokenCount": 4},
+            },
+        )
+
+    provider = GeminiApiProvider(
+        api_key="secret-key",
+        model="fast-general",
+        model_policy=_policy(),
+        transport=_mock_transport(handler),
+    )
+
+    await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+    result = await provider.generate_cadquery_model(
+        ModelGenerationRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+            generation_contract_version="cadquery-scaffold-v1",
+        )
+    )
+
+    assert "/models/fast-requirements:generateContent" in urls[0]
+    assert "/models/strong-geometry:generateContent" in urls[1]
+    assert result.provider_model == "strong-geometry"
+    assert result.routing_metadata["prompt_mode"] == "cadquery_geometry_bodies"
+    assert result.routing_metadata["selected_model"] == "strong-geometry"
+    assert result.provider_latency_ms is not None
+
+
+@pytest.mark.asyncio
+async def test_gemini_api_records_operational_model_fallback() -> None:
+    urls: list[str] = []
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        urls.append(str(request.url))
+        if calls == 1:
+            return httpx.Response(503, json={"error": {"message": "service unavailable"}})
+        return httpx.Response(
+            200,
+            json={"candidates": [{"content": {"parts": [{"text": "ok"}]}}]},
+        )
+
+    provider = GeminiApiProvider(
+        api_key="secret-key",
+        model="fast-general",
+        model_policy=_policy(),
+        max_retries=0,
+        transport=_mock_transport(handler),
+    )
+
+    result = await provider.generate_cadquery_model(
+        ModelGenerationRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+            generation_contract_version="cadquery-scaffold-v1",
+        )
+    )
+
+    assert "/models/strong-geometry:generateContent" in urls[0]
+    assert "/models/fast-general:generateContent" in urls[1]
+    assert result.routing_metadata["routing_reason"] == "operational_fallback"
+    assert result.routing_metadata["selected_model"] == "strong-geometry"
+    assert result.routing_metadata["actual_model"] == "fast-general"
+    assert result.routing_metadata["fallback_chain"] == ["strong-geometry", "fast-general"]
 
 
 @pytest.mark.asyncio

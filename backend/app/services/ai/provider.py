@@ -31,6 +31,8 @@ class ModelGenerationResult:
     provider_model: str | None = None
     usage_metadata: dict[str, Any] | None = None
     provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,8 @@ class RequirementExtractionResult:
     provider_model: str | None = None
     usage_metadata: dict[str, Any] | None = None
     provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -72,6 +76,8 @@ class SourceBriefResult:
     provider_model: str | None = None
     usage_metadata: dict[str, Any] | None = None
     provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -95,6 +101,8 @@ class DesignPlanResult:
     provider_model: str | None = None
     usage_metadata: dict[str, Any] | None = None
     provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -129,6 +137,8 @@ class RevisionPlanResult:
     provider_model: str | None = None
     usage_metadata: dict[str, Any] | None = None
     provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 class AiProvider(Protocol):

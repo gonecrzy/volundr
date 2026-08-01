@@ -176,6 +176,13 @@ Use API-key based auth for the primary Gemini provider:
 VOLUNDR_AI_PROVIDER=gemini_api
 GEMINI_API_KEY=<your key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
+# Optional stage-specific overrides; unset values use VOLUNDR_GEMINI_MODEL.
+VOLUNDR_GEMINI_REQUIREMENTS_MODEL=gemini-3.5-flash-lite
+VOLUNDR_GEMINI_DESIGN_PLAN_MODEL=gemini-3.5-flash-lite
+VOLUNDR_GEMINI_GEOMETRY_MODEL=gemini-3.5-flash
+VOLUNDR_GEMINI_GEOMETRY_REPAIR_MODEL=gemini-3.5-flash
+VOLUNDR_GEMINI_REVISION_PLANNING_MODEL=gemini-3.5-flash-lite
+VOLUNDR_GEMINI_COMPONENT_REVISION_MODEL=gemini-3.5-flash
 VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal
 ```
 
@@ -186,7 +193,7 @@ variables.
 
 Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, transport, non-secret auth mode, and configured thinking level so quota or policy issues can be traced without storing credentials. `gemini_cli` remains available for a configured Gemini CLI profile, but API-key operation should use `gemini_api`.
 
-For source generation, use `VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite` as the default Gemini endpoint unless you are deliberately comparing model tiers. In the current CadQuery validation path it avoids the tighter `gemini-3.5-flash` request-limit behavior and still returns useful geometry signals. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning; unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
+Requirements and planning can use the inexpensive `VOLUNDR_GEMINI_MODEL` fallback. Configure `VOLUNDR_GEMINI_GEOMETRY_MODEL` and `VOLUNDR_GEMINI_GEOMETRY_REPAIR_MODEL` for CadQuery bodies and repairs when a stronger model is available. Keep `VOLUNDR_GEMINI_API_THINKING_LEVEL=minimal` unless you are deliberately testing deeper reasoning; unbounded thinking can consume the response with reasoning text instead of a complete fenced CadQuery source block.
 
 ### Live browser smoke tests
 

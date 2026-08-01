@@ -3732,6 +3732,25 @@ class ProjectService:
             self._workflow_recorder().complete_run(repair_workflow_run, status="completed")
         return repaired_source, repair_result, repair_attempt
 
+    def _routing_for_request(self, request: Any) -> dict[str, Any]:
+        resolver = getattr(self.ai_provider, "routing_for_request", None)
+        if callable(resolver):
+            decision = resolver(request)
+            as_dict = getattr(decision, "as_dict", None)
+            if callable(as_dict):
+                return as_dict()
+            if isinstance(decision, dict):
+                return dict(decision)
+        model = self._provider_model()
+        return {
+            "prompt_mode": "provider_managed",
+            "provider": self._provider_name(),
+            "selected_model": model,
+            "policy_version": "provider-managed",
+            "routing_reason": "provider_managed",
+            "fallback_chain": [model] if model else [],
+        }
+
     def _start_generation_attempt(
         self,
         *,
@@ -3741,13 +3760,15 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None = None,
         design_plan_payload: dict[str, Any] | None = None,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
             provider_id=self._provider_name(),
-            model_id=self._provider_model(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
             prompt_version=self._prompt_template_version(request),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
@@ -3798,6 +3819,12 @@ class ProjectService:
         usage_metadata = getattr(generation_result, "usage_metadata", None)
         attempt.provider_usage_json = json.dumps(usage_metadata, sort_keys=True) if usage_metadata else None
         attempt.provider_request_id = getattr(generation_result, "provider_request_id", None)
+        result_routing = getattr(generation_result, "routing_metadata", None)
+        if isinstance(result_routing, dict) and result_routing:
+            stored_routing = json.loads(attempt.routing_metadata_json or "{}")
+            stored_routing.update(result_routing)
+            attempt.routing_metadata_json = json.dumps(stored_routing, sort_keys=True)
+        attempt.provider_latency_ms = getattr(generation_result, "provider_latency_ms", None)
         attempt.raw_output_path = self._relative(raw_output_path)
         attempt.output_hash = self._sha256(generation_result.raw_output)
         self._update_attempt_chain(attempt, status=attempt.status)
@@ -4213,13 +4240,15 @@ class ProjectService:
         base_revision_id: str,
         request: RevisionPlanRequest,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
             provider_id=self._provider_name(),
-            model_id=self._provider_model(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
             prompt_version=self._revision_plan_prompt_template_version(),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
@@ -4261,13 +4290,15 @@ class ProjectService:
         project: Project,
         request: DesignPlanRequest,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
             provider_id=self._provider_name(),
-            model_id=self._provider_model(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
             prompt_version=self._design_plan_prompt_template_version(),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
@@ -4305,13 +4336,15 @@ class ProjectService:
         project: Project,
         request: RequirementExtractionRequest,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
             provider_id=self._provider_name(),
-            model_id=self._provider_model(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
             prompt_version=self._requirement_prompt_template_version(),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",

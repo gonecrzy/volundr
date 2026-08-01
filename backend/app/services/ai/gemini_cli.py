@@ -3,10 +3,12 @@ import contextlib
 import json
 import os
 import signal
+import time
 from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
+from app.services.ai.model_policy import GeminiModelPolicy, ModelRoutingDecision, PromptMode
 from app.services.ai.provider import (
     DesignPlanRequest,
     DesignPlanResult,
@@ -51,9 +53,14 @@ class GeminiCliProvider:
         model: str | None = None,
         timeout_seconds: int | None = None,
         policy_path: str | Path | None = None,
+        model_policy: GeminiModelPolicy | None = None,
     ) -> None:
         self.binary = binary or settings.gemini_binary
         self.model = model or settings.gemini_model
+        self.model_policy = model_policy or GeminiModelPolicy.from_settings(
+            settings,
+            general_model=self.model,
+        )
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
         configured_policy = policy_path if policy_path is not None else settings.gemini_policy_path
         self.policy_path = Path(configured_policy) if configured_policy else Path(__file__).with_name("gemini_no_tools_policy.toml")
@@ -66,12 +73,16 @@ class GeminiCliProvider:
         request: ModelGenerationRequest,
     ) -> ModelGenerationResult:
         prompt = self.build_cadquery_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return ModelGenerationResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def extract_requirements(
@@ -79,46 +90,129 @@ class GeminiCliProvider:
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
         prompt = self.build_requirement_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return RequirementExtractionResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
         prompt = self.build_source_brief_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return SourceBriefResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
         prompt = self.build_design_plan_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return DesignPlanResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
         prompt = self.build_revision_plan_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return RevisionPlanResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
-    async def _run_prompt(self, prompt: str) -> str:
-        command = self.build_command(prompt)
+    @property
+    def provider_id(self) -> str:
+        return "gemini_cli"
+
+    def routing_for_request(self, request: Any) -> ModelRoutingDecision:
+        if isinstance(request, (RequirementExtractionRequest, SourceBriefRequest)):
+            prompt_mode = PromptMode.REQUIREMENTS
+        elif isinstance(request, DesignPlanRequest):
+            prompt_mode = PromptMode.DESIGN_PLAN
+        elif isinstance(request, RevisionPlanRequest):
+            prompt_mode = PromptMode.REVISION_PLANNING
+        elif isinstance(request, ModelGenerationRequest):
+            if request.geometry_body_diagnostics:
+                prompt_mode = PromptMode.CADQUERY_GEOMETRY_BODY_REPAIR
+            elif request.revision_plan and request.scoped_revision_context:
+                prompt_mode = PromptMode.CADQUERY_COMPONENT_REVISION
+            else:
+                prompt_mode = PromptMode.CADQUERY_GEOMETRY_BODIES
+        else:
+            raise TypeError(f"unsupported request type for model routing: {type(request).__name__}")
+        resolved = self.model_policy.resolve(prompt_mode)
+        return ModelRoutingDecision(
+            prompt_mode=resolved.prompt_mode,
+            provider=self.provider_id,
+            selected_model=resolved.selected_model,
+            policy_version=resolved.policy_version,
+            routing_reason=resolved.routing_reason,
+            fallback_chain=resolved.fallback_chain,
+        )
+
+    async def _run_routed_prompt(
+        self,
+        prompt: str,
+        request: Any,
+    ) -> tuple[str, dict[str, Any], int, str, dict[str, Any] | None, str | None]:
+        decision = self.routing_for_request(request)
+        started = time.perf_counter()
+        actual_model = decision.selected_model
+        routing_reason = decision.routing_reason
+        try:
+            response = await self._run_prompt(prompt, model=decision.selected_model)
+        except RuntimeError as exc:
+            if (
+                decision.selected_model == self.model_policy.general_model
+                or not GeminiModelPolicy.is_operational_failure(str(exc))
+            ):
+                raise
+            response = await self._run_prompt(prompt, model=self.model_policy.general_model)
+            actual_model = self.model_policy.general_model
+            routing_reason = "operational_fallback"
+        latency_ms = max(0, round((time.perf_counter() - started) * 1000))
+        if isinstance(response, tuple):
+            raw_output, actual_model = response
+        else:
+            raw_output = response
+        routing = decision.as_dict()
+        routing["routing_reason"] = routing_reason
+        routing["actual_model"] = actual_model
+        return (
+            raw_output,
+            routing,
+            latency_ms,
+            actual_model,
+            getattr(self, "_last_usage_metadata", None),
+            getattr(self, "_last_provider_request_id", None),
+        )
+
+    async def _run_prompt(self, prompt: str, *, model: str | None = None) -> str:
+        command = self.build_command(prompt, model=model)
 
         process = await asyncio.create_subprocess_exec(
             *command,
@@ -191,10 +285,11 @@ class GeminiCliProvider:
         with contextlib.suppress(ProcessLookupError):
             os.killpg(pid, sig)
 
-    def build_command(self, prompt: str) -> list[str]:
+    def build_command(self, prompt: str, *, model: str | None = None) -> list[str]:
         command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]
-        if self.model:
-            command.extend(["--model", self.model])
+        selected_model = self.model if model is None else model
+        if selected_model:
+            command.extend(["--model", selected_model])
         if self.policy_path:
             command.extend(["--policy", str(self.policy_path)])
         return command

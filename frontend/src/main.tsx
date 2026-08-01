@@ -130,6 +130,30 @@ type ProjectMessage = {
   created_at: string;
 };
 
+type GenerationAttemptEvidence = {
+  attempt_id: string;
+  attempt_number: number;
+  provider: string;
+  model: string | null;
+  status: string;
+  failure_class: string;
+  prompt_version: string;
+  started_at: string;
+  completed_at: string | null;
+  duration_ms: number | null;
+  provider_usage: Record<string, unknown> | null;
+  provider_request_id: string | null;
+  routing_metadata: {
+    prompt_mode?: string;
+    selected_model?: string;
+    actual_model?: string;
+    routing_reason?: string;
+    fallback_chain?: string[];
+  };
+  provider_latency_ms: number | null;
+  resulting_revision_id: string | null;
+};
+
 type ChatWorkflowResponse = {
   workflow_run_id: string | null;
   action: string;
@@ -576,6 +600,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [projectMessages, setProjectMessages] = useState<ProjectMessage[]>([]);
+  const [generationAttempts, setGenerationAttempts] = useState<GenerationAttemptEvidence[]>([]);
   const [chatWorkflow, setChatWorkflow] = useState<ChatWorkflowResponse | null>(null);
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
@@ -736,6 +761,16 @@ function App() {
     void refreshProjects();
     void refreshPrintabilityProfiles();
   }, []);
+
+  useEffect(() => {
+    if (!project) {
+      setGenerationAttempts([]);
+      return;
+    }
+    void request<GenerationAttemptEvidence[]>(`/projects/${project.id}/generation-attempts`, { method: "GET" })
+      .then(setGenerationAttempts)
+      .catch(() => setGenerationAttempts([]));
+  }, [project?.id, selectedRevision?.id, chatWorkflow?.current_stage]);
 
   useEffect(() => {
     if (project && configurationParameters.length > 0) {
@@ -2594,6 +2629,26 @@ function App() {
                     <p>Final workflow result: {workflowDiagnosis.final_outcome}. {workflowDiagnosis.root_cause?.summary ?? "No blocking failure was recorded."}</p>
                   ) : null}
                 </div>
+              ) : null}
+              {generationAttempts.length > 0 ? (
+                <section aria-label="Provider routing details" className="workflow-technical-summary">
+                  <p>Provider routing</p>
+                  <ul>
+                    {generationAttempts.slice(-8).map((attempt) => {
+                      const routing = attempt.routing_metadata ?? {};
+                      const usage = attempt.provider_usage ?? {};
+                      const totalTokens = usage.totalTokenCount ?? usage.total_tokens;
+                      return (
+                        <li key={attempt.attempt_id}>
+                          {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
+                          {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
+                          {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
+                          {routing.routing_reason === "operational_fallback" ? " · operational fallback" : ""}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
               ) : null}
               <section className="source-panel" aria-label={sourcePanelLabel}>
                 <Editor language={sourceEditorLanguage} height="320px" options={{ minimap: { enabled: false }, fontSize: 13, wordWrap: "on", scrollBeyondLastLine: false }} theme="vs-dark" value={source} onChange={(value) => setSource(value ?? "")} />

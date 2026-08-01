@@ -218,6 +218,18 @@ class PlanningAiProvider:
     def provider_settings(self) -> dict[str, Any]:
         return {"model": "fake-planning-model"}
 
+    def routing_for_request(self, request: object) -> dict[str, Any]:
+        mode = "design_plan" if isinstance(request, DesignPlanRequest) else "requirements"
+        return {
+            "prompt_mode": mode,
+            "provider": "fake",
+            "selected_model": "fake-planning-model",
+            "actual_model": "fake-planning-model",
+            "policy_version": "test-routing-v1",
+            "routing_reason": "test_fixture",
+            "fallback_chain": ["fake-planning-model"],
+        }
+
     def requirement_prompt_template_version(self) -> str:
         return "requirements-v1"
 
@@ -599,6 +611,13 @@ def test_ready_specification_creates_immutable_design_plan(tmp_path: Path) -> No
         assert attempt is not None
         assert attempt.prompt_version == "design-plan-v1"
         assert attempt.design_plan_path is not None
+        routing = json.loads(attempt.routing_metadata_json)
+        assert routing["prompt_mode"] == "design_plan"
+        assert routing["selected_model"] == "fake-planning-model"
+
+    evidence = client.get(f"/api/projects/{project['id']}/generation-attempts")
+    assert evidence.status_code == 200
+    assert evidence.json()[-1]["routing_metadata"]["prompt_mode"] == "design_plan"
 
     run_dir = tmp_path / "data" / "projects" / project["id"] / "generation-runs" / attempt.id
     assert (run_dir / "raw-output.txt").exists()
