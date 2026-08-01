@@ -136,3 +136,62 @@ usability testing can continue with deterministic chat-first fixtures.
 The next model experiment should use another stronger geometry-capable model
 or a provider-side geometry strategy, with the same frozen-input protocol and
 without weakening the existing semantic gate.
+
+## Context-aware constraint correction
+
+The first comparison was dominated by an incorrect interpretation of the
+request. The phrase “two #8 mounting screws” is now represented as:
+
+- `mounting_screw_count`: `fixed_constraint`, not editable;
+- mounting-hole layout: `fixed_positions`;
+- required count: `2`;
+- hole axis: `Y` normal to the `XZ` mounting plane;
+- proposed positions: centered at the approved vertical spacing;
+- spacing: a `proposed_value`, not a pattern-driving parameter.
+
+Strict parameter-effect validation remains active for configurable values,
+derived values, and uniform/parameterized layouts. Fixed constraints remain in
+the source authority and are verified by the functional geometry contract.
+The deterministic normalizer also corrects a provider plan that calls a fixed
+count “uniform” without an explicit request for configurability.
+
+## Post-correction live rerun
+
+The exact request was rerun through the real Gemini API, FastAPI services, and
+CadQuery worker command path. Requirements and Design Plan progression passed;
+the Plan contained a concrete retention strategy and the fixed mounting layout.
+The former `mounting_screw_count` sensitivity failure did not recur.
+
+The final successful upstream run was blocked before worker execution because
+the generated component body did not carry the approved derived
+`holder_inner_diameter` into a CadQuery operation. The bounded repair repeated
+the geometry-body content failure. Current working version remained unchanged,
+and no candidate or physical verification was promoted. Requirements and Plan
+provider retries that returned invalid upstream JSON were recorded separately
+as provider output failures and were not treated as geometry evidence.
+
+Live artifact: `/tmp/volundr-bottle-holder-constraint-modes-live-final.json`.
+
+## Fair post-correction comparison
+
+The comparison froze that successful requirements/Plan result and ran two
+geometry attempts per model with the same prompt, scaffold, authority,
+validators, parameters, output limits, and worker setup:
+
+| Model | Structured JSON | Completeness | Result symbol | Scaffold | Worker | Outcome |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `gemini-3.5-flash-lite` | 2/2 | 2/2 | 2/2 | 0/2 | 0/2 | blocked by missing `holder_inner_diameter` effect |
+| `gemini-3.5-flash` | 2/2 | 2/2 | 2/2 | 0/2 | 0/2 | blocked by missing `mounting_hole_diameter` effect |
+
+Fast attempts used 16,173 and 16,205 total tokens with approximately
+3.4–3.5-second provider latency. Stronger attempts used 15,909 and 15,795
+total tokens with approximately 10.8–11.0-second provider latency. Neither
+attempt invoked repair, reached the worker, produced STEP/STL/BREP, or ran
+topology or functional checks. Both failures are valid derived-geometry
+contract failures, not the former fixed-count rule.
+
+This controlled result does not establish a quality advantage for
+`gemini-3.5-flash`; the stronger model was slower and failed the same stage at
+another required derived effect. Keep stage-specific routing, but do not
+promote either tested model based on this comparison. Live design-quality
+testing remains separate from deterministic frontend usability testing.
