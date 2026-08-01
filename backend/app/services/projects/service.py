@@ -12,6 +12,7 @@ from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import trimesh
 from pydantic import ValidationError
@@ -1735,6 +1736,198 @@ class ProjectService:
             request=request,
             superseded_revision_plan_id=superseded.id if superseded else None,
         )
+
+    def create_deterministic_revision_brief(
+        self,
+        project_id: str,
+        payload: RevisionPlanCreate,
+        *,
+        workflow_run: WorkflowRun | None = None,
+    ) -> tuple[RevisionPlanRead | None, PlanningRouteDecision]:
+        """Persist a narrow revision brief without a planning-provider call."""
+
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None, PlanningRouteDecision(PlanningDepth.CLARIFICATION_REQUIRED)
+        base_revision_id = payload.base_revision_id or project.active_revision_id
+        base_revision = self.db.get(Revision, base_revision_id) if base_revision_id else None
+        if base_revision is None or base_revision.project_id != project.id:
+            raise ValueError("base revision not found for project")
+        if base_revision.status != "succeeded" or base_revision.design_plan_id is None:
+            raise ValueError("base revision must reference a successful planned design")
+        design_plan = self.db.get(DesignPlan, base_revision.design_plan_id)
+        if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
+            raise ValueError("base revision must reference an approved Design Plan")
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        specification = (
+            self.db.get(DesignSpecification, base_revision.design_specification_id)
+            if base_revision.design_specification_id else None
+        )
+        specification_payload = (
+            self._read_design_specification_payload(specification) if specification is not None else {}
+        )
+        delta, observation = requirement_delta_for_message(payload.user_instruction)
+        if not delta:
+            raise ValueError("revision is not narrow enough for a deterministic revision brief")
+        ledger_store = RequirementLedgerStore(self.db)
+        current_ledger = ledger_store.load(project.id)
+        decision = PlanningDepthRouter().route_revision(
+            active_requirements=active_requirements(current_ledger),
+            revision_delta=delta,
+            project_state=self._planning_project_state(specification_payload),
+        )
+        if decision.outcome != PlanningDepth.DIRECT_BRIEF:
+            return None, decision
+        ledger = ledger_store.apply_delta(
+            project_id=project.id,
+            changes=delta,
+            originating_message=payload.user_instruction,
+            observation=observation,
+        )
+        planning_run = workflow_run or self._ensure_initial_workflow_run(project)
+        revision_plan_id = str(uuid4())
+        target_components = [
+            str(item.get("id")) for item in design_plan_payload.get("components", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        target_outputs = [
+            str(item.get("id")) for item in design_plan_payload.get("printable_outputs", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        plan_parameter_ids = {
+            str(item.get("id")) for item in design_plan_payload.get("parameters", []) or []
+            if isinstance(item, dict) and item.get("id")
+        }
+        requested_changes: list[dict[str, Any]] = []
+        allowed_parameter_changes: list[str] = []
+        targeted_features: list[str] = []
+        for change in delta:
+            target_id = str(change.get("requirement_id") or change.get("target") or "requirement")
+            target_type = "product_parameter" if target_id in plan_parameter_ids else "requirement"
+            requested_changes.append({
+                "target_type": target_type,
+                "target_id": target_id,
+                "current_value": self._design_plan_parameter_values(design_plan_payload).get(target_id),
+                "requested_value": change.get("value"),
+                "change_type": str(change.get("operation") or "modify"),
+                "source": str(change.get("source") or "revision_user"),
+            })
+            if target_type == "product_parameter":
+                allowed_parameter_changes.append(target_id)
+            target = str(change.get("target") or "")
+            if target and target in {
+                str(item.get("id")) for item in design_plan_payload.get("features", []) or []
+                if isinstance(item, dict) and item.get("id")
+            }:
+                targeted_features.append(target)
+        payload_body = {
+            "schema_version": "cad-revision-brief-v1",
+            "project_id": project.id,
+            "base_revision_id": base_revision.id,
+            "base_design_plan_id": design_plan.id,
+            "reason": payload.reason,
+            "summary": payload.user_instruction,
+            "user_instruction": payload.user_instruction,
+            "requested_changes": requested_changes,
+            "targeted_components": target_components[:1],
+            "targeted_features": targeted_features,
+            "targeted_outputs": target_outputs[:1],
+            "allowed_parameter_changes": allowed_parameter_changes,
+            "required_dependency_changes": [],
+            "protected_components": target_components[1:],
+            "protected_features": [
+                str(item.get("id")) for item in design_plan_payload.get("features", []) or []
+                if isinstance(item, dict) and item.get("id") and str(item.get("id")) not in targeted_features
+            ],
+            "protected_outputs": target_outputs[1:],
+            "allowed_component_changes": target_components[:1],
+            "allowed_feature_changes": targeted_features,
+            "prohibited_changes": [],
+            "success_criteria": [],
+            "requires_design_specification_version": bool(allowed_parameter_changes),
+            "requires_design_plan_version": bool(allowed_parameter_changes),
+            "clarification_questions": [],
+            "outcome": RevisionPlanOutcome.REVISION_READY.value,
+            "clarification_required": False,
+            "revision_ready": True,
+            "active_requirements": active_requirements(ledger),
+            "requirement_delta": delta,
+            "physical_test_observation": observation,
+        }
+        plan_dir = self._revision_plan_dir(project.id, revision_plan_id)
+        plan_dir.mkdir(parents=True, exist_ok=True)
+        plan_path = plan_dir / "cad-revision-brief.json"
+        self._write_json(plan_path, payload_body)
+        output_manifest = self.read_output_manifest(base_revision.id) or {}
+        revision_plan = RevisionPlan(
+            id=revision_plan_id,
+            project_id=project.id,
+            base_revision_id=base_revision.id,
+            base_design_specification_id=specification.id if specification else None,
+            base_design_plan_id=design_plan.id,
+            version_number=self._next_revision_plan_version(project.id),
+            schema_version="cad-revision-brief-v1",
+            prompt_template_version=PLANNING_ROUTE_PROMPT_VERSION,
+            ruleset_version=self._ruleset_version(),
+            provider="deterministic_volundr",
+            provider_model=None,
+            user_instruction=payload.user_instruction,
+            reason=payload.reason,
+            raw_response_path=None,
+            plan_path=self._relative(plan_path),
+            content_hash=self._sha256(json.dumps(payload_body, sort_keys=True)),
+            base_source_hash=self._sha256(self.read_revision_source(base_revision.id) or ""),
+            base_output_manifest_hash=self._sha256(json.dumps(output_manifest, sort_keys=True)),
+            base_design_specification_hash=self._sha256(json.dumps(specification_payload, sort_keys=True)) if specification else None,
+            base_design_plan_hash=self._sha256(json.dumps(design_plan_payload, sort_keys=True)),
+            outcome=RevisionPlanOutcome.REVISION_READY.value,
+            review_state=RevisionPlanReviewState.APPROVED.value,
+            clarification_required=False,
+            revision_ready=True,
+            approved_at=project_utcnow(),
+        )
+        self.db.add(revision_plan)
+        self.db.flush()
+        if payload_body["requires_design_plan_version"]:
+            revised_specification = self._persist_revision_specification_snapshot(
+                project=project,
+                base_specification=specification,
+                revision_plan=revision_plan,
+                base_payload=specification_payload,
+                revision_plan_payload=payload_body,
+            )
+            revision_plan.revised_design_specification_id = revised_specification.id
+            revised_plan = self._persist_revision_design_plan_snapshot(
+                project=project,
+                base_plan=design_plan,
+                revision_plan=revision_plan,
+                base_payload=design_plan_payload,
+                revision_plan_payload=payload_body,
+            )
+            revision_plan.revised_design_plan_id = revised_plan.id
+        self.db.flush()
+        brief_artifact = self._record_workflow_artifact(
+            planning_run,
+            stage="revision_planning",
+            artifact_type="cad_revision_brief",
+            role="selected_deterministic_revision_brief",
+            relative_path=self._relative(plan_path),
+            metadata={"revision_plan_id": revision_plan.id, "planning_depth": decision.outcome.value},
+        )
+        self._record_workflow_event(
+            planning_run,
+            stage="revision_planning",
+            event_type="revision_plan.route.selected",
+            severity="summary",
+            message="A deterministic revision brief was selected for a narrow change.",
+            deduplication_key=f"deterministic-revision-brief-{revision_plan.id}",
+            revision_id=base_revision.id,
+            revision_plan_id=revision_plan.id,
+            metadata={**decision.to_payload(), "brief_artifact_id": brief_artifact.id if brief_artifact else None},
+        )
+        self.db.commit()
+        self.db.refresh(revision_plan)
+        return self._revision_plan_read(revision_plan), decision
 
     def approve_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
         plan = self.db.get(RevisionPlan, revision_plan_id)

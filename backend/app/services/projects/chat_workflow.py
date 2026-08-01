@@ -265,6 +265,36 @@ class ChatWorkflowService:
         if intent.action in {"structural_revision", "component_revision", "control_request"}:
             revision_action = "structural_revision" if intent.action == "control_request" else intent.action
             self._event(workflow_run, f"{intent.action}.routed", f"Chat message routed to {intent.action.replace('_', ' ')}.", f"{intent.action}_routed")
+            if intent.action != "control_request":
+                delta, _observation = requirement_delta_for_message(message)
+                if delta:
+                    deterministic_plan, route = self.service.create_deterministic_revision_brief(
+                        project.id,
+                        RevisionPlanCreate(
+                            user_instruction=message,
+                            base_revision_id=project.active_revision_id,
+                            reason=intent.action,
+                        ),
+                        workflow_run=workflow_run,
+                    )
+                    if deterministic_plan is not None:
+                        self._event(
+                            workflow_run,
+                            "revision_plan.progressed",
+                            "A narrow revision brief was prepared automatically.",
+                            "automatic_revision_plan_progressed",
+                            revision_plan_id=deterministic_plan.id,
+                            metadata={"planning_depth": route.outcome.value},
+                        )
+                        revision = await self.service.generate_from_revision_plan(deterministic_plan.id)
+                        return self._generated_response(
+                            workflow_run,
+                            revision_action,
+                            revision,
+                            base_revision_id=project.active_revision_id,
+                            revision_plan_id=deterministic_plan.id,
+                            planning_depth=route.outcome.value,
+                        )
             plan = await self.service.create_revision_plan(
                 project.id,
                 RevisionPlanCreate(
@@ -385,10 +415,11 @@ class ChatWorkflowService:
                 True,
                 _first_missing_information(route.missing_information),
                 design_specification_id=specification.id,
+                planning_depth=route.outcome.value,
             )
         if plan.clarification_required:
             self._event(workflow_run, "clarification.requested", "Design Plan clarification requested.", "clarification_requested")
-            return self._response(workflow_run, action, "design_planning", True, _first_question(plan.clarification_questions), design_specification_id=specification.id, design_plan_id=plan.id)
+            return self._response(workflow_run, action, "design_planning", True, _first_question(plan.clarification_questions), design_specification_id=specification.id, design_plan_id=plan.id, planning_depth=route.outcome.value)
         approved = plan
         if plan.review_state.value != "approved":
             approved = self.service.approve_design_plan(plan.id)
@@ -404,7 +435,7 @@ class ChatWorkflowService:
         )
         self._event(workflow_run, "generation.started", "First-draft generation started automatically.", "automatic_generation_started", design_plan_id=approved.id)
         revision = await self.service.generate_from_design_plan(approved.id)
-        return self._generated_response(workflow_run, action, revision, base_revision_id=project.active_revision_id, design_specification_id=specification.id, design_plan_id=approved.id)
+        return self._generated_response(workflow_run, action, revision, base_revision_id=project.active_revision_id, design_specification_id=specification.id, design_plan_id=approved.id, planning_depth=route.outcome.value)
 
     def _generated_response(self, workflow_run: WorkflowRun, action: str, revision, *, base_revision_id: str | None, **ids) -> ChatWorkflowResponse:
         if revision is None:

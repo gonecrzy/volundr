@@ -144,6 +144,15 @@ PLATE_PLAN: dict[str, Any] = {
     "outcome": "plan_ready",
 }
 
+COMPACT_PLATE_PLAN: dict[str, Any] = {
+    **PLATE_PLAN,
+    "schema_version": "compact-cad-plan-v1",
+    "planning_depth": "compact_plan",
+    "proposals": [
+        {"id": "wall_thickness", "value": 3, "unit": "mm", "source": "volundr_proposal"}
+    ],
+}
+
 ORGANIZER_SOURCE = PLATE_SOURCE.replace(
     'PARAMETERS = [',
     '''PARAMETERS = [
@@ -529,6 +538,13 @@ class FixtureProvider:
                     "outcome": "clarification_required",
                 }
             )
+        elif "holder" in request.user_instruction.lower():
+            payload["functional_requirements"] = [
+                {"id": "fit", "description": "Accept the specified object with practical fit.", "source": "user", "importance": "critical", "protected": True, "type": "fit"},
+                {"id": "support", "description": "Provide vertical support.", "source": "calculated", "importance": "critical", "protected": True, "type": "support"},
+                {"id": "retention", "description": "Retain the object during motion.", "source": "user", "importance": "critical", "protected": True, "type": "retention"},
+                {"id": "removal", "description": "Permit practical one-handed removal.", "source": "user", "importance": "important", "protected": True, "type": "removal_access"},
+            ]
         if "organizer" in request.user_instruction.lower():
             payload["object_type"] = "repeated_cell_organizer"
             payload["parameters"] = [
@@ -560,6 +576,12 @@ class FixtureProvider:
 
     async def create_design_plan(self, _request: DesignPlanRequest) -> DesignPlanResult:
         self._record_call(_request, "design_plan_generation")
+        if _request.planning_depth == "compact_plan":
+            return DesignPlanResult(
+                raw_output=json.dumps(COMPACT_PLATE_PLAN),
+                provider="fixture",
+                provider_model="fixture-model",
+            )
         if "enclosure" in _request.user_instruction.lower() or "enclosure" in _request.original_intent.lower():
             plan = ENCLOSURE_PLAN
         else:
@@ -589,7 +611,7 @@ class FixtureProvider:
             plan = (
                 _request.design_plan
                 if isinstance(_request.design_plan, dict)
-                and str(_request.design_plan.get("schema_version") or "").startswith("cad-brief-")
+                and str(_request.design_plan.get("schema_version") or "").startswith(("cad-brief-", "compact-cad-"))
                 else ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
             )
             source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE

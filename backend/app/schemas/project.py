@@ -173,6 +173,7 @@ class ChatWorkflowResponse(BaseModel):
     design_plan_id: str | None = None
     revision_plan_id: str | None = None
     configuration_change_id: str | None = None
+    planning_depth: str | None = None
     active_requirements: list[dict[str, Any]] = Field(default_factory=list)
 
 

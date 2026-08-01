@@ -234,6 +234,26 @@ def requirement_delta_for_message(
                 },
             ]
         )
+    if not changes:
+        match = re.search(
+            r"\b(?:change|set|make)\s+(?:the\s+)?([a-z][a-z0-9 _-]{1,50})\s+to\s+([0-9]+(?:\.[0-9]+)?)\s*mm\b",
+            lowered,
+        )
+        if match:
+            label = re.sub(r"\s+", " ", match.group(1)).strip(" _-")
+            requirement_id = re.sub(r"[^a-z0-9]+", "_", label).strip("_")
+            if requirement_id:
+                changes.append(
+                    {
+                        "operation": "change",
+                        "requirement_id": requirement_id,
+                        "type": "exact_dimension",
+                        "value": float(match.group(2)),
+                        "unit": "mm",
+                        "source": source,
+                        "explicit": True,
+                    }
+                )
     return changes, observation
 
 

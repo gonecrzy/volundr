@@ -183,6 +183,7 @@ type ChatWorkflowResponse = {
   design_plan_id: string | null;
   revision_plan_id: string | null;
   configuration_change_id: string | null;
+  planning_depth?: string | null;
   active_requirements?: Array<Record<string, unknown>>;
 };
 
@@ -2515,6 +2516,7 @@ function App() {
     const chatTechnicalDetails = (
       <>
         <p>Technical diagnostics remain available here for support and review.</p>
+        {chatWorkflow?.planning_depth ? <p>Planning route: <code>{chatWorkflow.planning_depth}</code></p> : null}
         {workflowCorrelation.workflowRunId ? (
           <p>Workflow run: <code>{workflowCorrelation.workflowRunId}</code></p>
         ) : null}

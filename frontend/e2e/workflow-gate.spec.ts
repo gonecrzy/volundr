@@ -50,11 +50,13 @@ test("explicit part auto-creates a Current working version and keeps export expl
     fetch("/api/test-fixture/latest-summary").then((response) => response.json()),
   )).toMatchObject({
     provider_call_count: expect.any(Number),
-    provider_calls: expect.arrayContaining(["requirement_extraction", "design_plan_generation", "source_generation"]),
+    provider_calls: expect.arrayContaining(["requirement_extraction", "source_generation"]),
+    artifact_types: expect.arrayContaining(["planning_route_decision", "cad_brief", "geometry_execution_context", "prompt_context_pack"]),
     workflow_event_types: expect.arrayContaining(["candidate.classified", "candidate.accepted", "working_version.promoted"]),
     frontend_actions: expect.arrayContaining(["chat_message_submitted", "export_requested"]),
     revisions: [expect.objectContaining({ is_accepted: true, review_state: "accepted" })],
   });
+  expect((await page.evaluate(async () => fetch("/api/test-fixture/latest-summary").then((response) => response.json()))).provider_calls).not.toContain("design_plan_generation");
   expect(consoleErrors).toEqual([]);
 });
 

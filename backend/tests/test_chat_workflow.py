@@ -65,6 +65,26 @@ def test_chat_clarification_resumes_without_an_approval_step() -> None:
             )
             assert resumed.status_code == 200
             assert resumed.json()["current_stage"] == "working_version"
+            summary = client.get("/api/test-fixture/latest-summary").json()
+            assert "compact_cad_plan" in summary["artifact_types"]
+
+
+def test_chat_multipart_request_keeps_detailed_plan_compatibility() -> None:
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            result = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={
+                    "message": "Create a two-piece enclosure with a removable lid and four screws.",
+                    "client_message_id": "detailed-1",
+                },
+            )
+            assert result.status_code == 200
+            assert result.json()["current_stage"] == "working_version"
+            summary = client.get("/api/test-fixture/latest-summary").json()
+            assert "detailed_design_plan" in summary["artifact_types"]
+            assert "design_plan_generation" in summary["artifact_stages"]
 
 
 def test_chat_parameter_change_uses_configuration_without_provider_call() -> None:
@@ -107,6 +127,8 @@ def test_ordinary_numeric_revision_does_not_route_as_configuration() -> None:
             assert revised.json()["action"] == "structural_revision"
             after = client.get("/api/test-fixture/latest-summary").json()
             assert after["provider_call_count"] > before["provider_call_count"]
+            assert "revision_plan_generation" not in after["provider_calls"]
+            assert "cad_revision_brief" in after["artifact_types"]
             assert revised.json()["current_working_revision_id"] != first["current_working_revision_id"]
 
 
