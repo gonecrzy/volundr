@@ -88,6 +88,11 @@ import {
 } from "./workflowTelemetry";
 import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
 import { projectIdFromPath, projectPath, saveStatusLabel, type SaveStatus } from "./projectPersistence";
+import { userFacingSubmissionError } from "./chatWorkspace";
+import {
+  ChatWorkspace,
+  type ChatWorkspacePendingMessage,
+} from "./chatWorkspaceView";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -702,9 +707,12 @@ function App() {
   );
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
   const [workflowDiagnosis, setWorkflowDiagnosis] = useState<WorkflowDiagnosis | null>(null);
+  const [submissionError, setSubmissionError] = useState<ReturnType<typeof userFacingSubmissionError> | null>(null);
+  const [pendingChatMessage, setPendingChatMessage] = useState<ChatWorkspacePendingMessage | null>(null);
   const printabilitySectionRef = useRef<HTMLDivElement | null>(null);
   const observedWorkflowViews = useRef(new Set<string>());
   const chatRequestSequence = useRef(0);
+  const pendingChatSubmission = useRef<{ clientMessageId: string; prompt: string } | null>(null);
 
   function recordWorkflowViewOnce(
     key: string,
@@ -959,6 +967,9 @@ function App() {
     setAiOutput(null);
     setRevisionDiff(null);
     setSaveStatus("idle");
+    setSubmissionError(null);
+    setPendingChatMessage(null);
+    pendingChatSubmission.current = null;
     resetRequirementState();
     resetRevisionPlanState();
     resetConfigurationState();
@@ -1124,6 +1135,26 @@ function App() {
       setSaveStatus("failed");
     } finally {
       setIsSavingProject(false);
+    }
+  }
+
+  async function renameProject(nextName: string) {
+    if (!project) {
+      return;
+    }
+    setSaveStatus("saving");
+    try {
+      const updatedProject = await request<Project>(`/projects/${project.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: nextName }),
+      });
+      setProject(updatedProject);
+      setProjectName(updatedProject.name);
+      setProjects((current) => current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)));
+      setSaveStatus("saved");
+    } catch (error) {
+      setSaveStatus("failed");
+      throw error;
     }
   }
 
@@ -1322,9 +1353,15 @@ function App() {
       return;
     }
     const sequence = ++chatRequestSequence.current;
+    const existingSubmission = pendingChatSubmission.current;
+    const clientMessageId = existingSubmission?.prompt === prompt
+      ? existingSubmission.clientMessageId
+      : `${frontendSessionId}-${sequence}`;
+    pendingChatSubmission.current = { clientMessageId, prompt };
+    setPendingChatMessage({ id: clientMessageId, content: prompt, state: "pending" });
+    setSubmissionError(null);
     setIsGenerating(true);
-    setMessage("Understanding the request");
-    setGenerationPrompt("");
+    setMessage(null);
     setSourceContractError(null);
     try {
       const currentProject = project ?? (await createDraftProject());
@@ -1336,7 +1373,7 @@ function App() {
         method: "POST",
         body: JSON.stringify({
           message: prompt,
-          client_message_id: `${frontendSessionId}-${sequence}`,
+          client_message_id: clientMessageId,
         }),
       });
       if (sequence !== chatRequestSequence.current) {
@@ -1346,7 +1383,6 @@ function App() {
       setActiveRequirements(result.active_requirements ?? []);
       setActiveWorkflow(result.active_generation_run);
       await recordFrontendWorkflowEvent(currentProject.id, "chat_message_submitted", "conversation", { action: result.action });
-      setMessage(result.assistant_message);
       const refreshedProject = await request<Project>(`/projects/${currentProject.id}`, { method: "GET" });
       setProject(refreshedProject);
       setSaveStatus("saved");
@@ -1357,11 +1393,17 @@ function App() {
       await loadProjectMessages(refreshedProject.id);
       const nextRevisions = await request<Revision[]>(`/projects/${refreshedProject.id}/revisions`, { method: "GET" });
       setRevisions(nextRevisions);
-      const targetRevisionId = result.revision_id ?? result.blocked_attempt?.revision_id ?? result.current_working_revision_id ?? refreshedProject.active_revision_id;
+      const targetRevisionId = result.blocked_attempt
+        ? result.current_working_revision_id ?? refreshedProject.active_revision_id
+        : result.current_working_revision_id ?? result.revision_id ?? refreshedProject.active_revision_id;
       const targetRevision = nextRevisions.find((entry) => entry.id === targetRevisionId) ?? null;
       setSelectedRevision(targetRevision);
+      setGenerationPrompt((current) => current.trim() === prompt ? "" : current);
+      setPendingChatMessage((current) => current?.content === prompt ? null : current);
+      pendingChatSubmission.current = null;
+      setIsGenerating(false);
       if (targetRevision) {
-        await selectRevision(targetRevision);
+        void selectRevision(targetRevision);
       }
       if (result.input_required) {
         void recordFrontendWorkflowEvent(currentProject.id, "clarification_requested", "clarification", { action: result.action });
@@ -1374,7 +1416,9 @@ function App() {
       }
     } catch (error) {
       const detail = error instanceof Error ? error.message : "Chat workflow failed";
-      setMessage(detail);
+      setMessage(null);
+      setSubmissionError(userFacingSubmissionError(error));
+      setPendingChatMessage((current) => current ? { ...current, state: "failed" } : current);
       if (isSourceContractRejection(detail)) {
         setSourceContractError(detail);
       }
@@ -1843,6 +1887,18 @@ function App() {
         void generateSource();
         return;
     }
+  }
+
+  function retryChatSubmission() {
+    if (pendingChatMessage?.state !== "failed") {
+      return;
+    }
+    setSubmissionError(null);
+    void submitChatFirstMessage();
+  }
+
+  function clearChatSubmissionError() {
+    setSubmissionError(null);
   }
 
   function handlePromptKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -2453,6 +2509,119 @@ function App() {
     resetWorkspaceState();
     setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
+  }
+
+  if (CHAT_FIRST_ENABLED) {
+    const chatTechnicalDetails = (
+      <>
+        <p>Technical diagnostics remain available here for support and review.</p>
+        {workflowCorrelation.workflowRunId ? (
+          <p>Workflow run: <code>{workflowCorrelation.workflowRunId}</code></p>
+        ) : null}
+        {generationAttempts.length > 0 ? (
+          <section className="workflow-technical-summary" aria-label="Provider routing details">
+            <h3>Provider calls</h3>
+            <ul>
+              {generationAttempts.slice(-8).map((attempt) => {
+                const routing = attempt.routing_metadata ?? {};
+                const usage = attempt.provider_usage ?? {};
+                const totalTokens = usage.totalTokenCount ?? usage.total_tokens;
+                return (
+                  <li key={attempt.attempt_id}>
+                    {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
+                    {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
+                    {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
+        <div className="actions">
+          {sourceUrl ? <a className="download compact-action" href={sourceUrl}>Python source</a> : null}
+          {manifestUrl && selectedRevision?.output_manifest_path ? <a className="download compact-action" href={manifestUrl}>Output manifest</a> : null}
+          {diagnosticBundleUrl && project ? <a className="download compact-action" href={diagnosticBundleUrl}>Download diagnostic bundle</a> : null}
+        </div>
+        <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
+        <CandidateReview
+          acceptDisabledReason={acceptReason}
+          canAccept={canAcceptSelectedRevision}
+          findings={candidateFindings}
+          componentRevisionSummary={componentRevisionSummary}
+          geometricAnalysis={geometricAnalysis}
+          isPending={isReviewActionPending}
+          outputs={revisionOutputs}
+          revision={selectedRevision}
+          selectedOutputId={selectedOutputId}
+          viewerLabel={selectedViewerLabel}
+          workflowLabel={selectedWorkflowLabel}
+          chatFirst
+          onAccept={() => void acceptSelectedCandidate()}
+          onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
+          onRetryOutput={(output) => void retryOutput(output)}
+          onReviseBlockedOutput={() => undefined}
+          onReject={() => void rejectSelectedCandidate()}
+          onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
+          onRecoverFinding={handleCandidateFindingRecovery}
+          onWarningExpanded={() => undefined}
+          onRegenerateFromPlan={() => void continueGenerationFromDesignPlan()}
+          onReviseFromGeometricFinding={(finding) => setGenerationPrompt(revisionPromptFromGeometricFinding(finding))}
+          retryingOutputId={isRetryingOutputId}
+        />
+      </>
+    );
+    return (
+      <ChatWorkspace
+        project={project}
+        projects={projects}
+        messages={projectMessages}
+        revisions={revisions}
+        selectedRevision={selectedRevision}
+        currentWorkingRevisionId={project?.active_revision_id ?? null}
+        activeRequirements={activeRequirements}
+        designPlan={designPlan as unknown as { plan?: Record<string, unknown> } | null}
+        outputs={revisionOutputs}
+        activeWorkflow={activeWorkflow}
+        selectedOutputId={selectedOutputId}
+        saveStatus={saveStatus}
+        generationPrompt={generationPrompt}
+        chatPlaceholder={chatPlaceholder}
+        chatButtonLabel={chatButtonLabel}
+        isChatActionPending={isChatActionPending}
+        canAskAi={canAskAi}
+        pendingMessage={pendingChatMessage}
+        submissionError={submissionError}
+        viewer={<StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />}
+        hasModel={Boolean(stlUrl && selectedRevision?.status === "succeeded")}
+        technicalDetails={chatTechnicalDetails}
+        onPromptChange={setGenerationPrompt}
+        onPromptKeyDown={handlePromptKeyDown}
+        onSubmitPrompt={submitPrompt}
+        onRetrySubmission={retryChatSubmission}
+        onClearSubmissionError={clearChatSubmissionError}
+        onSelectProject={(nextProject) => {
+          const matchedProject = projects.find((entry) => entry.id === nextProject.id);
+          if (matchedProject) void selectProject(matchedProject);
+        }}
+        onStartProject={startNewProject}
+        onSelectRevision={(revision) => {
+          const fullRevision = revisions.find((entry) => entry.id === revision.id);
+          if (fullRevision) void selectRevision(fullRevision);
+        }}
+        onViewRevision={(revisionId) => {
+          const fullRevision = revisions.find((entry) => entry.id === revisionId);
+          if (fullRevision) void selectRevision(fullRevision);
+        }}
+        onOpenExport={() => undefined}
+        onExport={() => void exportSelectedRevision()}
+        onRename={renameProject}
+        onArchive={() => void archiveProject()}
+        onDelete={() => void deleteProject()}
+        onDownloadOutput={(output, format) => {
+          window.location.assign(`${API_BASE}/revision-outputs/${output.id}/${format}`);
+        }}
+      />
+    );
   }
 
   return (
@@ -4590,6 +4759,13 @@ function StlViewer({
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const fitViewRef = useRef<() => void>(() => undefined);
   const setViewRef = useRef<(view: ViewerCameraPreset) => void>(() => undefined);
+  const [showViewerHint, setShowViewerHint] = useState(() => {
+    try {
+      return window.localStorage.getItem("volundr.viewer-hint-dismissed") !== "true";
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -4828,11 +5004,29 @@ function StlViewer({
         <button type="button" onClick={() => setViewRef.current("top")}>
           Top
         </button>
+        <button type="button" onClick={() => setViewRef.current("right")}>
+          Right
+        </button>
         <button type="button" onClick={() => setViewRef.current("iso")}>
           Iso
         </button>
       </div>
-      <div className="viewer-help">Drag orbit · right drag pan · wheel zoom</div>
+      {showViewerHint ? (
+        <button
+          className="viewer-help"
+          type="button"
+          onClick={() => {
+            setShowViewerHint(false);
+            try {
+              window.localStorage.setItem("volundr.viewer-hint-dismissed", "true");
+            } catch {
+              return;
+            }
+          }}
+        >
+          Drag to orbit · right drag to pan · wheel to zoom · dismiss
+        </button>
+      ) : null}
       <div
         aria-label="Orientation gizmo"
         className="viewer-gizmo"
@@ -4844,7 +5038,7 @@ function StlViewer({
   );
 }
 
-type ViewerCameraPreset = "front" | "iso" | "top";
+type ViewerCameraPreset = "front" | "iso" | "top" | "right";
 
 function orientGeometryOnBuildPlate(geometry: THREE.BufferGeometry) {
   geometry.computeBoundingBox();
@@ -4862,6 +5056,9 @@ function cameraPresetDirection(preset: ViewerCameraPreset) {
   }
   if (preset === "top") {
     return new THREE.Vector3(0, -0.001, 1).normalize();
+  }
+  if (preset === "right") {
+    return new THREE.Vector3(1, 0, 0.22).normalize();
   }
   return new THREE.Vector3(1.15, -1.35, 0.82).normalize();
 }
