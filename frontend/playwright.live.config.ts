@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolvePlaywrightPorts } from "./playwrightPorts";
 
 const liveEnabled = process.env.VOLUNDR_RUN_LIVE_E2E === "true";
 if (liveEnabled && process.env.GEMINI_API_KEY) {
@@ -12,8 +13,7 @@ if (liveEnabled && !process.env.VOLUNDR_LIVE_ENV_FILE) {
   );
 }
 
-const apiPort = process.env.VOLUNDR_LIVE_API_PORT ?? "8200";
-const webPort = process.env.VOLUNDR_LIVE_WEB_PORT ?? "4273";
+const ports = resolvePlaywrightPorts("VOLUNDR_LIVE_API_PORT", "VOLUNDR_LIVE_WEB_PORT");
 const dataDir = process.env.VOLUNDR_LIVE_DATA_DIR ?? "/tmp/volundr-live-e2e-unconfigured";
 const repoRoot = "..";
 
@@ -25,7 +25,7 @@ export default defineConfig({
   expect: { timeout: 60_000 },
   outputDir: "test-results/live",
   use: {
-    baseURL: `http://127.0.0.1:${webPort}`,
+    baseURL: `http://${ports.host}:${ports.webPort}`,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     ...devices["Desktop Chrome"],
@@ -33,22 +33,15 @@ export default defineConfig({
   webServer: [
     {
       command:
-        `cd ${repoRoot}/backend && . "$VOLUNDR_LIVE_ENV_FILE" && ` +
-        `VOLUNDR_AI_PROVIDER=gemini_api VOLUNDR_DATA_DIR="${dataDir}/data" ` +
-        `VOLUNDR_CAD_WORKSPACE_DIR="${dataDir}/data/jobs" PYTHONPATH=. ` +
-        `../backend/.venv/bin/alembic upgrade head && ` +
-        `exec env VOLUNDR_AI_PROVIDER=gemini_api VOLUNDR_DATA_DIR="${dataDir}/data" ` +
-        `VOLUNDR_CAD_WORKSPACE_DIR="${dataDir}/data/jobs" PYTHONPATH=. ` +
-        `../backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port ${apiPort} ` +
-        `>"${dataDir}/api.log" 2>&1`,
+        `VOLUNDR_LIVE_API_PORT=${ports.apiPort} ./scripts/run-live-api.sh`,
       reuseExistingServer: false,
-      url: `http://127.0.0.1:${apiPort}/health`,
+      url: `http://${ports.host}:${ports.apiPort}/health`,
       timeout: 120_000,
     },
     {
-      command: `VOLUNDR_E2E_PORT=${apiPort} npm run dev -- --host 127.0.0.1 --port ${webPort}`,
+      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
       reuseExistingServer: false,
-      url: `http://127.0.0.1:${webPort}`,
+      url: `http://${ports.host}:${ports.webPort}`,
       timeout: 120_000,
     },
   ],

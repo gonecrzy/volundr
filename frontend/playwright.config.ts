@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolvePlaywrightPorts } from "./playwrightPorts";
 
-const e2eApiPort = process.env.VOLUNDR_E2E_PORT ?? "8000";
-const e2eWebPort = process.env.VOLUNDR_E2E_WEB_PORT ?? "4173";
+const ports = resolvePlaywrightPorts("VOLUNDR_E2E_PORT", "VOLUNDR_E2E_WEB_PORT");
 const viewportWidth = Number(process.env.VOLUNDR_E2E_VIEWPORT_WIDTH);
 const viewportHeight = Number(process.env.VOLUNDR_E2E_VIEWPORT_HEIGHT);
 const configuredViewport =
@@ -14,7 +14,7 @@ export default defineConfig({
   workers: 1,
   timeout: 30_000,
   use: {
-    baseURL: `http://127.0.0.1:${e2eWebPort}`,
+    baseURL: `http://${ports.host}:${ports.webPort}`,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     ...devices["Desktop Chrome"],
@@ -23,14 +23,14 @@ export default defineConfig({
   webServer: [
     {
       command:
-        `fixture_root=$(mktemp -d /tmp/volundr-playwright-fixture.XXXXXX) && exec rtk env PYTHONPATH=../backend VOLUNDR_E2E_DATA_DIR=$fixture_root VOLUNDR_E2E_PORT=${e2eApiPort} ../backend/.venv/bin/python -m app.testing.e2e_fixture_server`,
+        `VOLUNDR_E2E_PORT=${ports.apiPort} ./scripts/run-fixture-backend.sh`,
       reuseExistingServer: false,
-      url: `http://127.0.0.1:${e2eApiPort}/health`,
+      url: `http://${ports.host}:${ports.apiPort}/health`,
     },
     {
-      command: `npm run dev -- --host 127.0.0.1 --port ${e2eWebPort}`,
-      reuseExistingServer: true,
-      url: `http://127.0.0.1:${e2eWebPort}`,
+      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
+      reuseExistingServer: false,
+      url: `http://${ports.host}:${ports.webPort}`,
     },
   ],
 });
