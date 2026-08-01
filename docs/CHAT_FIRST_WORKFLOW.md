@@ -36,3 +36,10 @@ The staged/developer UI remains available when the flag is false so existing
 diagnostic workflows can be maintained during rollout. After deterministic
 chat-first and live gates pass, remove the staged user-facing controls and
 retain only their internal service contracts and diagnostic tests.
+
+Ordinary numeric values are not automatically controls. The active
+requirement ledger records user requirements, proposals, revision deltas, and
+physical-test observations. A revision may regenerate the source completely;
+it never depends on the original source exposing a reusable parameter. Only an
+explicit request such as “Expose bottle diameter as an adjustable control”
+activates the strict source-effect contract for that control.

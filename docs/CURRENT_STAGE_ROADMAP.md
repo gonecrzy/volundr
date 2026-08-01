@@ -4,8 +4,8 @@ This document records the implementation sequence, current stage status, milesto
 
 ## Active Transition
 
-Status: locally implemented with live Gemini benchmark evidence; prompt promotion
-is still withheld pending richer product-quality and human acceptance gates
+Status: requirement-led revisions implemented; live quality remains separately
+gated by actual worker and functional evidence.
 
 The active roadmap is the CadQuery-primary architecture transition defined in
 `docs/CADQUERY_BACKEND.md`, planned in
@@ -16,14 +16,14 @@ current architecture.
 
 Transition order:
 
-1. Establish CadQuery/Gemini/staged-workflow documentation authority.
+1. Establish CadQuery/Gemini/chat-first documentation authority.
 2. Replace the idle CAD worker with a real isolated execution boundary.
 3. Replace SCAD-shaped persistence with CadQuery-native source and artifact fields.
 4. Promote CadQuery source validation into the production `cadquery-v1` contract.
 5. Execute single-output and multi-output CadQuery products with STEP/STL artifacts and topology validation.
-6. Make Gemini API and the staged lifecycle the default generation path.
+6. Make Gemini API and the chat-first lifecycle the default generation path under the feature flag.
 7. Rebuild deterministic parameter configuration around typed CadQuery execution.
-8. Rebuild structured and component-targeted revisions around CadQuery source ownership and topology evidence.
+8. Rebuild structured and component-targeted revisions around active requirements, optional controls, and topology evidence.
 9. Align the frontend and Playwright workflow with the staged CadQuery lifecycle.
 10. Remove OpenSCAD product paths.
 11. Run the functional CadQuery/Gemini benchmark gate. Live Gemini API smoke,
@@ -35,9 +35,10 @@ Transition order:
     first-failure diagnosis, stage traces, frontend correlation, debug bundles,
     and run comparison are defined in `docs/WORKFLOW_OBSERVABILITY.md`.
 
-Next planned task: run the opt-in live Gemini browser smoke suite, then begin
-observed user testing only after its evidence is reviewed. Do not expand this
-into a general analytics platform or another broad CAD validation redesign.
+Next planned task: continue deterministic chat-first UX testing while the
+separate live CAD-quality track evaluates real-provider geometry and physical
+evidence. Do not use a live CAD result as a UX fixture or expand this into a
+general analytics platform or another broad CAD validation redesign.
 
 ## Stage 0 — Foundation Documents
 

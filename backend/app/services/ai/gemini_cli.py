@@ -34,13 +34,13 @@ from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v3"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v4"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v5"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v5"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v6"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v6"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -660,6 +660,7 @@ class GeminiCliProvider:
         inventory = build_geometry_function_inventory(plan)
         expected_functions = inventory["expected_function_ids"]
         parameter_ids = inventory["allowed_parameters"]
+        exposed_control_ids = inventory["parameter_effect_contract"].get("exposed_control_ids", [])
         lines = [
             "You generate only structured CadQuery geometry bodies for Volundr.",
             "Return JSON only, optionally inside one json code fence. Do not include prose outside JSON.",
@@ -674,15 +675,14 @@ class GeminiCliProvider:
             "Required function authority inventory:",
             json.dumps(inventory["functions"], indent=2, sort_keys=True),
             "",
-            "Binding per-function parameter-effect contract:",
-            "Every required direct parameter must reach the stated geometry effect directly or through one of its approved derived parameters.",
-            "A parameter reference used only in an assignment, comment, or unrelated helper does not satisfy the contract.",
-            "For pattern_count, do not use a fixed range, fixed point list, repeated literal geometry calls, or fixed coordinates when a pattern-count effect is required; use the approved count input.",
-            "For pattern_spacing, do not replace an approved pattern spacing with fixed coordinates when a pattern-spacing effect is required.",
-            "For every required pattern (effect_required=true), Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array, and never call a pattern helper from a geometry body.",
-            "For fixed_positions layouts, use the approved positions and hole axis from the layout contract. Fixed positions are a geometric constraint and do not require future count or spacing sensitivity.",
-            "For dimension and radius_or_diameter, do not replace an approved parameter or derived value with a matching numeric literal.",
-            "When static proof is unclear, use the required parameter or approved derived value in the geometry operation explicitly; unverifiable critical effects block assembly.",
+            "Requirement-led implementation contract:",
+            "Satisfy every active requirement and preserve unaffected requirements during revisions.",
+            "Ordinary designs may use safe numeric literals, local expressions, helper functions, or scaffold values for proposed dimensions. Do not add source parametrization for values the user did not expose as controls.",
+            "Only explicitly exposed controls require source sensitivity; their internal derived chain must remain functional.",
+            "Exposed control IDs: " + (", ".join(exposed_control_ids) if exposed_control_ids else "none"),
+            "For fixed or one-off layouts, use the approved feature geometry without inventing future configurability.",
+            "For every required pattern (effect_required=true), Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array.",
+            "Do not omit a required feature merely because its implementation is not parametric.",
             "Per-function obligations:",
             *[
                 "- {function_id}: direct={direct}; derived={derived}; effects={effects}".format(
@@ -733,6 +733,10 @@ class GeminiCliProvider:
                 "",
                 "Design Specification:",
                 json.dumps(request.design_specification or {}, indent=2, sort_keys=True),
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
                 "",
                 "Design Plan:",
                 json.dumps(plan, indent=2, sort_keys=True),
@@ -793,7 +797,7 @@ class GeminiCliProvider:
     def _build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
         if request.schema_repair_of_raw_output is not None:
             task = [
-                "Repair this Parametric Design Plan response into valid JSON for the required schema.",
+                "Repair this Design Plan response into valid JSON for the required schema.",
                 "Do not generate CAD source. Do not invent new critical requirements.",
                 "Preserve the original planning intent and return JSON only.",
                 "Preserve direct user requirements exactly; represent implementation dimensions as derived_formula or standard_lookup values instead of changing the user value.",
@@ -808,12 +812,13 @@ class GeminiCliProvider:
             ]
         else:
             task = [
-                "Create a generic Parametric Design Plan for Volundr from the approved Design Specification.",
+                "Create a Design Plan for Volundr from the approved Design Specification.",
                 "Return JSON only. Do not generate CAD source.",
-                "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
-                "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
-                "Every parameter must include provenance.relationship: direct, derived_formula, calculated, standard_lookup, product_default, printer_default, ai_proposal, or user_override.",
-                "Every important parameter must include constraint_mode: fixed_constraint, configurable_parameter, derived_parameter, explicit_layout, proposed_value, or cosmetic_freedom.",
+                "Describe active requirements, a proposed design approach, components, functional features, relationships, printable outputs, known proposals, verification targets, and optional exposed controls.",
+                "Do not make a comprehensive parameter graph or reusable template mandatory for ordinary designs. Do not use a fishing-tray carrier as the schema template.",
+                "Record provenance.relationship when a parameter or proposal has a useful source: direct, derived_formula, calculated, standard_lookup, product_default, printer_default, ai_proposal, or user_override.",
+                "Every active requirement must be represented in the Plan or functional contract, but ordinary numeric values are not automatically reusable controls.",
+                "Include exposed_controls only for controls explicitly requested by the user. Leave exposed_controls empty for ordinary designs.",
                 "A parameter with source_requirement_id must copy that source requirement's value and unit only when its provenance relationship is direct. Derived implementation dimensions must not be marked direct.",
                 "Use derived_parameters or derived_formula provenance for calculated stack, envelope, or overall product dimensions, not direct source-linked values.",
                 "Use derived_formula for deterministic formulas and include source_requirement_ids, source_parameter_ids, and the arithmetic expression. The expression may be on the derived parameter or duplicated in provenance. Use standard_lookup for nominal hardware designations and include table_id, key, variant, and result_field when needed; never treat a designation as a metric dimension.",
@@ -830,6 +835,7 @@ class GeminiCliProvider:
                 "Choose exactly one supported retention strategy when the functional context supports a reasonable proposal. Use one of flexible_snap_arm, retaining_lip, spring_clip, removable_strap, rotating_gate, latch, or friction_band. Do not use reviewed_proposal, unspecified, generic_retention, choose_later, or some_clip as a strategy.",
                 "For moving-vehicle containment with one-handed release, prefer a flexible_snap_arm proposal unless the Design Specification states a material, durability, or architecture constraint that makes it unsuitable. Include a stable feature_id, owning component, retained object relationship, retention direction, release behavior, removal direction, editable proposed parameters, and verification metadata.",
                 "Use Volundr proposals for ordinary defaults; do not ask the user for routine wall thickness, clearance, or fillet values.",
+                "A request such as 'use two screws' is a requirement, not an exposed count control. A request such as 'make bottle diameter adjustable' is an exposed control request.",
             ]
         schema = {
             "schema_version": "1.1",
@@ -854,7 +860,7 @@ class GeminiCliProvider:
                     },
                     "editable": True,
                     "protected": False,
-                    "constraint_mode": "fixed_constraint|configurable_parameter|derived_parameter|explicit_layout|proposed_value|cosmetic_freedom",
+                    "constraint_mode": "optional intent annotation; do not infer future controls from numeric values",
                     "component_id": "string|null",
                 }
             ],
@@ -938,6 +944,14 @@ class GeminiCliProvider:
                     "parameter_values": {"parameter_id": 0},
                 }
             ],
+            "exposed_controls": [
+                {
+                    "parameter_id": "parameter_id",
+                    "label": "string",
+                    "unit": "mm",
+                    "source": "explicit_user_request",
+                }
+            ],
             "assembly_strategy": {"type": "single_part|multi_part|assembly", "instructions": ["string"]},
             "printable_outputs": [
                 {
@@ -977,6 +991,10 @@ class GeminiCliProvider:
                 "",
                 "Approved Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
                 "",
                 "Previous Design Plan:",
                 json.dumps(request.previous_design_plan, indent=2, sort_keys=True)
@@ -1066,6 +1084,10 @@ class GeminiCliProvider:
                 f"Revision reason: {request.reason}",
                 f"User revision request: {request.user_instruction}",
                 f"Base revision id: {request.base_revision_id}",
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
                 "",
                 "Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),

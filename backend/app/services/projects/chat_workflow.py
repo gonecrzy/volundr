@@ -33,6 +33,11 @@ from app.schemas.project import (
     RevisionPlanCreate,
 )
 from app.services.projects.service import ProjectService
+from app.services.projects.requirement_ledger import (
+    RequirementLedgerStore,
+    active_requirements,
+    requirement_delta_for_message,
+)
 
 
 NUMBER_WORDS = {
@@ -72,11 +77,25 @@ class ChatIntentRouter:
         if project.active_revision_id is None:
             return RoutedIntent("requirement_answer" if self._waiting_for_clarification(project) else "initial_design")
 
+        if re.search(
+            r"\b(?:expose|adjustable|configurable|parametric|parameterized|reusable\s+template|"
+            r"let\s+me\s+(?:change|adjust|set|choose))\b",
+            normalized,
+        ):
+            return RoutedIntent("control_request")
         parameter_values = self._parameter_change(project.id, message)
         if parameter_values:
             return RoutedIntent("parameter_change", parameter_values)
+        if re.search(
+            r"\b(?:too\s+tight|clearance|flex(?:es)?|thicker|reinforce|reinforcement|"
+            r"test\s+print|obstruction|broke|cracked|does\s+not\s+seat)\b",
+            normalized,
+        ):
+            return RoutedIntent("structural_revision")
         if re.search(r"\b(lid|snap|strap|drain|hole|mount|retention|component|part)\b", normalized):
             return RoutedIntent("component_revision" if "component" in normalized or "part" in normalized else "structural_revision")
+        if re.search(r"\b(?:to|by)\s+(?:\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\b", normalized):
+            return RoutedIntent("structural_revision")
         if re.search(r"\b(change|move|replace|add|remove|make|set)\b", normalized):
             return RoutedIntent("clarification_needed")
         return RoutedIntent("unsupported")
@@ -94,8 +113,19 @@ class ChatIntentRouter:
     def _parameter_change(self, project_id: str, message: str) -> dict[str, Any]:
         try:
             parameters = self.service.list_configuration_parameters(project_id) or []
+            current_plan = self.service.get_current_design_plan(project_id)
         except (ValueError, RuntimeError):
             return {}
+        plan_payload = current_plan.plan if current_plan is not None else None
+        exposed_ids = None
+        if isinstance(plan_payload, dict) and "exposed_controls" in plan_payload:
+            exposed_ids = {
+                str(control if isinstance(control, str) else control.get("parameter_id"))
+                for control in plan_payload.get("exposed_controls", []) or []
+                if (isinstance(control, str) and control)
+                or (isinstance(control, dict) and control.get("parameter_id"))
+            }
+            parameters = [parameter for parameter in parameters if parameter.id in exposed_ids]
         match = re.search(r"\bto\s+([a-z0-9_.-]+)", message.lower())
         if match is None:
             return {}
@@ -138,6 +168,7 @@ class ChatWorkflowService:
             ai_provider=ai_provider,
             cad_runner=cad_runner,
         )
+        self.requirement_store = RequirementLedgerStore(db)
 
     async def submit(self, project_id: str, payload: ChatMessageCreate) -> ChatWorkflowResponse:
         project = self.db.get(Project, project_id)
@@ -211,7 +242,8 @@ class ChatWorkflowService:
         if intent.action == "start_over":
             self._event(workflow_run, "start_over.branch_created", "A new design lineage was started while preserving previous versions.", "start_over_branch_created")
             return await self._initial_design(project, workflow_run, message, action="start_over")
-        if intent.action in {"structural_revision", "component_revision"}:
+        if intent.action in {"structural_revision", "component_revision", "control_request"}:
+            revision_action = "structural_revision" if intent.action == "control_request" else intent.action
             self._event(workflow_run, f"{intent.action}.routed", f"Chat message routed to {intent.action.replace('_', ' ')}.", f"{intent.action}_routed")
             plan = await self.service.create_revision_plan(
                 project.id,
@@ -230,7 +262,7 @@ class ChatWorkflowService:
             if approved is None:
                 raise LookupError("Revision Plan not found")
             revision = await self.service.generate_from_revision_plan(plan.id)
-            return self._generated_response(workflow_run, intent.action, revision, base_revision_id=project.active_revision_id, revision_plan_id=plan.id)
+            return self._generated_response(workflow_run, revision_action, revision, base_revision_id=project.active_revision_id, revision_plan_id=plan.id)
 
         return await self._resume_or_initial(project, workflow_run, message)
 
@@ -246,6 +278,11 @@ class ChatWorkflowService:
             self._event(workflow_run, "clarification.answered", "Requirement clarification answered.", "clarification_answered", metadata={"kind": "requirements"})
             if answered is None or answered.clarification_required:
                 return self._response(workflow_run, "requirement_answer", "requirements", True, _first_question(answered.clarification_questions if answered else []), design_specification_id=answered.id if answered else specification.id)
+            self.requirement_store.merge_from_specification(
+                project_id=project.id,
+                specification=answered.specification,
+                originating_message=message,
+            )
             self._event(workflow_run, "requirements.progressed", "Requirements progressed after clarification.", "automatic_requirements_progressed", design_specification_id=answered.id)
             return await self._plan_and_generate(project, workflow_run, answered, action="initial_design")
         plan = self.service.get_current_design_plan(project.id)
@@ -282,6 +319,26 @@ class ChatWorkflowService:
         specification = await self.service.extract_requirements(project.id, RequirementExtractionCreate(user_instruction=message))
         if specification is None:
             raise LookupError("project not found")
+        if action == "start_over":
+            self.requirement_store.merge_from_specification(
+                project_id=project.id,
+                specification=specification.specification,
+                originating_message=message,
+            )
+            changes, observation = requirement_delta_for_message(message)
+            if changes:
+                self.requirement_store.apply_delta(
+                    project_id=project.id,
+                    changes=changes,
+                    originating_message=message,
+                    observation=observation,
+                )
+        else:
+            self.requirement_store.ensure_from_specification(
+                project_id=project.id,
+                specification=specification.specification,
+                originating_message=message,
+            )
         if specification.clarification_required:
             self._event(workflow_run, "clarification.requested", "Requirement clarification requested.", "clarification_requested")
             return self._response(workflow_run, action, "requirements", True, _first_question(specification.clarification_questions), design_specification_id=specification.id)
@@ -307,12 +364,14 @@ class ChatWorkflowService:
         if revision is None:
             raise LookupError("generated revision not found")
         if revision.is_accepted:
+            self.service._complete_workflow_lineage(workflow_run, status="completed")
             return self._response(workflow_run, action, "working_version", False, "Your current working version is ready.", current_revision_id=revision.id, revision_id=revision.id, **ids)
         if revision.status == "succeeded" and revision.review_state in {"ready", "ready_with_warnings"}:
             current = self.db.get(Project, revision.project_id)
             if current is not None and current.active_revision_id == base_revision_id:
                 accepted = self.service.accept_candidate(revision.id)
                 if accepted is not None:
+                    self.service._complete_workflow_lineage(workflow_run, status="completed")
                     self._event(workflow_run, "working_version.promoted", "Passing draft promoted to Current working version.", "working_version_promoted", revision_id=revision.id)
                     return self._response(workflow_run, action, "working_version", False, "Your new version passed validation and is now the Current working version.", current_revision_id=accepted.id, revision_id=accepted.id, **ids)
         blocked = {
@@ -324,6 +383,7 @@ class ChatWorkflowService:
             "error_message": revision.error_message,
         }
         self._event(workflow_run, "blocked_attempt.preserved", "Blocked attempt preserved; Current working version unchanged.", "blocked_attempt_preserved", revision_id=revision.id, metadata=blocked)
+        self.service._complete_workflow_lineage(workflow_run, status="failed")
         current_revision_id = self.db.get(Project, revision.project_id).active_revision_id
         return self._response(workflow_run, action, "blocked_attempt", False, "Volundr could not create a valid new version. Your current working version is unchanged.", current_revision_id=current_revision_id, revision_id=revision.id, blocked_attempt=blocked, **ids)
 
@@ -339,6 +399,11 @@ class ChatWorkflowService:
             active_generation_run={"workflow_run_id": workflow_run.id, "status": workflow_run.status} if workflow_run else None,
             blocked_attempt=blocked_attempt,
             revision_id=revision_id,
+            active_requirements=(
+                active_requirements(self.requirement_store.load(workflow_run.project_id))
+                if workflow_run is not None
+                else []
+            ),
             **ids,
         )
 

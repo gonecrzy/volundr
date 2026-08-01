@@ -1,7 +1,9 @@
 # Volundr
 
 Volundr is a self-hosted, single-user application for generating, executing,
-previewing, revising, and exporting functional parametric 3D-printing products.
+previewing, revising, and exporting functional 3D-printing products. Every
+design remains revisionable through chat; parametric controls are optional and
+explicitly requested.
 The current architecture uses CadQuery Python as the authoritative CAD source,
 OpenCascade B-Rep topology validation, STEP as the primary geometry artifact,
 STL as the derived print/preview artifact, Gemini API as the primary runtime AI
@@ -27,16 +29,15 @@ The authoritative direction is defined in:
 ```text
 describe product
   -> extract requirements
-  -> review or clarify Design Specification
-  -> create Parametric Design Plan
-  -> approve plan
+  -> clarify only essential Design Specification decisions
+  -> create and validate Design Plan
   -> generate CadQuery Python through Gemini API
   -> validate source contract
   -> execute in isolated CAD worker
   -> validate B-Rep topology
   -> export STEP and STL
-  -> review candidate
-  -> explicitly accept or revise
+  -> automatically promote passing candidate to Current working version
+  -> revise or export through chat
 ```
 
 ## Product Constraints
@@ -48,7 +49,8 @@ describe product
 - CadQuery Python is the editable regeneration source of truth
 - STEP is the primary interoperable geometry artifact
 - STL is derived for print preview and printing
-- functional parametric parts and manageable multi-part printable products are the focus
+- functional printable products and indefinitely revisionable chat workflows are the focus
+- parametric controls are optional and explicitly requested
 
 ## Documentation
 

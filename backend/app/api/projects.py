@@ -63,6 +63,7 @@ from app.services.printability.inspector import inspect_printability
 from app.services.printability.profiles import PrintabilityProfileService
 from app.services.projects.service import ProjectService
 from app.services.projects.chat_workflow import ChatWorkflowService
+from app.services.projects.requirement_ledger import RequirementLedgerStore, active_requirements
 from app.models.workflow import FrontendWorkflowEvent, WorkflowEvent, WorkflowRun
 from app.services.workflow.comparison import WorkflowRunComparisonService
 from app.services.workflow.debug_bundle import WorkflowDebugBundleService
@@ -515,6 +516,16 @@ def get_current_design_specification(
     if specification is None:
         raise HTTPException(status_code=404, detail="Design Specification not found")
     return specification
+
+
+@router.get("/projects/{project_id}/requirements/active", response_model=dict[str, Any])
+def get_active_requirements(project_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
+    ledger = RequirementLedgerStore(db).load(project_id)
+    return {
+        "schema_version": ledger["schema_version"],
+        "project_id": project_id,
+        "requirements": active_requirements(ledger),
+    }
 
 
 @router.get(

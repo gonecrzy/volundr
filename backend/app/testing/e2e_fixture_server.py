@@ -158,6 +158,9 @@ ORGANIZER_PLAN: dict[str, Any] = {
     **PLATE_PLAN,
     "product_type": "repeated_cell_organizer",
     "purpose": "A configurable repeated-cell organizer",
+    "exposed_controls": [
+        {"parameter_id": "column_count", "label": "Column count", "source": "explicit_user_request"}
+    ],
     "parameters": [
         PLATE_PLAN["parameters"][0],
         {
@@ -594,7 +597,23 @@ class FixtureProvider:
     async def create_revision_plan(self, _request: RevisionPlanRequest) -> RevisionPlanResult:
         self._record_call(_request, "revision_plan_generation")
         if "enclosure" not in _request.original_intent.lower():
-            raise AssertionError("revision planning fixture is only enabled for enclosure projects")
+            return RevisionPlanResult(
+                raw_output=json.dumps(
+                    {
+                        "schema_version": "revision-plan-v1",
+                        "reason": _request.reason,
+                        "summary": _request.user_instruction,
+                        "requested_changes": [],
+                        "targeted_components": ["plate"],
+                        "targeted_outputs": ["plate"],
+                        "protected_components": ["plate"],
+                        "protected_outputs": ["plate"],
+                        "outcome": "revision_ready",
+                    }
+                ),
+                provider="fixture",
+                provider_model="fixture-model",
+            )
         return RevisionPlanResult(
             raw_output=json.dumps(ENCLOSURE_REVISION_PLAN),
             provider="fixture",

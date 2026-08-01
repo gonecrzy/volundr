@@ -18,6 +18,17 @@ The highest-risk areas are:
 6. viewer compatibility with generated STL files
 7. workflow observability, first-failure diagnosis, and debug-bundle redaction
 
+Requirement-led coverage additionally verifies that ordinary numeric values do
+not activate source-effect obligations, explicit controls do, active
+requirements remain coherent across long revision chains, physical-test
+feedback is retained, and failed or stale revisions cannot replace the Current
+working version.
+
+The normal chat-first path automatically progresses validated requirements and
+plans, generates a first draft, and promotes only passing candidates. Approval
+button scenarios remain developer/staged-mode coverage behind the disabled
+chat-first flag; they are not the ordinary product workflow.
+
 ## Backend Unit Tests
 
 ### CAD runner and worker

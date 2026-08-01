@@ -70,3 +70,82 @@ def test_chat_parameter_change_uses_configuration_without_provider_call() -> Non
             assert after["provider_call_count"] == before["provider_call_count"]
             assert len(after["revisions"]) == 2
             assert after["revisions"][-1]["is_accepted"] is True
+
+
+def test_ordinary_numeric_revision_does_not_route_as_configuration() -> None:
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            first = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create an 80 mm mounting plate.", "client_message_id": "ordinary-1"},
+            ).json()
+            before = client.get("/api/test-fixture/latest-summary").json()
+
+            revised = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={
+                    "message": "Change plate width to 90 mm.",
+                    "client_message_id": "ordinary-2",
+                },
+            )
+            assert revised.status_code == 200
+            assert revised.json()["action"] == "structural_revision"
+            after = client.get("/api/test-fixture/latest-summary").json()
+            assert after["provider_call_count"] > before["provider_call_count"]
+            assert revised.json()["current_working_revision_id"] != first["current_working_revision_id"]
+
+
+def test_chat_start_over_creates_recoverable_child_lineage() -> None:
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            first = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create an 80 mm mounting plate.", "client_message_id": "start-1"},
+            ).json()
+            first_revision_id = first["current_working_revision_id"]
+
+            restarted = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={
+                    "message": "Start over, but keep the 80 mm plate. Try a different approach.",
+                    "client_message_id": "start-2",
+                },
+            )
+            assert restarted.status_code == 200
+            body = restarted.json()
+            assert body["current_working_revision_id"] != first_revision_id
+
+            summary = client.get(f"/api/test-fixture/projects/{project['id']}/summary").json()
+            revisions = summary["revisions"]
+            assert len(revisions) == 2
+            assert revisions[1]["is_accepted"] is True
+            assert client.get(f"/api/revisions/{revisions[1]['id']}/diff").status_code == 200
+
+
+def test_explicit_control_request_is_revisionable_and_activates_only_that_control() -> None:
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            first = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create an 80 mm mounting plate.", "client_message_id": "control-1"},
+            ).json()
+            before = client.get(f"/api/test-fixture/projects/{project['id']}/summary").json()
+
+            revised = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={
+                    "message": "Expose plate width as an adjustable control.",
+                    "client_message_id": "control-2",
+                },
+            )
+            assert revised.status_code == 200
+            assert revised.json()["current_working_revision_id"]
+            after = client.get(f"/api/test-fixture/projects/{project['id']}/summary").json()
+            assert after["provider_call_count"] == before["provider_call_count"] + 2
+
+            plan = client.get(f"/api/projects/{project['id']}/design-plan").json()["plan"]
+            assert [item["parameter_id"] for item in plan["exposed_controls"]] == ["plate_width"]
+            assert first["current_working_revision_id"] != revised.json()["current_working_revision_id"]

@@ -152,7 +152,12 @@ from app.services.projects.plan_provenance import (
     normalize_plan_provenance,
     validate_plan_provenance,
 )
-from app.services.projects.plan_constraints import normalize_plan_constraints
+from app.services.projects.plan_constraints import explicit_control_requests, normalize_plan_constraints
+from app.services.projects.requirement_ledger import (
+    RequirementLedgerStore,
+    active_requirements,
+    requirement_delta_for_message,
+)
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -175,6 +180,7 @@ from app.services.geometry.functional import (
     FunctionalGeometryContext,
     FunctionalGeometryVerifierRegistry,
 )
+from app.services.geometry.requirement_compliance import evaluate_requirement_compliance
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
 from app.services.workflow.observability import WorkflowRecorder
@@ -205,10 +211,10 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
 )
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v5"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v5"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v6"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v6"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
@@ -1547,6 +1553,19 @@ class ProjectService:
             revision_id=base_revision.id,
             finding_ids=payload.targeted_finding_ids,
         )
+        ledger_store = RequirementLedgerStore(self.db)
+        requirement_delta, physical_observation = requirement_delta_for_message(
+            payload.user_instruction
+        )
+        ledger = ledger_store.load(project.id)
+        if requirement_delta:
+            ledger = ledger_store.apply_delta(
+                project_id=project.id,
+                changes=requirement_delta,
+                originating_message=payload.user_instruction,
+                observation=physical_observation,
+            )
+        active_requirement_items = active_requirements(ledger)
         source_metadata = self._revision_source_metadata(
             source=base_source,
             cad_backend=base_revision.cad_backend,
@@ -1570,6 +1589,8 @@ class ProjectService:
             output_manifest=output_manifest,
             source_metadata=source_metadata,
             selected_findings=selected_findings,
+            active_requirements=active_requirement_items,
+            requirement_delta=requirement_delta,
         )
         superseded = self._latest_revision_plan(project.id, base_revision_id=base_revision.id)
         return await self._run_revision_planning(
@@ -1713,6 +1734,7 @@ class ProjectService:
             base_source,
             design_plan_payload,
         ).to_json()
+        ledger = RequirementLedgerStore(self.db).load(project.id)
         request = RevisionPlanRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -1731,6 +1753,8 @@ class ProjectService:
             clarification_questions=questions_context,
             clarification_answers=answers,
             previous_revision_plan=previous_payload,
+            active_requirements=active_requirements(ledger),
+            requirement_delta=list(previous_payload.get("requirement_delta", [])),
         )
         return await self._run_revision_planning(
             project=project,
@@ -1842,6 +1866,10 @@ class ProjectService:
             source_metadata=base_source_metadata,
             scoped_revision_context=scoped_revision_context,
             configuration_context=configuration_context,
+            active_requirement_items=active_requirements(
+                RequirementLedgerStore(self.db).load(project.id)
+            ),
+            requirement_delta=list(revision_plan_payload.get("requirement_delta", [])),
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
@@ -2480,12 +2508,19 @@ class ProjectService:
             deduplication_key=f"design-plan-generation-started-{specification.id}",
         )
         superseded_plan = self._latest_design_plan(project.id, specification_id=specification.id)
+        ledger_store = RequirementLedgerStore(self.db)
+        ledger = ledger_store.ensure_from_specification(
+            project_id=project.id,
+            specification=self._read_design_specification_payload(specification),
+            originating_message=specification.user_instruction,
+        )
         request = DesignPlanRequest(
             project_name=project.name,
             original_intent=project.original_intent,
             user_instruction=specification.user_instruction,
             design_specification=self._read_design_specification_payload(specification),
             defaults=DEFAULT_REQUIREMENT_PROFILE,
+            active_requirements=active_requirements(ledger),
         )
         try:
             result = await self._run_design_planning(
@@ -2676,6 +2711,9 @@ class ProjectService:
             clarification_questions=questions_context,
             clarification_answers=answers,
             defaults=DEFAULT_REQUIREMENT_PROFILE,
+            active_requirements=active_requirements(
+                RequirementLedgerStore(self.db).load(project.id)
+            ),
         )
         return await self._run_design_planning(
             project=project,
@@ -3467,6 +3505,8 @@ class ProjectService:
         scoped_revision_context: dict[str, Any] | None = None,
         configuration_context: dict[str, Any] | None = None,
         geometry_body_diagnostics: str | None = None,
+        active_requirement_items: list[dict[str, Any]] | None = None,
+        requirement_delta: list[dict[str, Any]] | None = None,
     ) -> ModelGenerationRequest:
         source_authority = authority_from_generation_context(
             design_plan_payload=design_plan,
@@ -3490,6 +3530,14 @@ class ProjectService:
             configuration_context=configuration_context,
             source_authority=source_authority,
             geometry_body_diagnostics=geometry_body_diagnostics,
+            active_requirements=active_requirement_items
+            if active_requirement_items is not None
+            else active_requirements(RequirementLedgerStore(self.db).load(project.id)),
+            requirement_delta=(
+                list(requirement_delta)
+                if requirement_delta is not None
+                else requirement_delta_for_message(payload.user_instruction)[0]
+            ),
             generation_contract_version=self._provider_generation_contract_version(),
         )
 
@@ -4053,6 +4101,8 @@ class ProjectService:
                 schema_repair_of_raw_output=planning_result.raw_output,
                 schema_validation_error=str(exc),
                 defaults=request.defaults,
+                active_requirements=request.active_requirements,
+                requirement_delta=request.requirement_delta,
             )
             return await self._run_design_planning(
                 project=project,
@@ -4156,6 +4206,8 @@ class ProjectService:
                 base_design_plan_id=design_plan.id,
                 generation_attempt_id=attempt.id,
                 design_plan_payload=self._read_design_plan_payload(design_plan),
+                active_requirements=request.active_requirements,
+                requirement_delta=request.requirement_delta,
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -4189,6 +4241,8 @@ class ProjectService:
                 previous_revision_plan=request.previous_revision_plan,
                 schema_repair_of_raw_output=planning_result.raw_output,
                 schema_validation_error=str(exc),
+                active_requirements=request.active_requirements,
+                requirement_delta=request.requirement_delta,
             )
             return await self._run_revision_planning(
                 project=project,
@@ -4738,6 +4792,8 @@ class ProjectService:
         base_design_plan_id: str | None,
         generation_attempt_id: str,
         design_plan_payload: dict[str, Any] | None = None,
+        active_requirements: list[dict[str, Any]] | None = None,
+        requirement_delta: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -4753,6 +4809,8 @@ class ProjectService:
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = outcome == RevisionPlanOutcome.CLARIFICATION_REQUIRED
         normalized["revision_ready"] = outcome == RevisionPlanOutcome.REVISION_READY
+        normalized["active_requirements"] = list(active_requirements or [])
+        normalized["requirement_delta"] = list(requirement_delta or [])
         criteria_findings = validate_revision_success_criteria(
             normalized,
             plan=design_plan_payload,
@@ -4905,8 +4963,6 @@ class ProjectService:
     ) -> RevisionPlan:
         run_dir = self._generation_attempt_dir(project.id, attempt.id)
         plan_path = run_dir / "parsed-revision-plan.json"
-        self._write_json(plan_path, payload)
-        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
         base_source = self.read_revision_source(base_revision.id) or ""
         base_manifest = self.read_output_manifest(base_revision.id) or {}
         base_spec_payload = (
@@ -4922,6 +4978,14 @@ class ProjectService:
             review_state = RevisionPlanReviewState.CLARIFICATION_REQUIRED
         else:
             review_state = RevisionPlanReviewState.REJECTED
+        request_instruction = self._revision_plan_request_instruction(attempt)
+        requested_controls = explicit_control_requests(base_plan_payload, request_instruction)
+        if requested_controls:
+            payload["requires_design_plan_version"] = True
+            payload["requested_exposed_controls"] = requested_controls
+        self._write_json(plan_path, payload)
+        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
+
         plan = RevisionPlan(
             project_id=project.id,
             base_revision_id=base_revision.id,
@@ -4953,7 +5017,7 @@ class ProjectService:
             clarification_required=bool(payload.get("clarification_required", False)),
             revision_ready=bool(payload.get("revision_ready", False)),
         )
-        plan.user_instruction = self._revision_plan_request_instruction(attempt)
+        plan.user_instruction = request_instruction
         self.db.add(plan)
         self.db.flush()
         for index, question_payload in enumerate(payload.get("clarification_questions", [])):
@@ -6266,6 +6330,21 @@ class ProjectService:
             for item in revision_plan_payload.get("protected_parameters", [])
             if item.get("parameter_id")
         }
+        modern_requirement_contract = "exposed_controls" in design_plan_payload
+        exposed_control_ids = {
+            str(item.get("parameter_id"))
+            for item in design_plan_payload.get("exposed_controls", []) or []
+            if isinstance(item, dict) and item.get("parameter_id")
+        }
+        if modern_requirement_contract:
+            # Ordinary revisions are judged by the active requirement ledger
+            # and post-worker evidence.  Source-level preservation remains
+            # strict only for controls the user explicitly exposed.
+            protected_parameters = {
+                parameter_id: item
+                for parameter_id, item in protected_parameters.items()
+                if str(parameter_id) in exposed_control_ids
+            }
         plan_parameter_ids = {
             str(item.get("id"))
             for item in (
@@ -6274,6 +6353,8 @@ class ProjectService:
             )
             if item.get("id")
         }
+        if modern_requirement_contract:
+            plan_parameter_ids = exposed_control_ids
         plan_output_ids = {
             str(output.get("id"))
             for output in design_plan_payload.get("printable_outputs", [])
@@ -7386,6 +7467,24 @@ class ProjectService:
             for parameter in payload.get("parameters", []):
                 if parameter.get("id") == target_id:
                     parameter["value"] = change.get("requested_value")
+        requested_controls = [
+            item for item in revision_plan_payload.get("requested_exposed_controls", []) or []
+            if isinstance(item, dict) and item.get("parameter_id")
+        ]
+        if requested_controls:
+            existing_controls = [
+                item if isinstance(item, dict) else {"parameter_id": item}
+                for item in payload.get("exposed_controls", []) or []
+                if item
+            ]
+            by_id = {
+                str(item.get("parameter_id")): item
+                for item in existing_controls
+                if item.get("parameter_id")
+            }
+            for control in requested_controls:
+                by_id[str(control["parameter_id"])] = dict(control)
+            payload["exposed_controls"] = list(by_id.values())
         payload["superseded_by_revision_plan_id"] = revision_plan.id
         plan_dir = self._revision_plan_dir(project.id, revision_plan.id)
         plan_dir.mkdir(parents=True, exist_ok=True)
@@ -7544,6 +7643,16 @@ class ProjectService:
                     metadata={"metadata_source": "cadquery_source_and_design_plan"},
                 )
             )
+        requirement_ledger = RequirementLedgerStore(self.db).load(revision.project_id)
+        active_requirement_items = active_requirements(requirement_ledger)
+        if active_requirement_items:
+            result.findings.extend(
+                evaluate_requirement_compliance(
+                    active_requirement_items,
+                    evidence=list(result.findings),
+                    present_feature_ids=set(source_metadata.feature_mappings),
+                )
+            )
         revision_dir = self._revision_dir(revision.project_id, revision.id)
         result_path = (
             revision_dir / "geometry-analysis.json"
@@ -7567,7 +7676,7 @@ class ProjectService:
         self.db.add(persisted)
         self.db.flush()
         for index, finding in enumerate(result.findings):
-            if finding.verification_state in {"violated", "unverifiable"}:
+            if finding.verification_state in {"violated", "unverifiable", "human_review"}:
                 validation_finding = self._validation_finding_from_geometric_result(
                     finding,
                     revision_id=revision.id,
@@ -7622,7 +7731,7 @@ class ProjectService:
             revision_output_id=revision_output_id,
             design_specification_id=design_specification_id,
             rule_id=finding.rule_id,
-            category="geometry",
+            category="requirement" if finding.rule_id.startswith("requirement.") else "geometry",
             severity=finding.severity,
             is_blocking=finding.is_blocking,
             title=finding.title,

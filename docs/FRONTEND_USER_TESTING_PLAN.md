@@ -2,6 +2,11 @@
 
 Date: 2026-07-31
 
+The usability track uses deterministic fixtures. Every project remains
+revisionable through chat, while parametric controls are optional and only
+appear after an explicit request. Live CAD design quality is a separate track
+and is not a substitute UX fixture.
+
 ## Protocol
 
 Use an isolated test or benchmark project for each session. Open Volundr with `?testScenario=<scenario-id>` so the correlated frontend trace is marked as a testing session. Preserve the workflow run ID, frontend event trace, diagnosis, stage trace, and redacted diagnostic bundle after every scenario.
@@ -25,7 +30,7 @@ Starting state: empty project workspace.
 
 Task: create a mounting plate with all fit-critical measurements supplied.
 
-Success criteria: no unnecessary clarification; participant identifies their requirements and Volundr proposals; participant generates, accepts, and exports the new version.
+Success criteria: no unnecessary clarification; participant identifies their requirements and Volundr proposals; Volundr creates a passing Current working version and the participant exports it explicitly.
 
 Observe: time to first design, clarification count, proposal understanding, acceptance confidence.
 
@@ -57,7 +62,7 @@ Starting state: accepted repeated-cell organizer fixture.
 
 Task: change the cell count or width through Adjust parameters.
 
-Success criteria: participant finds parameter adjustment; understands no AI redesign is needed; understands affected printable parts before creating a new version; accepts the result.
+Success criteria: participant finds parameter adjustment; understands no AI redesign is needed; understands affected printable parts before the new version becomes current.
 
 Observe: Configure discoverability and effect-preview clarity.
 
@@ -73,7 +78,7 @@ Starting state: accepted enclosure fixture with base and lid.
 
 Task: change only the lid.
 
-Success criteria: participant chooses Change the design; sees the preserved body and target lid; distinguishes Current design from New version; accepts only after review.
+Success criteria: participant chooses Change the design; sees the preserved body and target lid; distinguishes Current design from New version; understands that only a passing revision becomes current.
 
 Observe: Revise discoverability, protected-body understanding, confidence that the base remains active until acceptance.
 

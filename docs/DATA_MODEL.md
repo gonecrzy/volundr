@@ -2,6 +2,32 @@
 
 This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, workflow traces, and project conversation history.
 
+Every design remains revisionable through chat. Parametric controls are
+optional and explicitly requested; ordinary numeric requirements do not become
+source-level controls automatically.
+
+## Requirement Ledger
+
+The requirement ledger is the authoritative active requirement state carried
+across Design Specifications, Revision Plans, and generated candidates. It
+preserves superseded values instead of rewriting them.
+
+`requirement_ledger_entries` stores requirement IDs, origin (`initial_user`,
+`revision_user`, `derived_functional_necessity`, `volundr_proposal`, or
+`physical_test_feedback`), target, type, expected value, units, tolerances,
+explicit/proposed status, lifecycle status, originating message, and available
+verification evidence.
+
+`requirement_deltas` stores the immutable add/change/remove operations applied
+by a revision. `physical_test_observations` stores the user’s reported test
+observation separately from Volundr’s interpreted requirement delta.
+
+The active ledger is supplied to generation and repair. A failed candidate can
+add evidence or a later delta, but cannot replace the Current working version.
+An exposed control is recorded in the Design Plan and activates the existing
+strict parameter-effect contract only for that control and its required
+derived relationships.
+
 ## CadQuery Transition Status
 
 The data model is CadQuery-native and provider-neutral. It stores

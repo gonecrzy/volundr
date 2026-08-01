@@ -4,6 +4,12 @@ This document is the authority for Volundr workflow tracing, event schema, stage
 
 ## Workflow Runs
 
+Chat progression events also record whether a transition was automatic,
+confirmed conversationally, or interrupted for essential clarification. The
+requirement-led lifecycle records requirement deltas, physical-test feedback,
+working-version promotion, blocked-attempt preservation, and start-over
+lineage events alongside the existing CAD evidence.
+
 A workflow run represents one user objective moving through internal stages. Runs are stored in `workflow_runs`.
 
 Core fields:

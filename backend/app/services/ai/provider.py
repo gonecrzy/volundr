@@ -21,6 +21,8 @@ class ModelGenerationRequest:
     configuration_context: dict[str, Any] | None = None
     source_authority: dict[str, Any] | None = None
     geometry_body_diagnostics: str | None = None
+    active_requirements: list[dict[str, Any]] = field(default_factory=list)
+    requirement_delta: list[dict[str, Any]] = field(default_factory=list)
     generation_contract_version: str = "v1"
 
 
@@ -92,6 +94,8 @@ class DesignPlanRequest:
     schema_repair_of_raw_output: str | None = None
     schema_validation_error: str | None = None
     defaults: dict[str, Any] = field(default_factory=dict)
+    active_requirements: list[dict[str, Any]] = field(default_factory=list)
+    requirement_delta: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -128,6 +132,8 @@ class RevisionPlanRequest:
     previous_revision_plan: dict[str, Any] | None = None
     schema_repair_of_raw_output: str | None = None
     schema_validation_error: str | None = None
+    active_requirements: list[dict[str, Any]] = field(default_factory=list)
+    requirement_delta: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

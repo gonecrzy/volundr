@@ -12,6 +12,11 @@ from app.models.geometric_analysis_result import GeometricAnalysisResult
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
 from app.models.project_message import ProjectMessage
+from app.models.requirement_ledger import (
+    PhysicalTestObservation,
+    RequirementDelta,
+    RequirementLedgerEntry,
+)
 from app.models.printability_profile import SavedPrintabilityProfile
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
@@ -47,6 +52,9 @@ __all__ = [
     "GenerationAttempt",
     "Project",
     "ProjectMessage",
+    "RequirementLedgerEntry",
+    "RequirementDelta",
+    "PhysicalTestObservation",
     "Revision",
     "RevisionOutput",
     "ComponentRevisionSummary",

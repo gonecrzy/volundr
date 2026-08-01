@@ -5,8 +5,8 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 ## CadQuery Transition Status
 
 `docs/CADQUERY_BACKEND.md` supersedes the original OpenSCAD V1 scope. The V1
-scope is CadQuery-primary, Gemini API-primary, staged-workflow-primary, and
-explicit-candidate-acceptance-primary.
+scope is CadQuery-primary, Gemini API-primary, chat-first under its feature
+flag, and automatic promotion of passing candidates. Export remains explicit.
 
 ## Included
 
@@ -27,17 +27,17 @@ explicit-candidate-acceptance-primary.
 - Store every attempt, including failures.
 - Ask for clarification before CadQuery generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
 - Persist a versioned Design Specification before new initial CadQuery generation.
-- Generate and persist an immutable Parametric Design Plan from a ready Design Specification.
-- Require explicit Design Plan approval before new initial CadQuery generation.
+- Generate and persist a validated Design Plan from a ready Design Specification.
 - Use the approved Design Plan as product-structure authority for CadQuery generation.
-- Generate and persist immutable structured Revision Plans before scoped AI revisions.
-- Require explicit Revision Plan approval before AI source revision.
+- Generate and persist immutable structured Revision Plans before AI revisions;
+  chat automatically approves the internal plan after validation.
 - Support component-targeted full-source AI revisions that preserve protected components, outputs, interfaces, shared modules, and active configuration overrides.
 - Allow direct editing of approved editable Design Plan parameters and preset switching through deterministic configuration changes without invoking Gemini.
 - Validate new AI CadQuery source against the source contract before execution, including security rules, required structure, protected Design Specification values, output declarations, topology expectations, and advisory quality findings.
 - Validate revised AI source against the approved Revision Plan before execution.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
-- Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
+- Automatically promote passing AI generations to the Current working version;
+  preserve blocked attempts without replacing the prior working version.
 
 ### CadQuery Execution
 

@@ -165,6 +165,7 @@ class ChatWorkflowResponse(BaseModel):
     design_plan_id: str | None = None
     revision_plan_id: str | None = None
     configuration_change_id: str | None = None
+    active_requirements: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ManualRevisionCreate(BaseModel):
@@ -433,6 +434,16 @@ class DesignPlanPreset(BaseModel):
     parameter_values: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
 
 
+class DesignPlanExposedControl(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    parameter_id: str = Field(min_length=1)
+    label: str | None = None
+    unit: str | None = None
+    description: str | None = None
+    source: str = "explicit_user_request"
+
+
 class DesignPlanPrintableOutput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -541,6 +552,7 @@ class DesignPlanPayload(BaseModel):
     feature_layouts: list[DesignPlanFeatureLayout] = Field(default_factory=list)
     patterns: list[DesignPlanPattern] = Field(default_factory=list)
     presets: list[DesignPlanPreset] = Field(default_factory=list)
+    exposed_controls: list[DesignPlanExposedControl] = Field(default_factory=list)
     assembly_strategy: dict[str, Any] = Field(default_factory=dict)
     printable_outputs: list[DesignPlanPrintableOutput] = Field(default_factory=list)
     functional_contract: FunctionalDesignContract | None = None

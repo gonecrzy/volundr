@@ -20,6 +20,9 @@ def test_project_and_revision_tables_can_be_created() -> None:
     assert "printability_profiles" in inspector.get_table_names()
     assert "revisions" in inspector.get_table_names()
     assert "validation_findings" in inspector.get_table_names()
+    assert "requirement_ledger_entries" in inspector.get_table_names()
+    assert "requirement_deltas" in inspector.get_table_names()
+    assert "physical_test_observations" in inspector.get_table_names()
 
 
 def test_cadquery_native_persistence_columns_are_canonical() -> None:

@@ -1,5 +1,12 @@
 # Frontend Workflow Audit
 
+The chat-first feature flag is the normal interaction path for usability
+testing. Approval-heavy controls remain only as a staged developer mode. The
+frontend does not decide whether a version is valid: it submits chat messages,
+renders backend progress, and shows Current working version versus blocked
+attempts. Every design remains revisionable; optional controls are surfaced
+only after an explicit user request.
+
 Date: 2026-07-31
 
 ## Evidence And Method

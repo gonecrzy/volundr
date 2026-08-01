@@ -28,8 +28,8 @@ superseded where they conflict with the CadQuery backend document.
 │ - project API                                 │
 │ - revision API                                │
 │ - requirement extraction and clarification    │
-│ - parametric Design Plan generation/review    │
-│ - structured revision planning/review         │
+│ - Design Plan generation and validation       │
+│ - requirement-led revision planning           │
 │ - generation orchestration                    │
 │ - multi-output artifact orchestration         │
 │ - candidate revision review and acceptance    │
@@ -63,6 +63,12 @@ superseded where they conflict with the CadQuery backend document.
                             │ invariant analyzers │
                             └──────────────────┘
 ```
+
+The requirement ledger is the authority for active product requirements and
+revision deltas. Source parameters are implementation details unless a user
+explicitly exposes a reusable control. The same project lifecycle handles
+ordinary chat revisions, optional controls, blocked attempts, and start-over
+lineages.
 
 ## Docker Deployment
 
@@ -319,23 +325,23 @@ Generation stabilization should split generation runs from revision records. A g
 
 Design Plan clarification is a normal planning state, not a failed generation. Persisted answers create a superseding immutable Design Plan version before CadQuery generation can be approved.
 
-Recommended staged AI flow:
+The normal chat-first AI flow is:
 
 ```text
 request
   -> requirements-v1
   -> persist Design Specification
-  -> clarification/conflict/unsupported or explicit plan creation
+  -> clarification/conflict/unsupported or automatic plan creation
   -> design-plan-v1
   -> persist immutable Design Plan
-  -> plan clarification or explicit plan approval
-  -> CadQuery generation from approved Design Plan
+  -> plan clarification or automatic first-draft generation
+  -> CadQuery generation from validated Design Plan
   -> source validation
   -> isolated CadQuery execution
   -> mesh inspection
   -> geometric invariant validation
   -> printability validation
-  -> repair, candidate review, or acceptance
+  -> repair, Current working version, or preserved blocked attempt
 ```
 
 Structured AI revision flow:
@@ -343,7 +349,7 @@ Structured AI revision flow:
 ```text
 accepted revision
   -> revision-planning-v1 from Design Specification, approved Design Plan, output manifest, source metadata, and selected findings
-  -> clarification/conflict/unsupported or explicit revision-plan approval
+  -> clarification/conflict/unsupported or automatic internal plan progression
   -> cadquery-component-revision-v1 full-source revision
   -> source-contract validation
   -> source scope compliance against approved plan
@@ -352,7 +358,7 @@ accepted revision
   -> candidate review
 ```
 
-The initial frontend flow uses an approved Design Plan. Initial generation,
+The initial frontend flow uses a validated Design Plan. Initial generation,
 Design Plan creation, structured revision planning, component-targeted source
 revision, source-contract repair, and execution repair use separate prompt
 stages and persisted prompt versions.

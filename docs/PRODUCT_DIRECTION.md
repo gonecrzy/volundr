@@ -5,18 +5,21 @@ This document defines what Volundr is, who it serves, the value it should provid
 ## CadQuery Transition Status
 
 `docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims about an
-OpenSCAD-first CAD kernel, Gemini CLI-first provider choice, Ollama defaults, or
-simple chat-first generation. The product direction is CadQuery-primary and
-staged-workflow-primary.
+OpenSCAD-first CAD kernel, Gemini CLI-first provider choice, or Ollama defaults.
+The product direction is CadQuery-primary and chat-first under the feature
+flag. Every design remains revisionable; parametric controls are optional and
+explicitly requested.
 
 ## Working Description
 
-Volundr is a self-hosted AI-assisted parametric modeling workspace for creating functional 3D-printable parts from plain-language instructions.
+Volundr is a self-hosted AI-assisted modeling workspace for creating functional
+3D-printable parts from plain-language instructions and revising them through
+chat.
 
 It combines:
 
 - conversational design requests
-- parameterized CadQuery generation
+- requirements-led CadQuery generation with optional exposed controls
 - deterministic CAD compilation
 - interactive 3D preview
 - revision history
@@ -27,7 +30,9 @@ Volundr should feel like a focused workshop for producing useful parts, not a ge
 
 ## Product Goal
 
-Help a technically capable maker move from a practical need to a printable parametric model with less manual CAD work.
+Help a technically capable maker move from a practical need to a printable
+model with less manual CAD work, while keeping every design indefinitely
+revisionable through chat.
 
 Examples include:
 
