@@ -943,6 +943,30 @@ class ProjectWorkspaceRead(BaseModel):
     artifact_integrity: dict[str, Any] = Field(default_factory=dict)
 
 
+class ExportCreate(BaseModel):
+    export_type: str = Field(min_length=1, max_length=40)
+    revision_id: str | None = None
+    output_id: str | None = Field(default=None, max_length=120)
+
+
+class ExportRead(BaseModel):
+    id: str
+    project_id: str
+    revision_id: str
+    export_type: str
+    status: str
+    filename: str
+    output_path: str | None = None
+    component_ids: list[str] = Field(default_factory=list)
+    manifest: dict[str, Any] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    sha256: str | None = None
+    size_bytes: int | None = None
+    error_message: str | None = None
+    created_at: datetime
+    completed_at: datetime | None = None
+
+
 class RevisionOutputRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

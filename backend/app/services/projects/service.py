@@ -8587,6 +8587,8 @@ class ProjectService:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
             return None
+        if revision.status != "succeeded" or revision.review_state not in {"accepted", "ready", "ready_with_warnings"}:
+            raise ValueError("exports require a successful non-blocked revision")
         workflow_run = self._start_child_workflow_run(
             project_id=revision.project_id,
             workflow_type="export",

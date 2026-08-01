@@ -27,6 +27,8 @@ from app.schemas.project import (
     DesignPlanClarificationQuestionRead,
     DesignSpecificationRead,
     DesignPlanRead,
+    ExportCreate,
+    ExportRead,
     GenerationAttemptEvidenceRead,
     GeometricAnalysisRead,
     ManualRevisionCreate,
@@ -64,6 +66,7 @@ from app.services.printability.inspector import inspect_printability
 from app.services.printability.profiles import PrintabilityProfileService
 from app.services.projects.service import ProjectService
 from app.services.projects.chat_workflow import ChatWorkflowService
+from app.services.projects.export import ExportService, export_read
 from app.services.projects.requirement_ledger import RequirementLedgerStore, active_requirements
 from app.models.workflow import FrontendWorkflowEvent, WorkflowEvent, WorkflowRun
 from app.services.workflow.comparison import WorkflowRunComparisonService
@@ -541,6 +544,73 @@ def get_active_requirements(project_id: str, db: Session = Depends(get_db)) -> d
         "project_id": project_id,
         "requirements": active_requirements(ledger),
     }
+
+
+@router.post("/projects/{project_id}/exports", response_model=ExportRead, status_code=201)
+def create_project_export(
+    project_id: str,
+    payload: ExportCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ExportRead:
+    try:
+        record = ExportService(db=db, data_dir=data_dir).create(
+            project_id=project_id,
+            export_type=payload.export_type,
+            revision_id=payload.revision_id,
+            output_id=payload.output_id,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return ExportRead.model_validate(export_read(record))
+
+
+@router.get("/projects/{project_id}/exports", response_model=list[ExportRead])
+def list_project_exports(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ExportRead]:
+    if db.get(Project, project_id) is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return [
+        ExportRead.model_validate(export_read(record))
+        for record in ExportService(db=db, data_dir=data_dir).list(project_id)
+    ]
+
+
+@router.get("/exports/{export_id}", response_model=ExportRead)
+def get_project_export(
+    export_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ExportRead:
+    record = ExportService(db=db, data_dir=data_dir).get(export_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="export not found")
+    return ExportRead.model_validate(export_read(record))
+
+
+@router.get("/exports/{export_id}/download")
+def download_project_export(
+    export_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    resolved = ExportService(db=db, data_dir=data_dir).resolve_download(export_id)
+    if resolved is None:
+        raise HTTPException(status_code=404, detail="export artifact is not ready")
+    record, path = resolved
+    media_type = (
+        "application/zip"
+        if path.suffix == ".zip"
+        else "model/step"
+        if path.suffix == ".step"
+        else "model/stl"
+    )
+    return FileResponse(path, media_type=media_type, filename=record.filename)
 
 
 @router.get(
@@ -1637,7 +1707,10 @@ def get_revision_export_zip(
     data_dir: Path = Depends(get_data_dir),
 ) -> FileResponse:
     service = ProjectService(db=db, data_dir=data_dir)
-    export_path = service.build_revision_export(revision_id)
+    try:
+        export_path = service.build_revision_export(revision_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if export_path is None:
         raise HTTPException(status_code=404, detail="revision not found")
     project_id = db.scalar(select(WorkflowEvent.project_id).where(WorkflowEvent.revision_id == revision_id))

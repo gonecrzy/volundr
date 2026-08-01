@@ -11,6 +11,7 @@ from app.models import (  # noqa: F401
     DesignArtifactConsistencyResult,
     DesignPlan,
     DesignSpecification,
+    ExportRecord,
     GeometricAnalysisResult,
     GenerationAttempt,
     Project,
