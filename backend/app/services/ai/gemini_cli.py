@@ -740,6 +740,18 @@ class GeminiCliProvider:
                 "",
                 "Design Plan:",
                 json.dumps(plan, indent=2, sort_keys=True),
+                "Normalized GeometryExecutionContext:",
+                json.dumps(request.geometry_execution_context or {}, indent=2, sort_keys=True),
+                "Prompt context pack evidence:",
+                json.dumps(
+                    {
+                        "context_hash": (request.prompt_context_pack or {}).get("context_hash"),
+                        "included_artifact_ids": (request.prompt_context_pack or {}).get("included_artifact_ids", []),
+                        "excluded_context_categories": (request.prompt_context_pack or {}).get("excluded_context_categories", []),
+                    },
+                    indent=2,
+                    sort_keys=True,
+                ),
                 "",
                 "User instruction:",
                 request.user_instruction,
@@ -795,6 +807,8 @@ class GeminiCliProvider:
         )
 
     def _build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
+        if request.planning_depth == "compact_plan":
+            return self._build_compact_plan_prompt(request)
         if request.schema_repair_of_raw_output is not None:
             task = [
                 "Repair this Design Plan response into valid JSON for the required schema.",
@@ -1012,6 +1026,32 @@ class GeminiCliProvider:
                 "",
                 "Required JSON shape:",
                 json.dumps(schema, indent=2, sort_keys=True),
+            ]
+        )
+
+    def _build_compact_plan_prompt(self, request: DesignPlanRequest) -> str:
+        return "\n".join(
+            [
+                "Create a compact CAD execution plan for Volundr.",
+                "Return JSON only. Do not generate CadQuery source.",
+                "Use schema_version exactly compact-cad-plan-v1.",
+                "This is an execution artifact derived from the active requirement ledger, not a replacement requirement store.",
+                "Include components, interacting functional features, relationships, proposals, coordinate_frames, validation_targets, printable_outputs, and optional exposed_controls.",
+                "Use stable IDs and distinguish proposals from user requirements.",
+                "Do not ask for routine implementation dimensions when a safe Volundr proposal is possible.",
+                "Do not create exposed controls unless the user explicitly requested adjustable, configurable, parametric, variable, or reusable behavior.",
+                "Return clarification_required only for a genuine contradiction or missing critical interface information.",
+                "Required fields: schema_version, planning_depth, components, features, relationships, proposals, coordinate_frames, validation_targets, printable_outputs, exposed_controls, parameters, derived_parameters, dependency_edges, patterns, feature_layouts, clarification_required, clarification_questions, plan_ready.",
+                "",
+                "Design Specification:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
+                "",
+                "User instruction:",
+                request.user_instruction,
             ]
         )
 

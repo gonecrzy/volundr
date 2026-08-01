@@ -3029,6 +3029,11 @@ class ProjectService:
             raise ValueError("compact plan must be a JSON object")
         if payload.get("schema_version") not in {"compact-cad-plan-v1", "compact-plan-v1"}:
             raise ValueError("compact plan must use schema_version compact-cad-plan-v1")
+        clarification_required = bool(payload.get("clarification_required"))
+        clarification_questions = [
+            dict(item) for item in payload.get("clarification_questions", []) or []
+            if isinstance(item, dict) and item.get("question")
+        ]
         components = [dict(item) for item in payload.get("components", []) or [] if isinstance(item, dict)]
         if not components:
             components = [{"id": "primary_part", "label": "Primary printable part", "role": "printable_part"}]
@@ -3092,18 +3097,38 @@ class ProjectService:
             "feature_layouts": [dict(item) for item in payload.get("feature_layouts", []) or [] if isinstance(item, dict)],
             "patterns": [dict(item) for item in payload.get("patterns", []) or [] if isinstance(item, dict)],
             "printable_outputs": outputs,
-            "outcome": DesignPlanOutcome.PLAN_READY.value,
-            "clarification_required": False,
-            "clarification_questions": [],
-            "plan_ready": True,
+            "outcome": (
+                DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED.value
+                if clarification_required
+                else DesignPlanOutcome.PLAN_READY.value
+            ),
+            "clarification_required": clarification_required,
+            "clarification_questions": clarification_questions,
+            "plan_ready": not clarification_required,
         }
 
     def _planning_project_state(self, specification: dict[str, Any]) -> dict[str, Any]:
+        semantic_text = " ".join(
+            str(specification.get(key) or "")
+            for key in ("purpose", "user_instruction", "object_type")
+        ).lower()
+        component_count = len(specification.get("components") or [])
+        if component_count == 0 and re.search(
+            r"\b(?:two|2)[ -]?piece\b|\bseparate\s+parts?\b|\bmultiple\s+parts?\b|\bmultipart\b",
+            semantic_text,
+        ):
+            component_count = 2
+        assembly_relationships = list(specification.get("assembly_relationships") or [])
+        if not assembly_relationships and re.search(
+            r"\b(?:removable\s+lid|mating|mates|fits?\s+over|assembly|separate\s+parts?)\b",
+            semantic_text,
+        ):
+            assembly_relationships = [{"type": "semantic_assembly_relationship", "source": "requirement_text"}]
         return {
             "units": specification.get("units") or "mm",
-            "printable_component_count": len(specification.get("components") or []),
+            "printable_component_count": component_count,
             "output_count": len(specification.get("printable_outputs") or []),
-            "assembly_relationships": specification.get("assembly_relationships") or [],
+            "assembly_relationships": assembly_relationships,
             "moving_interfaces": specification.get("moving_interfaces") or [],
             "mating_interfaces": specification.get("mating_interfaces") or [],
             "functional_feature_count": len(specification.get("functional_requirements") or []),
