@@ -5,24 +5,36 @@ services:
       context: ./frontend
       args:
         VITE_VOLUNDR_GENERATION_MODE: ${VITE_VOLUNDR_GENERATION_MODE:-advanced}
+        VITE_VOLUNDR_CHAT_FIRST: ${VITE_VOLUNDR_CHAT_FIRST:-true}
     restart: unless-stopped
     depends_on:
-      - volundr-api
+      volundr-api:
+        condition: service_healthy
     ports:
       - "${VOLUNDR_WEB_PORT:-8080}:80"
     networks:
       - volundr-internal
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   volundr-api:
     container_name: volundr-api
     build:
       context: ./backend
     restart: unless-stopped
+    depends_on:
+      volundr-cad-worker:
+        condition: service_healthy
     environment:
       HOME: /home/volundr
       VOLUNDR_DATA_DIR: /app/data
       VOLUNDR_CAD_WORKSPACE_DIR: /app/data/jobs
       VOLUNDR_CAD_TIMEOUT_SECONDS: ${VOLUNDR_CAD_TIMEOUT_SECONDS:-60}
+      VOLUNDR_WORKFLOW_STALE_SECONDS: ${VOLUNDR_WORKFLOW_STALE_SECONDS:-900}
+      VOLUNDR_CORS_ORIGINS: ${VOLUNDR_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
       VOLUNDR_MAX_SOURCE_BYTES: ${VOLUNDR_MAX_SOURCE_BYTES:-512000}
       VOLUNDR_MAX_STL_BYTES: ${VOLUNDR_MAX_STL_BYTES:-104857600}
       VOLUNDR_AI_PROVIDER: ${VOLUNDR_AI_PROVIDER:-gemini_api}
@@ -50,12 +62,19 @@ services:
       VOLUNDR_ENABLE_DESIGN_PLANS: ${VOLUNDR_ENABLE_DESIGN_PLANS:-true}
       VOLUNDR_ENABLE_MULTI_OUTPUT: ${VOLUNDR_ENABLE_MULTI_OUTPUT:-true}
       VOLUNDR_ENABLE_STRUCTURED_REVISIONS: ${VOLUNDR_ENABLE_STRUCTURED_REVISIONS:-true}
+      VOLUNDR_CHAT_FIRST: ${VOLUNDR_CHAT_FIRST:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     ports:
       - "${VOLUNDR_API_PORT:-8000}:8000"
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}:/app/data
       - ${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - volundr-internal
 
@@ -79,6 +98,11 @@ services:
       - ${VOLUNDR_DATA_DIR:-./data}/jobs:/work/jobs
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=256m
+    healthcheck:
+      test: ["CMD", "python", "-c", "from pathlib import Path; assert b'app.workers.cad_worker' in Path('/proc/1/cmdline').read_bytes()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
 networks:
   volundr-internal:

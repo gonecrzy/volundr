@@ -62,3 +62,10 @@ def test_settings_default_to_staged_generation_mode() -> None:
     assert settings.enable_design_plans is True
     assert settings.enable_multi_output is True
     assert settings.enable_structured_revisions is True
+
+
+def test_settings_include_restart_recovery_and_cors_defaults() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.workflow_stale_seconds == 900
+    assert settings.cors_origins == "http://localhost:5173,http://127.0.0.1:5173"

@@ -1,6 +1,7 @@
 import logging
 import time
 import asyncio
+import json
 
 from app.core.config import settings
 from app.services.cad.worker_execution import process_next_job
@@ -11,8 +12,13 @@ logger = logging.getLogger("volundr.cad_worker")
 
 def main() -> None:
     settings.cad_workspace_dir.mkdir(parents=True, exist_ok=True)
+    health_path = settings.cad_workspace_dir / ".worker-health.json"
     logger.info("CAD worker ready; workspace=%s", settings.cad_workspace_dir)
     while True:
+        health_path.write_text(
+            json.dumps({"status": "ready", "updated_at": time.time()}),
+            encoding="utf-8",
+        )
         result = asyncio.run(process_next_job(settings.cad_workspace_dir))
         if result is None:
             time.sleep(1)
