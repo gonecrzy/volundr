@@ -37,8 +37,11 @@ Transition order:
 
 Next planned task: continue deterministic chat-first UX testing while the
 separate live CAD-quality track evaluates real-provider geometry and physical
-evidence. Do not use a live CAD result as a UX fixture or expand this into a
-general analytics platform or another broad CAD validation redesign.
+evidence. Durable project reopen, stale-workflow recovery, explicit export
+packaging, Compose healthchecks, and the multi-design live diagnostic set are
+now implemented and documented. Do not use a live CAD result as a UX fixture or
+expand this into a general analytics platform or another broad CAD validation
+redesign.
 
 ## Stage 0 — Foundation Documents
 
@@ -407,19 +410,19 @@ Excluded from this increment:
 
 ## Stage 8 — Frontend Workflow And User Testing
 
-Status: Paused pending functional-design reliability
+Status: Chat-first deterministic gate passed; observed UX testing may proceed
 
 Current status:
 
-- the primary UI follows Describe, Clarify, Review requirements, Review proposed design, Generate, Review new version, and Accept or revise
+- the primary UI follows Describe, essential Clarify, automatic planning and generation, Current working version, revision, and explicit Export
 - user-provided values, Volundr proposals, calculated values, and essential decisions are distinct in review
-- Current design and New version remain distinct until explicit acceptance
+- Current working version and blocked/new attempts remain distinct; passing versions promote automatically under the flag
 - multi-output and recoverable blocked states have user-facing explanations
 - diagnostic bundles and workflow IDs remain secondary Technical details
 
 Next activity:
 
-- complete functional-intent and deterministic physical-verification regressions
+- conduct observed UX sessions with deterministic known-good and known-failure fixtures
 - preserve event traces, diagnosis, and redacted debug bundles
 - address the highest repeated user consequence before further architecture work
 
@@ -438,7 +441,8 @@ Possible goals:
 
 ## Current workflow gate
 
-The current product pass is the feature-flagged chat-first workflow and its
-real-provider live-smoke harness. Keep the staged/developer workflow only for
-diagnostic coverage until deterministic chat-first and exact live bottle-holder
-checks pass. See `docs/CHAT_FIRST_WORKFLOW.md`.
+The current product pass is the feature-flagged chat-first workflow, durable
+project/export path, and separate real-provider live diagnostics. Keep the
+staged/developer workflow only for diagnostic coverage. See
+`docs/CHAT_FIRST_WORKFLOW.md`, `docs/PROJECT_PERSISTENCE.md`, and
+`docs/EXPORTS.md`.

@@ -16,6 +16,11 @@ flag, and automatic promotion of passing candidates. Export remains explicit.
 - View recent projects.
 - Rename and archive projects.
 - Store the original project intent separately from later revision instructions.
+- Reopen a project from a stable `/projects/{project_id}` URL with persisted
+  messages, requirements, workflow state, revisions, and current working
+  version.
+- Recover stale interrupted workflow records without silently retrying provider
+  work.
 
 ### AI Generation
 
@@ -95,6 +100,10 @@ flag, and automatic promotion of passing candidates. Export remains explicit.
 - Download deterministic ZIP exports containing source, Design Specification, Design Plan, output manifest, assembly notes, and STL artifacts.
 - Include configuration metadata and parameter override manifests in exports for configuration-generated revisions.
 - Use clear filenames derived from the project and revision.
+- Persist explicit export records with deterministic filenames, hashes, warnings,
+  and selected revision identity.
+- Provide printable-parts and complete project-package ZIP exports; do not claim
+  3MF support until a valid end-to-end 3MF artifact path exists.
 
 ### Deployment
 

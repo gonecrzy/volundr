@@ -1,6 +1,6 @@
 # Frontend User-Testing Plan
 
-Date: 2026-07-31
+Date: 2026-08-01
 
 The usability track uses deterministic fixtures. Every project remains
 revisionable through chat, while parametric controls are optional and only
@@ -30,7 +30,10 @@ Starting state: empty project workspace.
 
 Task: create a mounting plate with all fit-critical measurements supplied.
 
-Success criteria: no unnecessary clarification; participant identifies their requirements and Volundr proposals; Volundr creates a passing Current working version and the participant exports it explicitly.
+Success criteria: no unnecessary clarification; participant identifies their
+requirements and Volundr proposals; Volundr automatically creates a passing
+Current working version and the participant exports it explicitly without an
+approval button.
 
 Observe: time to first design, clarification count, proposal understanding, acceptance confidence.
 
@@ -62,7 +65,9 @@ Starting state: accepted repeated-cell organizer fixture.
 
 Task: change the cell count or width through Adjust parameters.
 
-Success criteria: participant finds parameter adjustment; understands no AI redesign is needed; understands affected printable parts before the new version becomes current.
+Success criteria: participant finds parameter adjustment; understands no AI
+redesign is needed; understands affected printable parts before the new version
+becomes current, without a provider call or approval-heavy normal path.
 
 Observe: Configure discoverability and effect-preview clarity.
 
@@ -78,7 +83,9 @@ Starting state: accepted enclosure fixture with base and lid.
 
 Task: change only the lid.
 
-Success criteria: participant chooses Change the design; sees the preserved body and target lid; distinguishes Current design from New version; understands that only a passing revision becomes current.
+Success criteria: participant chooses Change the design; sees the preserved body
+and target lid; distinguishes Current working version from the new attempt; and
+understands that only a passing revision becomes current automatically.
 
 Observe: Revise discoverability, protected-body understanding, confidence that the base remains active until acceptance.
 
@@ -106,7 +113,15 @@ Preserve: blocked run bundle and diagnosis. Ask: “What stopped the failed desi
 
 For each issue, attach the scenario ID, workflow run ID, relevant frontend event sequence, diagnosis confidence, and bundle path. Prioritize evidence that separates a comprehension problem from a provider, worker, model-build, or frontend-state defect.
 
+## Current testing status
+
 The deterministic precondition is now the chat-first suite: explicit first
 draft, essential clarification, provider-free parameter change, automatic
-component revision, blocked-attempt recovery, and start-over lineage. Do not
-resume observed testing until these pass. See `docs/CHAT_FIRST_WORKFLOW.md`.
+component revision, blocked-attempt recovery, stable project reopen/export,
+and start-over lineage. These fixtures pass, so observed UX testing may
+proceed. Use deterministic fixtures for usability and keep the real-provider
+multi-design and bottle-holder runs as a separate live CAD-quality track.
+
+Do not ask participants to judge physical compliance from an upstream provider
+or planning failure. Preserve the workflow run ID, event trace, diagnosis, and
+redacted diagnostic bundle for every session.

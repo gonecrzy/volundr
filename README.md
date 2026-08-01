@@ -111,9 +111,11 @@ VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
 
 The API container and local database must be on the current migration head. A stale runtime can continue using the legacy one-step Gemini prompt and bypass the staged Design Specification, Design Plan, source-contract, candidate, and validation gates.
 
-The frontend uses the staged Design Specification and Design Plan workflow as
-the normal product path. AI generations are stored as candidate revisions until
-the user explicitly accepts or rejects them.
+When `VITE_VOLUNDR_CHAT_FIRST=true`, the frontend uses the chat-first
+Design Specification and Design Plan workflow as the normal product path.
+Passing generated revisions become the Current working version automatically;
+blocked attempts remain in history and never replace it. The staged approval UI
+remains available only when the flag is false for developer diagnostics.
 
 If a project has an active revision, structured revision planning uses that
 revision's accepted CadQuery source, output manifest, and validation summaries
@@ -131,6 +133,12 @@ Projects can be renamed or archived from the browser workspace; archived
 projects are hidden from the default project list.
 Project activity is captured as a per-project message ledger for the original
 intent, revision instructions, and system events.
+
+Projects reopen at stable `/projects/{project_id}` URLs through the authoritative
+workspace endpoint. The backend owns current-working-version selection, stale
+workflow recovery, artifact-integrity checks, and explicit `ExportRecord`
+packaging. See `docs/PROJECT_PERSISTENCE.md`, `docs/EXPORTS.md`, and
+`docs/DEPLOYMENT.md`.
 
 ## AI Provider Setup
 

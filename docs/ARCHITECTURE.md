@@ -455,3 +455,19 @@ Do not implement these prematurely:
 The primary frontend renders a chat-first assistant journey. One chat operation routes deterministic intent through the existing authoritative services; only essential clarification interrupts automatic requirements, Design Plan, generation, validation, and working-version promotion. Source editing, manifests, diagnostics, workflow IDs, and debug-bundle download are secondary Technical details. Staged controls remain behind the disabled flag during transition. The implementation audit is in `docs/FRONTEND_WORKFLOW_AUDIT.md` and `docs/CHAT_FIRST_WORKFLOW.md`.
 
 The pipeline separately evaluates source contract, execution, topology, printability, and physical-function compliance through the generic functional verifier registry.
+
+## Durable Workspace And Export Boundary
+
+The database is authoritative for project identity, requirement and revision
+history, workflow state, current working revision, and `ExportRecord` metadata.
+The data directory is authoritative for source and generated artifacts. The
+frontend reopens `/projects/{project_id}` through
+`GET /api/projects/{project_id}/workspace`; it does not reconstruct a project
+from browser state. Stale running workflows are classified as abandoned while
+their evidence is retained.
+
+Export is an explicit backend operation against a selected successful revision.
+The API persists deterministic filenames, hashes, warnings, and download paths
+for STL, STEP, assembly STEP where unambiguous, printable-parts ZIP, and
+complete project-package ZIP exports. Blocked or incomplete revisions cannot
+be exported. The browser never receives provider credentials.

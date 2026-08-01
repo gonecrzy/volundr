@@ -23,10 +23,15 @@ This file explains exactly what belongs in each project document.
 | `docs/PRINTABILITY_INSPECTOR.md` | Orientation-aware printability rules, severity schema, and profile thresholds. |
 | `docs/CAD_EXECUTION_SECURITY.md` | Isolation, resource limits, source screening, logging, and failure handling. |
 | `docs/WORKFLOW_OBSERVABILITY.md` | Workflow runs, stage vocabulary, structured events, artifact registry, diagnosis, stage traces, frontend correlation, redaction, debug bundles, run comparison, retention, and logging levels. |
+| `docs/PROJECT_PERSISTENCE.md` | Durable project/workspace authority, stable reopen URLs, stale workflow recovery, and artifact integrity. |
+| `docs/EXPORTS.md` | Explicit selected-revision exports, deterministic filenames, persisted ExportRecords, package contents, and 3MF status. |
+| `docs/DEPLOYMENT.md` | Compose services, healthchecks, persistent mounts, credential isolation, and supported deployment boundaries. |
+| `docs/ENVIRONMENT_VARIABLES.md` | Backend, frontend, provider, E2E, and deployment environment configuration. |
 | `docs/FRONTEND_WORKFLOW_AUDIT.md` | Repository-grounded assessment of the user-facing workflow, terminology, state mapping, recovery, responsiveness, accessibility, and priority corrections. |
 | `docs/FRONTEND_USER_TESTING_PLAN.md` | Five observed-user scenarios, measures, correlated events, preserved diagnostic evidence, and post-task questions. |
 | `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md` | Exact real-provider requirement-led revision sequence, worker evidence, compliance, and limitations. |
+| `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, and immutability rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |
@@ -44,3 +49,6 @@ When information conflicts:
 Functional design intent and deterministic geometry verification: `FUNCTIONAL_DESIGN_INTENT.md`, `FUNCTIONAL_GEOMETRY_VERIFICATION.md`, and `FUNCTIONAL_DESIGN_VERIFICATION_EVALUATION.md`.
 
 Chat-first workflow and staged-mode transition: `CHAT_FIRST_WORKFLOW.md`.
+
+Durable project reopen and explicit exports: `PROJECT_PERSISTENCE.md`,
+`EXPORTS.md`, `DEPLOYMENT.md`, and `ENVIRONMENT_VARIABLES.md`.

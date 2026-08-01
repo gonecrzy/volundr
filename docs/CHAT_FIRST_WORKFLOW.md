@@ -37,6 +37,19 @@ diagnostic workflows can be maintained during rollout. After deterministic
 chat-first and live gates pass, remove the staged user-facing controls and
 retain only their internal service contracts and diagnostic tests.
 
+## Persistence And Export
+
+Project URLs use `/projects/{project_id}` and reload from the backend workspace
+aggregate. The workspace response includes messages, active requirements,
+revision history, current working version, active workflow, and artifact
+integrity. A stale interrupted run is recoverable as evidence and does not
+silently restart provider work.
+
+Export remains an explicit user action. It creates a durable `ExportRecord` for
+the selected successful revision with deterministic filenames and hashes.
+Blocked attempts cannot be exported, and duplicate requests resolve to the
+same completed record.
+
 Ordinary numeric values are not automatically controls. The active
 requirement ledger records user requirements, proposals, revision deltas, and
 physical-test observations. A revision may regenerate the source completely;

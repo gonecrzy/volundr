@@ -17,6 +17,7 @@ The highest-risk areas are:
 5. filesystem isolation
 6. viewer compatibility with generated STL files
 7. workflow observability, first-failure diagnosis, and debug-bundle redaction
+8. durable project reopen, stale-workflow recovery, and explicit export integrity
 
 Requirement-led coverage additionally verifies that ordinary numeric values do
 not activate source-effect obligations, explicit controls do, active
@@ -28,6 +29,30 @@ The normal chat-first path automatically progresses validated requirements and
 plans, generates a first draft, and promotes only passing candidates. Approval
 button scenarios remain developer/staged-mode coverage behind the disabled
 chat-first flag; they are not the ordinary product workflow.
+
+### Persistence and export
+
+Test:
+
+- project library summaries identify the current/latest revision and printable
+  part count
+- `/projects/{id}` reopens the authoritative workspace after reload
+- interrupted running workflows become abandoned without duplicate provider work
+- missing registered artifacts are reported instead of presented as downloadable
+- STL, STEP, assembly STEP, printable-parts ZIP, and complete project-package
+  exports are deterministic and persisted as `ExportRecord` rows
+- blocked revisions cannot be exported
+- duplicate export requests return the same completed record
+- cross-project revision selection is rejected
+- export packages contain history, requirements, source, manifests, and hashes
+  without credentials
+
+### Browser persistence and export coverage
+
+The deterministic browser suite verifies stable project URLs, reload/reconnect,
+project-library summaries, automatic Current working version promotion,
+blocked-attempt preservation, explicit export, and staged-mode compatibility.
+Run chat-first and staged suites separately; live browser tests remain opt-in.
 
 ## Backend Unit Tests
 

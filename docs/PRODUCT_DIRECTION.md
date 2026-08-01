@@ -85,7 +85,7 @@ The user:
 The user can:
 
 1. Explain the part they need.
-2. Receive valid, parameterized CadQuery source.
+2. Receive valid CadQuery source and a useful working version.
 3. Inspect the generated model.
 4. Ask for targeted changes.
 5. Restore earlier working revisions.
@@ -104,9 +104,12 @@ V1 does not need to support a parallel native-host installation path. Keeping on
 
 Prioritize accurate dimensions, sensible tolerances, mounting features, and editability over organic or artistic modeling.
 
-### Parametric before disposable
+### Revisionable without mandatory parametrics
 
-Generated models should expose meaningful variables and reusable modules rather than burying all geometry in magic numbers.
+Every design remains revisionable through chat. Exposed parametric controls and
+reusable modules are optional capabilities added when explicitly requested;
+ordinary source need not be generalized for values the user did not ask to
+configure.
 
 ### Products before isolated solids
 
@@ -148,7 +151,6 @@ A model generation is considered successful when:
 - the mesh has non-zero volume
 - dimensions are plausible
 - the model is viewable
-- the source has named parameters
 - the user can request a targeted revision
 - the prior revision remains restorable
 

@@ -113,6 +113,12 @@ workflow_run_id + stage + event_type + entity_id + attempt_number
 
 The database enforces uniqueness for `(workflow_run_id, sequence_number)` and `(workflow_run_id, deduplication_key)`.
 
+Persistence and export events remain correlated with the originating project
+and revision. Workspace reopen emits no new generation attempt; stale-run
+recovery records an abandonment state. Export records link the selected
+revision, deterministic filename, artifact hashes, warnings, and download
+status so an export cannot be mistaken for a new design generation.
+
 ## Stage Vocabulary
 
 Use these stage names exactly:
