@@ -43,6 +43,20 @@ def test_gemini_api_provider_settings_are_non_secret() -> None:
 
 
 @pytest.mark.asyncio
+async def test_missing_gemini_key_fails_when_a_live_request_is_attempted() -> None:
+    provider = GeminiApiProvider(api_key="")
+
+    with pytest.raises(RuntimeError, match="API key is not configured"):
+        await provider.extract_requirements(
+            RequirementExtractionRequest(
+                project_name="Draft",
+                original_intent="Create a bracket.",
+                user_instruction="Create a bracket.",
+            )
+        )
+
+
+@pytest.mark.asyncio
 async def test_gemini_api_extract_requirements_posts_prompt_and_returns_text() -> None:
     captured: dict = {}
 

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from app.api.dependencies import build_ai_provider
@@ -48,6 +50,26 @@ def test_build_ai_provider_selects_gemini_api() -> None:
     assert provider.model == "gemini-3.5-flash-lite"
     assert provider.api_key == "secret-key"
     assert provider.thinking_level == "minimal"
+
+
+def test_minimal_gemini_api_example_builds_without_advanced_settings() -> None:
+    repository_root = Path(__file__).resolve().parents[2]
+    configured = Settings(_env_file=repository_root / ".env.example")
+
+    provider = build_ai_provider(configured)
+
+    assert isinstance(provider, GeminiApiProvider)
+    assert provider.model == "gemini-3.5-flash-lite"
+    assert provider.base_url == "https://generativelanguage.googleapis.com/v1beta"
+
+
+def test_missing_gemini_key_is_deferred_until_live_request() -> None:
+    configured = Settings(_env_file=None, ai_provider="gemini_api", gemini_api_key=None)
+
+    provider = build_ai_provider(configured)
+
+    assert isinstance(provider, GeminiApiProvider)
+    assert not provider.api_key
 
 
 def test_settings_loads_gemini_api_key_from_parent_env_file(

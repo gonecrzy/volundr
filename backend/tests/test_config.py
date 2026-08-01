@@ -20,12 +20,13 @@ def test_settings_ignore_unrelated_env_file_keys(tmp_path):
     assert settings.data_dir.as_posix() == "data"
 
 
-def test_settings_default_to_gemini_api_for_staged_generation() -> None:
+def test_settings_default_to_gemini_api_with_typed_defaults() -> None:
     settings = Settings(_env_file=None)
 
     assert settings.ai_provider == "gemini_api"
     assert settings.gemini_model == "gemini-3.5-flash-lite"
     assert settings.gemini_api_thinking_level == "minimal"
+    assert settings.cad_workspace_dir == settings.data_dir / "jobs"
 
 
 def test_settings_support_stage_specific_gemini_models(tmp_path):
@@ -55,13 +56,26 @@ def test_settings_support_stage_specific_gemini_models(tmp_path):
     assert configured.gemini_component_revision_model == "component-model"
 
 
-def test_settings_default_to_staged_generation_mode() -> None:
+def test_settings_no_longer_exposes_completed_rollout_switches() -> None:
     settings = Settings(_env_file=None)
 
-    assert settings.generation_mode == "advanced"
-    assert settings.enable_design_plans is True
-    assert settings.enable_multi_output is True
-    assert settings.enable_structured_revisions is True
+    assert not hasattr(settings, "generation_mode")
+    assert not hasattr(settings, "enable_design_plans")
+    assert not hasattr(settings, "enable_multi_output")
+    assert not hasattr(settings, "enable_structured_revisions")
+    assert not hasattr(settings, "chat_first")
+
+
+def test_settings_derives_workspace_from_data_dir_and_keeps_explicit_override(tmp_path) -> None:
+    derived = Settings(_env_file=None, data_dir=tmp_path / "data")
+    explicit = Settings(
+        _env_file=None,
+        data_dir=tmp_path / "data",
+        cad_workspace_dir=tmp_path / "custom-jobs",
+    )
+
+    assert derived.cad_workspace_dir == tmp_path / "data" / "jobs"
+    assert explicit.cad_workspace_dir == tmp_path / "custom-jobs"
 
 
 def test_settings_include_restart_recovery_and_cors_defaults() -> None:

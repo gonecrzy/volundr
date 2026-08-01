@@ -40,37 +40,45 @@ class GeminiApiProvider(GeminiCliProvider):
         transport: httpx.AsyncBaseTransport | None = None,
         model_policy: GeminiModelPolicy | None = None,
     ) -> None:
+        resolved_policy = model_policy or GeminiModelPolicy.from_settings(
+            settings,
+            general_model=model,
+        )
         super().__init__(
             model=model,
             timeout_seconds=timeout_seconds,
-            model_policy=model_policy,
+            model_policy=resolved_policy,
         )
-        self.api_key = api_key or settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
+        self.api_key = (
+            api_key
+            if api_key is not None
+            else settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
+        )
         self.base_url = (base_url or settings.gemini_api_base_url).rstrip("/")
-        self.model = model or settings.gemini_model
+        self.model = model or resolved_policy.general_model
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
         self.temperature = (
             temperature
             if temperature is not None
-            else settings.gemini_api_temperature
+            else resolved_policy.temperature
         )
         self.max_output_tokens = (
             max_output_tokens
             if max_output_tokens is not None
-            else settings.gemini_api_max_output_tokens
+            else resolved_policy.max_output_tokens
         )
         self.thinking_level = (
             thinking_level
             if thinking_level is not None
-            else settings.gemini_api_thinking_level
+            else resolved_policy.thinking_level
         )
         self.max_retries = (
-            max_retries if max_retries is not None else settings.gemini_api_max_retries
+            max_retries if max_retries is not None else resolved_policy.max_retries
         )
         self.max_retry_sleep_seconds = (
             max_retry_sleep_seconds
             if max_retry_sleep_seconds is not None
-            else settings.gemini_api_max_retry_sleep_seconds
+            else resolved_policy.max_retry_sleep_seconds
         )
         self._transport = transport
 

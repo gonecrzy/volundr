@@ -1,7 +1,7 @@
 from functools import cached_property
 from pathlib import Path
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     )
 
     data_dir: Path = Field(default=Path("/app/data"))
-    cad_workspace_dir: Path = Field(default=Path("/app/data/jobs"))
+    cad_workspace_dir: Path | None = Field(default=None)
     cad_timeout_seconds: int = Field(default=60)
     workflow_stale_seconds: int = Field(default=900)
     cors_origins: str = Field(default="http://localhost:5173,http://127.0.0.1:5173")
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     ollama_timeout_seconds: int = Field(default=300)
     ollama_think: str | None = Field(default=None)
     gemini_binary: str = Field(default="gemini")
-    gemini_model: str | None = Field(default="gemini-3.5-flash-lite")
+    gemini_model: str = Field(default="gemini-3.5-flash-lite")
     gemini_requirements_model: str | None = Field(default=None)
     gemini_design_plan_model: str | None = Field(default=None)
     gemini_geometry_model: str | None = Field(default=None)
@@ -47,11 +47,6 @@ class Settings(BaseSettings):
     gemini_api_thinking_level: str | None = Field(default="minimal")
     gemini_api_max_retries: int = Field(default=2)
     gemini_api_max_retry_sleep_seconds: float = Field(default=60.0)
-    generation_mode: str = Field(default="advanced")
-    enable_design_plans: bool = Field(default=True)
-    enable_multi_output: bool = Field(default=True)
-    enable_structured_revisions: bool = Field(default=True)
-    chat_first: bool = Field(default=False)
     snapshots_enabled: bool = Field(default=True)
     snapshot_image_width: int = Field(default=768, ge=128, le=2048)
     snapshot_image_height: int = Field(default=768, ge=128, le=2048)
@@ -60,6 +55,12 @@ class Settings(BaseSettings):
     snapshot_max_components: int = Field(default=24, ge=1, le=100)
     snapshot_section_enabled: bool = Field(default=True)
     snapshot_background: str = Field(default="neutral_light")
+
+    @model_validator(mode="after")
+    def derive_storage_paths(self) -> "Settings":
+        if self.cad_workspace_dir is None:
+            self.cad_workspace_dir = self.data_dir / "jobs"
+        return self
 
     @cached_property
     def database_url(self) -> str:

@@ -4,6 +4,7 @@ from app.core.config import Settings, settings
 from app.services.ai.provider import AiProvider
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
+from app.services.ai.model_policy import GeminiModelPolicy
 from app.services.ai.ollama import OllamaProvider
 from app.services.cad.worker_client import FilesystemCadWorkerRunner
 
@@ -25,16 +26,15 @@ def build_ai_provider(config: Settings) -> AiProvider:
             timeout_seconds=config.ollama_timeout_seconds,
         )
     if provider in {"gemini_api", "google_gemini_api"}:
+        model_policy = GeminiModelPolicy.from_settings(config)
         return GeminiApiProvider(
-            api_key=config.gemini_api_key,
+            # An explicit empty value prevents the module-level default from
+            # leaking into a separately constructed Settings instance.
+            api_key=config.gemini_api_key if config.gemini_api_key is not None else "",
             base_url=config.gemini_api_base_url,
             model=config.gemini_model,
             timeout_seconds=config.gemini_timeout_seconds,
-            temperature=config.gemini_api_temperature,
-            max_output_tokens=config.gemini_api_max_output_tokens,
-            thinking_level=config.gemini_api_thinking_level,
-            max_retries=config.gemini_api_max_retries,
-            max_retry_sleep_seconds=config.gemini_api_max_retry_sleep_seconds,
+            model_policy=model_policy,
         )
     if provider in {"gemini", "gemini_cli"}:
         return GeminiCliProvider(

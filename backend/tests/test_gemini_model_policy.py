@@ -77,3 +77,90 @@ def test_operational_provider_failure_may_use_fallback(message: str) -> None:
 )
 def test_content_failure_is_not_operational_fallback(message: str) -> None:
     assert not GeminiModelPolicy.is_operational_failure(message)
+
+
+def test_builtin_generation_policy_loads_without_a_policy_file() -> None:
+    from app.core.config import Settings
+
+    policy = GeminiModelPolicy.from_settings(Settings(_env_file=None))
+
+    assert policy.general_model == "gemini-3.5-flash-lite"
+    assert policy.temperature == 0.2
+    assert policy.max_output_tokens == 8192
+    assert policy.thinking_level == "minimal"
+    assert policy.max_retries == 2
+    assert policy.max_retry_sleep_seconds == 60.0
+
+
+def test_policy_file_overrides_builtin_generation_policy(tmp_path) -> None:
+    from app.core.config import Settings
+
+    policy_file = tmp_path / "gemini-policy.toml"
+    policy_file.write_text(
+        """
+[model_policy.models]
+geometry = "geometry-model-from-file"
+
+[model_policy.generation]
+temperature = 0.05
+max_output_tokens = 4096
+thinking_level = "low"
+max_retries = 4
+max_retry_sleep_seconds = 12
+""".strip(),
+        encoding="utf-8",
+    )
+
+    policy = GeminiModelPolicy.from_settings(
+        Settings(_env_file=None, gemini_policy_path=policy_file)
+    )
+
+    assert policy.geometry_model == "geometry-model-from-file"
+    assert policy.temperature == 0.05
+    assert policy.max_output_tokens == 4096
+    assert policy.thinking_level == "low"
+    assert policy.max_retries == 4
+    assert policy.max_retry_sleep_seconds == 12.0
+
+
+def test_legacy_policy_environment_values_are_compatibility_overrides(tmp_path) -> None:
+    from app.core.config import Settings
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "VOLUNDR_GEMINI_GEOMETRY_MODEL=legacy-geometry",
+                "VOLUNDR_GEMINI_API_TEMPERATURE=0.15",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.warns(DeprecationWarning, match="compatibility"):
+        policy = GeminiModelPolicy.from_settings(Settings(_env_file=env_file))
+
+    assert policy.geometry_model == "legacy-geometry"
+    assert policy.temperature == 0.15
+
+
+def test_policy_file_wins_over_legacy_policy_environment(tmp_path) -> None:
+    from app.core.config import Settings
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "VOLUNDR_GEMINI_GEOMETRY_MODEL=legacy-geometry\n",
+        encoding="utf-8",
+    )
+    policy_file = tmp_path / "gemini-policy.toml"
+    policy_file.write_text(
+        "[model_policy.models]\ngeometry = 'file-geometry'\n",
+        encoding="utf-8",
+    )
+
+    with pytest.warns(DeprecationWarning, match="compatibility"):
+        policy = GeminiModelPolicy.from_settings(
+            Settings(_env_file=env_file, gemini_policy_path=policy_file)
+        )
+
+    assert policy.geometry_model == "file-geometry"

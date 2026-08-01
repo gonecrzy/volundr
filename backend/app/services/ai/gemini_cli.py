@@ -56,11 +56,12 @@ class GeminiCliProvider:
         model_policy: GeminiModelPolicy | None = None,
     ) -> None:
         self.binary = binary or settings.gemini_binary
-        self.model = model or settings.gemini_model
+        configured_model = model or settings.gemini_model
         self.model_policy = model_policy or GeminiModelPolicy.from_settings(
             settings,
-            general_model=self.model,
+            general_model=configured_model,
         )
+        self.model = model or self.model_policy.general_model
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
         configured_policy = policy_path if policy_path is not None else settings.gemini_policy_path
         self.policy_path = Path(configured_policy) if configured_policy else Path(__file__).with_name("gemini_no_tools_policy.toml")
