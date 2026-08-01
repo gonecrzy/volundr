@@ -586,7 +586,12 @@ class FixtureProvider:
             elif _request.revision_plan and self.revision_mode == "identity_replacement":
                 source = source.replace('"snap_lid"', '"lid_component"')
         else:
-            plan = ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
+            plan = (
+                _request.design_plan
+                if isinstance(_request.design_plan, dict)
+                and str(_request.design_plan.get("schema_version") or "").startswith("cad-brief-")
+                else ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
+            )
             source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
         return ModelGenerationResult(
             raw_output=json.dumps(_structured_geometry_response(plan, source)),
@@ -597,17 +602,47 @@ class FixtureProvider:
     async def create_revision_plan(self, _request: RevisionPlanRequest) -> RevisionPlanResult:
         self._record_call(_request, "revision_plan_generation")
         if "enclosure" not in _request.original_intent.lower():
+            components = [
+                str(item.get("id"))
+                for item in _request.design_plan.get("components", [])
+                if isinstance(item, dict) and item.get("id")
+            ] or ["plate"]
+            outputs = [
+                str(item.get("id"))
+                for item in _request.design_plan.get("printable_outputs", [])
+                if isinstance(item, dict) and item.get("id")
+            ] or ["plate"]
+            changed_parameter = next(
+                (
+                    str(item.get("id"))
+                    for item in _request.design_plan.get("parameters", [])
+                    if isinstance(item, dict) and item.get("id")
+                ),
+                None,
+            )
+            if "expose" in _request.user_instruction.lower() or "adjustable" in _request.user_instruction.lower():
+                changed_parameter = None
             return RevisionPlanResult(
                 raw_output=json.dumps(
                     {
                         "schema_version": "revision-plan-v1",
                         "reason": _request.reason,
                         "summary": _request.user_instruction,
-                        "requested_changes": [],
-                        "targeted_components": ["plate"],
-                        "targeted_outputs": ["plate"],
-                        "protected_components": ["plate"],
-                        "protected_outputs": ["plate"],
+                        "requested_changes": [
+                            {
+                                "target_type": "product_parameter",
+                                "target_id": changed_parameter,
+                                "current_value": None,
+                                "requested_value": None,
+                                "change_type": "modify",
+                                "source": "user",
+                            }
+                        ] if changed_parameter else [],
+                        "targeted_components": components,
+                        "targeted_outputs": outputs,
+                        "protected_components": components,
+                        "protected_outputs": outputs,
+                        "allowed_parameter_changes": [changed_parameter] if changed_parameter else [],
                         "outcome": "revision_ready",
                     }
                 ),

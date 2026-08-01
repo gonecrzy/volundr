@@ -28,7 +28,11 @@ def test_chat_initial_request_auto_progresses_and_is_idempotent() -> None:
             assert duplicate.json() == body
 
             summary = client.get("/api/test-fixture/latest-summary").json()
-            assert summary["provider_call_count"] == 3
+            assert summary["provider_call_count"] == 2
+            assert "planning_route_decision" in summary["artifact_types"]
+            assert "cad_brief" in summary["artifact_types"]
+            assert "geometry_execution_context" in summary["artifact_types"]
+            assert "prompt_context_pack" in summary["artifact_types"]
             assert len(summary["revisions"]) == 1
             assert summary["revisions"][0]["is_accepted"] is True
 

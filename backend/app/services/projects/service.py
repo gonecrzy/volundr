@@ -160,6 +160,9 @@ from app.services.projects.requirement_ledger import (
     active_requirements,
     requirement_delta_for_message,
 )
+from app.services.planning.brief import DirectCadBriefBuilder
+from app.services.planning.context import PromptContextPackBuilder, normalize_geometry_execution_context
+from app.services.planning.depth import PlanningDepth, PlanningDepthRouter, PlanningRouteDecision
 from app.services.workflow.observability import WorkflowRecorder
 from app.services.requirements.trace import (
     RequirementTraceError,
@@ -222,6 +225,7 @@ DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
 REVISION_PLAN_SCHEMA_VERSION = "revision-plan-v1"
+PLANNING_ROUTE_PROMPT_VERSION = "planning-depth-v1"
 DEFAULT_REQUIREMENT_PROFILE = {
     "version": "volundr-defaults-v1",
     "units": "mm",
@@ -2000,6 +2004,18 @@ class ProjectService:
                 RequirementLedgerStore(self.db).load(project.id)
             ),
             requirement_delta=list(revision_plan_payload.get("requirement_delta", [])),
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload,
+                design_plan_id=design_plan.id,
+                payload=GenerationCreate(
+                    user_instruction=plan.user_instruction,
+                    design_specification_id=design_specification.id if design_specification else None,
+                ),
+                workflow_run_id=workflow_run.id,
+            ),
+            workflow_run_id=workflow_run.id,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
@@ -2007,6 +2023,11 @@ class ProjectService:
             base_revision_id=base_revision.id,
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
+        )
+        self._persist_prompt_context_pack_for_attempt(
+            workflow_run=workflow_run,
+            attempt=generation_attempt,
+            pack=generation_request.prompt_context_pack,
         )
         self._record_workflow_event(
             workflow_run,
@@ -2747,6 +2768,407 @@ class ProjectService:
         self.db.refresh(plan)
         return self._design_plan_read(plan)
 
+    async def create_proportional_plan_from_specification(
+        self,
+        specification_id: str,
+        *,
+        workflow_run: WorkflowRun | None = None,
+        revision_delta: list[dict[str, Any]] | None = None,
+        preserved_requirements: list[dict[str, Any]] | None = None,
+    ) -> tuple[DesignPlanRead | None, PlanningRouteDecision]:
+        """Choose and persist the smallest plan contract for one generation.
+
+        Detailed plans continue through ``create_design_plan_from_specification``.
+        Direct briefs are deterministic and compact plans use the provider's
+        versioned compact contract; all three still return the existing
+        ``DesignPlanRead`` boundary to the generation pipeline.
+        """
+
+        specification = self.db.get(DesignSpecification, specification_id)
+        if specification is None:
+            raise LookupError("Design Specification not found")
+        project = self.db.get(Project, specification.project_id)
+        if project is None:
+            raise LookupError("Project not found")
+        ledger = RequirementLedgerStore(self.db).ensure_from_specification(
+            project_id=project.id,
+            specification=self._read_design_specification_payload(specification),
+            originating_message=specification.user_instruction,
+        )
+        active = active_requirements(ledger)
+        state = self._planning_project_state(self._read_design_specification_payload(specification))
+        decision = PlanningDepthRouter().route(
+            active_requirements=active,
+            project_state=state,
+            specification=self._read_design_specification_payload(specification),
+        )
+        planning_run = workflow_run or self._ensure_initial_workflow_run(project)
+        route_path = self._planning_artifact_path(project.id, planning_run.id, "route-decision.json")
+        self._write_json(
+            route_path,
+            {
+                **decision.to_payload(),
+                "project_id": project.id,
+                "workflow_run_id": planning_run.id,
+                "design_specification_id": specification.id,
+                "revision_delta": revision_delta or [],
+                "preserved_requirement_ids": [
+                    item.get("requirement_id") for item in preserved_requirements or []
+                ],
+            },
+        )
+        route_artifact = self._record_workflow_artifact(
+            planning_run,
+            stage="planning",
+            artifact_type="planning_route_decision",
+            role="planning_route_decision",
+            relative_path=self._relative(route_path),
+            metadata={"planning_depth": decision.outcome.value, "policy_version": decision.policy_version},
+        )
+        self._record_workflow_event(
+            planning_run,
+            stage="planning",
+            event_type="planning.route.selected",
+            severity="summary",
+            message=f"Planning route selected: {decision.outcome.value}.",
+            deduplication_key=f"planning-route-{specification.id}-{decision.outcome.value}",
+            design_specification_id=specification.id,
+            metadata=decision.to_payload(),
+        )
+        if decision.outcome == PlanningDepth.CLARIFICATION_REQUIRED:
+            return None, decision
+        if decision.outcome == PlanningDepth.DETAILED_PLAN:
+            plan = await self.create_design_plan_from_specification(specification.id)
+            if plan is not None:
+                plan_artifact = self._record_workflow_artifact(
+                    planning_run,
+                    stage="planning",
+                    artifact_type="detailed_design_plan",
+                    role="selected_detailed_plan",
+                    relative_path=plan.plan_path,
+                    metadata={"design_plan_id": plan.id, "schema_version": plan.schema_version},
+                )
+                context = normalize_geometry_execution_context(
+                    planning_depth=PlanningDepth.DETAILED_PLAN.value,
+                    plan_artifact_id=plan_artifact.id if plan_artifact else plan.id,
+                    plan=plan.plan,
+                    active_requirements=active,
+                    revision_delta=revision_delta or [],
+                    preserved_requirements=preserved_requirements or [],
+                    source_plan_kind=plan.schema_version,
+                )
+                self._persist_execution_context_artifact(
+                    project=project,
+                    workflow_run=planning_run,
+                    context=context,
+                    plan_id=plan.id,
+                    revision_id=None,
+                )
+            return plan, decision
+        if decision.outcome == PlanningDepth.COMPACT_PLAN:
+            superseded = self._latest_design_plan(project.id, specification_id=specification.id)
+            plan = await self._create_compact_plan_from_specification(
+                project=project,
+                specification=specification,
+                workflow_run=planning_run,
+                active_requirements=active,
+                revision_delta=revision_delta or [],
+                preserved_requirements=preserved_requirements or [],
+                superseded_plan_id=superseded.id if superseded is not None else None,
+            )
+            return plan, decision
+
+        brief = DirectCadBriefBuilder().build(
+            project_id=project.id,
+            active_requirements=active,
+            revision_delta=revision_delta or [],
+            preserved_requirements=preserved_requirements or [],
+            project_state=state,
+        ).to_payload()
+        brief_path = self._planning_artifact_path(project.id, planning_run.id, "cad-brief.json")
+        self._write_json(brief_path, brief)
+        brief_artifact = self._record_workflow_artifact(
+            planning_run,
+            stage="planning",
+            artifact_type="cad_brief",
+            role="selected_direct_brief",
+            relative_path=self._relative(brief_path),
+            metadata={"artifact_contract": "cad-brief-v1", "route_artifact_id": route_artifact.id if route_artifact else None},
+        )
+        superseded = self._latest_design_plan(project.id, specification_id=specification.id)
+        plan = self._persist_deterministic_plan(
+            project=project,
+            specification=specification,
+            payload=brief,
+            plan_path=brief_path,
+            superseded_design_plan_id=superseded.id if superseded is not None else None,
+        )
+        context = normalize_geometry_execution_context(
+            planning_depth=decision.outcome.value,
+            plan_artifact_id=brief_artifact.id if brief_artifact else None,
+            plan=brief,
+            active_requirements=active,
+            revision_delta=revision_delta or [],
+            preserved_requirements=preserved_requirements or [],
+            source_plan_kind=brief["schema_version"],
+        )
+        self._persist_execution_context_artifact(
+            project=project,
+            workflow_run=planning_run,
+            context=context,
+            plan_id=plan.id,
+            revision_id=None,
+        )
+        return self._design_plan_read(plan), decision
+
+    async def _create_compact_plan_from_specification(
+        self,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        workflow_run: WorkflowRun,
+        active_requirements: list[dict[str, Any]],
+        revision_delta: list[dict[str, Any]],
+        preserved_requirements: list[dict[str, Any]],
+        superseded_plan_id: str | None,
+    ) -> DesignPlanRead:
+        request = DesignPlanRequest(
+            project_name=project.name,
+            original_intent=project.original_intent,
+            user_instruction=specification.user_instruction,
+            design_specification=self._read_design_specification_payload(specification),
+            defaults=DEFAULT_REQUIREMENT_PROFILE,
+            active_requirements=active_requirements,
+            requirement_delta=revision_delta,
+            planning_depth=PlanningDepth.COMPACT_PLAN.value,
+        )
+        attempt = self._start_design_plan_attempt(project=project, request=request)
+        try:
+            result = await self.ai_provider.create_design_plan(request)
+            self._record_generation_result(attempt, result)
+            payload = self._parse_compact_plan_payload(
+                result.raw_output,
+                project=project,
+                specification=specification,
+                active_requirements=active_requirements,
+                revision_delta=revision_delta,
+                preserved_requirements=preserved_requirements,
+            )
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(attempt)
+            raise
+        except (ValueError, ValidationError) as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                error_message=str(exc),
+            )
+            raise
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                attempt,
+                status="failed",
+                failure_class=self._provider_failure_class(str(exc)),
+                error_message=str(exc),
+            )
+            raise
+        plan = self._persist_design_plan(
+            project=project,
+            specification=specification,
+            attempt=attempt,
+            payload=payload,
+            raw_response_path=attempt.raw_output_path,
+            superseded_design_plan_id=superseded_plan_id,
+        )
+        self._finish_generation_attempt(attempt, status="succeeded", failure_class=FailureClass.NONE)
+        plan_artifact = self._record_workflow_artifact(
+            workflow_run,
+            stage="planning",
+            artifact_type="compact_cad_plan",
+            role="selected_compact_plan",
+            relative_path=plan.plan_path,
+            metadata={"design_plan_id": plan.id, "schema_version": plan.schema_version},
+        )
+        context = normalize_geometry_execution_context(
+            planning_depth=PlanningDepth.COMPACT_PLAN.value,
+            plan_artifact_id=plan_artifact.id if plan_artifact else plan.id,
+            plan=payload,
+            active_requirements=active_requirements,
+            revision_delta=revision_delta,
+            preserved_requirements=preserved_requirements,
+            source_plan_kind=payload["schema_version"],
+        )
+        self._persist_execution_context_artifact(
+            project=project,
+            workflow_run=workflow_run,
+            context=context,
+            plan_id=plan.id,
+            revision_id=None,
+        )
+        return self._design_plan_read(plan)
+
+    def _parse_compact_plan_payload(
+        self,
+        raw_output: str,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        active_requirements: list[dict[str, Any]],
+        revision_delta: list[dict[str, Any]],
+        preserved_requirements: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        text = raw_output.strip()
+        if text.startswith("```"):
+            text = re.sub(r"\A```(?:json)?\s*|\s*```\Z", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"compact plan is not valid JSON: {exc.msg}") from exc
+        if not isinstance(payload, dict):
+            raise ValueError("compact plan must be a JSON object")
+        if payload.get("schema_version") not in {"compact-cad-plan-v1", "compact-plan-v1"}:
+            raise ValueError("compact plan must use schema_version compact-cad-plan-v1")
+        components = [dict(item) for item in payload.get("components", []) or [] if isinstance(item, dict)]
+        if not components:
+            components = [{"id": "primary_part", "label": "Primary printable part", "role": "printable_part"}]
+        normalized_components: list[dict[str, Any]] = []
+        for index, component in enumerate(components):
+            component.setdefault("id", "primary_part" if index == 0 else f"component_{index + 1}")
+            component.setdefault("label", str(component["id"]).replace("_", " ").title())
+            component.setdefault("role", "printable_part")
+            component.setdefault("required", True)
+            component.setdefault("parameters", [])
+            normalized_components.append(component)
+        features = [dict(item) for item in payload.get("features", []) or [] if isinstance(item, dict)]
+        normalized_features: list[dict[str, Any]] = []
+        for index, feature in enumerate(features):
+            feature.setdefault("id", f"feature_{index + 1}")
+            feature.setdefault("component_id", normalized_components[0]["id"])
+            feature.setdefault("parameters", [])
+            normalized_features.append(feature)
+        outputs = [dict(item) for item in payload.get("printable_outputs", []) or [] if isinstance(item, dict)]
+        if not outputs:
+            outputs = [
+                {
+                    "id": "primary_printable_output",
+                    "label": "Primary printable part",
+                    "component_ids": [item["id"] for item in normalized_components],
+                    "required": True,
+                    "quantity": 1,
+                    "expected_solid_count": 1,
+                    "allow_disconnected_solids": False,
+                }
+            ]
+        for output in outputs:
+            output.setdefault("component_ids", [output.get("component_id") or normalized_components[0]["id"]])
+            output.setdefault("required", True)
+            output.setdefault("quantity", 1)
+            output.setdefault("expected_solid_count", 1)
+            output.setdefault("allow_disconnected_solids", False)
+        return {
+            "schema_version": "compact-cad-plan-v1",
+            "planning_depth": PlanningDepth.COMPACT_PLAN.value,
+            "project_id": project.id,
+            "design_specification_id": specification.id,
+            "units": payload.get("units") or "mm",
+            "requirements": [dict(item) for item in active_requirements],
+            "revision_delta": [dict(item) for item in revision_delta],
+            "preserved_requirements": [dict(item) for item in preserved_requirements],
+            "proposals": [
+                {**dict(item), "source": "volundr_proposal"}
+                for item in payload.get("proposals", []) or []
+                if isinstance(item, dict)
+            ],
+            "components": normalized_components,
+            "features": normalized_features,
+            "relationships": [dict(item) for item in payload.get("relationships", []) or [] if isinstance(item, dict)],
+            "coordinate_frames": [dict(item) for item in payload.get("coordinate_frames", []) or [] if isinstance(item, dict)],
+            "validation_targets": [dict(item) for item in payload.get("validation_targets", []) or [] if isinstance(item, dict)],
+            "exposed_controls": [dict(item) for item in payload.get("exposed_controls", []) or [] if isinstance(item, dict)],
+            "parameters": [dict(item) for item in payload.get("parameters", []) or [] if isinstance(item, dict)],
+            "derived_parameters": [dict(item) for item in payload.get("derived_parameters", []) or [] if isinstance(item, dict)],
+            "dependency_edges": [dict(item) for item in payload.get("dependency_edges", []) or [] if isinstance(item, dict)],
+            "feature_layouts": [dict(item) for item in payload.get("feature_layouts", []) or [] if isinstance(item, dict)],
+            "patterns": [dict(item) for item in payload.get("patterns", []) or [] if isinstance(item, dict)],
+            "printable_outputs": outputs,
+            "outcome": DesignPlanOutcome.PLAN_READY.value,
+            "clarification_required": False,
+            "clarification_questions": [],
+            "plan_ready": True,
+        }
+
+    def _planning_project_state(self, specification: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "units": specification.get("units") or "mm",
+            "printable_component_count": len(specification.get("components") or []),
+            "output_count": len(specification.get("printable_outputs") or []),
+            "assembly_relationships": specification.get("assembly_relationships") or [],
+            "moving_interfaces": specification.get("moving_interfaces") or [],
+            "mating_interfaces": specification.get("mating_interfaces") or [],
+            "functional_feature_count": len(specification.get("functional_requirements") or []),
+        }
+
+    def _planning_artifact_path(self, project_id: str, workflow_run_id: str, name: str) -> Path:
+        path = self.data_dir / "projects" / project_id / "workflow-runs" / workflow_run_id / "planning" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _persist_execution_context_artifact(
+        self,
+        *,
+        project: Project,
+        workflow_run: WorkflowRun,
+        context: dict[str, Any],
+        plan_id: str,
+        revision_id: str | None,
+    ) -> None:
+        path = self._planning_artifact_path(project.id, workflow_run.id, "geometry-execution-context.json")
+        self._write_json(path, context)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="planning",
+            artifact_type="geometry_execution_context",
+            role="normalized_geometry_execution_context",
+            relative_path=self._relative(path),
+            metadata={"design_plan_id": plan_id, "revision_id": revision_id, "schema_version": context["schema_version"]},
+        )
+
+    def _persist_deterministic_plan(
+        self,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        payload: dict[str, Any],
+        plan_path: Path,
+        superseded_design_plan_id: str | None,
+    ) -> DesignPlan:
+        plan = DesignPlan(
+            project_id=project.id,
+            design_specification_id=specification.id,
+            generation_attempt_id=None,
+            superseded_design_plan_id=superseded_design_plan_id,
+            version_number=self._next_design_plan_version(project.id),
+            schema_version=str(payload.get("schema_version") or "cad-brief-v1"),
+            prompt_template_version=PLANNING_ROUTE_PROMPT_VERSION,
+            ruleset_version=self._ruleset_version(),
+            provider="deterministic_volundr",
+            provider_model=None,
+            raw_response_path=None,
+            plan_path=self._relative(plan_path),
+            content_hash=self._sha256(json.dumps(payload, sort_keys=True)),
+            outcome=DesignPlanOutcome.PLAN_READY.value,
+            review_state=DesignPlanReviewState.APPROVED.value,
+            clarification_required=False,
+            plan_ready=True,
+            approved_at=project_utcnow(),
+        )
+        self.db.add(plan)
+        self.db.flush()
+        self.db.commit()
+        self.db.refresh(plan)
+        return plan
+
     def reject_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
         plan = self.db.get(DesignPlan, design_plan_id)
         if plan is None:
@@ -3101,6 +3523,15 @@ class ProjectService:
             current_source=current_source,
             design_specification=design_specification_payload,
             design_plan=design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload,
+                design_plan_id=design_plan.id,
+                payload=payload,
+                workflow_run_id=workflow_run.id,
+            ),
+            workflow_run_id=workflow_run.id,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
@@ -3108,6 +3539,11 @@ class ProjectService:
             base_revision_id=project.active_revision_id,
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
+        )
+        self._persist_prompt_context_pack_for_attempt(
+            workflow_run=workflow_run,
+            attempt=generation_attempt,
+            pack=generation_request.prompt_context_pack,
         )
         self._record_workflow_event(
             workflow_run,
@@ -3207,6 +3643,15 @@ class ProjectService:
             compiler_diagnostics=initial_revision.error_message,
             design_specification=design_specification_payload,
             design_plan=design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload or {},
+                design_plan_id=design_plan.id if design_plan is not None else "unknown-plan",
+                payload=payload,
+                workflow_run_id=workflow_run.id if workflow_run is not None else "unbound",
+            ) if design_plan_payload else None,
+            workflow_run_id=workflow_run.id if workflow_run is not None else None,
         )
         repair_attempt = self._start_generation_attempt(
             project=project,
@@ -3215,6 +3660,12 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        if workflow_run is not None:
+            self._persist_prompt_context_pack_for_attempt(
+                workflow_run=workflow_run,
+                attempt=repair_attempt,
+                pack=repair_request.prompt_context_pack,
+            )
         try:
             repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
@@ -3637,11 +4088,63 @@ class ProjectService:
         geometry_body_diagnostics: str | None = None,
         active_requirement_items: list[dict[str, Any]] | None = None,
         requirement_delta: list[dict[str, Any]] | None = None,
+        planning_depth: str = "detailed_plan",
+        geometry_execution_context: dict[str, Any] | None = None,
+        prompt_context_pack: dict[str, Any] | None = None,
+        workflow_run_id: str | None = None,
     ) -> ModelGenerationRequest:
         source_authority = authority_from_generation_context(
             design_plan_payload=design_plan,
             revision_plan_payload=revision_plan,
         )
+        active_items = (
+            list(active_requirement_items)
+            if active_requirement_items is not None
+            else active_requirements(RequirementLedgerStore(self.db).load(project.id))
+        )
+        delta_items = (
+            list(requirement_delta)
+            if requirement_delta is not None
+            else requirement_delta_for_message(payload.user_instruction)[0]
+        )
+        if prompt_context_pack is None and geometry_execution_context is not None:
+            prompt_context_pack = PromptContextPackBuilder().build(
+                project_id=project.id,
+                workflow_run_id=workflow_run_id or "unbound",
+                planning_depth=planning_depth,
+                active_requirements=active_items,
+                revision_delta=delta_items,
+                preserved_requirements=geometry_execution_context.get("preserve_requirements", []),
+                plan_artifact={
+                    "artifact_id": geometry_execution_context.get("plan_artifact_id"),
+                    "payload": design_plan or {},
+                },
+                selected_components=[
+                    str(item.get("id")) for item in (design_plan or {}).get("components", []) or []
+                    if isinstance(item, dict) and item.get("id")
+                ],
+                selected_features=[
+                    str(item.get("id")) for item in (design_plan or {}).get("features", []) or []
+                    if isinstance(item, dict) and item.get("id")
+                ],
+                current_revision_summary={"revision_id": project.active_revision_id},
+                relevant_findings=selected_findings or [],
+                scaffold_contract={
+                    "generation_contract_version": self._provider_generation_contract_version(),
+                    "source_authority": source_authority,
+                },
+                exposed_controls=(design_plan or {}).get("exposed_controls", []) or [],
+                prompt_version=self._prompt_template_version(
+                    ModelGenerationRequest(
+                        project_name=project.name,
+                        original_intent=project.original_intent,
+                        user_instruction=payload.user_instruction,
+                        generation_contract_version=self._provider_generation_contract_version(),
+                        geometry_body_diagnostics=geometry_body_diagnostics,
+                        planning_depth=planning_depth,
+                    )
+                ),
+            )
         return ModelGenerationRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -3660,15 +4163,64 @@ class ProjectService:
             configuration_context=configuration_context,
             source_authority=source_authority,
             geometry_body_diagnostics=geometry_body_diagnostics,
-            active_requirements=active_requirement_items
-            if active_requirement_items is not None
-            else active_requirements(RequirementLedgerStore(self.db).load(project.id)),
-            requirement_delta=(
-                list(requirement_delta)
-                if requirement_delta is not None
-                else requirement_delta_for_message(payload.user_instruction)[0]
-            ),
+            active_requirements=active_items,
+            requirement_delta=delta_items,
             generation_contract_version=self._provider_generation_contract_version(),
+            planning_depth=planning_depth,
+            geometry_execution_context=geometry_execution_context,
+            prompt_context_pack=prompt_context_pack,
+        )
+
+    def _planning_depth_for_plan(self, plan: dict[str, Any] | None) -> str:
+        schema_version = str((plan or {}).get("schema_version") or "")
+        if schema_version == "cad-brief-v1":
+            return PlanningDepth.DIRECT_BRIEF.value
+        if schema_version == "compact-cad-plan-v1":
+            return PlanningDepth.COMPACT_PLAN.value
+        return PlanningDepth.DETAILED_PLAN.value
+
+    def _geometry_execution_context_for_generation(
+        self,
+        *,
+        project: Project,
+        design_plan: dict[str, Any],
+        design_plan_id: str,
+        payload: GenerationCreate,
+        workflow_run_id: str,
+    ) -> dict[str, Any]:
+        ledger = RequirementLedgerStore(self.db).load(project.id)
+        return normalize_geometry_execution_context(
+            planning_depth=self._planning_depth_for_plan(design_plan),
+            plan_artifact_id=design_plan_id,
+            plan=design_plan,
+            active_requirements=active_requirements(ledger),
+            revision_delta=requirement_delta_for_message(payload.user_instruction)[0],
+            preserved_requirements=[],
+            source_plan_kind=design_plan.get("schema_version"),
+        )
+
+    def _persist_prompt_context_pack_for_attempt(
+        self,
+        *,
+        workflow_run: WorkflowRun,
+        attempt: GenerationAttempt,
+        pack: dict[str, Any] | None,
+    ) -> None:
+        if not pack:
+            return
+        path = self._generation_attempt_dir(attempt.project_id, attempt.id) / "prompt-context-pack.json"
+        self._write_json(path, pack)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_generation",
+            artifact_type="prompt_context_pack",
+            role="generation_prompt_context_pack",
+            relative_path=self._relative(path),
+            metadata={
+                "context_hash": pack.get("context_hash"),
+                "included_artifact_ids": pack.get("included_artifact_ids", []),
+                "excluded_context_categories": pack.get("excluded_context_categories", []),
+            },
         )
 
     async def _generate_source_model(self, request: ModelGenerationRequest):
@@ -3800,6 +4352,15 @@ class ProjectService:
             current_source=failed_response.raw_output,
             design_specification=design_specification_payload,
             design_plan=design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload or {},
+                design_plan_id=design_plan.id if design_plan is not None else "unknown-plan",
+                payload=payload,
+                workflow_run_id=workflow_run.id if workflow_run is not None else "unbound",
+            ) if design_plan_payload else None,
+            workflow_run_id=workflow_run.id if workflow_run is not None else None,
             geometry_body_diagnostics=json.dumps(
                 {"rule_id": diagnostics.rule_id, "message": str(diagnostics), "details": diagnostics.details},
                 sort_keys=True,
@@ -3812,6 +4373,12 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        if workflow_run is not None:
+            self._persist_prompt_context_pack_for_attempt(
+                workflow_run=workflow_run,
+                attempt=repair_attempt,
+                pack=repair_request.prompt_context_pack,
+            )
         repair_workflow_run = None
         if workflow_run is not None:
             root = self.db.get(WorkflowRun, workflow_run.root_workflow_run_id) if workflow_run.root_workflow_run_id else workflow_run
@@ -4233,6 +4800,7 @@ class ProjectService:
                 defaults=request.defaults,
                 active_requirements=request.active_requirements,
                 requirement_delta=request.requirement_delta,
+                planning_depth=request.planning_depth,
             )
             return await self._run_design_planning(
                 project=project,
@@ -4487,7 +5055,7 @@ class ProjectService:
             model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
             routing_metadata_json=json.dumps(routing, sort_keys=True),
-            prompt_version=self._design_plan_prompt_template_version(),
+            prompt_version=self._design_plan_prompt_template_version(request),
             ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
@@ -5324,7 +5892,9 @@ class ProjectService:
             return str(version())
         return REQUIREMENTS_PROMPT_VERSION
 
-    def _design_plan_prompt_template_version(self) -> str:
+    def _design_plan_prompt_template_version(self, request: DesignPlanRequest | None = None) -> str:
+        if request is not None and request.planning_depth == PlanningDepth.COMPACT_PLAN.value:
+            return "compact-cad-plan-v1"
         version = getattr(self.ai_provider, "design_plan_prompt_template_version", None)
         if callable(version):
             return str(version())

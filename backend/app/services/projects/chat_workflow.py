@@ -366,16 +366,42 @@ class ChatWorkflowService:
         return await self._plan_and_generate(project, workflow_run, specification, action=action)
 
     async def _plan_and_generate(self, project: Project, workflow_run: WorkflowRun, specification, *, action: str) -> ChatWorkflowResponse:
-        plan = await self.service.create_design_plan_from_specification(specification.id)
+        plan, route = await self.service.create_proportional_plan_from_specification(
+            specification.id,
+            workflow_run=workflow_run,
+        )
         if plan is None:
-            raise LookupError("Design Plan not found")
+            self._event(
+                workflow_run,
+                "clarification.requested",
+                "Planning clarification requested.",
+                "clarification_requested",
+                metadata=route.to_payload(),
+            )
+            return self._response(
+                workflow_run,
+                action,
+                "planning",
+                True,
+                _first_missing_information(route.missing_information),
+                design_specification_id=specification.id,
+            )
         if plan.clarification_required:
             self._event(workflow_run, "clarification.requested", "Design Plan clarification requested.", "clarification_requested")
             return self._response(workflow_run, action, "design_planning", True, _first_question(plan.clarification_questions), design_specification_id=specification.id, design_plan_id=plan.id)
-        approved = self.service.approve_design_plan(plan.id)
+        approved = plan
+        if plan.review_state.value != "approved":
+            approved = self.service.approve_design_plan(plan.id)
         if approved is None:
             raise LookupError("Design Plan not found")
-        self._event(workflow_run, "design_plan.progressed", "Design Plan progressed automatically.", "automatic_design_plan_progressed", design_plan_id=approved.id)
+        self._event(
+            workflow_run,
+            "design_plan.progressed",
+            "Planning progressed automatically.",
+            "automatic_design_plan_progressed",
+            design_plan_id=approved.id,
+            metadata={"planning_depth": route.outcome.value, "route_policy_version": route.policy_version},
+        )
         self._event(workflow_run, "generation.started", "First-draft generation started automatically.", "automatic_generation_started", design_plan_id=approved.id)
         revision = await self.service.generate_from_design_plan(approved.id)
         return self._generated_response(workflow_run, action, revision, base_revision_id=project.active_revision_id, design_specification_id=specification.id, design_plan_id=approved.id)
@@ -445,6 +471,14 @@ def _first_question(questions: list[Any]) -> str:
         return "Please clarify the design choice that matters most before I generate a version."
     question = questions[0]
     return getattr(question, "question", None) or question.get("question", "Please clarify this design choice.")
+
+
+def _first_missing_information(items: list[dict[str, Any]]) -> str:
+    if not items:
+        return "Please clarify the design information that matters most before I generate a version."
+    item = items[0]
+    requirement_id = item.get("requirement_id") or "this requirement"
+    return f"Please clarify {requirement_id}. {item.get('reason') or 'This affects the geometry and cannot be safely proposed yet.'}"
 
 
 def _project_name(message: str) -> str:

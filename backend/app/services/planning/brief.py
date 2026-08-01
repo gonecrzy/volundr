@@ -30,7 +30,10 @@ class DirectCadBriefBuilder:
         preserved = [dict(item) for item in preserved_requirements if isinstance(item, dict)]
         state = project_state or {}
         component_id = "primary_part"
-        features = self._features(requirements, component_id)
+        execution_parameters = self._execution_parameters(requirements, component_id)
+        features = []
+        primary_body = self._features(component_id)
+        required_features = self._required_features(requirements, component_id)
         outputs = [{
             "id": "primary_printable_output",
             "label": "Primary printable part",
@@ -56,9 +59,11 @@ class DirectCadBriefBuilder:
                 "label": "Primary printable part",
                 "role": "printable_part",
                 "required": True,
-                "parameters": [],
+                "parameters": [item["id"] for item in execution_parameters],
             }],
+            "parameters": execution_parameters,
             "features": features,
+            "required_features": [*primary_body, *required_features],
             "relationships": [],
             "validation_targets": self._validation_targets(requirements),
             "exposed_controls": [],
@@ -76,8 +81,8 @@ class DirectCadBriefBuilder:
         return result
 
     @staticmethod
-    def _features(requirements: list[dict[str, Any]], component_id: str) -> list[dict[str, Any]]:
-        features: list[dict[str, Any]] = [{
+    def _features(component_id: str) -> list[dict[str, Any]]:
+        return [{
             "id": "primary_body",
             "label": "Primary body",
             "component_id": component_id,
@@ -86,6 +91,33 @@ class DirectCadBriefBuilder:
             "requirement_ids": [],
             "parameters": [],
         }]
+
+    @staticmethod
+    def _execution_parameters(requirements: list[dict[str, Any]], component_id: str) -> list[dict[str, Any]]:
+        parameters: list[dict[str, Any]] = []
+        for item in requirements:
+            parameter_id = item.get("requirement_id") or item.get("id")
+            value = item.get("value", item.get("expected_value"))
+            if not isinstance(parameter_id, str) or not parameter_id or value is None:
+                continue
+            parameter_type = "bool" if isinstance(value, bool) else "int" if isinstance(value, int) else "float" if isinstance(value, (float, int)) else "str"
+            parameters.append({
+                "id": parameter_id,
+                "label": str(item.get("label") or parameter_id).replace("_", " ").title(),
+                "type": parameter_type,
+                "value": value,
+                "unit": item.get("unit"),
+                "source_requirement_id": parameter_id,
+                "component_id": component_id,
+                "editable": False,
+                "protected": False,
+                "source": "requirement_ledger",
+            })
+        return parameters
+
+    @staticmethod
+    def _required_features(requirements: list[dict[str, Any]], component_id: str) -> list[dict[str, Any]]:
+        features: list[dict[str, Any]] = []
         for item in requirements:
             requirement_type = str(item.get("type") or item.get("requirement_type") or "")
             requirement_id = item.get("requirement_id") or item.get("id")
