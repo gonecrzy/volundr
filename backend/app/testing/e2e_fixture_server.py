@@ -353,10 +353,27 @@ def _structured_geometry_response(plan: dict[str, Any], source: str) -> dict[str
         function_id = _component_geometry_name(component_id)
         if component_id == "snap_lid" and "lid_component" in source:
             function_id = _component_geometry_name("lid_component")
+        return_statement = next(
+            (statement for statement in reversed(builder.body) if isinstance(statement, ast.Return)),
+            None,
+        )
+        result_symbol = (
+            return_statement.value.id
+            if return_statement is not None and isinstance(return_statement.value, ast.Name)
+            else "body"
+        )
+        statements = [
+            ast.unparse(statement)
+            for statement in builder.body
+            if not isinstance(statement, ast.Return)
+        ]
+        if return_statement is not None and not isinstance(return_statement.value, ast.Name):
+            statements.append(f"{result_symbol} = {ast.unparse(return_statement.value)}")
         functions.append(
             {
                 "function_id": function_id,
-                "body_lines": [ast.unparse(statement) for statement in builder.body],
+                "statements": statements,
+                "result_symbol": result_symbol,
             }
         )
     for feature in plan.get("features", []) or []:
@@ -367,18 +384,18 @@ def _structured_geometry_response(plan: dict[str, Any], source: str) -> dict[str
             for parameter_id in feature.get("parameters", []) or []
             if parameter_id
         ]
-        body_lines = [
+        statements = [
             (
                 f'body = body.union(cq.Workplane("XY").box('
                 f'params[{parameter_id!r}] * 0.001, 0.001, 0.001))'
             )
             for parameter_id in feature_parameter_ids
         ]
-        body_lines.append("return body")
         functions.append(
             {
                 "function_id": _feature_geometry_name(str(feature["id"])),
-                "body_lines": body_lines,
+                "statements": statements,
+                "result_symbol": "body",
             }
         )
     return {

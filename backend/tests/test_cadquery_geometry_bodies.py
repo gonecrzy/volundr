@@ -31,10 +31,36 @@ PLAN = {
 
 
 def _payload(*functions: dict) -> str:
+    normalized_functions = []
+    for function in functions:
+        item = dict(function)
+        legacy_lines = item.pop("body_lines", None)
+        if legacy_lines is not None:
+            result_symbol = "body" if "component" in str(item.get("function_id")) else "modified"
+            statements = []
+            for line in legacy_lines:
+                prefix = line[: len(line) - len(line.lstrip())]
+                stripped = line.strip()
+                if stripped.startswith("return "):
+                    expression = stripped[len("return "):]
+                    if expression == "body" and result_symbol == "body":
+                        expression = 'cq.Workplane("XY")'
+                    statements.append(f"{prefix}{result_symbol} = {expression}")
+                else:
+                    statements.append(line)
+            if not statements:
+                statements = [
+                    f'{result_symbol} = cq.Workplane("XY")'
+                    if result_symbol == "body"
+                    else f"{result_symbol} = body"
+                ]
+            item["statements"] = statements
+            item["result_symbol"] = result_symbol
+        normalized_functions.append(item)
     return json.dumps(
         {
             "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
-            "functions": list(functions),
+            "functions": normalized_functions,
         }
     )
 
@@ -152,7 +178,6 @@ def test_function_inventory_is_exact(functions: list[dict], rule_id: str) -> Non
     [
         (["def nested(params):", "    return body", "return nested(params)"], "invalid_statement"),
         (["import os", "return body"], "invalid_statement"),
-        (["body = cq.Workplane(\"XY\")"], "missing_return"),
         (["return cq.Workplane(\"XY\").box(params[\"unknown\"], 1, 1)"], "undeclared_parameter"),
         (["PARAMETERS = []", "return body"], "scaffold_mutation_attempt"),
     ],

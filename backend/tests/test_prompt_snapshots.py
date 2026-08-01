@@ -104,10 +104,10 @@ def test_scaffold_prompt_requests_geometry_functions_only() -> None:
     prompt = provider.build_prompt(request)
 
     assert "only structured CadQuery geometry bodies" in prompt
-    assert "body_lines" in prompt
+    assert "statements" in prompt
     assert "_ai_component_body" in prompt
     assert "Volundr deterministically owns all parameters" in prompt
-    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-v3"
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-v4"
     assert "Binding per-function parameter-effect contract" in prompt
     assert "For pattern_count, do not use a fixed range" in prompt
     assert '"schema_version": "cadquery-parameter-effects-v1"' in prompt
@@ -142,7 +142,7 @@ def test_structured_geometry_body_repair_preserves_parameter_effect_manifest() -
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-repair-v3"
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-repair-v4"
     assert "Repair only the structured geometry-body response" in prompt
     assert "mounting_screw_count" in prompt
     assert "mounting_hole_spacing" in prompt

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import keyword
 import re
 import textwrap
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ from app.services.cad.parameter_effects import (
 from app.services.cad.patterns import pattern_parameter_ids
 
 
-GEOMETRY_BODIES_SCHEMA_VERSION = "cadquery-geometry-bodies-v1"
+GEOMETRY_BODIES_SCHEMA_VERSION = "cadquery-geometry-bodies-v2"
 _FENCED_JSON_RE = re.compile(
     r"\A\s*```(?:json)?\s*(?P<payload>.*?)```\s*\Z",
     re.IGNORECASE | re.DOTALL,
@@ -68,6 +69,7 @@ class GeometryBodyAssembly:
     original_body_lines: dict[str, list[str]]
     canonical_body_lines: dict[str, list[str]]
     function_body_hashes: dict[str, str]
+    result_symbols: dict[str, str]
 
 
 def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
@@ -180,6 +182,7 @@ def assemble_geometry_bodies(
     original: dict[str, list[str]] = {}
     canonical: dict[str, list[str]] = {}
     functions: dict[str, str] = {}
+    result_symbols: dict[str, str] = {}
     seen: set[str] = set()
     for record in records:
         if not isinstance(record, dict) or not isinstance(record.get("function_id"), str):
@@ -200,18 +203,20 @@ def assemble_geometry_bodies(
                 "geometry_body.unexpected_function",
                 f"Unexpected geometry function `{function_id}`.",
             )
-        body_lines = record.get("body_lines")
-        if not isinstance(body_lines, list) or not body_lines or not all(
-            isinstance(line, str) for line in body_lines
+        statements = record.get("statements")
+        if not isinstance(statements, list) or not statements or not all(
+            isinstance(line, str) for line in statements
         ):
             raise GeometryBodyError(
                 "geometry_body.invalid_json",
-                f"Geometry function `{function_id}` must contain non-empty string body_lines.",
+                f"Geometry function `{function_id}` must contain non-empty string statements.",
             )
-        original[function_id] = list(body_lines)
+        result_symbol = record.get("result_symbol")
+        original[function_id] = list(statements)
         canonical_lines, function_source = _canonicalize_function(
             function_id=function_id,
-            body_lines=body_lines,
+            statements=statements,
+            result_symbol=result_symbol,
             signature=str(spec.get("signature") or "(params)"),
             allowed_parameters={str(item) for item in inventory.get("allowed_parameters", [])},
             scaffold_owned_identifiers={
@@ -220,6 +225,7 @@ def assemble_geometry_bodies(
         )
         canonical[function_id] = canonical_lines
         functions[function_id] = function_source
+        result_symbols[function_id] = str(result_symbol)
         effect_findings = validate_parameter_effects(
             function_source,
             spec,
@@ -260,6 +266,7 @@ def assemble_geometry_bodies(
             ).hexdigest()
             for function_id in expected
         },
+        result_symbols={function_id: result_symbols[function_id] for function_id in expected},
     )
 
 
@@ -291,12 +298,28 @@ def _parse_payload(raw_output: str) -> dict[str, Any]:
 def _canonicalize_function(
     *,
     function_id: str,
-    body_lines: list[str],
+    statements: list[str],
+    result_symbol: Any,
     signature: str,
     allowed_parameters: set[str],
     scaffold_owned_identifiers: set[str],
 ) -> tuple[list[str], str]:
-    normalized = "\n".join(line.replace("\r\n", "\n").replace("\r", "\n").expandtabs(4) for line in body_lines)
+    if not isinstance(result_symbol, str) or not result_symbol.strip():
+        raise GeometryBodyError(
+            "geometry_body.result_symbol_missing",
+            f"Geometry function `{function_id}` must declare a result_symbol.",
+        )
+    result_symbol = result_symbol.strip()
+    if (
+        not result_symbol.isidentifier()
+        or keyword.iskeyword(result_symbol)
+        or result_symbol in scaffold_owned_identifiers
+    ):
+        raise GeometryBodyError(
+            "geometry_body.result_symbol_invalid",
+            f"Geometry function `{function_id}` has an invalid or scaffold-owned result_symbol `{result_symbol}`.",
+        )
+    normalized = "\n".join(line.replace("\r\n", "\n").replace("\r", "\n").expandtabs(4) for line in statements)
     normalized = textwrap.dedent(normalized).strip("\n")
     if not normalized.strip():
         raise GeometryBodyError(
@@ -313,10 +336,10 @@ def _canonicalize_function(
     node = tree.body[0]
     if not isinstance(node, ast.FunctionDef):
         raise GeometryBodyError("geometry_body.invalid_statement", "Geometry body did not form a function.")
-    if not any(isinstance(child, ast.Return) for child in ast.walk(node)):
+    if any(isinstance(child, ast.Return) for child in ast.walk(node)):
         raise GeometryBodyError(
-            "geometry_body.missing_return",
-            f"Geometry function `{function_id}` must return a shape.",
+            "geometry_body.provider_return_forbidden",
+            f"Geometry function `{function_id}` must not contain a provider return statement.",
         )
     for child in ast.walk(node):
         if child is node:
@@ -359,10 +382,108 @@ def _canonicalize_function(
                         raise GeometryBodyError(
                             "geometry_body.undeclared_parameter",
                             f"Geometry body references undeclared parameter `{parameter_id}`.",
-                        )
+                    )
+    assignment_status = _result_assignment_status(node.body, result_symbol)
+    if assignment_status == "missing":
+        raise GeometryBodyError(
+            "geometry_body.result_symbol_unassigned",
+            f"Geometry function `{function_id}` does not assign result_symbol `{result_symbol}`.",
+        )
+    if assignment_status != "guaranteed":
+        raise GeometryBodyError(
+            "geometry_body.result_path_unverifiable",
+            f"Geometry function `{function_id}` does not assign result_symbol `{result_symbol}` on every path.",
+        )
+    if not _result_shape_is_verifiable(node, result_symbol, signature):
+        raise GeometryBodyError(
+            "geometry_body.result_path_unverifiable",
+            f"Geometry function `{function_id}` result_symbol `{result_symbol}` is not statically verifiable as a CadQuery shape.",
+        )
+    node.body.append(ast.Return(value=ast.Name(id=result_symbol, ctx=ast.Load())))
     canonical_function = ast.unparse(node)
     canonical_body = canonical_function.splitlines()[1:]
     return canonical_body, canonical_function
+
+
+def _result_assignment_status(statements: list[ast.stmt], symbol: str) -> str:
+    """Return guaranteed, uncertain, or missing for a result assignment."""
+
+    guaranteed = False
+    saw_symbol = False
+    for statement in statements:
+        if _assigns_symbol(statement, symbol):
+            if isinstance(statement, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                guaranteed = True
+                saw_symbol = True
+                continue
+            saw_symbol = True
+            return "uncertain"
+        if isinstance(statement, ast.If):
+            body_status = _result_assignment_status(statement.body, symbol)
+            else_status = _result_assignment_status(statement.orelse, symbol) if statement.orelse else "missing"
+            if body_status != "missing" or else_status != "missing":
+                saw_symbol = True
+            if body_status == "guaranteed" and else_status == "guaranteed":
+                guaranteed = True
+            elif body_status != "missing" or else_status != "missing":
+                return "uncertain"
+            continue
+        if isinstance(statement, (ast.For, ast.AsyncFor, ast.While, ast.Try, ast.With, ast.AsyncWith)):
+            if _contains_symbol_assignment(statement, symbol):
+                return "uncertain"
+    if guaranteed:
+        return "guaranteed"
+    return "uncertain" if saw_symbol else "missing"
+
+
+def _assigns_symbol(statement: ast.stmt, symbol: str) -> bool:
+    targets: list[ast.expr] = []
+    if isinstance(statement, ast.Assign):
+        targets.extend(statement.targets)
+    elif isinstance(statement, (ast.AnnAssign, ast.AugAssign)):
+        targets.append(statement.target)
+    return any(isinstance(target, ast.Name) and target.id == symbol for target in targets)
+
+
+def _contains_symbol_assignment(node: ast.AST, symbol: str) -> bool:
+    return any(
+        isinstance(child, ast.Name)
+        and isinstance(child.ctx, ast.Store)
+        and child.id == symbol
+        for child in ast.walk(node)
+    )
+
+
+def _result_shape_is_verifiable(node: ast.FunctionDef, symbol: str, signature: str) -> bool:
+    shape_symbols = {"body"} if signature == "(body, params)" else set()
+    for statement in node.body:
+        if not isinstance(statement, (ast.Assign, ast.AnnAssign)):
+            continue
+        targets = statement.targets if isinstance(statement, ast.Assign) else [statement.target]
+        if not any(isinstance(target, ast.Name) and target.id == symbol for target in targets):
+            for target in targets:
+                if isinstance(target, ast.Name) and _shape_expression(statement.value, shape_symbols):
+                    shape_symbols.add(target.id)
+            continue
+        if _shape_expression(statement.value, shape_symbols):
+            return True
+    return False
+
+
+def _shape_expression(expression: ast.AST, shape_symbols: set[str]) -> bool:
+    if isinstance(expression, ast.Name):
+        return expression.id in shape_symbols
+    if isinstance(expression, ast.Attribute):
+        if isinstance(expression.value, ast.Name) and expression.value.id == "cq":
+            return expression.attr in {"Workplane", "Shape", "Solid", "Compound", "Assembly"}
+        return _shape_expression(expression.value, shape_symbols)
+    if isinstance(expression, ast.Call):
+        if isinstance(expression.func, ast.Attribute):
+            if isinstance(expression.func.value, ast.Name) and expression.func.value.id == "cq":
+                return expression.func.attr in {"Workplane", "Shape", "Solid", "Compound", "Assembly"}
+            return _shape_expression(expression.func.value, shape_symbols)
+        return False
+    return False
 
 
 def _string_slice(node: ast.expr) -> str | None:

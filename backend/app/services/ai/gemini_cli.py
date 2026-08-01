@@ -37,8 +37,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v3"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v3"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v4"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v4"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -569,11 +569,11 @@ class GeminiCliProvider:
             "You generate only structured CadQuery geometry bodies for Volundr.",
             "Return JSON only, optionally inside one json code fence. Do not include prose outside JSON.",
             f"Use schema_version exactly {GEOMETRY_BODIES_SCHEMA_VERSION}.",
-            "Return body_lines statements only; never return def declarations, decorators, imports, fences, or prose inside a body.",
+            "Return ordered statements and exactly one result_symbol for each function; never return def declarations, decorators, imports, return statements, fences, or prose inside a body.",
             "Volundr deterministically owns all parameters, components, features, outputs, IDs, and the build entrypoint.",
             "Use CadQuery as `cq` and the canonical parameter IDs exactly as provided.",
             "Implement every required function_id exactly once. Do not rename, omit, or add functions.",
-            "Component bodies return a CadQuery shape. Feature bodies return the modified CadQuery shape.",
+            "Assign the component shape or modified feature shape to result_symbol. Volundr appends the sole return statement deterministically.",
             "Do not add file, network, subprocess, or dynamic Python access.",
             "Canonical parameter IDs: " + ", ".join(parameter_ids),
             "Required function authority inventory:",
@@ -606,7 +606,7 @@ class GeminiCliProvider:
                 {
                     "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
                     "functions": [
-                        {"function_id": function_id, "body_lines": ["statement", "return shape"]}
+                        {"function_id": function_id, "statements": ["body = ..."], "result_symbol": "body"}
                         for function_id in expected_functions
                     ],
                 },

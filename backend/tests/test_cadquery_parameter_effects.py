@@ -126,8 +126,34 @@ PLAN = {
 
 
 def _payload(*functions: dict) -> str:
+    normalized_functions = []
+    for function in functions:
+        item = dict(function)
+        legacy_lines = item.pop("body_lines", None)
+        if legacy_lines is not None:
+            result_symbol = "body" if "component" in str(item.get("function_id")) else "modified"
+            statements = []
+            for line in legacy_lines:
+                prefix = line[: len(line) - len(line.lstrip())]
+                stripped = line.strip()
+                if stripped.startswith("return "):
+                    expression = stripped[len("return "):]
+                    if expression == "body" and result_symbol == "body":
+                        expression = 'cq.Workplane("XY")'
+                    statements.append(f"{prefix}{result_symbol} = {expression}")
+                else:
+                    statements.append(line)
+            if not statements:
+                statements = [
+                    f'{result_symbol} = cq.Workplane("XY")'
+                    if result_symbol == "body"
+                    else f"{result_symbol} = body"
+                ]
+            item["statements"] = statements
+            item["result_symbol"] = result_symbol
+        normalized_functions.append(item)
     return json.dumps(
-        {"schema_version": GEOMETRY_BODIES_SCHEMA_VERSION, "functions": list(functions)}
+        {"schema_version": GEOMETRY_BODIES_SCHEMA_VERSION, "functions": normalized_functions}
     )
 
 
@@ -416,6 +442,72 @@ def test_canonical_pattern_points_reach_push_points_and_protect_count_and_spacin
     )
 
     assert result.functions["_ai_feature_mounting_holes"]
+
+
+def test_statements_and_result_symbol_receive_one_scaffold_owned_return() -> None:
+    result = assemble_geometry_bodies(
+        _payload(
+            {
+                "function_id": "_ai_component_holder_body",
+                "statements": ['body = cq.Workplane("XY").cylinder(20, params["bottle_inner_diameter"] / 2)'],
+                "result_symbol": "body",
+            },
+            {
+                "function_id": "_ai_feature_bottle_cavity",
+                "statements": ['modified = body.cut(cq.Workplane("XY").cylinder(20, params["bottle_cavity_diameter"] / 2))'],
+                "result_symbol": "modified",
+            },
+            {
+                "function_id": "_ai_feature_mounting_holes",
+                "statements": ['modified = body.pushPoints(make_hole_pattern(params["mounting_screw_count"], params["mounting_hole_spacing"]))'],
+                "result_symbol": "modified",
+            },
+        ),
+        _inventory(),
+    )
+
+    assert result.functions["_ai_component_holder_body"].endswith("return body")
+    assert result.functions["_ai_feature_bottle_cavity"].endswith("return modified")
+
+
+def test_provider_return_is_forbidden_in_statement_contract() -> None:
+    with pytest.raises(GeometryBodyError) as error:
+        assemble_geometry_bodies(
+            _payload(
+                {"function_id": "_ai_component_holder_body", "statements": ["body = cq.Workplane(\"XY\")", "return body"], "result_symbol": "body"},
+                {"function_id": "_ai_feature_bottle_cavity", "statements": ["modified = body"], "result_symbol": "modified"},
+                {"function_id": "_ai_feature_mounting_holes", "statements": ["modified = body"], "result_symbol": "modified"},
+            ),
+            _inventory(),
+        )
+
+    assert error.value.rule_id == "geometry_body.provider_return_forbidden"
+
+
+@pytest.mark.parametrize(
+    ("result_symbol", "statements", "rule_id"),
+    [
+        ("", ["body = cq.Workplane(\"XY\")"], "geometry_body.result_symbol_missing"),
+        ("not-valid", ["body = cq.Workplane(\"XY\")"], "geometry_body.result_symbol_invalid"),
+        ("build", ["build = cq.Workplane(\"XY\")"], "geometry_body.result_symbol_invalid"),
+        ("body", ["other = cq.Workplane(\"XY\")"], "geometry_body.result_symbol_unassigned"),
+        ("body", ["if params[\"bottle_diameter\"] > 0:\n    body = cq.Workplane(\"XY\")"], "geometry_body.result_path_unverifiable"),
+    ],
+)
+def test_result_symbol_contract_findings(
+    result_symbol: str, statements: list[str], rule_id: str,
+) -> None:
+    with pytest.raises(GeometryBodyError) as error:
+        assemble_geometry_bodies(
+            _payload(
+                {"function_id": "_ai_component_holder_body", "statements": statements, "result_symbol": result_symbol},
+                {"function_id": "_ai_feature_bottle_cavity", "statements": ["modified = body"], "result_symbol": "modified"},
+                {"function_id": "_ai_feature_mounting_holes", "statements": ["modified = body"], "result_symbol": "modified"},
+            ),
+            _inventory(),
+        )
+
+    assert error.value.rule_id == rule_id
 
 
 @pytest.mark.parametrize(

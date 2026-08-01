@@ -206,8 +206,8 @@ REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v3"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v3"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v4"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v4"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
@@ -3534,7 +3534,8 @@ class ProjectService:
                 "functions": [
                     {
                         "function_id": function_id,
-                        "body_lines": assembly.original_body_lines[function_id],
+                        "statements": assembly.original_body_lines[function_id],
+                        "result_symbol": assembly.result_symbols[function_id],
                     }
                     for function_id in assembly.original_body_lines
                 ],
