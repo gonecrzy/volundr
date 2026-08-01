@@ -78,6 +78,7 @@ from app.schemas.project import (
     MeshMetadataRead,
     ProjectCreate,
     ProjectMessageRead,
+    ProjectWorkspaceRead,
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
@@ -158,6 +159,7 @@ from app.services.projects.requirement_ledger import (
     active_requirements,
     requirement_delta_for_message,
 )
+from app.services.workflow.observability import WorkflowRecorder
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -370,6 +372,68 @@ class ProjectService:
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
+
+    def get_workspace(self, project_id: str) -> ProjectWorkspaceRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+
+        WorkflowRecorder(db=self.db, data_dir=self.data_dir).classify_stale_runs(
+            max_running_seconds=settings.workflow_stale_seconds,
+        )
+        messages = self.list_project_messages(project_id) or []
+        revisions = self.list_revisions(project_id)
+        active_workflow = self.db.scalar(
+            select(WorkflowRun)
+            .where(WorkflowRun.project_id == project_id)
+            .where(WorkflowRun.status == "running")
+            .order_by(WorkflowRun.updated_at.desc(), WorkflowRun.started_at.desc())
+        )
+        active_revision = self.db.get(Revision, project.active_revision_id) if project.active_revision_id else None
+        required_paths: list[str] = []
+        missing_paths: list[str] = []
+        for revision in self.db.scalars(
+            select(Revision)
+            .where(Revision.project_id == project_id, Revision.status == "succeeded")
+        ):
+            for output in revision.outputs:
+                for relative_path in (output.stl_path, output.step_path, output.brep_path):
+                    if not relative_path:
+                        continue
+                    required_paths.append(relative_path)
+                    if not (self.data_dir / relative_path).is_file():
+                        missing_paths.append(relative_path)
+        ledger = RequirementLedgerStore(self.db).load(project_id)
+        return ProjectWorkspaceRead(
+            project=project,
+            messages=messages,
+            revisions=revisions,
+            active_requirements=active_requirements(ledger),
+            current_working_revision_id=(
+                active_revision.id
+                if active_revision is not None and active_revision.is_accepted and active_revision.status == "succeeded"
+                else None
+            ),
+            active_workflow=(
+                {
+                    "id": active_workflow.id,
+                    "project_id": active_workflow.project_id,
+                    "workflow_type": active_workflow.workflow_type,
+                    "status": active_workflow.status,
+                    "correlation_id": active_workflow.correlation_id,
+                    "started_at": active_workflow.started_at,
+                    "updated_at": active_workflow.updated_at,
+                }
+                if active_workflow is not None
+                else None
+            ),
+            artifact_integrity={
+                "checked_count": len(required_paths),
+                "missing_count": len(missing_paths),
+                "missing_paths": missing_paths,
+                "status": "missing" if missing_paths else "ok",
+            },
+        )
 
     def get_active_revision(self, project_id: str) -> RevisionRead | None:
         project = self.db.get(Project, project_id)

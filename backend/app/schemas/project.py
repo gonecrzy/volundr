@@ -931,6 +931,18 @@ class RevisionRead(BaseModel):
     design_consistency: DesignArtifactConsistencyRead | None = None
 
 
+class ProjectWorkspaceRead(BaseModel):
+    """Authoritative state needed to restore a project in one request."""
+
+    project: ProjectRead
+    messages: list[ProjectMessageRead] = Field(default_factory=list)
+    revisions: list[RevisionRead] = Field(default_factory=list)
+    active_requirements: list[dict[str, Any]] = Field(default_factory=list)
+    current_working_revision_id: str | None = None
+    active_workflow: dict[str, Any] | None = None
+    artifact_integrity: dict[str, Any] = Field(default_factory=dict)
+
+
 class RevisionOutputRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

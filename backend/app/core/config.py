@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     data_dir: Path = Field(default=Path("/app/data"))
     cad_workspace_dir: Path = Field(default=Path("/app/data/jobs"))
     cad_timeout_seconds: int = Field(default=60)
+    workflow_stale_seconds: int = Field(default=900)
     max_source_bytes: int = Field(default=500 * 1024)
     max_stl_bytes: int = Field(default=100 * 1024 * 1024)
     ai_provider: str = Field(default="gemini_api")

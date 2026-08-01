@@ -34,6 +34,7 @@ from app.schemas.project import (
     ProjectCreate,
     ProjectMessageRead,
     ProjectRead,
+    ProjectWorkspaceRead,
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
@@ -238,6 +239,20 @@ def get_project(
         raise HTTPException(status_code=404, detail="project not found")
     _set_latest_workflow_headers(response, db, project_id)
     return project
+
+
+@router.get("/projects/{project_id}/workspace", response_model=ProjectWorkspaceRead)
+def get_project_workspace(
+    project_id: str,
+    response: Response,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ProjectWorkspaceRead:
+    workspace = ProjectService(db=db, data_dir=data_dir).get_workspace(project_id)
+    if workspace is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    _set_latest_workflow_headers(response, db, project_id)
+    return workspace
 
 
 @router.get("/projects/{project_id}/workflow-runs", response_model=list[WorkflowRunRead])
