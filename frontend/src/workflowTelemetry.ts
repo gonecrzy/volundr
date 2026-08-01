@@ -30,7 +30,12 @@ export type FrontendWorkflowEventName =
   | "export_requested"
   | "visible_error_displayed"
   | "failure_recovery_selected"
-  | "diagnostic_bundle_requested";
+  | "diagnostic_bundle_requested"
+  | "chat_message_submitted"
+  | "clarification_requested"
+  | "parameter_update_routed"
+  | "structural_revision_routed"
+  | "start_over_branch_created";
 
 export type FrontendWorkflowEventPayload = {
   action_name: FrontendWorkflowEventName;
@@ -69,6 +74,11 @@ const registeredEvents = new Set<string>([
   "visible_error_displayed",
   "failure_recovery_selected",
   "diagnostic_bundle_requested",
+  "chat_message_submitted",
+  "clarification_requested",
+  "parameter_update_routed",
+  "structural_revision_routed",
+  "start_over_branch_created",
 ]);
 
 export function buildCorrelatedHeaders(

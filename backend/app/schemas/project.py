@@ -122,7 +122,29 @@ class ProjectMessageRead(BaseModel):
     revision_id: str | None
     role: str
     content: str
+    client_message_id: str | None = None
     created_at: datetime
+
+
+class ChatMessageCreate(BaseModel):
+    message: str = Field(min_length=1, max_length=12000)
+    client_message_id: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+class ChatWorkflowResponse(BaseModel):
+    workflow_run_id: str | None = None
+    action: str
+    current_stage: str
+    input_required: bool = False
+    assistant_message: str
+    current_working_revision_id: str | None = None
+    active_generation_run: dict[str, Any] | None = None
+    blocked_attempt: dict[str, Any] | None = None
+    revision_id: str | None = None
+    design_specification_id: str | None = None
+    design_plan_id: str | None = None
+    revision_plan_id: str | None = None
+    configuration_change_id: str | None = None
 
 
 class ManualRevisionCreate(BaseModel):

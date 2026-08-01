@@ -14,6 +14,8 @@ from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.session import get_db
 from app.schemas.project import (
     ClarificationAnswersCreate,
+    ChatMessageCreate,
+    ChatWorkflowResponse,
     ClarificationQuestionRead,
     ConfigurationChangeCreate,
     ConfigurationChangeRead,
@@ -60,6 +62,7 @@ from app.services.ai.provider import AiProvider
 from app.services.printability.inspector import inspect_printability
 from app.services.printability.profiles import PrintabilityProfileService
 from app.services.projects.service import ProjectService
+from app.services.projects.chat_workflow import ChatWorkflowService
 from app.models.workflow import FrontendWorkflowEvent, WorkflowEvent, WorkflowRun
 from app.services.workflow.comparison import WorkflowRunComparisonService
 from app.services.workflow.debug_bundle import WorkflowDebugBundleService
@@ -276,6 +279,37 @@ def list_project_messages(
     if messages is None:
         raise HTTPException(status_code=404, detail="project not found")
     return messages
+
+
+@router.post("/projects/{project_id}/chat", response_model=ChatWorkflowResponse)
+async def submit_chat_message(
+    project_id: str,
+    payload: ChatMessageCreate,
+    response: Response,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+    cad_runner: Any = Depends(get_cad_runner),
+) -> ChatWorkflowResponse:
+    service = ChatWorkflowService(
+        db=db,
+        data_dir=data_dir,
+        ai_provider=ai_provider,
+        cad_runner=cad_runner,
+    )
+    try:
+        result = await service.submit(project_id, payload)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if result.workflow_run_id:
+        run = db.get(WorkflowRun, result.workflow_run_id)
+        if run is not None:
+            _set_workflow_headers(response, run)
+    return result
 
 
 @router.get("/workflow-runs/{workflow_run_id}", response_model=WorkflowRunRead)

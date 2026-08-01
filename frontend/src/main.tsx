@@ -106,10 +106,13 @@ const GEOMETRY_BODY_FAILURE_PREFIXES = [
 ];
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_GENERATION_MODE?: string;
+  VITE_VOLUNDR_CHAT_FIRST?: string;
 };
 const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
 const ADVANCED_WORKFLOW_ENABLED =
   (FRONTEND_ENV.VITE_VOLUNDR_GENERATION_MODE ?? "advanced").toLowerCase() === "advanced";
+const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
+const STAGED_WORKFLOW_ENABLED = ADVANCED_WORKFLOW_ENABLED && !CHAT_FIRST_ENABLED;
 
 type Project = {
   id: string;
@@ -125,6 +128,22 @@ type ProjectMessage = {
   role: string;
   content: string;
   created_at: string;
+};
+
+type ChatWorkflowResponse = {
+  workflow_run_id: string | null;
+  action: string;
+  current_stage: string;
+  input_required: boolean;
+  assistant_message: string;
+  current_working_revision_id: string | null;
+  active_generation_run: Record<string, unknown> | null;
+  blocked_attempt: { revision_id?: string } | null;
+  revision_id: string | null;
+  design_specification_id: string | null;
+  design_plan_id: string | null;
+  revision_plan_id: string | null;
+  configuration_change_id: string | null;
 };
 
 type MeshMetadata = {
@@ -557,6 +576,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [projectMessages, setProjectMessages] = useState<ProjectMessage[]>([]);
+  const [chatWorkflow, setChatWorkflow] = useState<ChatWorkflowResponse | null>(null);
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -615,6 +635,7 @@ function App() {
   const [workflowDiagnosis, setWorkflowDiagnosis] = useState<WorkflowDiagnosis | null>(null);
   const printabilitySectionRef = useRef<HTMLDivElement | null>(null);
   const observedWorkflowViews = useRef(new Set<string>());
+  const chatRequestSequence = useRef(0);
 
   function recordWorkflowViewOnce(
     key: string,
@@ -698,7 +719,7 @@ function App() {
     ? "Sending"
     : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
       ? "Answer"
-      : ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
+      : !CHAT_FIRST_ENABLED && ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
         ? "Change the design"
         : "Send";
   const chatPlaceholder = hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
@@ -1162,6 +1183,72 @@ function App() {
     }
   }
 
+  async function submitChatFirstMessage() {
+    const prompt = generationPrompt.trim();
+    if (!prompt) {
+      setMessage("Enter a message before sending");
+      return;
+    }
+    const sequence = ++chatRequestSequence.current;
+    setIsGenerating(true);
+    setMessage("Understanding the request");
+    setGenerationPrompt("");
+    setSourceContractError(null);
+    try {
+      const currentProject = project ?? (await createDraftProject());
+      if (!project || project.id !== currentProject.id) {
+        setProject(currentProject);
+      }
+      const result = await request<ChatWorkflowResponse>(`/projects/${currentProject.id}/chat`, {
+        method: "POST",
+        body: JSON.stringify({
+          message: prompt,
+          client_message_id: `${frontendSessionId}-${sequence}`,
+        }),
+      });
+      if (sequence !== chatRequestSequence.current) {
+        return;
+      }
+      setChatWorkflow(result);
+      void recordFrontendWorkflowEvent(currentProject.id, "chat_message_submitted", "conversation", { action: result.action });
+      setMessage(result.assistant_message);
+      const refreshedProject = await request<Project>(`/projects/${currentProject.id}`, { method: "GET" });
+      setProject(refreshedProject);
+      setProjectName(refreshedProject.name);
+      setIntent(refreshedProject.original_intent);
+      await loadCurrentDesignSpecification(refreshedProject.id);
+      await loadCurrentRevisionPlan(refreshedProject.id);
+      await loadProjectMessages(refreshedProject.id);
+      const nextRevisions = await request<Revision[]>(`/projects/${refreshedProject.id}/revisions`, { method: "GET" });
+      setRevisions(nextRevisions);
+      const targetRevisionId = result.revision_id ?? result.blocked_attempt?.revision_id ?? result.current_working_revision_id ?? refreshedProject.active_revision_id;
+      const targetRevision = nextRevisions.find((entry) => entry.id === targetRevisionId) ?? null;
+      setSelectedRevision(targetRevision);
+      if (targetRevision) {
+        await selectRevision(targetRevision);
+      }
+      if (result.input_required) {
+        void recordFrontendWorkflowEvent(currentProject.id, "clarification_requested", "clarification", { action: result.action });
+      } else if (result.action === "parameter_change") {
+        void recordFrontendWorkflowEvent(currentProject.id, "parameter_update_routed", "parameter_update", {});
+      } else if (result.action === "structural_revision" || result.action === "component_revision") {
+        void recordFrontendWorkflowEvent(currentProject.id, "structural_revision_routed", "revision_planning", { action: result.action });
+      } else if (result.action === "start_over") {
+        void recordFrontendWorkflowEvent(currentProject.id, "start_over_branch_created", "conversation", {});
+      }
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Chat workflow failed";
+      setMessage(detail);
+      if (isSourceContractRejection(detail)) {
+        setSourceContractError(detail);
+      }
+    } finally {
+      if (sequence === chatRequestSequence.current) {
+        setIsGenerating(false);
+      }
+    }
+  }
+
   async function submitClarificationAnswers(answerOverride?: Record<string, string>) {
     if (!designSpecification) {
       return;
@@ -1592,6 +1679,10 @@ function App() {
   }
 
   function submitPrompt() {
+    if (CHAT_FIRST_ENABLED) {
+      void submitChatFirstMessage();
+      return;
+    }
     const action = nextChatWorkflowAction({
       advancedWorkflowEnabled: ADVANCED_WORKFLOW_ENABLED,
       hasRequirementClarificationPending,
@@ -2280,14 +2371,14 @@ function App() {
           </section>
 
           <section className="revision-panel" aria-label="Revisions">
-            {ADVANCED_WORKFLOW_ENABLED ? (
+            {STAGED_WORKFLOW_ENABLED ? (
               <LifecycleStatus
                 designPlan={designPlan}
                 designSpecification={designSpecification}
                 revision={selectedRevision}
               />
             ) : null}
-            {ADVANCED_WORKFLOW_ENABLED ? (
+            {STAGED_WORKFLOW_ENABLED ? (
               <>
                 <DesignSpecificationReview
                   answers={clarificationAnswers}
@@ -2367,6 +2458,7 @@ function App() {
             selectedOutputId={selectedOutputId}
             viewerLabel={selectedViewerLabel}
             workflowLabel={selectedWorkflowLabel}
+            chatFirst={CHAT_FIRST_ENABLED}
             onAccept={() => void acceptSelectedCandidate()}
             onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
             onRetryOutput={(output) => void retryOutput(output)}
@@ -2413,7 +2505,7 @@ function App() {
             retryingOutputId={isRetryingOutputId}
           />
 
-          {ADVANCED_WORKFLOW_ENABLED ? (
+          {STAGED_WORKFLOW_ENABLED ? (
             <ConfigurationPanel
               canGenerate={canGenerateCurrentConfiguration}
               change={configurationPreview}
@@ -3264,6 +3356,7 @@ function CandidateReview({
   selectedOutputId,
   viewerLabel,
   workflowLabel,
+  chatFirst,
   onAccept,
   onDismissFinding,
   onRetryOutput,
@@ -3287,6 +3380,7 @@ function CandidateReview({
   selectedOutputId: string | null;
   viewerLabel: string;
   workflowLabel: string;
+  chatFirst: boolean;
   onAccept: () => void;
   onDismissFinding: (findingId: string) => void;
   onRetryOutput: (output: RevisionOutput) => void;
@@ -3329,8 +3423,8 @@ function CandidateReview({
     <section className="candidate-review" aria-label="Candidate review">
       <div className="section-heading">
         <div>
-          <h2 tabIndex={-1}>{viewerLabel === "Current design" ? "Current design" : "New version"}</h2>
-          <p>{viewerLabel === "Current design" ? "This is the version your project uses." : "Review this version before it replaces your current design."}</p>
+          <h2 tabIndex={-1}>{chatFirst ? (viewerLabel === "Current design" ? "Current working version" : "Creating new version") : viewerLabel === "Current design" ? "Current design" : "New version"}</h2>
+          <p>{chatFirst ? (viewerLabel === "Current design" ? "This is the version your project uses." : "Volundr is checking this version before it can become current.") : viewerLabel === "Current design" ? "This is the version your project uses." : "Review this version before it replaces your current design."}</p>
         </div>
         <span className={`review-state ${revision.review_state ?? "historical"}`}>{workflowLabel}</span>
       </div>
@@ -3360,7 +3454,7 @@ function CandidateReview({
         onSelectOutput={onSelectOutput}
         retryingOutputId={retryingOutputId}
       />
-      {isCandidate ? (
+      {isCandidate && !chatFirst ? (
         <div className="actions">
           <button className="primary" disabled={!canAccept || isPending} onClick={onAccept}>
             {isPending ? "Saving" : "Accept new version"}

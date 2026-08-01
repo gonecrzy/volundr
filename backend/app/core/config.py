@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     enable_design_plans: bool = Field(default=True)
     enable_multi_output: bool = Field(default=True)
     enable_structured_revisions: bool = Field(default=True)
+    chat_first: bool = Field(default=False)
 
     @cached_property
     def database_url(self) -> str:
