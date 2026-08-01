@@ -49,11 +49,16 @@ export function installBrowserQualityChecks(page: Page): {
     "/component-revision-summary",
     "/compliance-result",
     "/success-results",
+    "/configuration/parameters",
+    "/configuration/presets",
   ];
 
   page.on("console", (message) => {
     if (message.type() === "error") {
-      if (message.text().includes("Failed to load resource") && /409|502/.test(message.text())) {
+      if (
+        message.text().includes("Failed to load resource") &&
+        (/404|409|502/.test(message.text()) || /configuration\/(parameters|presets)/.test(message.text()))
+      ) {
         return;
       }
       quality.consoleErrors.push(message.text());

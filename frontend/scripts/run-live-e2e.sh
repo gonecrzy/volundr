@@ -38,8 +38,17 @@ chmod 600 "$backend_env_file"
 printf 'export GEMINI_API_KEY=%q\n' "$gemini_key" > "$backend_env_file"
 
 worker_pid=""
+playwright_pid=""
 cleanup() {
   local test_status=$?
+  if [[ -n "$playwright_pid" ]]; then
+    kill -TERM -- "-$playwright_pid" 2>/dev/null || true
+    kill -TERM "$playwright_pid" 2>/dev/null || true
+    sleep 0.2
+    kill -KILL -- "-$playwright_pid" 2>/dev/null || true
+    kill -KILL "$playwright_pid" 2>/dev/null || true
+    wait "$playwright_pid" 2>/dev/null || true
+  fi
   if [[ -n "$worker_pid" ]]; then
     kill -TERM -- "-$worker_pid" 2>/dev/null || true
     kill -TERM "$worker_pid" 2>/dev/null || true
@@ -65,6 +74,7 @@ cleanup() {
   exit "$test_status"
 }
 trap cleanup EXIT
+trap 'exit 130' INT TERM
 
 (
   cd "$repo_root"
@@ -87,5 +97,7 @@ export VOLUNDR_LIVE_API_PORT="${VOLUNDR_LIVE_API_PORT:-0}"
 export VOLUNDR_LIVE_WEB_PORT="${VOLUNDR_LIVE_WEB_PORT:-0}"
 
 test_status=0
-npx playwright test --config=playwright.live.config.ts "$@" || test_status=$?
+setsid npx playwright test --config=playwright.live.config.ts "$@" &
+playwright_pid=$!
+wait "$playwright_pid" || test_status=$?
 exit "$test_status"
