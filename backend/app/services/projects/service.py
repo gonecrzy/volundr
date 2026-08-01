@@ -1174,7 +1174,12 @@ class ProjectService:
             user_instruction=payload.user_instruction,
             defaults=defaults,
         )
-        result = await self._run_requirement_extraction(project=project, request=request)
+        previous_specification = self._latest_design_specification(project.id)
+        result = await self._run_requirement_extraction(
+            project=project,
+            request=request,
+            superseded_specification_id=previous_specification.id if previous_specification else None,
+        )
         self._record_workflow_artifact(
             workflow_run,
             stage="requirement_extraction",

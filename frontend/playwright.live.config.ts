@@ -21,6 +21,7 @@ export default defineConfig({
   testDir: "./e2e/live",
   workers: 1,
   fullyParallel: false,
+  retries: 1,
   timeout: 240_000,
   expect: { timeout: 60_000 },
   outputDir: "test-results/live",

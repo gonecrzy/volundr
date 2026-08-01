@@ -91,5 +91,10 @@ FRONTEND_EVENT_NAMES = frozenset(
         "visible_error_displayed",
         "failure_recovery_selected",
         "diagnostic_bundle_requested",
+        "chat_message_submitted",
+        "clarification_requested",
+        "parameter_update_routed",
+        "structural_revision_routed",
+        "start_over_branch_created",
     }
 )

@@ -41,7 +41,11 @@ worker_pid=""
 cleanup() {
   local test_status=$?
   if [[ -n "$worker_pid" ]]; then
-    kill -TERM -- "-$worker_pid" 2>/dev/null || kill "$worker_pid" 2>/dev/null || true
+    kill -TERM -- "-$worker_pid" 2>/dev/null || true
+    kill -TERM "$worker_pid" 2>/dev/null || true
+    sleep 0.2
+    kill -KILL -- "-$worker_pid" 2>/dev/null || true
+    kill -KILL "$worker_pid" 2>/dev/null || true
     wait "$worker_pid" 2>/dev/null || true
   fi
 
@@ -55,8 +59,8 @@ cleanup() {
   if [[ "${VOLUNDR_KEEP_LIVE_DATA:-}" == "true" ]]; then
     printf '%s\n' "Live E2E data preserved at $live_data_dir" >&2
   else
-  find "$live_data_dir" -depth -type f -delete 2>/dev/null || true
-  find "$live_data_dir" -depth -type d -empty -delete 2>/dev/null || true
+    find "$live_data_dir" -depth -type f -delete 2>/dev/null || true
+    find "$live_data_dir" -depth -type d -empty -delete 2>/dev/null || true
   fi
   exit "$test_status"
 }
@@ -64,7 +68,7 @@ trap cleanup EXIT
 
 (
   cd "$repo_root"
-  exec env \
+  exec setsid env \
     GEMINI_API_KEY= \
     VOLUNDR_GEMINI_API_KEY= \
     VOLUNDR_AI_PROVIDER=gemini_api \

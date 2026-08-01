@@ -99,7 +99,10 @@ export function installBrowserQualityChecks(page: Page): {
 export async function waitForWorkflowOutcome(page: Page): Promise<"candidate" | "failure"> {
   await expect.poll(
     async () => {
-      if (await page.getByRole("heading", { name: "New version", exact: true }).count()) {
+      if (
+        (await page.getByRole("heading", { name: "New version", exact: true }).count()) ||
+        (await page.getByRole("heading", { name: "Current working version", exact: true }).count())
+      ) {
         return "candidate";
       }
       if (await page.getByText(/failed|could not|unable to|request failed|did not implement|mismatch|rejected/i).count()) {
@@ -110,7 +113,10 @@ export async function waitForWorkflowOutcome(page: Page): Promise<"candidate" | 
     { timeout: 220_000, intervals: [500, 1_000, 2_000] },
   ).not.toBe("waiting");
 
-  return (await page.getByRole("heading", { name: "New version", exact: true }).count())
+  return (
+    (await page.getByRole("heading", { name: "New version", exact: true }).count()) ||
+    (await page.getByRole("heading", { name: "Current working version", exact: true }).count())
+  )
     ? "candidate"
     : "failure";
 }

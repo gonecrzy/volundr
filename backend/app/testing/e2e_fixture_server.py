@@ -1120,9 +1120,14 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
 
 if __name__ == "__main__":
     import os
+    import shutil
 
     import uvicorn
 
     fixture_root = Path(os.environ.get("VOLUNDR_E2E_DATA_DIR", "/tmp/volundr-e2e-fixture"))
     fixture_port = int(os.environ.get("VOLUNDR_E2E_PORT", "8000"))
-    uvicorn.run(create_e2e_fixture_app(fixture_root), host="127.0.0.1", port=fixture_port)
+    try:
+        uvicorn.run(create_e2e_fixture_app(fixture_root), host="127.0.0.1", port=fixture_port)
+    finally:
+        if os.environ.get("VOLUNDR_E2E_CLEANUP") == "true":
+            shutil.rmtree(fixture_root, ignore_errors=True)

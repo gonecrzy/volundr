@@ -1210,7 +1210,7 @@ function App() {
         return;
       }
       setChatWorkflow(result);
-      void recordFrontendWorkflowEvent(currentProject.id, "chat_message_submitted", "conversation", { action: result.action });
+      await recordFrontendWorkflowEvent(currentProject.id, "chat_message_submitted", "conversation", { action: result.action });
       setMessage(result.assistant_message);
       const refreshedProject = await request<Project>(`/projects/${currentProject.id}`, { method: "GET" });
       setProject(refreshedProject);
