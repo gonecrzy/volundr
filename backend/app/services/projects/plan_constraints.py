@@ -46,6 +46,11 @@ _COUNT_LAYOUT_CUES = re.compile(
     r"\b(?:count|number|quantity|screws?|fasteners?|holes?|cells?|ribs?|clips?)\b",
     re.IGNORECASE,
 )
+_CONTROL_REQUEST_CUES = re.compile(
+    r"\b(?:expose|adjustable|configurable|parametric|parameterized|reusable\s+template|"
+    r"let\s+me\s+(?:change|adjust|set|choose))\b",
+    re.IGNORECASE,
+)
 
 
 def normalize_plan_constraints(
@@ -88,25 +93,144 @@ def normalize_plan_constraints(
         parameter.setdefault("editable", False)
 
     normalized["constraint_mode_version"] = CONSTRAINT_MODE_VERSION
+    normalized["exposed_controls"] = _normalize_exposed_controls(
+        normalized,
+        context,
+        parameter_by_id,
+    )
     normalized = _normalize_feature_layouts(normalized, parameter_by_id, derived_ids)
     _validate_layouts(normalized)
     return normalized
 
 
-def parameter_requires_effect(parameter: dict[str, Any], *, legacy_default: bool = True) -> bool:
-    """Whether source sensitivity must be demonstrated for a Plan value."""
+def _normalize_exposed_controls(
+    plan: dict[str, Any],
+    context: str,
+    parameter_by_id: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    controls: list[dict[str, Any]] = []
+    known_ids = set(parameter_by_id)
+    for item in plan.get("exposed_controls", []) or []:
+        if isinstance(item, str):
+            parameter_id = item
+            normalized = {"parameter_id": parameter_id}
+        elif isinstance(item, dict):
+            parameter_id = str(item.get("parameter_id") or item.get("id") or "")
+            normalized = dict(item)
+            normalized["parameter_id"] = parameter_id
+        else:
+            continue
+        if parameter_id not in known_ids:
+            raise ValueError(f"Exposed control references unknown parameter {parameter_id!r}")
+        normalized.setdefault("label", parameter_by_id[parameter_id].get("label") or parameter_id)
+        normalized.setdefault("source", "explicit_user_request")
+        controls.append(normalized)
 
+    controls.extend(explicit_control_requests(plan, context))
+    return _dedupe_controls(controls)
+
+
+def explicit_control_requests(
+    plan: dict[str, Any],
+    context: str | None,
+) -> list[dict[str, Any]]:
+    """Return controls named by an explicit user request.
+
+    Numeric values and ordinary revision language are intentionally ignored.
+    Only control language such as ``expose`` or ``adjustable`` activates this
+    deterministic interpretation.
+    """
+
+    if not context or not _CONTROL_REQUEST_CUES.search(context):
+        return []
+    parameter_by_id = {
+        str(item.get("id")): item
+        for collection in (plan.get("parameters", []), plan.get("derived_parameters", []))
+        for item in collection or []
+        if isinstance(item, dict) and item.get("id")
+    }
+    lowered = context.lower()
+    controls: list[dict[str, Any]] = []
+    for parameter_id, parameter in parameter_by_id.items():
+        label = str(parameter.get("label") or "")
+        terms = (parameter_id.replace("_", " ").lower(), label.lower())
+        if any(term and term in lowered for term in terms):
+            controls.append(
+                {
+                    "parameter_id": parameter_id,
+                    "label": label or parameter_id,
+                    "unit": parameter.get("unit"),
+                    "source": "explicit_user_request",
+                }
+            )
+    return controls
+
+
+def _dedupe_controls(controls: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in controls:
+        parameter_id = str(item.get("parameter_id") or "")
+        if not parameter_id or parameter_id in seen:
+            continue
+        seen.add(parameter_id)
+        result.append(item)
+    return result
+
+
+def exposed_control_ids(plan: dict[str, Any]) -> set[str]:
+    """Return only controls explicitly exposed by the active Design Plan."""
+
+    controls = plan.get("exposed_controls")
+    if controls is None:
+        return set()
+    return {
+        str(control if isinstance(control, str) else control.get("parameter_id"))
+        for control in controls or []
+        if (isinstance(control, str) and control) or (isinstance(control, dict) and control.get("parameter_id"))
+    }
+
+
+def parameter_requires_effect(
+    parameter: dict[str, Any],
+    *,
+    exposed_control_ids: set[str] | None = None,
+    legacy_default: bool = True,
+) -> bool:
+    """Whether source sensitivity is required for an explicitly exposed value."""
+
+    if exposed_control_ids is not None:
+        return str(parameter.get("id") or "") in exposed_control_ids
     mode = str(parameter.get("constraint_mode") or "")
     if mode:
         return mode in EFFECT_MODES or bool(parameter.get("pattern_driving"))
-    # Older in-memory fixtures predate explicit modes. Preserve their strict
-    # contract until they are normalized by the Design Plan lifecycle.
+    # Older raw fixtures predate explicit controls. Preserve their contract
+    # until they are normalized by the Design Plan lifecycle.
     return legacy_default
 
 
-def layout_requires_pattern_effect(layout: dict[str, Any] | None) -> bool:
+def layout_requires_pattern_effect(
+    layout: dict[str, Any] | None,
+    *,
+    effect_parameter_ids: set[str] | None = None,
+) -> bool:
     if not isinstance(layout, dict):
         return True
+    if effect_parameter_ids is not None:
+        sources = {
+            str(layout.get(key))
+            for key in (
+                "count_parameter_id",
+                "spacing_parameter_id",
+                "rows_parameter_id",
+                "columns_parameter_id",
+                "row_spacing_parameter_id",
+                "column_spacing_parameter_id",
+                "radius_parameter_id",
+            )
+            if layout.get(key)
+        }
+        return bool(sources & effect_parameter_ids)
     mode = str(layout.get("layout_mode") or "")
     return mode in PATTERN_LAYOUT_MODES or bool(layout.get("pattern_driving"))
 

@@ -18,16 +18,57 @@ _PATTERN_LAYOUT_MODES = {
 }
 
 
-def parameter_requires_effect(parameter: dict[str, Any], *, legacy_default: bool = True) -> bool:
+def exposed_control_ids(plan: dict[str, Any]) -> set[str]:
+    """Return only controls explicitly exposed by the active Design Plan."""
+
+    controls = plan.get("exposed_controls")
+    if controls is None:
+        return set()
+    result: set[str] = set()
+    for control in controls or []:
+        if isinstance(control, str) and control:
+            result.add(control)
+        elif isinstance(control, dict) and control.get("parameter_id"):
+            result.add(str(control["parameter_id"]))
+    return result
+
+
+def parameter_requires_effect(
+    parameter: dict[str, Any],
+    *,
+    exposed_control_ids: set[str] | None = None,
+    legacy_default: bool = True,
+) -> bool:
     mode = str(parameter.get("constraint_mode") or "")
+    if exposed_control_ids is not None:
+        return str(parameter.get("id") or "") in exposed_control_ids
     if mode:
         return mode in _EFFECT_MODES or bool(parameter.get("pattern_driving"))
     return legacy_default
 
 
-def layout_requires_pattern_effect(layout: dict[str, Any] | None) -> bool:
+def layout_requires_pattern_effect(
+    layout: dict[str, Any] | None,
+    *,
+    effect_parameter_ids: set[str] | None = None,
+) -> bool:
     if not isinstance(layout, dict):
         return True
+    if effect_parameter_ids is not None:
+        sources = {
+            str(layout.get(key))
+            for key in (
+                "count_parameter_id",
+                "spacing_parameter_id",
+                "rows_parameter_id",
+                "columns_parameter_id",
+                "row_spacing_parameter_id",
+                "column_spacing_parameter_id",
+                "radius_parameter_id",
+            )
+            if layout.get(key)
+        }
+        return bool(sources & effect_parameter_ids)
     mode = str(layout.get("layout_mode") or "")
     if not mode:
         return True
@@ -238,7 +279,30 @@ def build_pattern_manifest(
             "circular": (("count_parameter_id", "pattern_count"), ("radius_parameter_id", "radius_or_diameter")),
         }.get(str(pattern.get("pattern_type") or "").lower(), ())
         layout = layout_for_feature(normalized, str(pattern.get("owning_feature_id") or ""))
-        effect_required = layout_requires_pattern_effect(layout or pattern)
+        modern_control_contract = "exposed_controls" in normalized
+        control_ids = exposed_control_ids(normalized) if modern_control_contract else None
+        effect_parameter_ids = None
+        if control_ids is not None:
+            effect_parameter_ids = set(control_ids)
+            derived_parameters = [
+                item for item in normalized.get("derived_parameters", []) or []
+                if isinstance(item, dict) and item.get("id")
+            ]
+            changed = True
+            while changed:
+                changed = False
+                for derived in derived_parameters:
+                    derived_id = str(derived["id"])
+                    dependencies = {
+                        str(item) for item in derived.get("depends_on", []) or []
+                    }
+                    if derived_id not in effect_parameter_ids and dependencies & effect_parameter_ids:
+                        effect_parameter_ids.add(derived_id)
+                        changed = True
+        effect_required = layout_requires_pattern_effect(
+            layout or pattern,
+            effect_parameter_ids=effect_parameter_ids,
+        )
         effects = [
             {
                 "parameter_id": str(pattern[field]),

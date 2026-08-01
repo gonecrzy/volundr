@@ -11,6 +11,7 @@ from typing import Any
 
 from app.services.cad.patterns import (
     build_pattern_manifest,
+    exposed_control_ids,
     layout_requires_pattern_effect,
     parameter_requires_effect,
 )
@@ -94,22 +95,37 @@ def build_parameter_effect_contract(
             }
         )
 
+    modern_control_contract = "exposed_controls" in plan
+    control_ids = exposed_control_ids(plan) if modern_control_contract else None
+    effect_required_ids: set[str] | None = None
+    if control_ids is not None:
+        effect_required_ids = set(control_ids)
+        for item in derived_manifest:
+            if (
+                str(item.get("parameter_id") or "") in control_ids
+                or set(item.get("transitive_protected_dependencies", [])) & control_ids
+            ):
+                effect_required_ids.add(str(item["parameter_id"]))
+    pattern_manifest = build_pattern_manifest(plan)
     functions = _function_manifests(
         plan,
         parameter_by_id=parameter_by_id,
         dependencies=dependencies,
         derived_manifest=derived_manifest,
-        patterns=build_pattern_manifest(plan),
+        patterns=pattern_manifest,
+        effect_required_ids=effect_required_ids,
     )
     return {
         "schema_version": PARAMETER_EFFECT_CONTRACT_VERSION,
+        "parametric_validation_active": effect_required_ids is None or bool(effect_required_ids),
+        "exposed_control_ids": sorted(control_ids or set()),
         "parameter_modes": {
             item["id"]: str(item.get("constraint_mode") or "legacy_unclassified")
             for item in parameters
             if item.get("id")
         },
         "derived_parameters": derived_manifest,
-        "patterns": build_pattern_manifest(plan),
+        "patterns": pattern_manifest,
         "feature_layouts": [
             item for item in plan.get("feature_layouts", []) or [] if isinstance(item, dict)
         ],
@@ -476,6 +492,7 @@ def _function_manifests(
     dependencies: dict[str, set[str]],
     derived_manifest: list[dict[str, Any]],
     patterns: list[dict[str, Any]],
+    effect_required_ids: set[str] | None,
 ) -> list[dict[str, Any]]:
     derived_by_id = {item["parameter_id"]: item for item in derived_manifest}
     functional_ids = _functional_parameter_ids(plan, parameter_by_id)
@@ -486,7 +503,7 @@ def _function_manifests(
         component_id = str(component["id"])
         ids = [str(item) for item in component.get("parameters", []) or [] if str(item) in parameter_by_id]
         ids.extend(functional_ids.get(component_id, set()))
-        manifests.append(_function_manifest(_component_function_id(component_id), component_id, None, ids, parameter_by_id, dependencies, derived_by_id, patterns=patterns))
+        manifests.append(_function_manifest(_component_function_id(component_id), component_id, None, ids, parameter_by_id, dependencies, derived_by_id, patterns=patterns, effect_required_ids=effect_required_ids))
     component_ids = {str(item.get("id")) for item in components}
     for feature in features:
         component_id = str(feature.get("component_id") or "")
@@ -512,7 +529,7 @@ def _function_manifests(
                 if parameter_id and parameter_id in parameter_by_id:
                     ids.append(parameter_id)
         ids.extend(functional_ids.get(feature_id, set()))
-        manifests.append(_function_manifest(_feature_function_id(feature_id), component_id, feature_id, ids, parameter_by_id, dependencies, derived_by_id, feature=feature, patterns=patterns))
+        manifests.append(_function_manifest(_feature_function_id(feature_id), component_id, feature_id, ids, parameter_by_id, dependencies, derived_by_id, feature=feature, patterns=patterns, effect_required_ids=effect_required_ids))
     return manifests
 
 
@@ -527,6 +544,7 @@ def _function_manifest(
     *,
     feature: dict[str, Any] | None = None,
     patterns: list[dict[str, Any]] | None = None,
+    effect_required_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     selected = set(ids)
     obligations: dict[str, dict[str, Any]] = {}
@@ -536,6 +554,25 @@ def _function_manifest(
         entry = parameter_by_id[selected_id]
         ancestors = _protected_ancestors(selected_id, dependencies, parameter_by_id)
         selected_is_derived = selected_id in derived_by_id or str(entry.get("constraint_mode") or "") == "derived_parameter"
+        if effect_required_ids is not None:
+            if selected_id in effect_required_ids:
+                obligations[selected_id] = {
+                    "parameter_id": selected_id,
+                    "allowed_via": [],
+                    "effect_type": _effect_type(selected_id, feature),
+                }
+                for parameter_id in ancestors & effect_required_ids:
+                    via = [
+                        item["parameter_id"]
+                        for item in derived_by_id.values()
+                        if parameter_id in item.get("transitive_protected_dependencies", [])
+                    ]
+                    obligations[parameter_id] = {
+                        "parameter_id": parameter_id,
+                        "allowed_via": via,
+                        "effect_type": _effect_type(parameter_id, feature),
+                    }
+            continue
         explicit_modes = any(
             isinstance(item, dict) and item.get("constraint_mode")
             for item in parameter_by_id.values()
@@ -584,15 +621,7 @@ def _function_manifest(
     ]
     required_patterns = [
         pattern for pattern in owned_patterns
-        if layout_requires_pattern_effect(
-            next(
-                (
-                    item for item in patterns or []
-                    if isinstance(item, dict) and str(item.get("pattern_id") or "") == str(pattern.get("pattern_id") or "")
-                ),
-                pattern,
-            )
-        )
+        if bool(pattern.get("effect_required", True))
     ]
     for pattern in required_patterns:
         point_id = str(pattern.get("point_parameter_id") or "")

@@ -14,7 +14,7 @@ from app.services.cad.parameter_effects import (
     build_parameter_effect_contract,
     validate_parameter_effects,
 )
-from app.services.cad.patterns import parameter_requires_effect
+from app.services.cad.patterns import exposed_control_ids, parameter_requires_effect
 from app.services.requirements.trace import values_match
 
 
@@ -117,6 +117,9 @@ def build_cadquery_source_authority(
             item for item in design_plan_payload.get("feature_layouts", []) or []
             if isinstance(item, dict)
         ],
+        "exposed_control_ids": sorted(exposed_control_ids(design_plan_payload))
+        if "exposed_controls" in design_plan_payload
+        else None,
         "allowed_revision_parameters": sorted(str(item) for item in allowed_revision_parameters),
     }
     effect_contract = build_parameter_effect_contract(design_plan_payload)
@@ -275,8 +278,9 @@ def format_authoritative_identity_section(authority: dict[str, Any] | None) -> s
         "You must implement every required identity below exactly.",
         "Do not rename, alias, replace, shorten, or invent product IDs.",
         "Python function and variable names may differ, but decorator/metadata IDs must match exactly.",
-        "Every required parameter must be declared as a module-level ParameterSpec and used through params[\"parameter_id\"].",
-        "Do not hardcode protected values instead of declaring and using the required ParameterSpec.",
+        "Every required parameter must be declared as a module-level ParameterSpec so the scaffold remains inspectable.",
+        "Only explicitly exposed controls must remain source-sensitive through params[\"parameter_id\"] or their approved internal chain.",
+        "Ordinary requirements and proposals may be implemented with safe local values or literals when the resulting geometry is checked after execution.",
         "",
         "Authoritative identity inventory JSON:",
         json.dumps(authority, indent=2, sort_keys=True),
@@ -405,7 +409,15 @@ def _validate_source_against_authority(
         if (
             required
             and parameter_id not in source_param_refs
-            and parameter_requires_effect(parameter, legacy_default=True)
+            and parameter_requires_effect(
+                parameter,
+                exposed_control_ids=(
+                    set(authority.get("exposed_control_ids"))
+                    if authority.get("exposed_control_ids") is not None
+                    else None
+                ),
+                legacy_default=True,
+            )
             and (parameter_id not in effect_parameter_ids or parameter_id in effect_invalid_parameter_ids)
         ):
             findings.append(
@@ -421,7 +433,15 @@ def _validate_source_against_authority(
             parameter_id in source_param_refs
             and parameter_id not in source_param_geometry_effects
             and (parameter.get("protected") or parameter.get("functional"))
-            and parameter_requires_effect(parameter, legacy_default=True)
+            and parameter_requires_effect(
+                parameter,
+                exposed_control_ids=(
+                    set(authority.get("exposed_control_ids"))
+                    if authority.get("exposed_control_ids") is not None
+                    else None
+                ),
+                legacy_default=True,
+            )
             and (parameter_id not in effect_parameter_ids or parameter_id in effect_invalid_parameter_ids)
         ):
             findings.append(
