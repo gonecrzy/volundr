@@ -57,5 +57,10 @@ Functional design intent and deterministic geometry verification: `FUNCTIONAL_DE
 
 Chat-first workflow and staged-mode transition: `CHAT_FIRST_WORKFLOW.md`.
 
+Deterministic visual evidence and revision comparisons:
+`MULTI_VIEW_SNAPSHOT_CONTRACT.md`, `REVISION_EVIDENCE_MODEL.md`,
+`MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md`. Future AI visual review is scoped in
+`AI_VISUAL_REVIEW_PLAN.md` and is not implemented.
+
 Durable project reopen and explicit exports: `PROJECT_PERSISTENCE.md`,
 `EXPORTS.md`, `DEPLOYMENT.md`, and `ENVIRONMENT_VARIABLES.md`.

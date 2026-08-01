@@ -31,6 +31,7 @@ import {
   type RevisionOutput,
   type ValidationSummary,
 } from "./candidateView";
+import { type RevisionComparison, type SnapshotPacket } from "./snapshotView";
 import {
   assumptionBuckets,
   canContinueGeneration,
@@ -135,6 +136,7 @@ type Project = {
   printable_part_count?: number;
   unresolved_warning_count?: number;
   preview_revision_id?: string | null;
+  preview_snapshot_artifact_id?: string | null;
 };
 
 type ProjectMessage = {
@@ -200,6 +202,8 @@ type Workspace = {
     missing_count?: number;
     missing_paths?: string[];
   };
+  snapshot_packet?: SnapshotPacket | null;
+  revision_comparison?: RevisionComparison | null;
 };
 
 type ExportRecord = {
@@ -673,6 +677,8 @@ function App() {
   const [geometricAnalysis, setGeometricAnalysis] = useState<GeometricAnalysis | null>(null);
   const [revisionOutputs, setRevisionOutputs] = useState<RevisionOutput[]>([]);
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
+  const [snapshotPacket, setSnapshotPacket] = useState<SnapshotPacket | null>(null);
+  const [revisionComparison, setRevisionComparison] = useState<RevisionComparison | null>(null);
   const [isRetryingOutputId, setIsRetryingOutputId] = useState<string | null>(null);
   const [sourceContractError, setSourceContractError] = useState<string | null>(null);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
@@ -844,6 +850,15 @@ function App() {
       .then(setGenerationAttempts)
       .catch(() => setGenerationAttempts([]));
   }, [project?.id, selectedRevision?.id, chatWorkflow?.current_stage]);
+
+  useEffect(() => {
+    if (!selectedRevision || !project) {
+      setSnapshotPacket(null);
+      setRevisionComparison(null);
+      return;
+    }
+    void loadRevisionSnapshots(selectedRevision);
+  }, [project?.id, selectedRevision?.id]);
 
   useEffect(() => {
     if (project && configurationParameters.length > 0) {
@@ -2037,6 +2052,8 @@ function App() {
       setAiOutput(null);
       setRevisionDiff(null);
       setExportRecord(null);
+      setSnapshotPacket(null);
+      setRevisionComparison(null);
     }
     setSaveStatus("saved");
   }
@@ -2247,6 +2264,15 @@ function App() {
     } catch {
       setGeometricAnalysis(null);
     }
+  }
+
+  async function loadRevisionSnapshots(revision: Revision) {
+    const [packetResponse, comparisonResponse] = await Promise.all([
+      fetch(`${API_BASE}/revisions/${encodeURIComponent(revision.id)}/snapshots`),
+      fetch(`${API_BASE}/revisions/${encodeURIComponent(revision.id)}/comparison`),
+    ]);
+    setSnapshotPacket(packetResponse.ok ? (await packetResponse.json() as SnapshotPacket) : null);
+    setRevisionComparison(comparisonResponse.ok ? (await comparisonResponse.json() as RevisionComparison) : null);
   }
 
   async function acceptSelectedCandidate() {
@@ -2596,6 +2622,9 @@ function App() {
         viewer={<StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />}
         hasModel={Boolean(stlUrl && selectedRevision?.status === "succeeded")}
         technicalDetails={chatTechnicalDetails}
+        snapshotPacket={snapshotPacket}
+        revisionComparison={revisionComparison}
+        snapshotApiBase={API_BASE}
         onPromptChange={setGenerationPrompt}
         onPromptKeyDown={handlePromptKeyDown}
         onSubmitPrompt={submitPrompt}

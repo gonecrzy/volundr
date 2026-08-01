@@ -270,3 +270,8 @@ Plans remain available for multipart or assembly work. See
 `docs/PLANNING_DEPTH_MODEL.md` and `docs/AI_CAD_DIRECTION_ALIGNMENT.md`.
 
 Functional readiness is reported separately from CAD execution and printability. See `docs/FUNCTIONAL_DESIGN_INTENT.md` and `docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md` before treating a generated candidate as physically verified.
+
+Successful or blocked worker attempts also retain deterministic multi-view
+snapshot packets and revision comparisons as secondary evidence. See
+`docs/MULTI_VIEW_SNAPSHOT_CONTRACT.md`, `docs/REVISION_EVIDENCE_MODEL.md`, and
+`docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md`.

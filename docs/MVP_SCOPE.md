@@ -167,3 +167,7 @@ The normal flagged frontend is a persistent chat-first workspace with
 Conversation, Model, and Details surfaces that adapt across desktop, drawer,
 and mobile-tab layouts. Every design remains revisionable through chat;
 parametric controls are optional and explicitly requested.
+
+Deterministic post-worker Views and revision comparisons are included as
+secondary evidence. AI visual review is planned, not implemented, and is not a
+promotion requirement.

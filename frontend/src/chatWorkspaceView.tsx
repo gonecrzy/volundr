@@ -6,6 +6,13 @@ import {
   type ChatDisplayKind,
   type SubmissionErrorPresentation,
 } from "./chatWorkspace";
+import {
+  comparisonIsAvailable,
+  primarySnapshotView,
+  snapshotImageUrl,
+  type RevisionComparison,
+  type SnapshotPacket,
+} from "./snapshotView";
 
 export type ChatWorkspaceMessage = {
   id: string;
@@ -22,6 +29,8 @@ export type ChatWorkspaceProject = {
   status: string;
   active_revision_id: string | null;
   updated_at?: string;
+  preview_revision_id?: string | null;
+  preview_snapshot_artifact_id?: string | null;
 };
 
 export type ChatWorkspaceRevision = {
@@ -83,6 +92,9 @@ type ChatWorkspaceProps = {
   viewer: ReactNode;
   hasModel: boolean;
   technicalDetails: ReactNode;
+  snapshotPacket: SnapshotPacket | null;
+  revisionComparison: RevisionComparison | null;
+  snapshotApiBase: string;
   onPromptChange: (value: string) => void;
   onPromptKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSubmitPrompt: () => void;
@@ -123,6 +135,9 @@ export function ChatWorkspace({
   viewer,
   hasModel,
   technicalDetails,
+  snapshotPacket,
+  revisionComparison,
+  snapshotApiBase,
   onPromptChange,
   onPromptKeyDown,
   onSubmitPrompt,
@@ -312,6 +327,9 @@ export function ChatWorkspace({
             onSelectRevision={onSelectRevision}
             onOpenExport={() => setExportOpen(true)}
             onDownloadOutput={onDownloadOutput}
+            snapshotPacket={snapshotPacket}
+            revisionComparison={revisionComparison}
+            snapshotApiBase={snapshotApiBase}
             technicalDetails={technicalDetails}
           />
         </aside>
@@ -329,6 +347,7 @@ export function ChatWorkspace({
               {projects.length === 0 ? <p className="empty">No projects yet.</p> : null}
               {projects.map((entry) => (
                 <button className={entry.id === project?.id ? "project-item selected" : "project-item"} key={entry.id} type="button" onClick={() => { setProjectMenuOpen(false); onSelectProject(entry); }}>
+                  {entry.preview_revision_id && entry.preview_snapshot_artifact_id ? <img className="project-thumbnail" src={snapshotImageUrl(snapshotApiBase, entry.preview_revision_id, entry.preview_snapshot_artifact_id)} alt="Project isometric preview" loading="lazy" /> : <span className="project-thumbnail placeholder" aria-hidden="true" />}
                   <span>{entry.name}</span>
                   <small>{entry.active_revision_id ? "Current working version" : "No working version"}</small>
                 </button>
@@ -354,6 +373,9 @@ export function ChatWorkspace({
               onSelectRevision={onSelectRevision}
               onOpenExport={() => setExportOpen(true)}
               onDownloadOutput={onDownloadOutput}
+              snapshotPacket={snapshotPacket}
+              revisionComparison={revisionComparison}
+              snapshotApiBase={snapshotApiBase}
               technicalDetails={technicalDetails}
             />
           </aside>
@@ -528,13 +550,15 @@ function ViewerPanel({ viewer, hasModel, selectedRevision, currentRevision, sele
   );
 }
 
-function InspectorPanel({ project, currentRevision, selectedRevision, revisions, activeRequirements, designPlan, outputs, selectedOutputId, onSelectRevision, onOpenExport, onDownloadOutput, technicalDetails }: { project: ChatWorkspaceProject | null; currentRevision: ChatWorkspaceRevision | null; selectedRevision: ChatWorkspaceRevision | null; revisions: ChatWorkspaceRevision[]; activeRequirements: Array<Record<string, unknown>>; designPlan: { plan?: Record<string, unknown> } | null; outputs: ChatWorkspaceOutput[]; selectedOutputId: string | null; onSelectRevision: (revision: ChatWorkspaceRevision) => void; onOpenExport: () => void; onDownloadOutput: (output: ChatWorkspaceOutput, format: "stl" | "step") => void; technicalDetails: ReactNode }) {
+function InspectorPanel({ project, currentRevision, selectedRevision, revisions, activeRequirements, designPlan, outputs, selectedOutputId, onSelectRevision, onOpenExport, onDownloadOutput, snapshotPacket, revisionComparison, snapshotApiBase, technicalDetails }: { project: ChatWorkspaceProject | null; currentRevision: ChatWorkspaceRevision | null; selectedRevision: ChatWorkspaceRevision | null; revisions: ChatWorkspaceRevision[]; activeRequirements: Array<Record<string, unknown>>; designPlan: { plan?: Record<string, unknown> } | null; outputs: ChatWorkspaceOutput[]; selectedOutputId: string | null; onSelectRevision: (revision: ChatWorkspaceRevision) => void; onOpenExport: () => void; onDownloadOutput: (output: ChatWorkspaceOutput, format: "stl" | "step") => void; snapshotPacket: SnapshotPacket | null; revisionComparison: RevisionComparison | null; snapshotApiBase: string; technicalDetails: ReactNode }) {
   return (
     <div className="inspector-scroll">
       <section className="inspector-section current-version-section"><SectionTitle title="Current working version" />{currentRevision ? <><strong>Version {currentRevision.revision_number}</strong><p>{formatDate(currentRevision.created_at)} · {currentRevision.expected_output_count ?? outputs.length} printable part{(currentRevision.expected_output_count ?? outputs.length) === 1 ? "" : "s"}</p><span className="readiness-pill">{currentRevision.review_state === "ready_with_warnings" ? "Ready with warnings" : "Ready"}</span></> : <p>No working version yet.</p>}{selectedRevision && currentRevision && selectedRevision.id !== currentRevision.id ? <p className="inspector-note">Viewing Version {selectedRevision.revision_number}</p> : null}</section>
       <RequirementsSection requirements={activeRequirements} />
       <ProposalsSection plan={designPlan} />
       <ChecksSection revision={selectedRevision ?? currentRevision} />
+      <SnapshotViewsSection packet={snapshotPacket} apiBase={snapshotApiBase} />
+      <ComparisonSection comparison={revisionComparison} apiBase={snapshotApiBase} />
       <PrintablePartsSection revision={selectedRevision ?? currentRevision} outputs={outputs} selectedOutputId={selectedOutputId} onOpenExport={onOpenExport} onDownloadOutput={onDownloadOutput} />
       <section className="inspector-section"><SectionTitle title="Version history" /><VersionHistory revisions={revisions} currentWorkingRevisionId={project?.active_revision_id ?? null} onSelectRevision={onSelectRevision} /></section>
       <section className="inspector-section technical-section"><details><summary>Technical details</summary><div className="technical-details-content">{technicalDetails}</div></details></section>
@@ -563,6 +587,35 @@ function ChecksSection({ revision }: { revision: ChatWorkspaceRevision | null })
   if (!revision) return <section className="inspector-section"><SectionTitle title="Checks and warnings" /><p>Checks will appear after a version is created.</p></section>;
   const blocked = revision.review_state === "blocked" || revision.validation_summary.blocking_count > 0;
   return <section className="inspector-section"><SectionTitle title="Checks and warnings" /><ul className="plain-list checks-list"><li className={blocked ? "check-blocked" : "check-passed"}>{blocked ? revision.error_message ?? "Design checks need attention" : "Solid-body and artifact checks passed"}</li>{revision.validation_summary.advisory_count > 0 ? <li className="check-warning">{revision.validation_summary.advisory_count} warning{revision.validation_summary.advisory_count === 1 ? "" : "s"} remain{revision.validation_summary.advisory_count === 1 ? "s" : ""}</li> : null}{revision.functional_status && revision.functional_status !== "functionally_verified" ? <li className="check-warning">Functional behavior requires a test print or review</li> : revision.functional_status ? <li className="check-passed">Functional checks reported</li> : null}</ul></section>;
+}
+
+function SnapshotViewsSection({ packet, apiBase }: { packet: SnapshotPacket | null; apiBase: string }) {
+  const [lightboxView, setLightboxView] = useState<ReturnType<typeof primarySnapshotView>>(null);
+  const [expanded, setExpanded] = useState(false);
+  if (!packet || packet.status) {
+    return <section className="inspector-section"><SectionTitle title="Views" /><p className="inspector-note">Deterministic snapshots are not available for this version.</p></section>;
+  }
+  const views = expanded ? packet.views : packet.views.filter((view) => ["isometric", "front", "right", "top"].includes(view.view_name));
+  return <>
+    <section className="inspector-section snapshot-section">
+      <div className="section-title-row"><SectionTitle title="Views" /><button className="text-action" type="button" onClick={() => setExpanded((current) => !current)}>{expanded ? "Less views" : "More views"}</button></div>
+      {packet.candidate_state === "blocked" ? <span className="snapshot-blocked-badge">Blocked attempt</span> : null}
+      <div className="snapshot-grid">
+        {views.map((view) => <button className="snapshot-thumb" type="button" key={view.view_id} onClick={() => setLightboxView(view)}><img src={snapshotImageUrl(apiBase, packet.revision_id, view.image_artifact_id)} alt={`${view.view_name} view`} loading="lazy" /><span>{view.view_name.replaceAll("_", " ")}</span></button>)}
+      </div>
+      {packet.warnings?.length ? <p className="inspector-note">Some additional views are unavailable. Technical details has the evidence.</p> : null}
+    </section>
+    {lightboxView ? <div className="snapshot-lightbox" role="dialog" aria-modal="true" aria-label={`${lightboxView.view_name} snapshot`} onClick={() => setLightboxView(null)}><div className="snapshot-lightbox-content" onClick={(event) => event.stopPropagation()}><button className="text-action" type="button" onClick={() => setLightboxView(null)}>Close</button><img src={snapshotImageUrl(apiBase, packet.revision_id, lightboxView.image_artifact_id)} alt={`${lightboxView.view_name} view enlarged`} /></div></div> : null}
+  </>;
+}
+
+function ComparisonSection({ comparison, apiBase }: { comparison: RevisionComparison | null; apiBase: string }) {
+  const [open, setOpen] = useState(false);
+  if (!comparison || !comparisonIsAvailable(comparison)) return null;
+  const pair = comparison.artifacts?.paired_view_ids?.find((item) => item.view_name === "isometric") ?? comparison.artifacts?.paired_view_ids?.[0];
+  const beforeId = typeof pair?.before_image_artifact_id === "string" ? pair.before_image_artifact_id : null;
+  const afterId = typeof pair?.after_image_artifact_id === "string" ? pair.after_image_artifact_id : null;
+  return <section className="inspector-section comparison-section"><div className="section-title-row"><SectionTitle title="Compare with previous" /><button className="text-action" type="button" onClick={() => setOpen((current) => !current)}>{open ? "Hide comparison" : "Open comparison"}</button></div>{open ? <><p className="inspector-note">{comparison.revision_instruction || "Revision geometry evidence"}</p>{beforeId && afterId ? <div className="comparison-pair"><figure><img src={snapshotImageUrl(apiBase, comparison.from_revision_id ?? "", beforeId)} alt="Previous version isometric" /><figcaption>Previous version</figcaption></figure><figure><img src={snapshotImageUrl(apiBase, comparison.to_revision_id ?? "", afterId)} alt="Current version isometric" /><figcaption>New version</figcaption></figure></div> : null}<dl className="review-facts compact"><dt>Thickness / bounds change</dt><dd>{comparison.geometry?.bounding_box_delta?.z ?? "—"} mm</dd><dt>Volume change</dt><dd>{comparison.geometry?.volume_delta ?? "—"} mm³</dd></dl>{comparison.preserved_requirement_ids?.length ? <p className="inspector-note">Preserved requirements: {comparison.preserved_requirement_ids.length}</p> : null}</> : null}</section>;
 }
 
 function PrintablePartsSection({ revision, outputs, selectedOutputId, onOpenExport, onDownloadOutput }: { revision: ChatWorkspaceRevision | null; outputs: ChatWorkspaceOutput[]; selectedOutputId: string | null; onOpenExport: () => void; onDownloadOutput: (output: ChatWorkspaceOutput, format: "stl" | "step") => void }) {

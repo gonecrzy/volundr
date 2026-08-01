@@ -487,3 +487,13 @@ The API persists deterministic filenames, hashes, warnings, and download paths
 for STL, STEP, assembly STEP where unambiguous, printable-parts ZIP, and
 complete project-package ZIP exports. Blocked or incomplete revisions cannot
 be exported. The browser never receives provider credentials.
+
+## Deterministic Geometry Evidence
+
+After worker output exists, the geometry evidence service renders deterministic
+whole-design and component views from durable STL artifacts. It registers the
+images, packet, render timing, and optional conservative sections as workflow
+artifacts, then records before/after revision comparisons. This is a secondary
+observation layer: snapshots never replace validation or alter Current working
+version safety. See `MULTI_VIEW_SNAPSHOT_CONTRACT.md` and
+`REVISION_EVIDENCE_MODEL.md`.

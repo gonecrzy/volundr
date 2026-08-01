@@ -136,3 +136,8 @@ multi-design and bottle-holder runs as a separate live CAD-quality track.
 Do not ask participants to judge physical compliance from an upstream provider
 or planning failure. Preserve the workflow run ID, event trace, diagnosis, and
 redacted diagnostic bundle for every session.
+
+The workspace now exposes deterministic snapshot Views and historical revision
+comparison evidence as secondary UI. UX participants should judge whether the
+views, current-version language, and change summary are understandable; they
+should not treat thumbnails as proof of qualitative physical behavior.

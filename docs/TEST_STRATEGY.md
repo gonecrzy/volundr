@@ -415,3 +415,10 @@ submission, stale-promotion protection, working-version promotion, blocked
 attempt preservation, and export summaries. Playwright runs the chat-first
 scenarios with `VITE_VOLUNDR_CHAT_FIRST=true`; the staged suite remains
 available through `npm run test:e2e:staged` during transition.
+
+Snapshot tests cover deterministic camera metadata, stable raster output,
+durable packet and image registration, artifact ownership, conservative section
+omission, worker-retry capture, and revision geometry/finding deltas.
+`snapshot-evidence.spec.ts` exercises standard views and comparison evidence;
+`multi-view-snapshot.live.spec.ts` is opt-in and uses the real provider and
+worker.

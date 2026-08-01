@@ -330,3 +330,9 @@ Chat-first progression records `chat.message.submitted`, `chat.intent.classified
 `design_plan.progressed`, `generation.started`, `parameter_update.routed`,
 `structural_revision.routed`, `start_over.branch_created`,
 `working_version.promoted`, `blocked_attempt.preserved`, and `export.requested`.
+
+Post-worker evidence adds `snapshot.generated`,
+`snapshot.not_applicable_before_worker`, `snapshot.generation_failed`, and
+`revision.comparison.generated`. Packet hashes, image hashes, view timing,
+artifact IDs, and omission reasons remain in durable artifacts; workflow event
+metadata contains only concise indexes and summaries.

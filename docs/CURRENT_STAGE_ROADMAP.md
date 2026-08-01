@@ -458,3 +458,7 @@ project/export path, and separate real-provider live diagnostics. Keep the
 staged/developer workflow only for diagnostic coverage. See
 `docs/CHAT_FIRST_WORKFLOW.md`, `docs/PROJECT_PERSISTENCE.md`, and
 `docs/EXPORTS.md`.
+
+The current evidence pass adds deterministic post-worker multi-view packets,
+component thumbnails, conservative sections, and revision comparisons. The
+next visual step is advisory review design, not an automatic image gate.

@@ -70,3 +70,9 @@ compact plan, or detailed plan from ledger and project semantics, then
 continues automatically through the same generation and validation lifecycle.
 Narrow revisions may use deterministic revision briefs; interacting or
 multipart changes retain provider-backed Revision Plans.
+
+After worker output, the same workflow may attach deterministic standard-view
+snapshots, component thumbnails, conservative sections, and a comparison to
+the prior revision. This evidence is nonblocking and remains secondary to the
+authoritative requirement, validation, artifact, and Current working version
+records.
