@@ -19,6 +19,7 @@ from app.services.cad.parameter_effects import (
     build_parameter_effect_contract,
     validate_parameter_effects,
 )
+from app.services.cad.patterns import pattern_parameter_ids
 
 
 GEOMETRY_BODIES_SCHEMA_VERSION = "cadquery-geometry-bodies-v1"
@@ -84,6 +85,7 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
         and parameter.get("id")
         and str(parameter["id"]) not in parameters
     )
+    parameters.extend(sorted(pattern_parameter_ids(plan) - set(parameters)))
     entries: list[dict[str, Any]] = []
     effect_contract = build_parameter_effect_contract(plan)
     effect_by_function = {
@@ -222,6 +224,7 @@ def assemble_geometry_bodies(
             function_source,
             spec,
             derived_parameters=list(inventory.get("parameter_effect_contract", {}).get("derived_parameters", [])),
+            patterns=list(inventory.get("parameter_effect_contract", {}).get("patterns", [])),
         )
         if effect_findings:
             finding = effect_findings[0]
@@ -389,10 +392,14 @@ def _effect_inventory_fields(effect_manifest: dict[str, Any] | None) -> dict[str
             "required_direct_parameters": [],
             "allowed_derived_parameters": [],
             "required_parameter_effects": [],
+            "required_inputs": [],
+            "required_patterns": [],
         }
     return {
         "parameter_values": list(effect_manifest.get("parameter_values", [])),
         "required_direct_parameters": list(effect_manifest.get("required_direct_parameters", [])),
         "allowed_derived_parameters": list(effect_manifest.get("allowed_derived_parameters", [])),
         "required_parameter_effects": list(effect_manifest.get("required_parameter_effects", [])),
+        "required_inputs": list(effect_manifest.get("required_inputs", [])),
+        "required_patterns": list(effect_manifest.get("required_patterns", [])),
     }

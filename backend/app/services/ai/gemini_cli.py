@@ -37,8 +37,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v2"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v2"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v3"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v3"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -584,6 +584,7 @@ class GeminiCliProvider:
             "A parameter reference used only in an assignment, comment, or unrelated helper does not satisfy the contract.",
             "For pattern_count, do not use a fixed range, fixed point list, repeated literal geometry calls, or a two-point list when the approved count is two.",
             "For pattern_spacing, do not replace the approved spacing with fixed point coordinates.",
+            "For every required pattern, Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array, and never call a pattern helper from a geometry body.",
             "For dimension and radius_or_diameter, do not replace an approved parameter or derived value with a matching numeric literal.",
             "When static proof is unclear, use the required parameter or approved derived value in the geometry operation explicitly; unverifiable critical effects block assembly.",
             "Per-function obligations:",
@@ -596,6 +597,8 @@ class GeminiCliProvider:
                 )
                 for function in inventory["functions"]
             ],
+            "Canonical repeated-pattern authority:",
+            json.dumps(inventory["parameter_effect_contract"].get("patterns", []), indent=2, sort_keys=True),
             json.dumps(inventory["parameter_effect_contract"], indent=2, sort_keys=True),
             "",
             "Required response shape:",
@@ -720,6 +723,8 @@ class GeminiCliProvider:
                 "Do not use one parameter ID for both a nominal designation and a geometric dimension. Keep a screw designation such as #8 separate from a proposed clearance-hole diameter.",
                 "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
                 "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
+                "For repeated functional features, emit a generic patterns entry owned by the feature and component. Volundr computes canonical points from its count and spacing/radius parameters; do not put pattern arithmetic in geometry bodies.",
+                "For a repeated linear mounting arrangement, use the explicit or proposed count and spacing, set centered=true, and distinguish the arrangement axis from the wall-normal hole-cutting axis.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
                 "For any physical product with mounting, containment, support, retention, or removal requirements, emit schema_version 1.1 and an explicit functional_contract.",
                 "Resolve mounting plane, plane normal, hole axis, arrangement axis, support-floor decision, removal direction, and retention strategy. Never return unresolved alternatives such as 'or' choices.",
@@ -767,6 +772,22 @@ class GeminiCliProvider:
                             "lookup": {"table_id": "string", "key": "string", "variant": "string", "result_field": "string|null"},
                             "explanation": "string",
                         },
+                    }
+                ],
+                "patterns": [
+                    {
+                        "pattern_id": "stable_pattern_id",
+                        "owning_feature_id": "feature_id",
+                        "owning_component_id": "component_id",
+                        "pattern_type": "linear|rectangular|circular",
+                        "point_parameter_id": "feature_points",
+                        "count_parameter_id": "count_parameter_id|null",
+                        "spacing_parameter_id": "spacing_parameter_id|null",
+                        "axis": "X|Y|Z|null",
+                        "plane": "XY|XZ|YZ|null",
+                        "centered": True,
+                        "origin": [0, 0, 0],
+                        "unit": "mm"
                     }
                 ],
                 "dependency_edges": [

@@ -361,6 +361,29 @@ class DesignPlanFeature(BaseModel):
     protected: bool = False
 
 
+class DesignPlanPattern(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    pattern_id: str = Field(min_length=1)
+    owning_feature_id: str = Field(min_length=1)
+    owning_component_id: str | None = None
+    pattern_type: str = Field(min_length=1)
+    point_parameter_id: str | None = None
+    count_parameter_id: str | None = None
+    spacing_parameter_id: str | None = None
+    rows_parameter_id: str | None = None
+    columns_parameter_id: str | None = None
+    row_spacing_parameter_id: str | None = None
+    column_spacing_parameter_id: str | None = None
+    radius_parameter_id: str | None = None
+    axis: str | None = None
+    plane: str | None = None
+    centered: bool = True
+    origin: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    start_angle: float = 0.0
+    unit: str = "mm"
+
+
 class DesignPlanPreset(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -470,6 +493,7 @@ class DesignPlanPayload(BaseModel):
     dependency_edges: list[DesignPlanDependencyEdge] = Field(default_factory=list)
     components: list[DesignPlanComponent] = Field(default_factory=list)
     features: list[DesignPlanFeature] = Field(default_factory=list)
+    patterns: list[DesignPlanPattern] = Field(default_factory=list)
     presets: list[DesignPlanPreset] = Field(default_factory=list)
     assembly_strategy: dict[str, Any] = Field(default_factory=dict)
     printable_outputs: list[DesignPlanPrintableOutput] = Field(default_factory=list)

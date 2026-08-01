@@ -15,6 +15,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.services.cad.parameter_effects import build_parameter_effect_contract
+from app.services.cad.patterns import (
+    build_pattern_manifest,
+    normalize_pattern_specs,
+    validate_pattern_specs,
+)
 
 
 SCAFFOLD_VERSION = "cadquery-scaffold-v1"
@@ -35,6 +40,7 @@ class ScaffoldRender:
     expected_geometry_functions: tuple[str, ...]
     derived_parameter_manifest: list[dict[str, Any]] = field(default_factory=list)
     parameter_effect_manifest: list[dict[str, Any]] = field(default_factory=list)
+    pattern_manifest: list[dict[str, Any]] = field(default_factory=list)
     version: str = SCAFFOLD_VERSION
 
 
@@ -111,6 +117,8 @@ def render_cadquery_scaffold(
 ) -> ScaffoldRender:
     """Render canonical source around provider-owned geometry functions."""
 
+    design_plan = normalize_pattern_specs(design_plan)
+    validate_pattern_specs(design_plan)
     components = [item for item in design_plan.get("components", []) or [] if isinstance(item, dict)]
     features = [item for item in design_plan.get("features", []) or [] if isinstance(item, dict)]
     outputs = [item for item in design_plan.get("printable_outputs", []) or [] if isinstance(item, dict)]
@@ -142,7 +150,7 @@ def render_cadquery_scaffold(
         "# VOLUNDR_SCAFFOLD_VERSION: " + SCAFFOLD_VERSION,
         "# VOLUNDR_SCAFFOLD_HASH: __PLACEHOLDER__",
         "import cadquery as cq",
-        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface",
+        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface, resolve_pattern_points",
         "",
         "PARAMETERS = [",
     ]
@@ -187,6 +195,19 @@ def render_cadquery_scaffold(
         lines.append("    " + _parameter_spec_expression(parameter) + ",")
     lines.extend(["]", ""])
 
+    pattern_manifest = _resolved_pattern_manifest(design_plan, effect_contract)
+    if pattern_manifest:
+        lines.extend([
+            "def _volundr_apply_patterns(params):",
+            "    return params.with_derived_values({",
+        ])
+        for pattern in pattern_manifest:
+            lines.append(
+                f"        {_literal(pattern['point_parameter_id'])}: "
+                f"resolve_pattern_points({_python_literal(pattern['specification'])}, params).points,"
+            )
+        lines.extend(["    })", ""])
+
     for component_id in component_ids:
         function_name = _component_geometry_name(component_id)
         lines.extend(_ai_block(function_name, geometry_functions[function_name]))
@@ -217,6 +238,8 @@ def render_cadquery_scaffold(
         )
 
     lines.extend(["def build(params):"])
+    if pattern_manifest:
+        lines.append("    params = _volundr_apply_patterns(params)")
     for component_id in component_ids:
         lines.append(f"    {_component_builder_name(component_id)}_model = {_component_builder_name(component_id)}(params)")
     lines.append("    return Product(")
@@ -254,7 +277,24 @@ def render_cadquery_scaffold(
         expected_geometry_functions=expected,
         derived_parameter_manifest=list(effect_contract.get("derived_parameters", [])),
         parameter_effect_manifest=list(effect_contract.get("functions", [])),
+        pattern_manifest=pattern_manifest,
     )
+
+
+def _resolved_pattern_manifest(
+    design_plan: dict[str, Any], effect_contract: dict[str, Any]
+) -> list[dict[str, Any]]:
+    values = {
+        str(item.get("id")): item.get("value")
+        for item in design_plan.get("parameters", []) or []
+        if isinstance(item, dict) and item.get("id")
+    }
+    values.update({
+        str(item.get("parameter_id")): item.get("resolved_value")
+        for item in effect_contract.get("derived_parameters", []) or []
+        if isinstance(item, dict) and item.get("parameter_id")
+    })
+    return build_pattern_manifest(design_plan, resolved_values=values)
 
 
 def validate_scaffold_integrity(source: str, rendered: ScaffoldRender) -> list[dict[str, Any]]:
@@ -432,6 +472,10 @@ def _required_id(payload: dict[str, Any], key: str, kind: str) -> str:
 
 def _literal(value: Any) -> str:
     return json.dumps(value, ensure_ascii=True, separators=(",", ": "))
+
+
+def _python_literal(value: Any) -> str:
+    return repr(value)
 
 
 def _literal_tuple(values: Any) -> str:

@@ -38,6 +38,7 @@ SAFE_CALL_NAMES = frozenset(
         "str",
         "sum",
         "tuple",
+        "resolve_pattern_points",
     }
 )
 
@@ -52,6 +53,7 @@ RUNTIME_IMPORT_NAMES = frozenset(
         "feature",
         "protected_interface",
         "shared_helper",
+        "resolve_pattern_points",
     }
 )
 

@@ -135,6 +135,29 @@ def _inventory() -> dict:
     return build_geometry_function_inventory(PLAN)
 
 
+def _pattern_plan() -> dict:
+    plan = deepcopy(PLAN)
+    plan["parameters"].append({
+        "id": "mounting_hole_diameter",
+        "value": 4.2,
+        "unit": "mm",
+        "protected": True,
+    })
+    plan["features"][1]["parameters"].append("mounting_hole_diameter")
+    plan["patterns"] = [{
+        "pattern_id": "mounting_hole_pattern",
+        "owning_feature_id": "mounting_holes",
+        "owning_component_id": "holder_body",
+        "pattern_type": "linear",
+        "point_parameter_id": "mounting_hole_points",
+        "count_parameter_id": "mounting_screw_count",
+        "spacing_parameter_id": "mounting_hole_spacing",
+        "axis": "Z",
+        "centered": True,
+    }]
+    return plan
+
+
 def test_contract_records_derived_dependency_provenance_and_effect_obligations() -> None:
     contract = build_parameter_effect_contract(PLAN)
 
@@ -377,6 +400,48 @@ def test_fixed_pattern_spacing_is_reported_separately() -> None:
         )
 
     assert error.value.rule_id == "geometry_body.pattern_spacing_hardcoded"
+
+
+def test_canonical_pattern_points_reach_push_points_and_protect_count_and_spacing() -> None:
+    plan = _pattern_plan()
+    source = 'return body.pushPoints(params["mounting_hole_points"]).hole(params["mounting_hole_diameter"])'
+
+    result = assemble_geometry_bodies(
+        _payload(
+            {"function_id": "_ai_component_holder_body", "body_lines": ['return cq.Workplane("XY").cylinder(20, params["bottle_cavity_diameter"] / 2)']},
+            {"function_id": "_ai_feature_bottle_cavity", "body_lines": ['return body.cut(cq.Workplane("XY").cylinder(20, params["bottle_cavity_diameter"] / 2))']},
+            {"function_id": "_ai_feature_mounting_holes", "body_lines": [source]},
+        ),
+        build_geometry_function_inventory(plan),
+    )
+
+    assert result.functions["_ai_feature_mounting_holes"]
+
+
+@pytest.mark.parametrize(
+    "body_lines",
+    [
+        ['points = [(-40.5, 0, 0), (40.5, 0, 0)]', 'return body.pushPoints(points).hole(4.2)'],
+        ['points = linear_pattern_points(params["mounting_screw_count"], params["mounting_hole_spacing"], "Z")', 'return body.pushPoints(points).hole(4.2)'],
+        ['return body.pushPoints(params["mounting_hole_points"][:1]).hole(params["mounting_hole_diameter"])'],
+    ],
+)
+def test_provider_cannot_replace_or_truncate_canonical_pattern(body_lines: list[str]) -> None:
+    with pytest.raises(GeometryBodyError) as error:
+        assemble_geometry_bodies(
+            _payload(
+                {"function_id": "_ai_component_holder_body", "body_lines": ['return cq.Workplane("XY").cylinder(20, params["bottle_cavity_diameter"] / 2)']},
+                {"function_id": "_ai_feature_bottle_cavity", "body_lines": ['return body.cut(cq.Workplane("XY").cylinder(20, params["bottle_cavity_diameter"] / 2))']},
+                {"function_id": "_ai_feature_mounting_holes", "body_lines": body_lines},
+            ),
+            build_geometry_function_inventory(_pattern_plan()),
+        )
+
+    assert error.value.rule_id in {
+        "pattern.provider_pattern_override",
+        "pattern.cardinality_mismatch",
+        "pattern.required_pattern_unused",
+    }
 
 
 def _rendered_source() -> str:

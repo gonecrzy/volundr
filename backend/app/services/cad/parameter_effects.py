@@ -9,6 +9,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.services.cad.patterns import build_pattern_manifest
 PARAMETER_EFFECT_CONTRACT_VERSION = "cadquery-parameter-effects-v1"
 PROVENANCE_VERSION = "design-plan-provenance-v1"
 SUPPORTED_EFFECT_TYPES = {
@@ -94,10 +95,12 @@ def build_parameter_effect_contract(
         parameter_by_id=parameter_by_id,
         dependencies=dependencies,
         derived_manifest=derived_manifest,
+        patterns=build_pattern_manifest(plan),
     )
     return {
         "schema_version": PARAMETER_EFFECT_CONTRACT_VERSION,
         "derived_parameters": derived_manifest,
+        "patterns": build_pattern_manifest(plan),
         "functions": functions,
         "dependency_findings": _dependency_findings(plan, parameter_by_id),
     }
@@ -108,6 +111,7 @@ def validate_parameter_effects(
     function_manifest: dict[str, Any],
     *,
     derived_parameters: list[dict[str, Any]] | None = None,
+    patterns: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Return blocking findings when a function bypasses an obligation."""
 
@@ -121,13 +125,63 @@ def validate_parameter_effects(
     if function is None:
         return [_finding("geometry_body.effect_unverifiable", function_manifest, "No function AST was available for effect validation.")]
 
-    analysis = _analyze(function)
+    required_patterns = [
+        pattern
+        for pattern in patterns or []
+        if isinstance(pattern, dict)
+        and str(pattern.get("pattern_id") or "") in {
+            str(item) for item in function_manifest.get("required_patterns", []) or []
+        }
+    ]
+    analysis = _analyze(
+        function,
+        canonical_pattern_parameter_ids={
+            str(pattern.get("point_parameter_id"))
+            for pattern in required_patterns
+            if pattern.get("point_parameter_id")
+        },
+    )
     derived_values = {
         str(item.get("parameter_id")): item.get("resolved_value")
         for item in derived_parameters or []
         if isinstance(item, dict) and item.get("parameter_id")
     }
     findings: list[dict[str, Any]] = []
+    for pattern in required_patterns:
+        point_id = str(pattern.get("point_parameter_id") or "")
+        pattern_id = str(pattern.get("pattern_id") or "")
+        usage = analysis.pattern_point_usage.get(point_id, set())
+        if "truncated" in usage:
+            findings.append(
+                _finding(
+                    "pattern.cardinality_mismatch",
+                    function_manifest,
+                    f"Canonical pattern `{pattern_id}` was sliced or truncated before geometry use.",
+                    pattern_id=pattern_id,
+                )
+            )
+            continue
+        if "override" in usage:
+            findings.append(
+                _finding(
+                    "pattern.provider_pattern_override",
+                    function_manifest,
+                    f"Provider geometry replaced canonical pattern `{pattern_id}` with its own point construction.",
+                    pattern_id=pattern_id,
+                )
+            )
+            continue
+        if "canonical" not in usage:
+            findings.append(
+                _finding(
+                    "pattern.required_pattern_unused",
+                    function_manifest,
+                    f"Required canonical pattern `{pattern_id}` does not reach the repeated geometry operation.",
+                    pattern_id=pattern_id,
+                )
+            )
+    if findings:
+        return findings
     for obligation in function_manifest.get("required_parameter_effects", []) or []:
         if not isinstance(obligation, dict) or not obligation.get("parameter_id"):
             continue
@@ -409,6 +463,7 @@ def _function_manifests(
     parameter_by_id: dict[str, dict[str, Any]],
     dependencies: dict[str, set[str]],
     derived_manifest: list[dict[str, Any]],
+    patterns: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     derived_by_id = {item["parameter_id"]: item for item in derived_manifest}
     functional_ids = _functional_parameter_ids(plan, parameter_by_id)
@@ -419,7 +474,7 @@ def _function_manifests(
         component_id = str(component["id"])
         ids = [str(item) for item in component.get("parameters", []) or [] if str(item) in parameter_by_id]
         ids.extend(functional_ids.get(component_id, set()))
-        manifests.append(_function_manifest(_component_function_id(component_id), component_id, None, ids, parameter_by_id, dependencies, derived_by_id))
+        manifests.append(_function_manifest(_component_function_id(component_id), component_id, None, ids, parameter_by_id, dependencies, derived_by_id, patterns=patterns))
     component_ids = {str(item.get("id")) for item in components}
     for feature in features:
         component_id = str(feature.get("component_id") or "")
@@ -428,7 +483,7 @@ def _function_manifests(
         feature_id = str(feature["id"])
         ids = [str(item) for item in feature.get("parameters", []) or [] if str(item) in parameter_by_id]
         ids.extend(functional_ids.get(feature_id, set()))
-        manifests.append(_function_manifest(_feature_function_id(feature_id), component_id, feature_id, ids, parameter_by_id, dependencies, derived_by_id, feature=feature))
+        manifests.append(_function_manifest(_feature_function_id(feature_id), component_id, feature_id, ids, parameter_by_id, dependencies, derived_by_id, feature=feature, patterns=patterns))
     return manifests
 
 
@@ -442,6 +497,7 @@ def _function_manifest(
     derived_by_id: dict[str, dict[str, Any]],
     *,
     feature: dict[str, Any] | None = None,
+    patterns: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     selected = set(ids)
     obligations: dict[str, dict[str, Any]] = {}
@@ -468,6 +524,19 @@ def _function_manifest(
                 "allowed_via": [],
                 "effect_type": _effect_type(selected_id, feature),
             }
+    owned_patterns = [
+        pattern
+        for pattern in patterns or []
+        if feature_id and str(pattern.get("owning_feature_id")) == feature_id
+    ]
+    for pattern in owned_patterns:
+        point_id = str(pattern.get("point_parameter_id") or "")
+        for pattern_effect in pattern.get("required_parameter_effects", []) or []:
+            parameter_id = pattern_effect.get("parameter_id") if isinstance(pattern_effect, dict) else None
+            if not parameter_id or str(parameter_id) not in obligations:
+                continue
+            obligation = obligations[str(parameter_id)]
+            obligation["allowed_via"] = sorted(set(obligation.get("allowed_via", [])) | {point_id})
     effect_priority = {
         "pattern_count": 0,
         "pattern_spacing": 1,
@@ -488,6 +557,11 @@ def _function_manifest(
         ],
         "required_direct_parameters": [item["parameter_id"] for item in ordered],
         "allowed_derived_parameters": allowed_derived,
+        "required_inputs": sorted({
+            *selected,
+            *(str(pattern.get("point_parameter_id")) for pattern in owned_patterns if pattern.get("point_parameter_id")),
+        }),
+        "required_patterns": [str(pattern["pattern_id"]) for pattern in owned_patterns],
         "required_parameter_effects": ordered,
     }
 
@@ -553,7 +627,11 @@ def _effect_type(parameter_id: str, feature: dict[str, Any] | None) -> str:
     return "dimension"
 
 
-def _analyze(function: ast.FunctionDef) -> "_Analysis":
+def _analyze(
+    function: ast.FunctionDef,
+    *,
+    canonical_pattern_parameter_ids: set[str] | None = None,
+) -> "_Analysis":
     aliases: dict[str, set[str]] = {}
     assignments = [node for node in ast.walk(function) if isinstance(node, ast.Assign)]
     for _ in range(len(assignments) + 1):
@@ -580,6 +658,19 @@ def _analyze(function: ast.FunctionDef) -> "_Analysis":
                     analysis.geometry_literals.append(value)
                 if name in _PATTERN_METHODS:
                     analysis.pattern_dependencies.update(dependencies)
+                if name == "pushPoints" and node.args:
+                    argument = node.args[0]
+                    point_id, truncated = _pattern_argument(argument)
+                    canonical_ids = canonical_pattern_parameter_ids or set()
+                    if point_id in canonical_ids:
+                        if truncated:
+                            analysis.pattern_point_usage.setdefault(point_id, set()).add("truncated")
+                        else:
+                            analysis.pattern_point_usage.setdefault(point_id, set()).add("canonical")
+                    elif canonical_ids:
+                        analysis.pattern_point_overrides += 1
+                        for canonical_id in canonical_ids:
+                            analysis.pattern_point_usage.setdefault(canonical_id, set()).add("override")
             elif name == "range":
                 literal = _literal_int(node.args[0]) if node.args else None
                 analysis.ranges.append((dependencies, literal))
@@ -614,6 +705,31 @@ class _Analysis:
     ranges: list[tuple[set[str], int | None]] = field(default_factory=list)
     fixed_list_lengths: list[int] = field(default_factory=list)
     pattern_literals: list[float] = field(default_factory=list)
+    pattern_point_usage: dict[str, set[str]] = field(default_factory=dict)
+    pattern_point_overrides: int = 0
+
+
+def _params_subscript_id(node: ast.AST) -> str | None:
+    if not isinstance(node, ast.Subscript):
+        return None
+    if not isinstance(node.value, ast.Name) or node.value.id != "params":
+        return None
+    if isinstance(node.slice, ast.Constant) and isinstance(node.slice.value, str):
+        return node.slice.value
+    return None
+
+
+def _pattern_argument(node: ast.AST) -> tuple[str | None, bool]:
+    direct = _params_subscript_id(node)
+    if direct is not None:
+        return direct, False
+    if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Slice):
+        return _params_subscript_id(node.value), True
+    return None, False
+
+
+def _is_slice(node: ast.Subscript) -> bool:
+    return isinstance(node.slice, ast.Slice)
 
 
 def _has_effect(analysis: _Analysis, candidates: set[str], effect_type: str) -> bool:

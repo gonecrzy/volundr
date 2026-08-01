@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -76,6 +77,45 @@ def test_scaffold_owns_canonical_contract_and_build_entrypoint() -> None:
     assert "def build(params):" in rendered.source
     assert rendered.scaffold_hash
     validate_cadquery_source(rendered.source)
+
+
+def test_scaffold_owns_canonical_pattern_points_and_exposes_pattern_manifest() -> None:
+    plan = deepcopy(PLAN)
+    plan["parameters"].extend([
+        {"id": "mounting_screw_count", "label": "Screws", "value": 2, "unit": "count", "protected": True},
+        {"id": "screw_spacing_vertical", "label": "Screw spacing", "value": 81.0, "unit": "mm", "protected": True},
+        {"id": "mounting_hole_diameter", "label": "Hole diameter", "value": 4.2, "unit": "mm", "protected": True},
+    ])
+    plan["features"].append({
+        "id": "mounting_holes",
+        "component_id": "holder_body",
+        "type": "mounting_hole_group",
+        "description": "Wall mounting holes",
+        "parameters": ["mounting_screw_count", "screw_spacing_vertical", "mounting_hole_diameter"],
+    })
+    plan["components"][0]["features"].append("mounting_holes")
+    plan["patterns"] = [{
+        "pattern_id": "mounting_hole_pattern",
+        "owning_feature_id": "mounting_holes",
+        "owning_component_id": "holder_body",
+        "pattern_type": "linear",
+        "point_parameter_id": "mounting_hole_points",
+        "count_parameter_id": "mounting_screw_count",
+        "spacing_parameter_id": "screw_spacing_vertical",
+        "axis": "Z",
+        "centered": True,
+    }]
+    geometry = dict(GEOMETRY)
+    geometry["_ai_feature_mounting_holes"] = """
+def _ai_feature_mounting_holes(body, params):
+    return body.pushPoints(params["mounting_hole_points"]).hole(params["mounting_hole_diameter"])
+"""
+
+    rendered = render_cadquery_scaffold(plan, geometry)
+
+    assert "resolve_pattern_points" in rendered.source
+    assert 'mounting_hole_points' in rendered.source
+    assert rendered.pattern_manifest[0]["pattern_id"] == "mounting_hole_pattern"
 
 
 def test_geometry_payload_rejects_scaffold_edits_and_unknown_functions() -> None:

@@ -121,6 +121,7 @@ from app.services.cad.geometry_bodies import (
     assemble_geometry_bodies,
     build_geometry_function_inventory,
 )
+from app.services.cad.patterns import normalize_pattern_specs, validate_pattern_specs
 from app.services.cad.source_scaffold import (
     SCAFFOLD_VERSION,
     ScaffoldSourceError,
@@ -205,8 +206,8 @@ REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v2"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v2"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v3"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v3"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
@@ -3553,6 +3554,7 @@ class ProjectService:
                 "expected_geometry_functions": list(rendered.expected_geometry_functions),
                 "function_body_hashes": assembly.function_body_hashes,
                 "derived_parameter_manifest": rendered.derived_parameter_manifest,
+                "pattern_manifest": rendered.pattern_manifest,
                 "parameter_effect_manifest": rendered.parameter_effect_manifest,
                 "assembled_source_hash": self._sha256(rendered.source),
                 "role": role,
@@ -4527,6 +4529,8 @@ class ProjectService:
             normalized,
             design_specification_payload,
         )
+        normalized = normalize_pattern_specs(normalized)
+        validate_pattern_specs(normalized)
         outcome = self._derive_design_plan_outcome(normalized)
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = (

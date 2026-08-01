@@ -118,6 +118,7 @@ def build_cadquery_source_authority(
     authority["parameter_effect_contract"] = effect_contract
     authority["derived_parameter_manifest"] = list(effect_contract.get("derived_parameters", []))
     authority["parameter_effect_manifest"] = list(effect_contract.get("functions", []))
+    authority["pattern_manifest"] = list(effect_contract.get("patterns", []))
     findings = validate_cadquery_source_authority_inventory(authority)
     if findings:
         raise CadQuerySourceAuthorityError(findings)
@@ -308,6 +309,12 @@ def format_authoritative_identity_section(authority: dict[str, Any] | None) -> s
                 expected_solid_count=output.get("expected_solid_count"),
                 required=output.get("required", True),
             )
+        )
+    lines.append("Canonical repeated patterns:")
+    for pattern in authority.get("pattern_manifest", []) or []:
+        lines.append(
+            f"- {pattern.get('pattern_id')}: use params[{pattern.get('point_parameter_id')!r}] "
+            f"for {pattern.get('pattern_type')} points; provider must not replace or truncate it."
         )
     lines.extend(
         [
@@ -975,6 +982,7 @@ def _validate_parameter_effect_manifest(
             ast.unparse(node),
             manifest,
             derived_parameters=list(contract.get("derived_parameters", [])),
+            patterns=list(contract.get("patterns", [])),
         )
         for finding in effect_findings:
             finding.setdefault("title", "Geometry parameter effect contract violation")

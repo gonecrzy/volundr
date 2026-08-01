@@ -2,6 +2,13 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from volundr_cad.patterns import (
+    circular_pattern_points,
+    linear_pattern_points,
+    rectangular_pattern_points,
+    resolve_pattern_points,
+)
+
 ParameterType = Literal["float", "int", "bool", "str", "enum"]
 
 
@@ -118,6 +125,11 @@ class ParameterValues(dict[str, float | int | bool | str]):
             unknown = ", ".join(sorted(provided))
             raise ParameterValidationError(f"unknown parameter values: {unknown}")
         return validated
+
+    def with_derived_values(self, values: Mapping[str, Any]) -> "ParameterValues":
+        enriched = type(self)(self)
+        enriched.update(values)
+        return enriched
 
 
 @dataclass(frozen=True)
