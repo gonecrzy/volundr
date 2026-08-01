@@ -32,6 +32,16 @@ def test_chat_initial_request_auto_progresses_and_is_idempotent() -> None:
             assert len(summary["revisions"]) == 1
             assert summary["revisions"][0]["is_accepted"] is True
 
+            messages = client.get(f"/api/projects/{project['id']}/messages")
+            assert messages.status_code == 200
+            persisted = messages.json()
+            visible = [message for message in persisted if message["role"] != "system_event"]
+            assert [message["role"] for message in visible] == ["user", "assistant_success"]
+            assert visible[1]["content"] == body["assistant_message"]
+
+            after_duplicate = client.get(f"/api/projects/{project['id']}/messages").json()
+            assert after_duplicate == persisted
+
 
 def test_chat_clarification_resumes_without_an_approval_step() -> None:
     with TemporaryDirectory() as directory:

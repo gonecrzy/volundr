@@ -203,7 +203,27 @@ class ChatWorkflowService:
         intent = ChatIntentRouter(self.service).classify(project, payload.message)
         self._event(workflow_run, "chat.intent.classified", f"Intent classified as {intent.action}.", "intent_classified", metadata={"action": intent.action})
         response = await self._dispatch(project, workflow_run, intent, payload.message)
+        if response.revision_id:
+            user_message.revision_id = response.revision_id
+            duplicate_revision_message = self.db.scalar(
+                select(ProjectMessage)
+                .where(ProjectMessage.project_id == project.id)
+                .where(ProjectMessage.revision_id == response.revision_id)
+                .where(ProjectMessage.role == "user")
+                .where(ProjectMessage.content == payload.message.strip())
+                .where(ProjectMessage.id != user_message.id)
+            )
+            if duplicate_revision_message is not None:
+                self.db.delete(duplicate_revision_message)
         user_message.chat_response_json = response.model_dump_json()
+        self.db.add(
+            ProjectMessage(
+                project_id=project.id,
+                revision_id=response.revision_id or response.current_working_revision_id,
+                role=_assistant_message_role(response),
+                content=response.assistant_message,
+            )
+        )
         self.db.commit()
         return response
 
@@ -430,3 +450,14 @@ def _first_question(questions: list[Any]) -> str:
 def _project_name(message: str) -> str:
     words = re.sub(r"[^A-Za-z0-9 ]+", " ", message).split()
     return " ".join(words[:8]).title() or "Untitled design"
+
+
+def _assistant_message_role(response: ChatWorkflowResponse) -> str:
+    """Persist semantic chat roles without exposing internal workflow events."""
+    if response.blocked_attempt is not None or response.current_stage == "blocked_attempt":
+        return "assistant_blocked"
+    if response.input_required:
+        return "assistant_clarification"
+    if response.current_stage == "working_version":
+        return "assistant_success"
+    return "assistant_information"
