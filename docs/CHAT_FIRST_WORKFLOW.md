@@ -64,3 +64,9 @@ physical-test observations. A revision may regenerate the source completely;
 it never depends on the original source exposing a reusable parameter. Only an
 explicit request such as “Expose bottle diameter as an adjustable control”
 activates the strict source-effect contract for that control.
+
+Planning is invisible in normal chat. The backend chooses a direct brief,
+compact plan, or detailed plan from ledger and project semantics, then
+continues automatically through the same generation and validation lifecycle.
+Narrow revisions may use deterministic revision briefs; interacting or
+multipart changes retain provider-backed Revision Plans.

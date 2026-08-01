@@ -263,4 +263,10 @@ With `VITE_VOLUNDR_CHAT_FIRST=true`, the primary workflow is chat-first: describ
 The current workspace layout and responsive evidence are recorded in
 `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md`.
 
+Planning is proportional to semantic complexity: direct CAD briefs avoid an
+unnecessary planning-provider call for sufficiently specified simple parts,
+compact plans handle interacting single-part features, and detailed Design
+Plans remain available for multipart or assembly work. See
+`docs/PLANNING_DEPTH_MODEL.md` and `docs/AI_CAD_DIRECTION_ALIGNMENT.md`.
+
 Functional readiness is reported separately from CAD execution and printability. See `docs/FUNCTIONAL_DESIGN_INTENT.md` and `docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md` before treating a generated candidate as physically verified.

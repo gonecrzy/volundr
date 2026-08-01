@@ -121,6 +121,11 @@ For each issue, attach the scenario ID, workflow run ID, relevant frontend event
 
 ## Current testing status
 
+Observed UX testing uses deterministic fixtures for the five chat-first flows,
+including automatic planning, clarification, revisions, start-over, blocked
+attempts, and export. Live planning-depth cases are a separate design-quality
+track and are not used to judge whether users understand the chat workspace.
+
 The deterministic precondition is now the chat-first suite: explicit first
 draft, essential clarification, provider-free parameter change, automatic
 component revision, blocked-attempt recovery, stable project reopen/export,

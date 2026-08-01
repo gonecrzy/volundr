@@ -25,6 +25,12 @@ requirements remain coherent across long revision chains, physical-test
 feedback is retained, and failed or stale revisions cannot replace the Current
 working version.
 
+Planning-depth coverage verifies semantic route selection, direct briefs with
+zero planning-provider calls, compact-plan normalization, detailed-plan
+compatibility, immutable route/context/pack artifacts, stable context hashes,
+and deterministic narrow revision briefs. The three live planning cases remain
+separate from deterministic UX fixture evidence.
+
 The normal chat-first path automatically progresses validated requirements and
 plans, generates a first draft, and promotes only passing candidates. Approval
 button scenarios remain developer/staged-mode coverage behind the disabled

@@ -11,6 +11,12 @@ Date: 2026-08-01
 
 ## Current Chat Workspace Pass
 
+The chat-first shell remains route-agnostic in normal conversation. Planning
+depth and context-pack evidence are available only in Technical details; the
+user sees concise interpretation, progress, clarification, success, or blocked
+messages. Direct, compact, and detailed planning therefore do not create a
+second frontend lifecycle.
+
 The current flagged path is a full-height workspace with fixed Conversation,
 flexible Model, and compact Details regions. At 1000–1279px Details is a
 drawer; below 1000px the regions are tabs. The composer stays in the

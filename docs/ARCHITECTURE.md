@@ -464,6 +464,14 @@ The primary frontend renders a chat-first assistant journey. One chat operation 
 
 The pipeline separately evaluates source contract, execution, topology, printability, and physical-function compliance through the generic functional verifier registry.
 
+Planning depth is implemented inside this existing lifecycle. The backend
+persists route decisions, direct/compact/detailed plan artifacts, normalized
+GeometryExecutionContexts, and per-attempt prompt context packs through the
+WorkflowArtifact registry. `PlanningDepthRouter` uses requirement and project
+semantics rather than product names. All routes converge on the same geometry,
+worker, validation, Current working version, history, and export services; no
+parallel lifecycle engine exists.
+
 ## Durable Workspace And Export Boundary
 
 The database is authoritative for project identity, requirement and revision

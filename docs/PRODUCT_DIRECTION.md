@@ -178,4 +178,11 @@ These are not V1 requirements.
 
 ## User-Facing Workflow
 
+Every design remains revisionable through chat. Parametric controls are
+optional and explicitly requested. Planning depth is selected from requirement
+and project semantics: a deterministic direct brief for a sufficiently
+specified simple part, a compact plan for interacting features, and the
+existing detailed plan for multipart or assembly work. These are execution
+artifacts, not competing requirement stores.
+
 Volundr should guide a careful chat-first CAD-design conversation: describe the object, answer only essential fit/function/assembly questions, let Volundr automatically plan, generate, validate, and promote a passing Current working version, then explicitly export. Users must be able to distinguish values they supplied, Volundr proposals, and calculated values without reading pipeline terminology. Technical evidence belongs in secondary details and diagnostic bundles. See `docs/CHAT_FIRST_WORKFLOW.md`.

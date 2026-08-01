@@ -1,0 +1,41 @@
+# AI CAD Direction Alignment
+
+## Status
+
+- Conversation-first: Implemented
+- Requirement-ledger authority: Implemented
+- Indefinite chat revisionability: Implemented in this pass
+- Optional exposed controls: Implemented
+- Proportional planning depth: Implemented in this pass
+- Safe ordinary geometry reaching execution: Implemented in this pass
+- Deterministic evidence over source-style preference: Implemented
+- Advisory visual review: Planned next
+- Smallest-scope repairs: Planned next
+- Retrieval and assemblies: Later
+- Product shell, persistence, Current working version safety, and selected revision exports: Implemented
+
+## Normative direction
+
+Volundr is conversation-first and requirement-led. The active requirement ledger
+is authoritative; a brief, compact plan, detailed plan, source body, and prompt
+pack are immutable execution artifacts derived from it.
+
+Every design remains revisionable through chat. Parametric controls are optional
+and explicitly requested. A numeric requirement does not imply a reusable source
+parameter, and a design is not blocked merely because its implementation is not
+generalized for future values.
+
+Planning depth is proportional to semantic complexity: a deterministic direct
+brief for a sufficiently specified single part, a compact plan for interacting
+features, and the existing detailed plan for multipart or assembly relationships.
+All routes use the existing generation, worker, validation, candidate, history,
+and export lifecycle.
+
+Deterministic B-Rep, topology, artifact, and functional evidence outranks source
+style preferences. Qualitative behavior that cannot be proven from available
+geometry remains human-review or test-print evidence rather than a false pass.
+
+Visual review will initially be advisory. Retrieval, examples, and richer
+assemblies remain later phases. Unrestricted live user CAD-quality testing stays
+separate from deterministic UX fixture testing until the live evidence supports
+it.

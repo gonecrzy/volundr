@@ -447,6 +447,12 @@ Possible goals:
 
 ## Current workflow gate
 
+Planning depth is implemented in the existing workflow engine: direct briefs,
+compact plans, and detailed plans converge on one GeometryExecutionContext.
+Every design remains revisionable through chat; exposed controls remain
+optional and explicitly requested. The next quality gate is evidence from the
+three exact planning-depth live cases, not a new user-facing planning mode.
+
 The current product pass is the feature-flagged chat-first workflow, durable
 project/export path, and separate real-provider live diagnostics. Keep the
 staged/developer workflow only for diagnostic coverage. See

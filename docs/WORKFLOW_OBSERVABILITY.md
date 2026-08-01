@@ -319,6 +319,12 @@ The frontend uses fixed, typed workflow event names for request, review, progres
 
 Functional planning, source parameter-effect, feature implementation, and deterministic geometry findings are correlated evidence and do not replace earlier artifacts.
 
+Planning-depth evidence is also immutable workflow evidence: route decisions,
+missing-information records, direct/compact/detailed plan payloads, normalized
+GeometryExecutionContexts, and branch-specific prompt context packs are stored
+in the artifact registry. Attempt and workflow metadata may index their hashes
+and IDs but is not the authoritative copy.
+
 Chat-first progression records `chat.message.submitted`, `chat.intent.classified`,
 `clarification.requested`, `clarification.answered`, `requirements.progressed`,
 `design_plan.progressed`, `generation.started`, `parameter_update.routed`,

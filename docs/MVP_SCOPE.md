@@ -158,6 +158,11 @@ For the user-facing V1 workflow, this means describe -> clarify only essential d
 
 The MVP reports conservative functional checks but does not certify loads, materials, friction, arbitrary motion, or one-handed usability. Chat-first automatic progression is the normal flagged path; blocked attempts never replace the Current working version. Export remains explicit.
 
+Planning is proportional to complexity and remains invisible in normal chat.
+Every design remains revisionable; parametric controls are optional and
+explicitly requested. Direct briefs, compact plans, and detailed Design Plans
+are derived artifacts within the same lifecycle.
+
 The normal flagged frontend is a persistent chat-first workspace with
 Conversation, Model, and Details surfaces that adapt across desktop, drawer,
 and mobile-tab layouts. Every design remains revisionable through chat;
