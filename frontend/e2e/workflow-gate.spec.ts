@@ -29,7 +29,7 @@ test("explicit part auto-creates a Current working version and keeps export expl
     page.waitForEvent("download"),
     page.getByRole("link", { name: "Export design" }).click(),
   ]);
-  expect((await exportDownload[0].suggestedFilename())).toBe("volundr-project.zip");
+  expect((await exportDownload[0].suggestedFilename())).toMatch(/^[a-z0-9-]+_project_r1\.zip$/);
   await expect.poll(async () => page.evaluate(async () =>
     fetch("/api/test-fixture/latest-summary").then((response) => response.json()),
   )).toMatchObject({

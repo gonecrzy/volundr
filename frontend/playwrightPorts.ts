@@ -14,14 +14,24 @@ export function resolvePlaywrightPorts(apiEnv: string, webEnv: string): Playwrig
   const scriptPath = fileURLToPath(new URL("./scripts/live-harness.mjs", import.meta.url));
   const configuredApiPort = process.env[apiEnv] ?? "0";
   const configuredWebPort = process.env[webEnv] ?? "0";
+  const mode = process.env.VOLUNDR_RUN_LIVE_E2E === "true"
+    ? "live"
+    : (process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true").toLowerCase() === "false"
+      ? "staged"
+      : "chat-first";
   const filePath = process.env.VOLUNDR_PLAYWRIGHT_PORT_FILE ?? join(
     tmpdir(),
-    `volundr-playwright-ports-${apiEnv}-${webEnv}.json`,
+    `volundr-playwright-ports-${apiEnv}-${webEnv}-${mode}.json`,
   );
   try {
     if (configuredApiPort !== "0" || configuredWebPort !== "0") {
       return runPortHelper(process.execPath, scriptPath, configuredApiPort, configuredWebPort);
     }
+
+    // Playwright evaluates this config in both its coordinator and worker
+    // processes. Persist only the dynamically allocated pair so both observe
+    // the same ports, but keep deterministic, staged, and live suites in
+    // separate files so they cannot accidentally share a server.
     if (existsSync(filePath)) {
       try {
         const saved = JSON.parse(readFileSync(filePath, "utf8")) as PlaywrightPorts & { ownerPid?: number };
@@ -33,7 +43,8 @@ export function resolvePlaywrightPorts(apiEnv: string, webEnv: string): Playwrig
         writeFileSync(filePath, `${JSON.stringify(owned)}\n`, { mode: 0o600 });
         return owned;
       } catch {
-        // A stale or occupied saved pair is never reused; allocate a new pair.
+        // The saved pair is stale or occupied. Allocate a new pair rather
+        // than reusing an unrelated running server.
       }
     }
     const ports = runPortHelper(process.execPath, scriptPath, "0", "0");

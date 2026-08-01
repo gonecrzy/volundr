@@ -32,4 +32,13 @@ test("ordinary feedback revisions remain available before and after an exposed c
   await page.getByLabel("AI chat message").fill("Change plate width to 90 mm.");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+
+  const project = await page.request.get(`/api/projects/${projectId}`).then((response) => response.json());
+  expect(project.active_revision_id).toBeTruthy();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+  await page.goto(`/projects/${projectId}`);
+  await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
+  await page.getByRole("button", { name: "Projects" }).click();
+  await expect(page.getByRole("button", { name: new RegExp(project.name) })).toBeVisible();
 });

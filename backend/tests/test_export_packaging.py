@@ -115,3 +115,26 @@ def test_blocked_revision_cannot_be_exported_as_a_successful_design(tmp_path: Pa
     assert "successful" in response.json()["detail"].lower()
     assert client.get(f"/api/projects/{project['id']}").json()["active_revision_id"] == revision["id"]
 
+
+def test_repeating_the_same_export_is_idempotent_and_cross_project_selection_is_rejected(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    project, revision = _revision(client)
+    other_project, _ = _revision(client)
+
+    first = client.post(
+        f"/api/projects/{project['id']}/exports",
+        json={"export_type": "project_package", "revision_id": revision["id"]},
+    )
+    second = client.post(
+        f"/api/projects/{project['id']}/exports",
+        json={"export_type": "project_package", "revision_id": revision["id"]},
+    )
+    cross_project = client.post(
+        f"/api/projects/{other_project['id']}/exports",
+        json={"export_type": "project_package", "revision_id": revision["id"]},
+    )
+    assert first.status_code == 201
+    assert second.status_code in {200, 201}
+    assert second.json()["id"] == first.json()["id"]
+    assert len(client.get(f"/api/projects/{project['id']}/exports").json()) == 1
+    assert cross_project.status_code == 404

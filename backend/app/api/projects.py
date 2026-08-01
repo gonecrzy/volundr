@@ -34,6 +34,7 @@ from app.schemas.project import (
     ManualRevisionCreate,
     GenerationCreate,
     ProjectCreate,
+    ProjectLibraryRead,
     ProjectMessageRead,
     ProjectRead,
     ProjectWorkspaceRead,
@@ -117,13 +118,13 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
     return service.create_project(payload)
 
 
-@router.get("/projects", response_model=list[ProjectRead])
+@router.get("/projects", response_model=list[ProjectLibraryRead])
 def list_projects(
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
 ) -> list[ProjectRead]:
     service = ProjectService(db=db, data_dir=data_dir)
-    return service.list_projects()
+    return service.list_project_library()
 
 
 @router.get("/printability-profiles", response_model=list[SavedPrintabilityProfileRead])

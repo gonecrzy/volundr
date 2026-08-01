@@ -77,6 +77,7 @@ from app.schemas.project import (
     ManualRevisionCreate,
     MeshMetadataRead,
     ProjectCreate,
+    ProjectLibraryRead,
     ProjectMessageRead,
     ProjectWorkspaceRead,
     ProjectSave,
@@ -327,6 +328,71 @@ class ProjectService:
                 .order_by(Project.created_at.desc())
             )
         )
+
+    def list_project_library(self) -> list[ProjectLibraryRead]:
+        projects = self.list_projects()
+        results: list[ProjectLibraryRead] = []
+        for project in projects:
+            revisions = list(
+                self.db.scalars(
+                    select(Revision)
+                    .where(Revision.project_id == project.id)
+                    .order_by(Revision.revision_number.desc())
+                )
+            )
+            latest = revisions[0] if revisions else None
+            current = self.db.get(Revision, project.active_revision_id) if project.active_revision_id else None
+            active_workflow = self.db.scalar(
+                select(WorkflowRun)
+                .where(WorkflowRun.project_id == project.id)
+                .where(WorkflowRun.status == "running")
+                .order_by(WorkflowRun.updated_at.desc())
+            )
+            count_revision = current or latest
+            part_count = (
+                int(
+                    self.db.scalar(
+                        select(func.count(RevisionOutput.id)).where(RevisionOutput.revision_id == count_revision.id)
+                    )
+                    or 0
+                )
+                if count_revision is not None
+                else 0
+            )
+            warning_count = (
+                int(
+                    self.db.scalar(
+                        select(func.count(ValidationFinding.id))
+                        .where(ValidationFinding.revision_id == count_revision.id)
+                        .where(ValidationFinding.is_blocking.is_(False))
+                        .where(ValidationFinding.finding_state == "open")
+                    )
+                    or 0
+                )
+                if count_revision is not None
+                else 0
+            )
+            results.append(
+                ProjectLibraryRead(
+                    **{
+                        "id": project.id,
+                        "name": project.name,
+                        "slug": project.slug,
+                        "original_intent": project.original_intent,
+                        "status": project.status,
+                        "active_revision_id": project.active_revision_id,
+                        "created_at": project.created_at,
+                        "updated_at": project.updated_at,
+                        "archived_at": project.archived_at,
+                        "latest_revision_id": latest.id if latest else None,
+                        "active_workflow_status": active_workflow.status if active_workflow else None,
+                        "printable_part_count": part_count,
+                        "unresolved_warning_count": warning_count,
+                        "preview_revision_id": (current or latest).id if (current or latest) else None,
+                    },
+                )
+            )
+        return results
 
     def cleanup_expired_projects(self) -> int:
         return self.cleanup_expired_drafts() + self.cleanup_expired_archived_projects()

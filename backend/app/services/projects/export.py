@@ -55,6 +55,7 @@ class ExportService:
         self._require_exportable_revision(revision)
         outputs = self._successful_outputs(revision)
         selected_outputs = self._select_outputs(outputs, export_type=export_type, output_id=output_id)
+        filename = self._filename(project, revision, export_type, selected_outputs)
         selection_hash = self._selection_hash(project, revision, export_type, selected_outputs)
         previous = self.db.scalar(
             select(ExportRecord)
@@ -64,10 +65,22 @@ class ExportService:
             .where(ExportRecord.status == "completed")
             .order_by(ExportRecord.created_at.desc())
         )
+        if previous is None:
+            # The filename is itself deterministic for a project/revision/
+            # selection. Keep duplicate submissions idempotent even when an
+            # older record was created before selection-hash metadata was
+            # normalized.
+            previous = self.db.scalar(
+                select(ExportRecord)
+                .where(ExportRecord.project_id == project_id)
+                .where(ExportRecord.revision_id == revision.id)
+                .where(ExportRecord.filename == filename)
+                .where(ExportRecord.status == "completed")
+                .order_by(ExportRecord.created_at.desc())
+            )
         if previous is not None and previous.output_path and self._resolve(previous.output_path).is_file():
             return previous
 
-        filename = self._filename(project, revision, export_type, selected_outputs)
         record = ExportRecord(
             project_id=project_id,
             revision_id=revision.id,

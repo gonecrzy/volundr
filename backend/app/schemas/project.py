@@ -112,6 +112,14 @@ class ProjectRead(BaseModel):
     archived_at: datetime | None
 
 
+class ProjectLibraryRead(ProjectRead):
+    latest_revision_id: str | None = None
+    active_workflow_status: str | None = None
+    printable_part_count: int = 0
+    unresolved_warning_count: int = 0
+    preview_revision_id: str | None = None
+
+
 class GenerationAttemptEvidenceRead(BaseModel):
     """Safe provider-attempt metadata for diagnostics and live workflow tests."""
 

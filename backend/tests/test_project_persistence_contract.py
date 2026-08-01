@@ -114,3 +114,23 @@ def test_workspace_reports_missing_registered_artifacts_instead_of_downloadable_
     assert workspace["artifact_integrity"]["status"] == "missing"
     assert workspace["artifact_integrity"]["missing_count"] == 1
     assert "body.stl" in workspace["artifact_integrity"]["missing_paths"][0]
+
+
+def test_project_library_exposes_reopenable_current_version_summary(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={"name": "Library bracket", "original_intent": "Make a bracket."},
+    ).json()
+    revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={"source": CADQUERY_MANUAL_SOURCE, "user_instruction": "Initial version."},
+    ).json()
+
+    response = client.get("/api/projects")
+
+    assert response.status_code == 200
+    entry = next(item for item in response.json() if item["id"] == project["id"])
+    assert entry["latest_revision_id"] == revision["id"]
+    assert entry["preview_revision_id"] == revision["id"]
+    assert entry["printable_part_count"] == 1

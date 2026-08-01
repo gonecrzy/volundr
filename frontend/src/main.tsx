@@ -87,6 +87,7 @@ import {
   type WorkflowCorrelation,
 } from "./workflowTelemetry";
 import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
+import { projectIdFromPath, projectPath, saveStatusLabel, type SaveStatus } from "./projectPersistence";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -117,9 +118,18 @@ const STAGED_WORKFLOW_ENABLED = ADVANCED_WORKFLOW_ENABLED && !CHAT_FIRST_ENABLED
 type Project = {
   id: string;
   name: string;
+  slug?: string;
   original_intent: string;
   status: string;
   active_revision_id: string | null;
+  created_at?: string;
+  updated_at?: string;
+  archived_at?: string | null;
+  latest_revision_id?: string | null;
+  active_workflow_status?: string | null;
+  printable_part_count?: number;
+  unresolved_warning_count?: number;
+  preview_revision_id?: string | null;
 };
 
 type ProjectMessage = {
@@ -168,6 +178,34 @@ type ChatWorkflowResponse = {
   design_plan_id: string | null;
   revision_plan_id: string | null;
   configuration_change_id: string | null;
+  active_requirements?: Array<Record<string, unknown>>;
+};
+
+type Workspace = {
+  project: Project;
+  messages: ProjectMessage[];
+  revisions: Revision[];
+  active_requirements: Array<Record<string, unknown>>;
+  current_working_revision_id: string | null;
+  active_workflow: Record<string, unknown> | null;
+  artifact_integrity: {
+    status?: string;
+    checked_count?: number;
+    missing_count?: number;
+    missing_paths?: string[];
+  };
+};
+
+type ExportRecord = {
+  id: string;
+  project_id: string;
+  revision_id: string;
+  export_type: string;
+  status: string;
+  filename: string;
+  warnings: string[];
+  sha256: string | null;
+  size_bytes: number | null;
 };
 
 type MeshMetadata = {
@@ -600,12 +638,18 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [projectMessages, setProjectMessages] = useState<ProjectMessage[]>([]);
+  const [activeRequirements, setActiveRequirements] = useState<Array<Record<string, unknown>>>([]);
+  const [activeWorkflow, setActiveWorkflow] = useState<Record<string, unknown> | null>(null);
+  const [artifactIntegrity, setArtifactIntegrity] = useState<Workspace["artifact_integrity"]>({});
   const [generationAttempts, setGenerationAttempts] = useState<GenerationAttemptEvidence[]>([]);
   const [chatWorkflow, setChatWorkflow] = useState<ChatWorkflowResponse | null>(null);
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingProject, setIsSavingProject] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [exportRecord, setExportRecord] = useState<ExportRecord | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState<string | null>(null);
@@ -686,7 +730,6 @@ function App() {
       : null;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
-  const exportUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/export.zip` : null;
   const diagnosticBundleUrl = workflowCorrelation.workflowRunId
     ? `${API_BASE}/workflow-runs/${workflowCorrelation.workflowRunId}/debug-bundle.zip`
     : null;
@@ -758,8 +801,29 @@ function App() {
     canGenerateConfiguration(configurationPreview) && !isGeneratingConfiguration;
 
   useEffect(() => {
-    void refreshProjects();
+    const routeProjectId = projectIdFromPath(window.location.pathname);
+    if (routeProjectId) {
+      void loadWorkspace(routeProjectId).catch(() => {
+        setMessage("Project could not be reopened from the server");
+        window.history.replaceState({}, "", "/");
+        void refreshProjects();
+      });
+    } else {
+      void refreshProjects();
+    }
     void refreshPrintabilityProfiles();
+
+    const onPopState = () => {
+      const nextProjectId = projectIdFromPath(window.location.pathname);
+      if (nextProjectId) {
+        void loadWorkspace(nextProjectId).catch(() => setMessage("Project could not be reopened from the server"));
+      } else {
+        resetWorkspaceState();
+        void refreshProjects();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {
@@ -868,6 +932,36 @@ function App() {
     } catch {
       setSavedPrintabilityProfiles([]);
     }
+  }
+
+  function resetWorkspaceState() {
+    setProject(null);
+    setProjectName("");
+    setIntent("");
+    setInstruction("");
+    setGenerationPrompt("");
+    setSource("");
+    setRevisions([]);
+    setProjectMessages([]);
+    setActiveRequirements([]);
+    setActiveWorkflow(null);
+    setArtifactIntegrity({});
+    setChatWorkflow(null);
+    setSelectedRevision(null);
+    setCandidateFindings([]);
+    setGeometricAnalysis(null);
+    setRevisionOutputs([]);
+    setSelectedOutputId(null);
+    setExportRecord(null);
+    setPrintabilityReport(null);
+    setDismissedPrintabilityResults(new Set());
+    setCompileLog(null);
+    setAiOutput(null);
+    setRevisionDiff(null);
+    setSaveStatus("idle");
+    resetRequirementState();
+    resetRevisionPlanState();
+    resetConfigurationState();
   }
 
   function resetRequirementState() {
@@ -1005,6 +1099,7 @@ function App() {
       return;
     }
     setIsSavingProject(true);
+    setSaveStatus("saving");
     setMessage(null);
     try {
       const updatedProject = await request<Project>(`/projects/${project.id}${isDraftProject ? "/save" : ""}`, {
@@ -1023,8 +1118,10 @@ function App() {
         return current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry));
       });
       setMessage("Project saved");
+      setSaveStatus("saved");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Project save failed");
+      setSaveStatus("failed");
     } finally {
       setIsSavingProject(false);
     }
@@ -1233,6 +1330,7 @@ function App() {
       const currentProject = project ?? (await createDraftProject());
       if (!project || project.id !== currentProject.id) {
         setProject(currentProject);
+        window.history.replaceState({}, "", projectPath(currentProject.id));
       }
       const result = await request<ChatWorkflowResponse>(`/projects/${currentProject.id}/chat`, {
         method: "POST",
@@ -1245,10 +1343,13 @@ function App() {
         return;
       }
       setChatWorkflow(result);
+      setActiveRequirements(result.active_requirements ?? []);
+      setActiveWorkflow(result.active_generation_run);
       await recordFrontendWorkflowEvent(currentProject.id, "chat_message_submitted", "conversation", { action: result.action });
       setMessage(result.assistant_message);
       const refreshedProject = await request<Project>(`/projects/${currentProject.id}`, { method: "GET" });
       setProject(refreshedProject);
+      setSaveStatus("saved");
       setProjectName(refreshedProject.name);
       setIntent(refreshedProject.original_intent);
       await loadCurrentDesignSpecification(refreshedProject.id);
@@ -1793,26 +1894,81 @@ function App() {
     });
   }
 
-  async function selectProject(nextProject: Project) {
-    setIsProjectDrawerOpen(false);
-    const loadedProject = await request<Project>(`/projects/${nextProject.id}`, { method: "GET" });
+  async function loadWorkspace(projectId: string) {
+    let workspace: Workspace;
+    try {
+      workspace = await request<Workspace>(`/projects/${encodeURIComponent(projectId)}/workspace`, {
+        method: "GET",
+      });
+    } catch (error) {
+      // The staged developer UI remains available while its older fixtures
+      // are migrated to the aggregate workspace endpoint. The normal
+      // chat-first path never falls back from a failed authoritative load.
+      if (CHAT_FIRST_ENABLED) {
+        throw error;
+      }
+      const [legacyProject, legacyMessages, legacyRevisions] = await Promise.all([
+        request<Project>(`/projects/${encodeURIComponent(projectId)}`, { method: "GET" }),
+        request<ProjectMessage[]>(`/projects/${encodeURIComponent(projectId)}/messages`, { method: "GET" }),
+        request<Revision[]>(`/projects/${encodeURIComponent(projectId)}/revisions`, { method: "GET" }),
+      ]);
+      workspace = {
+        project: legacyProject,
+        messages: legacyMessages,
+        revisions: legacyRevisions,
+        active_requirements: [],
+        current_working_revision_id: legacyProject.active_revision_id,
+        active_workflow: null,
+        artifact_integrity: {},
+      };
+    }
+    const loadedProject = workspace.project;
     setProject(loadedProject);
+    setProjects((current) => {
+      const existing = current.some((entry) => entry.id === loadedProject.id);
+      return existing
+        ? current.map((entry) => (entry.id === loadedProject.id ? loadedProject : entry))
+        : [loadedProject, ...current];
+    });
     setProjectName(loadedProject.name);
     setIntent(loadedProject.original_intent);
+    setProjectMessages(workspace.messages);
+    setActiveRequirements(workspace.active_requirements);
+    setActiveWorkflow(workspace.active_workflow);
+    setArtifactIntegrity(workspace.artifact_integrity);
+    setRevisions(workspace.revisions);
+    setChatWorkflow(workspace.active_workflow ? {
+      workflow_run_id: String(workspace.active_workflow.id ?? ""),
+      action: "reconnect",
+      current_stage: String(workspace.active_workflow.status ?? "running"),
+      input_required: false,
+      assistant_message: "Reconnected to the saved workflow.",
+      current_working_revision_id: workspace.current_working_revision_id,
+      active_generation_run: workspace.active_workflow,
+      blocked_attempt: null,
+      revision_id: null,
+      design_specification_id: null,
+      design_plan_id: null,
+      revision_plan_id: null,
+      configuration_change_id: null,
+    } : null);
     await loadCurrentDesignSpecification(loadedProject.id);
     await loadCurrentRevisionPlan(loadedProject.id);
-    await loadProjectMessages(loadedProject.id);
-    const nextRevisions = await request<Revision[]>(`/projects/${loadedProject.id}/revisions`, {
-      method: "GET",
-    });
-    setRevisions(nextRevisions);
-    const activeRevision =
-      nextRevisions.find((revision) => revision.id === loadedProject.active_revision_id) ??
-      nextRevisions.at(-1) ??
-      null;
+    const activeRevision = workspace.revisions.find((revision) => revision.id === workspace.current_working_revision_id)
+      ?? workspace.revisions.find((revision) => revision.id === loadedProject.active_revision_id)
+      ?? workspace.revisions.at(-1)
+      ?? null;
     setSelectedRevision(activeRevision);
     if (activeRevision) {
       await selectRevision(activeRevision);
+      try {
+        const exports = await request<ExportRecord[]>(`/projects/${loadedProject.id}/exports`, { method: "GET" });
+        setExportRecord(
+          exports.find((entry) => entry.revision_id === activeRevision.id && entry.export_type === "project_package" && entry.status === "completed") ?? null,
+        );
+      } catch {
+        setExportRecord(null);
+      }
     } else {
       setCandidateFindings([]);
       setGeometricAnalysis(null);
@@ -1823,6 +1979,47 @@ function App() {
       setCompileLog(null);
       setAiOutput(null);
       setRevisionDiff(null);
+      setExportRecord(null);
+    }
+    setSaveStatus("saved");
+  }
+
+  async function selectProject(nextProject: Project) {
+    setIsProjectDrawerOpen(false);
+    window.history.pushState({}, "", projectPath(nextProject.id));
+    await loadWorkspace(nextProject.id);
+  }
+
+  async function exportSelectedRevision() {
+    if (!project || !selectedRevision || !["accepted", "ready", "ready_with_warnings"].includes(selectedRevision.review_state ?? "")) {
+      setMessage("Choose a successful version before exporting");
+      return;
+    }
+    setIsExporting(true);
+    setMessage("Preparing printable files");
+    try {
+      const record = await request<ExportRecord>(`/projects/${project.id}/exports`, {
+        method: "POST",
+        body: JSON.stringify({ export_type: "project_package", revision_id: selectedRevision.id }),
+      });
+      setExportRecord(record);
+      await recordFrontendWorkflowEvent(project.id, "export_requested", "export", {
+        revision_id: selectedRevision.id,
+        export_id: record.id,
+      });
+      setMessage(record.warnings.length > 0 ? "Export ready with warnings" : "Export ready");
+      window.location.assign(`${API_BASE}/exports/${record.id}/download`);
+    } catch (error) {
+      if (error instanceof Error && /not found|404/i.test(error.message)) {
+        // Deterministic staged fixtures from older harness revisions expose
+        // the legacy backend-owned package route. Production uses the
+        // persisted ExportRecord path above.
+        window.location.assign(`${API_BASE}/revisions/${selectedRevision.id}/export.zip`);
+        return;
+      }
+      setMessage(error instanceof Error ? error.message : "Export could not be prepared");
+    } finally {
+      setIsExporting(false);
     }
   }
 
@@ -2252,25 +2449,8 @@ function App() {
   }
 
   function startNewProject() {
-    setProject(null);
-    setProjectName("");
-    setIntent("");
-    setInstruction("");
-    setGenerationPrompt("");
-    setSource("");
-    setRevisions([]);
-    setProjectMessages([]);
-    setSelectedRevision(null);
-    setCandidateFindings([]);
-    setGeometricAnalysis(null);
-    setCompileLog(null);
-    setAiOutput(null);
-    setRevisionDiff(null);
-    setPrintabilityReport(null);
-    setDismissedPrintabilityResults(new Set());
-    resetRequirementState();
-    resetRevisionPlanState();
-    resetConfigurationState();
+    window.history.pushState({}, "", "/");
+    resetWorkspaceState();
     setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
   }
@@ -2292,13 +2472,18 @@ function App() {
           </div>
         </div>
         <div className="topbar-actions">
-          {exportUrl && selectedRevision?.output_manifest_path ? (
-            <a className="download compact-action" href={exportUrl} onClick={() => {
-              void recordFrontendWorkflowEvent(project?.id, "export_requested", "export", {
-                revision_id: selectedRevision.id,
-              });
-            }}>
-              Export design
+          {project ? <span className="save-state" aria-label="Save status">{saveStatusLabel(saveStatus)}</span> : null}
+          {selectedRevision && selectedRevision.review_state !== "blocked" ? (
+            <a
+              className="download compact-action"
+              href="#"
+              aria-disabled={isExporting}
+              onClick={(event) => {
+                event.preventDefault();
+                if (!isExporting) void exportSelectedRevision();
+              }}
+            >
+              {isExporting ? "Preparing export" : "Export design"}
             </a>
           ) : null}
         </div>
@@ -2327,7 +2512,13 @@ function App() {
                   key={entry.id}
                   onClick={() => void selectProject(entry)}
                 >
-                  {entry.name}
+                  <span>{entry.name}</span>
+                  <small>
+                    {entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : "Saved project"}
+                    {entry.active_revision_id ? " · Current working version" : " · No working version"}
+                    {entry.printable_part_count ? ` · ${entry.printable_part_count} printable part${entry.printable_part_count === 1 ? "" : "s"}` : ""}
+                    {entry.unresolved_warning_count ? ` · ${entry.unresolved_warning_count} warning${entry.unresolved_warning_count === 1 ? "" : "s"}` : ""}
+                  </small>
                 </button>
               ))}
             </div>
@@ -2402,6 +2593,27 @@ function App() {
             </label>
             {project && isDraftProject && !hasProjectName ? (
               <p className="empty">Name this draft when you want it to appear in Projects.</p>
+            ) : null}
+          </section>
+
+          <section className="project-card compact-summary" aria-label="Saved project summary">
+            <div className="section-heading">
+              <h2>Your requirements</h2>
+              {activeWorkflow ? <span className="status-chip">Workflow {String(activeWorkflow.status ?? "saved")}</span> : null}
+            </div>
+            {activeRequirements.length > 0 ? (
+              <ul>
+                {activeRequirements.slice(0, 8).map((requirement, index) => (
+                  <li key={String(requirement.requirement_id ?? index)}>
+                    {String(requirement.description ?? requirement.label ?? requirement.requirement_id ?? "Active requirement")}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty">Requirements will appear here after the first request.</p>
+            )}
+            {artifactIntegrity.status === "missing" ? (
+              <p className="warning">Some saved artifacts need attention before download.</p>
             ) : null}
           </section>
 
