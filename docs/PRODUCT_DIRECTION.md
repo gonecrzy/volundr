@@ -26,6 +26,10 @@ It combines:
 - direct source editing
 - local project storage
 
+The normal interaction surface is a persistent chat-first workspace. Every
+design remains revisionable through chat; parametric controls are optional and
+explicitly requested.
+
 Volundr should feel like a focused workshop for producing useful parts, not a general-purpose AI chatbot with a model viewer attached.
 
 ## Product Goal

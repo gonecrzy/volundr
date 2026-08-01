@@ -30,6 +30,15 @@ plans, generates a first draft, and promotes only passing candidates. Approval
 button scenarios remain developer/staged-mode coverage behind the disabled
 chat-first flag; they are not the ordinary product workflow.
 
+### Chat workspace
+
+Test the persistent conversation, semantic assistant outcomes, optimistic
+submission/retry behavior, exact connection-error copy, empty state, current
+version preservation, historical selection, explicit export drawer, and
+responsive desktop/drawer/tab layouts. Run chat-first and staged Playwright
+suites independently. Use deterministic fixtures for UX evaluation and keep
+real-provider/CadQuery live quality runs opt-in and separate.
+
 ### Persistence and export
 
 Test:

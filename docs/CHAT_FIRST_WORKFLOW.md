@@ -37,6 +37,14 @@ diagnostic workflows can be maintained during rollout. After deterministic
 chat-first and live gates pass, remove the staged user-facing controls and
 retain only their internal service contracts and diagnostic tests.
 
+The chat-first presentation is a persistent three-region workspace: the
+conversation is the normal control surface, the viewer shows the current or
+selected version, and the inspector keeps requirements, proposals, checks,
+printable parts, history, and technical evidence visible without making
+approval controls part of the normal path. At narrower widths the inspector
+becomes a drawer or Details tab. See
+`docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` for the current evidence.
+
 ## Persistence And Export
 
 Project URLs use `/projects/{project_id}` and reload from the backend workspace

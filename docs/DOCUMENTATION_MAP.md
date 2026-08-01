@@ -29,6 +29,7 @@ This file explains exactly what belongs in each project document.
 | `docs/ENVIRONMENT_VARIABLES.md` | Backend, frontend, provider, E2E, and deployment environment configuration. |
 | `docs/FRONTEND_WORKFLOW_AUDIT.md` | Repository-grounded assessment of the user-facing workflow, terminology, state mapping, recovery, responsiveness, accessibility, and priority corrections. |
 | `docs/FRONTEND_USER_TESTING_PLAN.md` | Five observed-user scenarios, measures, correlated events, preserved diagnostic evidence, and post-task questions. |
+| `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` | Current chat-first workspace layout, conversation semantics, reconnect behavior, responsive evidence, screenshots, tests, and UX/live-track separation. |
 | `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md` | Exact real-provider requirement-led revision sequence, worker evidence, compliance, and limitations. |
 | `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |

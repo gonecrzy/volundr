@@ -2,6 +2,13 @@
 
 This document is the authority for Volundr workflow tracing, event schema, stage vocabulary, diagnostic bundles, and deterministic first-failure diagnosis.
 
+The normal chat workspace is a presentation of the same authoritative records,
+not a second lifecycle. It correlates chat submission, intent routing,
+clarification, automatic progression, generation, working-version promotion,
+blocked-attempt preservation, start-over, and export events with the existing
+workflow run. User-facing chat hides internal system events while technical
+details and debug bundles retain them.
+
 ## Workflow Runs
 
 Chat progression events also record whether a transition was automatic,

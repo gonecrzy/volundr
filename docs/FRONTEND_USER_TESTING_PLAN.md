@@ -7,6 +7,12 @@ revisionable through chat, while parametric controls are optional and only
 appear after an explicit request. Live CAD design quality is a separate track
 and is not a substitute UX fixture.
 
+The normal workspace is Conversation / Model / Details rather than a floating
+chat or permanent project form. Participants should use chat for the initial
+request, essential clarification, ordinary revisions, start-over, and export;
+the inspector is for current requirements, proposals, checks, printable parts,
+history, and secondary technical details.
+
 ## Protocol
 
 Use an isolated test or benchmark project for each session. Open Volundr with `?testScenario=<scenario-id>` so the correlated frontend trace is marked as a testing session. Preserve the workflow run ID, frontend event trace, diagnosis, stage trace, and redacted diagnostic bundle after every scenario.

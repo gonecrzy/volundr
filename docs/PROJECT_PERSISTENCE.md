@@ -29,6 +29,11 @@ Current working version.
 The workspace response reports registered output files that are missing from
 durable storage. Missing files are not presented as downloadable artifacts.
 
+The chat-first frontend renders the persisted message ledger from this
+workspace aggregate. Chat submission writes the user message and semantic
+assistant response, while system events remain technical evidence. Reload and
+retry therefore use backend records rather than optimistic browser state.
+
 ## Deployment expectation
 
 The Compose deployment mounts `VOLUNDR_DATA_DIR` at `/app/data`; this contains

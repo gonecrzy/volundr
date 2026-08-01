@@ -9,6 +9,12 @@ OpenCascade B-Rep topology validation, STEP as the primary geometry artifact,
 STL as the derived print/preview artifact, Gemini API as the primary runtime AI
 provider, and a staged Design Specification and Design Plan workflow.
 
+The normal flagged frontend is a persistent chat-first workspace with a
+conversation column, viewer, and compact inspector. See
+`docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` for responsive and usability
+evidence. Every design remains revisionable through chat; parametric controls
+are optional and explicitly requested.
+
 ## Status
 
 The current checkout is CadQuery-primary for product CAD generation and
@@ -253,5 +259,8 @@ data/projects/<project-id>/revisions/<revision-id>/
 ## Design Workflow And Diagnostics
 
 With `VITE_VOLUNDR_CHAT_FIRST=true`, the primary workflow is chat-first: describe, clarify only essential details, automatically create and validate a first version, revise through chat, and explicitly export. Technical source/build evidence is secondary. Open **Technical details** in the workspace to download a secret-redacted diagnostic bundle. See `docs/CHAT_FIRST_WORKFLOW.md`, `docs/FRONTEND_WORKFLOW_AUDIT.md`, `docs/FRONTEND_USER_TESTING_PLAN.md`, and `docs/WORKFLOW_OBSERVABILITY.md`.
+
+The current workspace layout and responsive evidence are recorded in
+`docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md`.
 
 Functional readiness is reported separately from CAD execution and printability. See `docs/FUNCTIONAL_DESIGN_INTENT.md` and `docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md` before treating a generated candidate as physically verified.

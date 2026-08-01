@@ -54,3 +54,8 @@ writer with named multi-object placement before it should be advertised.
 
 Repeated requests for the same project, revision, export type, and component
 selection reuse a completed registered export when its file still exists.
+
+The chat-first workspace keeps export explicit: the top-bar Export action and
+export drawer are disabled until a successful accepted revision is selected.
+The drawer supports STL, STEP, and complete project package actions through
+the existing backend export records.

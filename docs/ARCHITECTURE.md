@@ -15,7 +15,8 @@ superseded where they conflict with the CadQuery backend document.
 │ Browser                                       │
 │ React + TypeScript                            │
 │                                               │
-│ - project list                                │
+│ - persistent chat workspace                   │
+│ - conversation, viewer, and inspector         │
 │ - prompt and revision input                   │
 │ - source editor                               │
 │ - Three.js STL viewer                         │
@@ -69,6 +70,13 @@ revision deltas. Source parameters are implementation details unless a user
 explicitly exposes a reusable control. The same project lifecycle handles
 ordinary chat revisions, optional controls, blocked attempts, and start-over
 lineages.
+
+The normal flagged browser presentation is one responsive workspace: a fixed
+conversation column, flexible viewer, and compact inspector on desktop; a
+Details drawer at intermediate widths; and Conversation/Model/Details tabs on
+narrow screens. The browser submits one authoritative chat operation and
+renders persisted messages and backend state. It does not decide validation,
+promotion, revision lineage, or export eligibility.
 
 ## Docker Deployment
 

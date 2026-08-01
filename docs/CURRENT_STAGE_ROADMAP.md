@@ -43,6 +43,12 @@ now implemented and documented. Do not use a live CAD result as a UX fixture or
 expand this into a general analytics platform or another broad CAD validation
 redesign.
 
+The current frontend checkpoint is complete: the persistent three-region chat
+workspace, responsive drawer/tab fallbacks, persisted assistant messages,
+recoverable connection state, explicit export drawer, and deterministic UX
+coverage are implemented. Observed usability testing may begin with fixtures;
+live CAD-quality testing remains separately gated.
+
 ## Stage 0 — Foundation Documents
 
 Status: Complete

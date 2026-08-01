@@ -7,7 +7,26 @@ renders backend progress, and shows Current working version versus blocked
 attempts. Every design remains revisionable; optional controls are surfaced
 only after an explicit user request.
 
-Date: 2026-07-31
+Date: 2026-08-01
+
+## Current Chat Workspace Pass
+
+The current flagged path is a full-height workspace with fixed Conversation,
+flexible Model, and compact Details regions. At 1000–1279px Details is a
+drawer; below 1000px the regions are tabs. The composer stays in the
+conversation column, empty states are purposeful, and technical details are
+collapsed.
+
+The normal path automatically progresses the initial request and revisions.
+Passing candidates become the Current working version; blocked attempts remain
+in history and explicitly leave the current version unchanged. Persisted
+assistant messages render alongside user messages, while system events remain
+technical evidence. Network submission errors use recoverable connection copy
+instead of raw `Failed to fetch`.
+
+Evidence is recorded in `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md`.
+Deterministic UX testing may proceed; live CAD design-quality testing remains
+a separate track.
 
 ## Evidence And Method
 
@@ -17,18 +36,22 @@ No retained workflow debug ZIP was available in local project data during this a
 
 ## Current Information Architecture
 
-The workspace uses a 3D viewer with a prompt dock and a details rail. The rail contains project state, staged reviews, version history, candidate/output review, parameter adjustments, printability, and technical source/diagnostics. The backend remains responsible for immutable requirements, plans, candidates, and enforcement; the frontend translates those states for a non-CAD-specialist user.
+The workspace uses a 3D viewer with a conversation column and a details
+inspector. The inspector contains current version, active requirements,
+proposals, checks, printable parts, history, and collapsed technical details.
+The backend remains responsible for immutable requirements, plans, candidates,
+and enforcement; the frontend translates those states for a non-CAD-specialist
+user.
 
 Primary path after this pass:
 
 ```text
 Describe a part
 -> clarify only essential decisions
--> review your requirements
--> review Volundr's proposed design
--> generate
--> review a new version and printable parts
--> accept and export
+-> automatic requirements and Design Plan progression
+-> automatic first draft
+-> Current working version or blocked attempt
+-> revise through chat or export explicitly
 ```
 
 ## Vocabulary
@@ -105,8 +128,16 @@ The fixed frontend registry includes request, clarification, requirements review
 
 ## Responsive And Accessibility Baseline
 
-The layout is validated at desktop and compact breakpoints through the existing single-column responsive rules. The user-testing sessions must exercise 1920x1080, 1440x900, 1024x768, and a narrow mobile review flow. The phone scope is reading/review/accept/reject/export, not source editing or full CAD editing.
+The layout is validated at 1920x1080, 1280x900, 1024x768, and 390x844. The
+phone scope is reading, chat, review, revision, and export, not source editing
+or full CAD editing. Drawers and dialogs have modal semantics and Escape
+handling; full focus trapping remains future work.
 
 ## Priority After This Pass
 
-Run the deterministic chat-first scenarios and live smoke first. Observed user testing remains paused until those gates pass. Use event trace timing, diagnosis, and debug bundles to distinguish a user-comprehension issue from a backend lifecycle failure before making further workflow changes. Staged controls remain available only when `VITE_VOLUNDR_CHAT_FIRST=false`.
+Run the deterministic chat-first scenarios before observed UX sessions. Those
+fixtures now pass, so usability testing can proceed separately from live
+Gemini/CadQuery quality testing. Use event trace timing, diagnosis, and debug
+bundles to distinguish a user-comprehension issue from a backend lifecycle
+failure. Staged controls remain available only when
+`VITE_VOLUNDR_CHAT_FIRST=false`.
