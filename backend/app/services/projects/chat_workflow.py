@@ -17,11 +17,12 @@ from sqlalchemy.orm import Session
 
 from app.models.design_plan import DesignPlan
 from app.models.design_specification import DesignSpecification
+from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.revision_plan import RevisionPlan
-from app.models.workflow import WorkflowRun
+from app.models.workflow import WorkflowArtifact, WorkflowRun
 from app.schemas.project import (
     ChatMessageCreate,
     ChatWorkflowResponse,
@@ -202,7 +203,19 @@ class ChatWorkflowService:
 
         intent = ChatIntentRouter(self.service).classify(project, payload.message)
         self._event(workflow_run, "chat.intent.classified", f"Intent classified as {intent.action}.", "intent_classified", metadata={"action": intent.action})
-        response = await self._dispatch(project, workflow_run, intent, payload.message)
+        try:
+            response = await self._dispatch(project, workflow_run, intent, payload.message)
+        except (RuntimeError, ValueError) as exc:
+            # Generation and source-gate failures are workflow outcomes, not
+            # malformed chat requests. Preserve the technical failure in the
+            # attempt/workflow records and keep the chat API on its one
+            # authoritative response contract.
+            response = self._blocked_generation_response(
+                project,
+                workflow_run,
+                action=intent.action,
+                error=exc,
+            )
         if response.revision_id:
             user_message.revision_id = response.revision_id
             duplicate_revision_message = self.db.scalar(
@@ -226,6 +239,77 @@ class ChatWorkflowService:
         )
         self.db.commit()
         return response
+
+    def _blocked_generation_response(
+        self,
+        project: Project,
+        workflow_run: WorkflowRun,
+        *,
+        action: str,
+        error: Exception,
+    ) -> ChatWorkflowResponse:
+        attempt = self.db.scalar(
+            select(GenerationAttempt)
+            .where(GenerationAttempt.project_id == project.id)
+            .order_by(GenerationAttempt.started_at.desc())
+        )
+        blocked_attempt = {
+            "attempt_id": attempt.id if attempt is not None else None,
+            "status": attempt.status if attempt is not None else "failed",
+            "failure_class": attempt.failure_class if attempt is not None else "workflow_failure",
+            "error_message": attempt.error_message if attempt is not None and attempt.error_message else str(error),
+            "review_state": "blocked",
+        }
+        self._event(
+            workflow_run,
+            "blocked_attempt.preserved",
+            "Blocked generation attempt preserved; Current working version unchanged.",
+            "blocked_attempt_preserved",
+            metadata=blocked_attempt,
+        )
+        self.service._complete_workflow_lineage(workflow_run, status="failed")
+        # A failure can occur while a generation child is being prepared,
+        # before that child reaches the service-level cleanup path. Do not
+        # leave an orphaned running child that makes the next chat message
+        # look like an unrelated in-flight workflow.
+        for child_run in self.db.scalars(
+            select(WorkflowRun)
+            .where(WorkflowRun.project_id == project.id)
+            .where(WorkflowRun.status == "running")
+        ):
+            self.service._workflow_recorder().complete_run(child_run, status="failed")
+        current = self.db.get(Project, project.id)
+        plan = self.service.get_current_design_plan(project.id)
+        planning_depth = (
+            self.service._planning_depth_for_plan(plan.plan)
+            if plan is not None
+            else None
+        )
+        if planning_depth is None:
+            route_artifact = self.db.scalar(
+                select(WorkflowArtifact)
+                .where(WorkflowArtifact.workflow_run_id == workflow_run.id)
+                .where(WorkflowArtifact.artifact_type == "planning_route_decision")
+                .order_by(WorkflowArtifact.created_at.desc())
+            )
+            if route_artifact is not None:
+                route_path = self.service.data_dir / route_artifact.path
+                if route_path.is_file():
+                    try:
+                        planning_depth = json.loads(route_path.read_text(encoding="utf-8")).get("outcome")
+                    except (OSError, json.JSONDecodeError):
+                        planning_depth = None
+        return self._response(
+            workflow_run,
+            action,
+            "blocked_attempt",
+            False,
+            "Volundr could not create a valid new version. Your current working version is unchanged.",
+            current_revision_id=current.active_revision_id if current is not None else None,
+            blocked_attempt=blocked_attempt,
+            design_plan_id=plan.id if plan is not None else None,
+            planning_depth=planning_depth,
+        )
 
     async def _dispatch(self, project: Project, workflow_run: WorkflowRun, intent: RoutedIntent, message: str) -> ChatWorkflowResponse:
         if intent.action == "export_request":

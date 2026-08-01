@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from fastapi.testclient import TestClient
 
 from app.testing.e2e_fixture_server import create_e2e_fixture_app
+from app.services.projects.chat_workflow import ChatWorkflowService
 
 
 def test_chat_initial_request_auto_progresses_and_is_idempotent() -> None:
@@ -45,6 +46,28 @@ def test_chat_initial_request_auto_progresses_and_is_idempotent() -> None:
 
             after_duplicate = client.get(f"/api/projects/{project['id']}/messages").json()
             assert after_duplicate == persisted
+
+
+def test_chat_generation_failure_returns_structured_blocked_outcome(monkeypatch) -> None:
+    async def fail_generation(self, project, workflow_run, intent, message):
+        raise ValueError("source contract failed")
+
+    monkeypatch.setattr(ChatWorkflowService, "_dispatch", fail_generation)
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            result = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create an 80 mm mounting plate.", "client_message_id": "blocked-1"},
+            )
+            assert result.status_code == 200
+            body = result.json()
+            assert body["current_stage"] == "blocked_attempt"
+            assert body["input_required"] is False
+            assert "current working version is unchanged" in body["assistant_message"]
+            assert body["blocked_attempt"]["failure_class"] == "workflow_failure"
+            runs = client.get(f"/api/projects/{project['id']}/workflow-runs").json()
+            assert all(run["status"] != "running" for run in runs)
 
 
 def test_chat_clarification_resumes_without_an_approval_step() -> None:
@@ -130,6 +153,39 @@ def test_ordinary_numeric_revision_does_not_route_as_configuration() -> None:
             assert "revision_plan_generation" not in after["provider_calls"]
             assert "cad_revision_brief" in after["artifact_types"]
             assert revised.json()["current_working_revision_id"] != first["current_working_revision_id"]
+
+
+def test_twenty_ordinary_revisions_remain_recoverable_without_preexisting_controls() -> None:
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            first = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create an 80 mm mounting plate.", "client_message_id": "long-0"},
+            ).json()
+            current_revision_id = first["current_working_revision_id"]
+
+            for index in range(1, 21):
+                response = client.post(
+                    f"/api/projects/{project['id']}/chat",
+                    json={
+                        "message": f"Change plate width to {80 + index} mm.",
+                        "client_message_id": f"long-{index}",
+                    },
+                )
+                assert response.status_code == 200, response.json()
+                body = response.json()
+                assert body["current_working_revision_id"]
+                current_revision_id = body["current_working_revision_id"]
+
+            revisions = client.get(f"/api/projects/{project['id']}/revisions").json()
+            assert len(revisions) == 21
+            assert revisions[-1]["id"] == current_revision_id
+            assert revisions[-1]["is_accepted"] is True
+            assert all(revision["is_accepted"] for revision in revisions)
+            active = client.get(f"/api/projects/{project['id']}/requirements/active").json()
+            width = next(item for item in active["requirements"] if item["requirement_id"] == "plate_width")
+            assert width["value"] == 100
 
 
 def test_chat_start_over_creates_recoverable_child_lineage() -> None:

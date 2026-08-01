@@ -1,3 +1,5 @@
+import pytest
+
 from app.services.planning.brief import DirectCadBriefBuilder
 from app.services.planning.depth import PlanningDepth, PlanningDepthRouter
 from app.models.design_specification import DesignSpecification
@@ -127,3 +129,26 @@ def test_compact_plan_normalization_is_versioned_without_becoming_a_detailed_pla
     assert normalized["components"][0]["id"] == "body"
     assert normalized["printable_outputs"][0]["component_ids"] == ["body"]
     assert normalized["requirements"][0]["requirement_id"] == "fit"
+
+
+def test_compact_plan_rejects_explicit_contradictions_and_unknown_output_components() -> None:
+    service = ProjectService(db=None, ai_provider=None)  # type: ignore[arg-type]
+    specification = DesignSpecification(id="spec-1", project_id="project-1", user_instruction="fit and retain")
+    with pytest.raises(ValueError, match="contradictions"):
+        service._parse_compact_plan_payload(
+            '{"schema_version":"compact-cad-plan-v1","conflicts":[{"id":"fit"}]}',
+            project=type("Project", (), {"id": "project-1"})(),
+            specification=specification,
+            active_requirements=[],
+            revision_delta=[],
+            preserved_requirements=[],
+        )
+    with pytest.raises(ValueError, match="unknown components"):
+        service._parse_compact_plan_payload(
+            '{"schema_version":"compact-cad-plan-v1","components":[{"id":"body"}],"printable_outputs":[{"component_ids":["missing"]}]}',
+            project=type("Project", (), {"id": "project-1"})(),
+            specification=specification,
+            active_requirements=[],
+            revision_delta=[],
+            preserved_requirements=[],
+        )
