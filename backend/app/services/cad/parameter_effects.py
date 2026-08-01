@@ -9,7 +9,11 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.services.cad.patterns import build_pattern_manifest
+from app.services.cad.patterns import (
+    build_pattern_manifest,
+    layout_requires_pattern_effect,
+    parameter_requires_effect,
+)
 PARAMETER_EFFECT_CONTRACT_VERSION = "cadquery-parameter-effects-v1"
 PROVENANCE_VERSION = "design-plan-provenance-v1"
 SUPPORTED_EFFECT_TYPES = {
@@ -99,8 +103,16 @@ def build_parameter_effect_contract(
     )
     return {
         "schema_version": PARAMETER_EFFECT_CONTRACT_VERSION,
+        "parameter_modes": {
+            item["id"]: str(item.get("constraint_mode") or "legacy_unclassified")
+            for item in parameters
+            if item.get("id")
+        },
         "derived_parameters": derived_manifest,
         "patterns": build_pattern_manifest(plan),
+        "feature_layouts": [
+            item for item in plan.get("feature_layouts", []) or [] if isinstance(item, dict)
+        ],
         "functions": functions,
         "dependency_findings": _dependency_findings(plan, parameter_by_id),
     }
@@ -482,6 +494,23 @@ def _function_manifests(
             continue
         feature_id = str(feature["id"])
         ids = [str(item) for item in feature.get("parameters", []) or [] if str(item) in parameter_by_id]
+        for pattern in patterns:
+            if not isinstance(pattern, dict) or str(pattern.get("owning_feature_id") or "") != feature_id:
+                continue
+            if not bool(pattern.get("effect_required", True)):
+                continue
+            for key in (
+                "count_parameter_id",
+                "spacing_parameter_id",
+                "rows_parameter_id",
+                "columns_parameter_id",
+                "row_spacing_parameter_id",
+                "column_spacing_parameter_id",
+                "radius_parameter_id",
+            ):
+                parameter_id = str(pattern.get("specification", pattern).get(key) or "")
+                if parameter_id and parameter_id in parameter_by_id:
+                    ids.append(parameter_id)
         ids.extend(functional_ids.get(feature_id, set()))
         manifests.append(_function_manifest(_feature_function_id(feature_id), component_id, feature_id, ids, parameter_by_id, dependencies, derived_by_id, feature=feature, patterns=patterns))
     return manifests
@@ -506,7 +535,31 @@ def _function_manifest(
             continue
         entry = parameter_by_id[selected_id]
         ancestors = _protected_ancestors(selected_id, dependencies, parameter_by_id)
-        if ancestors:
+        selected_is_derived = selected_id in derived_by_id or str(entry.get("constraint_mode") or "") == "derived_parameter"
+        explicit_modes = any(
+            isinstance(item, dict) and item.get("constraint_mode")
+            for item in parameter_by_id.values()
+        )
+        if ancestors and selected_is_derived and explicit_modes:
+            obligations[selected_id] = {
+                "parameter_id": selected_id,
+                "allowed_via": [],
+                "effect_type": _effect_type(selected_id, feature),
+            }
+            for parameter_id in ancestors:
+                if not parameter_requires_effect(parameter_by_id.get(parameter_id, {}), legacy_default=True):
+                    continue
+                via = [
+                    item["parameter_id"]
+                    for item in derived_by_id.values()
+                    if parameter_id in item.get("transitive_protected_dependencies", [])
+                ]
+                obligations[parameter_id] = {
+                    "parameter_id": parameter_id,
+                    "allowed_via": via,
+                    "effect_type": _effect_type(parameter_id, feature),
+                }
+        elif ancestors and selected_is_derived:
             for parameter_id in ancestors:
                 via = [
                     item["parameter_id"]
@@ -518,7 +571,7 @@ def _function_manifest(
                     "allowed_via": via,
                     "effect_type": _effect_type(parameter_id, feature),
                 }
-        else:
+        elif parameter_requires_effect(entry, legacy_default=True):
             obligations[selected_id] = {
                 "parameter_id": selected_id,
                 "allowed_via": [],
@@ -529,7 +582,19 @@ def _function_manifest(
         for pattern in patterns or []
         if feature_id and str(pattern.get("owning_feature_id")) == feature_id
     ]
-    for pattern in owned_patterns:
+    required_patterns = [
+        pattern for pattern in owned_patterns
+        if layout_requires_pattern_effect(
+            next(
+                (
+                    item for item in patterns or []
+                    if isinstance(item, dict) and str(item.get("pattern_id") or "") == str(pattern.get("pattern_id") or "")
+                ),
+                pattern,
+            )
+        )
+    ]
+    for pattern in required_patterns:
         point_id = str(pattern.get("point_parameter_id") or "")
         for pattern_effect in pattern.get("required_parameter_effects", []) or []:
             parameter_id = pattern_effect.get("parameter_id") if isinstance(pattern_effect, dict) else None
@@ -559,9 +624,9 @@ def _function_manifest(
         "allowed_derived_parameters": allowed_derived,
         "required_inputs": sorted({
             *selected,
-            *(str(pattern.get("point_parameter_id")) for pattern in owned_patterns if pattern.get("point_parameter_id")),
+            *(str(pattern.get("point_parameter_id")) for pattern in required_patterns if pattern.get("point_parameter_id")),
         }),
-        "required_patterns": [str(pattern["pattern_id"]) for pattern in owned_patterns],
+        "required_patterns": [str(pattern["pattern_id"]) for pattern in required_patterns],
         "required_parameter_effects": ordered,
     }
 
@@ -584,7 +649,12 @@ def _functional_parameter_ids(
             found = _strings_matching_ids(interface, parameter_ids)
             if interface.get("fastener_count") is not None:
                 found.update(item for item in parameter_ids if item.endswith("_count") and any(token in item for token in ("mount", "screw", "fastener", "hole")))
-            if interface.get("spacing") is not None:
+            if interface.get("spacing") is not None and str(interface.get("layout_mode") or "") in {
+                "parameterized_positions",
+                "uniform_linear",
+                "rectangular_grid",
+                "circular",
+            }:
                 found.update(item for item in parameter_ids if "spacing" in item)
             if interface.get("bottom_support_required"):
                 found.update(item for item in parameter_ids if "thickness" in item or "floor" in item)

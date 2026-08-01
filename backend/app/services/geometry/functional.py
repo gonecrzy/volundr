@@ -130,6 +130,44 @@ class MountingHoleVerifier:
                         feature_id=interface_id,
                     )
                 )
+            layout = _layout_for_mounting_interface(context.product_plan, interface)
+            if str((layout or {}).get("layout_mode") or "") == "fixed_positions":
+                expected_positions = [
+                    position for position in (layout or {}).get("positions", []) or []
+                    if isinstance(position, dict)
+                ]
+                matched = _match_fixed_positions(
+                    confident,
+                    expected_positions,
+                    expected_axis,
+                    context.tolerance.hole_spacing_abs_mm,
+                )
+                required_count = int((layout or {}).get("required_count") or count or len(expected_positions))
+                positions_pass = len(expected_positions) == required_count and len(confident) == required_count and matched
+                findings.append(
+                    _finding(
+                        "functional.mounting_hole_positions",
+                        state="verified" if positions_pass else "violated",
+                        expected=required_count,
+                        detected=len(confident),
+                        blocking=not positions_pass,
+                        title="Mounting-hole positions",
+                        explanation=(
+                            "Mounting-hole centers match the approved fixed layout."
+                            if positions_pass
+                            else "Mounting-hole centers do not match every approved position in the fixed layout."
+                        ),
+                        feature_id=interface_id,
+                        metadata={
+                            "layout_mode": "fixed_positions",
+                            "approved_positions": expected_positions,
+                            "detected_positions": [
+                                [round(float(value), 3) for value in hole.center]
+                                for hole in confident
+                            ],
+                        },
+                    )
+                )
             spacing = _number((interface.get("spacing") or {}).get("value"))
             if spacing is not None and len(confident) == 2:
                 arrangement_axis = str(interface.get("arrangement_axis") or "z").lower()
@@ -178,6 +216,53 @@ class MountingHoleVerifier:
                     )
                 )
         return findings
+
+
+def _layout_for_mounting_interface(
+    plan: dict[str, Any], interface: dict[str, Any]
+) -> dict[str, Any] | None:
+    feature_id = str(interface.get("feature_id") or "")
+    component_id = str(interface.get("component_id") or "")
+    for layout in plan.get("feature_layouts", []) or []:
+        if not isinstance(layout, dict):
+            continue
+        if feature_id and str(layout.get("feature_id") or "") == feature_id:
+            return layout
+        if not feature_id and component_id and str(layout.get("owning_component_id") or "") == component_id:
+            return layout
+    return None
+
+
+def _match_fixed_positions(
+    holes: list[Any],
+    positions: list[dict[str, Any]],
+    axis: str,
+    tolerance: float,
+) -> bool:
+    axis_index = {"x": 0, "y": 1, "z": 2}.get(str(axis or "").lower())
+    if axis_index is None or not positions or len(holes) != len(positions):
+        return False
+    plane_indexes = [index for index in range(3) if index != axis_index]
+    remaining = list(holes)
+    for position in positions:
+        expected = [
+            _number(position.get(("x", "y", "z")[index]))
+            for index in plane_indexes
+        ]
+        if any(value is None for value in expected):
+            return False
+        match_index = next(
+            (
+                index for index, hole in enumerate(remaining)
+                if all(abs(float(hole.center[plane_index]) - float(expected[offset])) <= tolerance
+                       for offset, plane_index in enumerate(plane_indexes))
+            ),
+            None,
+        )
+        if match_index is None:
+            return False
+        remaining.pop(match_index)
+    return not remaining
 
 
 class SupportFloorVerifier:

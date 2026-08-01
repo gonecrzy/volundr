@@ -152,6 +152,7 @@ from app.services.projects.plan_provenance import (
     normalize_plan_provenance,
     validate_plan_provenance,
 )
+from app.services.projects.plan_constraints import normalize_plan_constraints
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -206,8 +207,8 @@ REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v4"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v4"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v5"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v5"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
@@ -4028,6 +4029,9 @@ class ProjectService:
                 design_specification_id=specification.id,
                 generation_attempt_id=attempt.id,
                 design_specification_payload=request.design_specification,
+                request_context=" ".join(
+                    value for value in (request.original_intent, request.user_instruction) if value
+                ),
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -4548,6 +4552,7 @@ class ProjectService:
         design_specification_id: str,
         generation_attempt_id: str,
         design_specification_payload: dict[str, Any] | None = None,
+        request_context: str | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -4562,6 +4567,10 @@ class ProjectService:
         normalized = normalize_plan_provenance(
             normalized,
             design_specification_payload,
+        )
+        normalized = normalize_plan_constraints(
+            normalized,
+            request_context=request_context,
         )
         normalized = normalize_pattern_specs(normalized)
         validate_pattern_specs(normalized)

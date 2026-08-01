@@ -42,6 +42,24 @@ class DesignPlanReviewState(StrEnum):
     REJECTED = "rejected"
 
 
+class DesignPlanConstraintMode(StrEnum):
+    FIXED_CONSTRAINT = "fixed_constraint"
+    CONFIGURABLE_PARAMETER = "configurable_parameter"
+    DERIVED_PARAMETER = "derived_parameter"
+    EXPLICIT_LAYOUT = "explicit_layout"
+    PROPOSED_VALUE = "proposed_value"
+    COSMETIC_FREEDOM = "cosmetic_freedom"
+
+
+class DesignPlanLayoutMode(StrEnum):
+    FIXED_POSITIONS = "fixed_positions"
+    PARAMETERIZED_POSITIONS = "parameterized_positions"
+    UNIFORM_LINEAR = "uniform_linear"
+    RECTANGULAR_GRID = "rectangular_grid"
+    CIRCULAR = "circular"
+    DERIVED_CUSTOM = "derived_custom"
+
+
 class RevisionPlanOutcome(StrEnum):
     REVISION_READY = "revision_ready"
     CLARIFICATION_REQUIRED = "clarification_required"
@@ -318,6 +336,7 @@ class DesignPlanParameter(BaseModel):
     value: float | int | str | bool | None = None
     unit: str | None = None
     editable: bool = True
+    constraint_mode: DesignPlanConstraintMode | None = None
     protected: bool = False
     component_id: str | None = None
     source_requirement_id: str | None = None
@@ -332,6 +351,7 @@ class DesignPlanDerivedParameter(BaseModel):
     expression: str | None = None
     unit: str | None = None
     depends_on: list[str] = Field(default_factory=list)
+    constraint_mode: DesignPlanConstraintMode | None = None
 
 
 class DesignPlanDependencyEdge(BaseModel):
@@ -361,6 +381,25 @@ class DesignPlanFeature(BaseModel):
     description: str = Field(min_length=1)
     parameters: list[str] = Field(default_factory=list)
     protected: bool = False
+    layout_mode: DesignPlanLayoutMode | None = None
+    layout: dict[str, Any] = Field(default_factory=dict)
+
+
+class DesignPlanFeatureLayout(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    feature_id: str = Field(min_length=1)
+    owning_component_id: str | None = None
+    layout_mode: DesignPlanLayoutMode
+    required_count: int | None = Field(default=None, ge=1)
+    positions: list[dict[str, float]] = Field(default_factory=list)
+    hole_axis: str | None = None
+    arrangement_axis: str | None = None
+    mounting_plane: str | None = None
+    count_parameter_id: str | None = None
+    spacing_parameter_id: str | None = None
+    dimension_parameter_ids: list[str] = Field(default_factory=list)
+    source: str | None = None
 
 
 class DesignPlanPattern(BaseModel):
@@ -426,15 +465,19 @@ class FunctionalMountingInterface(BaseModel):
     id: str = Field(min_length=1)
     type: str = Field(min_length=1)
     component_id: str | None = None
+    feature_id: str | None = None
     coordinate_frame_id: str | None = None
     mounting_plane: str | None = None
     normal_axis: str | None = None
     fastener_count: int | None = Field(default=None, ge=1)
+    count_constraint_mode: DesignPlanConstraintMode | None = None
     fastener_type: str | None = None
     hole_axis: str | None = None
     arrangement_axis: str | None = None
     hole_style: str | None = None
     spacing: dict[str, Any] | None = None
+    layout_mode: DesignPlanLayoutMode | None = None
+    hole_diameter_parameter_id: str | None = None
 
 
 class FunctionalSupportInterface(BaseModel):
@@ -495,6 +538,7 @@ class DesignPlanPayload(BaseModel):
     dependency_edges: list[DesignPlanDependencyEdge] = Field(default_factory=list)
     components: list[DesignPlanComponent] = Field(default_factory=list)
     features: list[DesignPlanFeature] = Field(default_factory=list)
+    feature_layouts: list[DesignPlanFeatureLayout] = Field(default_factory=list)
     patterns: list[DesignPlanPattern] = Field(default_factory=list)
     presets: list[DesignPlanPreset] = Field(default_factory=list)
     assembly_strategy: dict[str, Any] = Field(default_factory=dict)

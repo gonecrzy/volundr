@@ -171,6 +171,7 @@ ORGANIZER_PLAN: dict[str, Any] = {
             "protected": False,
             "component_id": "plate",
             "source_requirement_id": "column_count",
+            "constraint_mode": "configurable_parameter",
             "provenance": {
                 "relationship": "direct",
                 "source_requirement_ids": ["column_count"],

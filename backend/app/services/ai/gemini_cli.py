@@ -34,13 +34,13 @@ from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v3"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v3"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v4"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v4"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v4"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v5"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v5"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -677,9 +677,10 @@ class GeminiCliProvider:
             "Binding per-function parameter-effect contract:",
             "Every required direct parameter must reach the stated geometry effect directly or through one of its approved derived parameters.",
             "A parameter reference used only in an assignment, comment, or unrelated helper does not satisfy the contract.",
-            "For pattern_count, do not use a fixed range, fixed point list, repeated literal geometry calls, or a two-point list when the approved count is two.",
-            "For pattern_spacing, do not replace the approved spacing with fixed point coordinates.",
-            "For every required pattern, Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array, and never call a pattern helper from a geometry body.",
+            "For pattern_count, do not use a fixed range, fixed point list, repeated literal geometry calls, or fixed coordinates when a pattern-count effect is required; use the approved count input.",
+            "For pattern_spacing, do not replace an approved pattern spacing with fixed coordinates when a pattern-spacing effect is required.",
+            "For every required pattern (effect_required=true), Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array, and never call a pattern helper from a geometry body.",
+            "For fixed_positions layouts, use the approved positions and hole axis from the layout contract. Fixed positions are a geometric constraint and do not require future count or spacing sensitivity.",
             "For dimension and radius_or_diameter, do not replace an approved parameter or derived value with a matching numeric literal.",
             "When static proof is unclear, use the required parameter or approved derived value in the geometry operation explicitly; unverifiable critical effects block assembly.",
             "Per-function obligations:",
@@ -812,6 +813,7 @@ class GeminiCliProvider:
                 "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
                 "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
                 "Every parameter must include provenance.relationship: direct, derived_formula, calculated, standard_lookup, product_default, printer_default, ai_proposal, or user_override.",
+                "Every important parameter must include constraint_mode: fixed_constraint, configurable_parameter, derived_parameter, explicit_layout, proposed_value, or cosmetic_freedom.",
                 "A parameter with source_requirement_id must copy that source requirement's value and unit only when its provenance relationship is direct. Derived implementation dimensions must not be marked direct.",
                 "Use derived_parameters or derived_formula provenance for calculated stack, envelope, or overall product dimensions, not direct source-linked values.",
                 "Use derived_formula for deterministic formulas and include source_requirement_ids, source_parameter_ids, and the arithmetic expression. The expression may be on the derived parameter or duplicated in provenance. Use standard_lookup for nominal hardware designations and include table_id, key, variant, and result_field when needed; never treat a designation as a metric dimension.",
@@ -819,6 +821,8 @@ class GeminiCliProvider:
                 "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
                 "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
                 "For repeated functional features, emit a generic patterns entry owned by the feature and component. Volundr computes canonical points from its count and spacing/radius parameters; do not put pattern arithmetic in geometry bodies.",
+                "Classify design intent, not numeric types: a request such as 'use two screws' is a fixed_constraint by default; only an explicit request for adjustable, configurable, parametric, variable, or any-number behavior makes count or spacing configurable_parameter. Preserve fixed requirements as functional criteria.",
+                "For a fixed or irregular repeated layout, emit a feature_layouts entry with layout_mode fixed_positions, required_count, approved/proposed positions, and hole_axis. For a configurable uniform layout, use layout_mode uniform_linear and identify count_parameter_id, spacing_parameter_id, arrangement_axis, and hole_axis. Do not infer future configurability from a fixed count.",
                 "For a repeated linear mounting arrangement, use the explicit or proposed count and spacing, set centered=true, and distinguish the arrangement axis from the wall-normal hole-cutting axis.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
                 "For any physical product with mounting, containment, support, retention, or removal requirements, emit schema_version 1.1 and an explicit functional_contract.",
@@ -850,6 +854,7 @@ class GeminiCliProvider:
                     },
                     "editable": True,
                     "protected": False,
+                    "constraint_mode": "fixed_constraint|configurable_parameter|derived_parameter|explicit_layout|proposed_value|cosmetic_freedom",
                     "component_id": "string|null",
                 }
             ],
@@ -883,6 +888,21 @@ class GeminiCliProvider:
                         "centered": True,
                         "origin": [0, 0, 0],
                         "unit": "mm"
+                    }
+                ],
+                "feature_layouts": [
+                    {
+                        "feature_id": "feature_id",
+                        "owning_component_id": "component_id",
+                        "layout_mode": "fixed_positions|parameterized_positions|uniform_linear|rectangular_grid|circular|derived_custom",
+                        "required_count": 2,
+                        "positions": [{"x": 0, "y": 0, "z": -25}, {"x": 0, "y": 0, "z": 25}],
+                        "hole_axis": "Y|null",
+                        "arrangement_axis": "Z|null",
+                        "mounting_plane": "XZ|null",
+                        "count_parameter_id": "parameter_id|null",
+                        "spacing_parameter_id": "parameter_id|null",
+                        "dimension_parameter_ids": ["parameter_id"]
                     }
                 ],
                 "dependency_edges": [
@@ -930,7 +950,7 @@ class GeminiCliProvider:
             ],
             "functional_contract": {
                 "coordinate_frames": [{"id": "primary_product_frame", "axes": {"x": "horizontal", "y": "normal", "z": "vertical"}}],
-                "mounting_interfaces": [{"id": "string", "type": "planar_mount", "component_id": "component_id", "mounting_plane": "XZ", "normal_axis": "Y", "fastener_count": 2, "fastener_type": "string", "hole_axis": "Y", "arrangement_axis": "Z", "hole_style": "clearance", "spacing": {"value": 0, "unit": "mm", "source": "volundr_proposal"}}],
+                "mounting_interfaces": [{"id": "string", "type": "planar_mount", "component_id": "component_id", "feature_id": "feature_id|null", "mounting_plane": "XZ", "normal_axis": "Y", "fastener_count": 2, "count_constraint_mode": "fixed_constraint|configurable_parameter", "fastener_type": "string", "hole_axis": "Y", "arrangement_axis": "Z", "hole_style": "clearance", "spacing": {"value": 0, "unit": "mm", "source": "volundr_proposal"}}],
                 "support_interfaces": [{"id": "string", "type": "contained_object_support", "component_id": "component_id", "object_requirement_id": "parameter_id", "primary_axis": "Z", "bottom_support_required": True, "minimum_floor_thickness": {"value": 0, "unit": "mm", "source": "volundr_proposal"}, "removal_direction": "+Z"}],
                 "retention_interfaces": [{"id": "string", "type": "retention", "required": True, "environment": "string", "release_behavior": "one_handed_pull", "strategy": "flexible_snap_arm", "component_id": "component_id", "feature_id": "retention_feature", "retained_object_requirement_id": "parameter_id", "retention_direction": "string", "removal_direction": "+Z", "parameters": [{"id": "retention_overlap", "value": 2.0, "unit": "mm", "source": "volundr_proposal", "editable": True}], "verification": {"feature_geometry_required": True, "parameter_effect_required": True, "human_review_required": True}}],
             },

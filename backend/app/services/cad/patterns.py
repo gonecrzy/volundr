@@ -9,6 +9,43 @@ from volundr_cad.patterns import PatternSpecError, resolve_pattern_points
 
 
 PATTERN_SCHEMA_VERSION = "cadquery-patterns-v1"
+_EFFECT_MODES = {"configurable_parameter", "derived_parameter"}
+_PATTERN_LAYOUT_MODES = {
+    "parameterized_positions",
+    "uniform_linear",
+    "rectangular_grid",
+    "circular",
+}
+
+
+def parameter_requires_effect(parameter: dict[str, Any], *, legacy_default: bool = True) -> bool:
+    mode = str(parameter.get("constraint_mode") or "")
+    if mode:
+        return mode in _EFFECT_MODES or bool(parameter.get("pattern_driving"))
+    return legacy_default
+
+
+def layout_requires_pattern_effect(layout: dict[str, Any] | None) -> bool:
+    if not isinstance(layout, dict):
+        return True
+    mode = str(layout.get("layout_mode") or "")
+    if not mode:
+        return True
+    return mode in _PATTERN_LAYOUT_MODES or bool(layout.get("pattern_driving"))
+
+
+def layout_for_feature(plan: dict[str, Any], feature_id: str) -> dict[str, Any] | None:
+    for layout in plan.get("feature_layouts", []) or []:
+        if isinstance(layout, dict) and str(layout.get("feature_id") or "") == str(feature_id):
+            return layout
+    feature = next(
+        (item for item in plan.get("features", []) or []
+         if isinstance(item, dict) and str(item.get("id") or "") == str(feature_id)),
+        None,
+    )
+    if isinstance(feature, dict) and isinstance(feature.get("layout"), dict) and feature["layout"].get("layout_mode"):
+        return feature["layout"]
+    return None
 
 
 def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
@@ -200,6 +237,8 @@ def build_pattern_manifest(
             ),
             "circular": (("count_parameter_id", "pattern_count"), ("radius_parameter_id", "radius_or_diameter")),
         }.get(str(pattern.get("pattern_type") or "").lower(), ())
+        layout = layout_for_feature(normalized, str(pattern.get("owning_feature_id") or ""))
+        effect_required = layout_requires_pattern_effect(layout or pattern)
         effects = [
             {
                 "parameter_id": str(pattern[field]),
@@ -207,6 +246,7 @@ def build_pattern_manifest(
                 "effect_type": effect_type,
             }
             for field, effect_type in effect_fields
+            if effect_required
             if pattern.get(field)
         ]
         manifest.append({
@@ -215,6 +255,8 @@ def build_pattern_manifest(
             "owning_component_id": pattern.get("owning_component_id"),
             "pattern_type": str(pattern["pattern_type"]),
             "point_parameter_id": str(pattern["point_parameter_id"]),
+            "layout_mode": layout.get("layout_mode") if layout else pattern.get("layout_mode"),
+            "effect_required": effect_required,
             "specification": pattern,
             "required_parameter_effects": effects,
             "resolved_points": [list(point) for point in resolved.points] if resolved else None,

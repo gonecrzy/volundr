@@ -14,6 +14,7 @@ from app.services.cad.parameter_effects import (
     build_parameter_effect_contract,
     validate_parameter_effects,
 )
+from app.services.cad.patterns import parameter_requires_effect
 from app.services.requirements.trace import values_match
 
 
@@ -112,6 +113,10 @@ def build_cadquery_source_authority(
         "features": features,
         "outputs": outputs,
         "retention_interfaces": retention_interfaces,
+        "feature_layouts": [
+            item for item in design_plan_payload.get("feature_layouts", []) or []
+            if isinstance(item, dict)
+        ],
         "allowed_revision_parameters": sorted(str(item) for item in allowed_revision_parameters),
     }
     effect_contract = build_parameter_effect_contract(design_plan_payload)
@@ -312,10 +317,16 @@ def format_authoritative_identity_section(authority: dict[str, Any] | None) -> s
         )
     lines.append("Canonical repeated patterns:")
     for pattern in authority.get("pattern_manifest", []) or []:
-        lines.append(
-            f"- {pattern.get('pattern_id')}: use params[{pattern.get('point_parameter_id')!r}] "
-            f"for {pattern.get('pattern_type')} points; provider must not replace or truncate it."
-        )
+        if pattern.get("effect_required", True):
+            lines.append(
+                f"- {pattern.get('pattern_id')}: use params[{pattern.get('point_parameter_id')!r}] "
+                f"for {pattern.get('pattern_type')} points; provider must not replace or truncate it."
+            )
+        else:
+            lines.append(
+                f"- {pattern.get('pattern_id')}: fixed layout; use the approved feature-layout positions "
+                "and do not infer future count or spacing sensitivity."
+            )
     lines.extend(
         [
             "",
@@ -394,6 +405,7 @@ def _validate_source_against_authority(
         if (
             required
             and parameter_id not in source_param_refs
+            and parameter_requires_effect(parameter, legacy_default=True)
             and (parameter_id not in effect_parameter_ids or parameter_id in effect_invalid_parameter_ids)
         ):
             findings.append(
@@ -409,6 +421,7 @@ def _validate_source_against_authority(
             parameter_id in source_param_refs
             and parameter_id not in source_param_geometry_effects
             and (parameter.get("protected") or parameter.get("functional"))
+            and parameter_requires_effect(parameter, legacy_default=True)
             and (parameter_id not in effect_parameter_ids or parameter_id in effect_invalid_parameter_ids)
         ):
             findings.append(
@@ -590,6 +603,7 @@ def _authority_parameter(parameter: dict[str, Any]) -> dict[str, Any]:
         "source": parameter.get("source"),
         "component_id": parameter.get("component_id"),
         "provenance": parameter.get("provenance"),
+        "constraint_mode": parameter.get("constraint_mode"),
     }
 
 
