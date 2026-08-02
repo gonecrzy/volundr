@@ -74,3 +74,9 @@ export records. A real five-case design matrix then separated direct worker
 syntax failure from compact identity/pattern failures and detailed-plan
 interoperability failure. Deterministic fixtures are ready for observed UX
 testing; live CAD-quality testing remains a separate evidence track.
+
+Requirement semantics are authoritative across all planning depths. “Up to
+five” remains maximum capacity, not exact occupancy or a mandatory reusable
+count control. Deterministic evidence outranks provider bookkeeping style;
+unique trace omissions may normalize, while ambiguity and missing required
+implementation paths remain blocked.

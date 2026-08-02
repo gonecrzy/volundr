@@ -464,3 +464,10 @@ ambiguous owners, exposed-control source traces, missing required features,
 single-output integral features, multipart/output conflicts, and typed
 diagnosis evidence. The exact tackle-tray rerun is retained as a live
 artifact-consistency regression.
+
+Requirement semantic tests cover exact/minimum/maximum/range/up-to/at-least and
+approximate operators, feature presence/absence, units and object types,
+revision supersession, unique typed feature/target linking, ambiguity, and
+deferred verification-obligation generation. They also verify that ordinary
+numeric requirements do not require source parameter identity while exposed
+controls retain strict tracing.

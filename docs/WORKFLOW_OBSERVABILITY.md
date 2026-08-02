@@ -385,3 +385,10 @@ owner, function, output, classification, blocking state, and normalization
 decision. A fixed one-off geometry requirement emits
 `design_artifact.geometry_verification_deferred`; missing required feature or
 exposed-control paths remain blocking and are diagnosed specifically.
+
+Requirement-semantic evidence also records operator preservation, typed alias
+normalization, candidate/rejected trace matches, and generated deferred
+verification obligations. A provider transport success, Plan validation block,
+clarification pause, worker failure, and final blocked workflow remain
+separate outcomes. Diagnosis uses the typed finding and authoritative workflow
+event instead of reporting a generic missing-blocking-event message.

@@ -63,6 +63,16 @@ functional verification, artifact readiness, or Current working version
 promotion gates. It does not prescribe the provider's local CadQuery
 implementation.
 
+## Requirement semantics and trace
+
+Compact plans consume the authoritative ledger rather than redefining it.
+`exact`, `minimum`, `maximum`, `range`, `up_to`, `at_least`, `present`, and
+`absent` semantics remain typed through normalization. A fixed one-off layout
+does not need a parameter ID. If one typed feature and measurement target are
+the unique compatible path for a measurable requirement, the trace contract
+normalizes the link and defers proof to geometry. Ambiguity or an omitted
+required implementation path remains blocking.
+
 ## Requirement trace boundary
 
 Artifact consistency classifies each active requirement independently. Fixed

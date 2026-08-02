@@ -218,3 +218,28 @@ exports were created. This is a genuine missing verification path in the new
 Plan, distinct from the former generic requirement-trace misclassification;
 the implementation does not invent a feature or verification capability to
 make the request pass.
+
+## 2026-08-02 — requirement-pipeline semantic-alignment checkpoint
+
+The preserved generation-ready Plan/source artifacts for the same project were
+replayed through the updated trace contract. The canonical requirement
+`tray_capacity` retained `kind=capacity`, `operator=up_to`, value `5`, unit
+`tray`, and object type `3600_size_tackle_tray`. Its provider alias
+`req_tray_capacity` was retained as normalized alias evidence rather than a
+second requirement. The unique `tray_slots` feature and `val_tray_capacity`
+target formed a nonblocking geometry-verification obligation. No product
+vocabulary matcher was used.
+
+The earlier worker-reaching attempt remains the relevant execution evidence:
+source and trace gates passed, the CadQuery worker was reached, and the worker
+stopped with `ValueError: Null TopoDS_Shape object` in the provider-owned
+`apply_feature_tray_slots` operation. No candidate, snapshot, or export was
+promoted. This is a genuine worker geometry failure, not a requirement-trace
+failure.
+
+A fresh unchanged chat replay at 18:42 UTC created a new requirements attempt
+and received a provider-successful clarification request for missing standard
+3600-tray dimensions. It is recorded as `clarification_required` at the
+requirements stage; it did not reach planning, geometry, or worker execution.
+That input clarification is preserved and is not misclassified as a trace
+block. The project has no Current working version.

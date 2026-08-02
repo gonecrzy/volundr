@@ -65,3 +65,12 @@ blocking; unused dependencies are retained as
 `planning.derived_dependency_unused_or_incomplete` warning evidence and do not
 trigger another planning or geometry-provider call. This keeps proportional
 planning requirement-led rather than source-parametric.
+
+### Requirement authority
+
+All planning depths use the same requirement ledger. A direct brief, compact
+Plan, or detailed Plan is a derived execution artifact and must preserve typed
+operator semantics such as `up_to` capacity. Planning artifacts may propose
+dimensions or layouts without turning them into exposed controls. Requirement
+trace normalization can create a deferred geometry-verification obligation
+when the feature relationship is uniquely supported.

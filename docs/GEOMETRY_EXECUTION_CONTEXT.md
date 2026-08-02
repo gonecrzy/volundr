@@ -69,3 +69,8 @@ normalized requirement-trace manifest. Each obligation records whether it
 needs source trace, may use source or geometry trace, must be verified from
 geometry, or needs human review. This classification is per requirement and
 does not turn ordinary Plan values into source parameters.
+
+Requirement entries in the context retain `kind`, `operator`, `value`, `unit`,
+`subject`, and `object_type`. Normalized verification obligations preserve
+those semantics and are evidence of intended verification only; they do not
+assert a geometry pass before the worker executes.

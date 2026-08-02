@@ -481,3 +481,11 @@ ordinary fixed requirements can reach the worker with geometry-verification
 evidence, while exposed controls, protected identities, and genuinely missing
 required features remain hard gates. See
 [`REQUIREMENT_TRACE_CONTRACT.md`](REQUIREMENT_TRACE_CONTRACT.md).
+
+The requirement-pipeline audit is implemented: semantic operators and
+capacity object types remain authoritative through planning, unique trace
+links normalize deterministically, measurable ordinary requirements may defer
+to worker verification, and exposed-control/source identity gates remain
+strict. The next live evidence item is the preserved tackle-holder worker
+failure or an honest requirements clarification, not another source-style
+gate.

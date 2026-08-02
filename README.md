@@ -37,7 +37,8 @@ The authoritative direction is defined in:
 describe product
   -> extract requirements
   -> clarify only essential Design Specification decisions
-  -> create and validate Design Plan
+  -> choose proportional planning depth
+  -> create a direct CAD brief, compact Plan, or detailed Design Plan
   -> generate CadQuery Python through Gemini API
   -> validate source contract
   -> execute in isolated CAD worker
@@ -138,8 +139,9 @@ VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
 
 The API container and local database must be on the current migration head. A stale runtime can continue using older workflow behavior and bypass current requirement, plan, source-contract, candidate, and validation gates.
 
-The Docker frontend build enables the chat-first Design Specification and
-Design Plan workflow. Passing generated revisions become the Current working
+The Docker frontend build enables the chat-first requirement-led workflow.
+Depending on complexity, a request uses a deterministic CAD brief, compact
+Plan, or detailed Design Plan before generation. Passing generated revisions become the Current working
 version automatically; blocked attempts remain in history and never replace
 it. The maintained staged approval UI is available only to developer and
 deterministic test runs with `VITE_VOLUNDR_CHAT_FIRST=false`.
@@ -166,6 +168,13 @@ workspace endpoint. The backend owns current-working-version selection, stale
 workflow recovery, artifact-integrity checks, and explicit `ExportRecord`
 packaging. See `docs/PROJECT_PERSISTENCE.md`, `docs/EXPORTS.md`, and
 `docs/DEPLOYMENT.md`.
+
+Requirement semantics and trace normalization are documented in
+`docs/REQUIREMENT_SEMANTICS_CONTRACT.md`,
+`docs/REQUIREMENT_PIPELINE_AUDIT.md`, and
+`docs/REQUIREMENT_TRACE_NORMALIZATION.md`. The requirement ledger remains
+authoritative; ordinary numeric requirements are not source-parametric by
+default.
 
 ## AI Provider Setup
 

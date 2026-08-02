@@ -52,6 +52,9 @@ This file explains exactly what belongs in each project document.
 | `docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md` | Results template for a real observed frontend session. |
 | `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md` | Exact real-provider requirement-led revision sequence, worker evidence, compliance, and limitations. |
+| `docs/REQUIREMENT_SEMANTICS_CONTRACT.md` | Authoritative requirement kinds, operators, values, units, capacity semantics, proposals, controls, and revisions. |
+| `docs/REQUIREMENT_PIPELINE_AUDIT.md` | End-to-end requirement pipeline call graph, semantic coverage matrix, legacy boundaries, and exact-project evidence. |
+| `docs/REQUIREMENT_TRACE_NORMALIZATION.md` | Typed unique-match normalization, deferred obligations, ambiguity, evidence, and blocking boundaries. |
 | `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, and immutability rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |

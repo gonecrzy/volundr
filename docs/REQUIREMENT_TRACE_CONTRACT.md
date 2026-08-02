@@ -111,3 +111,12 @@ This contract does not implement symbolic geometry reasoning, require every
 numeric value to be a Python parameter, add product-specific generators, or
 weaken source safety, worker isolation, topology, functional verification,
 artifact readiness, or Current working version protection.
+
+## Semantic normalization
+
+The trace consumes the ledger's typed `kind`, `operator`, `value`, `unit`, and
+`object_type`. A unique compatible Plan feature and validation target may be
+linked deterministically when the provider omitted a bookkeeping ID. Fixed
+measurable requirements may defer to post-worker geometry evidence; exposed
+controls, required outputs, and genuinely missing feature paths remain strict.
+See [`REQUIREMENT_TRACE_NORMALIZATION.md`](REQUIREMENT_TRACE_NORMALIZATION.md).
