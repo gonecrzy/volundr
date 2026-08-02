@@ -38,24 +38,6 @@ _STOP_WORDS = {
     "up",
     "with",
 }
-_FEATURE_WORDS = {
-    "add",
-    "cavity",
-    "divider",
-    "feature",
-    "fillet",
-    "handle",
-    "hole",
-    "mount",
-    "opening",
-    "reinforcement",
-    "retention",
-    "rib",
-    "skeleton",
-    "slot",
-    "support",
-    "wall",
-}
 _NUMERIC_TYPES = {
     "count",
     "dimension",
@@ -215,19 +197,27 @@ def _classify_item(
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
     requirement_type = str(item.get("type") or "qualitative_behavior")
+    component_ids = _matching_component_ids(item, plan_components)
     feature = _match_feature(item, plan_features, patterns)
     target = _match_validation_target(item, feature, validation_targets)
     parameter_id = _matching_parameter_id(item, exposed_control_ids)
     exposed_control = parameter_id is not None
-    feature_like = _looks_like_feature_requirement(item)
-    source_trace_required = exposed_control or requirement_type in _SOURCE_TRACE_TYPES
+    explicit_feature_requirement = (
+        requirement_type == "explicit_feature"
+        and not _looks_like_component_relationship(item)
+    )
+    source_trace_required = (
+        exposed_control
+        or requirement_type in _SOURCE_TRACE_TYPES
+        or bool(component_ids)
+    )
     findings: list[dict[str, Any]] = []
 
     if source_trace_required:
         classification = "source_trace_required"
     elif requirement_type in _NUMERIC_TYPES:
         classification = "geometry_verification_required"
-    elif feature is not None or requirement_type == "explicit_feature" or feature_like:
+    elif feature is not None or explicit_feature_requirement:
         classification = "source_or_geometry_trace"
     else:
         classification = "human_review"
@@ -239,6 +229,7 @@ def _classify_item(
         "blocking": False,
         "status": "unresolved",
         "plan_feature_id": None,
+        "component_ids": component_ids,
         "owning_component_id": None,
         "function_id": None,
         "output_id": None,
@@ -267,6 +258,48 @@ def _classify_item(
     if requirement_id in plan_parameter_ids:
         obligation["parameter_id"] = requirement_id
         obligation["status"] = "source_parameter_trace"
+        return obligation, findings
+
+    if component_ids:
+        missing_components = [component_id for component_id in component_ids if component_id not in source_component_ids]
+        output_ids = [
+            output_id
+            for component_id in component_ids
+            if (output_id := _output_for_component(
+                component_id,
+                plan_outputs,
+                source_output_ids,
+                source_output_components,
+            )) is not None
+        ]
+        obligation["output_ids"] = output_ids
+        if missing_components:
+            obligation["blocking"] = True
+            obligation["status"] = "component_trace_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.feature_function_trace_missing",
+                    f"Required component trace is missing for `{', '.join(missing_components)}`.",
+                    item=item,
+                    obligation=obligation,
+                    component_id=missing_components[0],
+                    blocking=True,
+                )
+            )
+        elif len(output_ids) != len(component_ids):
+            obligation["blocking"] = True
+            obligation["status"] = "output_trace_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.output_trace_missing",
+                    f"Required component relationship `{requirement_id}` has no complete printable output trace.",
+                    item=item,
+                    obligation=obligation,
+                    blocking=True,
+                )
+            )
+        else:
+            obligation["status"] = "source_component_output_trace"
         return obligation, findings
 
     if feature is not None:
@@ -486,6 +519,14 @@ def _trace_items(
         requirement_id = canonical_requirement_id(str(entry.get("id") or entry.get("requirement_id") or ""))
         if not requirement_id:
             continue
+        existing = items.get(requirement_id)
+        if existing is not None:
+            existing["label"] = str(entry.get("description") or entry.get("label") or existing.get("label") or requirement_id)
+            existing["type"] = str(entry.get("type") or "qualitative_behavior")
+            for key in ("feature_id", "target_feature_id", "component_id", "target_component_id"):
+                if entry.get(key) is not None:
+                    existing[key] = deepcopy(entry[key])
+            continue
         items.setdefault(
             requirement_id,
             {
@@ -598,6 +639,37 @@ def _exposed_control_ids(payload: dict[str, Any]) -> set[str]:
 def _matching_parameter_id(item: dict[str, Any], control_ids: set[str]) -> str | None:
     requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
     return requirement_id if requirement_id in control_ids else None
+
+
+def _matching_component_ids(
+    item: dict[str, Any],
+    components: dict[str, dict[str, Any]],
+) -> list[str]:
+    explicit = item.get("component_ids") or item.get("target_component_ids")
+    if isinstance(explicit, list) and explicit:
+        matches = [str(value) for value in explicit if str(value) in components]
+        if len(matches) == len(explicit):
+            return matches
+    explicit_one = item.get("component_id") or item.get("target_component_id")
+    if explicit_one and str(explicit_one) in components:
+        return [str(explicit_one)]
+    tokens = _tokens(
+        str(item.get("requirement_id") or item.get("id") or "")
+        + " "
+        + str(item.get("label") or "")
+        + " "
+        + str(item.get("value") or "")
+    )
+    matches = []
+    for component_id, component in components.items():
+        identifiers = _tokens(
+            component_id
+            + " "
+            + str(component.get("label") or "")
+        )
+        if identifiers and (identifiers & tokens):
+            matches.append(component_id)
+    return sorted(set(matches)) if len(matches) > 1 else []
 
 
 def _match_feature(
@@ -751,14 +823,12 @@ def _can_be_integral(feature: dict[str, Any], payload: dict[str, Any]) -> bool:
     return feature.get("role") not in {"printable_part", "printable_component"}
 
 
-def _looks_like_feature_requirement(item: dict[str, Any]) -> bool:
-    if str(item.get("type") or "") == "explicit_feature":
-        return True
+def _looks_like_component_relationship(item: dict[str, Any]) -> bool:
     text = " ".join(
         str(item.get(key) or "")
         for key in ("requirement_id", "id", "label", "value", "evidence")
     ).lower()
-    return bool(_FEATURE_WORDS & set(re.findall(r"[a-z0-9]+", text)))
+    return "separate" in text or "assembly" in text
 
 
 def _tokens(value: str) -> set[str]:
