@@ -21,6 +21,21 @@ Worker-diagnostic repair retains the original traceback, localized statement,
 source hashes, repaired source, and second worker result. These records are
 diagnostic evidence and do not bypass downstream gates.
 
+## Plan-validation outcomes
+
+Provider transport and Plan validation are separate facts. A received provider
+response may produce a `succeeded` GenerationAttempt while the Plan-validation
+stage records a typed blocking finding and the workflow finishes as a
+`blocked_attempt`. Original and normalized Plan artifacts remain linked to the
+attempt, along with the normalization decision and finding metadata.
+
+Blocked-attempt preservation events retain the attempt ID, failure class,
+failure stage, provider-response status, geometry/worker reach status, and
+blocking revision findings when a candidate exists. Diagnosis uses typed Plan
+findings first, then this event metadata, then the legacy error message. This
+keeps older records diagnosable without treating a preserved event as a
+successful candidate or changing any downstream gate.
+
 ## Workflow Runs
 
 Chat progression events also record whether a transition was automatic,

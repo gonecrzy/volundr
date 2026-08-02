@@ -78,6 +78,51 @@ case remains useful and is classified by its actual stage.
 
 ## Safety boundary
 
+## 2026-08-02 — exact project rerun after alias normalization
+
+The persisted request from project `3a66a1b7-8f2b-4de4-8980-abf5132a3009` was
+rerun without rewriting its original wording. The provider's second pattern
+record was:
+
+```json
+{
+  "pattern_id": "tray_slot_linear_pattern",
+  "feature_id": "tray_slots",
+  "count": 5,
+  "direction": [0, 0, 1],
+  "spacing_mm": 48.4
+}
+```
+
+Normalization mapped the feature alias to the owning feature, mapped the
+cardinal vector to `Z`, converted spacing to fixed millimeters, and converted
+the numeric count to a fixed count. No exposed count or spacing control was
+invented. The resulting Plan validated and the compact-plan attempt recorded
+provider response received, Plan validation passed, and geometry generation
+not yet attempted in its routing metadata. A nonblocking
+`plan.pattern_alias_normalized` finding was retained.
+
+The run then reached structured geometry generation and passed the existing
+source contract. It stopped at the existing pre-execution design-artifact
+consistency gate with:
+
+```text
+design_artifact.requirement_trace_failed
+The approved Design Plan no longer preserves explicit user requirements.
+```
+
+The CadQuery worker was not reached, and no candidate, snapshot, export, or
+Current working version was promoted. This is a later artifact-consistency
+failure, not a pattern-normalization failure. The one-output Plan declared a
+single primary printable component and its frame, handle, retention, tray
+slots, skeletonized walls, and mounting holes as owned features; no component
+reclassification was required for this rerun. The preserved blocked event now
+records the failed generation attempt, `design_artifact_inconsistent` failure
+class, `artifact_consistency` stage, provider/geometry/worker reach evidence,
+and the blocking revision finding so diagnosis can identify the actual stop.
+
+The result remains blocked accurately. No downstream policy was weakened.
+
 Source safety, protected component/output identity, topology, functional,
 artifact, and Current working version gates were not weakened. Configurable
 patterns and exposed controls remain strict. The correction only prevents

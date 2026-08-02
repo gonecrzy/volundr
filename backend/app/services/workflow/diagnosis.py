@@ -208,6 +208,16 @@ class WorkflowDiagnosisService:
                 attempt_id=attempt_id,
                 revision_id=revision_id,
             )
+            if attempt_id is None and revision_id is not None:
+                attempt = self.db.scalar(
+                    select(GenerationAttempt)
+                    .where(GenerationAttempt.resulting_revision_id == revision_id)
+                    .order_by(GenerationAttempt.started_at.desc())
+                )
+                attempt_id = attempt.id if attempt is not None else None
+            if attempt_id is None and blocked_findings:
+                attempt_id = blocked_findings[0].generation_attempt_id
+                attempt = self.db.get(GenerationAttempt, attempt_id) if attempt_id else None
             all_findings = list(findings or [])
             known_finding_ids = {item.id for item in all_findings}
             all_findings.extend(item for item in blocked_findings if item.id not in known_finding_ids)
@@ -220,6 +230,7 @@ class WorkflowDiagnosisService:
             failure_stage = str(
                 metadata.get("failure_stage")
                 or self._stage_for_failure_class(failure_class)
+                or self._stage_for_finding(blocked_findings[0] if blocked_findings else None)
                 or event.stage
             )
             first_finding = all_findings[0] if all_findings else None
@@ -310,6 +321,19 @@ class WorkflowDiagnosisService:
             "mesh_empty_or_zero_volume": "topology_validation",
             "mesh_non_watertight": "topology_validation",
         }.get(failure_class)
+
+    @staticmethod
+    def _stage_for_finding(finding: ValidationFinding | None) -> str | None:
+        if finding is None:
+            return None
+        return {
+            "plan": "plan_validation",
+            "plan_pattern": "plan_validation",
+            "design_artifact_consistency": "artifact_consistency",
+            "source_contract": "source_contract_validation",
+            "topology": "topology_validation",
+            "functional": "functional_validation",
+        }.get(finding.category)
 
     @staticmethod
     def _failure_rule_id(failure_class: str) -> str:

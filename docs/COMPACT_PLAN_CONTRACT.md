@@ -41,6 +41,21 @@ numeric/unit representation, pattern aliases, and safe non-parametric layout
 interpretation. Every normalization finding is retained in the plan payload
 and therefore in the immutable Design Plan artifact and execution context.
 
+Pattern normalization additionally persists the original provider record, the
+normalized record, the pattern index and ID, and the decision that produced
+the canonical form. Findings use typed rules such as
+`plan.pattern_alias_normalized`, `plan.pattern_owner_missing`,
+`plan.pattern_owner_unknown`, `plan.pattern_type_missing`, and
+`plan.pattern_direction_invalid`. A provider response can therefore be
+transport-successful while Plan validation is blocked; those are recorded as
+separate attempt and workflow outcomes.
+
+For a single connected-solid output, a provider-declared frame, handle, or
+retention element may be reclassified as an integral feature only when it has
+no independent output, placement, assembly relationship, material, or
+manufacturing role and the reclassification does not change a requirement.
+Ambiguous or genuinely independent multipart declarations remain blocking.
+
 ## Non-goals
 
 This contract does not weaken source safety, protected identities, topology,

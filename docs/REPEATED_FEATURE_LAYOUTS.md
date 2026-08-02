@@ -30,3 +30,19 @@ regenerate three holes when a count was never exposed.
 Pattern normalization records aliases and safe owner/layout interpretation. It
 does not invent user-critical positions, multipart ownership, or reusable
 controls.
+
+## Provider aliases
+
+Compact and detailed Plan normalization accepts equivalent one-off fields when
+they are unambiguous:
+
+- `feature_id` maps to the canonical owning-feature field;
+- `direction` maps to `X`, `Y`, or `Z` only for an exact cardinal vector;
+- `spacing_mm` maps to fixed millimeter spacing;
+- numeric `count` maps to a fixed count.
+
+When fixed count, fixed spacing, and a cardinal direction are all present, a
+missing pattern type may be inferred as `linear`. A non-cardinal direction,
+conflicting layout fields, missing owner, or unknown owner remains a typed
+blocking Plan finding. Fixed layouts do not require count or spacing parameter
+IDs.

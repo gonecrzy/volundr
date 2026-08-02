@@ -42,6 +42,15 @@ ownership evidence, focused Plan and geometry repair preservation, localized
 worker-diagnostic repair, hash-based loop prevention, and accurate blocked
 outcomes. See `docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md`.
 
+Compact and detailed Plan regression coverage additionally checks provider
+pattern aliases (`feature_id`, cardinal `direction`, `spacing_mm`, and numeric
+fixed `count`), typed normalization findings, fixed-layout acceptance without
+parameter IDs, strict configurable-layout behavior, and single-output
+component/output consistency. Workflow-observability tests verify that a
+provider-successful Plan validation block is not recorded as failure class
+`none`, and that diagnosis reports the authoritative Plan finding or blocked
+attempt stage rather than reporting no blocking evidence.
+
 The normal chat-first path automatically progresses validated requirements and
 plans, generates a first draft, and promotes only passing candidates. Approval
 button scenarios remain developer/staged-mode coverage behind the disabled
