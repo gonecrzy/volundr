@@ -377,3 +377,11 @@ classification in `scaffold-manifest.json`. A diagnostic-only dependency emits
 the artifact metadata for Technical details and debug bundles. It does not
 start contract repair. A blocking dependency retains the same evidence in the
 assembly rejection details.
+
+Artifact consistency additionally persists requirement-trace original and
+normalized manifests under revision metadata and registers both in the
+workflow debug bundle. Trace findings retain requirement ID, feature/component
+owner, function, output, classification, blocking state, and normalization
+decision. A fixed one-off geometry requirement emits
+`design_artifact.geometry_verification_deferred`; missing required feature or
+exposed-control paths remain blocking and are diagnosed specifically.

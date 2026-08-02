@@ -457,3 +457,10 @@ parameter diagnostics, deterministic scaffold scope, result symbols, repair
 scope preservation, and defensive runtime `NameError` classification. The
 exact live spacer case is also the worker/snapshot regression for the previous
 unbound `plate_width` defect.
+
+Requirement-trace tests cover integral features implemented by component
+functions, fixed counts deferred to geometry verification, owner aliases,
+ambiguous owners, exposed-control source traces, missing required features,
+single-output integral features, multipart/output conflicts, and typed
+diagnosis evidence. The exact tackle-tray rerun is retained as a live
+artifact-consistency regression.

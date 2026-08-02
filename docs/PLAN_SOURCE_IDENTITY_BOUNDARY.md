@@ -43,3 +43,9 @@ Original provider payloads, normalized plans, source bodies, assembled source,
 source-validation findings, and execution results remain separate immutable
 artifacts. Normalization cannot change the requirement ledger or create a
 provider-approved detailed plan by implication.
+
+Requirement traces are a separate artifact-consistency boundary. Ordinary
+fixed dimensions and one-off layouts may use a geometry-verification trace;
+only exposed controls and protected source identities require source-level
+parameter or function evidence. Integral features can be implemented in their
+owning component function without becoming separate printable outputs.

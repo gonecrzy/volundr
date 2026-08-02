@@ -475,3 +475,9 @@ geometry-body symbol contract: provider-loaded names must resolve within the
 scaffold-owned function scope, and one safely targeted runtime repair is
 allowed. This does not restore source-parametric obligations for ordinary
 requirements.
+
+Requirement-trace classification is now the artifact-consistency checkpoint:
+ordinary fixed requirements can reach the worker with geometry-verification
+evidence, while exposed controls, protected identities, and genuinely missing
+required features remain hard gates. See
+[`REQUIREMENT_TRACE_CONTRACT.md`](REQUIREMENT_TRACE_CONTRACT.md).

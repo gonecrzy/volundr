@@ -63,3 +63,9 @@ inventory. It defines the actual `(params)` or `(body, params)` signature,
 approved aliases/helpers, parameter access form, and result-symbol contract.
 This inventory prevents Plan IDs from being mistaken for Python globals while
 leaving ordinary dimensions implementation-flexible.
+
+The context's downstream artifact evidence also carries an original and a
+normalized requirement-trace manifest. Each obligation records whether it
+needs source trace, may use source or geometry trace, must be verified from
+geometry, or needs human review. This classification is per requirement and
+does not turn ordinary Plan values into source parameters.

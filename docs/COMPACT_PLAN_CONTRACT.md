@@ -62,3 +62,12 @@ This contract does not weaken source safety, protected identities, topology,
 functional verification, artifact readiness, or Current working version
 promotion gates. It does not prescribe the provider's local CadQuery
 implementation.
+
+## Requirement trace boundary
+
+Artifact consistency classifies each active requirement independently. Fixed
+counts and dimensions may defer to a Plan validation target and resulting
+geometry; they do not require a reusable Plan parameter. Exposed controls and
+required printable identities still require source traces. Integral features
+may trace to their owning component function without a separate output. See
+[`REQUIREMENT_TRACE_CONTRACT.md`](REQUIREMENT_TRACE_CONTRACT.md).

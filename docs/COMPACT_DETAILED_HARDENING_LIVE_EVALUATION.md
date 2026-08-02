@@ -151,3 +151,41 @@ and the final comparable run reached none of the five workers. Continue with
 compact/detailed planning and source-contract interoperability diagnosis,
 keeping the existing safety, topology, functional, artifact, and promotion
 gates unchanged.
+
+## 2026-08-02 — requirement-trace classification rerun
+
+The preserved latest Plan/source pair for project
+`3a66a1b7-8f2b-4de4-8980-abf5132a3009` was reconstructed before changing
+production behavior. The previous generic failure was caused by
+`tray_capacity` being treated as a required Plan parameter even though the
+Plan represented it as a fixed pattern count.
+
+| Requirement | Plan feature | Source function | Output | Classification/result |
+| --- | --- | --- | --- | --- |
+| `tray_capacity` = 5 | `tray_slots` / `vertical_slot_pattern` | `apply_feature_tray_slots` | `print_tackle_tray_holder_body` | `geometry_verification_required`; deferred to `val_tray_capacity` |
+| hold five 3600 trays | `tray_slots` | `apply_feature_tray_slots` | `print_tackle_tray_holder_body` | `source_or_geometry_trace`; source trace |
+| integrated carrying handle | `carrying_handle` | `apply_feature_carrying_handle` | `print_tackle_tray_holder_body` | `source_or_geometry_trace`; source trace |
+| tray retention | `tray_retention_lip` | `apply_feature_tray_retention_lip` | `print_tackle_tray_holder_body` | `source_or_geometry_trace`; source trace |
+| top loading | `tray_slots` | `apply_feature_tray_slots` | `print_tackle_tray_holder_body` | `source_or_geometry_trace`; source trace and `val_fit_clearance` |
+| skeletonized walls | `skeletonized_walls` | `apply_feature_skeletonized_walls` | `print_tackle_tray_holder_body` | `source_or_geometry_trace`; source trace |
+
+The old `design_artifact.requirement_trace_failed` finding disappeared for
+the preserved artifacts. The consistency result contains an original and a
+normalized trace manifest, and the redacted debug bundle contains both files.
+The sole printable component and single connected-solid output are consistent;
+no tray-specific production branch was added.
+
+The exact request was submitted unchanged twice after this correction. The
+first fresh provider attempt was blocked earlier at compact Plan pattern
+validation because the provider emitted incomplete linear/grid pattern
+records. A second unchanged attempt passed Plan normalization and source
+validation, reached the CadQuery worker, and produced one valid solid plus
+STL, STEP, and BREP artifacts. Worker time was approximately 4.84 seconds.
+The candidate remained blocked because the output was marked unavailable by
+the existing printability/build-volume gate; the design-artifact result had
+`pre_execution_passed=true`, with only the nonblocking
+`design_artifact.geometry_verification_deferred` trace warning. No Current
+working version, snapshot promotion, or export promotion was created.
+
+This confirms the former trace block was misclassification. The remaining
+block is downstream artifact/printability evidence, not a missing source trace.
