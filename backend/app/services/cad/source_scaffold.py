@@ -207,6 +207,12 @@ def render_cadquery_scaffold(
                 if resolved_value is None:
                     continue
             if resolved_value is None:
+                if not _derived_parameter_required_by_execution(effect_contract, str(derived["id"])):
+                    # Keep unresolved planning metadata out of PARAMETERS.
+                    # It remains present in the immutable plan/effect
+                    # evidence, but an ordinary one-off design does not need
+                    # a provider's unused formula to execute.
+                    continue
                 raise ScaffoldSourceError(f"derived parameter {derived['id']} could not be resolved")
         parameter_entries.append(
             {
@@ -496,6 +502,43 @@ def _required_id(payload: dict[str, Any], key: str, kind: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ScaffoldSourceError(f"{kind} is missing a stable {key}")
     return value
+
+
+def _derived_parameter_required_by_execution(contract: dict[str, Any], parameter_id: str) -> bool:
+    if parameter_id in {str(value) for value in contract.get("exposed_control_ids", []) or []}:
+        return True
+    for function in contract.get("functions", []) or []:
+        if not isinstance(function, dict):
+            continue
+        if parameter_id in {
+            str(value)
+            for key in ("required_direct_parameters", "required_inputs", "allowed_derived_parameters")
+            for value in function.get(key, []) or []
+        }:
+            return True
+        if any(
+            isinstance(effect, dict) and str(effect.get("parameter_id") or "") == parameter_id
+            for effect in function.get("required_parameter_effects", []) or []
+        ):
+            return True
+    for pattern in contract.get("patterns", []) or []:
+        if not isinstance(pattern, dict) or not pattern.get("effect_required"):
+            continue
+        specification = pattern.get("specification") if isinstance(pattern.get("specification"), dict) else pattern
+        if parameter_id in {
+            str(specification.get(key) or "")
+            for key in (
+                "count_parameter_id",
+                "spacing_parameter_id",
+                "rows_parameter_id",
+                "columns_parameter_id",
+                "row_spacing_parameter_id",
+                "column_spacing_parameter_id",
+                "radius_parameter_id",
+            )
+        }:
+            return True
+    return False
 
 
 def _literal(value: Any) -> str:

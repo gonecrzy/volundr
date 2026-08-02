@@ -272,7 +272,7 @@ def test_design_plan_prompt_is_json_only_and_product_model_aware() -> None:
 
     prompt = provider.build_design_plan_prompt(request)
 
-    assert provider.design_plan_prompt_template_version() == "design-plan-v6"
+    assert provider.design_plan_prompt_template_version() == "design-plan-v7"
     assert "Return JSON only. Do not generate CAD source." in prompt
     assert "active requirements, a proposed design approach, components, functional features" in prompt
     assert "printable_outputs" in prompt

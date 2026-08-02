@@ -135,7 +135,22 @@ def requirement_delta_for_message(
     lowered = text.lower()
     observation: dict[str, Any] | None = None
     changes: list[dict[str, Any]] = []
-    if "too tight" in lowered and "clearance" in lowered:
+    if "too tight" in lowered and "diameter" in lowered:
+        observation = _observation(text, "fit_too_tight", "physical_test_feedback")
+        match = re.search(r"to\s+([0-9]+(?:\.[0-9]+)?)\s*mm", lowered)
+        changes.append(
+            {
+                "operation": "change",
+                "requirement_id": "hole_diameter",
+                "type": "exact_dimension",
+                "value": float(match.group(1)) if match else None,
+                "unit": "mm" if match else None,
+                "source": "physical_test_feedback",
+                "explicit": True,
+                "target": "mounting_holes",
+            }
+        )
+    elif "too tight" in lowered and "clearance" in lowered:
         observation = _observation(text, "fit_too_tight", "physical_test_feedback")
         match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*mm\s*clearance", lowered)
         changes.append(
@@ -254,6 +269,12 @@ def requirement_delta_for_message(
                         "explicit": True,
                     }
                 )
+    if observation is None and not changes and re.search(
+        r"\b(?:too\s+tight|too\s+loose|too\s+stiff|flex(?:es|ed)?|cracked|broke|"
+        r"does\s+not\s+seat|test\s+print|interferes?)\b",
+        lowered,
+    ):
+        observation = _observation(text, "physical_test_observation", "physical_test_feedback")
     return changes, observation
 
 

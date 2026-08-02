@@ -269,13 +269,14 @@ def validate_cadquery_source_authority(
             authority=authority,
         )
     )
+    identity_diagnostics = _source_local_identity_diagnostics(source, authority)
     if findings:
         raise CadQuerySourceAuthorityError(findings)
     return {
         "schema_version": VALIDATOR_VERSION,
         "passed_hard_checks": True,
         "findings": [],
-        "diagnostic_findings": diagnostic_findings,
+        "diagnostic_findings": diagnostic_findings + identity_diagnostics,
     }
 
 
@@ -627,6 +628,51 @@ def _validate_source_against_authority(
             )
         )
     return findings
+
+
+def _source_local_identity_diagnostics(
+    source: str,
+    authority: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Record provider locals without promoting them to plan identities."""
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+    protected = {
+        str(value)
+        for collection in ("parameters", "components", "features", "outputs")
+        for item in authority.get(collection, []) or []
+        if isinstance(item, dict)
+        for value in (item.get("id"),)
+        if value
+    }
+    protected.update(
+        str(value) for value in authority.get("exposed_control_ids", []) or [] if value
+    )
+    diagnostics: list[dict[str, Any]] = []
+    for function in (node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)):
+        for node in ast.walk(function):
+            if not isinstance(node, ast.Name) or not isinstance(node.ctx, ast.Store):
+                continue
+            symbol = str(node.id)
+            if symbol in {"params", "PARAMETERS"} or symbol in protected:
+                continue
+            diagnostics.append(
+                {
+                    "rule_id": "source.local_implementation_variable",
+                    "category": "source_identity",
+                    "severity": "info",
+                    "is_blocking": False,
+                    "function_id": function.name,
+                    "symbol": symbol,
+                    "reason": "provider-owned local implementation variable; not exported as a plan identity",
+                    "line": getattr(node, "lineno", None),
+                    "column": getattr(node, "col_offset", None),
+                }
+            )
+    return diagnostics
 
 
 def _authority_parameter(parameter: dict[str, Any]) -> dict[str, Any]:

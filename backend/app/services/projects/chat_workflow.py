@@ -351,6 +351,27 @@ class ChatWorkflowService:
             self._event(workflow_run, f"{intent.action}.routed", f"Chat message routed to {intent.action.replace('_', ' ')}.", f"{intent.action}_routed")
             if intent.action != "control_request":
                 delta, _observation = requirement_delta_for_message(message)
+                if not delta and _observation is not None:
+                    self.requirement_store.apply_delta(
+                        project_id=project.id,
+                        changes=[],
+                        originating_message=message,
+                        observation=_observation,
+                    )
+                    self._event(
+                        workflow_run,
+                        "physical_feedback.recorded",
+                        "Physical-test feedback was recorded for a future revision.",
+                        "physical_feedback_recorded",
+                    )
+                    return self._response(
+                        workflow_run,
+                        intent.action,
+                        "conversation",
+                        False,
+                        "I recorded the test result. Tell me what you want changed when you are ready for a new version.",
+                        current_revision_id=project.active_revision_id,
+                    )
                 if delta:
                     deterministic_plan, route = self.service.create_deterministic_revision_brief(
                         project.id,

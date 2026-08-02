@@ -720,6 +720,11 @@ def test_precise_parameter_request_creates_ready_revision_plan_without_generatio
     assert plan["base_revision_id"] == context["revision"]["id"]
     assert plan["revision_plan"]["allowed_parameter_changes"] == ["lid_thickness"]
     assert plan["revision_plan"]["protected_outputs"] == ["body"]
+    summary_response = client.get(
+        f"/api/revision-plans/{plan['id']}/component-revision-summary"
+    )
+    assert summary_response.status_code == 200
+    assert summary_response.json() is None
     assert provider.revision_plan_requests[0].output_manifest["outputs"][0]["output_id"] == "body"
     assert provider.generation_requests == []
 

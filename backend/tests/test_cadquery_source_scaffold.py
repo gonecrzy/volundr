@@ -118,6 +118,21 @@ def _ai_feature_mounting_holes(body, params):
     assert rendered.pattern_manifest[0]["pattern_id"] == "mounting_hole_pattern"
 
 
+def test_unused_unresolved_derived_metadata_does_not_block_ordinary_scaffold() -> None:
+    plan = deepcopy(PLAN)
+    plan["derived_parameters"] = [{
+        "id": "unused_width_formula",
+        "expression": "missing_width + wall_thickness",
+        "depends_on": ["missing_width"],
+        "unit": "mm",
+    }]
+
+    rendered = render_cadquery_scaffold(plan, GEOMETRY)
+
+    assert "unused_width_formula" not in rendered.source
+    assert any(item["parameter_id"] == "unused_width_formula" for item in rendered.derived_parameter_manifest)
+
+
 def test_geometry_payload_rejects_scaffold_edits_and_unknown_functions() -> None:
     payload = """
 ```python

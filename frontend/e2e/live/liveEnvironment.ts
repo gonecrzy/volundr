@@ -46,7 +46,6 @@ export function installBrowserQualityChecks(page: Page): {
   };
   const allowedOptional404 = [
     "/geometric-analysis",
-    "/component-revision-summary",
     "/compliance-result",
     "/success-results",
     "/configuration/parameters",

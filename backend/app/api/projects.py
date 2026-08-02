@@ -980,7 +980,7 @@ def get_revision_plan_module_ownership_comparison(
 
 @router.get(
     "/revision-plans/{revision_plan_id}/component-revision-summary",
-    response_model=ComponentRevisionSummaryRead,
+    response_model=ComponentRevisionSummaryRead | None,
 )
 def get_component_revision_summary_for_plan(
     revision_plan_id: str,
@@ -990,7 +990,7 @@ def get_component_revision_summary_for_plan(
     service = ProjectService(db=db, data_dir=data_dir)
     result = service.get_component_revision_summary_by_plan(revision_plan_id)
     if result is None:
-        raise HTTPException(status_code=404, detail="component revision summary not found")
+        return None
     return result
 
 

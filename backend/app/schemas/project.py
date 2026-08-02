@@ -53,10 +53,12 @@ class DesignPlanConstraintMode(StrEnum):
 
 class DesignPlanLayoutMode(StrEnum):
     FIXED_POSITIONS = "fixed_positions"
+    PROPOSED_POSITIONS = "proposed_positions"
     PARAMETERIZED_POSITIONS = "parameterized_positions"
     UNIFORM_LINEAR = "uniform_linear"
     RECTANGULAR_GRID = "rectangular_grid"
     CIRCULAR = "circular"
+    DISTRIBUTED_WITHIN_REGION = "distributed_within_region"
     DERIVED_CUSTOM = "derived_custom"
 
 
@@ -381,6 +383,7 @@ class DesignPlanComponent(BaseModel):
     description: str = Field(min_length=1)
     features: list[str] = Field(default_factory=list)
     parameters: list[str] = Field(default_factory=list)
+    role: str = "printable_part"
 
 
 class DesignPlanFeature(BaseModel):

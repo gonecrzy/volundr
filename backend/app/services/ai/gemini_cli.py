@@ -34,7 +34,7 @@ from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v3"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v7"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
@@ -668,6 +668,7 @@ class GeminiCliProvider:
             f"Use schema_version exactly {GEOMETRY_BODIES_SCHEMA_VERSION}.",
             "Return ordered statements and exactly one result_symbol for each function; never return def declarations, decorators, imports, return statements, fences, or prose inside a body.",
             "Volundr deterministically owns all parameters, components, features, outputs, IDs, and the build entrypoint.",
+            "The module-level PARAMETERS list may contain only the approved scaffold parameter identities supplied in the authority inventory. Keep ordinary derived calculations as definitely assigned locals inside provider-owned functions; never export a local calculation as a new ParameterSpec.",
             "Use CadQuery as `cq` and the canonical parameter IDs exactly as provided.",
             "Implement every required function_id exactly once. Do not rename, omit, or add functions.",
             "Assign the component shape or modified feature shape to result_symbol. Volundr appends the sole return statement deterministically.",
@@ -852,9 +853,12 @@ class GeminiCliProvider:
                 "Do not use one parameter ID for both a nominal designation and a geometric dimension. Keep a screw designation such as #8 separate from a proposed clearance-hole diameter.",
                 "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
                 "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
-                "For repeated functional features, emit a generic patterns entry owned by the feature and component. Volundr computes canonical points from its count and spacing/radius parameters; do not put pattern arithmetic in geometry bodies.",
+                "For repeated functional features, emit a generic patterns entry owned by the feature and component. Volundr computes canonical points from its count and spacing/radius parameters when a reusable control is explicitly requested; otherwise numeric fixed/proposed layout evidence is sufficient.",
+                "A printable component is independently printable. Ribs, holes, vents, bosses, openings, floors, fillets, chamfers, snap arms, and fused reinforcements are integral features owned by their printable component unless the user explicitly requests a separate part.",
+                "Provider local calculation names are ordinary implementation locals, not Design Plan identities. Do not add them as components, features, outputs, parameters, or controls.",
                 "Classify design intent, not numeric types: a request such as 'use two screws' is a fixed_constraint by default; only an explicit request for adjustable, configurable, parametric, variable, or any-number behavior makes count or spacing configurable_parameter. Preserve fixed requirements as functional criteria.",
-                "For a fixed or irregular repeated layout, emit a feature_layouts entry with layout_mode fixed_positions, required_count, approved/proposed positions, and hole_axis. For a configurable uniform layout, use layout_mode uniform_linear and identify count_parameter_id, spacing_parameter_id, arrangement_axis, and hole_axis. Do not infer future configurability from a fixed count.",
+                "For a fixed or irregular repeated layout, emit a feature_layouts entry with layout_mode fixed_positions or proposed_positions, required_count, approved/proposed positions, and hole_axis. For a configurable uniform layout, use layout_mode uniform_linear and identify count_parameter_id, spacing_parameter_id, arrangement_axis, and hole_axis. Do not infer future configurability from a fixed count.",
+                "For one-off repeated slots or cells, numeric count, spacing, radius, positions, or distributed-within-region guidance are valid. A spacing_parameter_id is required only for an exposed reusable spacing control or an explicitly pattern-driving relationship.",
                 "For a repeated linear mounting arrangement, use the explicit or proposed count and spacing, set centered=true, and distinguish the arrangement axis from the wall-normal hole-cutting axis.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
                 "For any physical product with mounting, containment, support, retention, or removal requirements, emit schema_version 1.1 and an explicit functional_contract.",
@@ -916,6 +920,13 @@ class GeminiCliProvider:
                         "point_parameter_id": "feature_points",
                         "count_parameter_id": "count_parameter_id|null",
                         "spacing_parameter_id": "spacing_parameter_id|null",
+                        "count": 12,
+                        "spacing": 8.0,
+                        "rows": 2,
+                        "columns": 3,
+                        "row_spacing": 10.0,
+                        "column_spacing": 12.0,
+                        "radius": 21.0,
                         "axis": "X|Y|Z|null",
                         "plane": "XY|XZ|YZ|null",
                         "centered": True,
@@ -927,7 +938,7 @@ class GeminiCliProvider:
                     {
                         "feature_id": "feature_id",
                         "owning_component_id": "component_id",
-                        "layout_mode": "fixed_positions|parameterized_positions|uniform_linear|rectangular_grid|circular|derived_custom",
+                        "layout_mode": "fixed_positions|proposed_positions|parameterized_positions|uniform_linear|rectangular_grid|circular|distributed_within_region|derived_custom",
                         "required_count": 2,
                         "positions": [{"x": 0, "y": 0, "z": -25}, {"x": 0, "y": 0, "z": 25}],
                         "hole_axis": "Y|null",
@@ -952,6 +963,7 @@ class GeminiCliProvider:
                     "description": "string",
                     "features": ["feature_id"],
                     "parameters": ["parameter_id"],
+                    "role": "printable_part|integral_feature|separate_part",
                 }
             ],
             "features": [
@@ -1043,18 +1055,37 @@ class GeminiCliProvider:
         )
 
     def _build_compact_plan_prompt(self, request: DesignPlanRequest) -> str:
-        return "\n".join(
-            [
-                "Create a compact CAD execution plan for Volundr.",
+        task = [
+                (
+                    "Repair the compact plan JSON using the validation error below. "
+                    "Preserve valid components, features, layouts, and requirements; "
+                    "do not broaden the design or invent a second printable part."
+                )
+                if request.schema_repair_of_raw_output is not None
+                else "Create a compact CAD execution plan for Volundr.",
                 "Return JSON only. Do not generate CadQuery source.",
                 "Use schema_version exactly compact-cad-plan-v1.",
                 "This is an execution artifact derived from the active requirement ledger, not a replacement requirement store.",
-                "Include components, interacting functional features, relationships, proposals, coordinate_frames, validation_targets, printable_outputs, and optional exposed_controls.",
+                "A printable component is an independently printable part. Ribs, holes, vents, bosses, openings, floors, fillets, chamfers, snap arms, and fused reinforcements are integral features owned by their printable component.",
+                "For an unambiguous single-part plan, a missing feature owner may default to the sole printable component. Never infer a multipart owner or silently create an extra printable output.",
                 "Use stable IDs and distinguish proposals from user requirements.",
+                "Do not use ordinary local calculation names as component IDs, feature IDs, outputs, or exposed controls.",
+                "For repeated features choose fixed_positions, proposed_positions, uniform_linear, rectangular_grid, circular, or distributed_within_region according to the requirement. Numeric count, spacing, radius, positions, and region guidance are valid one-off plan values.",
+                "Only use configurable_pattern or parameter IDs for count, spacing, rows, columns, or radius when the user explicitly requests reusable adjustment or the relationship is explicitly exposed.",
+                "For fixed or proposed layouts, do not require a spacing_parameter_id. Do not assume equal spacing for irregular positions.",
                 "Do not ask for routine implementation dimensions when a safe Volundr proposal is possible.",
                 "Do not create exposed controls unless the user explicitly requested adjustable, configurable, parametric, variable, or reusable behavior.",
                 "Return clarification_required only for a genuine contradiction or missing critical interface information.",
-                "Required fields: schema_version, planning_depth, components, features, relationships, proposals, coordinate_frames, validation_targets, printable_outputs, exposed_controls, parameters, derived_parameters, dependency_edges, patterns, feature_layouts, clarification_required, clarification_questions, plan_ready.",
+                "Required fields: schema_version, planning_depth, components, features, relationships, proposals, coordinate_frames, validation_targets, printable_outputs, optional exposed_controls, parameters, derived_parameters, dependency_edges, patterns, feature_layouts, clarification_required, clarification_questions, plan_ready.",
+            ]
+        if request.schema_repair_of_raw_output is not None:
+            task.extend([
+                "Schema validation error:",
+                request.schema_validation_error or "unknown schema error",
+                "Invalid raw output:",
+                request.schema_repair_of_raw_output,
+            ])
+        task.extend([
                 "",
                 "Design Specification:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
@@ -1065,8 +1096,8 @@ class GeminiCliProvider:
                 "",
                 "User instruction:",
                 request.user_instruction,
-            ]
-        )
+            ])
+        return "\n".join(task)
 
     def _build_revision_plan_prompt(self, request: RevisionPlanRequest) -> str:
         if request.schema_repair_of_raw_output is not None:

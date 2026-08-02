@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import math
 from typing import Any
 
 from volundr_cad.patterns import PatternSpecError, resolve_pattern_points
@@ -15,6 +16,20 @@ _PATTERN_LAYOUT_MODES = {
     "uniform_linear",
     "rectangular_grid",
     "circular",
+}
+_PATTERN_TYPE_ALIASES = {
+    "vertical": "linear",
+    "horizontal": "linear",
+    "line": "linear",
+    "row": "linear",
+    "linear_pattern": "linear",
+    "uniform_linear": "linear",
+    "vertical_linear": "linear",
+    "horizontal_linear": "linear",
+    "grid": "rectangular",
+    "rectangular_grid": "rectangular",
+    "radial": "circular",
+    "circular_pattern": "circular",
 }
 
 
@@ -96,7 +111,36 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(raw, dict):
             continue
         pattern = dict(raw)
-        pattern_id = str(pattern.get("pattern_id") or "")
+        pattern_id = str(pattern.get("pattern_id") or pattern.get("id") or "")
+        if pattern_id:
+            pattern["pattern_id"] = pattern_id
+        feature_id = str(pattern.get("owning_feature_id") or pattern.get("feature_id") or "")
+        if feature_id:
+            pattern["owning_feature_id"] = feature_id
+        pattern_type = str(pattern.get("pattern_type") or pattern.get("type") or "").lower()
+        if not pattern_type:
+            pattern_type = str(pattern.get("layout_type") or "").lower()
+        if pattern_type in {"fixed_positions", "proposed_positions", "distributed_within_region"}:
+            pattern_type = ""
+        if not pattern_type and pattern.get("positions"):
+            # Explicit positions are evidence of a repeated feature, not a
+            # request for a reusable pattern. Keep that distinction in the
+            # pattern manifest so irregular coordinates do not acquire a
+            # false linear-axis contract.
+            pattern_type = "explicit"
+        if pattern_type in _PATTERN_TYPE_ALIASES:
+            pattern["pattern_type"] = _PATTERN_TYPE_ALIASES[pattern_type]
+        elif pattern_type:
+            pattern["pattern_type"] = pattern_type
+        if isinstance(pattern.get("axis"), dict):
+            vector = pattern["axis"]
+            components = {axis: float(vector.get(axis.lower(), 0.0) or 0.0) for axis in ("X", "Y", "Z")}
+            dominant = max(components, key=lambda axis: abs(components[axis]))
+            if components[dominant] != 0.0 and sum(1 for value in components.values() if value != 0.0) == 1:
+                pattern["axis"] = dominant
+        if feature_id and not pattern_id:
+            pattern_id = f"{feature_id}_pattern"
+            pattern["pattern_id"] = pattern_id
         if pattern_id and not pattern.get("point_parameter_id"):
             pattern["point_parameter_id"] = (
                 pattern_id[:-8] + "_points" if pattern_id.endswith("_pattern") else pattern_id + "_points"
@@ -123,6 +167,78 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
         for parameter in collection or []
         if isinstance(parameter, dict) and parameter.get("id")
     }
+    layout_by_pattern_id = {
+        str(layout.get("pattern_id")): layout
+        for layout in normalized.get("feature_layouts", []) or []
+        if isinstance(layout, dict) and layout.get("pattern_id")
+    }
+    for pattern in patterns:
+        feature_id = str(pattern.get("owning_feature_id") or "")
+        if not feature_id:
+            referenced_layout = layout_by_pattern_id.get(str(pattern.get("pattern_id") or ""))
+            if referenced_layout:
+                feature_id = str(referenced_layout.get("feature_id") or "")
+                if feature_id:
+                    pattern["owning_feature_id"] = feature_id
+        if not pattern.get("owning_component_id") and feature_id in component_by_feature:
+            pattern["owning_component_id"] = component_by_feature[feature_id]
+        elif pattern.get("owning_component_id") and feature_id in component_by_feature:
+            # The feature owner is authoritative for integral repeated
+            # features; retain the provider value only when it agrees.
+            if str(pattern["owning_component_id"]) != component_by_feature[feature_id]:
+                raise PatternSpecError(
+                    f"pattern `{pattern.get('pattern_id')}` does not match its feature component"
+                )
+        layout = layout_for_feature(normalized, feature_id)
+        layout_positions = (layout or {}).get("positions") if isinstance(layout, dict) else None
+        if not pattern.get("positions") and isinstance(layout_positions, list) and layout_positions:
+            pattern["positions"] = deepcopy(layout_positions)
+        pattern_type = str(pattern.get("pattern_type") or "").lower()
+        if pattern_type in {"fixed_positions", "proposed_positions", "distributed_within_region"}:
+            pattern_type = "explicit" if pattern.get("positions") else ""
+            if pattern_type:
+                pattern["pattern_type"] = pattern_type
+        if not pattern_type and pattern.get("positions"):
+            pattern_type = "explicit"
+            pattern["pattern_type"] = pattern_type
+        if pattern_type == "explicit":
+            pattern["positions"] = [_canonical_explicit_point(point) for point in pattern.get("positions") or []]
+        layout_mode = str((layout or {}).get("layout_mode") or pattern.get("layout_mode") or "")
+        if layout_mode in {"fixed_positions", "proposed_positions", "distributed_within_region"}:
+            for parameter_key, numeric_key in (
+                ("count_parameter_id", "count"),
+                ("spacing_parameter_id", "spacing"),
+                ("rows_parameter_id", "rows"),
+                ("columns_parameter_id", "columns"),
+                ("row_spacing_parameter_id", "row_spacing"),
+                ("column_spacing_parameter_id", "column_spacing"),
+                ("radius_parameter_id", "radius"),
+            ):
+                if pattern.get(parameter_key) and str(pattern[parameter_key]) not in parameter_by_id and pattern.get(numeric_key) is None:
+                    pattern[parameter_key] = None
+                    normalized.setdefault("normalization_findings", []).append({
+                        "rule_id": "plan.layout_normalized",
+                        "severity": "warning",
+                        "blocking": False,
+                        "pattern_id": pattern.get("pattern_id"),
+                        "field": parameter_key,
+                        "reason": "non-parametric layout does not require an unresolved control identity",
+                    })
+        pattern_type = str(pattern.get("pattern_type") or "").lower()
+        if (
+            pattern_type == "linear"
+            and not pattern.get("spacing_parameter_id")
+            and pattern.get("spacing") is None
+            and layout_mode not in _PATTERN_LAYOUT_MODES
+        ):
+            pattern["layout_mode"] = "proposed_positions"
+            normalized.setdefault("normalization_findings", []).append({
+                "rule_id": "plan.layout_semantics_missing",
+                "severity": "warning",
+                "blocking": False,
+                "pattern_id": pattern.get("pattern_id"),
+                "reason": "fixed-count repeated feature may use proposed positions without a spacing control",
+            })
     for pattern in patterns:
         if pattern.get("point_parameter_id") in parameter_by_id:
             pattern_id = str(pattern.get("pattern_id") or "pattern")
@@ -175,6 +291,18 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def _canonical_explicit_point(point: Any) -> Any:
+    if not isinstance(point, dict) or "radius" not in point or "angle" not in point:
+        return point
+    radius = float(point["radius"])
+    angle = math.radians(float(point["angle"]))
+    return {
+        "x": radius * math.cos(angle),
+        "y": radius * math.sin(angle),
+        "z": float(point.get("z", 0.0) or 0.0),
+    }
+
+
 def validate_pattern_specs(plan: dict[str, Any]) -> None:
     patterns = [item for item in plan.get("patterns", []) or [] if isinstance(item, dict)]
     parameter_ids = {
@@ -219,26 +347,52 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
         if component_id and feature_components.get(feature_id) not in {None, component_id}:
             errors.append(f"pattern `{pattern_id}` does not match its feature component")
         pattern_type = str(pattern.get("pattern_type") or "").lower()
+        layout = layout_for_feature(plan, feature_id)
+        layout_mode = str((layout or {}).get("layout_mode") or pattern.get("layout_mode") or "")
+        effect_required = layout_requires_pattern_effect(
+            layout or pattern,
+            effect_parameter_ids=(exposed_control_ids(plan) if "exposed_controls" in plan else None),
+        )
         required_keys = {
-            "linear": ("count_parameter_id", "spacing_parameter_id", "axis"),
-            "rectangular": (
-                "rows_parameter_id",
-                "columns_parameter_id",
-                "row_spacing_parameter_id",
-                "column_spacing_parameter_id",
-                "plane",
-            ),
-            "circular": ("count_parameter_id", "radius_parameter_id"),
+            "linear": ("axis",),
+            "rectangular": ("plane",),
+            "circular": (),
+            "explicit": (),
         }.get(pattern_type)
         if required_keys is None:
             errors.append(f"pattern `{pattern_id}` uses unsupported pattern_type `{pattern_type}`")
             continue
+        numeric_sources = {
+            "linear": (("count_parameter_id", "count"), ("spacing_parameter_id", "spacing")),
+            "rectangular": (
+                ("rows_parameter_id", "rows"),
+                ("columns_parameter_id", "columns"),
+                ("row_spacing_parameter_id", "row_spacing"),
+                ("column_spacing_parameter_id", "column_spacing"),
+            ),
+            "circular": (("count_parameter_id", "count"), ("radius_parameter_id", "radius")),
+            "explicit": (),
+        }[pattern_type]
         for key in required_keys:
             value = pattern.get(key)
             if not value:
                 errors.append(f"pattern `{pattern_id}` requires {key}")
             elif key.endswith("parameter_id") and str(value) not in parameter_ids:
                 errors.append(f"pattern `{pattern_id}` references unknown parameter `{value}`")
+        for parameter_key, numeric_key in numeric_sources:
+            value = pattern.get(parameter_key)
+            numeric_value = pattern.get(numeric_key)
+            if value and str(value) not in parameter_ids:
+                errors.append(f"pattern `{pattern_id}` references unknown parameter `{value}`")
+            if effect_required and not value:
+                errors.append(
+                    f"pattern `{pattern_id}` requires {parameter_key} for a configurable layout"
+                )
+            elif not effect_required and value is None and numeric_value is None:
+                if layout_mode not in {"fixed_positions", "proposed_positions", "distributed_within_region"}:
+                    errors.append(
+                        f"pattern `{pattern_id}` requires numeric {numeric_key} or {parameter_key}"
+                    )
     if errors:
         raise PatternSpecError("; ".join(errors))
 

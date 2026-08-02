@@ -1109,7 +1109,7 @@ function App() {
     }
     try {
       setComponentRevisionSummary(
-        await request<ComponentRevisionSummary>(`/revision-plans/${plan.id}/component-revision-summary`, {
+        await request<ComponentRevisionSummary | null>(`/revision-plans/${plan.id}/component-revision-summary`, {
           method: "GET",
         }),
       );
@@ -1932,7 +1932,7 @@ function App() {
     }
     try {
       setComponentRevisionSummary(
-        await request<ComponentRevisionSummary>(`/revisions/${revision.id}/component-revision-summary`, {
+        await request<ComponentRevisionSummary | null>(`/revisions/${revision.id}/component-revision-summary`, {
           method: "GET",
         }),
       );

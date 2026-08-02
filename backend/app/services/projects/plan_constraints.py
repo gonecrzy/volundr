@@ -22,10 +22,12 @@ CONSTRAINT_MODES = {
 }
 LAYOUT_MODES = {
     "fixed_positions",
+    "proposed_positions",
     "parameterized_positions",
     "uniform_linear",
     "rectangular_grid",
     "circular",
+    "distributed_within_region",
     "derived_custom",
 }
 EFFECT_MODES = {"configurable_parameter", "derived_parameter"}
@@ -34,6 +36,23 @@ PATTERN_LAYOUT_MODES = {
     "uniform_linear",
     "rectangular_grid",
     "circular",
+}
+
+_INTEGRAL_FEATURE_TERMS = re.compile(
+    r"\b(?:rib|reinforc(?:e|ement)|hole|vent(?:ilation)?|slot|boss|opening|"
+    r"floor|ledge|fillet|chamfer|snap|retention|drain|support|guide|clip)s?\b",
+    re.IGNORECASE,
+)
+_PATTERN_TYPE_ALIASES = {
+    "vertical": "linear",
+    "horizontal": "linear",
+    "line": "linear",
+    "row": "linear",
+    "linear_pattern": "linear",
+    "grid": "rectangular",
+    "rectangular_grid": "rectangular",
+    "radial": "circular",
+    "circular_pattern": "circular",
 }
 
 _CONFIGURATION_CUES = re.compile(
@@ -100,6 +119,193 @@ def normalize_plan_constraints(
     )
     normalized = _normalize_feature_layouts(normalized, parameter_by_id, derived_ids)
     _validate_layouts(normalized)
+    return normalized
+
+
+def normalize_compact_component_feature_semantics(
+    plan: dict[str, Any],
+    *,
+    compact: bool = False,
+) -> dict[str, Any]:
+    """Normalize the semantic boundary between printable parts and features.
+
+    This is intentionally conservative.  Only an unambiguous compact,
+    single-part plan may fold a provider-labelled integral feature component
+    into the sole printable component.  Detailed/multipart plans retain the
+    component identity and are validated by the existing assembly gates.
+    """
+
+    normalized = deepcopy(plan)
+    components = [dict(item) for item in normalized.get("components", []) or [] if isinstance(item, dict)]
+    features = [dict(item) for item in normalized.get("features", []) or [] if isinstance(item, dict)]
+    outputs = [dict(item) for item in normalized.get("printable_outputs", []) or [] if isinstance(item, dict)]
+    relationships = [item for item in normalized.get("relationships", []) or [] if isinstance(item, dict)]
+    findings: list[dict[str, Any]] = list(normalized.get("normalization_findings", []) or [])
+
+    for index, component in enumerate(components):
+        component.setdefault("id", component.get("component_id") or ("primary_part" if index == 0 else f"component_{index + 1}"))
+        component.setdefault("label", component.get("name") or str(component["id"]).replace("_", " ").title())
+        component.setdefault("role", "printable_part")
+        component.setdefault("required", True)
+        component.setdefault("features", [])
+        component.setdefault("parameters", [])
+
+    for feature in features:
+        feature.setdefault("id", feature.get("feature_id"))
+        feature.setdefault("type", feature.get("feature_type") or "feature")
+    for output_index, output in enumerate(outputs):
+        output.setdefault("id", output.get("output_id"))
+        if not output.get("component_ids") and output.get("component_id"):
+            output["component_ids"] = [output["component_id"]]
+        if not output.get("id"):
+            owners = [str(value) for value in output.get("component_ids", []) or [] if value]
+            output["id"] = f"{owners[0]}_output" if len(owners) == 1 else f"output_{output_index + 1}"
+            findings.append({
+                "rule_id": "plan.stable_id_defaulted",
+                "severity": "warning",
+                "blocking": False,
+                "kind": "output",
+                "id": output["id"],
+                "reason": "provider output omitted an identifier and ownership supplied a deterministic fallback",
+            })
+
+    component_ids = {str(item["id"]) for item in components if item.get("id")}
+    sole_component_id = str(components[0]["id"]) if len(components) == 1 else None
+    explicit_output_components = {
+        str(component_id)
+        for output in outputs
+        for component_id in output.get("component_ids", []) or []
+        if component_id
+    }
+    assembly_like = bool(relationships) or len(outputs) > 1
+    if len(components) > 1 and not assembly_like:
+        primary_candidate = next(
+            (item for item in components if str(item.get("role") or "").lower() == "printable_part"),
+            components[0],
+        )
+        primary_candidate_id = str(primary_candidate["id"])
+        assembly_like = any(
+            str(item.get("id") or "") != primary_candidate_id
+            and str(item.get("role") or "").lower() not in {"integral_feature", "feature", "fused_feature"}
+            and not _INTEGRAL_FEATURE_TERMS.search(
+                " ".join(str(item.get(key) or "") for key in ("id", "label", "description"))
+            )
+            for item in components
+        )
+
+    if compact and components and not assembly_like and (len(outputs) <= 1):
+        primary_id = sole_component_id
+        if primary_id is None:
+            primary = next(
+                (item for item in components if str(item.get("role") or "").lower() == "printable_part"),
+                components[0],
+            )
+            primary_id = str(primary["id"])
+        retained: list[dict[str, Any]] = []
+        reclassified: set[str] = set()
+        for component in components:
+            component_id = str(component["id"])
+            if component_id == primary_id:
+                retained.append(component)
+                continue
+            descriptor = " ".join(
+                str(component.get(key) or "")
+                for key in ("id", "label", "description", "role")
+            )
+            role = str(component.get("role") or "").lower()
+            integral = role in {"integral_feature", "feature", "fused_feature"} or bool(
+                _INTEGRAL_FEATURE_TERMS.search(descriptor)
+            )
+            if integral and component_id not in explicit_output_components:
+                feature_id = component_id
+                feature = {
+                    "id": feature_id,
+                    "component_id": primary_id,
+                    "type": role if role not in {"integral_feature", "feature", "fused_feature"} else "integral_feature",
+                    "description": str(component.get("description") or component.get("label") or feature_id),
+                    "parameters": list(component.get("parameters", []) or []),
+                    "protected": bool(component.get("protected", False)),
+                    "source_component_id": component_id,
+                }
+                if not any(str(item.get("id") or "") == feature_id for item in features):
+                    features.append(feature)
+                primary = retained[0] if retained else next(item for item in components if str(item["id"]) == primary_id)
+                primary.setdefault("features", [])
+                if feature_id not in primary["features"]:
+                    primary["features"].append(feature_id)
+                reclassified.add(component_id)
+                findings.append({
+                    "rule_id": "plan.component_reclassified_as_feature",
+                    "severity": "warning",
+                    "blocking": False,
+                    "component_id": component_id,
+                    "feature_id": feature_id,
+                    "owner_component_id": primary_id,
+                    "reason": "compact single-part integral feature normalization",
+                })
+            else:
+                retained.append(component)
+        components = retained
+        if outputs:
+            for output in outputs:
+                component_list = [
+                    str(value) for value in output.get("component_ids", []) or []
+                    if str(value) not in reclassified
+                ]
+                output["component_ids"] = component_list or [primary_id]
+
+    remaining_component_ids = {str(item["id"]) for item in components if item.get("id")}
+    if len(remaining_component_ids) == 1:
+        only_component_id = next(iter(remaining_component_ids))
+        for feature in features:
+            component_id = str(feature.get("component_id") or "")
+            if not component_id:
+                feature["component_id"] = only_component_id
+                findings.append({
+                    "rule_id": "plan.feature_owner_defaulted",
+                    "severity": "warning",
+                    "blocking": False,
+                    "feature_id": str(feature.get("id") or ""),
+                    "owner_component_id": only_component_id,
+                    "reason": "single unambiguous compact printable component",
+                })
+            elif component_id not in remaining_component_ids:
+                if compact:
+                    feature["component_id"] = only_component_id
+                    findings.append({
+                        "rule_id": "plan.feature_owner_defaulted",
+                        "severity": "warning",
+                        "blocking": False,
+                        "feature_id": str(feature.get("id") or ""),
+                        "previous_owner_component_id": component_id,
+                        "owner_component_id": only_component_id,
+                        "reason": "single compact printable component is the only unambiguous feature owner",
+                    })
+                else:
+                    raise ValueError(
+                        f"feature {feature.get('id')!r} references unknown component {component_id!r}"
+                    )
+    else:
+        unknown = {
+            str(feature.get("component_id"))
+            for feature in features
+            if feature.get("component_id") and str(feature["component_id"]) not in remaining_component_ids
+        }
+        if unknown:
+            raise ValueError(
+                "feature references unknown components: " + ", ".join(sorted(unknown))
+            )
+
+    for feature in features:
+        layout = feature.get("layout")
+        if isinstance(layout, dict) and layout.get("layout_mode"):
+            feature["layout_mode"] = layout["layout_mode"]
+
+    normalized["components"] = components
+    normalized["features"] = features
+    normalized["printable_outputs"] = outputs
+    normalized["normalization_findings"] = findings
+    normalized["normalization_version"] = "plan-component-feature-semantics-v1"
     return normalized
 
 
@@ -309,6 +515,70 @@ def _normalize_feature_layouts(
     derived_ids: set[str],
 ) -> dict[str, Any]:
     layouts = [dict(item) for item in plan.get("feature_layouts", []) or [] if isinstance(item, dict)]
+    normalization_findings = plan.setdefault("normalization_findings", [])
+    for layout in layouts:
+        legacy_mode = layout.get("layout_type") or layout.get("strategy")
+        mode = str(layout.get("layout_mode") or legacy_mode or "").strip()
+        if "positions" not in layout and isinstance(layout.get("fixed_positions"), list):
+            layout["positions"] = list(layout["fixed_positions"])
+        if (
+            layout.get("positions")
+            and mode in PATTERN_LAYOUT_MODES
+            and not layout.get("count_parameter_id")
+            and not layout.get("spacing_parameter_id")
+            and not layout.get("pattern_id")
+        ):
+            mode = "fixed_positions"
+            normalization_findings.append({
+                "rule_id": "plan.layout_normalized",
+                "severity": "warning",
+                "blocking": False,
+                "feature_id": layout.get("feature_id"),
+                "reason": "explicit coordinates take precedence over an unbacked uniform or grid label",
+            })
+        if mode == "fixed_positions" and layout.get("positions") and not layout.get("required_count"):
+            layout["required_count"] = len(layout["positions"])
+        if mode in {"fixed", "explicit", "explicit_positions", "irregular"}:
+            mode = "fixed_positions"
+        elif mode in {"proposed", "proposed_layout"}:
+            mode = "proposed_positions"
+        elif mode in {"distributed", "distributed_region"}:
+            mode = "distributed_within_region"
+        if mode:
+            layout["layout_mode"] = mode
+        if mode == "fixed_positions" and not (layout.get("positions", []) or []):
+            required_count = layout.get("required_count")
+            if isinstance(required_count, int) and required_count > 0:
+                layout["layout_mode"] = "proposed_positions"
+                normalization_findings.append({
+                    "rule_id": "plan.layout_semantics_missing",
+                    "severity": "warning",
+                    "blocking": False,
+                    "feature_id": layout.get("feature_id"),
+                    "reason": "fixed layout supplied a count without fixed positions; treating locations as proposals",
+                })
+            continue
+        if mode:
+            continue
+        required_count = layout.get("required_count")
+        positions = layout.get("positions", []) or []
+        if isinstance(required_count, int) and required_count > 0 and len(positions) == required_count:
+            layout["layout_mode"] = "fixed_positions"
+            reason = "positions match the declared fixed count"
+        elif isinstance(required_count, int) and required_count > 0:
+            layout["layout_mode"] = "proposed_positions"
+            reason = "count is known but positions were not supplied as a fixed layout"
+        else:
+            layout["layout_mode"] = "proposed_positions"
+            layout["required_count"] = len(positions) if positions else 1
+            reason = "layout mode was omitted and no stronger layout semantics were supplied"
+        normalization_findings.append({
+            "rule_id": "plan.layout_semantics_missing",
+            "severity": "warning",
+            "blocking": False,
+            "feature_id": layout.get("feature_id"),
+            "reason": reason,
+        })
     layout_by_feature = {str(item.get("feature_id")): item for item in layouts if item.get("feature_id")}
     features = [item for item in plan.get("features", []) or [] if isinstance(item, dict) and item.get("id")]
     contract = plan.get("functional_contract") if isinstance(plan.get("functional_contract"), dict) else {}
@@ -494,12 +764,14 @@ def _validate_layouts(plan: dict[str, Any]) -> None:
         if mode not in LAYOUT_MODES:
             raise ValueError(f"unsupported feature layout mode {mode!r}")
         positions = layout.get("positions", []) or []
-        if mode == "fixed_positions":
+        if mode in {"fixed_positions", "proposed_positions"}:
             required_count = layout.get("required_count")
-            if not isinstance(required_count, int) or required_count < 1 or len(positions) != required_count:
+            if not isinstance(required_count, int) or required_count < 1:
+                raise ValueError(f"{mode} layout {feature_id!r} must declare a positive required_count")
+            if mode == "fixed_positions" and len(positions) != required_count:
                 raise ValueError(f"fixed layout {feature_id!r} must declare positions matching required_count")
             count_id = str(layout.get("count_parameter_id") or "")
             if count_id and parameter_modes.get(count_id) in {"configurable_parameter", "derived_parameter"}:
-                raise ValueError(f"fixed layout {feature_id!r} cannot be driven by configurable count {count_id!r}")
+                raise ValueError(f"{mode} layout {feature_id!r} cannot be driven by configurable count {count_id!r}")
         if mode in PATTERN_LAYOUT_MODES and not layout.get("pattern_id") and not layout.get("count_parameter_id"):
             raise ValueError(f"parameterized layout {feature_id!r} must identify its pattern or count source")

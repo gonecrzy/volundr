@@ -161,7 +161,11 @@ from app.services.projects.plan_provenance import (
     normalize_plan_provenance,
     validate_plan_provenance,
 )
-from app.services.projects.plan_constraints import explicit_control_requests, normalize_plan_constraints
+from app.services.projects.plan_constraints import (
+    explicit_control_requests,
+    normalize_compact_component_feature_semantics,
+    normalize_plan_constraints,
+)
 from app.services.projects.requirement_ledger import (
     RequirementLedgerStore,
     active_requirements,
@@ -226,6 +230,7 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
+COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
 CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v7"
 CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v7"
@@ -1851,21 +1856,16 @@ class ProjectService:
         )
         planning_run = workflow_run or self._ensure_initial_workflow_run(project)
         revision_plan_id = str(uuid4())
-        target_components = [
-            str(item.get("id")) for item in design_plan_payload.get("components", []) or []
-            if isinstance(item, dict) and item.get("id")
-        ]
-        target_outputs = [
-            str(item.get("id")) for item in design_plan_payload.get("printable_outputs", []) or []
-            if isinstance(item, dict) and item.get("id")
-        ]
+        scope = self._revision_preservation_envelope(design_plan_payload, delta)
+        target_components = list(scope["targeted_components"])
+        target_outputs = list(scope["targeted_outputs"])
         plan_parameter_ids = {
             str(item.get("id")) for item in design_plan_payload.get("parameters", []) or []
             if isinstance(item, dict) and item.get("id")
         }
         requested_changes: list[dict[str, Any]] = []
         allowed_parameter_changes: list[str] = []
-        targeted_features: list[str] = []
+        targeted_features: list[str] = list(scope["targeted_features"])
         for change in delta:
             target_id = str(change.get("requirement_id") or change.get("target") or "requirement")
             target_type = "product_parameter" if target_id in plan_parameter_ids else "requirement"
@@ -1883,7 +1883,7 @@ class ProjectService:
             if target and target in {
                 str(item.get("id")) for item in design_plan_payload.get("features", []) or []
                 if isinstance(item, dict) and item.get("id")
-            }:
+            } and target not in targeted_features:
                 targeted_features.append(target)
         payload_body = {
             "schema_version": "cad-revision-brief-v1",
@@ -1899,12 +1899,9 @@ class ProjectService:
             "targeted_outputs": target_outputs[:1],
             "allowed_parameter_changes": allowed_parameter_changes,
             "required_dependency_changes": [],
-            "protected_components": target_components[1:],
-            "protected_features": [
-                str(item.get("id")) for item in design_plan_payload.get("features", []) or []
-                if isinstance(item, dict) and item.get("id") and str(item.get("id")) not in targeted_features
-            ],
-            "protected_outputs": target_outputs[1:],
+            "protected_components": scope["protected_components"],
+            "protected_features": scope["protected_features"],
+            "protected_outputs": scope["protected_outputs"],
             "allowed_component_changes": target_components[:1],
             "allowed_feature_changes": targeted_features,
             "prohibited_changes": [],
@@ -1993,6 +1990,84 @@ class ProjectService:
         self.db.commit()
         self.db.refresh(revision_plan)
         return self._revision_plan_read(revision_plan), decision
+
+    def _revision_preservation_envelope(
+        self,
+        design_plan_payload: dict[str, Any],
+        changes: list[dict[str, Any]],
+    ) -> dict[str, list[str]]:
+        """Derive affected and preserved identities from a requirement delta."""
+
+        components = [
+            str(item.get("id"))
+            for item in design_plan_payload.get("components", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        features = [
+            item for item in design_plan_payload.get("features", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        parameters = [
+            item for item in design_plan_payload.get("parameters", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        changed_ids = {
+            str(change.get("requirement_id") or change.get("target_id") or "")
+            for change in changes
+            if isinstance(change, dict)
+        }
+        changed_targets = {
+            str(change.get("target") or "")
+            for change in changes
+            if isinstance(change, dict) and change.get("target")
+        }
+        affected_components = set(changed_targets) & set(components)
+        affected_features: set[str] = set()
+        for parameter in parameters:
+            if str(parameter["id"]) in changed_ids and parameter.get("component_id"):
+                affected_components.add(str(parameter["component_id"]))
+        for feature in features:
+            feature_id = str(feature["id"])
+            feature_component = str(feature.get("component_id") or "")
+            if feature_id in changed_ids or feature_id in changed_targets:
+                affected_features.add(feature_id)
+                if feature_component:
+                    affected_components.add(feature_component)
+            if set(map(str, feature.get("parameters", []) or [])) & changed_ids:
+                affected_features.add(feature_id)
+                if feature_component:
+                    affected_components.add(feature_component)
+        if not affected_components and components:
+            affected_components.add(components[0])
+        outputs = [
+            item for item in design_plan_payload.get("printable_outputs", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        targeted_outputs = [
+            str(output["id"])
+            for output in outputs
+            if set(map(str, output.get("component_ids", []) or [])) & affected_components
+        ]
+        if not targeted_outputs and outputs:
+            targeted_outputs = [str(outputs[0]["id"])]
+        return {
+            "targeted_components": [item for item in components if item in affected_components],
+            "targeted_features": [
+                str(item["id"]) for item in features if str(item["id"]) in affected_features
+            ],
+            "targeted_outputs": targeted_outputs,
+            "protected_components": [item for item in components if item not in affected_components],
+            "protected_features": [
+                str(item["id"])
+                for item in features
+                if str(item["id"]) not in affected_features
+            ],
+            "protected_outputs": [
+                str(output["id"])
+                for output in outputs
+                if str(output["id"]) not in targeted_outputs
+            ],
+        }
 
     def approve_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
         plan = self.db.get(RevisionPlan, revision_plan_id)
@@ -3300,8 +3375,8 @@ class ProjectService:
             components = [{"id": "primary_part", "label": "Primary printable part", "role": "printable_part"}]
         normalized_components: list[dict[str, Any]] = []
         for index, component in enumerate(components):
-            component.setdefault("id", "primary_part" if index == 0 else f"component_{index + 1}")
-            component.setdefault("label", str(component["id"]).replace("_", " ").title())
+            component.setdefault("id", component.get("component_id") or ("primary_part" if index == 0 else f"component_{index + 1}"))
+            component.setdefault("label", component.get("name") or str(component["id"]).replace("_", " ").title())
             component.setdefault("role", "printable_part")
             component.setdefault("required", True)
             component.setdefault("parameters", [])
@@ -3309,11 +3384,23 @@ class ProjectService:
         features = [dict(item) for item in payload.get("features", []) or [] if isinstance(item, dict)]
         normalized_features: list[dict[str, Any]] = []
         for index, feature in enumerate(features):
-            feature.setdefault("id", f"feature_{index + 1}")
-            feature.setdefault("component_id", normalized_components[0]["id"])
+            feature.setdefault("id", feature.get("feature_id") or f"feature_{index + 1}")
+            feature.setdefault("type", feature.get("feature_type") or "feature")
             feature.setdefault("parameters", [])
             normalized_features.append(feature)
         outputs = [dict(item) for item in payload.get("printable_outputs", []) or [] if isinstance(item, dict)]
+        semantic_plan = normalize_compact_component_feature_semantics(
+            {
+                "components": normalized_components,
+                "features": normalized_features,
+                "printable_outputs": outputs,
+                "relationships": [dict(item) for item in payload.get("relationships", []) or [] if isinstance(item, dict)],
+            },
+            compact=True,
+        )
+        normalized_components = semantic_plan["components"]
+        normalized_features = semantic_plan["features"]
+        outputs = semantic_plan["printable_outputs"]
         if not outputs:
             outputs = [
                 {
@@ -3347,7 +3434,7 @@ class ProjectService:
                 if component_id
             },
         )
-        return {
+        normalized_payload = {
             "schema_version": "compact-cad-plan-v1",
             "planning_depth": PlanningDepth.COMPACT_PLAN.value,
             "project_id": project.id,
@@ -3373,6 +3460,8 @@ class ProjectService:
             "feature_layouts": [dict(item) for item in payload.get("feature_layouts", []) or [] if isinstance(item, dict)],
             "patterns": [dict(item) for item in payload.get("patterns", []) or [] if isinstance(item, dict)],
             "printable_outputs": outputs,
+            "normalization_findings": semantic_plan.get("normalization_findings", []),
+            "normalization_version": semantic_plan.get("normalization_version"),
             "outcome": (
                 DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED.value
                 if clarification_required
@@ -3382,6 +3471,13 @@ class ProjectService:
             "clarification_questions": clarification_questions,
             "plan_ready": not clarification_required,
         }
+        normalized_payload = normalize_plan_constraints(
+            normalized_payload,
+            request_context=getattr(specification, "user_instruction", None),
+        )
+        normalized_payload = normalize_pattern_specs(normalized_payload)
+        validate_pattern_specs(normalized_payload)
+        return normalized_payload
 
     @staticmethod
     def _validate_compact_plan_semantics(
@@ -5836,6 +5932,10 @@ class ProjectService:
             normalized,
             design_specification_payload,
         )
+        normalized = normalize_compact_component_feature_semantics(
+            normalized,
+            compact=False,
+        )
         normalized = normalize_plan_constraints(
             normalized,
             request_context=request_context,
@@ -6410,7 +6510,7 @@ class ProjectService:
 
     def _design_plan_prompt_template_version(self, request: DesignPlanRequest | None = None) -> str:
         if request is not None and request.planning_depth == PlanningDepth.COMPACT_PLAN.value:
-            return "compact-cad-plan-v1"
+            return COMPACT_PLAN_PROMPT_VERSION
         version = getattr(self.ai_provider, "design_plan_prompt_template_version", None)
         if callable(version):
             return str(version())

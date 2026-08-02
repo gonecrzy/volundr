@@ -139,8 +139,8 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
     provenance.update(values)
     if pattern_type == "linear":
         return linear_pattern_points(
-            _parameter(params, pattern, "count_parameter_id"),
-            _parameter(params, pattern, "spacing_parameter_id"),
+            _parameter_or_value(params, pattern, "count_parameter_id", "count"),
+            _parameter_or_value(params, pattern, "spacing_parameter_id", "spacing"),
             str(pattern.get("axis") or ""),
             bool(pattern.get("centered", True)),
             tuple(pattern.get("origin") or (0.0, 0.0, 0.0)),
@@ -149,10 +149,10 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
         )
     if pattern_type == "rectangular":
         return rectangular_pattern_points(
-            _parameter(params, pattern, "rows_parameter_id"),
-            _parameter(params, pattern, "columns_parameter_id"),
-            _parameter(params, pattern, "row_spacing_parameter_id"),
-            _parameter(params, pattern, "column_spacing_parameter_id"),
+            _parameter_or_value(params, pattern, "rows_parameter_id", "rows"),
+            _parameter_or_value(params, pattern, "columns_parameter_id", "columns"),
+            _parameter_or_value(params, pattern, "row_spacing_parameter_id", "row_spacing"),
+            _parameter_or_value(params, pattern, "column_spacing_parameter_id", "column_spacing"),
             str(pattern.get("plane") or ""),
             bool(pattern.get("centered", True)),
             tuple(pattern.get("origin") or (0.0, 0.0, 0.0)),
@@ -161,12 +161,20 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
         )
     if pattern_type == "circular":
         return circular_pattern_points(
-            _parameter(params, pattern, "count_parameter_id"),
-            _parameter(params, pattern, "radius_parameter_id"),
+            _parameter_or_value(params, pattern, "count_parameter_id", "count"),
+            _parameter_or_value(params, pattern, "radius_parameter_id", "radius"),
             float(pattern.get("start_angle") or 0.0),
             unit=unit,
             provenance=provenance,
         )
+    if pattern_type == "explicit":
+        points = []
+        for point in pattern.get("positions") or []:
+            if isinstance(point, Mapping):
+                points.append((point.get("x", 0.0), point.get("y", 0.0), point.get("z", 0.0)))
+            else:
+                points.append(tuple(point))
+        return PatternPointSet(tuple(points), "explicit", unit, provenance)
     raise PatternSpecError(f"unsupported pattern_type `{pattern_type}`")
 
 
@@ -191,6 +199,28 @@ def _parameter(params: Mapping[str, Any], pattern: Mapping[str, Any], key: str) 
     if parameter_id not in params:
         raise PatternSpecError(f"pattern parameter `{parameter_id}` is not resolved")
     return params[parameter_id]
+
+
+def _parameter_or_value(
+    params: Mapping[str, Any],
+    pattern: Mapping[str, Any],
+    parameter_key: str,
+    numeric_key: str,
+) -> Any:
+    parameter_id = str(pattern.get(parameter_key) or "")
+    if parameter_id:
+        if parameter_id not in params:
+            raise PatternSpecError(f"pattern parameter `{parameter_id}` is not resolved")
+        value = params[parameter_id]
+        if numeric_key in {"count", "rows", "columns"} and isinstance(value, float) and value.is_integer():
+            return int(value)
+        return value
+    if numeric_key in pattern and pattern[numeric_key] is not None:
+        value = pattern[numeric_key]
+        if numeric_key in {"count", "rows", "columns"} and isinstance(value, float) and value.is_integer():
+            return int(value)
+        return value
+    raise PatternSpecError(f"{parameter_key} or {numeric_key} is required")
 
 
 def _positive_integer(value: Any, label: str) -> int:
