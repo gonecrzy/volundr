@@ -33,6 +33,92 @@ _PATTERN_TYPE_ALIASES = {
 }
 
 
+def _pattern_finding(
+    *,
+    rule_id: str,
+    blocking: bool,
+    pattern_index: int,
+    pattern_id: str | None,
+    original: dict[str, Any],
+    normalized: dict[str, Any],
+    explanation: str,
+    suggested_correction: str,
+    decision: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "rule_id": rule_id,
+        "category": "plan_pattern",
+        "severity": "critical" if blocking else "warning",
+        "blocking": blocking,
+        "title": rule_id.replace(".", " ").replace("_", " ").title(),
+        "explanation": explanation,
+        "suggested_correction": suggested_correction,
+        "pattern_index": pattern_index,
+        "pattern_id": pattern_id,
+        "original_record": deepcopy(original),
+        "normalized_record": deepcopy(normalized),
+        "normalization_decision": decision,
+    }
+
+
+def _append_pattern_finding(plan: dict[str, Any], finding: dict[str, Any]) -> None:
+    findings = plan.setdefault("normalization_findings", [])
+    identity = (
+        finding.get("rule_id"),
+        finding.get("pattern_index"),
+        finding.get("pattern_id"),
+    )
+    if not any(
+        (item.get("rule_id"), item.get("pattern_index"), item.get("pattern_id")) == identity
+        for item in findings
+        if isinstance(item, dict)
+    ):
+        findings.append(finding)
+
+
+def _cardinal_axis(value: Any) -> tuple[str, int] | None:
+    if isinstance(value, str) and value.upper() in {"X", "Y", "Z"}:
+        return value.upper(), 1
+    if isinstance(value, dict):
+        value = [value.get("x", 0), value.get("y", 0), value.get("z", 0)]
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        return None
+    try:
+        values = [float(item) for item in value]
+    except (TypeError, ValueError):
+        return None
+    if not all(math.isfinite(item) for item in values):
+        return None
+    non_zero = [index for index, item in enumerate(values) if abs(item) > 1e-9]
+    if len(non_zero) != 1 or not math.isclose(abs(values[non_zero[0]]), 1.0, abs_tol=1e-9):
+        return None
+    return ("X", 1 if values[0] > 0 else -1) if non_zero[0] == 0 else (
+        ("Y", 1 if values[1] > 0 else -1) if non_zero[0] == 1 else ("Z", 1 if values[2] > 0 else -1)
+    )
+
+
+def _pattern_has_linear_evidence(pattern: dict[str, Any]) -> bool:
+    has_count = pattern.get("count") is not None or pattern.get("count_parameter_id")
+    has_spacing = pattern.get("spacing") is not None or pattern.get("spacing_parameter_id")
+    has_direction = pattern.get("axis") is not None
+    has_other_layout = any(
+        pattern.get(key) is not None
+        for key in (
+            "positions",
+            "fixed_positions",
+            "rows",
+            "columns",
+            "row_spacing",
+            "column_spacing",
+            "plane",
+            "radius",
+            "radius_parameter_id",
+            "start_angle",
+        )
+    )
+    return bool(has_count and has_spacing and has_direction and not has_other_layout)
+
+
 def exposed_control_ids(plan: dict[str, Any]) -> set[str]:
     """Return only controls explicitly exposed by the active Design Plan."""
 
@@ -107,21 +193,81 @@ def layout_for_feature(plan: dict[str, Any], feature_id: str) -> dict[str, Any] 
 def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
     normalized = deepcopy(plan)
     patterns: list[dict[str, Any]] = []
-    for raw in normalized.get("patterns", []) or []:
+    for pattern_index, raw in enumerate(normalized.get("patterns", []) or []):
         if not isinstance(raw, dict):
             continue
+        original = deepcopy(raw)
         pattern = dict(raw)
         pattern_id = str(pattern.get("pattern_id") or pattern.get("id") or "")
-        if pattern_id:
+        if pattern_id and not pattern.get("pattern_id"):
             pattern["pattern_id"] = pattern_id
+            _append_pattern_finding(
+                normalized,
+                _pattern_finding(
+                    rule_id="plan.pattern_alias_normalized",
+                    blocking=False,
+                    pattern_index=pattern_index,
+                    pattern_id=pattern_id,
+                    original=original,
+                    normalized=pattern,
+                    explanation="The provider used the legacy id field for a pattern identifier.",
+                    suggested_correction="Use pattern_id in future Design Plan responses.",
+                    decision="id mapped to pattern_id",
+                ),
+            )
+        elif not pattern_id:
+            _append_pattern_finding(
+                normalized,
+                _pattern_finding(
+                    rule_id="plan.pattern_id_missing",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern_id=None,
+                    original=original,
+                    normalized=pattern,
+                    explanation="The repeated feature does not have a stable pattern identifier.",
+                    suggested_correction="Provide a unique pattern_id.",
+                ),
+            )
         if "positions" not in pattern and isinstance(pattern.get("fixed_positions"), list):
             # Providers sometimes use the descriptive fixed_positions alias
             # for the same one-off explicit layout contract. Normalize that
             # harmless representation before validating pattern semantics.
             pattern["positions"] = deepcopy(pattern["fixed_positions"])
-        feature_id = str(pattern.get("owning_feature_id") or pattern.get("feature_id") or "")
+        canonical_feature_id = str(pattern.get("owning_feature_id") or "")
+        alias_feature_id = str(pattern.get("feature_id") or pattern.get("owner_feature_id") or "")
+        if canonical_feature_id and alias_feature_id and canonical_feature_id != alias_feature_id:
+            _append_pattern_finding(
+                normalized,
+                _pattern_finding(
+                    rule_id="plan.pattern_semantics_conflicting",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern_id=pattern_id or None,
+                    original=original,
+                    normalized=pattern,
+                    explanation="The canonical and aliased pattern owners disagree.",
+                    suggested_correction="Provide one owner_feature_id that matches the feature identity.",
+                ),
+            )
+        feature_id = canonical_feature_id or alias_feature_id
         if feature_id:
             pattern["owning_feature_id"] = feature_id
+            if not canonical_feature_id:
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_alias_normalized",
+                        blocking=False,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="The provider used feature_id as the pattern owner field.",
+                        suggested_correction="Use owning_feature_id in future Design Plan responses.",
+                        decision="feature_id mapped to owning_feature_id",
+                    ),
+                )
         pattern_type = str(pattern.get("pattern_type") or pattern.get("type") or "").lower()
         if not pattern_type:
             pattern_type = str(pattern.get("layout_type") or "").lower()
@@ -135,32 +281,139 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
             pattern_type = "explicit"
         if pattern_type in _PATTERN_TYPE_ALIASES:
             pattern["pattern_type"] = _PATTERN_TYPE_ALIASES[pattern_type]
+            if pattern_type != pattern["pattern_type"]:
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_alias_normalized",
+                        blocking=False,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="The provider used a recognized pattern type alias.",
+                        suggested_correction="Use the canonical pattern_type value.",
+                        decision=f"{pattern_type} mapped to {pattern['pattern_type']}",
+                    ),
+                )
         elif pattern_type:
             pattern["pattern_type"] = pattern_type
-        if not pattern.get("axis") and pattern.get("direction") is not None:
-            pattern["axis"] = deepcopy(pattern["direction"])
-        if isinstance(pattern.get("axis"), dict):
-            vector = pattern["axis"]
-            components = {axis: float(vector.get(axis.lower(), 0.0) or 0.0) for axis in ("X", "Y", "Z")}
-            dominant = max(components, key=lambda axis: abs(components[axis]))
-            if components[dominant] != 0.0 and sum(1 for value in components.values() if value != 0.0) == 1:
-                pattern["axis"] = dominant
-        elif isinstance(pattern.get("axis"), (list, tuple)) and len(pattern["axis"]) == 3:
-            try:
-                components = {
-                    axis: float(value or 0.0)
-                    for axis, value in zip(("X", "Y", "Z"), pattern["axis"])
-                }
-            except (TypeError, ValueError):
-                components = {}
-            dominant = max(components, key=lambda axis: abs(components[axis])) if components else None
-            if dominant and components[dominant] != 0.0 and sum(
-                1 for value in components.values() if value != 0.0
-            ) == 1:
-                pattern["axis"] = dominant
-        if feature_id and not pattern_id:
-            pattern_id = f"{feature_id}_pattern"
-            pattern["pattern_id"] = pattern_id
+        direction = pattern.get("direction")
+        if pattern.get("axis") is None and direction is not None:
+            pattern["axis"] = deepcopy(direction)
+        if direction is not None and not _cardinal_axis(direction):
+            pattern["axis"] = None
+            _append_pattern_finding(
+                normalized,
+                _pattern_finding(
+                    rule_id="plan.pattern_direction_invalid",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern_id=pattern_id or None,
+                    original=original,
+                    normalized=pattern,
+                    explanation="The pattern direction is not a supported cardinal axis vector.",
+                    suggested_correction="Use [±1,0,0], [0,±1,0], or [0,0,±1], or provide axis X, Y, or Z.",
+                ),
+            )
+        axis_value = pattern.get("axis")
+        axis_result = _cardinal_axis(axis_value) if axis_value is not None else None
+        if axis_value is not None and axis_result is None:
+            _append_pattern_finding(
+                normalized,
+                _pattern_finding(
+                    rule_id="plan.pattern_direction_invalid",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern_id=pattern_id or None,
+                    original=original,
+                    normalized=pattern,
+                    explanation="The pattern axis is not a supported cardinal axis.",
+                    suggested_correction="Use axis X, Y, or Z, or a cardinal direction vector.",
+                ),
+            )
+        elif axis_result is not None:
+            pattern["axis"] = axis_result[0]
+            if axis_result[1] != 1:
+                pattern["axis_sign"] = axis_result[1]
+        if "spacing_mm" in pattern:
+            spacing_mm = pattern.get("spacing_mm")
+            if pattern.get("spacing") is not None and pattern.get("spacing") != spacing_mm:
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_semantics_conflicting",
+                        blocking=True,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="The canonical spacing and spacing_mm aliases disagree.",
+                        suggested_correction="Provide one fixed spacing value.",
+                    ),
+                )
+            else:
+                pattern["spacing"] = spacing_mm
+                pattern.setdefault("unit", "mm")
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_alias_normalized",
+                        blocking=False,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="The provider used spacing_mm for fixed millimeter spacing.",
+                        suggested_correction="Use spacing with unit mm in future Design Plan responses.",
+                        decision="spacing_mm mapped to spacing",
+                    ),
+                )
+        if not pattern_type:
+            if _pattern_has_linear_evidence(pattern):
+                pattern["pattern_type"] = "linear"
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_alias_normalized",
+                        blocking=False,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="Count, fixed spacing, and one cardinal axis unambiguously describe a linear pattern.",
+                        suggested_correction="Use pattern_type=linear in future Design Plan responses.",
+                        decision="pattern_type inferred as linear",
+                    ),
+                )
+            else:
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_type_missing",
+                        blocking=True,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="The pattern type cannot be inferred from unambiguous fixed-layout evidence.",
+                        suggested_correction="Provide a supported pattern_type.",
+                    ),
+                )
+        elif pattern.get("pattern_type") != "linear" and pattern.get("direction") is not None and pattern.get("spacing") is not None:
+            _append_pattern_finding(
+                normalized,
+                _pattern_finding(
+                    rule_id="plan.pattern_semantics_conflicting",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern_id=pattern_id or None,
+                    original=original,
+                    normalized=pattern,
+                    explanation="Linear direction and spacing evidence conflicts with the declared pattern type.",
+                    suggested_correction="Use a linear pattern type or remove the conflicting linear fields.",
+                ),
+            )
         if pattern_id and not pattern.get("point_parameter_id"):
             pattern["point_parameter_id"] = (
                 pattern_id[:-8] + "_points" if pattern_id.endswith("_pattern") else pattern_id + "_points"
@@ -344,10 +597,49 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
     seen_ids: set[str] = set()
     seen_points: set[str] = set()
     errors: list[str] = []
-    for pattern in patterns:
+    findings: list[dict[str, Any]] = [
+        dict(item) for item in plan.get("normalization_findings", []) or [] if isinstance(item, dict)
+    ]
+
+    def add_finding(
+        *,
+        rule_id: str,
+        blocking: bool,
+        pattern_index: int,
+        pattern: dict[str, Any],
+        explanation: str,
+        suggested_correction: str,
+    ) -> None:
+        pattern_id = str(pattern.get("pattern_id") or "") or None
+        finding = _pattern_finding(
+            rule_id=rule_id,
+            blocking=blocking,
+            pattern_index=pattern_index,
+            pattern_id=pattern_id,
+            original=pattern,
+            normalized=pattern,
+            explanation=explanation,
+            suggested_correction=suggested_correction,
+        )
+        identity = (rule_id, pattern_index, pattern_id)
+        if not any(
+            (item.get("rule_id"), item.get("pattern_index"), item.get("pattern_id")) == identity
+            for item in findings
+        ):
+            findings.append(finding)
+
+    for pattern_index, pattern in enumerate(patterns):
         pattern_id = str(pattern.get("pattern_id") or "")
         if not pattern_id:
             errors.append("pattern_id is required")
+            add_finding(
+                rule_id="plan.pattern_id_missing",
+                blocking=True,
+                pattern_index=pattern_index,
+                pattern=pattern,
+                explanation="The repeated feature does not have a stable pattern identifier.",
+                suggested_correction="Provide a unique pattern_id.",
+            )
             continue
         if pattern_id in seen_ids:
             errors.append(f"duplicate pattern_id `{pattern_id}`")
@@ -360,7 +652,26 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
         seen_points.add(point_id)
         feature_id = str(pattern.get("owning_feature_id") or "")
         if feature_id not in feature_components:
-            errors.append(f"pattern `{pattern_id}` references unknown owning feature `{feature_id}`")
+            if feature_id:
+                errors.append(f"pattern `{pattern_id}` references unknown owning feature `{feature_id}`")
+                add_finding(
+                    rule_id="plan.pattern_owner_unknown",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern=pattern,
+                    explanation=f"Pattern owner `{feature_id}` is not a declared feature.",
+                    suggested_correction="Reference an existing feature without inventing a new owner.",
+                )
+            else:
+                errors.append(f"pattern `{pattern_id}` references unknown owning feature `{feature_id}`")
+                add_finding(
+                    rule_id="plan.pattern_owner_missing",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern=pattern,
+                    explanation="The pattern does not identify the feature it repeats.",
+                    suggested_correction="Provide feature_id or owning_feature_id for an existing feature.",
+                )
         component_id = str(pattern.get("owning_component_id") or "")
         if component_id and component_id not in component_ids:
             errors.append(f"pattern `{pattern_id}` references unknown owning component `{component_id}`")
@@ -381,7 +692,26 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
             "distributed_within_region": (),
         }.get(pattern_type)
         if required_keys is None:
-            errors.append(f"pattern `{pattern_id}` uses unsupported pattern_type `{pattern_type}`")
+            if pattern_type:
+                errors.append(f"pattern `{pattern_id}` uses unsupported pattern_type `{pattern_type}`")
+                add_finding(
+                    rule_id="plan.pattern_type_unsupported",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern=pattern,
+                    explanation=f"Pattern type `{pattern_type}` is not supported by the canonical pattern contract.",
+                    suggested_correction="Use linear, rectangular, circular, explicit, or distributed_within_region.",
+                )
+            else:
+                errors.append(f"pattern `{pattern_id}` uses unsupported pattern_type `{pattern_type}`")
+                add_finding(
+                    rule_id="plan.pattern_type_missing",
+                    blocking=True,
+                    pattern_index=pattern_index,
+                    pattern=pattern,
+                    explanation="The pattern type is missing after deterministic normalization.",
+                    suggested_correction="Provide a supported pattern_type or sufficient unambiguous fixed-layout evidence.",
+                )
             continue
         numeric_sources = {
             "linear": (("count_parameter_id", "count"), ("spacing_parameter_id", "spacing")),
@@ -416,7 +746,10 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
                         f"pattern `{pattern_id}` requires numeric {numeric_key} or {parameter_key}"
                     )
     if errors:
-        raise PatternSpecError("; ".join(errors))
+        error = PatternSpecError("; ".join(errors))
+        setattr(error, "findings", findings)
+        setattr(error, "normalized_plan", deepcopy(plan))
+        raise error
 
 
 def pattern_parameter_ids(plan: dict[str, Any]) -> set[str]:

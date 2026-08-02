@@ -195,6 +195,79 @@ def test_direction_vector_is_accepted_as_pattern_axis_alias() -> None:
     assert normalized["patterns"][0]["axis"] == "Y"
 
 
+def test_fixed_linear_pattern_alias_record_normalizes_without_parameter_ids() -> None:
+    plan = {
+        "components": [{"id": "frame"}],
+        "features": [{"id": "tray_slots", "component_id": "frame", "type": "guide_rails"}],
+        "exposed_controls": [],
+        "patterns": [{
+            "pattern_id": "tray_slot_linear_pattern",
+            "feature_id": "tray_slots",
+            "count": 5,
+            "direction": [0, 0, 1],
+            "spacing_mm": 48.4,
+        }],
+    }
+
+    normalized = normalize_pattern_specs(plan)
+    validate_pattern_specs(normalized)
+
+    pattern = normalized["patterns"][0]
+    assert pattern["owning_feature_id"] == "tray_slots"
+    assert pattern["pattern_type"] == "linear"
+    assert pattern["axis"] == "Z"
+    assert pattern["count"] == 5
+    assert pattern["spacing"] == 48.4
+    assert pattern["unit"] == "mm"
+    assert not pattern.get("count_parameter_id")
+    assert not pattern.get("spacing_parameter_id")
+    assert any(
+        item["rule_id"] == "plan.pattern_alias_normalized"
+        for item in normalized["normalization_findings"]
+    )
+
+
+def test_missing_pattern_type_without_linear_evidence_has_typed_finding() -> None:
+    plan = {
+        "components": [{"id": "frame"}],
+        "features": [{"id": "slots", "component_id": "frame"}],
+        "patterns": [{"pattern_id": "slots_pattern", "feature_id": "slots", "count": 5}],
+        "exposed_controls": [],
+    }
+
+    normalized = normalize_pattern_specs(plan)
+    with pytest.raises(Exception) as error:
+        validate_pattern_specs(normalized)
+
+    findings = getattr(error.value, "findings", [])
+    assert any(item["rule_id"] == "plan.pattern_type_missing" for item in findings)
+    assert any(item["blocking"] for item in findings)
+
+
+def test_non_cardinal_pattern_direction_has_typed_finding() -> None:
+    plan = {
+        "components": [{"id": "frame"}],
+        "features": [{"id": "slots", "component_id": "frame"}],
+        "patterns": [{
+            "pattern_id": "slots_pattern",
+            "feature_id": "slots",
+            "pattern_type": "linear",
+            "count": 5,
+            "spacing_mm": 48.4,
+            "direction": [1, 1, 0],
+        }],
+        "exposed_controls": [],
+    }
+
+    normalized = normalize_pattern_specs(plan)
+    with pytest.raises(Exception) as error:
+        validate_pattern_specs(normalized)
+
+    findings = getattr(error.value, "findings", [])
+    assert any(item["rule_id"] == "plan.pattern_direction_invalid" for item in findings)
+
+
+
 def test_plan_repair_comparison_reports_preservation_and_rejects_identity_drift() -> None:
     repaired = {**PLAN, "features": [*PLAN["features"][:-1], {**PLAN["features"][-1], "role": "subtractive"}]}
     comparison = compare_plan_repair(PLAN, repaired, affected_feature_ids={"rear_rib"})

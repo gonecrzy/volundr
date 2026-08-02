@@ -72,6 +72,21 @@ _CONTROL_REQUEST_CUES = re.compile(
 )
 
 
+class PlanNormalizationError(ValueError):
+    """A provider Plan cannot satisfy the deterministic execution contract."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        findings: list[dict[str, Any]] | None = None,
+        normalized_payload: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.findings = list(findings or [])
+        self.normalized_payload = normalized_payload
+
+
 def normalize_plan_constraints(
     plan: dict[str, Any],
     *,
@@ -235,7 +250,7 @@ def normalize_compact_component_feature_semantics(
                     primary["features"].append(feature_id)
                 reclassified.add(component_id)
                 findings.append({
-                    "rule_id": "plan.component_reclassified_as_feature",
+                    "rule_id": "plan.component_reclassified_as_integral_feature",
                     "severity": "warning",
                     "blocking": False,
                     "component_id": component_id,
@@ -295,6 +310,56 @@ def normalize_compact_component_feature_semantics(
             raise ValueError(
                 "feature references unknown components: " + ", ".join(sorted(unknown))
             )
+
+    if compact and len(outputs) == 1:
+        output = outputs[0]
+        output_components = {
+            str(value)
+            for value in output.get("component_ids", []) or []
+            if value
+        }
+        expected_solid_count = output.get("expected_solid_count")
+        disconnected_allowed = bool(output.get("allow_disconnected_solids", False))
+        fusion_relationship_types = {
+            "fused",
+            "integral_fused",
+            "same_solid",
+            "feature_owned_by",
+            "integral_feature",
+        }
+        related_pairs = {
+            (str(item.get("parent") or item.get("parent_id") or ""),
+             str(item.get("child") or item.get("child_id") or ""))
+            for item in relationships
+            if isinstance(item, dict)
+        }
+        valid_fusion = bool(related_pairs) and all(
+            str(item.get("type") or item.get("relationship_type") or "").lower()
+            in fusion_relationship_types
+            for item in relationships
+            if isinstance(item, dict)
+        )
+        if (
+            len(output_components) > 1
+            and expected_solid_count == 1
+            and not disconnected_allowed
+            and not valid_fusion
+        ):
+            findings.append({
+                "rule_id": "plan.component_output_conflict",
+                "severity": "critical",
+                "blocking": True,
+                "output_id": output.get("id") or output.get("output_id"),
+                "component_ids": sorted(output_components),
+                "reason": (
+                    "A single connected-solid output includes multiple printable components "
+                    "without deterministic integral-fusion semantics."
+                ),
+                "suggested_correction": (
+                    "Declare one fused primary component with integral features, or provide "
+                    "separate outputs for independent printable components."
+                ),
+            })
 
     for feature in features:
         layout = feature.get("layout")

@@ -46,7 +46,37 @@ def test_compact_integral_ribs_are_features_of_the_single_printable_part() -> No
     assert [item["id"] for item in plan["components"]] == ["bracket"]
     assert {item["id"] for item in plan["features"]} == {"comp_rib_left", "comp_rib_right"}
     assert all(item["component_id"] == "bracket" for item in plan["features"])
-    assert any(item["rule_id"] == "plan.component_reclassified_as_feature" for item in plan["normalization_findings"])
+    assert any(item["rule_id"] == "plan.component_reclassified_as_integral_feature" for item in plan["normalization_findings"])
+
+
+def test_single_output_with_ambiguous_printable_components_is_blocked() -> None:
+    plan = normalize_compact_component_feature_semantics(
+        {
+            "components": [
+                {"id": "frame", "role": "printable_part"},
+                {"id": "handle", "role": "printable_part"},
+            ],
+            "features": [],
+            "relationships": [{
+                "parent": "frame",
+                "child": "handle",
+                "type": "rigidly_attached",
+            }],
+            "printable_outputs": [{
+                "id": "holder",
+                "component_ids": ["frame", "handle"],
+                "expected_solid_count": 1,
+                "allow_disconnected_solids": False,
+            }],
+        },
+        compact=True,
+    )
+
+    finding = next(
+        item for item in plan["normalization_findings"]
+        if item["rule_id"] == "plan.component_output_conflict"
+    )
+    assert finding["blocking"] is True
 
 
 def test_compact_feature_owner_defaults_only_for_an_unambiguous_single_part() -> None:
