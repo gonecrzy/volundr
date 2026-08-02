@@ -189,3 +189,32 @@ working version, snapshot promotion, or export promotion was created.
 
 This confirms the former trace block was misclassification. The remaining
 block is downstream artifact/printability evidence, not a missing source trace.
+
+## 2026-08-02 — final persisted-project rerun after trace correction
+
+The exact request was submitted again to the existing project without changing
+its prior revisions or history. The new run was:
+
+- workflow: `7427a394-43cd-4e2d-a520-4b169f0e9e3f`
+- revision: `9de063c6-b5a6-4bcd-af95-2328ff20c846`
+- route: `compact_plan`
+- provider response: received; source contract: passed
+- stopping stage: `artifact_consistency`
+- worker reached: no
+- Current working version: unchanged
+
+This provider Plan represented `tray_slots` and the single printable holder
+component, but supplied neither a pattern record nor a validation target for
+the explicit `tray_capacity = 5` count. The normalized trace therefore recorded
+`tray_capacity` as `geometry_verification_required` with status
+`geometry_verification_unmapped`. The blocking finding was the typed
+`design_artifact.requirement_trace_unverifiable`, with the persisted explanation
+that the requirement had no Plan feature or geometry-verification target.
+
+The run retained the original and normalized trace manifests at the revision
+metadata paths and exposed the same finding through workflow diagnosis at the
+`artifact_consistency` stage. No candidate, worker artifacts, snapshots, or
+exports were created. This is a genuine missing verification path in the new
+Plan, distinct from the former generic requirement-trace misclassification;
+the implementation does not invent a feature or verification capability to
+make the request pass.
