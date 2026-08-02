@@ -13,6 +13,7 @@ __pycache__/
 .playwright/
 .playwright-cli/
 output/
+checkpoints/
 node_modules/
 dist/
 frontend/test-results/
