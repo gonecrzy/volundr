@@ -114,13 +114,18 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
         pattern_id = str(pattern.get("pattern_id") or pattern.get("id") or "")
         if pattern_id:
             pattern["pattern_id"] = pattern_id
+        if "positions" not in pattern and isinstance(pattern.get("fixed_positions"), list):
+            # Providers sometimes use the descriptive fixed_positions alias
+            # for the same one-off explicit layout contract. Normalize that
+            # harmless representation before validating pattern semantics.
+            pattern["positions"] = deepcopy(pattern["fixed_positions"])
         feature_id = str(pattern.get("owning_feature_id") or pattern.get("feature_id") or "")
         if feature_id:
             pattern["owning_feature_id"] = feature_id
         pattern_type = str(pattern.get("pattern_type") or pattern.get("type") or "").lower()
         if not pattern_type:
             pattern_type = str(pattern.get("layout_type") or "").lower()
-        if pattern_type in {"fixed_positions", "proposed_positions", "distributed_within_region"}:
+        if pattern_type in {"fixed_positions", "proposed_positions"}:
             pattern_type = ""
         if not pattern_type and pattern.get("positions"):
             # Explicit positions are evidence of a repeated feature, not a
@@ -132,11 +137,26 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
             pattern["pattern_type"] = _PATTERN_TYPE_ALIASES[pattern_type]
         elif pattern_type:
             pattern["pattern_type"] = pattern_type
+        if not pattern.get("axis") and pattern.get("direction") is not None:
+            pattern["axis"] = deepcopy(pattern["direction"])
         if isinstance(pattern.get("axis"), dict):
             vector = pattern["axis"]
             components = {axis: float(vector.get(axis.lower(), 0.0) or 0.0) for axis in ("X", "Y", "Z")}
             dominant = max(components, key=lambda axis: abs(components[axis]))
             if components[dominant] != 0.0 and sum(1 for value in components.values() if value != 0.0) == 1:
+                pattern["axis"] = dominant
+        elif isinstance(pattern.get("axis"), (list, tuple)) and len(pattern["axis"]) == 3:
+            try:
+                components = {
+                    axis: float(value or 0.0)
+                    for axis, value in zip(("X", "Y", "Z"), pattern["axis"])
+                }
+            except (TypeError, ValueError):
+                components = {}
+            dominant = max(components, key=lambda axis: abs(components[axis])) if components else None
+            if dominant and components[dominant] != 0.0 and sum(
+                1 for value in components.values() if value != 0.0
+            ) == 1:
                 pattern["axis"] = dominant
         if feature_id and not pattern_id:
             pattern_id = f"{feature_id}_pattern"
@@ -194,7 +214,7 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
         if not pattern.get("positions") and isinstance(layout_positions, list) and layout_positions:
             pattern["positions"] = deepcopy(layout_positions)
         pattern_type = str(pattern.get("pattern_type") or "").lower()
-        if pattern_type in {"fixed_positions", "proposed_positions", "distributed_within_region"}:
+        if pattern_type in {"fixed_positions", "proposed_positions"}:
             pattern_type = "explicit" if pattern.get("positions") else ""
             if pattern_type:
                 pattern["pattern_type"] = pattern_type
@@ -358,6 +378,7 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
             "rectangular": ("plane",),
             "circular": (),
             "explicit": (),
+            "distributed_within_region": (),
         }.get(pattern_type)
         if required_keys is None:
             errors.append(f"pattern `{pattern_id}` uses unsupported pattern_type `{pattern_type}`")
@@ -372,6 +393,7 @@ def validate_pattern_specs(plan: dict[str, Any]) -> None:
             ),
             "circular": (("count_parameter_id", "count"), ("radius_parameter_id", "radius")),
             "explicit": (),
+            "distributed_within_region": (("count_parameter_id", "count"),),
         }[pattern_type]
         for key in required_keys:
             value = pattern.get(key)

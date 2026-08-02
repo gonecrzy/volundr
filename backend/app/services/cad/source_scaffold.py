@@ -328,7 +328,17 @@ def _resolved_pattern_manifest(
         for item in effect_contract.get("derived_parameters", []) or []
         if isinstance(item, dict) and item.get("parameter_id")
     })
-    return build_pattern_manifest(design_plan, resolved_values=values)
+    # Region-distributed one-off layouts are plan guidance, not one of the
+    # deterministic point helpers. Keep them in plan/effect evidence while
+    # leaving their local placement to the owning provider function.
+    resolved_plan = dict(design_plan)
+    resolved_plan["patterns"] = [
+        pattern
+        for pattern in design_plan.get("patterns", []) or []
+        if isinstance(pattern, dict)
+        and str(pattern.get("pattern_type") or "").lower() != "distributed_within_region"
+    ]
+    return build_pattern_manifest(resolved_plan, resolved_values=values)
 
 
 def validate_scaffold_integrity(source: str, rendered: ScaffoldRender) -> list[dict[str, Any]]:

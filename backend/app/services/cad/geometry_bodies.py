@@ -224,16 +224,23 @@ def assemble_geometry_bodies(
             )
         result_symbol = record.get("result_symbol")
         original[function_id] = list(statements)
-        canonical_lines, function_source, function_symbol_evidence = _canonicalize_function(
-            function_id=function_id,
-            statements=statements,
-            result_symbol=result_symbol,
-            signature=str(spec.get("signature") or "(params)"),
-            allowed_parameters={str(item) for item in inventory.get("allowed_parameters", [])},
-            scaffold_owned_identifiers={
-                str(item) for item in inventory.get("scaffold_owned_identifiers", [])
-            },
-        )
+        try:
+            canonical_lines, function_source, function_symbol_evidence = _canonicalize_function(
+                function_id=function_id,
+                statements=statements,
+                result_symbol=result_symbol,
+                signature=str(spec.get("signature") or "(params)"),
+                allowed_parameters={str(item) for item in inventory.get("allowed_parameters", [])},
+                scaffold_owned_identifiers={
+                    str(item) for item in inventory.get("scaffold_owned_identifiers", [])
+                },
+            )
+        except GeometryBodyError as exc:
+            raise GeometryBodyError(
+                exc.rule_id,
+                str(exc),
+                details={"affected_function_id": function_id, **exc.details},
+            ) from exc
         canonical[function_id] = canonical_lines
         functions[function_id] = function_source
         result_symbols[function_id] = str(result_symbol)
@@ -445,6 +452,7 @@ def _canonicalize_function(
             "geometry_body.provider_return_forbidden",
             f"Geometry function `{function_id}` must not contain a provider return statement.",
         )
+    undeclared_parameters: set[str] = set()
     for child in ast.walk(node):
         if child is node:
             continue
@@ -474,24 +482,25 @@ def _canonicalize_function(
         if isinstance(child, ast.Subscript) and isinstance(child.value, ast.Name) and child.value.id == "params":
             parameter_id = _string_slice(child.slice)
             if parameter_id is not None and parameter_id not in allowed_parameters:
-                raise GeometryBodyError(
-                    "geometry_body.undeclared_parameter",
-                    f"Geometry body references undeclared parameter `{parameter_id}`.",
-                )
+                undeclared_parameters.add(parameter_id)
         if isinstance(child, ast.Call) and _call_name(child.func) == "get":
             if isinstance(child.func, ast.Attribute) and isinstance(child.func.value, ast.Name) and child.func.value.id == "params":
                 if child.args:
                     parameter_id = _string_node(child.args[0])
                     if parameter_id is not None and parameter_id not in allowed_parameters:
-                        raise GeometryBodyError(
-                            "geometry_body.undeclared_parameter",
-                            f"Geometry body references undeclared parameter `{parameter_id}`.",
-                        )
+                        undeclared_parameters.add(parameter_id)
         if isinstance(child, ast.Lambda):
             raise GeometryBodyError(
                 "geometry_body.invalid_statement",
                 f"Geometry function `{function_id}` cannot declare lambda functions.",
             )
+    if undeclared_parameters:
+        parameter_id = sorted(undeclared_parameters)[0]
+        raise GeometryBodyError(
+            "geometry_body.undeclared_parameter",
+            f"Geometry body references undeclared parameter `{parameter_id}`.",
+            details={"undeclared_parameter_ids": sorted(undeclared_parameters)},
+        )
     symbol_analysis = analyze_function_symbols(
         node,
         function_id=function_id,

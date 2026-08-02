@@ -62,6 +62,7 @@ def normalize_plan_provenance(
 
     normalized = deepcopy(plan)
     requirements = _requirements(specification)
+    normalization_findings = normalized.setdefault("normalization_findings", [])
     for parameter in normalized.get("parameters", []) or []:
         if not isinstance(parameter, dict):
             continue
@@ -74,6 +75,31 @@ def normalize_plan_provenance(
             if parameter_id in requirements:
                 provenance["source_requirement_ids"] = [parameter_id]
                 parameter.setdefault("source_requirement_id", parameter_id)
+        parameter_id = str(parameter.get("id") or "")
+        requirement = requirements.get(parameter_id)
+        if (
+            requirement
+            and not parameter.get("source_requirement_id")
+            and str(provenance.get("relationship") or "") in {"ai_proposal", ""}
+            and _values_match(parameter.get("value"), requirement.get("value"))
+            and _units_match(parameter.get("unit"), requirement.get("unit"))
+        ):
+            # A provider may omit provenance on a same-named value while
+            # copying the explicit requirement exactly.  Restore the
+            # authoritative ledger link deterministically; a differing value
+            # remains a provider/provenance failure and is not relinked.
+            provenance["relationship"] = "direct"
+            provenance["source_requirement_ids"] = [parameter_id]
+            parameter["source_requirement_id"] = parameter_id
+            parameter.setdefault("source", "requirement_ledger")
+            normalization_findings.append({
+                "rule_id": "plan.provenance_identity_recovered",
+                "severity": "warning",
+                "blocking": False,
+                "parameter_id": parameter_id,
+                "source_requirement_id": parameter_id,
+                "reason": "same-named Plan value matched an explicit requirement value and unit",
+            })
         provenance.setdefault("validator_version", PROVENANCE_VERSION)
     for parameter in normalized.get("derived_parameters", []) or []:
         if not isinstance(parameter, dict):
@@ -477,6 +503,12 @@ def _values_match(left: Any, right: Any) -> bool:
         return abs(float(left) - float(right)) <= 1e-6
     except (TypeError, ValueError):
         return str(left) == str(right)
+
+
+def _units_match(left: Any, right: Any) -> bool:
+    if left in (None, "") or right in (None, ""):
+        return True
+    return str(left).strip().lower() == str(right).strip().lower()
 
 
 def _finding(rule_id: str, message: str, *, expected: Any = None, detected: Any = None) -> dict[str, Any]:

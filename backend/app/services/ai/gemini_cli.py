@@ -39,8 +39,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v7"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v7"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -672,10 +672,15 @@ class GeminiCliProvider:
             "Use CadQuery as `cq` and the canonical parameter IDs exactly as provided.",
             "Implement every required function_id exactly once. Do not rename, omit, or add functions.",
             "Assign the component shape or modified feature shape to result_symbol. Volundr appends the sole return statement deterministically.",
+            "Provider-owned local calculations are allowed, but they must use only the exact function signature, approved params interface, approved helpers, and approved module aliases from the manifest.",
+            "When repairing a worker-diagnosed failure, change only the named provider function and preserve every unaffected function body exactly.",
+            "Do not replace a CadQuery selector by string substitution; use a valid CadQuery construction that preserves the required feature intent.",
             "Do not add file, network, subprocess, or dynamic Python access.",
             "Canonical parameter IDs: " + ", ".join(parameter_ids),
             "Required function authority inventory:",
             json.dumps(inventory["functions"], indent=2, sort_keys=True),
+            "Provider contract manifest (authoritative evidence):",
+            json.dumps(request.provider_contract_manifest or {}, indent=2, sort_keys=True),
             "Exact symbol authority:",
             "Each function receives only its listed signature arguments, approved module aliases, approved helpers, approved safe builtins, and the params access interface.",
             "Do not use a Plan parameter ID as a bare Python name. Access values as params[<parameter_id>] or params.get(<parameter_id>), or assign a local from that interface first.",
@@ -1034,6 +1039,8 @@ class GeminiCliProvider:
                 json.dumps(request.active_requirements, indent=2, sort_keys=True),
                 "Requirement delta:",
                 json.dumps(request.requirement_delta, indent=2, sort_keys=True),
+                "Focused Plan repair context:",
+                json.dumps(request.plan_repair_context or {}, indent=2, sort_keys=True),
                 "",
                 "Previous Design Plan:",
                 json.dumps(request.previous_design_plan, indent=2, sort_keys=True)
@@ -1066,6 +1073,7 @@ class GeminiCliProvider:
                 "Return JSON only. Do not generate CadQuery source.",
                 "Use schema_version exactly compact-cad-plan-v1.",
                 "This is an execution artifact derived from the active requirement ledger, not a replacement requirement store.",
+                "During focused repair, use only valid existing IDs from the repair context. Do not create a new printable component, feature ID, output ID, or exposed control.",
                 "A printable component is an independently printable part. Ribs, holes, vents, bosses, openings, floors, fillets, chamfers, snap arms, and fused reinforcements are integral features owned by their printable component.",
                 "For an unambiguous single-part plan, a missing feature owner may default to the sole printable component. Never infer a multipart owner or silently create an extra printable output.",
                 "Use stable IDs and distinguish proposals from user requirements.",
@@ -1093,6 +1101,8 @@ class GeminiCliProvider:
                 json.dumps(request.active_requirements, indent=2, sort_keys=True),
                 "Requirement delta:",
                 json.dumps(request.requirement_delta, indent=2, sort_keys=True),
+                "Focused Plan repair context:",
+                json.dumps(request.plan_repair_context or {}, indent=2, sort_keys=True),
                 "",
                 "User instruction:",
                 request.user_instruction,

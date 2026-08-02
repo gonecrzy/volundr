@@ -516,9 +516,33 @@ def _normalize_feature_layouts(
 ) -> dict[str, Any]:
     layouts = [dict(item) for item in plan.get("feature_layouts", []) or [] if isinstance(item, dict)]
     normalization_findings = plan.setdefault("normalization_findings", [])
+    patterns = [item for item in plan.get("patterns", []) or [] if isinstance(item, dict)]
+    pattern_by_feature = {
+        str(item.get("owning_feature_id") or item.get("feature_id")): item
+        for item in patterns
+        if item.get("owning_feature_id") or item.get("feature_id")
+    }
     for layout in layouts:
         legacy_mode = layout.get("layout_type") or layout.get("strategy")
         mode = str(layout.get("layout_mode") or legacy_mode or "").strip()
+        linked_pattern = pattern_by_feature.get(str(layout.get("feature_id") or ""))
+        if (
+            linked_pattern
+            and mode in PATTERN_LAYOUT_MODES
+            and not layout.get("pattern_id")
+            and not layout.get("count_parameter_id")
+        ):
+            pattern_id = linked_pattern.get("pattern_id") or linked_pattern.get("id")
+            if pattern_id:
+                layout["pattern_id"] = str(pattern_id)
+                normalization_findings.append({
+                    "rule_id": "plan.layout_pattern_linked",
+                    "severity": "warning",
+                    "blocking": False,
+                    "feature_id": layout.get("feature_id"),
+                    "pattern_id": str(pattern_id),
+                    "reason": "linked a layout to the existing pattern for the same feature",
+                })
         if "positions" not in layout and isinstance(layout.get("fixed_positions"), list):
             layout["positions"] = list(layout["fixed_positions"])
         if (
@@ -696,6 +720,12 @@ def _layout_from_pattern(
         points = _linear_points(int(count), spacing, str((pattern or {}).get("axis") or interface.get("arrangement_axis") or "Z"), (pattern or {}).get("origin") or (0.0, 0.0, 0.0))
     else:
         points = []
+    if layout_mode == "fixed_positions" and not points:
+        # A fixed count without approved coordinates is a proposal, not a
+        # claim that Volundr knows the final positions.  Keep the count and
+        # let the downstream plan/geometry stages disclose or choose the
+        # locations without inventing a fixed layout.
+        layout_mode = "proposed_positions"
     layout: dict[str, Any] = {
         "feature_id": str(feature["id"]),
         "owning_component_id": feature.get("component_id"),
