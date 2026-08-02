@@ -137,6 +137,143 @@ def test_unique_typed_capacity_feature_and_target_are_normalized() -> None:
     )
 
 
+def test_unique_validation_target_resolves_supporting_feature_ambiguity() -> None:
+    specification = {
+        "explicit_requirements": [
+            {
+                "requirement_id": "carrying_handle",
+                "id": "carrying_handle",
+                "label": "Carrying handle",
+                "type": "feature_presence",
+                "kind": "feature",
+                "operator": "present",
+                "value": True,
+                "source": "user",
+                "explicit": True,
+                "protected": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [
+            {"id": "holder_body", "role": "printable_part", "features": ["handle_mounts"]},
+            {"id": "carrying_handle", "role": "printable_part", "features": ["handle_grip"]},
+        ],
+        "features": [
+            {
+                "id": "handle_mounts",
+                "component_id": "holder_body",
+                "type": "bosses",
+                "description": "Supporting bosses for the handle",
+                "requirement_ids": ["carrying_handle"],
+            },
+            {
+                "id": "handle_grip",
+                "component_id": "carrying_handle",
+                "type": "solid_bar",
+                "description": "The user-gripped carrying handle",
+                "requirement_ids": ["carrying_handle"],
+            },
+        ],
+        "printable_outputs": [
+            {
+                "id": "holder_assembly",
+                "component_ids": ["holder_body", "carrying_handle"],
+                "required": True,
+            }
+        ],
+        "validation_targets": [
+            {
+                "id": "validate_carrying_handle",
+                "feature_id": "handle_grip",
+                "component_id": "carrying_handle",
+                "requirement_ids": ["carrying_handle"],
+                "measurement": "presence",
+                "type": "feature_presence",
+            }
+        ],
+    }
+    result = build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids={"holder_body", "carrying_handle"},
+        source_component_symbols={
+            "holder_body": "build_holder_body",
+            "carrying_handle": "build_carrying_handle",
+        },
+        source_feature_components={
+            "handle_mounts": "holder_body",
+            "handle_grip": "carrying_handle",
+        },
+        source_feature_symbols={
+            "handle_mounts": "apply_handle_mounts",
+            "handle_grip": "apply_handle_grip",
+        },
+        source_output_ids={"holder_assembly"},
+        source_output_components={"holder_assembly": ["holder_body", "carrying_handle"]},
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["plan_feature_id"] == "handle_grip"
+    assert obligation["owning_component_id"] == "carrying_handle"
+    assert obligation["status"] == "source_trace"
+    assert not any(
+        finding["rule_id"] == "design_artifact.requirement_trace_ambiguous"
+        and finding["is_blocking"]
+        for finding in result["findings"]
+    )
+    normalized = next(
+        finding
+        for finding in result["findings"]
+        if finding["rule_id"] == "design_artifact.requirement_trace_normalized"
+    )
+    assert normalized["metadata"]["selected_match"]["feature_id"] == "handle_grip"
+    assert normalized["metadata"]["rejected_matches"] == ["handle_mounts"]
+
+
+def test_equal_feature_candidates_without_unique_target_remain_ambiguous() -> None:
+    specification = {
+        "explicit_requirements": [
+            {
+                "requirement_id": "carrying_handle",
+                "id": "carrying_handle",
+                "type": "feature_presence",
+                "kind": "feature",
+                "operator": "present",
+                "value": True,
+                "source": "user",
+                "explicit": True,
+                "protected": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [{"id": "holder_body", "role": "printable_part"}],
+        "features": [
+            {"id": "handle_a", "component_id": "holder_body", "type": "solid_bar", "requirement_ids": ["carrying_handle"]},
+            {"id": "handle_b", "component_id": "holder_body", "type": "solid_bar", "requirement_ids": ["carrying_handle"]},
+        ],
+        "printable_outputs": [{"id": "holder_output", "component_ids": ["holder_body"], "required": True}],
+        "validation_targets": [],
+    }
+    result = build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids={"holder_body"},
+        source_component_symbols={"holder_body": "build_holder_body"},
+        source_feature_components={"handle_a": "holder_body", "handle_b": "holder_body"},
+        source_feature_symbols={"handle_a": "apply_handle_a", "handle_b": "apply_handle_b"},
+        source_output_ids={"holder_output"},
+        source_output_components={"holder_output": ["holder_body"]},
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["blocking"] is True
+    assert obligation["status"] == "trace_ambiguous"
+
+
 def test_multiple_compatible_capacity_features_remain_ambiguous_and_blocking() -> None:
     result = _trace(_capacity_specification(), _capacity_plan(feature_count=2))
     obligation = result["normalized"]["obligations"][0]

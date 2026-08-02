@@ -19,6 +19,12 @@ values and units agree, ownership is consistent, and no explicit conflicting
 link exists. Candidate, rejected, selected, confidence-basis, and rule
 metadata are persisted with the normalized manifest.
 
+When several Plan features repeat the same requirement ID, a unique validation
+target may resolve the supporting-feature ambiguity. Volundr may select the
+target's feature only when the target feature exists exactly once and its
+component owner agrees. Supporting features remain in the rejected-candidate
+evidence; equal candidates without that canonical target continue to block.
+
 ## Alias and deferred-obligation examples
 
 An explicit capacity requirement with `kind=capacity`, `operator=up_to`,
@@ -64,6 +70,17 @@ include `design_artifact.trace_alias_normalized`,
 `requirement.verification_obligation_created`, and typed blocking findings for
 missing, conflicting, or ambiguous traces. Diagnosis reports the specific
 requirement and stage; normal chat receives only a concise safe summary.
+
+## Exact rerun evidence
+
+On 2026-08-02, the preserved tackle-tray project was rerun without inserting a
+second visible user message. The unique `validate_carrying_handle` target
+selected `handle_grip` on the `carrying_handle` component and retained
+`handle_mounts` as rejected supporting-candidate evidence. The previous
+`design_artifact.requirement_trace_ambiguous` blocker no longer occurred, and
+the worker was reached. The attempt then exposed a separate provider source
+defect: `cq.Compound.makeCompound` received CadQuery `Workplane` objects
+instead of shapes. No candidate or Current working version was promoted.
 
 ## Non-goals
 

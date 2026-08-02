@@ -146,7 +146,13 @@ def build_requirement_trace_manifest(
         measurement = _measurement_for_requirement(item)
         if measurement is None:
             continue
-        feature, feature_match = _resolve_feature(item, normalized_features, patterns)
+        target_hint, target_hint_match = _resolve_validation_target(item, None, validation_targets)
+        feature, feature_match = _resolve_feature(
+            item,
+            normalized_features,
+            patterns,
+            validation_target=target_hint if not target_hint_match.get("ambiguous") else None,
+        )
         target, target_match = _resolve_validation_target(item, feature, validation_targets)
         linked_targets = [
             target_item
@@ -300,7 +306,13 @@ def _classify_item(
     requirement_type = str(item.get("type") or "qualitative_behavior")
     component_ids = _matching_component_ids(item, plan_components)
     output_ids = _matching_output_ids(item, plan_outputs)
-    feature, feature_match = _resolve_feature(item, plan_features, patterns)
+    target_hint, target_hint_match = _resolve_validation_target(item, None, validation_targets)
+    feature, feature_match = _resolve_feature(
+        item,
+        plan_features,
+        patterns,
+        validation_target=target_hint if not target_hint_match.get("ambiguous") else None,
+    )
     target, target_match = _resolve_validation_target(item, feature, validation_targets)
     parameter_id = _matching_parameter_id(item, exposed_control_ids)
     exposed_control = parameter_id is not None
@@ -975,6 +987,8 @@ def _resolve_feature(
     item: dict[str, Any],
     features: list[dict[str, Any]],
     patterns: list[dict[str, Any]],
+    *,
+    validation_target: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     """Resolve a requirement to a Plan feature without product vocabulary.
 
@@ -1001,6 +1015,40 @@ def _resolve_feature(
         for feature in features
         if _contains_requirement_id(feature, requirement_id)
     ]
+    if validation_target is not None:
+        target_feature_id = validation_target.get("feature_id") or validation_target.get("plan_feature_id")
+        target_component_id = validation_target.get("component_id") or validation_target.get("owner_component_id")
+        target_feature = [
+            feature
+            for feature in features
+            if target_feature_id
+            and canonical_requirement_id(str(feature.get("id")))
+            == canonical_requirement_id(str(target_feature_id))
+        ]
+        if len(target_feature) == 1:
+            selected = target_feature[0]
+            selected_id = str(selected.get("id"))
+            selected_component_id = str(selected.get("component_id") or "")
+            component_agrees = not target_component_id or selected_component_id == str(target_component_id)
+            linked_match = [
+                feature
+                for feature in linked
+                if canonical_requirement_id(str(feature.get("id")))
+                == canonical_requirement_id(selected_id)
+            ]
+            if component_agrees and (not linked or len(linked_match) == 1):
+                info["considered"] = [str(feature.get("id")) for feature in linked] or [selected_id]
+                info["rejected"] = [
+                    str(feature.get("id"))
+                    for feature in linked
+                    if feature not in linked_match
+                ]
+                info["basis"] = [
+                    "validation_target_feature_id",
+                    "validation_target_component_id",
+                ] if target_component_id else ["validation_target_feature_id"]
+                info["normalized"] = bool(info["rejected"])
+                return selected, info
     if len(linked) == 1:
         info["basis"] = ["feature_requirement_ids"]
         return linked[0], info
