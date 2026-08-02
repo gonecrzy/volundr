@@ -3,33 +3,60 @@ services:
     container_name: volundr-web
     build:
       context: ./frontend
+      args:
+        VITE_VOLUNDR_CHAT_FIRST: ${VITE_VOLUNDR_CHAT_FIRST:-true}
     restart: unless-stopped
     depends_on:
-      - volundr-api
+      volundr-api:
+        condition: service_healthy
     ports:
       - "${VOLUNDR_WEB_PORT:-8080}:80"
     networks:
       - volundr-internal
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   volundr-api:
     container_name: volundr-api
     build:
       context: ./backend
     restart: unless-stopped
+    depends_on:
+      volundr-cad-worker:
+        condition: service_healthy
     environment:
       HOME: /home/volundr
       VOLUNDR_DATA_DIR: /app/data
-      VOLUNDR_CAD_WORKSPACE_DIR: /app/data/jobs
-      VOLUNDR_AI_PROVIDER: ${VOLUNDR_AI_PROVIDER:-ollama}
+      VOLUNDR_CAD_TIMEOUT_SECONDS: ${VOLUNDR_CAD_TIMEOUT_SECONDS:-60}
+      VOLUNDR_WORKFLOW_STALE_SECONDS: ${VOLUNDR_WORKFLOW_STALE_SECONDS:-900}
+      VOLUNDR_MAX_SOURCE_BYTES: ${VOLUNDR_MAX_SOURCE_BYTES:-512000}
+      VOLUNDR_MAX_STL_BYTES: ${VOLUNDR_MAX_STL_BYTES:-104857600}
+      VOLUNDR_AI_PROVIDER: ${VOLUNDR_AI_PROVIDER:-gemini_api}
       VOLUNDR_OLLAMA_BASE_URL: ${VOLUNDR_OLLAMA_BASE_URL:-http://10.1.20.25:11434}
-      VOLUNDR_OLLAMA_MODEL: ${VOLUNDR_OLLAMA_MODEL:-qwen3.5:9b}
+      VOLUNDR_OLLAMA_MODEL: ${VOLUNDR_OLLAMA_MODEL:-qwen2.5-coder:14b}
       VOLUNDR_OLLAMA_TIMEOUT_SECONDS: ${VOLUNDR_OLLAMA_TIMEOUT_SECONDS:-300}
-      VOLUNDR_GEMINI_BINARY: gemini
+      VOLUNDR_OLLAMA_THINK: ${VOLUNDR_OLLAMA_THINK:-}
+      VOLUNDR_GEMINI_BINARY: ${VOLUNDR_GEMINI_BINARY:-gemini}
       VOLUNDR_GEMINI_MODEL: ${VOLUNDR_GEMINI_MODEL:-gemini-3.5-flash-lite}
+      VOLUNDR_GEMINI_TIMEOUT_SECONDS: ${VOLUNDR_GEMINI_TIMEOUT_SECONDS:-120}
+      VOLUNDR_GEMINI_POLICY_PATH: ${VOLUNDR_GEMINI_POLICY_PATH:-}
+      VOLUNDR_GEMINI_API_BASE_URL: ${VOLUNDR_GEMINI_API_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      VOLUNDR_SNAPSHOTS_ENABLED: ${VOLUNDR_SNAPSHOTS_ENABLED:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "${VOLUNDR_API_PORT:-8000}:8000"
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}:/app/data
-      - ${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
+      - ${VOLUNDR_GEMINI_DIR:-${VOLUNDR_DATA_DIR:-./data}/gemini}:/home/volundr/.gemini
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - volundr-internal
 
@@ -39,13 +66,25 @@ services:
       context: .
       dockerfile: cad-worker/Dockerfile
     restart: unless-stopped
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 1024m
+    cpus: 1.0
     environment:
-      VOLUNDR_CAD_WORKSPACE_DIR: /work/jobs
-      VOLUNDR_OPENSCAD_BINARY: /usr/bin/openscad
+      VOLUNDR_DATA_DIR: /work
+      VOLUNDR_CAD_TIMEOUT_SECONDS: ${VOLUNDR_CAD_TIMEOUT_SECONDS:-60}
     volumes:
       - ${VOLUNDR_DATA_DIR:-./data}/jobs:/work/jobs
-    networks:
-      - volundr-internal
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
+    healthcheck:
+      test: ["CMD", "python", "-c", "from pathlib import Path; assert b'app.workers.cad_worker' in Path('/proc/1/cmdline').read_bytes()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
 networks:
   volundr-internal:

@@ -1,0 +1,689 @@
+import ast
+from dataclasses import dataclass, field
+
+
+class CadQueryContractError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class CadQuerySourceMetadata:
+    contract_version: str
+    entrypoint: str
+    parameter_ids: list[str] = field(default_factory=list)
+    parameter_defaults: dict[str, str | int | float | bool] = field(default_factory=dict)
+    parameter_types: dict[str, str] = field(default_factory=dict)
+    parameter_units: dict[str, str] = field(default_factory=dict)
+    parameter_protected: dict[str, bool] = field(default_factory=dict)
+    parameter_source_requirement_ids: dict[str, str] = field(default_factory=dict)
+    parameter_sources: dict[str, str] = field(default_factory=dict)
+    output_ids: list[str] = field(default_factory=list)
+    output_component_ids: dict[str, list[str]] = field(default_factory=dict)
+    component_ids: list[str] = field(default_factory=list)
+    expected_solid_counts: dict[str, int] = field(default_factory=dict)
+
+
+SAFE_CALL_NAMES = frozenset(
+    {
+        "abs",
+        "bool",
+        "float",
+        "int",
+        "len",
+        "list",
+        "max",
+        "min",
+        "range",
+        "round",
+        "str",
+        "sum",
+        "tuple",
+        "resolve_pattern_points",
+    }
+)
+
+RUNTIME_IMPORT_NAMES = frozenset(
+    {
+        "ParameterSpec",
+        "ParameterValidationError",
+        "ParameterValues",
+        "PrintableOutput",
+        "Product",
+        "component",
+        "feature",
+        "protected_interface",
+        "shared_helper",
+        "resolve_pattern_points",
+    }
+)
+
+RUNTIME_CONSTRUCTOR_NAMES = frozenset({"ParameterSpec", "PrintableOutput", "Product"})
+RUNTIME_METADATA_DECORATOR_NAMES = frozenset(
+    {"component", "feature", "protected_interface", "shared_helper"}
+)
+
+PARAMETER_SPEC_TYPES = frozenset({"float", "int", "bool", "str", "enum"})
+
+RUNTIME_CONSTRUCTOR_KEYWORDS = {
+    "ParameterSpec": frozenset(
+        {
+            "id",
+            "label",
+            "type",
+            "default",
+            "unit",
+            "min_value",
+            "max_value",
+            "choices",
+            "editable",
+            "protected",
+            "source_requirement_id",
+            "source",
+        }
+    ),
+    "PrintableOutput": frozenset(
+        {
+            "output_id",
+            "label",
+            "model",
+            "component_id",
+            "component_ids",
+            "quantity",
+            "required",
+            "expected_solid_count",
+            "allow_disconnected_solids",
+            "metadata",
+        }
+    ),
+    "Product": frozenset(
+        {
+            "outputs",
+            "parameters",
+            "schema_version",
+            "metadata",
+        }
+    ),
+}
+
+UNSAFE_CALL_NAMES = frozenset(
+    {
+        "__import__",
+        "compile",
+        "eval",
+        "exec",
+        "globals",
+        "getattr",
+        "input",
+        "locals",
+        "open",
+        "setattr",
+        "vars",
+    }
+)
+
+ALLOWED_TOP_LEVEL_NODE_TYPES = (
+    ast.Import,
+    ast.Assign,
+    ast.AnnAssign,
+    ast.FunctionDef,
+    ast.ClassDef,
+)
+
+ALLOWED_CONSTANT_TYPES = (str, int, float, bool, type(None))
+
+
+def validate_cadquery_source(
+    source: str,
+    *,
+    contract_version: str = "cadquery-v1",
+) -> CadQuerySourceMetadata:
+    if contract_version != "cadquery-v1":
+        raise CadQueryContractError("unsupported CadQuery contract_version")
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as exc:
+        raise CadQueryContractError(f"invalid Python syntax: {exc.msg}") from exc
+
+    strict_v1 = True
+    function_names = {
+        node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+    }
+    build_function: ast.FunctionDef | None = None
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom):
+            _validate_import_from(node, strict_v1=strict_v1)
+            continue
+        if not isinstance(node, ALLOWED_TOP_LEVEL_NODE_TYPES):
+            raise CadQueryContractError(
+                f"unsupported top-level statement: {type(node).__name__}"
+            )
+        if isinstance(node, ast.Import):
+            _validate_import(node)
+        elif isinstance(node, ast.Assign | ast.AnnAssign):
+            _validate_top_level_assignment(node, strict_v1=strict_v1)
+        elif isinstance(node, ast.FunctionDef):
+            if node.name == "build":
+                build_function = node
+            _validate_function(node, function_names=function_names, strict_v1=strict_v1)
+        elif isinstance(node, ast.ClassDef):
+            _validate_class(node)
+
+    if build_function is None:
+        raise CadQueryContractError("cadquery-v1 source must define build(params)")
+    _validate_build_entrypoint(build_function)
+    _validate_runtime_constructor_calls(tree)
+    _validate_printable_output_contract(tree)
+    _validate_parameter_spec_locations(tree)
+    _validate_product_parameter_references(tree)
+    metadata = _collect_cadquery_v1_metadata(tree)
+    if not metadata.output_ids:
+        raise CadQueryContractError("cadquery-v1 source must define at least one PrintableOutput")
+    if not _has_call_named(tree, "Product"):
+        raise CadQueryContractError("cadquery-v1 source must return a Product")
+    return metadata
+
+
+def _validate_import(node: ast.Import) -> None:
+    if len(node.names) != 1:
+        raise CadQueryContractError("only `import cadquery as cq` is allowed")
+    alias = node.names[0]
+    if alias.name != "cadquery" or alias.asname != "cq":
+        raise CadQueryContractError("only `import cadquery as cq` is allowed")
+
+
+def _validate_import_from(node: ast.ImportFrom, *, strict_v1: bool) -> None:
+    if not strict_v1:
+        raise CadQueryContractError("only `import cadquery as cq` is allowed")
+    if node.module != "volundr_cad.runtime":
+        raise CadQueryContractError("only Volundr runtime imports are allowed")
+    imported = {alias.name for alias in node.names}
+    if any(alias.asname for alias in node.names) or not imported.issubset(RUNTIME_IMPORT_NAMES):
+        raise CadQueryContractError("unsupported Volundr runtime import")
+
+
+def _validate_top_level_assignment(node: ast.Assign | ast.AnnAssign, *, strict_v1: bool = False) -> None:
+    targets: list[ast.expr]
+    value: ast.expr | None
+    if isinstance(node, ast.Assign):
+        targets = list(node.targets)
+        value = node.value
+    else:
+        targets = [node.target]
+        value = node.value
+    if len(targets) != 1 or not isinstance(targets[0], ast.Name):
+        raise CadQueryContractError("top-level assignment targets must be simple names")
+    if value is None:
+        raise CadQueryContractError("top-level assignment values must be literal parameters")
+    if strict_v1 and _contains_runtime_metadata_call(value):
+        _validate_runtime_constructor_calls(value)
+    if strict_v1 and _is_runtime_metadata_value(value):
+        return
+    if not _is_constant_value(value):
+        raise CadQueryContractError("top-level assignment values must be literal parameters")
+
+
+def _validate_function(
+    node: ast.FunctionDef,
+    *,
+    function_names: set[str],
+    strict_v1: bool = False,
+) -> None:
+    if node.decorator_list:
+        if not strict_v1:
+            raise CadQueryContractError("function decorators are not allowed in cadquery-v1")
+        for decorator in node.decorator_list:
+            _validate_metadata_decorator(decorator)
+    if node.args.vararg or node.args.kwarg:
+        raise CadQueryContractError("variadic function arguments are not allowed")
+    _validate_body(node, function_names=function_names, strict_v1=strict_v1)
+
+
+def _validate_class(node: ast.ClassDef) -> None:
+    if node.decorator_list:
+        raise CadQueryContractError("class decorators are not allowed in cadquery-v1")
+    if node.keywords:
+        raise CadQueryContractError("class keyword arguments are not allowed")
+    for base in node.bases:
+        if not isinstance(base, ast.Name):
+            raise CadQueryContractError("class bases must be simple names")
+    for child in node.body:
+        if not isinstance(child, ast.AnnAssign):
+            raise CadQueryContractError("classes may only declare annotated parameter fields")
+        _validate_top_level_assignment(child)
+
+
+def _validate_body(node: ast.AST, *, function_names: set[str], strict_v1: bool = False) -> None:
+    for child in ast.walk(node):
+        if isinstance(child, ast.FunctionDef) and child is not node:
+            if child.decorator_list:
+                if not strict_v1:
+                    raise CadQueryContractError(
+                        "function decorators are not allowed in cadquery-v1"
+                    )
+                for decorator in child.decorator_list:
+                    _validate_metadata_decorator(decorator)
+            if child.args.vararg or child.args.kwarg:
+                raise CadQueryContractError("variadic function arguments are not allowed")
+        if isinstance(child, ast.Import | ast.ImportFrom):
+            raise CadQueryContractError("imports are only allowed at top level")
+        if isinstance(child, ast.Global | ast.Nonlocal):
+            raise CadQueryContractError("global/nonlocal statements are not allowed")
+        if isinstance(child, ast.Try):
+            raise CadQueryContractError("try/except is not allowed in generated CadQuery source")
+        if isinstance(child, ast.With | ast.AsyncWith):
+            raise CadQueryContractError("with statements are not allowed")
+        if isinstance(child, ast.Call):
+            _validate_call(child, function_names=function_names, strict_v1=strict_v1)
+        if isinstance(child, ast.Attribute):
+            if child.attr.startswith("__"):
+                raise CadQueryContractError("dunder attribute access is not allowed")
+
+
+def _validate_call(node: ast.Call, *, function_names: set[str], strict_v1: bool = False) -> None:
+    dotted_name = _call_dotted_name(node.func)
+    if strict_v1 and dotted_name == "cq.exporters.export":
+        raise CadQueryContractError("generated source cannot perform artifact writing")
+    name = _call_name(node.func)
+    if strict_v1 and name is not None and _is_artifact_write_call_name(name):
+        raise CadQueryContractError("generated source cannot perform artifact writing")
+    if name in UNSAFE_CALL_NAMES:
+        raise CadQueryContractError(f"unsafe call is not allowed: {name}")
+    if name is None:
+        raise CadQueryContractError("dynamic calls are not allowed")
+    if isinstance(node.func, ast.Name) and name not in SAFE_CALL_NAMES:
+        if name not in function_names and (not strict_v1 or name not in RUNTIME_CONSTRUCTOR_NAMES):
+            if not strict_v1 or name not in RUNTIME_METADATA_DECORATOR_NAMES:
+                raise CadQueryContractError(f"unsupported direct function call: {name}")
+
+
+def _validate_metadata_decorator(node: ast.expr) -> None:
+    if isinstance(node, ast.Name):
+        if node.id not in RUNTIME_METADATA_DECORATOR_NAMES:
+            raise CadQueryContractError("unsupported function decorator")
+        raise CadQueryContractError("ownership decorators require static metadata arguments")
+    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
+        raise CadQueryContractError("unsupported function decorator")
+    if node.func.id not in RUNTIME_METADATA_DECORATOR_NAMES:
+        raise CadQueryContractError("unsupported function decorator")
+    if any(keyword.arg is None for keyword in node.keywords):
+        raise CadQueryContractError("ownership decorators do not support dynamic keyword arguments")
+    if node.func.id in {"component", "shared_helper"}:
+        if len(node.args) == 1 and not node.keywords:
+            decorator_id = node.args[0]
+        elif not node.args and len(node.keywords) == 1 and node.keywords[0].arg == "id":
+            decorator_id = node.keywords[0].value
+        else:
+            raise CadQueryContractError(f"{node.func.id} decorator requires one static id argument")
+        if not _is_static_string(decorator_id):
+            raise CadQueryContractError(f"{node.func.id} decorator id must be a static string")
+        return
+    if node.func.id == "feature":
+        if len(node.args) != 1 or not _is_static_string(node.args[0]):
+            raise CadQueryContractError("feature decorator id must be a static string")
+        allowed_keywords = {"component"}
+    else:
+        if len(node.args) != 1 or not _is_static_string(node.args[0]):
+            raise CadQueryContractError("protected_interface decorator id must be a static string")
+        allowed_keywords = {"parameters"}
+    for keyword in node.keywords:
+        if keyword.arg not in allowed_keywords:
+            raise CadQueryContractError(f"{node.func.id} decorator does not support keyword {keyword.arg}")
+        if keyword.arg == "component" and not _is_static_string(keyword.value):
+            raise CadQueryContractError("feature decorator component must be a static string")
+        if keyword.arg == "parameters" and not _is_static_string_sequence(keyword.value):
+            raise CadQueryContractError("protected_interface parameters must be static strings")
+
+
+def _validate_runtime_constructor_calls(node: ast.AST) -> None:
+    for call in (child for child in ast.walk(node) if isinstance(child, ast.Call)):
+        name = _call_name(call.func)
+        if name in RUNTIME_CONSTRUCTOR_KEYWORDS:
+            _validate_runtime_constructor_keywords(call, name)
+
+
+def _validate_runtime_constructor_keywords(node: ast.Call, constructor_name: str) -> None:
+    allowed_keywords = RUNTIME_CONSTRUCTOR_KEYWORDS[constructor_name]
+    for keyword in node.keywords:
+        if keyword.arg is None:
+            raise CadQueryContractError(
+                f"{constructor_name} does not support dynamic keyword arguments"
+            )
+        if keyword.arg not in allowed_keywords:
+            allowed = ", ".join(sorted(allowed_keywords))
+            raise CadQueryContractError(
+                f"{constructor_name} does not support keyword {keyword.arg}; "
+                f"allowed keywords are {allowed}"
+            )
+    if constructor_name == "ParameterSpec":
+        _validate_parameter_spec_type(node)
+
+
+def _validate_parameter_spec_type(node: ast.Call) -> None:
+    type_value = _keyword(node, "type")
+    if type_value is None:
+        return
+    if not isinstance(type_value, ast.Constant) or not isinstance(type_value.value, str):
+        raise CadQueryContractError("ParameterSpec type must be a static string literal")
+    if type_value.value not in PARAMETER_SPEC_TYPES:
+        allowed = ", ".join(sorted(PARAMETER_SPEC_TYPES))
+        raise CadQueryContractError(
+            f"ParameterSpec type {type_value.value} is unsupported; allowed types are {allowed}"
+        )
+
+
+def _validate_printable_output_contract(tree: ast.Module) -> None:
+    output_ids: set[str] = set()
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        if _call_name(call.func) != "PrintableOutput":
+            continue
+        output_id = _string_keyword(call, "output_id")
+        if not output_id:
+            raise CadQueryContractError("PrintableOutput output_id must be a static string")
+        if output_id in output_ids:
+            raise CadQueryContractError(f"duplicate output_id: {output_id}")
+        output_ids.add(output_id)
+        component_id = _string_keyword(call, "component_id")
+        component_ids = _string_list_keyword(call, "component_ids")
+        if not component_id and not component_ids:
+            raise CadQueryContractError(
+                f"PrintableOutput {output_id} must define component_id or component_ids"
+            )
+        expected_solid_count = _int_keyword(call, "expected_solid_count")
+        if expected_solid_count is None or expected_solid_count < 1:
+            raise CadQueryContractError(
+                f"PrintableOutput {output_id} must define expected_solid_count"
+            )
+        allow_disconnected_solids = _bool_keyword(call, "allow_disconnected_solids")
+        if allow_disconnected_solids is None:
+            raise CadQueryContractError(
+                f"PrintableOutput {output_id} must define allow_disconnected_solids"
+            )
+
+
+def _validate_parameter_spec_locations(tree: ast.Module) -> None:
+    parameter_calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and _call_name(node.func) == "ParameterSpec"
+    ]
+    if not parameter_calls:
+        return
+
+    module_level_parameter_call_ids: set[int] = set()
+    for node in tree.body:
+        value: ast.expr | None = None
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            if not isinstance(node.targets[0], ast.Name) or node.targets[0].id != "PARAMETERS":
+                continue
+            value = node.value
+        elif isinstance(node, ast.AnnAssign):
+            if not isinstance(node.target, ast.Name) or node.target.id != "PARAMETERS":
+                continue
+            value = node.value
+        if value is None:
+            continue
+        module_level_parameter_call_ids.update(
+            id(call)
+            for call in ast.walk(value)
+            if isinstance(call, ast.Call) and _call_name(call.func) == "ParameterSpec"
+        )
+
+    if not module_level_parameter_call_ids:
+        raise CadQueryContractError(
+            "ParameterSpec entries must be defined in module-level PARAMETERS"
+        )
+    for call in parameter_calls:
+        if id(call) not in module_level_parameter_call_ids:
+            raise CadQueryContractError(
+                "ParameterSpec entries must be defined in module-level PARAMETERS"
+            )
+
+
+def _validate_product_parameter_references(tree: ast.Module) -> None:
+    has_module_parameters = any(
+        isinstance(node, ast.Assign | ast.AnnAssign)
+        and (
+            (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == "PARAMETERS"
+            )
+            or (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id == "PARAMETERS"
+            )
+        )
+        for node in tree.body
+    )
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        if _call_name(call.func) != "Product":
+            continue
+        parameters_keyword = _keyword(call, "parameters")
+        if parameters_keyword is None:
+            if has_module_parameters:
+                raise CadQueryContractError(
+                    "Product parameters must reference module-level PARAMETERS"
+                )
+            continue
+        if not isinstance(parameters_keyword, ast.Name) or parameters_keyword.id != "PARAMETERS":
+            raise CadQueryContractError(
+                "Product parameters must reference module-level PARAMETERS"
+            )
+
+
+def _contains_runtime_metadata_call(node: ast.AST) -> bool:
+    return any(
+        isinstance(child, ast.Call) and _call_name(child.func) in RUNTIME_CONSTRUCTOR_NAMES
+        for child in ast.walk(node)
+    )
+
+
+def _call_name(node: ast.expr) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return None
+
+
+def _is_artifact_write_call_name(name: str) -> bool:
+    normalized = name.lower()
+    return normalized.startswith("export") or normalized in {
+        "save",
+        "write",
+        "write_bytes",
+        "write_text",
+    }
+
+
+def _call_dotted_name(node: ast.expr) -> str | None:
+    parts: list[str] = []
+    current: ast.expr = node
+    while isinstance(current, ast.Attribute):
+        parts.append(current.attr)
+        current = current.value
+    if isinstance(current, ast.Name):
+        parts.append(current.id)
+        return ".".join(reversed(parts))
+    return None
+
+
+def _is_constant_value(node: ast.expr) -> bool:
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, ALLOWED_CONSTANT_TYPES)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub | ast.UAdd):
+        return _is_constant_value(node.operand)
+    if isinstance(node, ast.List | ast.Tuple):
+        return all(_is_constant_value(element) for element in node.elts)
+    return False
+
+
+def _is_runtime_metadata_value(node: ast.expr) -> bool:
+    if _is_constant_value(node):
+        return True
+    if isinstance(node, ast.List | ast.Tuple):
+        return all(_is_runtime_metadata_value(element) for element in node.elts)
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        if node.func.id != "ParameterSpec":
+            return False
+        return all(_keyword_value_is_static(keyword.value) for keyword in node.keywords)
+    return False
+
+
+def _keyword_value_is_static(node: ast.expr) -> bool:
+    if _is_constant_value(node):
+        return True
+    if isinstance(node, ast.List | ast.Tuple):
+        return all(_is_constant_value(element) for element in node.elts)
+    return False
+
+
+def _validate_build_entrypoint(node: ast.FunctionDef) -> None:
+    positional_args = list(node.args.posonlyargs) + list(node.args.args)
+    if len(positional_args) != 1 or positional_args[0].arg != "params":
+        raise CadQueryContractError("cadquery-v1 source must define build(params)")
+    if node.args.defaults or node.args.kw_defaults or node.args.kwonlyargs:
+        raise CadQueryContractError("build(params) cannot define default or keyword-only arguments")
+
+
+def _collect_cadquery_v1_metadata(tree: ast.Module) -> CadQuerySourceMetadata:
+    parameter_ids: list[str] = []
+    parameter_defaults: dict[str, str | int | float | bool] = {}
+    parameter_types: dict[str, str] = {}
+    parameter_units: dict[str, str] = {}
+    parameter_protected: dict[str, bool] = {}
+    parameter_source_requirement_ids: dict[str, str] = {}
+    parameter_sources: dict[str, str] = {}
+    output_ids: list[str] = []
+    output_component_ids: dict[str, list[str]] = {}
+    component_ids: list[str] = []
+    expected_solid_counts: dict[str, int] = {}
+    for call in (node for node in ast.walk(tree) if isinstance(node, ast.Call)):
+        name = _call_name(call.func)
+        if name == "ParameterSpec":
+            parameter_id = _string_keyword(call, "id")
+            if parameter_id:
+                parameter_ids.append(parameter_id)
+                default_value = _static_keyword_value(call, "default")
+                if default_value is not None:
+                    parameter_defaults[parameter_id] = default_value
+                parameter_type = _string_keyword(call, "type")
+                if parameter_type:
+                    parameter_types[parameter_id] = parameter_type
+                parameter_unit = _string_keyword(call, "unit")
+                if parameter_unit:
+                    parameter_units[parameter_id] = parameter_unit
+                protected = _bool_keyword(call, "protected")
+                if protected is not None:
+                    parameter_protected[parameter_id] = protected
+                source_requirement_id = _string_keyword(call, "source_requirement_id")
+                if source_requirement_id:
+                    parameter_source_requirement_ids[parameter_id] = source_requirement_id
+                source = _string_keyword(call, "source")
+                if source:
+                    parameter_sources[parameter_id] = source
+        elif name == "PrintableOutput":
+            output_id = _string_keyword(call, "output_id")
+            if output_id:
+                output_ids.append(output_id)
+            component_id = _string_keyword(call, "component_id")
+            output_components: list[str] = []
+            if component_id:
+                component_ids.append(component_id)
+                output_components.append(component_id)
+            for value in _string_list_keyword(call, "component_ids"):
+                component_ids.append(value)
+                output_components.append(value)
+            if output_id:
+                output_component_ids[output_id] = _dedupe(output_components)
+            expected_solid_count = _int_keyword(call, "expected_solid_count")
+            if output_id and expected_solid_count is not None:
+                expected_solid_counts[output_id] = expected_solid_count
+    return CadQuerySourceMetadata(
+        contract_version="cadquery-v1",
+        entrypoint="build",
+        parameter_ids=_dedupe(parameter_ids),
+        parameter_defaults=parameter_defaults,
+        parameter_types=parameter_types,
+        parameter_units=parameter_units,
+        parameter_protected=parameter_protected,
+        parameter_source_requirement_ids=parameter_source_requirement_ids,
+        parameter_sources=parameter_sources,
+        output_ids=_dedupe(output_ids),
+        output_component_ids=output_component_ids,
+        component_ids=_dedupe(component_ids),
+        expected_solid_counts=expected_solid_counts,
+    )
+
+
+def _has_call_named(tree: ast.Module, name: str) -> bool:
+    return any(
+        isinstance(node, ast.Call) and _call_name(node.func) == name
+        for node in ast.walk(tree)
+    )
+
+
+def _string_keyword(node: ast.Call, name: str) -> str | None:
+    value = _keyword(node, name)
+    if isinstance(value, ast.Constant) and isinstance(value.value, str):
+        return value.value
+    return None
+
+
+def _is_static_string(node: ast.expr) -> bool:
+    return isinstance(node, ast.Constant) and isinstance(node.value, str) and bool(node.value.strip())
+
+
+def _is_static_string_sequence(node: ast.expr) -> bool:
+    if not isinstance(node, ast.List | ast.Tuple):
+        return False
+    return all(_is_static_string(element) for element in node.elts)
+
+
+def _int_keyword(node: ast.Call, name: str) -> int | None:
+    value = _keyword(node, name)
+    if isinstance(value, ast.Constant) and isinstance(value.value, int) and not isinstance(value.value, bool):
+        return value.value
+    return None
+
+
+def _bool_keyword(node: ast.Call, name: str) -> bool | None:
+    value = _keyword(node, name)
+    if isinstance(value, ast.Constant) and isinstance(value.value, bool):
+        return value.value
+    return None
+
+
+def _static_keyword_value(node: ast.Call, name: str) -> str | int | float | bool | None:
+    value = _keyword(node, name)
+    if isinstance(value, ast.Constant) and isinstance(value.value, str | int | float | bool):
+        return value.value
+    if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub | ast.UAdd):
+        operand = value.operand
+        if isinstance(operand, ast.Constant) and isinstance(operand.value, int | float):
+            return -operand.value if isinstance(value.op, ast.USub) else operand.value
+    return None
+
+
+def _string_list_keyword(node: ast.Call, name: str) -> list[str]:
+    value = _keyword(node, name)
+    if not isinstance(value, ast.List | ast.Tuple):
+        return []
+    return [
+        element.value
+        for element in value.elts
+        if isinstance(element, ast.Constant) and isinstance(element.value, str)
+    ]
+
+
+def _keyword(node: ast.Call, name: str) -> ast.expr | None:
+    for keyword in node.keywords:
+        if keyword.arg == name:
+            return keyword.value
+    return None
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    return list(dict.fromkeys(values))

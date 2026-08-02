@@ -28,4 +28,6 @@ class ProjectMessage(Base):
     )
     role: Mapped[str] = mapped_column(String(40), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    client_message_id: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    chat_response_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.provider import (
     DesignPlanRequest,
@@ -7,61 +5,237 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RevisionPlanRequest,
 )
+from app.services.cad.cadquery_source_authority import build_cadquery_source_authority
+from app.services.cad.source_scaffold import SCAFFOLD_VERSION
+from app.services.projects.service import ProjectService
 
 
-SNAPSHOT_DIR = Path(__file__).parent / "fixtures" / "prompt_snapshots"
+CUBE_PLAN = {
+    "parameters": [
+        {"id": "cube_size", "type": "float", "value": 10, "unit": "mm"}
+    ],
+    "dependency_edges": [
+        {"from": "cube_size", "to": "body", "relationship": "drives_dimension"}
+    ],
+    "components": [{"id": "body", "features": ["cube_body"]}],
+    "features": [{"id": "cube_body", "component_id": "body"}],
+    "printable_outputs": [
+        {
+            "id": "body",
+            "component_ids": ["body"],
+            "expected_solid_count": 1,
+            "allow_disconnected_solids": False,
+        }
+    ],
+}
 
 
-def read_snapshot(name: str) -> str:
-    return (SNAPSHOT_DIR / name).read_text(encoding="utf-8").rstrip("\n")
-
-
-def test_legacy_initial_prompt_matches_snapshot() -> None:
+def test_cadquery_initial_prompt_uses_product_contract() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
-    prompt = provider.build_prompt(
+    request = ModelGenerationRequest(
+        project_name="Generated cube",
+        original_intent="Create a calibration cube.",
+        user_instruction="Create a 10mm cube with named parameters.",
+        design_specification={
+            "purpose": "Create a calibration cube.",
+            "critical_dimensions": [
+                {"id": "cube_size", "value": 10, "unit": "mm", "protected": True}
+            ],
+            "print_requirements": {"printer_profile_id": "default-fdm-256"},
+        },
+        design_plan=CUBE_PLAN,
+        source_authority=build_cadquery_source_authority(CUBE_PLAN),
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "cadquery-generation-v6"
+    assert provider.ruleset_version == "gemini-ruleset-v1"
+    assert "You generate CadQuery Python for Volundr." in prompt
+    assert "Return only a single fenced python block" in prompt
+    assert "Follow the cadquery-v1 source contract" in prompt
+    assert "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product" in prompt
+    assert "@component(\"component_id\")" in prompt
+    assert "@feature(\"feature_id\", component=\"component_id\")" in prompt
+    assert "Define `def build(params):`" in prompt
+    assert "Return exactly one `Product`" in prompt
+    assert "Do not define `build_model()`" in prompt
+    assert "ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False, source_requirement_id=None, source=None)" in prompt
+    assert "Do not use unsupported ParameterSpec aliases such as description, min, max, minimum, maximum, value, default_value, units, or help" in prompt
+    assert "ParameterSpec type must be exactly one of float, int, bool, str, or enum; never use number" in prompt
+    assert "ParameterSpec default must be a literal value, not a variable reference" in prompt
+    assert "copy those fields into its ParameterSpec exactly" in prompt
+    assert "Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params)" in prompt
+    assert "Always quote ParameterSpec type values, for example type=\"float\"; never write type=float" in prompt
+    assert "Initial generation mode:" in prompt
+    assert "Authoritative Design Specification JSON:" in prompt
+    assert '"printer_profile_id": "default-fdm-256"' in prompt
+    assert "Authoritative Design Plan JSON:" in prompt
+    assert "Required stable identity table:" in prompt
+    assert "AUTHORITATIVE SOURCE IDENTITIES" in prompt
+    assert "Do not rename, alias, replace, shorten, or invent product IDs." in prompt
+    assert "Every required parameter must be declared as a module-level ParameterSpec" in prompt
+    assert '"required_components": [' in prompt
+    assert '"required_outputs": [' in prompt
+    assert '"required_parameters": [' in prompt
+    assert '"dependency_edges": [' in prompt
+    assert '"components": [' in prompt
+    assert '"features": [' in prompt
+    assert '"printable_outputs": [' in prompt
+    assert "Typed parameter contract:" in prompt
+    assert '"id": "cube_size"' in prompt
+    assert "Topology expectations:" in prompt
+    assert '"expected_solid_count": 1' in prompt
+    assert '"allow_disconnected_solids": false' in prompt
+    assert "Security restrictions:" in prompt
+    assert "Return the complete Python source for the whole product" in prompt
+
+
+def test_scaffold_prompt_requests_geometry_functions_only() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Scaffolded cube",
+        original_intent="Create a calibration cube.",
+        user_instruction="Create a 10mm cube.",
+        design_plan=CUBE_PLAN,
+        generation_contract_version=SCAFFOLD_VERSION,
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert "only structured CadQuery geometry bodies" in prompt
+    assert "statements" in prompt
+    assert "_ai_component_body" in prompt
+    assert "Volundr deterministically owns all parameters" in prompt
+    assert "Do not use a Plan parameter ID as a bare Python name" in prompt
+    assert "params[<parameter_id>]" in prompt
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-v8"
+    assert "Requirement-led implementation contract" in prompt
+    assert "Ordinary designs may use safe numeric literals" in prompt
+    assert '"schema_version": "cadquery-parameter-effects-v1"' in prompt
+
+
+def test_structured_geometry_body_repair_preserves_parameter_effect_manifest() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    request = ModelGenerationRequest(
+        project_name="Repair structured body",
+        original_intent="Create a two-screw mounting plate.",
+        user_instruction="Repair the structured geometry body.",
+        design_plan={
+            "parameters": [
+                {"id": "mounting_screw_count", "value": 2, "unit": "count", "protected": True},
+                {"id": "mounting_hole_spacing", "value": 50.0, "unit": "mm", "protected": True},
+            ],
+            "components": [{"id": "plate", "parameters": []}],
+            "features": [
+                {
+                    "id": "mounting_holes",
+                    "component_id": "plate",
+                    "type": "mounting_hole_group",
+                    "parameters": ["mounting_screw_count", "mounting_hole_spacing"],
+                }
+            ],
+            "printable_outputs": [{"id": "plate", "component_ids": ["plate"]}],
+        },
+        generation_contract_version=SCAFFOLD_VERSION,
+        geometry_body_diagnostics='{"rule_id":"geometry_body.pattern_count_hardcoded"}',
+        current_source='{"schema_version":"cadquery-geometry-bodies-v1","functions":[]}',
+    )
+
+    prompt = provider.build_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-repair-v8"
+    assert "Repair only the structured geometry-body response" in prompt
+    assert "mounting_screw_count" in prompt
+    assert "mounting_hole_spacing" in prompt
+    assert "Do not change scaffold-owned parameters, IDs, function signatures, or the Design Plan." in prompt
+
+
+def test_cadquery_prompt_guides_mathless_connected_creative_geometry() -> None:
+    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
+    prompt = provider.build_cadquery_prompt(
         ModelGenerationRequest(
-            project_name="Generated cube",
-            original_intent="Create a calibration cube.",
-            user_instruction="Create a 10mm cube with named parameters.",
+            project_name="Fish shelf bracket",
+            original_intent=(
+                "Create a functional 90 degree shelf bracket that looks like a fish "
+                "from below."
+            ),
+            user_instruction=(
+                "Build a 90 degree shelf bracket with mounting holes, but make the "
+                "visible underside look like a fish."
+            ),
         )
     )
 
-    assert provider.prompt_template_version_for(
-        ModelGenerationRequest(
-            project_name="Generated cube",
-            original_intent="Create a calibration cube.",
-            user_instruction="Create a 10mm cube with named parameters.",
-        )
-    ) == "legacy-initial-v1"
-    assert provider.gemini_ruleset_version == "gemini-ruleset-v1"
-    assert prompt.rstrip("\n") == read_snapshot("legacy_initial.txt")
+    assert "Do not import or use `math`" in prompt
+    assert "Do not wrap fillet(), chamfer(), or optional details in try/except" in prompt
+    assert "Use fixed point lists or CadQuery polygon/spline profiles instead of sin/cos loops" in prompt
+    assert "Do not call `map()`, `.split()`, or parse string parameters" in prompt
+    assert "If `thread_spec` is requested, expose it as a numeric millimeter diameter" in prompt
+    assert "Extrude only closed profiles" in prompt
+    assert "For indicator slots, use `rect(indicator_width, length).extrude(depth)`" in prompt
+    assert "Prefer one extruded 2D profile for creative one-piece brackets" in prompt
+    assert "Return the main fused solid directly, not a Compound of loose solids" in prompt
+    assert "For hinged boxes, prefer simple overlapping hinge tabs or barrels without pin-hole cuts" in prompt
+    assert "valid separate base and lid solids are more important than detailed hinge mechanics" in prompt
+    assert "overlap the parent solid by at least 0.5 mm before union()" in prompt
+    assert "never leave ribs, rails, handles, tabs, or decorations merely tangent to a face" in prompt
+    assert "For tray carriers and open-top enclosures, build bottom, walls, rails, ribs, and handles from simple overlapping boxes" in prompt
+    assert "For L brackets, prefer two overlapping rectangular flanges plus an overlapping triangular rib" in prompt
+    assert "For carrier handles, use two overlapping posts and an overlapping crossbar; do not cut a finger hole through a standalone handle block" in prompt
+    assert "Carrier handle posts must overlap side walls or the back wall, never float in the open center" in prompt
+    assert "place side handle posts at x = +/- (outer_width / 2 - wall_thickness / 2)" in prompt
+    assert "omit the handle rather than returning a disconnected or invalid handle" in prompt
 
 
-def test_legacy_revision_prompt_matches_snapshot() -> None:
+def test_cadquery_repair_prompt_includes_diagnostics_and_current_source() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
-        project_name="Resize generated part",
-        original_intent="Create a configurable block.",
-        user_instruction="Make it 20 mm wide while preserving the other dimensions.",
-        current_source="module main_model() {\n  cube([10, 10, 10]);\n}\nmain_model();\n",
+        project_name="Repair CadQuery probe",
+        original_intent="Create a mounting plate.",
+        user_instruction="Repair the CadQuery Python source.",
+        current_source=(
+            "import cadquery as cq\n\n"
+            "plate_width = 80\n\n"
+            "def build_model():\n"
+            "    return cq.Workplane('XY').box(plate_width, 35, 6).holes(4)\n"
+        ),
+        compiler_diagnostics="AttributeError: Workplane has no attribute 'holes'",
     )
 
-    assert provider.prompt_template_version_for(request) == "legacy-revision-v1"
-    assert provider.build_prompt(request).rstrip("\n") == read_snapshot("legacy_revision.txt")
+    prompt = provider.build_cadquery_prompt(request)
+
+    assert provider.prompt_template_version_for(request) == "cadquery-execution-repair-v2"
+    assert "Repair mode:" in prompt
+    assert "AttributeError: Workplane has no attribute 'holes'" in prompt
+    assert "Current CadQuery source to repair begins below" in prompt
+    assert ".holes(4)" in prompt
+    assert "Return the full corrected CadQuery Python source" in prompt
 
 
-def test_legacy_repair_prompt_matches_snapshot() -> None:
+def test_project_service_records_distinct_cadquery_repair_prompt_versions() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
-    request = ModelGenerationRequest(
-        project_name="Repairable output",
-        original_intent="Create a generated part.",
-        user_instruction="Create a cube.",
-        current_source="module main_model() {\n  broken(\n}\nmain_model();\n",
-        compiler_diagnostics="Parser error: syntax error",
+    service = ProjectService(db=None, ai_provider=provider)  # type: ignore[arg-type]
+
+    contract_request = ModelGenerationRequest(
+        project_name="Repair",
+        original_intent="Create a bracket.",
+        user_instruction="Repair contract.",
+        current_source="import cadquery as cq",
+        contract_diagnostics="cadquery-v1 source must define build(params)",
+        design_plan={"printable_outputs": [{"id": "body"}]},
+    )
+    execution_request = ModelGenerationRequest(
+        project_name="Repair",
+        original_intent="Create a bracket.",
+        user_instruction="Repair execution.",
+        current_source="import cadquery as cq",
+        compiler_diagnostics="AttributeError: Workplane has no attribute holes",
+        design_plan={"printable_outputs": [{"id": "body"}]},
     )
 
-    assert provider.prompt_template_version_for(request) == "legacy-compile-repair-v1"
-    assert provider.build_prompt(request).rstrip("\n") == read_snapshot("legacy_repair.txt")
+    assert service._prompt_template_version(contract_request) == "cadquery-contract-repair-v2"
+    assert service._prompt_template_version(execution_request) == "cadquery-execution-repair-v2"
 
 
 def test_requirement_prompt_is_json_only_and_clarification_capable() -> None:
@@ -75,41 +249,12 @@ def test_requirement_prompt_is_json_only_and_clarification_capable() -> None:
 
     prompt = provider.build_requirement_prompt(request)
 
-    assert provider.requirement_prompt_template_version() == "requirements-v1"
-    assert "Return JSON only. Do not generate OpenSCAD." in prompt
+    assert provider.requirement_prompt_template_version() == "requirements-v3"
+    assert "Return JSON only. Do not generate CAD source." in prompt
     assert "clarification_required" in prompt
     assert "Do not silently invent critical dimensions" in prompt
-
-
-def test_staged_openscad_prompt_uses_design_specification_as_authority() -> None:
-    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
-    request = ModelGenerationRequest(
-        project_name="Mounting plate",
-        original_intent="Create a plate.",
-        user_instruction="Raw text is secondary.",
-        design_specification={
-            "purpose": "Mount a controller",
-            "critical_dimensions": [
-                {
-                    "id": "hole_spacing",
-                    "value": 60,
-                    "unit": "mm",
-                    "source": "user",
-                    "protected": True,
-                }
-            ],
-        },
-    )
-
-    prompt = provider.build_prompt(request)
-
-    assert provider.prompt_template_version_for(request) == "openscad-generation-v3"
-    assert "The Design Specification is the authoritative design source" in prompt
-    assert "@volundr-requirement <design_spec_requirement_id>" in prompt
-    assert "@volundr-feature <design_spec_requirement_id>" in prompt
-    assert "@volundr-geometry type=hole_group" in prompt
-    assert "Secondary raw user request" in prompt
-    assert "hole_spacing" in prompt
+    assert "wall-mounted means a vertical planar wall mount" in prompt
+    assert "do not ask the user to convert a nominal designation such as #8" in prompt
 
 
 def test_design_plan_prompt_is_json_only_and_product_model_aware() -> None:
@@ -127,45 +272,12 @@ def test_design_plan_prompt_is_json_only_and_product_model_aware() -> None:
 
     prompt = provider.build_design_plan_prompt(request)
 
-    assert provider.design_plan_prompt_template_version() == "design-plan-v1"
-    assert "Return JSON only. Do not generate OpenSCAD." in prompt
-    assert "parameters, derived parameters, dependency edges, components, features, presets" in prompt
+    assert provider.design_plan_prompt_template_version() == "design-plan-v7"
+    assert "Return JSON only. Do not generate CAD source." in prompt
+    assert "active requirements, a proposed design approach, components, functional features" in prompt
     assert "printable_outputs" in prompt
     assert "design_level" in prompt
-
-
-def test_planned_openscad_prompt_uses_approved_design_plan_as_authority() -> None:
-    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
-    request = ModelGenerationRequest(
-        project_name="Planned bracket",
-        original_intent="Create functional products.",
-        user_instruction="Raw text is secondary.",
-        design_specification={
-            "purpose": "Configurable bracket",
-            "critical_dimensions": [{"id": "leg_length", "value": 60, "protected": True}],
-        },
-        design_plan={
-            "design_level": "product",
-            "parameters": [{"id": "leg_length", "editable": True, "protected": True}],
-            "dependency_edges": [{"from": "leg_length", "to": "hole_margin", "relationship": "margin"}],
-            "components": [{"id": "bracket_body"}],
-            "features": [{"id": "mounting_holes"}],
-            "printable_outputs": [{"id": "bracket_output", "component_ids": ["bracket_body"]}],
-        },
-    )
-
-    prompt = provider.build_prompt(request)
-
-    assert provider.prompt_template_version_for(request) == "openscad-generation-v5"
-    assert "approved Parametric Design Plan" in prompt
-    assert "@volundr-component <design_plan_component_id>" in prompt
-    assert "@volundr-dependency <from_parameter_id> -> <to_parameter_id>" in prompt
-    assert "@volundr-output <output_id> module=<module_name>" in prompt
-    assert "selected_output" in prompt
-    assert "render_selected_output();" in prompt
-    assert "assertions for invalid configurations" in prompt
-    assert "prefer additive construction of explicit base, side walls, rails" in prompt
-    assert "positive overlap with its supporting component" in prompt
+    assert "flexible_snap_arm" in prompt
 
 
 def test_design_plan_prompt_separates_source_values_from_derived_dimensions() -> None:
@@ -187,41 +299,44 @@ def test_design_plan_prompt_separates_source_values_from_derived_dimensions() ->
     assert "calculated stack, envelope, or overall product dimensions" in prompt
 
 
-def test_contract_repair_prompt_is_bounded_and_marker_aware() -> None:
+def test_cadquery_contract_repair_prompt_is_bounded() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
         project_name="Repair source contract",
         original_intent="Create a mounting plate.",
         user_instruction="Create a plate with holes.",
-        current_source="module main_model() {\n  cube([10, 10, 2]);\n}\nmain_model();\n",
+        current_source="import cadquery as cq\n",
         contract_diagnostics="Protected value changed: expected 60, detected 55",
         design_specification={"critical_dimensions": [{"id": "hole_spacing", "value": 60, "protected": True}]},
+        design_plan={
+            "parameters": [
+                {"id": "hole_spacing", "value": 60, "unit": "mm", "protected": True}
+            ],
+            "components": [{"id": "plate"}],
+            "features": [],
+            "printable_outputs": [{"id": "plate", "component_ids": ["plate"]}],
+        },
+        source_authority=build_cadquery_source_authority(
+            {
+                "parameters": [
+                    {"id": "hole_spacing", "value": 60, "unit": "mm", "protected": True}
+                ],
+                "components": [{"id": "plate"}],
+                "features": [],
+                "printable_outputs": [{"id": "plate", "component_ids": ["plate"]}],
+            }
+        ),
     )
+
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "contract-repair-v2"
+    assert provider.prompt_template_version_for(request) == "cadquery-contract-repair-v3"
+    assert "Contract repair mode:" in prompt
     assert "contract repair, not design revision" in prompt
-    assert "@volundr-requirement <id>" in prompt
-    assert "@volundr-geometry markers" in prompt
+    assert "ParameterSpec ID" in prompt
+    assert "PrintableOutput output_id" in prompt
     assert "Protected value changed" in prompt
-
-
-def test_contract_repair_prompt_preserves_design_plan_output_selector() -> None:
-    provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
-    request = ModelGenerationRequest(
-        project_name="Repair planned source",
-        original_intent="Create a carrying case.",
-        user_instruction="Create planned outputs.",
-        current_source='selected_output = "body";\nmodule render_selected_output() {}\nmain_model();',
-        contract_diagnostics="Missing final render_selected_output() call",
-        design_specification={"critical_dimensions": []},
-        design_plan={"printable_outputs": [{"id": "body"}]},
-    )
-
-    prompt = provider.build_prompt(request)
-
-    assert "Ensure the file ends with exactly one top-level render_selected_output(); call." in prompt
-    assert "Ensure module main_model() exists" not in prompt
+    assert "AUTHORITATIVE SOURCE IDENTITIES" in prompt
 
 
 def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
@@ -241,13 +356,13 @@ def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
             "printable_outputs": [{"id": "lid", "component_ids": ["lid"]}],
         },
         output_manifest={"outputs": [{"output_id": "lid", "filename": "lid.stl"}]},
-        source_metadata={"parameter_names": ["lid_thickness"], "module_names": ["lid"]},
+        source_metadata={"parameter_names": ["lid_thickness"], "component_ids": ["lid"]},
     )
 
     prompt = provider.build_revision_plan_prompt(request)
 
     assert provider.revision_plan_prompt_template_version() == "revision-planning-v1"
-    assert "Return JSON only. Do not generate OpenSCAD." in prompt
+    assert "Return JSON only. Do not generate CAD source." in prompt
     assert "Use the Design Plan dependency graph" in prompt
     assert "allowed_parameter_changes" in prompt
     assert "protected_outputs" in prompt
@@ -255,13 +370,13 @@ def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
     assert "Make the lid 4 mm thick." in prompt
 
 
-def test_structured_revision_prompt_is_bounded_by_approved_revision_plan() -> None:
+def test_cadquery_revision_prompt_is_bounded_by_approved_revision_plan() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
         project_name="Configurable enclosure",
         original_intent="Create a two-part electronics enclosure.",
         user_instruction="Make the lid 4 mm thick.",
-        current_source='selected_output = "lid";\nmodule lid() { cube([80, 50, 3]); }\nrender_selected_output();',
+        current_source="import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n",
         design_specification={"purpose": "Hold a PCB"},
         design_plan={"printable_outputs": [{"id": "lid"}]},
         revision_plan={
@@ -274,21 +389,20 @@ def test_structured_revision_prompt_is_bounded_by_approved_revision_plan() -> No
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "openscad-revision-v2"
-    assert "The Revision Plan is the only authority for what may change." in prompt
-    assert "Preserve all protected requirement, component, feature, dependency, geometry, and output markers." in prompt
-    assert "Retain every planned printable output" in prompt
-    assert "Do not simplify away difficult features" in prompt
+    assert provider.prompt_template_version_for(request) == "cadquery-revision-v1"
+    assert "Structured revision mode:" in prompt
+    assert "Make only changes approved by the Revision Plan" in prompt
+    assert "Preserve protected parameters, components, features, outputs, and interfaces" in prompt
     assert "Increase lid thickness only" in prompt
 
 
-def test_component_revision_prompt_uses_scoped_context_and_complete_source() -> None:
+def test_cadquery_component_revision_prompt_uses_scoped_context() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
         project_name="Configurable enclosure",
         original_intent="Create a two-part electronics enclosure.",
         user_instruction="Revise the lid grip.",
-        current_source='selected_output = "lid";\nmodule body() { cube([80, 50, 20]); }\nmodule lid() { cube([80, 50, 3]); }\nrender_selected_output();',
+        current_source="import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n",
         design_specification={"purpose": "Hold a PCB"},
         design_plan={"printable_outputs": [{"id": "body"}, {"id": "lid"}]},
         revision_plan={
@@ -300,41 +414,62 @@ def test_component_revision_prompt_uses_scoped_context_and_complete_source() -> 
         output_manifest={"outputs": [{"output_id": "body"}, {"output_id": "lid"}]},
         scoped_revision_context={
             "targeted_components": ["lid"],
-            "target_modules": ["lid"],
-            "protected_outputs": ["body"],
-            "protected_modules": ["body"],
-            "allowed_shared_modules": [],
+            "protected_components": ["body"],
+            "allowed_shared_components": [],
         },
         configuration_context={
-            "override_manifest": {"openscad_defines": {"body_width": 90}},
+            "override_manifest": {"parameter_values": {"body_width": 90}},
         },
+        source_authority=build_cadquery_source_authority(
+            {
+                "parameters": [{"id": "body_width", "value": 90, "unit": "mm"}],
+                "components": [{"id": "body"}, {"id": "lid"}],
+                "features": [],
+                "printable_outputs": [
+                    {"id": "body", "component_ids": ["body"]},
+                    {"id": "lid", "component_ids": ["lid"]},
+                ],
+            }
+        ),
     )
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "openscad-component-revision-v1"
-    assert "Return the complete authoritative SCAD source" in prompt
-    assert "Edit only targeted components" in prompt
-    assert "Preserve protected component modules" in prompt
-    assert "Active configuration context" in prompt
-    assert '"protected_modules": [' in prompt
+    assert provider.prompt_template_version_for(request) == "cadquery-component-revision-v2"
+    assert "Structured revision mode:" in prompt
+    assert "Scoped revision context:" in prompt
+    assert "Active configuration context:" in prompt
+    assert '"protected_components": [' in prompt
+    assert "AUTHORITATIVE SOURCE IDENTITIES" in prompt
 
 
-def test_scope_correction_prompt_is_not_compile_or_contract_repair() -> None:
+def test_cadquery_scope_correction_prompt_is_not_compile_or_contract_repair() -> None:
     provider = GeminiCliProvider(model="gemini-3.5-flash-lite")
     request = ModelGenerationRequest(
         project_name="Configurable enclosure",
         original_intent="Create a two-part electronics enclosure.",
         user_instruction="Revise the lid grip.",
-        current_source="module body() { cube([80, 60, 20]); }",
+        current_source="import cadquery as cq\n",
         revision_plan={"summary": "Modify lid only", "protected_outputs": ["body"]},
-        scoped_revision_context={"protected_modules": ["body"], "target_modules": ["lid"]},
-        scope_diagnostics='[{"rule_id":"revision.protected_module_changed"}]',
+        scoped_revision_context={"protected_components": ["body"], "targeted_components": ["lid"]},
+        scope_diagnostics='[{"rule_id":"revision.protected_component_changed"}]',
+        source_authority=build_cadquery_source_authority(
+            {
+                "parameters": [],
+                "components": [{"id": "body"}, {"id": "lid"}],
+                "features": [],
+                "printable_outputs": [
+                    {"id": "body", "component_ids": ["body"]},
+                    {"id": "lid", "component_ids": ["lid"]},
+                ],
+            }
+        ),
     )
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "scope-correction-v1"
+    assert provider.prompt_template_version_for(request) == "cadquery-scope-correction-v2"
+    assert "Revision scope correction mode:" in prompt
     assert "This is scope correction, not a new design revision." in prompt
     assert "Revert unauthorized edits" in prompt
-    assert "Return complete authoritative SCAD source" in prompt
+    assert "Revert every unauthorized identity change" in prompt

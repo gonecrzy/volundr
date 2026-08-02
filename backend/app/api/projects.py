@@ -1,13 +1,21 @@
 from pathlib import Path
+from typing import Any
+
+import json
+import time
+from collections import defaultdict, deque
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import FileResponse, PlainTextResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
 from app.db.session import get_db
 from app.schemas.project import (
     ClarificationAnswersCreate,
+    ChatMessageCreate,
+    ChatWorkflowResponse,
     ClarificationQuestionRead,
     ConfigurationChangeCreate,
     ConfigurationChangeRead,
@@ -19,12 +27,17 @@ from app.schemas.project import (
     DesignPlanClarificationQuestionRead,
     DesignSpecificationRead,
     DesignPlanRead,
+    ExportCreate,
+    ExportRead,
+    GenerationAttemptEvidenceRead,
     GeometricAnalysisRead,
     ManualRevisionCreate,
     GenerationCreate,
     ProjectCreate,
+    ProjectLibraryRead,
     ProjectMessageRead,
     ProjectRead,
+    ProjectWorkspaceRead,
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
@@ -43,13 +56,62 @@ from app.schemas.printability import (
     PrintabilityReport,
     SavedPrintabilityProfileRead,
 )
+from app.schemas.workflow import (
+    FrontendWorkflowEventBatchCreate,
+    FrontendWorkflowEventBatchRead,
+    WorkflowEventRead,
+    WorkflowRunRead,
+)
 from app.services.ai.provider import AiProvider
-from app.services.cad.runner import OpenScadCliRunner
 from app.services.printability.inspector import inspect_printability
 from app.services.printability.profiles import PrintabilityProfileService
 from app.services.projects.service import ProjectService
+from app.services.projects.chat_workflow import ChatWorkflowService
+from app.services.projects.export import ExportService, export_read
+from app.services.projects.requirement_ledger import RequirementLedgerStore, active_requirements
+from app.models.workflow import FrontendWorkflowEvent, WorkflowEvent, WorkflowRun
+from app.services.workflow.comparison import WorkflowRunComparisonService
+from app.services.workflow.debug_bundle import WorkflowDebugBundleService
+from app.services.workflow.diagnosis import WorkflowDiagnosisService
+from app.services.workflow.redaction import RedactionError
+from app.services.workflow.stage_trace import WorkflowStageTraceService
+from app.models.generation_attempt import GenerationAttempt
+from app.models.project import Project
+from app.models.revision import Revision
+from app.services.geometry.snapshots import SnapshotService
 
 router = APIRouter(prefix="/api", tags=["projects"])
+_frontend_event_rate_window: dict[str, deque[float]] = defaultdict(deque)
+_FRONTEND_EVENT_RATE_LIMIT = 120
+_FRONTEND_EVENT_RATE_SECONDS = 60.0
+
+
+def _check_frontend_event_rate_limit(frontend_session_id: str, event_count: int) -> None:
+    now = time.monotonic()
+    window = _frontend_event_rate_window[frontend_session_id]
+    while window and now - window[0] > _FRONTEND_EVENT_RATE_SECONDS:
+        window.popleft()
+    if len(window) + event_count > _FRONTEND_EVENT_RATE_LIMIT:
+        raise HTTPException(status_code=429, detail="frontend workflow event rate limit exceeded")
+    for _ in range(event_count):
+        window.append(now)
+
+
+def _set_latest_workflow_headers(response: Response, db: Session, project_id: str) -> None:
+    run = db.scalar(
+        select(WorkflowRun)
+        .where(WorkflowRun.project_id == project_id)
+        .order_by(WorkflowRun.updated_at.desc(), WorkflowRun.started_at.desc())
+    )
+    if run is None:
+        return
+    _set_workflow_headers(response, run)
+
+
+def _set_workflow_headers(response: Response, run: WorkflowRun) -> None:
+    response.headers["X-Workflow-Run-Id"] = run.id
+    response.headers["X-Workflow-Root-Run-Id"] = run.root_workflow_run_id or run.id
+    response.headers["X-Workflow-Correlation-Id"] = run.correlation_id
 
 
 @router.post("/projects", response_model=ProjectRead, status_code=201)
@@ -58,13 +120,13 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
     return service.create_project(payload)
 
 
-@router.get("/projects", response_model=list[ProjectRead])
+@router.get("/projects", response_model=list[ProjectLibraryRead])
 def list_projects(
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
 ) -> list[ProjectRead]:
     service = ProjectService(db=db, data_dir=data_dir)
-    return service.list_projects()
+    return service.list_project_library()
 
 
 @router.get("/printability-profiles", response_model=list[SavedPrintabilityProfileRead])
@@ -172,12 +234,61 @@ def delete_project(
 
 
 @router.get("/projects/{project_id}", response_model=ProjectRead)
-def get_project(project_id: str, db: Session = Depends(get_db)) -> ProjectRead:
+def get_project(
+    project_id: str,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> ProjectRead:
     service = ProjectService(db=db)
     project = service.get_project(project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="project not found")
+    _set_latest_workflow_headers(response, db, project_id)
     return project
+
+
+@router.get("/projects/{project_id}/workspace", response_model=ProjectWorkspaceRead)
+def get_project_workspace(
+    project_id: str,
+    response: Response,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ProjectWorkspaceRead:
+    workspace = ProjectService(db=db, data_dir=data_dir).get_workspace(project_id)
+    if workspace is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    _set_latest_workflow_headers(response, db, project_id)
+    return workspace
+
+
+@router.get("/projects/{project_id}/workflow-runs", response_model=list[WorkflowRunRead])
+def list_project_workflow_runs(
+    project_id: str,
+    db: Session = Depends(get_db),
+) -> list[WorkflowRunRead]:
+    if db.get(Project, project_id) is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    runs = db.scalars(
+        select(WorkflowRun)
+        .where(WorkflowRun.project_id == project_id)
+        .order_by(WorkflowRun.started_at.asc(), WorkflowRun.id.asc())
+    ).all()
+    return [
+        WorkflowRunRead(
+            id=run.id,
+            project_id=run.project_id,
+            workflow_type=run.workflow_type,
+            parent_workflow_run_id=run.parent_workflow_run_id,
+            root_workflow_run_id=run.root_workflow_run_id,
+            correlation_id=run.correlation_id,
+            status=run.status,
+            logging_mode=run.logging_mode,
+            started_at=run.started_at,
+            completed_at=run.completed_at,
+            prompt_versions=json.loads(run.prompt_versions_json),
+        )
+        for run in runs
+    ]
 
 
 @router.get("/projects/{project_id}/messages", response_model=list[ProjectMessageRead])
@@ -190,6 +301,189 @@ def list_project_messages(
     if messages is None:
         raise HTTPException(status_code=404, detail="project not found")
     return messages
+
+
+@router.post("/projects/{project_id}/chat", response_model=ChatWorkflowResponse)
+async def submit_chat_message(
+    project_id: str,
+    payload: ChatMessageCreate,
+    response: Response,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    ai_provider: AiProvider = Depends(get_ai_provider),
+    cad_runner: Any = Depends(get_cad_runner),
+) -> ChatWorkflowResponse:
+    service = ChatWorkflowService(
+        db=db,
+        data_dir=data_dir,
+        ai_provider=ai_provider,
+        cad_runner=cad_runner,
+    )
+    try:
+        result = await service.submit(project_id, payload)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if result.workflow_run_id:
+        run = db.get(WorkflowRun, result.workflow_run_id)
+        if run is not None:
+            _set_workflow_headers(response, run)
+    return result
+
+
+@router.get("/workflow-runs/{workflow_run_id}", response_model=WorkflowRunRead)
+def get_workflow_run(
+    workflow_run_id: str,
+    db: Session = Depends(get_db),
+) -> WorkflowRunRead:
+    run = db.get(WorkflowRun, workflow_run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="workflow run not found")
+    return WorkflowRunRead(
+        id=run.id,
+        project_id=run.project_id,
+        workflow_type=run.workflow_type,
+        parent_workflow_run_id=run.parent_workflow_run_id,
+        root_workflow_run_id=run.root_workflow_run_id,
+        correlation_id=run.correlation_id,
+        status=run.status,
+        logging_mode=run.logging_mode,
+        started_at=run.started_at,
+        completed_at=run.completed_at,
+        prompt_versions=json.loads(run.prompt_versions_json),
+    )
+
+
+@router.get("/workflow-runs/{workflow_run_id}/events", response_model=list[WorkflowEventRead])
+def list_workflow_events(
+    workflow_run_id: str,
+    db: Session = Depends(get_db),
+) -> list[WorkflowEventRead]:
+    if db.get(WorkflowRun, workflow_run_id) is None:
+        raise HTTPException(status_code=404, detail="workflow run not found")
+    events = db.scalars(
+        select(WorkflowEvent)
+        .where(WorkflowEvent.workflow_run_id == workflow_run_id)
+        .order_by(WorkflowEvent.sequence_number.asc())
+    )
+    return [
+        WorkflowEventRead(
+            id=event.id,
+            workflow_run_id=event.workflow_run_id,
+            sequence_number=event.sequence_number,
+            occurred_at=event.occurred_at,
+            recorded_at=event.recorded_at,
+            stage=event.stage,
+            event_type=event.event_type,
+            severity=event.severity,
+            blocking=event.blocking,
+            message=event.message,
+            rule_id=event.rule_id,
+        )
+        for event in events
+    ]
+
+
+@router.get("/workflow-runs/{workflow_run_id}/diagnosis")
+def get_workflow_diagnosis(
+    workflow_run_id: str,
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        diagnosis = WorkflowDiagnosisService(db=db).diagnose(workflow_run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {
+        "schema_version": diagnosis.schema_version,
+        "workflow_run_id": diagnosis.workflow_run_id,
+        "root_cause": diagnosis.root_cause,
+        "repairs": diagnosis.repairs,
+        "downstream_effects": diagnosis.downstream_effects,
+        "final_outcome": diagnosis.final_outcome,
+    }
+
+
+@router.get("/workflow-runs/{workflow_run_id}/stage-trace")
+def get_workflow_stage_trace(workflow_run_id: str, db: Session = Depends(get_db)) -> dict:
+    try:
+        return WorkflowStageTraceService(db=db).build_trace(workflow_run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/workflow-runs/{baseline_workflow_run_id}/compare/{candidate_workflow_run_id}")
+def compare_workflow_runs(
+    baseline_workflow_run_id: str,
+    candidate_workflow_run_id: str,
+    db: Session = Depends(get_db),
+) -> dict:
+    try:
+        return WorkflowRunComparisonService(db=db).compare(
+            baseline_workflow_run_id,
+            candidate_workflow_run_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/workflow-runs/{workflow_run_id}/debug-bundle.zip")
+def get_workflow_debug_bundle(
+    workflow_run_id: str,
+    include_geometry: bool = False,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    try:
+        bundle_path = WorkflowDebugBundleService(db=db, data_dir=data_dir).build_bundle(
+            workflow_run_id,
+            include_geometry=include_geometry,
+        )
+    except RedactionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return FileResponse(
+        bundle_path,
+        media_type="application/zip",
+        filename=f"workflow-debug-{workflow_run_id}.zip",
+    )
+
+
+@router.post(
+    "/workflow/frontend-events",
+    response_model=FrontendWorkflowEventBatchRead,
+    status_code=201,
+)
+def record_frontend_workflow_events(
+    payload: FrontendWorkflowEventBatchCreate,
+    db: Session = Depends(get_db),
+) -> FrontendWorkflowEventBatchRead:
+    run = db.get(WorkflowRun, payload.workflow_run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="workflow run not found")
+    if run.project_id != payload.project_id or run.correlation_id != payload.correlation_id:
+        raise HTTPException(status_code=409, detail="frontend event workflow context mismatch")
+    _check_frontend_event_rate_limit(payload.frontend_session_id, len(payload.events))
+    for event in payload.events:
+        db.add(
+            FrontendWorkflowEvent(
+                project_id=payload.project_id,
+                workflow_run_id=payload.workflow_run_id,
+                correlation_id=payload.correlation_id,
+                frontend_session_id=payload.frontend_session_id,
+                route=event.route,
+                action_name=event.action_name,
+                user_visible_state=event.user_visible_state,
+                backend_request_id=event.backend_request_id,
+                occurred_at=event.timestamp,
+                metadata_json=json.dumps(event.metadata, sort_keys=True),
+            )
+        )
+    db.commit()
+    return FrontendWorkflowEventBatchRead(accepted_count=len(payload.events))
 
 
 @router.get("/projects/{project_id}/active-revision", response_model=RevisionRead)
@@ -213,6 +507,7 @@ def get_active_revision(
 async def extract_project_requirements(
     project_id: str,
     payload: RequirementExtractionCreate,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
     ai_provider: AiProvider = Depends(get_ai_provider),
@@ -224,6 +519,7 @@ async def extract_project_requirements(
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     if specification is None:
         raise HTTPException(status_code=404, detail="project not found")
+    _set_latest_workflow_headers(response, db, project_id)
     return specification
 
 
@@ -241,6 +537,83 @@ def get_current_design_specification(
     if specification is None:
         raise HTTPException(status_code=404, detail="Design Specification not found")
     return specification
+
+
+@router.get("/projects/{project_id}/requirements/active", response_model=dict[str, Any])
+def get_active_requirements(project_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
+    ledger = RequirementLedgerStore(db).load(project_id)
+    return {
+        "schema_version": ledger["schema_version"],
+        "project_id": project_id,
+        "requirements": active_requirements(ledger),
+    }
+
+
+@router.post("/projects/{project_id}/exports", response_model=ExportRead, status_code=201)
+def create_project_export(
+    project_id: str,
+    payload: ExportCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ExportRead:
+    try:
+        record = ExportService(db=db, data_dir=data_dir).create(
+            project_id=project_id,
+            export_type=payload.export_type,
+            revision_id=payload.revision_id,
+            output_id=payload.output_id,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return ExportRead.model_validate(export_read(record))
+
+
+@router.get("/projects/{project_id}/exports", response_model=list[ExportRead])
+def list_project_exports(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[ExportRead]:
+    if db.get(Project, project_id) is None:
+        raise HTTPException(status_code=404, detail="project not found")
+    return [
+        ExportRead.model_validate(export_read(record))
+        for record in ExportService(db=db, data_dir=data_dir).list(project_id)
+    ]
+
+
+@router.get("/exports/{export_id}", response_model=ExportRead)
+def get_project_export(
+    export_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> ExportRead:
+    record = ExportService(db=db, data_dir=data_dir).get(export_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="export not found")
+    return ExportRead.model_validate(export_read(record))
+
+
+@router.get("/exports/{export_id}/download")
+def download_project_export(
+    export_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    resolved = ExportService(db=db, data_dir=data_dir).resolve_download(export_id)
+    if resolved is None:
+        raise HTTPException(status_code=404, detail="export artifact is not ready")
+    record, path = resolved
+    media_type = (
+        "application/zip"
+        if path.suffix == ".zip"
+        else "model/step"
+        if path.suffix == ".step"
+        else "model/stl"
+    )
+    return FileResponse(path, media_type=media_type, filename=record.filename)
 
 
 @router.get(
@@ -277,7 +650,7 @@ def get_current_design_plan(
 
 @router.get(
     "/projects/{project_id}/revision-plan",
-    response_model=RevisionPlanRead,
+    response_model=RevisionPlanRead | None,
 )
 def get_current_revision_plan(
     project_id: str,
@@ -286,8 +659,6 @@ def get_current_revision_plan(
 ) -> RevisionPlanRead:
     service = ProjectService(db=db, data_dir=data_dir)
     plan = service.get_current_revision_plan(project_id)
-    if plan is None:
-        raise HTTPException(status_code=404, detail="Revision Plan not found")
     return plan
 
 
@@ -401,9 +772,10 @@ def get_configuration_override_manifest(
 )
 async def generate_from_configuration_change(
     configuration_change_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
 ) -> RevisionRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     try:
@@ -412,6 +784,7 @@ async def generate_from_configuration_change(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if revision is None:
         raise HTTPException(status_code=404, detail="configuration change not found")
+    _set_latest_workflow_headers(response, db, revision.project_id)
     return revision
 
 
@@ -534,9 +907,10 @@ async def submit_revision_plan_clarification_answers(
 )
 async def generate_from_revision_plan(
     revision_plan_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -553,6 +927,7 @@ async def generate_from_revision_plan(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if revision is None:
         raise HTTPException(status_code=404, detail="Revision Plan not found")
+    _set_latest_workflow_headers(response, db, revision.project_id)
     return revision
 
 
@@ -605,7 +980,7 @@ def get_revision_plan_module_ownership_comparison(
 
 @router.get(
     "/revision-plans/{revision_plan_id}/component-revision-summary",
-    response_model=ComponentRevisionSummaryRead,
+    response_model=ComponentRevisionSummaryRead | None,
 )
 def get_component_revision_summary_for_plan(
     revision_plan_id: str,
@@ -615,23 +990,21 @@ def get_component_revision_summary_for_plan(
     service = ProjectService(db=db, data_dir=data_dir)
     result = service.get_component_revision_summary_by_plan(revision_plan_id)
     if result is None:
-        raise HTTPException(status_code=404, detail="component revision summary not found")
+        return None
     return result
 
 
 @router.get(
     "/revisions/{revision_id}/component-revision-summary",
-    response_model=ComponentRevisionSummaryRead,
+    response_model=ComponentRevisionSummaryRead | None,
 )
 def get_component_revision_summary_for_revision(
     revision_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-) -> ComponentRevisionSummaryRead:
+) -> ComponentRevisionSummaryRead | None:
     service = ProjectService(db=db, data_dir=data_dir)
     result = service.get_component_revision_summary_by_revision(revision_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="component revision summary not found")
     return result
 
 
@@ -674,6 +1047,7 @@ def get_design_plan(
 )
 async def create_design_plan_from_specification(
     specification_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
     ai_provider: AiProvider = Depends(get_ai_provider),
@@ -687,6 +1061,7 @@ async def create_design_plan_from_specification(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if plan is None:
         raise HTTPException(status_code=404, detail="Design Specification not found")
+    _set_latest_workflow_headers(response, db, plan.project_id)
     return plan
 
 
@@ -811,7 +1186,7 @@ async def generate_from_design_specification(
     specification_id: str,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -838,9 +1213,10 @@ async def generate_from_design_specification(
 )
 async def generate_from_design_plan(
     design_plan_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -857,6 +1233,7 @@ async def generate_from_design_plan(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if revision is None:
         raise HTTPException(status_code=404, detail="Design Plan not found")
+    _set_latest_workflow_headers(response, db, revision.project_id)
     return revision
 
 
@@ -866,7 +1243,7 @@ async def create_manual_revision(
     payload: ManualRevisionCreate,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
 ) -> RevisionRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     revision = await service.create_manual_revision(project_id, payload)
@@ -881,7 +1258,7 @@ async def generate_initial_revision(
     payload: GenerationCreate,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
     ai_provider: AiProvider = Depends(get_ai_provider),
 ) -> RevisionRead:
     service = ProjectService(
@@ -911,6 +1288,87 @@ def list_revisions(
     if service.get_project(project_id) is None:
         raise HTTPException(status_code=404, detail="project not found")
     return service.list_revisions(project_id)
+
+
+def _artifact_size_for_token_estimate(data_dir: Path, artifact_path: str | None) -> int | None:
+    if not artifact_path:
+        return None
+    relative_path = Path(artifact_path)
+    if relative_path.is_absolute():
+        return None
+    root = data_dir.resolve()
+    resolved = (root / relative_path).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError:
+        return None
+    try:
+        return resolved.stat().st_size
+    except OSError:
+        return None
+
+
+def _estimated_tokens(data_dir: Path, artifact_path: str | None) -> int | None:
+    size = _artifact_size_for_token_estimate(data_dir, artifact_path)
+    return None if size is None else max(1, (size + 3) // 4)
+
+
+@router.get(
+    "/projects/{project_id}/generation-attempts",
+    response_model=list[GenerationAttemptEvidenceRead],
+)
+def list_generation_attempt_evidence(
+    project_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[GenerationAttemptEvidenceRead]:
+    service = ProjectService(db=db, data_dir=data_dir)
+    if service.get_project(project_id) is None:
+        raise HTTPException(status_code=404, detail="project not found")
+
+    attempts = db.scalars(
+        select(GenerationAttempt)
+        .where(GenerationAttempt.project_id == project_id)
+        .order_by(GenerationAttempt.attempt_number.asc(), GenerationAttempt.started_at.asc())
+    ).all()
+    evidence: list[GenerationAttemptEvidenceRead] = []
+    for attempt in attempts:
+        duration_ms = None
+        if attempt.completed_at is not None:
+            duration_ms = max(
+                0,
+                round((attempt.completed_at - attempt.started_at).total_seconds() * 1000),
+            )
+        evidence.append(
+            GenerationAttemptEvidenceRead(
+                attempt_id=attempt.id,
+                attempt_number=attempt.attempt_number,
+                provider=attempt.provider_id,
+                model=attempt.model_id,
+                status=attempt.status,
+                failure_class=attempt.failure_class,
+                prompt_version=attempt.prompt_version,
+                started_at=attempt.started_at,
+                completed_at=attempt.completed_at,
+                duration_ms=duration_ms,
+                provider_usage=(
+                    json.loads(attempt.provider_usage_json)
+                    if attempt.provider_usage_json
+                    else None
+                ),
+                provider_request_id=attempt.provider_request_id,
+                routing_metadata=(
+                    json.loads(attempt.routing_metadata_json)
+                    if attempt.routing_metadata_json
+                    else {}
+                ),
+                provider_latency_ms=attempt.provider_latency_ms,
+                estimated_prompt_tokens=_estimated_tokens(data_dir, attempt.prompt_path),
+                estimated_output_tokens=_estimated_tokens(data_dir, attempt.raw_output_path),
+                resulting_revision_id=attempt.resulting_revision_id,
+            )
+        )
+    return evidence
 
 
 @router.get("/projects/{project_id}/candidates", response_model=list[RevisionRead])
@@ -1013,9 +1471,10 @@ def get_revision_output_geometric_analysis(
 @router.post("/revision-outputs/{output_artifact_id}/retry", response_model=RevisionOutputRead)
 async def retry_revision_output(
     output_artifact_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    cad_runner: OpenScadCliRunner = Depends(get_cad_runner),
+    cad_runner: Any = Depends(get_cad_runner),
 ) -> RevisionOutputRead:
     service = ProjectService(db=db, data_dir=data_dir, cad_runner=cad_runner)
     try:
@@ -1024,6 +1483,9 @@ async def retry_revision_output(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if output is None:
         raise HTTPException(status_code=404, detail="revision output not found")
+    project_id = db.scalar(select(WorkflowEvent.project_id).where(WorkflowEvent.revision_output_id == output.id))
+    if project_id is not None:
+        _set_latest_workflow_headers(response, db, project_id)
     return output
 
 
@@ -1043,6 +1505,7 @@ def get_candidate_geometric_analysis(
 @router.post("/candidates/{revision_id}/accept", response_model=RevisionRead)
 def accept_candidate_revision(
     revision_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
 ) -> RevisionRead:
@@ -1053,12 +1516,26 @@ def accept_candidate_revision(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if candidate is None:
         raise HTTPException(status_code=404, detail="candidate revision not found")
+    acceptance_run = db.scalar(
+        select(WorkflowRun)
+        .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+        .where(
+            WorkflowEvent.revision_id == candidate.id,
+            WorkflowEvent.event_type == "candidate.accepted",
+        )
+        .order_by(WorkflowEvent.sequence_number.desc())
+    )
+    if acceptance_run is not None:
+        _set_workflow_headers(response, acceptance_run)
+    else:
+        _set_latest_workflow_headers(response, db, candidate.project_id)
     return candidate
 
 
 @router.post("/candidates/{revision_id}/reject", response_model=RevisionRead)
 def reject_candidate_revision(
     revision_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
 ) -> RevisionRead:
@@ -1069,6 +1546,7 @@ def reject_candidate_revision(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if candidate is None:
         raise HTTPException(status_code=404, detail="candidate revision not found")
+    _set_latest_workflow_headers(response, db, candidate.project_id)
     return candidate
 
 
@@ -1115,7 +1593,7 @@ def get_revision_source(
     source_path = service.resolve_revision_source(revision_id)
     if source_path is None:
         raise HTTPException(status_code=404, detail="revision source not found")
-    return FileResponse(source_path, media_type="text/plain", filename="model.scad")
+    return FileResponse(source_path, media_type="text/plain", filename=source_path.name)
 
 
 @router.get("/revisions/{revision_id}/compile-log")
@@ -1184,6 +1662,20 @@ def get_revision_output_stl(
     return FileResponse(stl_path, media_type="model/stl", filename=output.filename)
 
 
+@router.get("/revision-outputs/{output_artifact_id}/step")
+def get_revision_output_step(
+    output_artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    service = ProjectService(db=db, data_dir=data_dir)
+    output = service.get_revision_output(output_artifact_id)
+    step_path = service.resolve_revision_output_step(output_artifact_id)
+    if output is None or step_path is None:
+        raise HTTPException(status_code=404, detail="revision output STEP not found")
+    return FileResponse(step_path, media_type="model/step", filename=Path(output.filename).with_suffix(".step").name)
+
+
 @router.get("/revision-outputs/{output_artifact_id}/compile-log")
 def get_revision_output_compile_log(
     output_artifact_id: str,
@@ -1210,17 +1702,91 @@ def get_revision_output_manifest(
     return manifest
 
 
+@router.get("/revisions/{revision_id}/snapshots")
+def get_revision_snapshots(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    revision = db.get(Revision, revision_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    packet = SnapshotService(db=db, data_dir=data_dir).get_packet(
+        revision_id,
+        project_id=revision.project_id,
+    )
+    if packet is None:
+        return {"status": "snapshot_not_available"}
+    return packet
+
+
+@router.get("/revisions/{revision_id}/snapshots/images/{artifact_id}")
+def get_revision_snapshot_image(
+    revision_id: str,
+    artifact_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> FileResponse:
+    revision = db.get(Revision, revision_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    path = SnapshotService(db=db, data_dir=data_dir).resolve_registered_image_for_revision(
+        revision.project_id,
+        revision_id,
+        artifact_id,
+    )
+    if path is None:
+        raise HTTPException(status_code=404, detail="snapshot image not found")
+    return FileResponse(path, media_type="image/png", filename=path.name)
+
+
+@router.get("/revisions/{revision_id}/comparison")
+def get_revision_comparison(
+    revision_id: str,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    revision = db.get(Revision, revision_id)
+    if revision is None:
+        raise HTTPException(status_code=404, detail="revision not found")
+    comparison = SnapshotService(db=db, data_dir=data_dir).get_comparison(
+        revision_id,
+        project_id=revision.project_id,
+    )
+    if comparison is None:
+        return {"status": "comparison_not_available"}
+    return comparison
+
+
 @router.get("/revisions/{revision_id}/export.zip")
 def get_revision_export_zip(
     revision_id: str,
+    response: Response,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
 ) -> FileResponse:
     service = ProjectService(db=db, data_dir=data_dir)
-    export_path = service.build_revision_export(revision_id)
+    try:
+        export_path = service.build_revision_export(revision_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if export_path is None:
         raise HTTPException(status_code=404, detail="revision not found")
-    return FileResponse(export_path, media_type="application/zip", filename="volundr-project.zip")
+    project_id = db.scalar(select(WorkflowEvent.project_id).where(WorkflowEvent.revision_id == revision_id))
+    headers = {}
+    if project_id is not None:
+        _set_latest_workflow_headers(response, db, project_id)
+        headers = {
+            "X-Workflow-Run-Id": response.headers.get("X-Workflow-Run-Id", ""),
+            "X-Workflow-Root-Run-Id": response.headers.get("X-Workflow-Root-Run-Id", ""),
+            "X-Workflow-Correlation-Id": response.headers.get("X-Workflow-Correlation-Id", ""),
+        }
+    return FileResponse(
+        export_path,
+        media_type="application/zip",
+        filename="volundr-project.zip",
+        headers={key: value for key, value in headers.items() if value},
+    )
 
 
 @router.post("/revisions/{revision_id}/printability", response_model=PrintabilityReport)

@@ -20,6 +20,78 @@ def test_project_and_revision_tables_can_be_created() -> None:
     assert "printability_profiles" in inspector.get_table_names()
     assert "revisions" in inspector.get_table_names()
     assert "validation_findings" in inspector.get_table_names()
+    assert "requirement_ledger_entries" in inspector.get_table_names()
+    assert "requirement_deltas" in inspector.get_table_names()
+    assert "physical_test_observations" in inspector.get_table_names()
+
+
+def test_cadquery_native_persistence_columns_are_canonical() -> None:
+    engine = create_engine("sqlite:///:memory:")
+
+    Base.metadata.create_all(engine)
+
+    inspector = inspect(engine)
+    revision_columns = {column["name"] for column in inspector.get_columns("revisions")}
+    assert {
+        "cad_backend",
+        "source_language",
+        "source_path",
+        "source_hash",
+        "source_contract_version",
+        "execution_manifest_path",
+    }.issubset(revision_columns)
+    assert "scad_source_path" not in revision_columns
+
+    output_columns = {column["name"] for column in inspector.get_columns("revision_outputs")}
+    assert {
+        "entrypoint",
+        "parameter_hash",
+        "step_path",
+        "step_hash",
+        "brep_path",
+        "brep_hash",
+        "execution_state",
+        "topology_metadata_json",
+        "expected_solid_count",
+        "detected_solid_count",
+        "allow_disconnected_solids",
+        "mesh_metadata_json",
+        "execution_command_json",
+    }.issubset(output_columns)
+    assert "output_state" not in output_columns
+    assert "module_name" not in output_columns
+    assert "compile_command_json" not in output_columns
+
+    attempt_columns = {column["name"] for column in inspector.get_columns("generation_attempts")}
+    assert {
+        "provider_id",
+        "model_id",
+        "ruleset_version",
+        "prompt_version",
+        "cad_backend",
+        "source_language",
+        "source_contract_version",
+        "source_path",
+    }.issubset(attempt_columns)
+    assert "provider" not in attempt_columns
+    assert "provider_model" not in attempt_columns
+    assert "prompt_template_version" not in attempt_columns
+    assert "extracted_source_path" not in attempt_columns
+    assert "gemini_ruleset_version" not in attempt_columns
+
+    source_validation_columns = {
+        column["name"] for column in inspector.get_columns("source_validation_results")
+    }
+    assert {
+        "validator_id",
+        "cad_backend",
+        "source_language",
+    }.issubset(source_validation_columns)
+
+    geometric_columns = {
+        column["name"] for column in inspector.get_columns("geometric_analysis_results")
+    }
+    assert "analysis_kind" in geometric_columns
 
 
 def test_project_can_reference_active_revision() -> None:
@@ -40,7 +112,11 @@ def test_project_can_reference_active_revision() -> None:
             revision_number=1,
             source_type="manual_edit",
             user_instruction="Initial cube fixture.",
-            scad_source_path="projects/bracket/revisions/1/model.scad",
+            cad_backend="cadquery",
+            source_language="python",
+            source_path="projects/bracket/revisions/1/source.py",
+            source_hash="0" * 64,
+            source_contract_version="cadquery-v1",
             status="succeeded",
             is_accepted=True,
         )

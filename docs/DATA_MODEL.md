@@ -1,6 +1,40 @@
 # Volundr Data Model
 
-This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, and project conversation history.
+This document defines the persistent entities and invariants needed for projects, immutable revisions, Design Specifications, immutable Design Plans, immutable Revision Plans, AI attempts, CAD jobs, mesh metadata, workflow traces, and project conversation history.
+
+Every design remains revisionable through chat. Parametric controls are
+optional and explicitly requested; ordinary numeric requirements do not become
+source-level controls automatically.
+
+## Requirement Ledger
+
+The requirement ledger is the authoritative active requirement state carried
+across Design Specifications, Revision Plans, and generated candidates. It
+preserves superseded values instead of rewriting them.
+
+`requirement_ledger_entries` stores requirement IDs, origin (`initial_user`,
+`revision_user`, `derived_functional_necessity`, `volundr_proposal`, or
+`physical_test_feedback`), target, type, expected value, units, tolerances,
+explicit/proposed status, lifecycle status, originating message, and available
+verification evidence.
+
+`requirement_deltas` stores the immutable add/change/remove operations applied
+by a revision. `physical_test_observations` stores the user’s reported test
+observation separately from Volundr’s interpreted requirement delta.
+
+The active ledger is supplied to generation and repair. A failed candidate can
+add evidence or a later delta, but cannot replace the Current working version.
+An exposed control is recorded in the Design Plan and activates the existing
+strict parameter-effect contract only for that control and its required
+derived relationships.
+
+## CadQuery Transition Status
+
+The data model is CadQuery-native and provider-neutral. It stores
+backend/source-language metadata, CadQuery source paths and hashes, execution
+manifests, STEP/STL artifact hashes, optional BREP artifact hashes, topology
+metadata, mesh metadata, and validation summaries without permanent SCAD
+aliases.
 
 ## Project
 
@@ -34,6 +68,42 @@ Archived projects are hidden from the default project list but remain recoverabl
 
 Permanent project deletion removes the project database row, dependent revisions and messages, and the project asset directory under `data/projects`.
 
+Project deletion also removes associated workflow runs, workflow events,
+workflow artifact registry rows, workflow diagnoses, frontend workflow events,
+and generated workflow debug bundles.
+
+## Workflow Observability
+
+Workflow observability tables are:
+
+```text
+workflow_runs
+workflow_events
+workflow_artifacts
+workflow_diagnoses
+frontend_workflow_events
+```
+
+`workflow_runs` stores root/child run boundaries, correlation IDs, terminal
+state, logging mode, schema versions, application commit, worker version,
+provider/model, and prompt versions.
+
+`workflow_events` is append-only and stores stage-specific structured events
+with `sequence_number`, `occurred_at`, `recorded_at`, optional deterministic
+`deduplication_key`, causal links, entity IDs, expected/detected values, and
+available lifecycle identifiers.
+
+`workflow_artifacts` is an immutable registry of paths, hashes, sizes, media
+types, roles, redaction state, and supersession links. Large geometry remains
+in the filesystem; the database stores metadata and paths.
+
+`workflow_diagnoses` stores deterministic `workflow-diagnosis-v1` outputs.
+`frontend_workflow_events` stores fixed-registry frontend actions correlated to
+backend workflow IDs.
+
+See `docs/WORKFLOW_OBSERVABILITY.md` for the authoritative schema, stage
+vocabulary, retention model, and redaction rules.
+
 ## Revision
 
 Represents one immutable model state.
@@ -50,7 +120,12 @@ configuration_change_id
 revision_number
 source_type
 user_instruction
-scad_source_path
+cad_backend
+source_language
+source_path
+source_hash
+source_contract_version
+execution_manifest_path
 stl_path
 compile_log_path
 ai_output_path
@@ -102,7 +177,7 @@ accepted
 Candidate state diagram:
 
 ```text
-compile/mesh/validation complete
+worker execution/mesh/validation complete
   -> blocking findings? yes -> blocked -> rejected
   -> advisory findings? yes -> ready_with_warnings -> accepted | rejected
   -> no findings -> ready -> accepted | rejected
@@ -112,11 +187,28 @@ blocked -> accepted is forbidden
 rejected -> accepted is forbidden
 ```
 
-Manual source compilation establishes the first active accepted revision when no active design exists. Later manual compiles and AI compiles create candidates until explicitly accepted.
+Manual source execution establishes the first active accepted revision when no
+active design exists. Later manual and AI executions create candidates until
+explicitly accepted.
 
 For approved Design Plan generation, the revision represents the assembly-level candidate. Individual printable artifacts are represented by `RevisionOutput` rows. `stl_path` remains as a compatibility pointer to the first successful printable output when one exists.
 
-Configuration-generated revisions link to `configuration_change_id`. They copy the accepted source unchanged and use persisted OpenSCAD `-D` overrides during per-output compilation.
+Configuration-generated revisions link to `configuration_change_id`. They copy
+accepted source unchanged, validate typed parameter values, and execute through
+the isolated worker without source rewriting or provider calls.
+
+## CadQuery Revision Fields
+
+The revision model stores backend-neutral source fields directly.
+
+For normal product revisions:
+
+```text
+cad_backend = cadquery
+source_language = python
+```
+
+Each successful output stores STEP and STL paths/hashes, optional BREP paths/hashes, topology metadata, mesh metadata, validation summary, expected and detected solid counts, and disconnected-solid policy.
 
 ## ConfigurationChange
 
@@ -183,7 +275,7 @@ Design Plan presets remain embedded in Design Plan JSON. Project-local presets a
 
 ## RevisionOutput
 
-Represents one printable artifact produced from a Design Plan output selector.
+Represents one printable artifact produced from a Design Plan output.
 
 Fields:
 
@@ -201,14 +293,20 @@ label
 filename
 quantity
 required
-module_name
+entrypoint
 source_hash
+step_path
+step_hash
+brep_path
+brep_hash
 stl_path
 stl_hash
 compile_log_path
 compile_ms
 compile_error
-compile_command_json
+execution_command_json
+topology_metadata_json
+mesh_metadata_json
 metadata_json
 validation_summary_json
 preferred_orientation_json
@@ -230,11 +328,11 @@ failed
 skipped
 ```
 
-Output artifacts are immutable product evidence for a candidate revision except when a failed output is explicitly retried from the same authoritative source hash and output selector. Output retry does not call Gemini.
+Output artifacts are immutable product evidence for a candidate revision except when a failed output is explicitly retried from the same authoritative source hash, parameter hash, and output ID. Output retry does not call Gemini.
 
 ## DesignSpecification
 
-Represents an immutable structured interpretation of a user request before OpenSCAD generation. New initial AI generations require a ready Design Specification. Clarification answers create a new specification version rather than mutating the prior one.
+Represents an immutable structured interpretation of a user request before CadQuery generation. New initial AI generations require a ready Design Specification. Clarification answers create a new specification version rather than mutating the prior one.
 
 Fields:
 
@@ -246,7 +344,7 @@ superseded_specification_id
 version_number
 schema_version
 prompt_template_version
-gemini_ruleset_version
+ruleset_version
 provider
 provider_model
 user_instruction
@@ -364,7 +462,7 @@ Protected by default: user or clarification supplied critical dimensions, explic
 
 ## DesignPlan
 
-Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before OpenSCAD generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial OpenSCAD generation should use an approved Design Plan when one exists. Printable output semantics are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
+Represents an immutable parametric product model generated after an approved `generation_ready` Design Specification and before CadQuery generation. A Design Plan is the structure authority for parameters, derived dependencies, components, features, presets, assembly strategy, and printable outputs. Plan approval is explicit; new initial CadQuery generation must use an approved Design Plan. Printable output semantics are defined in `docs/MULTI_OUTPUT_GENERATION.md`.
 
 Fields:
 
@@ -377,7 +475,7 @@ superseded_design_plan_id
 version_number
 schema_version
 prompt_template_version
-gemini_ruleset_version
+ruleset_version
 provider
 provider_model
 raw_response_path
@@ -416,7 +514,7 @@ Design Specification generation_ready
   -> design-plan-v1 extraction
   -> plan_clarification_required -> rejected | clarification answers -> superseding plan version
   -> plan_ready -> pending_review -> approved | rejected
-  -> approved -> OpenSCAD generation may start
+  -> approved -> CadQuery generation may start
   -> UI approval starts generation immediately during the current stabilization workflow
 ```
 
@@ -570,7 +668,7 @@ revised_design_plan_id
 version_number
 schema_version
 prompt_template_version
-gemini_ruleset_version
+ruleset_version
 provider
 provider_model
 user_instruction
@@ -610,7 +708,7 @@ approved
 rejected
 ```
 
-Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. OpenSCAD revision generation requires a `revision_ready` plan in `approved` state. Component-targeted full-source revision behavior is defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
+Revision Plans are immutable. Clarification answers create a new version with `superseded_revision_plan_id` set. CadQuery revision generation requires a `revision_ready` plan in `approved` state. Component-targeted full-source revision behavior is defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
 ## RevisionPlanClarificationQuestion
 
@@ -705,11 +803,11 @@ completed_at
 
 The current implementation also persists `resulting_revision_id`, non-secret provider settings, prompt-template version, Gemini ruleset version, source/output hashes, and request/prompt/raw-output/extracted-source/design-spec/intermediate artifact paths.
 
-Requirement-extraction attempts store parsed Design Specifications at `parsed-design-spec.json`. OpenSCAD generation attempts store the authoritative Design Specification snapshot at `design-spec.json`.
+Requirement-extraction attempts store parsed Design Specifications at `parsed-design-spec.json`. CadQuery generation attempts store the authoritative Design Specification snapshot at `design-spec.json`.
 
 ## SourceValidationResult
 
-Represents one deterministic static validation of extracted OpenSCAD source before compilation.
+Represents one deterministic static validation of extracted CAD source before execution.
 
 Fields:
 
@@ -972,3 +1070,5 @@ system_event
 - File paths are stored relative to Volundr data root.
 - Large source and log content may be stored as files rather than database blobs.
 - SQLite foreign keys must be enabled.
+
+Revisions also persist `functional_status` separately from structural `review_state`; functional findings remain linked to geometric evidence.

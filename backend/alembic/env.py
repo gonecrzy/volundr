@@ -8,16 +8,26 @@ from app.db.base import Base
 from app.models import (  # noqa: F401
     ClarificationAnswer,
     ClarificationQuestion,
+    DesignArtifactConsistencyResult,
     DesignPlan,
     DesignSpecification,
+    ExportRecord,
     GeometricAnalysisResult,
     GenerationAttempt,
     Project,
     ProjectMessage,
+    PhysicalTestObservation,
+    RequirementDelta,
+    RequirementLedgerEntry,
     Revision,
     SavedPrintabilityProfile,
     SourceValidationResult,
     ValidationFinding,
+    FrontendWorkflowEvent,
+    WorkflowArtifact,
+    WorkflowDiagnosis,
+    WorkflowEvent,
+    WorkflowRun,
 )
 
 config = context.config

@@ -10,6 +10,29 @@ export type ValidationSummary = {
   dismissed_count: number;
 };
 
+export type DesignConsistencyFinding = {
+  rule_id: string;
+  explanation: string;
+  is_blocking: boolean;
+};
+
+export type DesignConsistencyStatus =
+  | "passed"
+  | "blocked"
+  | "needs_execution_evidence"
+  | "legacy_unverified";
+
+export type DesignConsistency = {
+  status: DesignConsistencyStatus;
+  pre_execution_passed: boolean;
+  post_execution_passed: boolean;
+  revision_base_ready: boolean;
+  configuration_ready: boolean;
+  blocking_count: number;
+  advisory_count: number;
+  findings: DesignConsistencyFinding[];
+};
+
 export type CandidateRevision = {
   id: string;
   revision_number: number;
@@ -17,8 +40,16 @@ export type CandidateRevision = {
   status: string;
   is_accepted: boolean;
   review_state: ReviewState | null;
+  functional_status?: FunctionalStatus;
   validation_summary: ValidationSummary;
+  design_consistency?: DesignConsistency | null;
 };
+
+export type FunctionalStatus =
+  | "functionally_verified"
+  | "functionally_partially_verified"
+  | "functionally_unverified"
+  | "functionally_violated";
 
 export type RevisionOutputState =
   | "queued"
@@ -37,17 +68,26 @@ export type RevisionOutput = {
   output_id: string;
   component_id: string | null;
   component_ids: string[];
-  output_state: RevisionOutputState;
+  execution_state: RevisionOutputState;
   output_type: string;
   label: string;
   filename: string;
   quantity: number;
   required: boolean;
-  module_name: string;
+  entrypoint: string;
   stl_path: string | null;
   stl_hash: string | null;
+  step_path?: string | null;
+  step_hash?: string | null;
+  brep_path?: string | null;
+  brep_hash?: string | null;
+  expected_solid_count?: number | null;
+  detected_solid_count?: number | null;
+  allow_disconnected_solids?: boolean | null;
   compile_log_path: string | null;
   compile_error: string | null;
+  execution_command?: string[];
+  topology_metadata?: Record<string, unknown> | null;
   metadata: {
     size_x_mm: number;
     size_y_mm: number;
@@ -128,42 +168,42 @@ export function revisionViewerLabel(
   project: ProjectState | null,
 ): string {
   if (!revision) {
-    return "Draft workspace";
+    return "Draft design";
   }
   if (project?.active_revision_id === revision.id) {
-    return "Active design";
+    return "Current design";
   }
   if (revision.is_accepted || revision.review_state === "accepted" || revision.review_state === "rejected") {
-    return "Historical revision";
+    return "Earlier version";
   }
   if (revision.review_state && ["ready", "ready_with_warnings", "blocked"].includes(revision.review_state)) {
-    return "Candidate";
+    return "New version";
   }
-  return "Historical revision";
+  return "Earlier version";
 }
 
 export function revisionWorkflowLabel(revision: CandidateRevision | null): string {
   if (!revision) {
-    return "Draft workspace";
+    return "Draft design";
   }
   switch (revision.review_state) {
     case "ready":
-      return "Ready candidate";
+      return "Ready to review";
     case "ready_with_warnings":
       return "Ready with warnings";
     case "blocked":
-      return "Blocked candidate";
+      return "Needs changes";
     case "rejected":
-      return "Rejected candidate";
+      return "New version rejected";
     case "accepted":
-      return "Accepted revision";
+      return "Current design";
     default:
       return revision.status;
   }
 }
 
 export function outputStateLabel(output: RevisionOutput): string {
-  switch (output.output_state) {
+  switch (output.execution_state) {
     case "ready":
       return "Ready";
     case "ready_with_warnings":
@@ -181,7 +221,7 @@ export function outputStateLabel(output: RevisionOutput): string {
     case "skipped":
       return "Skipped";
     default:
-      return output.output_state;
+      return output.execution_state;
   }
 }
 
@@ -193,12 +233,78 @@ export function outputDimensionsLabel(output: RevisionOutput): string {
   return `${formatDimension(size_x_mm)} x ${formatDimension(size_y_mm)} x ${formatDimension(size_z_mm)} mm`;
 }
 
+export function outputSolidCountLabel(output: RevisionOutput): string {
+  const expected = output.expected_solid_count ?? numberFromTopology(output, "expected_solid_count");
+  const detected = output.detected_solid_count ?? numberFromTopology(output, "detected_solid_count");
+  if (expected === null && detected === null) {
+    return "Solid count unavailable";
+  }
+  return `Solids ${detected ?? "?"}/${expected ?? "?"}`;
+}
+
+export function outputTopologyLabel(output: RevisionOutput): string {
+  const topology = output.topology_metadata;
+  if (!topology) {
+    return "Topology not reported";
+  }
+  const valid = topology.valid;
+  if (valid === true) {
+    return "Topology valid";
+  }
+  if (valid === false) {
+    const reason = typeof topology.failure_reason === "string" ? topology.failure_reason : null;
+    return reason ? `Topology failed: ${reason.replaceAll("_", " ")}` : "Topology failed";
+  }
+  return "Topology reported";
+}
+
+export function outputPlacementLabel(output: RevisionOutput): string {
+  const topology = output.topology_metadata;
+  if (!topology || topology.placement_policy !== "cadquery-output-placement-v1") {
+    return "Placement not reported";
+  }
+  const transform = topology.print_transform;
+  if (!isRecord(transform)) {
+    return "Placement not reported";
+  }
+  const translation = transform.translation;
+  if (!Array.isArray(translation) || translation.length !== 3) {
+    return "Placement not reported";
+  }
+  const zTranslation = Number(translation[2]);
+  if (!Number.isFinite(zTranslation)) {
+    return "Placement not reported";
+  }
+  if (Math.abs(zTranslation) < 0.001) {
+    return "Placed on build plate";
+  }
+  return `Raised ${formatDimension(zTranslation)} mm to build plate`;
+}
+
 export function canRetryOutput(output: RevisionOutput): boolean {
-  return output.output_state === "failed";
+  return output.execution_state === "failed";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function numberFromTopology(output: RevisionOutput, key: string): number | null {
+  const value = output.topology_metadata?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 export function canAcceptRevision(revision: CandidateRevision | null): boolean {
   if (!revision) {
+    return false;
+  }
+  if (revision.design_consistency && revision.design_consistency.status !== "passed") {
+    return false;
+  }
+  if (
+    revision.functional_status &&
+    !["functionally_verified", "functionally_partially_verified"].includes(revision.functional_status)
+  ) {
     return false;
   }
   return (
@@ -210,6 +316,19 @@ export function canAcceptRevision(revision: CandidateRevision | null): boolean {
 export function acceptDisabledReason(revision: CandidateRevision | null): string | null {
   if (!revision) {
     return "Select a candidate before accepting.";
+  }
+  if (revision.design_consistency && revision.design_consistency.status !== "passed") {
+    const count = revision.design_consistency.blocking_count;
+    if (count > 0) {
+      return `Resolve ${count} internal design ${count === 1 ? "mismatch" : "mismatches"} before accepting.`;
+    }
+    return "Design consistency must pass before accepting.";
+  }
+  if (revision.functional_status === "functionally_violated") {
+    return "Critical functional checks failed. Review the design checks before accepting.";
+  }
+  if (revision.functional_status === "functionally_unverified") {
+    return "Critical functional checks are not verified for this version.";
   }
   if (revision.validation_summary.blocking_count > 0) {
     const count = revision.validation_summary.blocking_count;
@@ -225,6 +344,38 @@ export function acceptDisabledReason(revision: CandidateRevision | null): string
     return "Only ready candidates can be accepted.";
   }
   return null;
+}
+
+export function functionalStatusLabel(status: FunctionalStatus | undefined): string {
+  switch (status) {
+    case "functionally_verified":
+      return "Verified";
+    case "functionally_partially_verified":
+      return "Partially verified";
+    case "functionally_violated":
+      return "Blocked";
+    case "functionally_unverified":
+      return "Not verified";
+    default:
+      return "Not reported";
+  }
+}
+
+export function designConsistencyLabel(revision: CandidateRevision | null): string {
+  const consistency = revision?.design_consistency;
+  if (!consistency) {
+    return "Not applicable";
+  }
+  if (consistency.status === "passed") {
+    return "Passed";
+  }
+  if (consistency.status === "blocked") {
+    return `Blocked - ${consistency.blocking_count} internal ${consistency.blocking_count === 1 ? "mismatch" : "mismatches"}`;
+  }
+  if (consistency.status === "needs_execution_evidence") {
+    return "Needs execution evidence";
+  }
+  return "Unverified";
 }
 
 export function candidateFindingBuckets(findings: CandidateFinding[]): {

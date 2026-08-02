@@ -15,24 +15,41 @@ import {
   revisionPromptFromCandidateFinding,
   revisionPromptFromGeometricFinding,
   outputDimensionsLabel,
+  outputPlacementLabel,
+  outputSolidCountLabel,
   outputStateLabel,
+  outputTopologyLabel,
   canRetryOutput,
+  designConsistencyLabel,
   sourceCheckSummary,
   type CandidateFinding,
   type CandidateFindingRecoveryActionKind,
+  type DesignConsistency,
   type GeometricAnalysis,
   type GeometricFinding,
   type ReviewState,
   type RevisionOutput,
   type ValidationSummary,
 } from "./candidateView";
+import { type RevisionComparison, type SnapshotPacket } from "./snapshotView";
 import {
   assumptionBuckets,
   canContinueGeneration,
+  defaultProvenanceRows,
   protectedRequirementCount,
+  requirementPresentationGroups,
+  requirementProvenanceRows,
   requirementStageLabel,
+  traceFailureMessage,
   type RequirementOutcome,
 } from "./designSpecificationView";
+import {
+  assistantVocabulary,
+  provenanceLabel,
+  provenanceRelationshipLabel,
+  reviewStepLabel,
+} from "./terminology";
+import { candidateStatusSummary, generationProgress, recoveryPresentation } from "./workflowPresentation";
 import {
   canGenerateConfiguration,
   configurationControlKind,
@@ -48,6 +65,7 @@ import {
   designPlanClarificationQuestions,
   designPlanStageLabel,
   designPlanSummaryCounts,
+  retentionProposalLines,
   type DesignPlanReviewState,
 } from "./designPlanView";
 import {
@@ -58,23 +76,66 @@ import {
   revisionPlanStageLabel,
   revisionPlanSummaryCounts,
   revisionSuccessBuckets,
+  shouldLoadComponentRevisionSummary,
   type ComponentRevisionSummary,
   type RevisionComplianceResult,
   type RevisionPlanOutcome,
   type RevisionPlanReviewState,
   type RevisionSuccessResult,
 } from "./revisionPlanView";
-import { applyChatClarificationAnswer } from "./chatWorkflow";
+import {
+  buildCorrelatedHeaders,
+  createFrontendWorkflowEvent,
+  type WorkflowCorrelation,
+} from "./workflowTelemetry";
+import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
+import { projectIdFromPath, projectPath, saveStatusLabel, type SaveStatus } from "./projectPersistence";
+import { userFacingSubmissionError } from "./chatWorkspace";
+import {
+  ChatWorkspace,
+  type ChatWorkspacePendingMessage,
+} from "./chatWorkspaceView";
 import "./styles.css";
 
 const API_BASE = "/api";
+const workflowCorrelation: WorkflowCorrelation = {};
+const frontendSessionId =
+  globalThis.crypto?.randomUUID?.() ?? `frontend-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const SOURCE_IDENTITY_REJECTION_MESSAGE =
+  "The generated model did not implement the approved design identities.";
+const SOURCE_CONTRACT_REJECTION_PREFIXES = [
+  "Model source rejected before compile",
+  "Revision source rejected before compile",
+  SOURCE_IDENTITY_REJECTION_MESSAGE,
+];
+const GEOMETRY_BODY_FAILURE_PREFIXES = [
+  "Geometry body",
+  "geometry_body.",
+];
+type VolundrFrontendEnv = {
+  VITE_VOLUNDR_CHAT_FIRST?: string;
+};
+const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
+const ADVANCED_WORKFLOW_ENABLED = true;
+const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
+const STAGED_WORKFLOW_ENABLED = !CHAT_FIRST_ENABLED;
 
 type Project = {
   id: string;
   name: string;
+  slug?: string;
   original_intent: string;
   status: string;
   active_revision_id: string | null;
+  created_at?: string;
+  updated_at?: string;
+  archived_at?: string | null;
+  latest_revision_id?: string | null;
+  active_workflow_status?: string | null;
+  printable_part_count?: number;
+  unresolved_warning_count?: number;
+  preview_revision_id?: string | null;
+  preview_snapshot_artifact_id?: string | null;
 };
 
 type ProjectMessage = {
@@ -85,11 +146,75 @@ type ProjectMessage = {
   created_at: string;
 };
 
-type SourceParameter = {
-  name: string;
-  value: string;
-  type: "number" | "boolean";
-  lineIndex: number;
+type GenerationAttemptEvidence = {
+  attempt_id: string;
+  attempt_number: number;
+  provider: string;
+  model: string | null;
+  status: string;
+  failure_class: string;
+  prompt_version: string;
+  started_at: string;
+  completed_at: string | null;
+  duration_ms: number | null;
+  provider_usage: Record<string, unknown> | null;
+  provider_request_id: string | null;
+  routing_metadata: {
+    prompt_mode?: string;
+    selected_model?: string;
+    actual_model?: string;
+    routing_reason?: string;
+    fallback_chain?: string[];
+  };
+  provider_latency_ms: number | null;
+  resulting_revision_id: string | null;
+};
+
+type ChatWorkflowResponse = {
+  workflow_run_id: string | null;
+  action: string;
+  current_stage: string;
+  input_required: boolean;
+  assistant_message: string;
+  current_working_revision_id: string | null;
+  active_generation_run: Record<string, unknown> | null;
+  blocked_attempt: { revision_id?: string } | null;
+  revision_id: string | null;
+  design_specification_id: string | null;
+  design_plan_id: string | null;
+  revision_plan_id: string | null;
+  configuration_change_id: string | null;
+  planning_depth?: string | null;
+  active_requirements?: Array<Record<string, unknown>>;
+};
+
+type Workspace = {
+  project: Project;
+  messages: ProjectMessage[];
+  revisions: Revision[];
+  active_requirements: Array<Record<string, unknown>>;
+  current_working_revision_id: string | null;
+  active_workflow: Record<string, unknown> | null;
+  artifact_integrity: {
+    status?: string;
+    checked_count?: number;
+    missing_count?: number;
+    missing_paths?: string[];
+  };
+  snapshot_packet?: SnapshotPacket | null;
+  revision_comparison?: RevisionComparison | null;
+};
+
+type ExportRecord = {
+  id: string;
+  project_id: string;
+  revision_id: string;
+  export_type: string;
+  status: string;
+  filename: string;
+  warnings: string[];
+  sha256: string | null;
+  size_bytes: number | null;
 };
 
 type MeshMetadata = {
@@ -100,6 +225,15 @@ type MeshMetadata = {
   triangle_count: number;
   connected_components: number;
   is_watertight: boolean;
+};
+
+type WorkflowDiagnosis = {
+  workflow_run_id: string;
+  root_cause: {
+    summary?: string;
+    confidence?: string;
+  } | null;
+  final_outcome: string;
 };
 
 type Revision = {
@@ -113,9 +247,20 @@ type Revision = {
   status: string;
   is_accepted: boolean;
   review_state: ReviewState | null;
+  functional_status?:
+    | "functionally_verified"
+    | "functionally_partially_verified"
+    | "functionally_unverified"
+    | "functionally_violated";
   accepted_at: string | null;
   rejected_at: string | null;
   user_instruction: string | null;
+  cad_backend: string;
+  source_language: string;
+  source_path: string;
+  source_hash: string | null;
+  source_contract_version: string | null;
+  execution_manifest_path: string | null;
   stl_path: string | null;
   ai_output_path: string | null;
   output_manifest_path: string | null;
@@ -128,6 +273,7 @@ type Revision = {
   metadata: MeshMetadata | null;
   error_message: string | null;
   validation_summary: ValidationSummary;
+  design_consistency?: DesignConsistency | null;
 };
 
 type ClarificationQuestion = {
@@ -149,7 +295,7 @@ type DesignSpecification = {
   version_number: number;
   schema_version: string;
   prompt_template_version: string;
-  gemini_ruleset_version: string;
+  ruleset_version: string;
   provider: string;
   provider_model: string | null;
   user_instruction: string;
@@ -211,7 +357,7 @@ type DesignPlan = {
   version_number: number;
   schema_version: string;
   prompt_template_version: string;
-  gemini_ruleset_version: string;
+  ruleset_version: string;
   provider: string;
   provider_model: string | null;
   raw_response_path: string | null;
@@ -224,6 +370,7 @@ type DesignPlan = {
   approved_at: string | null;
   rejected_at: string | null;
   created_at: string;
+  generated_revision_id: string | null;
   clarification_questions: Array<{
     id: string;
     project_id: string;
@@ -243,6 +390,11 @@ type DesignPlan = {
       label: string;
       value: number | string | boolean | null;
       unit?: string | null;
+      source?: string;
+      provenance?: {
+        relationship?: string;
+        explanation?: string | null;
+      };
       editable?: boolean;
       protected?: boolean;
       component_id?: string | null;
@@ -250,8 +402,14 @@ type DesignPlan = {
     derived_parameters?: Array<{
       id: string;
       label: string;
-      expression: string;
+      value?: number | string | boolean | null;
+      expression?: string | null;
       unit?: string | null;
+      source?: string;
+      provenance?: {
+        relationship?: string;
+        explanation?: string | null;
+      };
       depends_on?: string[];
     }>;
     dependency_edges?: Array<{
@@ -293,6 +451,20 @@ type DesignPlan = {
       description?: string;
       mitigation?: string;
     }>;
+    functional_contract?: {
+      retention_interfaces?: Array<{
+        strategy?: string;
+        release_behavior?: string;
+        removal_direction?: string;
+        parameters?: Array<{
+          id?: string;
+          label?: string;
+          value?: number | string | boolean | null;
+          unit?: string | null;
+        }>;
+        verification?: { human_review_required?: boolean };
+      }>;
+    };
     clarification_questions?: Array<{
       id?: string;
       question?: string;
@@ -327,7 +499,7 @@ type RevisionPlan = {
   version_number: number;
   schema_version: string;
   prompt_template_version: string;
-  gemini_ruleset_version: string;
+  ruleset_version: string;
   provider: string;
   provider_model: string | null;
   user_instruction: string;
@@ -457,6 +629,14 @@ const DEFAULT_PRINTABILITY_PROFILE: PrintabilityProfile = {
   default_layer_height_mm: 0.2,
 };
 
+function isSourceContractRejection(message: string): boolean {
+  return SOURCE_CONTRACT_REJECTION_PREFIXES.some((prefix) => message.startsWith(prefix));
+}
+
+function isGeometryBodyFailure(message: string): boolean {
+  return GEOMETRY_BODY_FAILURE_PREFIXES.some((prefix) => message.startsWith(prefix));
+}
+
 function App() {
   const [projectName, setProjectName] = useState("");
   const [intent, setIntent] = useState("");
@@ -467,10 +647,18 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [projectMessages, setProjectMessages] = useState<ProjectMessage[]>([]);
+  const [activeRequirements, setActiveRequirements] = useState<Array<Record<string, unknown>>>([]);
+  const [activeWorkflow, setActiveWorkflow] = useState<Record<string, unknown> | null>(null);
+  const [artifactIntegrity, setArtifactIntegrity] = useState<Workspace["artifact_integrity"]>({});
+  const [generationAttempts, setGenerationAttempts] = useState<GenerationAttemptEvidence[]>([]);
+  const [chatWorkflow, setChatWorkflow] = useState<ChatWorkflowResponse | null>(null);
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingProject, setIsSavingProject] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [exportRecord, setExportRecord] = useState<ExportRecord | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [aiOutput, setAiOutput] = useState<string | null>(null);
@@ -488,6 +676,8 @@ function App() {
   const [geometricAnalysis, setGeometricAnalysis] = useState<GeometricAnalysis | null>(null);
   const [revisionOutputs, setRevisionOutputs] = useState<RevisionOutput[]>([]);
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
+  const [snapshotPacket, setSnapshotPacket] = useState<SnapshotPacket | null>(null);
+  const [revisionComparison, setRevisionComparison] = useState<RevisionComparison | null>(null);
   const [isRetryingOutputId, setIsRetryingOutputId] = useState<string | null>(null);
   const [sourceContractError, setSourceContractError] = useState<string | null>(null);
   const [isReviewActionPending, setIsReviewActionPending] = useState(false);
@@ -522,11 +712,30 @@ function App() {
     () => new Set(),
   );
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
+  const [workflowDiagnosis, setWorkflowDiagnosis] = useState<WorkflowDiagnosis | null>(null);
+  const [submissionError, setSubmissionError] = useState<ReturnType<typeof userFacingSubmissionError> | null>(null);
+  const [pendingChatMessage, setPendingChatMessage] = useState<ChatWorkspacePendingMessage | null>(null);
   const printabilitySectionRef = useRef<HTMLDivElement | null>(null);
+  const observedWorkflowViews = useRef(new Set<string>());
+  const chatRequestSequence = useRef(0);
+  const pendingChatSubmission = useRef<{ clientMessageId: string; prompt: string } | null>(null);
+
+  function recordWorkflowViewOnce(
+    key: string,
+    actionName: Parameters<typeof createFrontendWorkflowEvent>[0]["actionName"],
+    userVisibleState: string,
+    metadata: Record<string, unknown> = {},
+  ) {
+    if (observedWorkflowViews.current.has(key)) {
+      return;
+    }
+    observedWorkflowViews.current.add(key);
+    void recordFrontendWorkflowEvent(project?.id, actionName, userVisibleState, metadata);
+  }
 
   const selectedOutput =
     revisionOutputs.find((output) => output.id === selectedOutputId) ?? revisionOutputs[0] ?? null;
-  const selectedOutputIsPersisted = Boolean(selectedOutput && !selectedOutput.id.startsWith("legacy-"));
+  const selectedOutputIsPersisted = Boolean(selectedOutput);
   const activeMetadata = selectedOutput?.metadata ?? selectedRevision?.metadata ?? null;
   const stlUrl = selectedOutput?.stl_path && selectedOutputIsPersisted
     ? `${API_BASE}/revision-outputs/${selectedOutput.id}/stl`
@@ -535,8 +744,12 @@ function App() {
       : null;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
-  const exportUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/export.zip` : null;
-  const sourceParameters = useMemo(() => parseSourceParameters(source), [source]);
+  const diagnosticBundleUrl = workflowCorrelation.workflowRunId
+    ? `${API_BASE}/workflow-runs/${workflowCorrelation.workflowRunId}/debug-bundle.zip`
+    : null;
+  const selectedSourceLabel = "Python";
+  const sourcePanelLabel = "Python source";
+  const sourceEditorLanguage = "python";
   const printabilityHighlights = useMemo(
     () => printabilityReport?.highlights ?? [],
     [printabilityReport],
@@ -588,8 +801,8 @@ function App() {
     ? "Sending"
     : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
       ? "Answer"
-      : canPlanRevisionFromCurrentContext
-        ? "Plan revision"
+      : !CHAT_FIRST_ENABLED && ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
+        ? "Change the design"
         : "Send";
   const chatPlaceholder = hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
     ? "Answer clarification"
@@ -602,9 +815,129 @@ function App() {
     canGenerateConfiguration(configurationPreview) && !isGeneratingConfiguration;
 
   useEffect(() => {
-    void refreshProjects();
+    const routeProjectId = projectIdFromPath(window.location.pathname);
+    if (routeProjectId) {
+      void loadWorkspace(routeProjectId).catch(() => {
+        setMessage("Project could not be reopened from the server");
+        window.history.replaceState({}, "", "/");
+        void refreshProjects();
+      });
+    } else {
+      void refreshProjects();
+    }
     void refreshPrintabilityProfiles();
+
+    const onPopState = () => {
+      const nextProjectId = projectIdFromPath(window.location.pathname);
+      if (nextProjectId) {
+        void loadWorkspace(nextProjectId).catch(() => setMessage("Project could not be reopened from the server"));
+      } else {
+        resetWorkspaceState();
+        void refreshProjects();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
+
+  useEffect(() => {
+    if (!project) {
+      setGenerationAttempts([]);
+      return;
+    }
+    void request<GenerationAttemptEvidence[]>(`/projects/${project.id}/generation-attempts`, { method: "GET" })
+      .then(setGenerationAttempts)
+      .catch(() => setGenerationAttempts([]));
+  }, [project?.id, selectedRevision?.id, chatWorkflow?.current_stage]);
+
+  useEffect(() => {
+    if (!selectedRevision || !project) {
+      setSnapshotPacket(null);
+      setRevisionComparison(null);
+      return;
+    }
+    void loadRevisionSnapshots(selectedRevision);
+  }, [project?.id, selectedRevision?.id]);
+
+  useEffect(() => {
+    if (project && configurationParameters.length > 0) {
+      recordWorkflowViewOnce(`configuration-${project.id}`, "configuration_opened", "parameter_update");
+    }
+  }, [project, configurationParameters.length]);
+
+  useEffect(() => {
+    if (!designSpecification || !project) {
+      return;
+    }
+    recordWorkflowViewOnce(`requirements-${designSpecification.id}`, "requirements_review_viewed", "requirements_review");
+    if (designSpecification.outcome === "clarification_required") {
+      recordWorkflowViewOnce(`clarification-${designSpecification.id}`, "clarification_displayed", "clarification");
+    }
+  }, [designSpecification?.id, designSpecification?.outcome, project?.id]);
+
+  useEffect(() => {
+    if (designPlan && project) {
+      recordWorkflowViewOnce(`proposal-${designPlan.id}`, "proposed_design_viewed", "proposed_design_review");
+    }
+  }, [designPlan?.id, project?.id]);
+
+  useEffect(() => {
+    if (designSpecification) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-label='Design requirements'] h2")?.focus());
+    }
+  }, [designSpecification?.id, designSpecification?.outcome]);
+
+  useEffect(() => {
+    if (designPlan) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-label='Proposed design'] h2")?.focus());
+    }
+  }, [designPlan?.id, designPlan?.review_state]);
+
+  useEffect(() => {
+    if (selectedRevision && isOpenCandidate(selectedRevision)) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-label='Candidate review'] h2")?.focus());
+    }
+  }, [selectedRevision?.id, selectedRevision?.review_state]);
+
+  useEffect(() => {
+    if (selectedRevision && project && isOpenCandidate(selectedRevision)) {
+      recordWorkflowViewOnce(`candidate-${selectedRevision.id}`, "candidate_opened", "new_version_review", {
+        revision_id: selectedRevision.id,
+      });
+    }
+  }, [project?.id, selectedRevision?.id, selectedRevision?.review_state]);
+
+  useEffect(() => {
+    if (selectedRevision?.review_state !== "blocked" || !project) {
+      return;
+    }
+    recordWorkflowViewOnce(`blocked-error-${selectedRevision.id}`, "visible_error_displayed", "candidate_review", {
+      revision_id: selectedRevision.id,
+      state: "blocked_new_version",
+    });
+  }, [project?.id, selectedRevision?.id, selectedRevision?.review_state]);
+
+  useEffect(() => {
+    if (!project || !selectedRevision || !["running", "compiling", "validating"].includes(selectedRevision.status)) {
+      return;
+    }
+    const stage = selectedRevision.status === "validating" ? "printability_validation" : "cad_execution";
+    recordWorkflowViewOnce(`progress-${selectedRevision.id}-${stage}`, "progress_stage_shown", "generation_progress", {
+      stage,
+      label: generationProgress(stage).label,
+    });
+  }, [project?.id, selectedRevision?.id, selectedRevision?.status]);
+
+  useEffect(() => {
+    const workflowRunId = workflowCorrelation.workflowRunId;
+    if (!workflowRunId || !selectedRevision) {
+      setWorkflowDiagnosis(null);
+      return;
+    }
+    void request<WorkflowDiagnosis>(`/workflow-runs/${workflowRunId}/diagnosis`, { method: "GET" })
+      .then((diagnosis) => setWorkflowDiagnosis(diagnosis))
+      .catch(() => setWorkflowDiagnosis(null));
+  }, [selectedRevision?.id, selectedRevision?.review_state]);
 
   async function refreshProjects() {
     try {
@@ -622,6 +955,39 @@ function App() {
     } catch {
       setSavedPrintabilityProfiles([]);
     }
+  }
+
+  function resetWorkspaceState() {
+    setProject(null);
+    setProjectName("");
+    setIntent("");
+    setInstruction("");
+    setGenerationPrompt("");
+    setSource("");
+    setRevisions([]);
+    setProjectMessages([]);
+    setActiveRequirements([]);
+    setActiveWorkflow(null);
+    setArtifactIntegrity({});
+    setChatWorkflow(null);
+    setSelectedRevision(null);
+    setCandidateFindings([]);
+    setGeometricAnalysis(null);
+    setRevisionOutputs([]);
+    setSelectedOutputId(null);
+    setExportRecord(null);
+    setPrintabilityReport(null);
+    setDismissedPrintabilityResults(new Set());
+    setCompileLog(null);
+    setAiOutput(null);
+    setRevisionDiff(null);
+    setSaveStatus("idle");
+    setSubmissionError(null);
+    setPendingChatMessage(null);
+    pendingChatSubmission.current = null;
+    resetRequirementState();
+    resetRevisionPlanState();
+    resetConfigurationState();
   }
 
   function resetRequirementState() {
@@ -724,6 +1090,10 @@ function App() {
   }
 
   async function loadRevisionPlanResults(plan: RevisionPlan) {
+    if (!shouldLoadComponentRevisionSummary(plan)) {
+      setComponentRevisionSummary(null);
+      return;
+    }
     try {
       setRevisionComplianceResult(
         await request<RevisionComplianceResult>(`/revision-plans/${plan.id}/compliance-result`, {
@@ -744,7 +1114,7 @@ function App() {
     }
     try {
       setComponentRevisionSummary(
-        await request<ComponentRevisionSummary>(`/revision-plans/${plan.id}/component-revision-summary`, {
+        await request<ComponentRevisionSummary | null>(`/revision-plans/${plan.id}/component-revision-summary`, {
           method: "GET",
         }),
       );
@@ -759,6 +1129,7 @@ function App() {
       return;
     }
     setIsSavingProject(true);
+    setSaveStatus("saving");
     setMessage(null);
     try {
       const updatedProject = await request<Project>(`/projects/${project.id}${isDraftProject ? "/save" : ""}`, {
@@ -777,10 +1148,32 @@ function App() {
         return current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry));
       });
       setMessage("Project saved");
+      setSaveStatus("saved");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Project save failed");
+      setSaveStatus("failed");
     } finally {
       setIsSavingProject(false);
+    }
+  }
+
+  async function renameProject(nextName: string) {
+    if (!project) {
+      return;
+    }
+    setSaveStatus("saving");
+    try {
+      const updatedProject = await request<Project>(`/projects/${project.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: nextName }),
+      });
+      setProject(updatedProject);
+      setProjectName(updatedProject.name);
+      setProjects((current) => current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)));
+      setSaveStatus("saved");
+    } catch (error) {
+      setSaveStatus("failed");
+      throw error;
     }
   }
 
@@ -862,7 +1255,7 @@ function App() {
 
   async function compileSource() {
     if (!canCompileSource) {
-      setMessage("Enter OpenSCAD source before compiling");
+      setMessage("Enter CAD source before compiling");
       return;
     }
     setIsCompiling(true);
@@ -877,7 +1270,7 @@ function App() {
       const revision = await request<Revision>(`/projects/${currentProject.id}/revisions`, {
         method: "POST",
         body: JSON.stringify({
-          scad_source: source,
+          source,
           user_instruction: instruction,
         }),
       });
@@ -923,6 +1316,11 @@ function App() {
         method: "POST",
         body: JSON.stringify({ user_instruction: prompt }),
       });
+      void recordFrontendWorkflowEvent(currentProject.id, "request_started", "requirements", {});
+      void recordFrontendWorkflowEvent(currentProject.id, "request_submitted", "requirements", {
+        testing_session: userTestingMetadata().testing_session,
+        test_scenario_id: userTestingMetadata().test_scenario_id,
+      });
       setDesignSpecification(specification);
       setDesignPlan(null);
       setClarificationAnswers({});
@@ -939,9 +1337,97 @@ function App() {
       }
       await loadProjectMessages(currentProject.id);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Requirement extraction failed");
+      const fallback = "Requirement extraction failed";
+      const message = error instanceof Error ? error.message : fallback;
+      setMessage(message);
+      if (isSourceContractRejection(message)) {
+        setSourceContractError(message);
+      }
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function submitChatFirstMessage() {
+    const prompt = generationPrompt.trim();
+    if (!prompt) {
+      setMessage("Enter a message before sending");
+      return;
+    }
+    const sequence = ++chatRequestSequence.current;
+    const existingSubmission = pendingChatSubmission.current;
+    const clientMessageId = existingSubmission?.prompt === prompt
+      ? existingSubmission.clientMessageId
+      : `${frontendSessionId}-${sequence}`;
+    pendingChatSubmission.current = { clientMessageId, prompt };
+    setPendingChatMessage({ id: clientMessageId, content: prompt, state: "pending" });
+    setSubmissionError(null);
+    setIsGenerating(true);
+    setMessage(null);
+    setSourceContractError(null);
+    try {
+      const currentProject = project ?? (await createDraftProject());
+      if (!project || project.id !== currentProject.id) {
+        setProject(currentProject);
+        window.history.replaceState({}, "", projectPath(currentProject.id));
+      }
+      const result = await request<ChatWorkflowResponse>(`/projects/${currentProject.id}/chat`, {
+        method: "POST",
+        body: JSON.stringify({
+          message: prompt,
+          client_message_id: clientMessageId,
+        }),
+      });
+      if (sequence !== chatRequestSequence.current) {
+        return;
+      }
+      setChatWorkflow(result);
+      setActiveRequirements(result.active_requirements ?? []);
+      setActiveWorkflow(result.active_generation_run);
+      await recordFrontendWorkflowEvent(currentProject.id, "chat_message_submitted", "conversation", { action: result.action });
+      const refreshedProject = await request<Project>(`/projects/${currentProject.id}`, { method: "GET" });
+      setProject(refreshedProject);
+      setSaveStatus("saved");
+      setProjectName(refreshedProject.name);
+      setIntent(refreshedProject.original_intent);
+      await loadCurrentDesignSpecification(refreshedProject.id);
+      await loadCurrentRevisionPlan(refreshedProject.id);
+      await loadProjectMessages(refreshedProject.id);
+      const nextRevisions = await request<Revision[]>(`/projects/${refreshedProject.id}/revisions`, { method: "GET" });
+      setRevisions(nextRevisions);
+      const targetRevisionId = result.blocked_attempt
+        ? result.current_working_revision_id ?? refreshedProject.active_revision_id
+        : result.current_working_revision_id ?? result.revision_id ?? refreshedProject.active_revision_id;
+      const targetRevision = nextRevisions.find((entry) => entry.id === targetRevisionId) ?? null;
+      setSelectedRevision(targetRevision);
+      setGenerationPrompt((current) => current.trim() === prompt ? "" : current);
+      setPendingChatMessage((current) => current?.content === prompt ? null : current);
+      pendingChatSubmission.current = null;
+      setIsGenerating(false);
+      if (targetRevision) {
+        void selectRevision(targetRevision);
+      }
+      if (result.input_required) {
+        void recordFrontendWorkflowEvent(currentProject.id, "clarification_requested", "clarification", { action: result.action });
+      } else if (result.action === "parameter_change") {
+        void recordFrontendWorkflowEvent(currentProject.id, "parameter_update_routed", "parameter_update", {});
+      } else if (result.action === "structural_revision" || result.action === "component_revision") {
+        void recordFrontendWorkflowEvent(currentProject.id, "structural_revision_routed", "revision_planning", { action: result.action });
+      } else if (result.action === "start_over") {
+        void recordFrontendWorkflowEvent(currentProject.id, "start_over_branch_created", "conversation", {});
+      }
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Chat workflow failed";
+      setMessage(null);
+      setSubmissionError(userFacingSubmissionError(error));
+      setPendingChatMessage((current) => current ? { ...current, state: "failed" } : current);
+      if (isSourceContractRejection(detail)) {
+        setSourceContractError(detail);
+      }
+    } finally {
+      if (sequence === chatRequestSequence.current) {
+        setIsGenerating(false);
+      }
     }
   }
 
@@ -969,6 +1455,9 @@ function App() {
       setDesignSpecification(specification);
       setDesignPlan(null);
       setClarificationAnswers({});
+      void recordFrontendWorkflowEvent(project?.id, "clarification_answered", "clarification", {
+        question_count: Object.keys(answers).length,
+      });
       setMessage(specification.outcome === "generation_ready" ? "Requirements ready" : requirementStageLabel(specification));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Clarification failed");
@@ -1015,6 +1504,7 @@ function App() {
         method: "POST",
       });
       setDesignPlan(approved);
+      void recordFrontendWorkflowEvent(project?.id, "design_approved", "proposed_design_review", { design_plan_id: approved.id });
       if (project) {
         await loadProjectMessages(project.id);
       }
@@ -1061,6 +1551,7 @@ function App() {
     setIsContinuingGeneration(true);
     setSourceContractError(null);
     setMessage("Generating model");
+    void recordFrontendWorkflowEvent(project.id, "generation_started", "generation_progress", { design_plan_id: planToGenerate.id });
     try {
       const revision = await request<Revision>(`/design-plans/${planToGenerate.id}/generate`, {
         method: "POST",
@@ -1080,9 +1571,12 @@ function App() {
       await loadProjectMessages(project.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Generation failed";
-      if (message.startsWith("Model source rejected before compile")) {
+      if (isSourceContractRejection(message)) {
         setSourceContractError(message);
-        setMessage("Model source rejected before compile");
+        setMessage(SOURCE_IDENTITY_REJECTION_MESSAGE);
+      } else if (isGeometryBodyFailure(message)) {
+        setSourceContractError(message);
+        setMessage("Volundr could not assemble the generated geometry.");
       } else {
         setMessage(message);
       }
@@ -1146,6 +1640,7 @@ function App() {
     setComponentRevisionSummary(null);
     setGenerationPrompt("");
     setMessage("Planning revision");
+    void recordFrontendWorkflowEvent(project.id, "revision_opened", "revision_request", { base_revision_id: baseRevisionId });
     try {
       const plan = await request<RevisionPlan>(`/projects/${project.id}/revision-plans`, {
         method: "POST",
@@ -1157,6 +1652,7 @@ function App() {
         }),
       });
       setRevisionPlan(plan);
+      void recordFrontendWorkflowEvent(project.id, "revision_requested", "revision_request", { base_revision_id: baseRevisionId });
       setRevisionPlanAnswers({});
       setPendingRevisionFindingIds([]);
       setMessage(plan.review_state === "pending_review" ? "Revision plan review" : revisionPlanStageLabel(plan));
@@ -1283,6 +1779,7 @@ function App() {
         method: "POST",
       });
       setRevisionPlan(approved);
+      void recordFrontendWorkflowEvent(project?.id, "revision_plan_approved", "planned_changes", { revision_plan_id: approved.id });
       if (project) {
         await loadProjectMessages(project.id);
       }
@@ -1346,10 +1843,7 @@ function App() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Revision failed";
       setMessage(message);
-      if (
-        message.startsWith("Revision source rejected before compile") ||
-        message.startsWith("Model source rejected before compile")
-      ) {
+      if (isSourceContractRejection(message)) {
         setSourceContractError(message);
       }
       try {
@@ -1367,23 +1861,46 @@ function App() {
   }
 
   function submitPrompt() {
-    if (hasRequirementClarificationPending) {
-      void submitRequirementClarificationFromChat();
+    if (CHAT_FIRST_ENABLED) {
+      void submitChatFirstMessage();
       return;
     }
-    if (hasDesignPlanClarificationPending) {
-      void submitDesignPlanClarificationFromChat();
+    const action = nextChatWorkflowAction({
+      advancedWorkflowEnabled: ADVANCED_WORKFLOW_ENABLED,
+      hasRequirementClarificationPending,
+      hasDesignPlanClarificationPending,
+      hasRevisionPlanClarificationPending: hasRevisionClarificationPending,
+      canPlanRevisionFromCurrentContext,
+    });
+    switch (action) {
+      case "answer_requirement_clarification":
+        void submitRequirementClarificationFromChat();
+        return;
+      case "answer_design_plan_clarification":
+        void submitDesignPlanClarificationFromChat();
+        return;
+      case "answer_revision_plan_clarification":
+        void submitRevisionPlanClarificationFromChat();
+        return;
+      case "plan_revision":
+        void createRevisionPlanFromPrompt();
+        return;
+      case "generate":
+        void generateSource();
+        return;
+    }
+  }
+
+  function retryChatSubmission() {
+    if (pendingChatMessage?.state !== "failed") {
       return;
     }
-    if (hasRevisionClarificationPending) {
-      void submitRevisionPlanClarificationFromChat();
-      return;
-    }
-    if (canPlanRevisionFromCurrentContext) {
-      void createRevisionPlanFromPrompt();
-      return;
-    }
-    void generateSource();
+    setSubmissionError(null);
+    void submitChatFirstMessage();
+  }
+
+  function clearChatSubmissionError() {
+    setSubmissionError(null);
   }
 
   function handlePromptKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -1414,9 +1931,13 @@ function App() {
   }
 
   async function loadComponentRevisionSummary(revision: Revision) {
+    if (revision.source_type !== "ai_revision") {
+      setComponentRevisionSummary(null);
+      return;
+    }
     try {
       setComponentRevisionSummary(
-        await request<ComponentRevisionSummary>(`/revisions/${revision.id}/component-revision-summary`, {
+        await request<ComponentRevisionSummary | null>(`/revisions/${revision.id}/component-revision-summary`, {
           method: "GET",
         }),
       );
@@ -1431,25 +1952,81 @@ function App() {
     });
   }
 
-  async function selectProject(nextProject: Project) {
-    setIsProjectDrawerOpen(false);
-    setProject(nextProject);
-    setProjectName(nextProject.name);
-    setIntent(nextProject.original_intent);
-    await loadCurrentDesignSpecification(nextProject.id);
-    await loadCurrentRevisionPlan(nextProject.id);
-    await loadProjectMessages(nextProject.id);
-    const nextRevisions = await request<Revision[]>(`/projects/${nextProject.id}/revisions`, {
-      method: "GET",
+  async function loadWorkspace(projectId: string) {
+    let workspace: Workspace;
+    try {
+      workspace = await request<Workspace>(`/projects/${encodeURIComponent(projectId)}/workspace`, {
+        method: "GET",
+      });
+    } catch (error) {
+      // The staged developer UI remains available while its older fixtures
+      // are migrated to the aggregate workspace endpoint. The normal
+      // chat-first path never falls back from a failed authoritative load.
+      if (CHAT_FIRST_ENABLED) {
+        throw error;
+      }
+      const [legacyProject, legacyMessages, legacyRevisions] = await Promise.all([
+        request<Project>(`/projects/${encodeURIComponent(projectId)}`, { method: "GET" }),
+        request<ProjectMessage[]>(`/projects/${encodeURIComponent(projectId)}/messages`, { method: "GET" }),
+        request<Revision[]>(`/projects/${encodeURIComponent(projectId)}/revisions`, { method: "GET" }),
+      ]);
+      workspace = {
+        project: legacyProject,
+        messages: legacyMessages,
+        revisions: legacyRevisions,
+        active_requirements: [],
+        current_working_revision_id: legacyProject.active_revision_id,
+        active_workflow: null,
+        artifact_integrity: {},
+      };
+    }
+    const loadedProject = workspace.project;
+    setProject(loadedProject);
+    setProjects((current) => {
+      const existing = current.some((entry) => entry.id === loadedProject.id);
+      return existing
+        ? current.map((entry) => (entry.id === loadedProject.id ? loadedProject : entry))
+        : [loadedProject, ...current];
     });
-    setRevisions(nextRevisions);
-    const activeRevision =
-      nextRevisions.find((revision) => revision.id === nextProject.active_revision_id) ??
-      nextRevisions.at(-1) ??
-      null;
+    setProjectName(loadedProject.name);
+    setIntent(loadedProject.original_intent);
+    setProjectMessages(workspace.messages);
+    setActiveRequirements(workspace.active_requirements);
+    setActiveWorkflow(workspace.active_workflow);
+    setArtifactIntegrity(workspace.artifact_integrity);
+    setRevisions(workspace.revisions);
+    setChatWorkflow(workspace.active_workflow ? {
+      workflow_run_id: String(workspace.active_workflow.id ?? ""),
+      action: "reconnect",
+      current_stage: String(workspace.active_workflow.status ?? "running"),
+      input_required: false,
+      assistant_message: "Reconnected to the saved workflow.",
+      current_working_revision_id: workspace.current_working_revision_id,
+      active_generation_run: workspace.active_workflow,
+      blocked_attempt: null,
+      revision_id: null,
+      design_specification_id: null,
+      design_plan_id: null,
+      revision_plan_id: null,
+      configuration_change_id: null,
+    } : null);
+    await loadCurrentDesignSpecification(loadedProject.id);
+    await loadCurrentRevisionPlan(loadedProject.id);
+    const activeRevision = workspace.revisions.find((revision) => revision.id === workspace.current_working_revision_id)
+      ?? workspace.revisions.find((revision) => revision.id === loadedProject.active_revision_id)
+      ?? workspace.revisions.at(-1)
+      ?? null;
     setSelectedRevision(activeRevision);
     if (activeRevision) {
       await selectRevision(activeRevision);
+      try {
+        const exports = await request<ExportRecord[]>(`/projects/${loadedProject.id}/exports`, { method: "GET" });
+        setExportRecord(
+          exports.find((entry) => entry.revision_id === activeRevision.id && entry.export_type === "project_package" && entry.status === "completed") ?? null,
+        );
+      } catch {
+        setExportRecord(null);
+      }
     } else {
       setCandidateFindings([]);
       setGeometricAnalysis(null);
@@ -1460,6 +2037,49 @@ function App() {
       setCompileLog(null);
       setAiOutput(null);
       setRevisionDiff(null);
+      setExportRecord(null);
+      setSnapshotPacket(null);
+      setRevisionComparison(null);
+    }
+    setSaveStatus("saved");
+  }
+
+  async function selectProject(nextProject: Project) {
+    setIsProjectDrawerOpen(false);
+    window.history.pushState({}, "", projectPath(nextProject.id));
+    await loadWorkspace(nextProject.id);
+  }
+
+  async function exportSelectedRevision() {
+    if (!project || !selectedRevision || !["accepted", "ready", "ready_with_warnings"].includes(selectedRevision.review_state ?? "")) {
+      setMessage("Choose a successful version before exporting");
+      return;
+    }
+    setIsExporting(true);
+    setMessage("Preparing printable files");
+    try {
+      const record = await request<ExportRecord>(`/projects/${project.id}/exports`, {
+        method: "POST",
+        body: JSON.stringify({ export_type: "project_package", revision_id: selectedRevision.id }),
+      });
+      setExportRecord(record);
+      await recordFrontendWorkflowEvent(project.id, "export_requested", "export", {
+        revision_id: selectedRevision.id,
+        export_id: record.id,
+      });
+      setMessage(record.warnings.length > 0 ? "Export ready with warnings" : "Export ready");
+      window.location.assign(`${API_BASE}/exports/${record.id}/download`);
+    } catch (error) {
+      if (!CHAT_FIRST_ENABLED && error instanceof Error && /not found|404|unhandled/i.test(error.message)) {
+        // Deterministic staged fixtures from older harness revisions expose
+        // the legacy backend-owned package route. Production uses the
+        // persisted ExportRecord path above.
+        window.location.assign(`${API_BASE}/revisions/${selectedRevision.id}/export.zip`);
+        return;
+      }
+      setMessage(error instanceof Error ? error.message : "Export could not be prepared");
+    } finally {
+      setIsExporting(false);
     }
   }
 
@@ -1502,6 +2122,7 @@ function App() {
         },
       );
       setConfigurationPreview(preview);
+      void recordFrontendWorkflowEvent(project.id, "configuration_previewed", "parameter_update", { configuration_change_id: preview.id });
       setMessage(configurationStateLabel(preview.validation_state));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Configuration preview failed");
@@ -1516,6 +2137,9 @@ function App() {
     }
     setIsGeneratingConfiguration(true);
     setMessage(null);
+    if (project) {
+      void recordFrontendWorkflowEvent(project.id, "configuration_submitted", "parameter_update", { configuration_change_id: configurationPreview.id });
+    }
     try {
       const revision = await request<Revision>(
         `/configuration-changes/${configurationPreview.id}/generate`,
@@ -1628,6 +2252,15 @@ function App() {
     }
   }
 
+  async function loadRevisionSnapshots(revision: Revision) {
+    const [packetResponse, comparisonResponse] = await Promise.all([
+      fetch(`${API_BASE}/revisions/${encodeURIComponent(revision.id)}/snapshots`),
+      fetch(`${API_BASE}/revisions/${encodeURIComponent(revision.id)}/comparison`),
+    ]);
+    setSnapshotPacket(packetResponse.ok ? (await packetResponse.json() as SnapshotPacket) : null);
+    setRevisionComparison(comparisonResponse.ok ? (await comparisonResponse.json() as RevisionComparison) : null);
+  }
+
   async function acceptSelectedCandidate() {
     if (!selectedRevision || !canAcceptSelectedRevision) {
       return;
@@ -1648,13 +2281,22 @@ function App() {
         setProjects((current) =>
           current.map((entry) => (entry.id === updatedProject.id ? updatedProject : entry)),
         );
+      }
+      await recordFrontendWorkflowEvent(project?.id, "candidate_accepted", "candidate_review", {
+        revision_id: accepted.id,
+      });
+      if (project) {
         await loadProjectMessages(project.id);
       }
       await loadCandidateFindings(accepted);
       await loadGeometricAnalysis(accepted);
       setMessage(`Accepted R${accepted.revision_number}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Candidate acceptance failed");
+      const errorMessage = error instanceof Error ? error.message : "Candidate acceptance failed";
+      void recordFrontendWorkflowEvent(project?.id, "visible_error_displayed", "candidate_review", {
+        action: "candidate_acceptance",
+      });
+      setMessage(errorMessage);
     } finally {
       setIsReviewActionPending(false);
     }
@@ -1679,9 +2321,16 @@ function App() {
       if (project) {
         await loadProjectMessages(project.id);
       }
+      await recordFrontendWorkflowEvent(project?.id, "candidate_rejected", "candidate_review", {
+        revision_id: rejected.id,
+      });
       setMessage(`Rejected R${rejected.revision_number}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Candidate rejection failed");
+      const errorMessage = error instanceof Error ? error.message : "Candidate rejection failed";
+      void recordFrontendWorkflowEvent(project?.id, "visible_error_displayed", "candidate_review", {
+        action: "candidate_rejection",
+      });
+      setMessage(errorMessage);
     } finally {
       setIsReviewActionPending(false);
     }
@@ -1691,6 +2340,10 @@ function App() {
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) {
+    void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+      finding_id: finding.id,
+      recovery_kind: actionKind,
+    });
     if (actionKind === "profile") {
       printabilitySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       setMessage(
@@ -1706,6 +2359,10 @@ function App() {
   async function retryOutput(output: RevisionOutput) {
     setIsRetryingOutputId(output.id);
     setMessage(null);
+    void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+      action: "retry_output",
+      output_id: output.output_id,
+    });
     try {
       const retried = await request<RevisionOutput>(`/revision-outputs/${output.id}/retry`, {
         method: "POST",
@@ -1861,27 +2518,127 @@ function App() {
   }
 
   function startNewProject() {
-    setProject(null);
-    setProjectName("");
-    setIntent("");
-    setInstruction("");
-    setGenerationPrompt("");
-    setSource("");
-    setRevisions([]);
-    setProjectMessages([]);
-    setSelectedRevision(null);
-    setCandidateFindings([]);
-    setGeometricAnalysis(null);
-    setCompileLog(null);
-    setAiOutput(null);
-    setRevisionDiff(null);
-    setPrintabilityReport(null);
-    setDismissedPrintabilityResults(new Set());
-    resetRequirementState();
-    resetRevisionPlanState();
-    resetConfigurationState();
+    window.history.pushState({}, "", "/");
+    resetWorkspaceState();
     setMessage("New draft workspace");
     setIsProjectDrawerOpen(false);
+  }
+
+  if (CHAT_FIRST_ENABLED) {
+    const chatTechnicalDetails = (
+      <>
+        <p>Technical diagnostics remain available here for support and review.</p>
+        {chatWorkflow?.planning_depth ? <p>Planning route: <code>{chatWorkflow.planning_depth}</code></p> : null}
+        {workflowCorrelation.workflowRunId ? (
+          <p>Workflow run: <code>{workflowCorrelation.workflowRunId}</code></p>
+        ) : null}
+        {generationAttempts.length > 0 ? (
+          <section className="workflow-technical-summary" aria-label="Provider routing details">
+            <h3>Provider calls</h3>
+            <ul>
+              {generationAttempts.slice(-8).map((attempt) => {
+                const routing = attempt.routing_metadata ?? {};
+                const usage = attempt.provider_usage ?? {};
+                const totalTokens = usage.totalTokenCount ?? usage.total_tokens;
+                return (
+                  <li key={attempt.attempt_id}>
+                    {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
+                    {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
+                    {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
+        <div className="actions">
+          {sourceUrl ? <a className="download compact-action" href={sourceUrl}>Python source</a> : null}
+          {manifestUrl && selectedRevision?.output_manifest_path ? <a className="download compact-action" href={manifestUrl}>Output manifest</a> : null}
+          {diagnosticBundleUrl && project ? <a className="download compact-action" href={diagnosticBundleUrl}>Download diagnostic bundle</a> : null}
+        </div>
+        <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
+        <CandidateReview
+          acceptDisabledReason={acceptReason}
+          canAccept={canAcceptSelectedRevision}
+          findings={candidateFindings}
+          componentRevisionSummary={componentRevisionSummary}
+          geometricAnalysis={geometricAnalysis}
+          isPending={isReviewActionPending}
+          outputs={revisionOutputs}
+          revision={selectedRevision}
+          selectedOutputId={selectedOutputId}
+          viewerLabel={selectedViewerLabel}
+          workflowLabel={selectedWorkflowLabel}
+          chatFirst
+          onAccept={() => void acceptSelectedCandidate()}
+          onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
+          onRetryOutput={(output) => void retryOutput(output)}
+          onReviseBlockedOutput={() => undefined}
+          onReject={() => void rejectSelectedCandidate()}
+          onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
+          onRecoverFinding={handleCandidateFindingRecovery}
+          onWarningExpanded={() => undefined}
+          onRegenerateFromPlan={() => void continueGenerationFromDesignPlan()}
+          onReviseFromGeometricFinding={(finding) => setGenerationPrompt(revisionPromptFromGeometricFinding(finding))}
+          retryingOutputId={isRetryingOutputId}
+        />
+      </>
+    );
+    return (
+      <ChatWorkspace
+        project={project}
+        projects={projects}
+        messages={projectMessages}
+        revisions={revisions}
+        selectedRevision={selectedRevision}
+        currentWorkingRevisionId={project?.active_revision_id ?? null}
+        activeRequirements={activeRequirements}
+        designPlan={designPlan as unknown as { plan?: Record<string, unknown> } | null}
+        outputs={revisionOutputs}
+        activeWorkflow={activeWorkflow}
+        selectedOutputId={selectedOutputId}
+        saveStatus={saveStatus}
+        generationPrompt={generationPrompt}
+        chatPlaceholder={chatPlaceholder}
+        chatButtonLabel={chatButtonLabel}
+        isChatActionPending={isChatActionPending}
+        canAskAi={canAskAi}
+        pendingMessage={pendingChatMessage}
+        submissionError={submissionError}
+        viewer={<StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />}
+        hasModel={Boolean(stlUrl && selectedRevision?.status === "succeeded")}
+        technicalDetails={chatTechnicalDetails}
+        snapshotPacket={snapshotPacket}
+        revisionComparison={revisionComparison}
+        snapshotApiBase={API_BASE}
+        onPromptChange={setGenerationPrompt}
+        onPromptKeyDown={handlePromptKeyDown}
+        onSubmitPrompt={submitPrompt}
+        onRetrySubmission={retryChatSubmission}
+        onClearSubmissionError={clearChatSubmissionError}
+        onSelectProject={(nextProject) => {
+          const matchedProject = projects.find((entry) => entry.id === nextProject.id);
+          if (matchedProject) void selectProject(matchedProject);
+        }}
+        onStartProject={startNewProject}
+        onSelectRevision={(revision) => {
+          const fullRevision = revisions.find((entry) => entry.id === revision.id);
+          if (fullRevision) void selectRevision(fullRevision);
+        }}
+        onViewRevision={(revisionId) => {
+          const fullRevision = revisions.find((entry) => entry.id === revisionId);
+          if (fullRevision) void selectRevision(fullRevision);
+        }}
+        onOpenExport={() => undefined}
+        onExport={() => void exportSelectedRevision()}
+        onRename={renameProject}
+        onArchive={() => void archiveProject()}
+        onDelete={() => void deleteProject()}
+        onDownloadOutput={(output, format) => {
+          window.location.assign(`${API_BASE}/revision-outputs/${output.id}/${format}`);
+        }}
+      />
+    );
   }
 
   return (
@@ -1901,29 +2658,20 @@ function App() {
           </div>
         </div>
         <div className="topbar-actions">
-          {sourceUrl ? (
-            <a className="download compact-action" href={sourceUrl}>
-              SCAD
+          {project ? <span className="save-state" aria-label="Save status">{saveStatusLabel(saveStatus)}</span> : null}
+          {selectedRevision && selectedRevision.review_state !== "blocked" ? (
+            <a
+              className="download compact-action"
+              href="#"
+              aria-disabled={isExporting}
+              onClick={(event) => {
+                event.preventDefault();
+                if (!isExporting) void exportSelectedRevision();
+              }}
+            >
+              {isExporting ? "Preparing export" : "Export design"}
             </a>
           ) : null}
-          {stlUrl ? (
-            <a className="download compact-action" href={stlUrl}>
-              STL
-            </a>
-          ) : null}
-          {manifestUrl && selectedRevision?.output_manifest_path ? (
-            <a className="download compact-action" href={manifestUrl}>
-              Manifest
-            </a>
-          ) : null}
-          {exportUrl && selectedRevision?.output_manifest_path ? (
-            <a className="download compact-action" href={exportUrl}>
-              ZIP
-            </a>
-          ) : null}
-          <button className="primary" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
-            {isCompiling ? "Compiling" : "Compile"}
-          </button>
         </div>
       </header>
 
@@ -1950,7 +2698,13 @@ function App() {
                   key={entry.id}
                   onClick={() => void selectProject(entry)}
                 >
-                  {entry.name}
+                  <span>{entry.name}</span>
+                  <small>
+                    {entry.updated_at ? new Date(entry.updated_at).toLocaleDateString() : "Saved project"}
+                    {entry.active_revision_id ? " · Current working version" : " · No working version"}
+                    {entry.printable_part_count ? ` · ${entry.printable_part_count} printable part${entry.printable_part_count === 1 ? "" : "s"}` : ""}
+                    {entry.unresolved_warning_count ? ` · ${entry.unresolved_warning_count} warning${entry.unresolved_warning_count === 1 ? "" : "s"}` : ""}
+                  </small>
                 </button>
               ))}
             </div>
@@ -1963,6 +2717,13 @@ function App() {
           <StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />
           <section className="prompt-dock" aria-label="Prompt chat">
             <div className="chat-log">
+              {!project ? (
+                <div className="assistant-intro">
+                  <h2>What would you like to make?</h2>
+                  <p>Describe the object, what it must fit or hold, and any measurements you already know.</p>
+                  <p>You do not need to specify every dimension. Volundr can propose noncritical details for review.</p>
+                </div>
+              ) : null}
               <MessageList messages={projectMessages} compact />
               <WorkflowChatCards
                 designPlan={designPlan}
@@ -1971,7 +2732,7 @@ function App() {
                 revisionPlan={revisionPlan}
                 findings={candidateFindings}
               />
-              {message ? <p className="message">{message}</p> : null}
+              {message ? <p className="message" aria-live="polite" role="status">{message}</p> : null}
             </div>
             <form className="prompt-row" onSubmit={(event) => {
               event.preventDefault();
@@ -1979,7 +2740,7 @@ function App() {
             }}>
               <textarea
                 aria-label="AI chat message"
-                placeholder={chatPlaceholder}
+                placeholder={project ? chatPlaceholder : "Describe the part you need"}
                 rows={2}
                 value={generationPrompt}
                 onKeyDown={handlePromptKeyDown}
@@ -2016,60 +2777,88 @@ function App() {
               Intent
               <input required value={intent} onChange={(event) => setIntent(event.target.value)} />
             </label>
-            <label>
-              Manual compile note
-              <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
-            </label>
             {project && isDraftProject && !hasProjectName ? (
               <p className="empty">Name this draft when you want it to appear in Projects.</p>
             ) : null}
           </section>
 
+          <section className="project-card compact-summary" aria-label="Saved project summary">
+            <div className="section-heading">
+              <h2>{CHAT_FIRST_ENABLED ? "Your requirements" : "Saved project summary"}</h2>
+              {activeWorkflow ? <span className="status-chip">Workflow {String(activeWorkflow.status ?? "saved")}</span> : null}
+            </div>
+            {activeRequirements.length > 0 ? (
+              <ul>
+                {activeRequirements.slice(0, 8).map((requirement, index) => (
+                  <li key={String(requirement.requirement_id ?? index)}>
+                    {String(requirement.description ?? requirement.label ?? requirement.requirement_id ?? "Active requirement")}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty">Requirements will appear here after the first request.</p>
+            )}
+            {artifactIntegrity.status === "missing" ? (
+              <p className="warning">Some saved artifacts need attention before download.</p>
+            ) : null}
+          </section>
+
           <section className="revision-panel" aria-label="Revisions">
-            <DesignSpecificationReview
-              answers={clarificationAnswers}
-              canContinue={canContinueFromSpecification}
-              hasDesignPlan={Boolean(designPlan)}
-              isContinuing={isCreatingDesignPlan}
-              isSubmittingAnswers={isSubmittingClarification}
-              specification={designSpecification}
-              stageLabel={currentRequirementStage}
-              onAnswerChange={(questionId, answer) =>
-                setClarificationAnswers((current) => ({ ...current, [questionId]: answer }))
-              }
-              onContinue={() => void createDesignPlanFromSpecification()}
-              onSubmitAnswers={() => void submitClarificationAnswers()}
-            />
-            <DesignPlanReview
-              canApprove={canApproveCurrentDesignPlan}
-              canGenerate={canGenerateFromCurrentDesignPlan}
-              isActionPending={isDesignPlanActionPending}
-              isGenerating={isContinuingGeneration}
-              plan={designPlan}
-              stageLabel={currentDesignPlanStage}
-              onApprove={() => void approveDesignPlan()}
-              onGenerate={() => void continueGenerationFromDesignPlan()}
-              onReject={() => void rejectDesignPlan()}
-            />
-            <RevisionPlanReview
-              answers={revisionPlanAnswers}
-              canApprove={canApproveCurrentRevisionPlan}
-              canGenerate={canGenerateFromCurrentRevisionPlan}
-              complianceResult={revisionComplianceResult}
-              isActionPending={isRevisionPlanActionPending}
-              isGenerating={isGeneratingRevision}
-              isSubmittingAnswers={isRevisionPlanActionPending}
-              plan={revisionPlan}
-              stageLabel={currentRevisionPlanStage}
-              successResults={revisionSuccessResults}
-              onAnswerChange={(questionId, answer) =>
-                setRevisionPlanAnswers((current) => ({ ...current, [questionId]: answer }))
-              }
-              onApprove={() => void approveRevisionPlan()}
-              onGenerate={() => void generateFromRevisionPlan()}
-              onReject={() => void rejectRevisionPlan()}
-              onSubmitAnswers={() => void submitRevisionPlanClarificationAnswers()}
-            />
+            {STAGED_WORKFLOW_ENABLED ? (
+              <LifecycleStatus
+                designPlan={designPlan}
+                designSpecification={designSpecification}
+                revision={selectedRevision}
+              />
+            ) : null}
+            {STAGED_WORKFLOW_ENABLED ? (
+              <>
+                <DesignSpecificationReview
+                  answers={clarificationAnswers}
+                  canContinue={canContinueFromSpecification}
+                  hasDesignPlan={Boolean(designPlan)}
+                  isContinuing={isCreatingDesignPlan}
+                  isSubmittingAnswers={isSubmittingClarification}
+                  specification={designSpecification}
+                  stageLabel={currentRequirementStage}
+                  onAnswerChange={(questionId, answer) =>
+                    setClarificationAnswers((current) => ({ ...current, [questionId]: answer }))
+                  }
+                  onContinue={() => void createDesignPlanFromSpecification()}
+                  onSubmitAnswers={() => void submitClarificationAnswers()}
+                />
+                <DesignPlanReview
+                  canApprove={canApproveCurrentDesignPlan}
+                  canGenerate={canGenerateFromCurrentDesignPlan}
+                  isActionPending={isDesignPlanActionPending}
+                  isGenerating={isContinuingGeneration}
+                  plan={designPlan}
+                  stageLabel={currentDesignPlanStage}
+                  onApprove={() => void approveDesignPlan()}
+                  onGenerate={() => void continueGenerationFromDesignPlan()}
+                  onReject={() => void rejectDesignPlan()}
+                />
+                <RevisionPlanReview
+                  answers={revisionPlanAnswers}
+                  canApprove={canApproveCurrentRevisionPlan}
+                  canGenerate={canGenerateFromCurrentRevisionPlan}
+                  complianceResult={revisionComplianceResult}
+                  isActionPending={isRevisionPlanActionPending}
+                  isGenerating={isGeneratingRevision}
+                  isSubmittingAnswers={isRevisionPlanActionPending}
+                  plan={revisionPlan}
+                  stageLabel={currentRevisionPlanStage}
+                  successResults={revisionSuccessResults}
+                  onAnswerChange={(questionId, answer) =>
+                    setRevisionPlanAnswers((current) => ({ ...current, [questionId]: answer }))
+                  }
+                  onApprove={() => void approveRevisionPlan()}
+                  onGenerate={() => void generateFromRevisionPlan()}
+                  onReject={() => void rejectRevisionPlan()}
+                  onSubmitAnswers={() => void submitRevisionPlanClarificationAnswers()}
+                />
+              </>
+            ) : null}
             <SourceContractRejection message={sourceContractError} />
             <h2>Revisions</h2>
             <div className="revision-list">
@@ -2102,12 +2891,43 @@ function App() {
             selectedOutputId={selectedOutputId}
             viewerLabel={selectedViewerLabel}
             workflowLabel={selectedWorkflowLabel}
+            chatFirst={CHAT_FIRST_ENABLED}
             onAccept={() => void acceptSelectedCandidate()}
             onDismissFinding={(findingId) => void dismissCandidateFinding(findingId)}
             onRetryOutput={(output) => void retryOutput(output)}
+            onReviseBlockedOutput={(output) => {
+              setSelectedOutputId(output.id);
+              setGenerationPrompt(
+                `Revise the ${output.label} printable part to resolve the blocked design check. Preserve the other parts and their fit.`,
+              );
+              setPendingRevisionFindingIds([]);
+              void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+                action: "revise_output",
+                output_id: output.output_id,
+              });
+              setMessage(`Revision request prepared for ${output.label}. Your current design remains active.`);
+            }}
             onReject={() => void rejectSelectedCandidate()}
-            onSelectOutput={(outputId) => setSelectedOutputId(outputId)}
+            onSelectOutput={(outputId) => {
+              setSelectedOutputId(outputId);
+              void recordFrontendWorkflowEvent(project?.id, "output_selected", "new_version_review", { output_id: outputId });
+            }}
             onRecoverFinding={handleCandidateFindingRecovery}
+            onWarningExpanded={(finding) => {
+              void recordFrontendWorkflowEvent(project?.id, "warning_expanded", "new_version_review", {
+                finding_id: finding.id,
+              });
+            }}
+            onRegenerateFromPlan={() => {
+              void recordFrontendWorkflowEvent(project?.id, "failure_recovery_selected", "failure_recovery", {
+                action: "regenerate_from_plan",
+              });
+              if (designPlan && designPlan.id === selectedRevision?.design_plan_id) {
+                void continueGenerationFromDesignPlan(designPlan);
+                return;
+              }
+              setMessage("Open the approved Design Plan before regenerating this candidate");
+            }}
             onReviseFromGeometricFinding={(finding) => {
               setGenerationPrompt(revisionPromptFromGeometricFinding(finding));
               setPendingRevisionFindingIds(
@@ -2118,31 +2938,36 @@ function App() {
             retryingOutputId={isRetryingOutputId}
           />
 
-          <ConfigurationPanel
-            canGenerate={canGenerateCurrentConfiguration}
-            change={configurationPreview}
-            draft={configurationDraft}
-            isGenerating={isGeneratingConfiguration}
-            isPreviewing={isPreviewingConfiguration}
-            parameters={configurationParameters}
-            presets={configurationPresets}
-            selectedPresetId={selectedConfigurationPresetId}
-            onDraftChange={(parameterId, value) =>
-              setConfigurationDraft((current) => ({ ...current, [parameterId]: value }))
-            }
-            onGenerate={() => void generateConfigurationCandidate()}
-            onPresetChange={(presetId) => {
-              setSelectedConfigurationPresetId(presetId);
-              const preset = configurationPresets.find((entry) => entry.preset_id === presetId);
-              if (preset) {
-                setConfigurationDraft((current) => ({
-                  ...current,
-                  ...configurationDraftValues(preset.parameter_values),
-                }));
+          {STAGED_WORKFLOW_ENABLED ? (
+            <ConfigurationPanel
+              canGenerate={canGenerateCurrentConfiguration}
+              change={configurationPreview}
+              draft={configurationDraft}
+              isGenerating={isGeneratingConfiguration}
+              isPreviewing={isPreviewingConfiguration}
+              parameters={configurationParameters}
+              presets={configurationPresets}
+              selectedPresetId={selectedConfigurationPresetId}
+              onDraftChange={(parameterId, value) =>
+                {
+                  recordWorkflowViewOnce(`configuration-${project?.id ?? "draft"}`, "configuration_opened", "parameter_update");
+                  setConfigurationDraft((current) => ({ ...current, [parameterId]: value }));
+                }
               }
-            }}
-            onPreview={() => void previewConfiguration()}
-          />
+              onGenerate={() => void generateConfigurationCandidate()}
+              onPresetChange={(presetId) => {
+                setSelectedConfigurationPresetId(presetId);
+                const preset = configurationPresets.find((entry) => entry.preset_id === presetId);
+                if (preset) {
+                  setConfigurationDraft((current) => ({
+                    ...current,
+                    ...configurationDraftValues(preset.parameter_values),
+                  }));
+                }
+              }}
+              onPreview={() => void previewConfiguration()}
+            />
+          ) : null}
 
           <div ref={printabilitySectionRef}>
             <h2>Metadata</h2>
@@ -2165,10 +2990,6 @@ function App() {
               onSaveProfile={() => void savePrintabilityProfile()}
             />
           </div>
-          <ParameterControls
-            parameters={sourceParameters}
-            onChange={(parameter, value) => setSource(updateSourceParameter(source, parameter, value))}
-          />
           {selectedRevision?.is_accepted && selectedRevision.id !== project?.active_revision_id ? (
             <div className="actions">
               <button className="download" onClick={() => void restoreSelectedRevision()}>
@@ -2176,29 +2997,138 @@ function App() {
               </button>
             </div>
           ) : null}
-          <section className="source-panel" aria-label="OpenSCAD source">
-            <div className="section-heading">
-              <h2>Source</h2>
+          <details className="technical-details">
+            <summary>Technical details</summary>
+            <div className="technical-details-content">
+              <label>
+                Manual build note
+                <input value={instruction} onChange={(event) => setInstruction(event.target.value)} />
+              </label>
+              <div className="actions">
+                {sourceUrl ? <a className="download compact-action" href={sourceUrl}>{selectedSourceLabel} source</a> : null}
+                {stlUrl ? <a className="download compact-action" href={stlUrl}>STL</a> : null}
+                {manifestUrl && selectedRevision?.output_manifest_path ? <a className="download compact-action" href={manifestUrl}>Output manifest</a> : null}
+                {diagnosticBundleUrl && project ? (
+                  <a className="download compact-action" href={diagnosticBundleUrl} onClick={() => {
+                    void recordFrontendWorkflowEvent(project.id, "diagnostic_bundle_requested", "technical_details", {
+                      revision_id: selectedRevision?.id ?? null,
+                    });
+                  }}>Download diagnostic bundle</a>
+                ) : null}
+                <button className="secondary compact" disabled={isCompiling || !canCompileSource} onClick={compileSource}>
+                  {isCompiling ? "Building" : "Build source"}
+                </button>
+              </div>
+              {workflowCorrelation.workflowRunId ? (
+                <div className="workflow-technical-summary">
+                  <p>Workflow run: <code>{workflowCorrelation.workflowRunId}</code></p>
+                  <button className="text-action" onClick={() => void copyWorkflowRunId(workflowCorrelation.workflowRunId!)}>Copy workflow run ID</button>
+                  {workflowDiagnosis ? (
+                    <p>Final workflow result: {workflowDiagnosis.final_outcome}. {workflowDiagnosis.root_cause?.summary ?? "No blocking failure was recorded."}</p>
+                  ) : null}
+                </div>
+              ) : null}
+              {generationAttempts.length > 0 ? (
+                <section aria-label="Provider routing details" className="workflow-technical-summary">
+                  <p>Provider routing</p>
+                  <ul>
+                    {generationAttempts.slice(-8).map((attempt) => {
+                      const routing = attempt.routing_metadata ?? {};
+                      const usage = attempt.provider_usage ?? {};
+                      const totalTokens = usage.totalTokenCount ?? usage.total_tokens;
+                      return (
+                        <li key={attempt.attempt_id}>
+                          {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
+                          {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
+                          {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
+                          {routing.routing_reason === "operational_fallback" ? " · operational fallback" : ""}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ) : null}
+              <section className="source-panel" aria-label={sourcePanelLabel}>
+                <Editor language={sourceEditorLanguage} height="320px" options={{ minimap: { enabled: false }, fontSize: 13, wordWrap: "on", scrollBeyondLastLine: false }} theme="vs-dark" value={source} onChange={(value) => setSource(value ?? "")} />
+              </section>
+              <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
             </div>
-            <Editor
-              defaultLanguage="scad"
-              height="320px"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 13,
-                wordWrap: "on",
-                scrollBeyondLastLine: false,
-              }}
-              theme="vs-dark"
-              value={source}
-              onChange={(value) => setSource(value ?? "")}
-            />
-          </section>
-          <Diagnostics compileLog={compileLog} aiOutput={aiOutput} revisionDiff={revisionDiff} />
+          </details>
         </section>
       </section>
     </main>
   );
+}
+
+function LifecycleStatus({
+  designPlan,
+  designSpecification,
+  revision,
+}: {
+  designPlan: DesignPlan | null;
+  designSpecification: DesignSpecification | null;
+  revision: Revision | null;
+}) {
+  const steps = [
+    "Describe",
+    "Clarify",
+    "Review requirements",
+    "Review proposed design",
+    "Generate",
+    "Create model",
+    "Check printable parts",
+    "Review new version",
+    "Accept or revise",
+  ];
+  const currentIndex = lifecycleIndex({ designPlan, designSpecification, revision });
+  return (
+    <section className="lifecycle-strip" aria-label="Design progress" aria-live="polite">
+      {steps.map((step, index) => (
+        <span
+          className={index < currentIndex ? "complete" : index === currentIndex ? "current" : ""}
+          key={step}
+        >
+          {step}
+        </span>
+      ))}
+    </section>
+  );
+}
+
+function lifecycleIndex({
+  designPlan,
+  designSpecification,
+  revision,
+}: {
+  designPlan: DesignPlan | null;
+  designSpecification: DesignSpecification | null;
+  revision: Revision | null;
+}): number {
+  if (revision?.review_state === "accepted") {
+    return 8;
+  }
+  if (revision?.review_state === "ready" || revision?.review_state === "ready_with_warnings" || revision?.review_state === "blocked") {
+    return 7;
+  }
+  if (revision?.status === "running" || revision?.status === "compiling") {
+    return 5;
+  }
+  if (revision?.status === "validating") {
+    return 6;
+  }
+  if (designPlan?.generated_revision_id || designPlan?.review_state === "approved") {
+    return 4;
+  }
+  if (designPlan?.review_state === "pending_review") {
+    return 3;
+  }
+  if (designPlan) {
+    return 2;
+  }
+  if (designSpecification?.generation_ready || designSpecification?.clarification_required) {
+    return 1;
+  }
+  return 0;
 }
 
 function DesignSpecificationReview({
@@ -2229,33 +3159,38 @@ function DesignSpecificationReview({
   }
 
   const buckets = assumptionBuckets(specification);
-  const criticalDimensions = specification.specification.critical_dimensions ?? [];
+  const groups = requirementPresentationGroups(specification);
   const requirements = specification.specification.functional_requirements ?? [];
   const questions = specification.clarification_questions;
+  const traceMessage = traceFailureMessage(specification);
   const allAnswersPresent =
     questions.length > 0 && questions.every((question) => (answers[question.id] ?? "").trim().length > 0);
 
   return (
-    <section className="requirements-review" aria-label="Requirements">
+    <section className="requirements-review" aria-label="Design requirements">
       <div className="section-heading">
-        <h2>Requirements</h2>
+        <div>
+          <h2 tabIndex={-1}>{assistantVocabulary.designSpecification}</h2>
+          <p>{reviewStepLabel("requirements")}</p>
+        </div>
         <span className={`requirement-state ${specification.outcome}`}>{stageLabel}</span>
       </div>
       <dl className="review-facts">
         <dt>Purpose</dt>
         <dd>{specification.specification.purpose ?? "Unknown"}</dd>
-        <dt>Protected</dt>
+        <dt>Dimensions to preserve</dt>
         <dd>{protectedRequirementCount(specification)}</dd>
-        <dt>Version</dt>
-        <dd>{specification.version_number}</dd>
       </dl>
 
       {specification.outcome === "clarification_required" ? (
         <div className="clarification-list">
+          <h3>A few details are still needed</h3>
+          <p>These answers affect fit, function, assembly, safety, or whether the part can be printed.</p>
+          <SummaryList title="Already provided" items={groups.userProvided} />
           {questions.map((question) => (
             <label key={question.id}>
               {question.question}
-              {question.reason ? <span className="field-note">{question.reason}</span> : null}
+              {question.reason ? <span className="field-note">Why this matters: {question.reason}</span> : null}
               <input
                 value={answers[question.id] ?? ""}
                 onChange={(event) => onAnswerChange(question.id, event.target.value)}
@@ -2268,7 +3203,7 @@ function DesignSpecificationReview({
               disabled={!allAnswersPresent || isSubmittingAnswers}
               onClick={onSubmitAnswers}
             >
-              {isSubmittingAnswers ? "Submitting" : "Submit answers"}
+              {isSubmittingAnswers ? "Saving answers" : "Continue"}
             </button>
           </div>
         </div>
@@ -2276,26 +3211,23 @@ function DesignSpecificationReview({
 
       {specification.outcome === "generation_ready" ? (
         <>
+          {traceMessage ? <p className="error-state">{traceMessage}</p> : null}
+          <SummaryList title="Your requirements" items={groups.userProvided} />
           <SummaryList
-            title="Critical dimensions"
-            items={criticalDimensions.map((dimension) =>
-              `${dimension.label}: ${dimension.value ?? "unset"}${dimension.unit ? ` ${dimension.unit}` : ""} (${dimension.source})`,
-            )}
-          />
-          <SummaryList
-            title="Protected requirements"
+            title="What must be preserved"
             items={requirements
               .filter((requirement) => requirement.protected)
-              .map((requirement) => `${requirement.description} (${requirement.source})`)}
+              .map((requirement) => `${requirement.description} - ${provenanceLabel(requirement.source)}`)}
           />
-          <SummaryList title="Defaults" items={buckets.defaults} />
-          <SummaryList title="AI assumptions" items={buckets.aiAssumptions} />
+          <SummaryList title="Volundr proposes" items={groups.proposals.concat(defaultProvenanceRows(specification), buckets.aiAssumptions)} />
+          <SummaryList title="Calculated" items={groups.calculated} />
+          <SummaryList title="Decisions needed" items={groups.essentialDecisions} />
           {hasDesignPlan ? (
-            <p className="empty">Design Plan created. Review it below.</p>
+            <p className="empty">Your proposed design is ready to review below.</p>
           ) : (
             <div className="actions">
               <button className="primary" disabled={!canContinue} onClick={onContinue}>
-                {isContinuing ? "Planning" : "Create Design Plan"}
+                {isContinuing ? "Planning your design" : "Review proposed design"}
               </button>
             </div>
           )}
@@ -2356,27 +3288,49 @@ function DesignPlanReview({
   const outputs = plan.plan.printable_outputs ?? [];
   const risks = plan.plan.risks ?? [];
   const questions = designPlanClarificationQuestions(plan);
+  const valueLine = (parameter: {
+    label: string;
+    value?: number | string | boolean | null;
+    unit?: string | null;
+    source?: string;
+    provenance?: { relationship?: string; explanation?: string | null };
+    protected?: boolean;
+  }) => {
+    const relationship = provenanceRelationshipLabel(parameter.provenance?.relationship, parameter.source);
+    const explanation = parameter.provenance?.explanation;
+    return `${parameter.label}: ${parameter.value ?? "unset"}${parameter.unit ? ` ${parameter.unit}` : ""} - ${relationship}${
+      explanation ? ` - ${explanation}` : ""
+    }${parameter.protected ? " (dimension to preserve)" : ""}`;
+  };
+  const directParameters = parameters.filter(
+    (parameter) =>
+      parameter.provenance?.relationship === "direct" ||
+      parameter.source === "user" ||
+      parameter.source === "clarification",
+  );
+  const proposedParameters = parameters.filter(
+    (parameter) => !directParameters.includes(parameter) && parameter.editable !== false,
+  );
 
   return (
-    <section className="design-plan-review" aria-label="Design Plan">
+    <section className="design-plan-review" aria-label="Proposed design">
       <div className="section-heading">
-        <h2>Design Plan</h2>
+        <div>
+          <h2 tabIndex={-1}>{assistantVocabulary.designPlan}</h2>
+          <p>{reviewStepLabel("proposal")}</p>
+        </div>
         <span className={`requirement-state ${plan.review_state}`}>{stageLabel}</span>
       </div>
       <dl className="review-facts">
-        <dt>Level</dt>
-        <dd>{plan.plan.design_level ?? "Unknown"}</dd>
         <dt>Components</dt>
         <dd>{counts.components}</dd>
-        <dt>Outputs</dt>
+        <dt>Printable parts</dt>
         <dd>{counts.outputs}</dd>
-        <dt>Version</dt>
-        <dd>{plan.version_number}</dd>
       </dl>
 
       {plan.review_state === "clarification_required" ? (
         <SummaryList
-          title="Planning questions"
+          title="Decisions needed"
           items={questions.map((question) =>
             [question.question ?? "Clarification needed", question.reason].filter(Boolean).join(" - "),
           )}
@@ -2384,41 +3338,43 @@ function DesignPlanReview({
       ) : null}
 
       <SummaryList
-        title="Editable parameters"
-        items={parameters
-          .filter((parameter) => parameter.editable !== false)
-          .map((parameter) =>
-            `${parameter.label}: ${parameter.value ?? "unset"}${parameter.unit ? ` ${parameter.unit}` : ""}${
-              parameter.protected ? " (protected)" : ""
-            }`,
-          )}
+        title="Your requirements"
+        items={directParameters.map(valueLine)}
       />
       <SummaryList
-        title="Derived parameters"
-        items={derived.map((parameter) => `${parameter.label}: ${parameter.expression}`)}
+        title="Volundr proposes"
+        items={proposedParameters.map(valueLine)}
       />
       <SummaryList
-        title="Dependencies"
+        title="Retention"
+        items={retentionProposalLines(plan.plan.functional_contract)}
+      />
+      <SummaryList
+        title="Calculated"
+        items={derived.map(valueLine)}
+      />
+      <SummaryList
+        title="How the dimensions relate"
         items={(plan.plan.dependency_edges ?? []).map(
           (edge) => `${edge.from} -> ${edge.to}: ${edge.relationship}`,
         )}
       />
       <SummaryList
-        title="Components"
-        items={components.map((component) => `${component.label} (${component.id})`)}
+        title="Components and printable parts"
+        items={components.map((component) => component.label)}
       />
       <SummaryList
-        title="Features"
+        title="Design details"
         items={features.map((feature) => `${feature.description} (${feature.type})`)}
       />
       <SummaryList
-        title="Printable outputs"
+        title="Printable parts"
         items={outputs.map(
-          (output) => `${output.label}: ${output.component_ids.join(", ")} x${output.quantity}`,
+          (output) => `${output.label} - ${output.quantity === 1 ? "one part" : `${output.quantity} parts`}`,
         )}
       />
       <SummaryList
-        title="Risks"
+        title="Design considerations"
         items={risks.map((risk) =>
           [risk.severity ?? "notice", risk.description ?? risk.id ?? "Risk"].join(": "),
         )}
@@ -2433,14 +3389,14 @@ function DesignPlanReview({
           }
           onClick={onReject}
         >
-          Reject
+          Start over
         </button>
         <button className="primary" disabled={!canApprove} onClick={onApprove}>
-          {isActionPending || isGenerating ? "Starting" : "Approve and generate"}
+          {isActionPending || isGenerating ? "Starting generation" : "Generate design"}
         </button>
         {plan.review_state === "approved" ? (
           <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-            {isGenerating ? "Generating" : "Generate candidate"}
+            {isGenerating ? "Generating design" : "Generate design"}
           </button>
         ) : null}
       </div>
@@ -2513,9 +3469,12 @@ function RevisionPlanReview({
   const success = revisionSuccessBuckets(successResults);
 
   return (
-    <section className="revision-plan-review" aria-label="Revision Plan">
+    <section className="revision-plan-review" aria-label="Planned changes">
       <div className="section-heading">
-        <h2>Revision Plan</h2>
+        <div>
+          <h2>Change the design</h2>
+          <p>Volundr will plan and generate a structural change.</p>
+        </div>
         <span className={`requirement-state ${plan.review_state}`}>{stageLabel}</span>
       </div>
       <p>{plan.revision_plan.summary ?? plan.user_instruction}</p>
@@ -2526,13 +3485,13 @@ function RevisionPlanReview({
         <dd>{counts.dependencies}</dd>
         <dt>Outputs</dt>
         <dd>{counts.targetedOutputs}</dd>
-        <dt>Protected</dt>
+        <dt>Dimensions to preserve</dt>
         <dd>{counts.protectedParameters + counts.protectedOutputs}</dd>
       </dl>
 
       {questions.length > 0 ? (
         <div className="clarification-answers">
-          <h3>Revision questions</h3>
+          <h3>Details needed for this change</h3>
           {questions.map((question) => (
             <label key={question.id}>
               {question.question}
@@ -2544,7 +3503,7 @@ function RevisionPlanReview({
             </label>
           ))}
           <button className="primary" disabled={isSubmittingAnswers} onClick={onSubmitAnswers}>
-            {isSubmittingAnswers ? "Submitting" : "Submit answers"}
+            {isSubmittingAnswers ? "Saving answers" : "Continue"}
           </button>
         </div>
       ) : null}
@@ -2561,10 +3520,10 @@ function RevisionPlanReview({
           `${dependency.parameter_id} affects ${(dependency.affects ?? []).join(", ") || "declared dependents"}`,
         )}
       />
-      <SummaryList title="Affected components" items={plan.revision_plan.targeted_components ?? []} />
-      <SummaryList title="Affected outputs" items={plan.revision_plan.targeted_outputs ?? []} />
+      <SummaryList title="Parts that will change" items={plan.revision_plan.targeted_components ?? []} />
+      <SummaryList title="Printable parts that will change" items={plan.revision_plan.targeted_outputs ?? []} />
       <SummaryList
-        title="Will remain unchanged"
+        title="What will remain unchanged"
         items={[
           ...protectedParameters.map(
             (parameter) =>
@@ -2610,13 +3569,13 @@ function RevisionPlanReview({
           }
           onClick={onReject}
         >
-          Reject
+          Cancel changes
         </button>
         <button className="primary" disabled={!canApprove} onClick={onApprove}>
-          {isActionPending ? "Approving" : "Approve revision plan"}
+          {isActionPending ? "Preparing" : "Review planned changes"}
         </button>
         <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-          {isGenerating ? "Revising" : "Generate revision"}
+          {isGenerating ? "Changing design" : "Generate new version"}
         </button>
       </div>
     </section>
@@ -2637,8 +3596,8 @@ function FindingList({
     <div className="summary-list">
       <h3>{title}</h3>
       <ul>
-        {findings.map((finding) => (
-          <li key={finding.rule_id}>
+        {findings.map((finding, index) => (
+          <li key={`${finding.rule_id}-${index}`}>
             {finding.title}
             {finding.explanation ? ` - ${finding.explanation}` : ""}
           </li>
@@ -2711,7 +3670,8 @@ function ConfigurationPanel({
     <section className="configuration-panel" aria-label="Configure parameters">
       <div className="section-heading">
         <div>
-          <h2>Configure</h2>
+          <h2>Adjust parameters</h2>
+          <p>No AI redesign required. Change existing dimensions, counts, presets, or enabled options.</p>
           <p>{configurationStateLabel(change?.validation_state ?? null)}</p>
         </div>
       </div>
@@ -2768,8 +3728,8 @@ function ConfigurationPanel({
                 <input disabled value={String(value)} readOnly />
               )}
               <small>
-                {parameter.editable && parameter.source_mapped ? "Editable" : "Requires design revision"}
-                {parameter.affected_outputs.length > 0 ? ` - outputs: ${parameter.affected_outputs.join(", ")}` : ""}
+                {parameter.editable && parameter.source_mapped ? "Can be adjusted here" : "Change the design to modify this"}
+                {parameter.affected_outputs.length > 0 ? ` - affects ${parameter.affected_outputs.length} printable ${parameter.affected_outputs.length === 1 ? "part" : "parts"}` : ""}
               </small>
             </label>
           );
@@ -2778,6 +3738,35 @@ function ConfigurationPanel({
       {change ? (
         <div className={`configuration-summary ${change.validation_state}`}>
           <p>{configurationImpactLabel(change)}</p>
+          <h3>Direct changes</h3>
+          <ul>
+            {Object.entries(change.requested_changes).map(([parameterId, nextValue]) => {
+              const parameter = parameters.find((entry) => entry.id === parameterId);
+              return (
+                <li key={parameterId}>
+                  {parameter?.label ?? parameterId}: {configurationValueLabel(parameter?.value)} → {configurationValueLabel(nextValue)}
+                </li>
+              );
+            })}
+          </ul>
+          <h3>Calculated effects</h3>
+          <ul>
+            {change.affected_parameters
+              .filter((parameterId) => !Object.prototype.hasOwnProperty.call(change.requested_changes, parameterId))
+              .map((parameterId) => <li key={parameterId}>{parameterId}</li>)}
+          </ul>
+          <h3>Affected printable parts</h3>
+          <ul>
+            {change.affected_outputs.map((outputId) => <li key={outputId}>{outputId}</li>)}
+          </ul>
+          <h3>Unchanged values</h3>
+          <ul>
+            {parameters
+              .filter((parameter) => parameter.protected && !Object.prototype.hasOwnProperty.call(change.requested_changes, parameter.id))
+              .map((parameter) => (
+                <li key={parameter.id}>{parameter.label}: {configurationValueLabel(parameter.value)}</li>
+              ))}
+          </ul>
           {change.validation_errors.length > 0 ? (
             <ul>
               {change.validation_errors.map((error) => (
@@ -2791,14 +3780,21 @@ function ConfigurationPanel({
       ) : null}
       <div className="actions">
         <button className="secondary" disabled={isPreviewing || isGenerating} onClick={onPreview}>
-          {isPreviewing ? "Previewing" : "Preview configuration"}
+          {isPreviewing ? "Calculating effects" : "Preview effects"}
         </button>
         <button className="primary" disabled={!canGenerate} onClick={onGenerate}>
-          {isGenerating ? "Generating" : "Generate candidate"}
+          {isGenerating ? "Updating design" : "Create new version"}
         </button>
       </div>
     </section>
   );
+}
+
+function configurationValueLabel(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "unset";
+  }
+  return String(value);
 }
 
 function CandidateReview({
@@ -2813,12 +3809,16 @@ function CandidateReview({
   selectedOutputId,
   viewerLabel,
   workflowLabel,
+  chatFirst,
   onAccept,
   onDismissFinding,
   onRetryOutput,
+  onReviseBlockedOutput,
   onReject,
   onSelectOutput,
   onRecoverFinding,
+  onWarningExpanded,
+  onRegenerateFromPlan,
   onReviseFromGeometricFinding,
   retryingOutputId,
 }: {
@@ -2833,15 +3833,19 @@ function CandidateReview({
   selectedOutputId: string | null;
   viewerLabel: string;
   workflowLabel: string;
+  chatFirst: boolean;
   onAccept: () => void;
   onDismissFinding: (findingId: string) => void;
   onRetryOutput: (output: RevisionOutput) => void;
+  onReviseBlockedOutput: (output: RevisionOutput) => void;
   onReject: () => void;
   onSelectOutput: (outputId: string) => void;
   onRecoverFinding: (
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) => void;
+  onWarningExpanded: (finding: CandidateFinding) => void;
+  onRegenerateFromPlan: () => void;
   onReviseFromGeometricFinding: (finding: GeometricFinding) => void;
   retryingOutputId: string | null;
 }) {
@@ -2853,27 +3857,49 @@ function CandidateReview({
   const nonGeometricFindings = findings.filter((finding) => finding.category !== "geometry");
   const buckets = candidateFindingBuckets(nonGeometricFindings);
   const sourceChecks = sourceCheckSummary(findings);
+  const consistency = revision.design_consistency ?? null;
+  const consistencyFindings = consistency?.findings.filter((finding) => finding.is_blocking) ?? [];
+  const blockedRequired = outputs.filter((output) => output.required && ["blocked", "failed"].includes(output.execution_state)).length;
+  const blockedOutputs = outputs.filter(
+    (output) => output.required && ["blocked", "failed"].includes(output.execution_state),
+  );
+  const recovery = recoveryPresentation(
+    blockedOutputs.some((output) => output.execution_state === "failed")
+      ? "worker_failure"
+      : blockedRequired > 0
+        ? "topology_validation"
+        : "source_contract_validation",
+  );
+  const primaryBlockedOutput = blockedOutputs[0] ?? null;
 
   return (
     <section className="candidate-review" aria-label="Candidate review">
       <div className="section-heading">
-        <h2>Review</h2>
+        <div>
+          <h2 tabIndex={-1}>{chatFirst ? (viewerLabel === "Current design" ? "Current working version" : "Creating new version") : viewerLabel === "Current design" ? "Current design" : "New version"}</h2>
+          <p>{chatFirst ? (viewerLabel === "Current design" ? "This is the version your project uses." : "Volundr is checking this version before it can become current.") : viewerLabel === "Current design" ? "This is the version your project uses." : "Review this version before it replaces your current design."}</p>
+        </div>
         <span className={`review-state ${revision.review_state ?? "historical"}`}>{workflowLabel}</span>
       </div>
       <dl className="review-facts">
-        <dt>Viewer</dt>
-        <dd>{viewerLabel}</dd>
         {revision.expected_output_count ? (
           <>
             <dt>Outputs</dt>
             <dd>{revision.successful_output_count ?? 0}/{revision.expected_output_count}</dd>
           </>
         ) : null}
-        <dt>Blocking</dt>
+        <dt>Parts needing attention</dt>
         <dd>{revision.validation_summary.blocking_count}</dd>
         <dt>Warnings</dt>
         <dd>{revision.validation_summary.advisory_count}</dd>
+        <dt>Design consistency</dt>
+        <dd>{designConsistencyLabel(revision)}</dd>
+        <dt>Functional checks</dt>
+        <dd>{revision.functional_status?.replaceAll("functionally_", "") ?? "Not reported"}</dd>
       </dl>
+      <p className={blockedRequired > 0 ? "blocked-reason" : "empty"}>
+        {candidateStatusSummary({ total: outputs.length, blockedRequired, ready: outputs.filter((output) => ["ready", "ready_with_warnings"].includes(output.execution_state)).length })}
+      </p>
       <OutputReview
         outputs={outputs}
         selectedOutputId={selectedOutputId}
@@ -2881,18 +3907,71 @@ function CandidateReview({
         onSelectOutput={onSelectOutput}
         retryingOutputId={retryingOutputId}
       />
-      {isCandidate ? (
+      {isCandidate && !chatFirst ? (
         <div className="actions">
           <button className="primary" disabled={!canAccept || isPending} onClick={onAccept}>
-            {isPending ? "Working" : "Accept"}
+            {isPending ? "Saving" : "Accept new version"}
           </button>
           <button className="secondary" disabled={isPending} onClick={onReject}>
-            Reject
+            Reject new version
           </button>
         </div>
       ) : null}
       {isCandidate && !canAccept && acceptDisabledReason ? (
-        <p className="blocked-reason">{acceptDisabledReason}</p>
+        <div className="recovery-card">
+          <h3>{recovery.title}</h3>
+          <p>{recovery.currentDesignMessage}</p>
+          <p>{acceptDisabledReason}</p>
+          <div className="actions compact">
+            {primaryBlockedOutput && recovery.primaryAction === "Revise this part" ? (
+              <button className="secondary" disabled={isPending} onClick={() => onReviseBlockedOutput(primaryBlockedOutput)}>
+                {recovery.primaryAction}
+              </button>
+            ) : primaryBlockedOutput && recovery.primaryAction === "Retry building this part" ? (
+              <button className="secondary" disabled={isPending || retryingOutputId === primaryBlockedOutput.id} onClick={() => onRetryOutput(primaryBlockedOutput)}>
+                {recovery.primaryAction}
+              </button>
+            ) : (
+              <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>{recovery.primaryAction}</button>
+            )}
+            {recovery.secondaryAction === "Try generation again" ? (
+              <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>{recovery.secondaryAction}</button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      {consistency && consistency.status !== "passed" ? (
+        <div className="consistency-block">
+          <h3>Volundr needs to correct an internal design mismatch.</h3>
+          <p>Volundr found an internal mismatch between the approved design plan and generated model.</p>
+          {consistencyFindings.length > 0 ? (
+            <>
+          <h4>What needs attention</h4>
+              <ul>
+                {consistencyFindings.slice(0, 5).map((finding, index) => (
+                  <li key={`${finding.rule_id}-${index}`}>{finding.explanation}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <div className="actions compact">
+            <button className="secondary" disabled={isPending} onClick={onRegenerateFromPlan}>
+              Try generation again
+            </button>
+          </div>
+          {consistency.findings.length > 0 ? (
+            <details>
+              <summary>View technical details</summary>
+              <ul>
+                {consistency.findings.map((finding, index) => (
+                  <li key={`${finding.rule_id}-${index}`}>
+                    {finding.rule_id}: {finding.explanation}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
       ) : null}
       <SourceCheckSummary
         findings={sourceChecks.blocking.concat(sourceChecks.advisory)}
@@ -2916,6 +3995,7 @@ function CandidateReview({
           findings={buckets.advisory}
           title="Advisory warnings"
           onDismissFinding={onDismissFinding}
+          onWarningExpanded={onWarningExpanded}
         />
       ) : null}
       {isCandidate && findings.length === 0 && !geometricAnalysis ? (
@@ -2943,7 +4023,7 @@ function OutputReview({
   }
   return (
     <div className="candidate-findings output-review">
-      <h3>Printable outputs</h3>
+      <h3>Printable parts - {outputs.length}</h3>
       <div className="output-list">
         {outputs.map((output) => (
           <article
@@ -2952,33 +4032,44 @@ function OutputReview({
           >
             <button className="output-select" onClick={() => onSelectOutput(output.id)}>
               <span>{output.label}</span>
-              <span className={`review-state ${output.output_state}`}>{outputStateLabel(output)}</span>
+              <span className={`review-state ${output.execution_state}`}>{outputStateLabel(output)}</span>
             </button>
             <dl className="review-facts compact">
               <dt>Quantity</dt>
               <dd>{output.quantity}</dd>
-              <dt>Need</dt>
-              <dd>{output.required ? "Required" : "Optional"}</dd>
+              <dt>For this design</dt>
+              <dd>{output.required ? "Required part" : "Optional part"}</dd>
               <dt>Size</dt>
               <dd>{outputDimensionsLabel(output)}</dd>
+              <dt>Solid/body checks</dt>
+              <dd>{outputTopologyLabel(output)}</dd>
+              <dt>Solid bodies</dt>
+              <dd>{outputSolidCountLabel(output)}</dd>
+              <dt>Placement</dt>
+              <dd>{outputPlacementLabel(output)}</dd>
               <dt>Warnings</dt>
               <dd>{output.validation_summary.advisory_count}</dd>
             </dl>
             {output.compile_error ? <p className="blocked-reason">{output.compile_error}</p> : null}
             <div className="actions">
-              {output.stl_path && !output.id.startsWith("legacy-") ? (
+              {output.step_path ? (
+                <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/step`}>
+                  STEP
+                </a>
+              ) : null}
+              {output.stl_path ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/stl`}>
                   STL
                 </a>
               ) : null}
-              {output.compile_log_path && !output.id.startsWith("legacy-") ? (
+              {output.compile_log_path ? (
                 <a className="download compact-action" href={`${API_BASE}/revision-outputs/${output.id}/compile-log`}>
-                  Log
+                  Build details
                 </a>
               ) : null}
               {canRetryOutput(output) ? (
                 <button className="secondary compact" disabled={retryingOutputId === output.id} onClick={() => onRetryOutput(output)}>
-                  {retryingOutputId === output.id ? "Retrying" : "Retry"}
+                  {retryingOutputId === output.id ? "Retrying" : "Retry building this part"}
                 </button>
               ) : null}
             </div>
@@ -2997,13 +4088,13 @@ function ComponentRevisionSummaryView({ summary }: { summary: ComponentRevisionS
   const payload = summary.summary;
   return (
     <div className="candidate-findings component-revision-summary">
-      <h3>Component revision</h3>
+      <h3>Change one part</h3>
       <dl className="review-facts compact">
         <dt>Targets</dt>
         <dd>{counts.targetedOutputs}</dd>
-        <dt>Protected</dt>
+        <dt>Preserved parts</dt>
         <dd>{counts.protectedOutputs}</dd>
-        <dt>Drift</dt>
+        <dt>Unexpected changes</dt>
         <dd>{counts.unexpectedProtectedChanges}</dd>
         <dt>Interfaces</dt>
         <dd>{counts.verifiedInterfaces}/{counts.verifiedInterfaces + counts.violatedInterfaces}</dd>
@@ -3101,8 +4192,8 @@ function GeometricFindingGroup({
   return (
     <div className="geometry-group">
       <h4>{title}</h4>
-      {findings.map((finding) => (
-        <article className={`candidate-finding ${finding.severity}`} key={`${finding.rule_id}-${finding.requirement_id ?? finding.feature_id ?? finding.title}`}>
+      {findings.map((finding, index) => (
+        <article className={`candidate-finding ${finding.severity}`} key={`${finding.rule_id}-${finding.requirement_id ?? finding.feature_id ?? finding.title}-${index}`}>
           <div className="result-row">
             <span className={`severity ${finding.severity}`}>{finding.verification_state}</span>
             <span className="rule-id">{finding.rule_id}</span>
@@ -3141,8 +4232,8 @@ function SourceContractRejection({ message }: { message: string | null }) {
       <p className="blocked-reason">{lines[0]}</p>
       {lines.length > 1 ? (
         <ul className="source-check-list">
-          {lines.slice(1).map((line) => (
-            <li key={line}>{line.replace(/^- /, "")}</li>
+          {lines.slice(1).map((line, index) => (
+            <li key={`${line}-${index}`}>{line.replace(/^- /, "")}</li>
           ))}
         </ul>
       ) : null}
@@ -3202,6 +4293,7 @@ function FindingGroup({
   title,
   onDismissFinding,
   onRecoverFinding,
+  onWarningExpanded,
 }: {
   findings: CandidateFinding[];
   title: string;
@@ -3210,12 +4302,17 @@ function FindingGroup({
     finding: CandidateFinding,
     actionKind: CandidateFindingRecoveryActionKind,
   ) => void;
+  onWarningExpanded?: (finding: CandidateFinding) => void;
 }) {
   return (
     <div className="candidate-findings">
       <h3>{title}</h3>
       {findings.map((finding) => (
-        <article className={`candidate-finding ${finding.severity}`} key={finding.id}>
+        <article
+          className={`candidate-finding ${finding.severity}`}
+          key={finding.id}
+          onClick={() => onWarningExpanded?.(finding)}
+        >
           <div className="result-row">
             <span className={`severity ${finding.severity}`}>{finding.severity}</span>
             <span className="rule-id">{finding.rule_id}</span>
@@ -3419,7 +4516,7 @@ function PrintabilityInspector({
             return (
               <article
                 className={`printability-result ${result.severity.toLowerCase()}${dismissed ? " dismissed" : ""}`}
-                key={result.rule_id}
+                key={`${result.rule_id}-${result.explanation}`}
               >
                 <div className="result-row">
                   <span className={`severity ${result.severity.toLowerCase()}`}>{result.severity}</span>
@@ -3457,48 +4554,6 @@ function PrintabilityInspector({
   );
 }
 
-function ParameterControls({
-  parameters,
-  onChange,
-}: {
-  parameters: SourceParameter[];
-  onChange: (parameter: SourceParameter, value: string) => void;
-}) {
-  if (parameters.length === 0) {
-    return null;
-  }
-  return (
-    <section className="parameters" aria-label="User parameters">
-      <h2>Parameters</h2>
-      <div className="parameter-list">
-        {parameters.map((parameter) => (
-          <label className="parameter-control" key={`${parameter.lineIndex}-${parameter.name}`}>
-            {parameter.name}
-            {parameter.type === "boolean" ? (
-              <input
-                checked={parameter.value === "true"}
-                type="checkbox"
-                onChange={(event) => onChange(parameter, event.target.checked ? "true" : "false")}
-              />
-            ) : (
-              <input
-                step="any"
-                type="number"
-                value={parameter.value}
-                onChange={(event) => {
-                  if (isValidParameterValue(parameter, event.target.value)) {
-                    onChange(parameter, event.target.value);
-                  }
-                }}
-              />
-            )}
-          </label>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function MessageList({ compact = false, messages }: { compact?: boolean; messages: ProjectMessage[] }) {
   if (messages.length === 0) {
     return <p className="empty">No messages</p>;
@@ -3532,7 +4587,7 @@ function WorkflowChatCards({
   if (revisionPlan?.review_state === "clarification_required") {
     return (
       <ChatStageCard
-        title="Revision clarification"
+        title="A few details are needed for your change"
         body={revisionPlan.clarification_questions.map((question) => question.question).join(" ")}
       />
     );
@@ -3540,31 +4595,31 @@ function WorkflowChatCards({
   if (revisionPlan?.review_state === "pending_review") {
     return (
       <ChatStageCard
-        title="Revision plan ready"
-        body="Review the scoped change, then approve it to generate a revised candidate."
+        title="Planned changes are ready"
+        body="Review what will change and what will remain unchanged, then generate a new version."
       />
     );
   }
   if (revision?.review_state === "blocked" && blockingFindings.length > 0) {
     return (
       <ChatStageCard
-        title="Candidate blocked"
-        body={`${blockingFindings.length} blocking ${blockingFindings.length === 1 ? "finding needs" : "findings need"} a revision or clarification before acceptance.`}
+        title="This new version needs changes"
+        body={`Your current design is unchanged. ${blockingFindings.length} design ${blockingFindings.length === 1 ? "check needs" : "checks need"} attention before this version can be accepted.`}
       />
     );
   }
   if (designPlan?.review_state === "pending_review") {
     return (
       <ChatStageCard
-        title="Design Plan ready"
-        body="Review the product plan. Approving it will start model generation."
+        title="Proposed design is ready"
+        body="Review the requirements, proposed choices, components, and printable parts before generating the design."
       />
     );
   }
   if (designPlan?.review_state === "clarification_required") {
     return (
       <ChatStageCard
-        title="Plan clarification"
+        title="A few design details are needed"
         body={(designPlan.plan.clarification_questions ?? []).map((question) => question.question ?? "").join(" ")}
       />
     );
@@ -3580,8 +4635,8 @@ function WorkflowChatCards({
   if (designSpecification?.outcome === "generation_ready" && !designPlan) {
     return (
       <ChatStageCard
-        title="Requirements ready"
-        body="Create a Design Plan to turn these requirements into components, parameters, and printable outputs."
+        title="Requirements are ready"
+        body="Review the proposed design to see components, printable parts, and the dimensions Volundr proposes."
       />
     );
   }
@@ -3595,57 +4650,6 @@ function ChatStageCard({ body, title }: { body: string; title: string }) {
       <p>{body}</p>
     </div>
   );
-}
-
-function parseSourceParameters(source: string): SourceParameter[] {
-  const lines = source.split("\n");
-  const sectionStart = lines.findIndex((line) => /USER PARAMETERS/i.test(line));
-  if (sectionStart === -1) {
-    return [];
-  }
-
-  const parameters: SourceParameter[] = [];
-  for (let index = sectionStart + 1; index < lines.length; index += 1) {
-    const line = lines[index];
-    if (/^\s*\/\/\s*=+\s*$/.test(line)) {
-      continue;
-    }
-    if (/^\s*\/\/\s*(?:=+\s*)?[A-Za-z][A-Za-z0-9 _-]*(?:\s*=+)?\s*$/.test(line)) {
-      break;
-    }
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(-?\d+(?:\.\d+)?|true|false)\s*;/);
-    if (!match) {
-      continue;
-    }
-    const value = match[2];
-    parameters.push({
-      name: match[1],
-      value,
-      type: value === "true" || value === "false" ? "boolean" : "number",
-      lineIndex: index,
-    });
-  }
-  return parameters;
-}
-
-function updateSourceParameter(source: string, parameter: SourceParameter, value: string): string {
-  const lines = source.split("\n");
-  const line = lines[parameter.lineIndex];
-  if (!line) {
-    return source;
-  }
-  lines[parameter.lineIndex] = line.replace(
-    /^(\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*)(-?\d+(?:\.\d+)?|true|false)(\s*;)/,
-    `$1${value}$3`,
-  );
-  return lines.join("\n");
-}
-
-function isValidParameterValue(parameter: SourceParameter, value: string): boolean {
-  if (parameter.type === "boolean") {
-    return value === "true" || value === "false";
-  }
-  return /^-?\d+(?:\.\d*)?$/.test(value);
 }
 
 function severityRank(severity: PrintabilitySeverity): number {
@@ -3772,6 +4776,13 @@ function StlViewer({
   const gizmoRef = useRef<HTMLDivElement | null>(null);
   const fitViewRef = useRef<() => void>(() => undefined);
   const setViewRef = useRef<(view: ViewerCameraPreset) => void>(() => undefined);
+  const [showViewerHint, setShowViewerHint] = useState(() => {
+    try {
+      return window.localStorage.getItem("volundr.viewer-hint-dismissed") !== "true";
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -4010,11 +5021,29 @@ function StlViewer({
         <button type="button" onClick={() => setViewRef.current("top")}>
           Top
         </button>
+        <button type="button" onClick={() => setViewRef.current("right")}>
+          Right
+        </button>
         <button type="button" onClick={() => setViewRef.current("iso")}>
           Iso
         </button>
       </div>
-      <div className="viewer-help">Drag orbit · right drag pan · wheel zoom</div>
+      {showViewerHint ? (
+        <button
+          className="viewer-help"
+          type="button"
+          onClick={() => {
+            setShowViewerHint(false);
+            try {
+              window.localStorage.setItem("volundr.viewer-hint-dismissed", "true");
+            } catch {
+              return;
+            }
+          }}
+        >
+          Drag to orbit · right drag to pan · wheel to zoom · dismiss
+        </button>
+      ) : null}
       <div
         aria-label="Orientation gizmo"
         className="viewer-gizmo"
@@ -4026,7 +5055,7 @@ function StlViewer({
   );
 }
 
-type ViewerCameraPreset = "front" | "iso" | "top";
+type ViewerCameraPreset = "front" | "iso" | "top" | "right";
 
 function orientGeometryOnBuildPlate(geometry: THREE.BufferGeometry) {
   geometry.computeBoundingBox();
@@ -4044,6 +5073,9 @@ function cameraPresetDirection(preset: ViewerCameraPreset) {
   }
   if (preset === "top") {
     return new THREE.Vector3(0, -0.001, 1).normalize();
+  }
+  if (preset === "right") {
+    return new THREE.Vector3(1, 0, 0.22).normalize();
   }
   return new THREE.Vector3(1.15, -1.35, 0.82).normalize();
 }
@@ -4185,11 +5217,12 @@ function highlightColor(severity: PrintabilitySeverity): number {
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
+    headers: buildCorrelatedHeaders({
       "Content-Type": "application/json",
       ...init.headers,
-    },
+    }, workflowCorrelation),
   });
+  updateWorkflowCorrelation(response);
   if (!response.ok) {
     throw new Error(await responseErrorMessage(response));
   }
@@ -4199,11 +5232,12 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
 async function requestEmpty(path: string, init: RequestInit): Promise<void> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
+    headers: buildCorrelatedHeaders({
       "Content-Type": "application/json",
       ...init.headers,
-    },
+    }, workflowCorrelation),
   });
+  updateWorkflowCorrelation(response);
   if (!response.ok) {
     throw new Error(await responseErrorMessage(response));
   }
@@ -4211,13 +5245,78 @@ async function requestEmpty(path: string, init: RequestInit): Promise<void> {
 
 async function requestText(path: string, init: RequestInit): Promise<string> {
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: {},
     ...init,
+    headers: buildCorrelatedHeaders(init.headers, workflowCorrelation),
   });
+  updateWorkflowCorrelation(response);
   if (!response.ok) {
     throw new Error(await response.text());
   }
   return response.text();
+}
+
+function updateWorkflowCorrelation(response: Response) {
+  const workflowRunId = response.headers.get("x-workflow-run-id");
+  const correlationId = response.headers.get("x-workflow-correlation-id");
+  if (workflowRunId) {
+    workflowCorrelation.workflowRunId = workflowRunId;
+  }
+  if (correlationId) {
+    workflowCorrelation.correlationId = correlationId;
+  }
+}
+
+async function recordFrontendWorkflowEvent(
+  projectId: string | null | undefined,
+  actionName: Parameters<typeof createFrontendWorkflowEvent>[0]["actionName"],
+  userVisibleState: string,
+  metadata: Record<string, unknown> = {},
+) {
+  if (!projectId || !workflowCorrelation.workflowRunId || !workflowCorrelation.correlationId) {
+    return;
+  }
+  try {
+    await requestEmpty("/workflow/frontend-events", {
+      method: "POST",
+      body: JSON.stringify({
+        frontend_session_id: frontendSessionId,
+        workflow_run_id: workflowCorrelation.workflowRunId,
+        correlation_id: workflowCorrelation.correlationId,
+        project_id: projectId,
+        events: [
+          createFrontendWorkflowEvent({
+            actionName,
+            route: window.location.pathname,
+            userVisibleState,
+            metadata: {
+              ...userTestingMetadata(),
+              ...metadata,
+            },
+          }),
+        ],
+      }),
+    });
+  } catch {
+    return;
+  }
+}
+
+function userTestingMetadata(): {
+  testing_session: boolean;
+  test_scenario_id: string | null;
+} {
+  const scenario = new URLSearchParams(window.location.search).get("testScenario");
+  const testScenarioId = scenario && /^[a-z0-9-]{1,80}$/i.test(scenario) ? scenario : null;
+  return {
+    testing_session: Boolean(testScenarioId),
+    test_scenario_id: testScenarioId,
+  };
+}
+
+async function copyWorkflowRunId(workflowRunId: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(workflowRunId);
+  }
 }
 
 function normalizeConfigurationValue(

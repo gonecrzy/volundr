@@ -4,6 +4,7 @@ import {
   canAcceptRevision,
   candidateFindingBuckets,
   candidateFindingRecoveryActions,
+  designConsistencyLabel,
   revisionViewerLabel,
   revisionWorkflowLabel,
   sourceCheckFindings,
@@ -12,7 +13,10 @@ import {
   revisionPromptFromGeometricFinding,
   revisionPromptFromCandidateFinding,
   outputDimensionsLabel,
+  outputPlacementLabel,
+  outputSolidCountLabel,
   outputStateLabel,
+  outputTopologyLabel,
   canRetryOutput,
   type GeometricFinding,
   type CandidateFinding,
@@ -85,17 +89,28 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
     output_id: "body",
     component_id: "body",
     component_ids: ["body"],
-    output_state: "ready",
+    execution_state: "ready",
     output_type: "printable_component",
     label: "Body",
     filename: "body.stl",
     quantity: 1,
     required: true,
-    module_name: "body",
+    entrypoint: "body",
     stl_path: "projects/example/body.stl",
     stl_hash: "hash",
+    step_path: "projects/example/body.step",
+    step_hash: "step-hash",
+    expected_solid_count: 1,
+    detected_solid_count: 1,
+    allow_disconnected_solids: false,
     compile_log_path: "projects/example/body.log",
     compile_error: null,
+    topology_metadata: {
+      valid: true,
+      expected_solid_count: 1,
+      detected_solid_count: 1,
+      shell_count: 1,
+    },
     metadata: {
       size_x_mm: 80,
       size_y_mm: 50,
@@ -115,22 +130,22 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
 describe("candidate view helpers", () => {
   it("labels active, candidate, and historical revisions distinctly", () => {
     expect(revisionViewerLabel(revision({ id: "active-revision", is_accepted: true }), project)).toBe(
-      "Active design",
+      "Current design",
     );
     expect(revisionViewerLabel(revision({ review_state: "ready_with_warnings" }), project)).toBe(
-      "Candidate",
+      "New version",
     );
     expect(revisionViewerLabel(revision({ id: "old", is_accepted: true }), project)).toBe(
-      "Historical revision",
+      "Earlier version",
     );
   });
 
   it("renders stable candidate state text", () => {
-    expect(revisionWorkflowLabel(revision({ review_state: "ready" }))).toBe("Ready candidate");
+    expect(revisionWorkflowLabel(revision({ review_state: "ready" }))).toBe("Ready to review");
     expect(revisionWorkflowLabel(revision({ review_state: "ready_with_warnings" }))).toBe(
       "Ready with warnings",
     );
-    expect(revisionWorkflowLabel(revision({ review_state: "blocked" }))).toBe("Blocked candidate");
+    expect(revisionWorkflowLabel(revision({ review_state: "blocked" }))).toBe("Needs changes");
   });
 
   it("enables acceptance only for ready candidates without blocking findings", () => {
@@ -141,6 +156,28 @@ describe("candidate view helpers", () => {
         revision({
           review_state: "blocked",
           validation_summary: { blocking_count: 1, advisory_count: 0, dismissed_count: 0 },
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      canAcceptRevision(
+        revision({
+          design_consistency: {
+            status: "blocked",
+            pre_execution_passed: false,
+            post_execution_passed: false,
+            revision_base_ready: false,
+            configuration_ready: false,
+            blocking_count: 1,
+            advisory_count: 0,
+            findings: [
+              {
+                rule_id: "design_artifact.output_missing",
+                explanation: "planned output `body` has no matching CadQuery PrintableOutput",
+                is_blocking: true,
+              },
+            ],
+          },
         }),
       ),
     ).toBe(false);
@@ -155,6 +192,57 @@ describe("candidate view helpers", () => {
         }),
       ),
     ).toBe("Resolve 2 blocking findings with a new revision before accepting.");
+    expect(
+      acceptDisabledReason(
+        revision({
+          design_consistency: {
+            status: "blocked",
+            pre_execution_passed: false,
+            post_execution_passed: false,
+            revision_base_ready: false,
+            configuration_ready: false,
+            blocking_count: 1,
+            advisory_count: 0,
+            findings: [],
+          },
+        }),
+      ),
+    ).toBe("Resolve 1 internal design mismatch before accepting.");
+  });
+
+  it("labels design consistency state", () => {
+    expect(
+      designConsistencyLabel(
+        revision({
+          design_consistency: {
+            status: "passed",
+            pre_execution_passed: true,
+            post_execution_passed: true,
+            revision_base_ready: true,
+            configuration_ready: true,
+            blocking_count: 0,
+            advisory_count: 0,
+            findings: [],
+          },
+        }),
+      ),
+    ).toBe("Passed");
+    expect(
+      designConsistencyLabel(
+        revision({
+          design_consistency: {
+            status: "blocked",
+            pre_execution_passed: false,
+            post_execution_passed: false,
+            revision_base_ready: false,
+            configuration_ready: false,
+            blocking_count: 3,
+            advisory_count: 0,
+            findings: [],
+          },
+        }),
+      ),
+    ).toBe("Blocked - 3 internal mismatches");
   });
 
   it("splits blocking and advisory findings for display", () => {
@@ -170,7 +258,7 @@ describe("candidate view helpers", () => {
   it("extracts source-contract findings for source check display", () => {
     const findings = [
       finding({ id: "mesh", category: "mesh", rule_id: "mesh.empty_or_zero_volume" }),
-      finding({ id: "source", category: "source_structure", rule_id: "source_structure.missing_main_model_module" }),
+      finding({ id: "source", category: "source_structure", rule_id: "cadquery.contract" }),
       finding({
         id: "spec",
         category: "specification_compliance",
@@ -297,17 +385,64 @@ describe("candidate view helpers", () => {
   });
 
   it("labels output states and dimensions", () => {
-    expect(outputStateLabel(revisionOutput({ output_state: "ready_with_warnings" }))).toBe(
+    expect(outputStateLabel(revisionOutput({ execution_state: "ready_with_warnings" }))).toBe(
       "Ready with warnings",
     );
-    expect(outputStateLabel(revisionOutput({ output_state: "blocked" }))).toBe("Blocked");
+    expect(outputStateLabel(revisionOutput({ execution_state: "blocked" }))).toBe("Blocked");
     expect(outputDimensionsLabel(revisionOutput({}))).toBe("80 x 50 x 6 mm");
     expect(outputDimensionsLabel(revisionOutput({ metadata: null }))).toBe("Dimensions unavailable");
   });
 
+  it("labels output topology and solid-count checks", () => {
+    expect(outputTopologyLabel(revisionOutput({}))).toBe("Topology valid");
+    expect(outputSolidCountLabel(revisionOutput({}))).toBe("Solids 1/1");
+    expect(
+      outputTopologyLabel(
+        revisionOutput({
+          topology_metadata: { valid: false, failure_reason: "solid_count_mismatch" },
+        }),
+      ),
+    ).toBe("Topology failed: solid count mismatch");
+    expect(
+      outputSolidCountLabel(
+        revisionOutput({
+          expected_solid_count: null,
+          detected_solid_count: null,
+          topology_metadata: null,
+        }),
+      ),
+    ).toBe("Solid count unavailable");
+  });
+
+  it("labels output print placement without exposing raw transforms", () => {
+    expect(outputPlacementLabel(revisionOutput({ topology_metadata: null }))).toBe("Placement not reported");
+    expect(
+      outputPlacementLabel(
+        revisionOutput({
+          topology_metadata: {
+            valid: true,
+            placement_policy: "cadquery-output-placement-v1",
+            print_transform: { translation: [0, 0, 0], rotation: [0, 0, 0] },
+          },
+        }),
+      ),
+    ).toBe("Placed on build plate");
+    expect(
+      outputPlacementLabel(
+        revisionOutput({
+          topology_metadata: {
+            valid: true,
+            placement_policy: "cadquery-output-placement-v1",
+            print_transform: { translation: [0, 0, 2], rotation: [0, 0, 0] },
+          },
+        }),
+      ),
+    ).toBe("Raised 2 mm to build plate");
+  });
+
   it("shows retry only for failed outputs", () => {
-    expect(canRetryOutput(revisionOutput({ output_state: "failed" }))).toBe(true);
-    expect(canRetryOutput(revisionOutput({ output_state: "blocked" }))).toBe(false);
-    expect(canRetryOutput(revisionOutput({ output_state: "ready" }))).toBe(false);
+    expect(canRetryOutput(revisionOutput({ execution_state: "failed" }))).toBe(true);
+    expect(canRetryOutput(revisionOutput({ execution_state: "blocked" }))).toBe(false);
+    expect(canRetryOutput(revisionOutput({ execution_state: "ready" }))).toBe(false);
   });
 });

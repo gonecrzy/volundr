@@ -7,6 +7,7 @@ import {
   revisionPlanStageLabel,
   revisionPlanSummaryCounts,
   revisionSuccessBuckets,
+  shouldLoadComponentRevisionSummary,
   type RevisionComplianceResult,
   type RevisionPlanSummary,
   type RevisionSuccessResult,
@@ -67,15 +68,15 @@ function success(overrides: Partial<RevisionSuccessResult>): RevisionSuccessResu
 
 describe("revision plan view helpers", () => {
   it("renders stable lifecycle labels", () => {
-    expect(revisionPlanStageLabel(null)).toBe("Revision plan not created");
+    expect(revisionPlanStageLabel(null)).toBe("Waiting for planned changes");
     expect(revisionPlanStageLabel(plan({ review_state: "pending_review" }))).toBe(
-      "Revision plan review",
+      "Ready for your review",
     );
     expect(revisionPlanStageLabel(plan({ review_state: "approved" }))).toBe(
-      "Revision plan approved",
+      "Ready to generate",
     );
     expect(revisionPlanStageLabel(plan({ review_state: "clarification_required" }))).toBe(
-      "Revision clarification required",
+      "A few change details are needed",
     );
   });
 
@@ -89,6 +90,11 @@ describe("revision plan view helpers", () => {
         plan({ review_state: "approved", generated_revision_id: "revision-1" }),
       ),
     ).toBe(false);
+  });
+
+  it("does not request a component summary before a candidate exists", () => {
+    expect(shouldLoadComponentRevisionSummary(plan({}))).toBe(false);
+    expect(shouldLoadComponentRevisionSummary(plan({ generated_revision_id: "revision-1" }))).toBe(true);
   });
 
   it("summarizes revision targets and protections", () => {

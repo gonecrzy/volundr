@@ -41,7 +41,7 @@ class DesignPlan(Base):
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
     schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
     prompt_template_version: Mapped[str] = mapped_column(String(120), nullable=False)
-    gemini_ruleset_version: Mapped[str] = mapped_column(String(120), nullable=False)
+    ruleset_version: Mapped[str] = mapped_column(String(120), nullable=False)
     provider: Mapped[str] = mapped_column(String(80), nullable=False)
     provider_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
     raw_response_path: Mapped[str | None] = mapped_column(String(500), nullable=True)

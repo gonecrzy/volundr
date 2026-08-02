@@ -2,6 +2,19 @@
 
 This document defines Volundr's canonical output pipeline for approved Design Plans.
 
+## CadQuery Transition Status
+
+The canonical implementation is CadQuery `Product` output execution. Every
+`PrintableOutput` has an output ID, component ID, quantity, required flag,
+STEP/STL artifacts, optional BREP artifact, topology metadata, mesh metadata,
+expected solid count, detected solid count, and disconnected-solid policy.
+
+Current implementation: the CadQuery runner and worker boundary execute a
+`cadquery-v1` `Product`, select requested `PrintableOutput` records, export
+STEP/STL plus optional BREP artifacts, inspect STL mesh metadata, persist
+topology metadata, preserve optional output failures, and fail the job when a
+required output fails.
+
 ## Output Model
 
 A Design Plan `printable_outputs` entry represents one generated mesh artifact, not one physical copy. Quantity is stored on the output:
@@ -12,7 +25,7 @@ A Design Plan `printable_outputs` entry represents one generated mesh artifact, 
   "label": "Carry handle",
   "component_id": "carry_handle",
   "component_ids": ["carry_handle"],
-  "module_name": "carry_handle",
+  "entrypoint": "carry_handle",
   "filename": "carry_handle.stl",
   "quantity": 1,
   "required": true,
@@ -30,56 +43,65 @@ Supported printable output types:
 
 Purchased hardware and non-printable reference objects may exist in a Design Plan, but they are not compiled as STL outputs.
 
-## OpenSCAD Selection Contract
+## CadQuery Output Contract
 
-Approved Design Plan source uses one authoritative OpenSCAD file and command-line output selection:
+Approved Design Plan source uses one authoritative CadQuery Python file and
+declares outputs through `Product.outputs`:
 
-```scad
-selected_output = "carrier_body";
+```python
+PARAMETERS = [...]
 
-// @volundr-output carrier_body module=carrier_body required=true filename=carrier_body.stl components=carrier_body
-module carrier_body() {
-    ...
-}
-
-// @volundr-output carry_handle module=carry_handle required=true filename=carry_handle.stl components=carry_handle
-module carry_handle() {
-    ...
-}
-
-module render_selected_output() {
-    if (selected_output == "carrier_body") {
-        carrier_body();
-    } else if (selected_output == "carry_handle") {
-        carry_handle();
-    } else {
-        assert(false, str("Unknown selected_output: ", selected_output));
-    }
-}
-
-render_selected_output();
+def build(params):
+    body = ...
+    handle = ...
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="carrier_body",
+                label="Carrier body",
+                component_id="carrier_body",
+                component_ids=("carrier_body",),
+                model=body,
+                required=True,
+                expected_solid_count=1,
+            ),
+            PrintableOutput(
+                output_id="carry_handle",
+                label="Carry handle",
+                component_id="carry_handle",
+                component_ids=("carry_handle",),
+                model=handle,
+                required=True,
+                expected_solid_count=1,
+            ),
+        ],
+    )
 ```
 
 Rules:
 
-- every planned printable output has one matching `@volundr-output` marker
-- every output marker references an existing module
+- every planned printable output has one matching `PrintableOutput`
 - output IDs are unique within the plan
 - filenames are normalized before persistence
 - required outputs cannot be silently omitted
-- single-output plans use the same selector contract
-- legacy/manual source may still use `main_model();`
+- single-output plans use the same `Product` contract
+- generated code does not choose artifact paths or write output files directly
 
-## Compilation Lifecycle
+## CadQuery Execution Lifecycle
 
 ```text
 approved Design Plan
-  -> generate authoritative SCAD
+  -> generate authoritative CadQuery Python
   -> source-contract validation
-  -> resolve printable output manifest
-  -> compile each output with -D selected_output="output_id"
+  -> submit structured worker job
+  -> validate typed parameters
+  -> call build(params)
+  -> resolve Product outputs
+  -> validate B-Rep topology per output
+  -> export STEP and STL per output
   -> mesh inspection per output
-  -> geometric and printability checks per output
+  -> printability checks per output
   -> assembly validation summary
   -> assembly candidate classification
 ```
@@ -138,14 +160,15 @@ Each assembly revision persists `output-manifest.json`:
   "revision_id": "uuid",
   "design_plan_id": "uuid",
   "source": {
-    "filename": "project.scad",
+    "filename": "source.py",
     "sha256": "..."
   },
   "outputs": [
     {
       "output_id": "carrier_body",
       "component_id": "carrier_body",
-      "filename": "carrier_body.stl",
+      "step_path": "step/carrier_body.step",
+      "stl_path": "stl/carrier_body.stl",
       "quantity": 1,
       "required": true,
       "state": "ready",
@@ -164,9 +187,9 @@ The manifest is reproducible from persisted revision and output records.
 
 ## Retry Behavior
 
-Retry recompiles a failed output from the same authoritative source hash and same `selected_output` value.
+Retry executes a failed output from the same authoritative source hash, parameter hash, and output ID.
 
-Retry does not call Gemini and does not modify source geometry. It is intended for OpenSCAD process failures, timeouts, transient worker failures, or artifact-write failures. Source-contract violations, missing markers, empty meshes, and blocking geometry/printability violations require a new generation or later structured revision.
+Retry does not call Gemini and does not modify source geometry. It is intended for CAD process failures, timeouts, transient worker failures, or artifact-write failures. Source-contract violations, missing outputs, invalid topology, empty meshes, and blocking geometry/printability violations require a new generation or later structured revision.
 
 ## Export Package
 
@@ -179,9 +202,12 @@ project-name/
 ├── design-plan.json
 ├── configuration.json              # present for configuration-generated revisions
 ├── parameter-overrides.json        # present for configuration-generated revisions
-├── project.scad
+├── source.py
 ├── output-manifest.json
 ├── assembly-notes.md
+├── step/
+│   ├── carrier_body.step
+│   └── carry_handle.step
 └── stl/
     ├── carrier_body.stl
     └── carry_handle.stl

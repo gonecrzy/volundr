@@ -3,10 +3,12 @@ import contextlib
 import json
 import os
 import signal
+import time
 from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
+from app.services.ai.model_policy import GeminiModelPolicy, ModelRoutingDecision, PromptMode
 from app.services.ai.provider import (
     DesignPlanRequest,
     DesignPlanResult,
@@ -16,21 +18,31 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
     RevisionPlanRequest,
     RevisionPlanResult,
+    SourceBriefRequest,
+    SourceBriefResult,
 )
+from app.services.cad.cadquery_source_authority import (
+    format_authoritative_identity_section,
+)
+from app.services.cad.geometry_bodies import (
+    GEOMETRY_BODIES_SCHEMA_VERSION,
+    build_geometry_function_inventory,
+)
+from app.services.cad.source_scaffold import SCAFFOLD_VERSION
+from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
-REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
+REQUIREMENTS_PROMPT_VERSION = "requirements-v3"
+SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v7"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
-OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v3"
-PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION = "openscad-generation-v5"
-STRUCTURED_REVISION_PROMPT_VERSION = "openscad-revision-v2"
-COMPONENT_REVISION_PROMPT_VERSION = "openscad-component-revision-v1"
-SCOPE_CORRECTION_PROMPT_VERSION = "scope-correction-v1"
-LEGACY_INITIAL_PROMPT_VERSION = "legacy-initial-v1"
-LEGACY_REVISION_PROMPT_VERSION = "legacy-revision-v1"
-CONTRACT_REPAIR_PROMPT_VERSION = "contract-repair-v2"
-LEGACY_COMPILE_REPAIR_PROMPT_VERSION = "legacy-compile-repair-v1"
+SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
+CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
+CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
+CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
+CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
 
 class GeminiCliProvider:
@@ -41,21 +53,37 @@ class GeminiCliProvider:
         model: str | None = None,
         timeout_seconds: int | None = None,
         policy_path: str | Path | None = None,
+        model_policy: GeminiModelPolicy | None = None,
     ) -> None:
         self.binary = binary or settings.gemini_binary
-        self.model = model or settings.gemini_model
+        configured_model = model or settings.gemini_model
+        self.model_policy = model_policy or GeminiModelPolicy.from_settings(
+            settings,
+            general_model=configured_model,
+        )
+        self.model = model or self.model_policy.general_model
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
         configured_policy = policy_path if policy_path is not None else settings.gemini_policy_path
         self.policy_path = Path(configured_policy) if configured_policy else Path(__file__).with_name("gemini_no_tools_policy.toml")
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
-        prompt = self.build_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        return await self.generate_cadquery_model(request)
+
+    async def generate_cadquery_model(
+        self,
+        request: ModelGenerationRequest,
+    ) -> ModelGenerationResult:
+        prompt = self.build_cadquery_prompt(request)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return ModelGenerationResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def extract_requirements(
@@ -63,36 +91,129 @@ class GeminiCliProvider:
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
         prompt = self.build_requirement_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return RequirementExtractionResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
+        )
+
+    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
+        prompt = self.build_source_brief_prompt(request)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
+
+        return SourceBriefResult(
+            raw_output=raw_output,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:
         prompt = self.build_design_plan_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return DesignPlanResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
     async def create_revision_plan(self, request: RevisionPlanRequest) -> RevisionPlanResult:
         prompt = self.build_revision_plan_prompt(request)
-        raw_output = await self._run_prompt(prompt)
+        raw_output, routing, latency_ms, actual_model, usage, request_id = await self._run_routed_prompt(prompt, request)
 
         return RevisionPlanResult(
             raw_output=raw_output,
-            provider="gemini_cli",
-            provider_model=self.model,
+            provider=self.provider_id,
+            provider_model=actual_model,
+            routing_metadata=routing,
+            provider_latency_ms=latency_ms,
+            usage_metadata=usage,
+            provider_request_id=request_id,
         )
 
-    async def _run_prompt(self, prompt: str) -> str:
-        command = self.build_command(prompt)
+    @property
+    def provider_id(self) -> str:
+        return "gemini_cli"
+
+    def routing_for_request(self, request: Any) -> ModelRoutingDecision:
+        if isinstance(request, (RequirementExtractionRequest, SourceBriefRequest)):
+            prompt_mode = PromptMode.REQUIREMENTS
+        elif isinstance(request, DesignPlanRequest):
+            prompt_mode = PromptMode.DESIGN_PLAN
+        elif isinstance(request, RevisionPlanRequest):
+            prompt_mode = PromptMode.REVISION_PLANNING
+        elif isinstance(request, ModelGenerationRequest):
+            if request.geometry_body_diagnostics:
+                prompt_mode = PromptMode.CADQUERY_GEOMETRY_BODY_REPAIR
+            elif request.revision_plan and request.scoped_revision_context:
+                prompt_mode = PromptMode.CADQUERY_COMPONENT_REVISION
+            else:
+                prompt_mode = PromptMode.CADQUERY_GEOMETRY_BODIES
+        else:
+            raise TypeError(f"unsupported request type for model routing: {type(request).__name__}")
+        resolved = self.model_policy.resolve(prompt_mode)
+        return ModelRoutingDecision(
+            prompt_mode=resolved.prompt_mode,
+            provider=self.provider_id,
+            selected_model=resolved.selected_model,
+            policy_version=resolved.policy_version,
+            routing_reason=resolved.routing_reason,
+            fallback_chain=resolved.fallback_chain,
+        )
+
+    async def _run_routed_prompt(
+        self,
+        prompt: str,
+        request: Any,
+    ) -> tuple[str, dict[str, Any], int, str, dict[str, Any] | None, str | None]:
+        decision = self.routing_for_request(request)
+        started = time.perf_counter()
+        actual_model = decision.selected_model
+        routing_reason = decision.routing_reason
+        try:
+            response = await self._run_prompt(prompt, model=decision.selected_model)
+        except RuntimeError as exc:
+            if (
+                decision.selected_model == self.model_policy.general_model
+                or not GeminiModelPolicy.is_operational_failure(str(exc))
+            ):
+                raise
+            response = await self._run_prompt(prompt, model=self.model_policy.general_model)
+            actual_model = self.model_policy.general_model
+            routing_reason = "operational_fallback"
+        latency_ms = max(0, round((time.perf_counter() - started) * 1000))
+        if isinstance(response, tuple):
+            raw_output, actual_model = response
+        else:
+            raw_output = response
+        routing = decision.as_dict()
+        routing["routing_reason"] = routing_reason
+        routing["actual_model"] = actual_model
+        return (
+            raw_output,
+            routing,
+            latency_ms,
+            actual_model,
+            getattr(self, "_last_usage_metadata", None),
+            getattr(self, "_last_provider_request_id", None),
+        )
+
+    async def _run_prompt(self, prompt: str, *, model: str | None = None) -> str:
+        command = self.build_command(prompt, model=model)
 
         process = await asyncio.create_subprocess_exec(
             *command,
@@ -165,10 +286,11 @@ class GeminiCliProvider:
         with contextlib.suppress(ProcessLookupError):
             os.killpg(pid, sig)
 
-    def build_command(self, prompt: str) -> list[str]:
+    def build_command(self, prompt: str, *, model: str | None = None) -> list[str]:
         command = [self.binary, "-p", prompt, "--output-format", "text", "--skip-trust"]
-        if self.model:
-            command.extend(["--model", self.model])
+        selected_model = self.model if model is None else model
+        if selected_model:
+            command.extend(["--model", selected_model])
         if self.policy_path:
             command.extend(["--policy", str(self.policy_path)])
         return command
@@ -183,27 +305,38 @@ class GeminiCliProvider:
     def gemini_ruleset_version(self) -> str:
         return GEMINI_RULESET_VERSION
 
+    @property
+    def ruleset_version(self) -> str:
+        return self.gemini_ruleset_version
+
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if request.geometry_body_diagnostics:
+            return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
+        if request.generation_contract_version == SCAFFOLD_VERSION:
+            return CADQUERY_GEOMETRY_BODY_PROMPT_VERSION
+        if request.compiler_diagnostics:
+            return CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION
         if request.contract_diagnostics:
             return CONTRACT_REPAIR_PROMPT_VERSION
         if request.scope_diagnostics:
             return SCOPE_CORRECTION_PROMPT_VERSION
-        if request.compiler_diagnostics:
-            return LEGACY_COMPILE_REPAIR_PROMPT_VERSION
         if request.revision_plan and request.scoped_revision_context:
-            return COMPONENT_REVISION_PROMPT_VERSION
+            return CADQUERY_COMPONENT_REVISION_PROMPT_VERSION
         if request.revision_plan:
-            return STRUCTURED_REVISION_PROMPT_VERSION
-        if request.current_source:
-            return LEGACY_REVISION_PROMPT_VERSION
-        if request.design_plan:
-            return PLANNED_OPENSCAD_GENERATION_PROMPT_VERSION
-        if request.design_specification:
-            return OPENSCAD_GENERATION_PROMPT_VERSION
-        return LEGACY_INITIAL_PROMPT_VERSION
+            return "cadquery-revision-v1"
+        return CADQUERY_SOURCE_PROMPT_VERSION
 
     def requirement_prompt_template_version(self) -> str:
         return REQUIREMENTS_PROMPT_VERSION
+
+    def source_brief_prompt_template_version(self) -> str:
+        return SOURCE_BRIEF_PROMPT_VERSION
+
+    def cadquery_prompt_template_version(self) -> str:
+        return CADQUERY_SOURCE_PROMPT_VERSION
+
+    def cadquery_generation_contract_version(self) -> str:
+        return SCAFFOLD_VERSION
 
     def design_plan_prompt_template_version(self) -> str:
         return DESIGN_PLAN_PROMPT_VERSION
@@ -223,10 +356,433 @@ class GeminiCliProvider:
         }
 
     def build_prompt(self, request: ModelGenerationRequest) -> str:
-        return self._build_prompt(request)
+        return self.build_cadquery_prompt(request)
+
+    def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        if request.generation_contract_version == SCAFFOLD_VERSION or request.geometry_body_diagnostics:
+            return self.build_scaffold_geometry_prompt(request)
+        parts = [
+            "You generate CadQuery Python for Volundr.",
+            "Return only a single fenced python block. Do not include prose outside the block.",
+            "The response must start with ```python and end with ```.",
+            "Follow these rules exactly:",
+            "- Use millimeters.",
+            "- Follow the cadquery-v1 source contract.",
+            "- The only imports allowed are exactly `import cadquery as cq` and `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface`.",
+            "- Define typed `ParameterSpec` entries for user-adjustable dimensions and options.",
+            "- Runtime signatures: `ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False, source_requirement_id=None, source=None)`, `PrintableOutput(output_id, label, model, component_id=None, component_ids=(), quantity=1, required=True, expected_solid_count=1, allow_disconnected_solids=False, metadata={})`, and `Product(outputs, parameters=(), schema_version=\"cadquery-v1\", metadata={})`.",
+            "- Use static ownership decorators on top-level helpers: `@component(\"component_id\")`, `@feature(\"feature_id\", component=\"component_id\")`, `@shared_helper(\"helper_id\")`, and `@protected_interface(\"interface_id\", parameters=(\"parameter_id\",))`.",
+            "- Decorators are metadata only; still return the complete authoritative source from build(params), never source fragments.",
+            "- Do not use unsupported ParameterSpec aliases such as description, min, max, minimum, maximum, value, default_value, units, or help; use `min_value` and `max_value` exactly for numeric ranges.",
+            "- ParameterSpec type must be exactly one of float, int, bool, str, or enum; never use number.",
+            "- Always quote ParameterSpec type values, for example type=\"float\"; never write type=float.",
+            "- ParameterSpec default must be a literal value, not a variable reference.",
+            "- When a Design Plan parameter has source_requirement_id or source, copy those fields into its ParameterSpec exactly.",
+            "- Define all ParameterSpec entries at module level in `PARAMETERS = [...]` before build(params); never inside build(params).",
+            "- Define `def build(params):` with exactly one parameter named params.",
+            "- Do not define `build_model()`; generated source must use `build(params)`.",
+            "- Return exactly one `Product` from build(params).",
+            "- Every output must be a `PrintableOutput` with output_id, component_id or component_ids, label, model, quantity, required, expected_solid_count, and allow_disconnected_solids.",
+            "- Top-level statements may only be the allowed imports, literal parameter metadata, optional helper function definitions, and `def build(params):`.",
+            "- Simple helper functions may also be defined inside build(params) when that makes the model easier to structure.",
+            "- Do not run CadQuery operations, construct geometry, call helper functions, or do any other execution at top level.",
+            "- Use params[\"parameter_id\"] inside build(params) instead of hard-coding editable dimensions.",
+            "- build(params) must create CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable objects for PrintableOutput.model.",
+            "- Do not use try/except; generated CadQuery must fail visibly so diagnostics can identify the real API or geometry issue.",
+            "- Do not wrap fillet(), chamfer(), or optional details in try/except; use a simple known-good operation or omit the detail.",
+            "- Do not import or use `math`; the only import allowed by the runner is `import cadquery as cq`.",
+            "- Avoid sin/cos/trigonometric loops. Use fixed point lists or CadQuery polygon/spline profiles instead of sin/cos loops.",
+            "- Do not call `map()`, `.split()`, or parse string parameters; use literal numeric parameters directly.",
+            "- If `thread_spec` is requested, expose it as a numeric millimeter diameter such as `thread_spec = 6.0`, not a string like `M6x1`.",
+            "- Do not write files, read files, import local modules, use shell commands, network access, subprocesses, pathlib, os, sys, eval, exec, open(), getattr(), globals(), locals(), or vars().",
+            "- Do not use syntax from other CAD languages. This is Python CadQuery.",
+            "- Prefer real CAD operations such as box(), cylinder(), workplane(), hole(), cutBlind(), cutThruAll(), union(), cut(), extrude(), loft(), fillet(), chamfer(), translate(), rotate(), and mirror().",
+            "- Extrude only closed profiles such as rect(), circle(), polygon(), or polyline(...).close(); do not extrude a bare lineTo() path.",
+            "- For one-piece outputs, boolean-union additive solids into one returned model unless the user explicitly requests separate parts.",
+            "- Return the main fused solid directly, not a Compound of loose solids.",
+            "- Model holes and cutouts as subtractive CadQuery features such as hole(), cutBlind(), cutThruAll(), or cut().",
+            "- Keep requested creative/style geometry integrated with the functional body rather than returning loose decorative bodies.",
+            "",
+            "Known-good CadQuery patterns:",
+            "- Multiple through-holes: `wp.faces(\">Z\").workplane().pushPoints([(x, y)]).hole(hole_diameter)`.",
+            "- Translate with a single tuple: `shape.translate((x, y, z))`; do not pass x, y, z as separate translate arguments.",
+            "- Build simple decorative solids with circle()/rect()/polygon()/box()/extrude(), then union() or cut() them into the functional body.",
+            "- Prefer one extruded 2D profile for creative one-piece brackets: draw the functional L outline and creative silhouette as one closed polyline/spline, then extrude once.",
+            "- Do not cut shallow decorative marks from faces unless the cutter overlaps the solid interior; non-overlapping or tangent cutters can create invalid fragments.",
+            "- For indicator slots, use `rect(indicator_width, length).extrude(depth)` as a cutter, then cut it from the parent body.",
+            "- When adding ribs, rails, handles, tabs, or decorations, overlap the parent solid by at least 0.5 mm before union(); never leave ribs, rails, handles, tabs, or decorations merely tangent to a face.",
+            "- For tray carriers and open-top enclosures, build bottom, walls, rails, ribs, and handles from simple overlapping boxes instead of cutting one deep top-open cavity from a closed shell.",
+            "- For carrier handles, use two overlapping posts and an overlapping crossbar; do not cut a finger hole through a standalone handle block.",
+            "- Carrier handle posts must overlap side walls or the back wall, never float in the open center; place side handle posts at x = +/- (outer_width / 2 - wall_thickness / 2), or omit the handle rather than returning a disconnected or invalid handle.",
+            "- For L brackets, prefer two overlapping rectangular flanges plus an overlapping triangular rib instead of one complex extruded L polyline.",
+            "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
+            "- For hinged boxes, prefer simple overlapping hinge tabs or barrels without pin-hole cuts; valid separate base and lid solids are more important than detailed hinge mechanics.",
+            "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.distribute()`, `.add_knurling()`, or `show_object()`.",
+            "- Do not add top-level execution such as `product = build(params)`; Volundr calls build(params).",
+            "",
+        ]
+        if request.contract_diagnostics:
+            parts.extend(
+                [
+                    "Contract repair mode:",
+                    "- This is contract repair, not design revision.",
+                    "- Repair only violations of the CadQuery product source contract.",
+                    "- Preserve geometry, user dimensions, protected design-specification values, planned outputs, and unrelated working code.",
+                    "- Keep every ParameterSpec ID, @component ID, @feature ID, and PrintableOutput output_id required by the authoritative identity inventory exactly.",
+                    "- Do not invent alternate IDs, remove parameters, hardcode protected values, redesign outputs, or change component decomposition.",
+                    "- If diagnostics mention unsupported ParameterSpec keywords, remove unsupported fields such as description and replace min/max aliases with min_value/max_value.",
+                    "- Return the full corrected CadQuery Python source, not a patch.",
+                    "",
+                    "Source-contract diagnostics:",
+                    request.contract_diagnostics,
+                    "",
+                    "Authoritative Design Specification JSON:",
+                    json.dumps(request.design_specification, indent=2, sort_keys=True),
+                    "",
+                    "Authoritative Design Plan JSON:",
+                    json.dumps(request.design_plan, indent=2, sort_keys=True),
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
+                    "",
+                    "Current CadQuery source to repair begins below:",
+                    request.current_source or "",
+                    "Current CadQuery source to repair ends above.",
+                    "",
+                ]
+            )
+        elif request.scope_diagnostics:
+            parts.extend(
+                [
+                    "Revision scope correction mode:",
+                    "- This is scope correction, not a new design revision.",
+                    "- Revert unauthorized edits to protected components, protected outputs, protected parameters, and unrelated code.",
+                    "- Revert every unauthorized identity change. Do not create aliases or replacement IDs.",
+                    "- Preserve the approved targeted change where it does not conflict with the scope findings.",
+                    "- Return the complete corrected CadQuery Python source for the whole product.",
+                    "",
+                    "Approved Revision Plan:",
+                    json.dumps(request.revision_plan, indent=2, sort_keys=True),
+                    "",
+                    "Scoped revision context:",
+                    json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
+                    "",
+                    "Scope diagnostics to correct:",
+                    request.scope_diagnostics,
+                    "",
+                    "Current revised CadQuery source begins below:",
+                    request.current_source or "",
+                    "Current revised CadQuery source ends above.",
+                    "",
+                ]
+            )
+        elif request.revision_plan and request.current_source:
+            parts.extend(
+                [
+                    "Structured revision mode:",
+                    "- Return the complete revised CadQuery Python source for the whole product, not a patch.",
+                    "- Make only changes approved by the Revision Plan and its scoped revision context.",
+                    "- Preserve protected parameters, components, features, outputs, and interfaces exactly.",
+                    "- Target stable component and output IDs are product identities; Python symbol names are flexible implementation details.",
+                    "- New revision-local parameters are allowed only when the approved Revision Plan allows them.",
+                    "- Keep every existing PrintableOutput required by the Design Plan unless the Revision Plan explicitly permits removal.",
+                    "- Preserve active configuration ParameterSpec IDs so configured revisions remain executable.",
+                    "- Do not rewrite to another CAD language.",
+                    "",
+                    "Approved Revision Plan:",
+                    json.dumps(request.revision_plan, indent=2, sort_keys=True),
+                ]
+            )
+            if request.scoped_revision_context:
+                parts.extend(
+                    [
+                        "",
+                        "Scoped revision context:",
+                        json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
+                    ]
+                )
+            if request.configuration_context:
+                parts.extend(
+                    [
+                        "",
+                        "Active configuration context:",
+                        json.dumps(request.configuration_context, indent=2, sort_keys=True),
+                    ]
+                )
+            if request.scope_diagnostics:
+                parts.extend(
+                    [
+                        "",
+                        "Revision scope diagnostics to correct:",
+                        request.scope_diagnostics,
+                    ]
+                )
+            parts.extend(
+                [
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
+                    "",
+                    "Current accepted CadQuery source begins below:",
+                    request.current_source,
+                    "Current accepted CadQuery source ends above.",
+                    "",
+                ]
+            )
+        elif request.current_source or request.compiler_diagnostics:
+            parts.extend(
+                [
+                    "Repair mode:",
+                    "- Repair the current CadQuery source so it satisfies the same user intent and compiles cleanly.",
+                    "- Preserve the authoritative parameter inventory, component IDs, feature IDs, output IDs, expected solid counts, and protected values.",
+                    "- Fix the diagnosed Python/CadQuery API issue directly; do not rewrite into another CAD language.",
+                    "- Return the full corrected CadQuery Python source, not a patch.",
+                    "",
+                    "Compiler/runtime diagnostics:",
+                    request.compiler_diagnostics or "No diagnostics provided.",
+                    "",
+                    "Current CadQuery source to repair begins below:",
+                    request.current_source or "",
+                    "Current CadQuery source to repair ends above.",
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
+                    "",
+                ]
+            )
+        elif request.design_specification or request.design_plan:
+            design_specification = request.design_specification or {}
+            design_plan = request.design_plan or {}
+            printable_outputs = list(design_plan.get("printable_outputs", []))
+            identity_table = {
+                "required_components": [
+                    component.get("id")
+                    for component in design_plan.get("components", [])
+                    if isinstance(component, dict) and component.get("id")
+                ],
+                "required_features": [
+                    {
+                        "id": feature.get("id"),
+                        "component_id": feature.get("component_id"),
+                        "protected": bool(feature.get("protected")),
+                    }
+                    for feature in design_plan.get("features", [])
+                    if isinstance(feature, dict) and feature.get("id")
+                ],
+                "required_outputs": [
+                    {
+                        "id": output.get("id") or output.get("output_id"),
+                        "component_ids": output.get("component_ids", []),
+                        "required": output.get("required", True),
+                    }
+                    for output in printable_outputs
+                    if isinstance(output, dict)
+                ],
+                "required_parameters": [
+                    {
+                        "id": parameter.get("id"),
+                        "value": parameter.get("value"),
+                        "unit": parameter.get("unit"),
+                        "type": parameter.get("type") or parameter.get("parameter_type"),
+                        "protected": bool(parameter.get("protected")),
+                        "source_requirement_id": parameter.get("source_requirement_id"),
+                        "source": parameter.get("source"),
+                    }
+                    for parameter in design_plan.get("parameters", [])
+                    if isinstance(parameter, dict) and parameter.get("id")
+                ],
+            }
+            topology_expectations = [
+                {
+                    "output_id": output.get("id") or output.get("output_id"),
+                    "component_id": output.get("component_id"),
+                    "component_ids": output.get("component_ids", []),
+                    "expected_solid_count": output.get("expected_solid_count", 1),
+                    "allow_disconnected_solids": output.get(
+                        "allow_disconnected_solids",
+                        False,
+                    ),
+                    "required": output.get("required", True),
+                }
+                for output in printable_outputs
+                if isinstance(output, dict)
+            ]
+            parts.extend(
+                [
+                    "Initial generation mode:",
+                    "- Generate from the approved staged product definition, not from the raw user prompt alone.",
+                    "- Return the complete Python source for the whole product; do not return snippets, patches, prose, JSON, other CAD languages, or helper-only fragments.",
+                    "- Implement every planned component, feature, dependency, parameter, and printable output unless the plan explicitly marks it optional.",
+                    "- Preserve protected requirement values and topology expectations exactly.",
+                    "- Use exact stable product IDs from the identity table for @component, @feature, ParameterSpec.id, and PrintableOutput.output_id.",
+                    "- Python function names may differ from stable product IDs, but decorators and PrintableOutput metadata must bind the exact stable IDs.",
+                    "- Do not invent replacement product IDs or fuzzy aliases such as base_body for planned output base.",
+                    "",
+                    "Authoritative Design Specification JSON:",
+                    json.dumps(design_specification, indent=2, sort_keys=True),
+                    "",
+                    "Authoritative Design Plan JSON:",
+                    json.dumps(design_plan, indent=2, sort_keys=True),
+                    "",
+                    "Required stable identity table:",
+                    json.dumps(identity_table, indent=2, sort_keys=True),
+                    "",
+                    "Typed parameter contract:",
+                    json.dumps(design_plan.get("parameters", []), indent=2, sort_keys=True),
+                    "",
+                    "Printer/profile requirements:",
+                    json.dumps(
+                        design_specification.get("print_requirements", {}),
+                        indent=2,
+                        sort_keys=True,
+                    ),
+                    "",
+                    "Topology expectations:",
+                    json.dumps(topology_expectations, indent=2, sort_keys=True),
+                    "",
+                    "Security restrictions:",
+                    "- The source must satisfy cadquery-v1 AST validation and use only the allowed imports, runtime constructors, and safe CadQuery operations listed above.",
+                    "- Do not access files, network, subprocesses, environment variables, local modules, shell commands, or dynamic Python execution.",
+                    "",
+                    format_authoritative_identity_section(request.source_authority),
+                    "",
+                ]
+            )
+        parts.extend(
+            [
+                f"Project name: {request.project_name}",
+                f"Original intent: {request.original_intent}",
+                f"User instruction: {request.user_instruction}",
+            ]
+        )
+        return "\n".join(parts)
+
+    def build_scaffold_geometry_prompt(self, request: ModelGenerationRequest) -> str:
+        plan = request.design_plan or {}
+        inventory = build_geometry_function_inventory(plan)
+        expected_functions = inventory["expected_function_ids"]
+        parameter_ids = inventory["allowed_parameters"]
+        exposed_control_ids = inventory["parameter_effect_contract"].get("exposed_control_ids", [])
+        lines = [
+            "You generate only structured CadQuery geometry bodies for Volundr.",
+            "Return JSON only, optionally inside one json code fence. Do not include prose outside JSON.",
+            f"Use schema_version exactly {GEOMETRY_BODIES_SCHEMA_VERSION}.",
+            "Return ordered statements and exactly one result_symbol for each function; never return def declarations, decorators, imports, return statements, fences, or prose inside a body.",
+            "Volundr deterministically owns all parameters, components, features, outputs, IDs, and the build entrypoint.",
+            "The module-level PARAMETERS list may contain only the approved scaffold parameter identities supplied in the authority inventory. Keep ordinary derived calculations as definitely assigned locals inside provider-owned functions; never export a local calculation as a new ParameterSpec.",
+            "Use CadQuery as `cq` and the canonical parameter IDs exactly as provided.",
+            "Implement every required function_id exactly once. Do not rename, omit, or add functions.",
+            "Assign the component shape or modified feature shape to result_symbol. Volundr appends the sole return statement deterministically.",
+            "Provider-owned local calculations are allowed, but they must use only the exact function signature, approved params interface, approved helpers, and approved module aliases from the manifest.",
+            "When repairing a worker-diagnosed failure, change only the named provider function and preserve every unaffected function body exactly.",
+            "Do not replace a CadQuery selector by string substitution; use a valid CadQuery construction that preserves the required feature intent.",
+            "Do not add file, network, subprocess, or dynamic Python access.",
+            "Canonical parameter IDs: " + ", ".join(parameter_ids),
+            "Required function authority inventory:",
+            json.dumps(inventory["functions"], indent=2, sort_keys=True),
+            "Provider contract manifest (authoritative evidence):",
+            json.dumps(request.provider_contract_manifest or {}, indent=2, sort_keys=True),
+            "Exact symbol authority:",
+            "Each function receives only its listed signature arguments, approved module aliases, approved helpers, approved safe builtins, and the params access interface.",
+            "Do not use a Plan parameter ID as a bare Python name. Access values as params[<parameter_id>] or params.get(<parameter_id>), or assign a local from that interface first.",
+            "Volundr rejects unresolved names, conditionally assigned names, prohibited names, and provider-defined imports before worker submission.",
+            json.dumps(
+                {
+                    str(function.get("function_id")): function.get("symbol_inventory", {})
+                    for function in inventory["functions"]
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            "",
+            "Requirement-led implementation contract:",
+            "Satisfy every active requirement and preserve unaffected requirements during revisions.",
+            "Ordinary designs may use safe numeric literals, local expressions, helper functions, or scaffold values for proposed dimensions. Do not add source parametrization for values the user did not expose as controls.",
+            "Only explicitly exposed controls require source sensitivity; their internal derived chain must remain functional.",
+            "Exposed control IDs: " + (", ".join(exposed_control_ids) if exposed_control_ids else "none"),
+            "For fixed or one-off layouts, use the approved feature geometry without inventing future configurability.",
+            "For every required pattern (effect_required=true), Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array.",
+            "Do not omit a required feature merely because its implementation is not parametric.",
+            "Per-function obligations:",
+            *[
+                "- {function_id}: direct={direct}; derived={derived}; effects={effects}".format(
+                    function_id=function.get("function_id"),
+                    direct=function.get("required_direct_parameters", []),
+                    derived=function.get("allowed_derived_parameters", []),
+                    effects=function.get("required_parameter_effects", []),
+                )
+                for function in inventory["functions"]
+            ],
+            "Canonical repeated-pattern authority:",
+            json.dumps(inventory["parameter_effect_contract"].get("patterns", []), indent=2, sort_keys=True),
+            json.dumps(inventory["parameter_effect_contract"], indent=2, sort_keys=True),
+            "",
+            "Required response shape:",
+            json.dumps(
+                {
+                    "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
+                    "functions": [
+                        {"function_id": function_id, "statements": ["body = ..."], "result_symbol": "body"}
+                        for function_id in expected_functions
+                    ],
+                },
+                indent=2,
+            ),
+        ]
+        if request.geometry_body_diagnostics:
+            lines.extend(
+                [
+                    "",
+                    f"Repair mode: {CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION}",
+                    "Repair only the structured geometry-body response using the diagnostics below.",
+                    "Do not change scaffold-owned parameters, IDs, function signatures, or the Design Plan.",
+                    "Rejected response diagnostics:",
+                    request.geometry_body_diagnostics,
+                    "Rejected structured response:",
+                    request.current_source or "",
+                ]
+            )
+        if request.contract_diagnostics:
+            lines.extend(["", "Repair diagnostics:", request.contract_diagnostics])
+        if request.compiler_diagnostics:
+            lines.extend(["", "Execution diagnostics:", request.compiler_diagnostics])
+        if request.current_source:
+            lines.extend(["", "Current scaffold source for geometry context:", request.current_source])
+        lines.extend(
+            [
+                "",
+                "Design Specification:",
+                json.dumps(request.design_specification or {}, indent=2, sort_keys=True),
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
+                "",
+                "Design Plan:",
+                json.dumps(plan, indent=2, sort_keys=True),
+                "Normalized GeometryExecutionContext:",
+                json.dumps(request.geometry_execution_context or {}, indent=2, sort_keys=True),
+                "Prompt context pack evidence:",
+                json.dumps(
+                    {
+                        "context_hash": (request.prompt_context_pack or {}).get("context_hash"),
+                        "included_artifact_ids": (request.prompt_context_pack or {}).get("included_artifact_ids", []),
+                        "excluded_context_categories": (request.prompt_context_pack or {}).get("excluded_context_categories", []),
+                    },
+                    indent=2,
+                    sort_keys=True,
+                ),
+                "",
+                "User instruction:",
+                request.user_instruction,
+            ]
+        )
+        return "\n".join(lines)
 
     def build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         return self._build_requirement_prompt(request)
+
+    def build_source_brief_prompt(self, request: SourceBriefRequest) -> str:
+        return self._build_source_brief_prompt(request)
 
     def build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
         return self._build_design_plan_prompt(request)
@@ -234,151 +790,52 @@ class GeminiCliProvider:
     def build_revision_plan_prompt(self, request: RevisionPlanRequest) -> str:
         return self._build_revision_plan_prompt(request)
 
-    def _build_prompt(self, request: ModelGenerationRequest) -> str:
-        if request.contract_diagnostics:
-            return self._build_contract_repair_prompt(request)
-        if request.scope_diagnostics:
-            return self._build_scope_correction_prompt(request)
-        if request.revision_plan and request.current_source and request.scoped_revision_context:
-            return self._build_component_revision_prompt(request)
-        if request.revision_plan and request.current_source:
-            return self._build_structured_revision_prompt(request)
-        if request.design_specification and request.design_plan and not request.current_source:
-            return self._build_planned_openscad_prompt(request)
-        if request.design_specification and not request.current_source:
-            return self._build_design_spec_openscad_prompt(request)
-        parts = [
-            "You generate OpenSCAD for Volundr.",
-            "Return only a single OpenSCAD source block. Do not include shell commands.",
-            "Follow these rules exactly:",
-            "- Units are millimeters.",
-            "- Include a USER PARAMETERS section.",
-            "- Define module main_model().",
-            "- End with exactly one top-level main_model(); call.",
-            "- Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-            "- Prefer practical FDM-printable functional geometry.",
-            "- For initial builds, stay literal and simple before adding secondary features.",
-            "- Do not add decorative cutouts, lightening holes, pass-through holes, vents, windows, slots, or pockets unless the user explicitly asks for them or they are structurally necessary.",
-            "- Every subtraction must directly serve the user's requested function; avoid subtractive features that weaken the part or remove support surfaces.",
-            "- Preserve load-bearing walls, tray support surfaces, retention features, and handles unless the user asks to change them.",
-            "- If a grip, access notch, drain, fastener hole, or clearance cut is needed, keep it local and sized for that purpose instead of cutting through unrelated geometry.",
-            "",
-            f"Project name: {request.project_name}",
-            f"Original intent: {request.original_intent}",
-            f"User instruction: {request.user_instruction}",
-        ]
-        if request.current_source:
-            if request.design_specification:
-                parts.extend(
-                    [
-                        "",
-                        "Design Specification context is authoritative for protected dimensions and requirements:",
-                        json.dumps(request.design_specification, indent=2, sort_keys=True),
-                    ]
-                )
-            parts.extend(
-                [
-                    "",
-                    "Current accepted OpenSCAD source. Preserve working geometry and make the smallest necessary change:",
-                    request.current_source,
-                ]
-            )
-        if request.compiler_diagnostics:
-            parts.extend(["", "Compiler diagnostics to account for:", request.compiler_diagnostics])
-        return "\n".join(parts)
-
-    def _build_design_spec_openscad_prompt(self, request: ModelGenerationRequest) -> str:
+    def _build_source_brief_prompt(self, request: SourceBriefRequest) -> str:
         return "\n".join(
             [
-                "You generate OpenSCAD for Volundr from an approved Design Specification.",
-                "Return only a single fenced openscad block. Do not include prose outside the block.",
-                "The Design Specification is the authoritative design source. The raw user request is secondary intent only.",
-                "Preserve every protected value and required feature exactly.",
-                "Expose important dimensions as named user parameters.",
-                "Every protected critical dimension must have a machine-readable mapping comment immediately before its parameter assignment:",
-                "// @volundr-requirement <design_spec_requirement_id>",
-                "Every protected functional requirement must have a machine-readable feature marker immediately before the implementing module or statement:",
-                "// @volundr-feature <design_spec_requirement_id>",
-                "Add machine-readable geometry markers for measurable protected geometry immediately after the related feature marker or before the related module:",
-                "// @volundr-geometry type=bounds x=<width_parameter> y=<depth_parameter> z=<height_parameter>",
-                "// @volundr-geometry type=hole_group count=<integer> diameter=<diameter_parameter> spacing=<spacing_parameter> axis=x|y|z",
-                "// @volundr-geometry type=hole diameter=<diameter_parameter> axis=x|y|z",
-                "// @volundr-geometry type=wall_thickness value=<wall_thickness_parameter> region=<short_region_id>",
-                "Use geometry markers only for dimensions or features represented by named parameters in the source.",
-                "Disclose product defaults and AI assumptions in source comments.",
-                "Do not add undocumented critical dimensions.",
-                "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
-                "Define module main_model() and end with exactly one top-level main_model(); call.",
-                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-                "Use this recognizable section skeleton:",
-                "/* Project: ...",
-                "Units: millimeters",
-                "Purpose: ...",
-                "Assumptions: ...",
-                "Print notes: ... */",
-                "// ===== QUALITY =====",
-                "// ===== USER PARAMETERS =====",
-                "// ===== DERIVED VALUES =====",
-                "// ===== VALIDATION =====",
-                "// ===== MODULES =====",
-                "// ===== FINAL MODEL =====",
+                "You create a compact structured design brief before CAD source generation.",
+                "Return JSON only. Do not generate CAD source.",
+                "The brief constrains correctness without locking down the exact creative shape.",
+                "Required JSON fields:",
+                "- schema_version: exactly source-brief-v1",
+                "- intent_understanding: object_type, functional_goal, style_goal",
+                "- planned_outputs: array of printable outputs with id, expected_connected_body_count, must_be_connected, approx_size_mm",
+                "- functional_features: array of required functional features with id and role/count when known",
+                "- style_features: array of requested decorative features with id, role, and attachment_rule",
+                "- hard_requirements: array of concise requirements for generation and validation",
+                "- open_questions: array; leave empty when enough information is available",
+                "",
+                "Rules:",
+                "- Prefer one connected printable body unless the user explicitly requests multiple separate parts.",
+                "- If decorative features are requested, decorative features must physically attach, overlap, or be fused into the functional body unless the user asks for loose pieces.",
+                "- Preserve creative freedom; do not prescribe exact polygons, coordinates, or a fixed template unless required for function.",
+                "- Include approximate sizing only when implied by the prompt or benchmark expectations; use null for unknown dimensions.",
                 "",
                 f"Project name: {request.project_name}",
                 f"Original intent: {request.original_intent}",
-                f"Secondary raw user request: {request.user_instruction}",
+                f"User instruction: {request.user_instruction}",
                 "",
-                "Approved Design Specification JSON:",
-                json.dumps(request.design_specification, indent=2, sort_keys=True),
-            ]
-        )
-
-    def _build_planned_openscad_prompt(self, request: ModelGenerationRequest) -> str:
-        return "\n".join(
-            [
-                "You generate OpenSCAD for Volundr from an approved Parametric Design Plan.",
-                "Return only a single fenced openscad block. Do not include prose outside the block.",
-                "The Design Specification is the requirements authority. The approved Design Plan is the product-structure authority.",
-                "Preserve every protected requirement, Design Plan parameter, dependency edge, component, feature, preset-relevant parameter, and printable output.",
-                "Expose editable Design Plan parameters in USER PARAMETERS.",
-                "Place derived Design Plan parameters in DERIVED VALUES and preserve dependency relationships.",
-                "Every protected Design Specification critical dimension and every Design Plan parameter with source_requirement_id must use // @volundr-requirement <design_spec_requirement_id> immediately before its parameter assignment. This includes count parameters such as tray_count.",
-                "Every protected Design Specification functional requirement must use // @volundr-feature <design_spec_functional_requirement_id> immediately before the module or statement that implements that requirement. Do not use @volundr-requirement for functional requirements.",
-                "Every component must use // @volundr-component <design_plan_component_id> near the parameter/module that implements it.",
-                "Every feature must use // @volundr-feature <design_plan_feature_id> immediately before the implementing module or statement.",
-                "Every dependency edge must use // @volundr-dependency <from_parameter_id> -> <to_parameter_id> immediately before the derived assignment.",
-                "Generate one authoritative OpenSCAD source for the complete product.",
-                "Every printable output must have one implementation module and one marker immediately before that module:",
-                "// @volundr-output <output_id> module=<module_name> required=<true|false> filename=<safe_filename.stl> components=<comma_separated_component_ids>",
-                "Define selected_output = \"<first_output_id>\" as a USER PARAMETERS value.",
-                "Define module render_selected_output() that dispatches to the output module matching selected_output and asserts false for unknown output IDs.",
-                "End with exactly one top-level render_selected_output(); call.",
-                "Add @volundr-geometry markers for supported measurable bounds, holes, hole groups, and wall thickness.",
-                "Include assertions for invalid configurations and dependencies, such as impossible counts, negative clearances, too-thin walls, or outputs that exceed derived bounds.",
-                "For cases, trays, holders, and enclosures, prefer additive construction of explicit base, side walls, rails, lips, lids, and handles. If using difference() for a cavity, bound the subtractor so it cannot remove a required wall, top bridge, handle support, retention feature, or mounting surface.",
-                "Any handle, latch, retention stop, rail, rib, or hinge feature must have positive overlap with its supporting component; do not leave required features as disconnected bodies in a single printable output.",
-                "Use this same selected-output contract for single-output plans.",
-                "Do not require source-file edits between component compiles; Volundr will compile each output with a command-line selected_output override.",
-                "Keep the model in millimeters, near the XY origin, and at or above Z=0.",
-                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
+                "Expected source parameters:",
+                json.dumps(request.expected_parameters, indent=2, sort_keys=True),
                 "",
-                f"Project name: {request.project_name}",
-                f"Original intent: {request.original_intent}",
-                f"Secondary raw user request: {request.user_instruction}",
+                "Expected geometric invariants:",
+                json.dumps(request.expected_geometric_invariants, indent=2, sort_keys=True),
                 "",
-                "Approved Design Specification JSON:",
-                json.dumps(request.design_specification, indent=2, sort_keys=True),
-                "",
-                "Approved Parametric Design Plan JSON:",
-                json.dumps(request.design_plan, indent=2, sort_keys=True),
+                f"Mesh expectation: {request.mesh_expectation or 'not specified'}",
             ]
         )
 
     def _build_design_plan_prompt(self, request: DesignPlanRequest) -> str:
+        if request.planning_depth == "compact_plan":
+            return self._build_compact_plan_prompt(request)
         if request.schema_repair_of_raw_output is not None:
             task = [
-                "Repair this Parametric Design Plan response into valid JSON for the required schema.",
-                "Do not generate OpenSCAD. Do not invent new critical requirements.",
+                "Repair this Design Plan response into valid JSON for the required schema.",
+                "Do not generate CAD source. Do not invent new critical requirements.",
                 "Preserve the original planning intent and return JSON only.",
+                "Preserve direct user requirements exactly; represent implementation dimensions as derived_formula or standard_lookup values instead of changing the user value.",
+                "Never use one parameter ID for both a nominal designation and a geometric dimension. Split mounting_screw_designation from mounting_hole_diameter.",
+                "Use only the supplied versioned standard mappings and include the lookup key, variant, and result_field when a variant exposes more than one measurement.",
                 "",
                 "Schema validation error:",
                 request.schema_validation_error or "unknown schema error",
@@ -388,17 +845,36 @@ class GeminiCliProvider:
             ]
         else:
             task = [
-                "Create a generic Parametric Design Plan for Volundr from the approved Design Specification.",
-                "Return JSON only. Do not generate OpenSCAD.",
-                "Model the product generically: parameters, derived parameters, dependency edges, components, features, presets, assembly strategy, printable outputs, risks, and design level.",
-                "The Design Plan must be reusable for configurable functional products. Do not use a fishing-tray carrier as the schema template.",
-                "A parameter with source_requirement_id must copy that source requirement's value and unit within tolerance. Do not use source_requirement_id for calculated stack, envelope, or overall product dimensions; represent those as derived_parameters with dependency_edges.",
+                "Create a Design Plan for Volundr from the approved Design Specification.",
+                "Return JSON only. Do not generate CAD source.",
+                "Describe active requirements, a proposed design approach, components, functional features, relationships, printable outputs, known proposals, verification targets, and optional exposed controls.",
+                "Do not make a comprehensive parameter graph or reusable template mandatory for ordinary designs. Do not use a fishing-tray carrier as the schema template.",
+                "Record provenance.relationship when a parameter or proposal has a useful source: direct, derived_formula, calculated, standard_lookup, product_default, printer_default, ai_proposal, or user_override.",
+                "Every active requirement must be represented in the Plan or functional contract, but ordinary numeric values are not automatically reusable controls.",
+                "Include exposed_controls only for controls explicitly requested by the user. Leave exposed_controls empty for ordinary designs.",
+                "A parameter with source_requirement_id must copy that source requirement's value and unit only when its provenance relationship is direct. Derived implementation dimensions must not be marked direct.",
+                "Use derived_parameters or derived_formula provenance for calculated stack, envelope, or overall product dimensions, not direct source-linked values.",
+                "Use derived_formula for deterministic formulas and include source_requirement_ids, source_parameter_ids, and the arithmetic expression. The expression may be on the derived parameter or duplicated in provenance. Use standard_lookup for nominal hardware designations and include table_id, key, variant, and result_field when needed; never treat a designation as a metric dimension.",
+                "Do not use one parameter ID for both a nominal designation and a geometric dimension. Keep a screw designation such as #8 separate from a proposed clearance-hole diameter.",
                 "Every dependency edge must connect existing parameter or derived_parameter IDs in the plan. If an edge target such as case_inner_height_mm is needed, include that target in derived_parameters with its expression and depends_on list.",
                 "Do not use dependency_edges for component or feature IDs; feature dependencies belong in each feature's parameters list.",
+                "For repeated functional features, emit a generic patterns entry owned by the feature and component. Volundr computes canonical points from its count and spacing/radius parameters when a reusable control is explicitly requested; otherwise numeric fixed/proposed layout evidence is sufficient.",
+                "A printable component is independently printable. Ribs, holes, vents, bosses, openings, floors, fillets, chamfers, snap arms, and fused reinforcements are integral features owned by their printable component unless the user explicitly requests a separate part.",
+                "Provider local calculation names are ordinary implementation locals, not Design Plan identities. Do not add them as components, features, outputs, parameters, or controls.",
+                "Classify design intent, not numeric types: a request such as 'use two screws' is a fixed_constraint by default; only an explicit request for adjustable, configurable, parametric, variable, or any-number behavior makes count or spacing configurable_parameter. Preserve fixed requirements as functional criteria.",
+                "For a fixed or irregular repeated layout, emit a feature_layouts entry with layout_mode fixed_positions or proposed_positions, required_count, approved/proposed positions, and hole_axis. For a configurable uniform layout, use layout_mode uniform_linear and identify count_parameter_id, spacing_parameter_id, arrangement_axis, and hole_axis. Do not infer future configurability from a fixed count.",
+                "For one-off repeated slots or cells, numeric count, spacing, radius, positions, or distributed-within-region guidance are valid. A spacing_parameter_id is required only for an exposed reusable spacing control or an explicitly pattern-driving relationship.",
+                "For a repeated linear mounting arrangement, use the explicit or proposed count and spacing, set centered=true, and distinguish the arrangement axis from the wall-normal hole-cutting axis.",
                 "Ask plan clarification only when component structure, printable outputs, assembly strategy, or configuration dependencies cannot be chosen safely.",
+                "For any physical product with mounting, containment, support, retention, or removal requirements, emit schema_version 1.1 and an explicit functional_contract.",
+                "Resolve mounting plane, plane normal, hole axis, arrangement axis, support-floor decision, removal direction, and retention strategy. Never return unresolved alternatives such as 'or' choices.",
+                "Choose exactly one supported retention strategy when the functional context supports a reasonable proposal. Use one of flexible_snap_arm, retaining_lip, spring_clip, removable_strap, rotating_gate, latch, or friction_band. Do not use reviewed_proposal, unspecified, generic_retention, choose_later, or some_clip as a strategy.",
+                "For moving-vehicle containment with one-handed release, prefer a flexible_snap_arm proposal unless the Design Specification states a material, durability, or architecture constraint that makes it unsuitable. Include a stable feature_id, owning component, retained object relationship, retention direction, release behavior, removal direction, editable proposed parameters, and verification metadata.",
+                "Use Volundr proposals for ordinary defaults; do not ask the user for routine wall thickness, clearance, or fillet values.",
+                "A request such as 'use two screws' is a requirement, not an exposed count control. A request such as 'make bottle diameter adjustable' is an exposed control request.",
             ]
         schema = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "design_level": "single_part|product|assembly",
             "product_type": "string",
             "purpose": "string",
@@ -410,20 +886,74 @@ class GeminiCliProvider:
                     "value": 0,
                     "unit": "mm",
                     "source_requirement_id": "string|null",
+                    "provenance": {
+                        "relationship": "direct|derived_formula|calculated|standard_lookup|product_default|printer_default|ai_proposal|user_override",
+                        "source_requirement_ids": ["string"],
+                        "source_parameter_ids": ["string"],
+                        "expression": "string|null",
+                        "lookup": {"table_id": "string", "key": "string", "variant": "string", "result_field": "string|null"},
+                        "explanation": "string",
+                    },
                     "editable": True,
                     "protected": False,
+                    "constraint_mode": "optional intent annotation; do not infer future controls from numeric values",
                     "component_id": "string|null",
                 }
             ],
-            "derived_parameters": [
-                {
-                    "id": "string",
-                    "label": "string",
-                    "expression": "string",
-                    "unit": "mm",
-                    "depends_on": ["parameter_id"],
-                }
-            ],
+                "derived_parameters": [
+                    {
+                        "id": "string",
+                        "label": "string",
+                        "expression": "string|null",
+                        "unit": "mm",
+                        "depends_on": ["parameter_id"],
+                        "provenance": {
+                            "relationship": "derived_formula|calculated|standard_lookup",
+                            "source_requirement_ids": ["string"],
+                            "source_parameter_ids": ["string"],
+                            "lookup": {"table_id": "string", "key": "string", "variant": "string", "result_field": "string|null"},
+                            "explanation": "string",
+                        },
+                    }
+                ],
+                "patterns": [
+                    {
+                        "pattern_id": "stable_pattern_id",
+                        "owning_feature_id": "feature_id",
+                        "owning_component_id": "component_id",
+                        "pattern_type": "linear|rectangular|circular",
+                        "point_parameter_id": "feature_points",
+                        "count_parameter_id": "count_parameter_id|null",
+                        "spacing_parameter_id": "spacing_parameter_id|null",
+                        "count": 12,
+                        "spacing": 8.0,
+                        "rows": 2,
+                        "columns": 3,
+                        "row_spacing": 10.0,
+                        "column_spacing": 12.0,
+                        "radius": 21.0,
+                        "axis": "X|Y|Z|null",
+                        "plane": "XY|XZ|YZ|null",
+                        "centered": True,
+                        "origin": [0, 0, 0],
+                        "unit": "mm"
+                    }
+                ],
+                "feature_layouts": [
+                    {
+                        "feature_id": "feature_id",
+                        "owning_component_id": "component_id",
+                        "layout_mode": "fixed_positions|proposed_positions|parameterized_positions|uniform_linear|rectangular_grid|circular|distributed_within_region|derived_custom",
+                        "required_count": 2,
+                        "positions": [{"x": 0, "y": 0, "z": -25}, {"x": 0, "y": 0, "z": 25}],
+                        "hole_axis": "Y|null",
+                        "arrangement_axis": "Z|null",
+                        "mounting_plane": "XZ|null",
+                        "count_parameter_id": "parameter_id|null",
+                        "spacing_parameter_id": "parameter_id|null",
+                        "dimension_parameter_ids": ["parameter_id"]
+                    }
+                ],
                 "dependency_edges": [
                 {
                     "from": "source_parameter_id",
@@ -438,6 +968,7 @@ class GeminiCliProvider:
                     "description": "string",
                     "features": ["feature_id"],
                     "parameters": ["parameter_id"],
+                    "role": "printable_part|integral_feature|separate_part",
                 }
             ],
             "features": [
@@ -457,6 +988,14 @@ class GeminiCliProvider:
                     "parameter_values": {"parameter_id": 0},
                 }
             ],
+            "exposed_controls": [
+                {
+                    "parameter_id": "parameter_id",
+                    "label": "string",
+                    "unit": "mm",
+                    "source": "explicit_user_request",
+                }
+            ],
             "assembly_strategy": {"type": "single_part|multi_part|assembly", "instructions": ["string"]},
             "printable_outputs": [
                 {
@@ -467,6 +1006,12 @@ class GeminiCliProvider:
                     "orientation": "string",
                 }
             ],
+            "functional_contract": {
+                "coordinate_frames": [{"id": "primary_product_frame", "axes": {"x": "horizontal", "y": "normal", "z": "vertical"}}],
+                "mounting_interfaces": [{"id": "string", "type": "planar_mount", "component_id": "component_id", "feature_id": "feature_id|null", "mounting_plane": "XZ", "normal_axis": "Y", "fastener_count": 2, "count_constraint_mode": "fixed_constraint|configurable_parameter", "fastener_type": "string", "hole_axis": "Y", "arrangement_axis": "Z", "hole_style": "clearance", "spacing": {"value": 0, "unit": "mm", "source": "volundr_proposal"}}],
+                "support_interfaces": [{"id": "string", "type": "contained_object_support", "component_id": "component_id", "object_requirement_id": "parameter_id", "primary_axis": "Z", "bottom_support_required": True, "minimum_floor_thickness": {"value": 0, "unit": "mm", "source": "volundr_proposal"}, "removal_direction": "+Z"}],
+                "retention_interfaces": [{"id": "string", "type": "retention", "required": True, "environment": "string", "release_behavior": "one_handed_pull", "strategy": "flexible_snap_arm", "component_id": "component_id", "feature_id": "retention_feature", "retained_object_requirement_id": "parameter_id", "retention_direction": "string", "removal_direction": "+Z", "parameters": [{"id": "retention_overlap", "value": 2.0, "unit": "mm", "source": "volundr_proposal", "editable": True}], "verification": {"feature_geometry_required": True, "parameter_effect_required": True, "human_review_required": True}}],
+            },
             "risks": [
                 {
                     "id": "string",
@@ -490,6 +1035,12 @@ class GeminiCliProvider:
                 "",
                 "Approved Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
+                "Focused Plan repair context:",
+                json.dumps(request.plan_repair_context or {}, indent=2, sort_keys=True),
                 "",
                 "Previous Design Plan:",
                 json.dumps(request.previous_design_plan, indent=2, sort_keys=True)
@@ -502,16 +1053,67 @@ class GeminiCliProvider:
                 "Versioned defaults:",
                 json.dumps(request.defaults, indent=2, sort_keys=True),
                 "",
+                "Available standard mappings:",
+                json.dumps(FASTENER_LOOKUP_TABLES, indent=2, sort_keys=True),
+                "",
                 "Required JSON shape:",
                 json.dumps(schema, indent=2, sort_keys=True),
             ]
         )
 
+    def _build_compact_plan_prompt(self, request: DesignPlanRequest) -> str:
+        task = [
+                (
+                    "Repair the compact plan JSON using the validation error below. "
+                    "Preserve valid components, features, layouts, and requirements; "
+                    "do not broaden the design or invent a second printable part."
+                )
+                if request.schema_repair_of_raw_output is not None
+                else "Create a compact CAD execution plan for Volundr.",
+                "Return JSON only. Do not generate CadQuery source.",
+                "Use schema_version exactly compact-cad-plan-v1.",
+                "This is an execution artifact derived from the active requirement ledger, not a replacement requirement store.",
+                "During focused repair, use only valid existing IDs from the repair context. Do not create a new printable component, feature ID, output ID, or exposed control.",
+                "A printable component is an independently printable part. Ribs, holes, vents, bosses, openings, floors, fillets, chamfers, snap arms, and fused reinforcements are integral features owned by their printable component.",
+                "For an unambiguous single-part plan, a missing feature owner may default to the sole printable component. Never infer a multipart owner or silently create an extra printable output.",
+                "Use stable IDs and distinguish proposals from user requirements.",
+                "Do not use ordinary local calculation names as component IDs, feature IDs, outputs, or exposed controls.",
+                "For repeated features choose fixed_positions, proposed_positions, uniform_linear, rectangular_grid, circular, or distributed_within_region according to the requirement. Numeric count, spacing, radius, positions, and region guidance are valid one-off plan values.",
+                "Only use configurable_pattern or parameter IDs for count, spacing, rows, columns, or radius when the user explicitly requests reusable adjustment or the relationship is explicitly exposed.",
+                "For fixed or proposed layouts, do not require a spacing_parameter_id. Do not assume equal spacing for irregular positions.",
+                "Do not ask for routine implementation dimensions when a safe Volundr proposal is possible.",
+                "Do not create exposed controls unless the user explicitly requested adjustable, configurable, parametric, variable, or reusable behavior.",
+                "Return clarification_required only for a genuine contradiction or missing critical interface information.",
+                "Required fields: schema_version, planning_depth, components, features, relationships, proposals, coordinate_frames, validation_targets, printable_outputs, optional exposed_controls, parameters, derived_parameters, dependency_edges, patterns, feature_layouts, clarification_required, clarification_questions, plan_ready.",
+            ]
+        if request.schema_repair_of_raw_output is not None:
+            task.extend([
+                "Schema validation error:",
+                request.schema_validation_error or "unknown schema error",
+                "Invalid raw output:",
+                request.schema_repair_of_raw_output,
+            ])
+        task.extend([
+                "",
+                "Design Specification:",
+                json.dumps(request.design_specification, indent=2, sort_keys=True),
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
+                "Focused Plan repair context:",
+                json.dumps(request.plan_repair_context or {}, indent=2, sort_keys=True),
+                "",
+                "User instruction:",
+                request.user_instruction,
+            ])
+        return "\n".join(task)
+
     def _build_revision_plan_prompt(self, request: RevisionPlanRequest) -> str:
         if request.schema_repair_of_raw_output is not None:
             task = [
                 "Repair this structured Revision Plan response into valid JSON for the required schema.",
-                "Do not generate OpenSCAD. Do not broaden the revision scope.",
+                "Do not generate CAD source. Do not broaden the revision scope.",
                 "Preserve the original revision intent and return JSON only.",
                 "",
                 "Schema validation error:",
@@ -523,13 +1125,13 @@ class GeminiCliProvider:
         else:
             task = [
                 "Create a structured Volundr Revision Plan.",
-                "Return JSON only. Do not generate OpenSCAD.",
+                "Return JSON only. Do not generate CAD source.",
                 "Identify the exact requested change, affected component/feature/output/parameter, required dependency changes, protected unaffected areas, validation findings addressed, versioning decision, success criteria, and prohibited changes.",
                 "Use the Design Plan dependency graph to allow required dependent changes. Do not authorize broad redesign from source alone.",
                 "Ask clarification when the target, value, strategy, base revision, or supported complexity is ambiguous.",
             ]
         schema = {
-            "schema_version": "revision-plan-v1",
+            "schema_version": "revision-plan-v2",
             "reason": "user_request|geometric_finding|printability_finding|source_quality_finding|assembly_finding|output_failure|parameter_change|preset_change|configuration_change",
             "summary": "string",
             "requested_changes": [
@@ -560,7 +1162,7 @@ class GeminiCliProvider:
             "protected_outputs": ["output_id"],
             "prohibited_changes": ["string"],
             "success_criteria": [
-                {"type": "parameter_value", "target_id": "parameter_id", "expected_value": 0}
+                {"type": "mounting_hole_axis|mounting_hole_count|mounting_hole_diameter|mounting_hole_spacing|support_floor_present|minimum_floor_thickness|required_feature_geometry_present|parameter_geometry_effect|output_exists|solid_count|bounds_preserved", "target_id": "output_or_parameter_id", "expected_value": 0}
             ],
             "requires_design_specification_version": False,
             "requires_design_plan_version": False,
@@ -576,6 +1178,10 @@ class GeminiCliProvider:
                 f"Revision reason: {request.reason}",
                 f"User revision request: {request.user_instruction}",
                 f"Base revision id: {request.base_revision_id}",
+                "Active requirements:",
+                json.dumps(request.active_requirements, indent=2, sort_keys=True),
+                "Requirement delta:",
+                json.dumps(request.requirement_delta, indent=2, sort_keys=True),
                 "",
                 "Design Specification JSON:",
                 json.dumps(request.design_specification, indent=2, sort_keys=True),
@@ -605,180 +1211,11 @@ class GeminiCliProvider:
             ]
         )
 
-    def _build_structured_revision_prompt(self, request: ModelGenerationRequest) -> str:
-        return "\n".join(
-            [
-                "Revise this Volundr OpenSCAD project from an approved structured Revision Plan.",
-                "Return only a single fenced openscad block. Do not include prose outside the block.",
-                "The Revision Plan is the only authority for what may change.",
-                "Return complete authoritative OpenSCAD source for the whole product.",
-                "Change only approved targets and dependency changes.",
-                "Preserve all protected requirement, component, feature, dependency, geometry, and output markers.",
-                "Retain every planned printable output and the selected_output/render_selected_output contract.",
-                "Preserve unrelated modules and unaffected output behavior where practical.",
-                "Do not simplify away difficult features, remove outputs, or redesign unrelated components.",
-                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-                "",
-                f"Project name: {request.project_name}",
-                f"Original intent: {request.original_intent}",
-                f"User revision request: {request.user_instruction}",
-                "",
-                "Approved Revision Plan JSON:",
-                json.dumps(request.revision_plan, indent=2, sort_keys=True),
-                "",
-                "Current Design Specification JSON:",
-                json.dumps(request.design_specification, indent=2, sort_keys=True),
-                "",
-                "Current Design Plan JSON:",
-                json.dumps(request.design_plan, indent=2, sort_keys=True),
-                "",
-                "Current output manifest:",
-                json.dumps(request.output_manifest, indent=2, sort_keys=True),
-                "",
-                "Selected findings:",
-                json.dumps(request.selected_findings, indent=2, sort_keys=True),
-                "",
-                "Base authoritative OpenSCAD source:",
-                request.current_source or "",
-            ]
-        )
-
-    def _build_component_revision_prompt(self, request: ModelGenerationRequest) -> str:
-        return "\n".join(
-            [
-                "Revise this Volundr OpenSCAD project using the approved component-scoped Revision Plan.",
-                "Return only a single fenced openscad block. Do not include prose outside the block.",
-                "Return the complete authoritative SCAD source for the whole product; do not return a source fragment.",
-                "Edit only targeted components, targeted features, targeted outputs, and explicitly allowed shared modules.",
-                "Preserve protected component modules, protected feature markers, protected output mappings, protected interface parameters, and protected parameter values.",
-                "Preserve selected_output and render_selected_output behavior for every planned printable output.",
-                "Preserve active configuration compatibility: all configured override parameters must remain exposed and must not be reset to Design Plan defaults.",
-                "Do not rename unrelated modules, remove difficult features, add undeclared outputs/components, or broaden the revision scope.",
-                "If an unplanned shared dependency appears necessary, keep the source unchanged in that area and let Volundr reject or re-plan the revision.",
-                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-                "",
-                f"Project name: {request.project_name}",
-                f"Original intent: {request.original_intent}",
-                f"User revision request: {request.user_instruction}",
-                "",
-                "Scoped revision context:",
-                json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
-                "",
-                "Active configuration context:",
-                json.dumps(request.configuration_context, indent=2, sort_keys=True),
-                "",
-                "Approved Revision Plan JSON:",
-                json.dumps(request.revision_plan, indent=2, sort_keys=True),
-                "",
-                "Current Design Specification JSON:",
-                json.dumps(request.design_specification, indent=2, sort_keys=True),
-                "",
-                "Current Design Plan JSON:",
-                json.dumps(request.design_plan, indent=2, sort_keys=True),
-                "",
-                "Current output manifest:",
-                json.dumps(request.output_manifest, indent=2, sort_keys=True),
-                "",
-                "Selected findings:",
-                json.dumps(request.selected_findings, indent=2, sort_keys=True),
-                "",
-                "Base authoritative OpenSCAD source:",
-                request.current_source or "",
-            ]
-        )
-
-    def _build_scope_correction_prompt(self, request: ModelGenerationRequest) -> str:
-        return "\n".join(
-            [
-                "Correct this revised Volundr OpenSCAD source so it satisfies the approved component revision scope.",
-                "Return only a single fenced openscad block. Do not include prose outside the block.",
-                "This is scope correction, not a new design revision.",
-                "Return complete authoritative SCAD source for the whole product; do not return a fragment.",
-                "Revert unauthorized edits to protected components, protected outputs, protected interface parameters, unapproved shared modules, and unrelated modules.",
-                "Preserve the approved targeted change where it does not conflict with the scope findings.",
-                "Do not broaden the revision, add undeclared outputs/components, or rename unrelated modules.",
-                "Preserve active configuration compatibility and every output selector mapping.",
-                "",
-                f"Project name: {request.project_name}",
-                f"User revision request: {request.user_instruction}",
-                "",
-                "Approved Revision Plan JSON:",
-                json.dumps(request.revision_plan, indent=2, sort_keys=True),
-                "",
-                "Scoped revision context:",
-                json.dumps(request.scoped_revision_context, indent=2, sort_keys=True),
-                "",
-                "Scope findings to correct:",
-                request.scope_diagnostics or "",
-                "",
-                "Current revised source that exceeded scope:",
-                request.current_source or "",
-            ]
-        )
-
-    def _build_contract_repair_prompt(self, request: ModelGenerationRequest) -> str:
-        has_design_plan_outputs = bool(
-            request.design_plan
-            and any(
-                isinstance(output, dict) and output.get("id")
-                for output in request.design_plan.get("printable_outputs", [])
-            )
-        )
-        final_model_instruction = (
-            "Ensure the file ends with exactly one top-level render_selected_output(); call."
-            if has_design_plan_outputs
-            else "Ensure module main_model() exists and the file ends with exactly one top-level main_model(); call."
-        )
-        design_plan_instructions = (
-            [
-                "Preserve selected_output, render_selected_output(), and every @volundr-output mapping from the Design Plan.",
-                "Repair missing Design Plan @volundr-component, @volundr-feature, @volundr-dependency, and @volundr-output markers without changing the intended geometry.",
-                "Dependency markers must exactly match Design Plan edges as // @volundr-dependency <from_parameter_id> -> <to_parameter_id> immediately before the assignment for the target parameter.",
-                "Do not copy validator diagnostic text such as 'expected' or 'detected' into any @volundr-dependency marker.",
-            ]
-            if request.design_plan
-            else []
-        )
-        return "\n".join(
-            [
-                "Repair OpenSCAD source so it satisfies Volundr source-contract validation.",
-                "Return only a single fenced openscad block. Do not include prose outside the block.",
-                "This is contract repair, not design revision.",
-                "Preserve geometry, all user dimensions, protected Design Specification values, required features, unrelated modules, and working Boolean structure.",
-                "Only fix the listed contract violations, marker omissions, section omissions, prohibited constructs, or verifiability issues.",
-                "Do not change protected parameter values unless the diagnostics explicitly say the current value is wrong and the Design Specification value is provided.",
-                "Do not use import(), surface(), include/use paths, host file access, STL, binary data, or base64.",
-                "Ensure every protected Design Specification critical dimension uses // @volundr-requirement <id> immediately before the parameter assignment, including count parameters such as tray_count.",
-                "Ensure every protected Design Specification functional requirement uses // @volundr-feature <id> immediately before the implementing module or statement.",
-                "Do not use @volundr-requirement for protected functional requirements; use @volundr-feature for those.",
-                "Preserve and repair // @volundr-geometry markers for bounds, hole groups, holes, and wall thickness when those features exist.",
-                "Do not add geometry markers that claim a feature or dimension the source does not implement.",
-                *design_plan_instructions,
-                final_model_instruction,
-                "",
-                f"Project name: {request.project_name}",
-                f"Original intent: {request.original_intent}",
-                f"User instruction: {request.user_instruction}",
-                "",
-                "Source-contract diagnostics:",
-                request.contract_diagnostics or "",
-                "",
-                "Authoritative Design Specification JSON:",
-                json.dumps(request.design_specification, indent=2, sort_keys=True),
-                "",
-                "Authoritative Design Plan JSON:",
-                json.dumps(request.design_plan, indent=2, sort_keys=True),
-                "",
-                "Source to repair:",
-                request.current_source or "",
-            ]
-        )
-
     def _build_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
         if request.schema_repair_of_raw_output is not None:
             task = [
                 "Repair this requirement-extraction response into valid JSON for the required schema.",
-                "Do not add OpenSCAD. Do not invent critical dimensions.",
+                "Do not add CAD source. Do not invent critical dimensions.",
                 "Preserve the original meaning and return JSON only.",
                 "",
                 "Schema validation error:",
@@ -790,10 +1227,14 @@ class GeminiCliProvider:
         else:
             task = [
                 "Extract a structured Volundr Design Specification from the user request.",
-                "Return JSON only. Do not generate OpenSCAD.",
+                "Return JSON only. Do not generate CAD source.",
                 "Classify whether generation is ready, clarification is required, requirements conflict, or the request is unsupported.",
-            "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
-            "Do not use tools, web search, files, or external resources. Use only this prompt, supplied defaults, previous specifications, and clarification answers.",
+                "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
+                "Preserve nominal hardware designations as strings, including the # prefix. A designation such as #8 is not an 8 mm dimension; use a semantic ID such as mounting_screw_designation and leave hole diameter to a later standard lookup proposal.",
+                "When the request says wall-mounted, wall-mounted means a vertical planar wall mount unless the user states otherwise; propose ordinary screw spacing and orientation rather than asking for them.",
+                "When a moving-vehicle request requires secure retention and one-handed removal, do not ask the user to choose an implementation mechanism when a supported concrete proposal is reasonable; let the Design Plan propose one.",
+                "do not ask the user to convert a nominal designation such as #8 into a metric diameter.",
+                "Do not use tools, web search, files, or external resources. Use only this prompt, supplied defaults, previous specifications, and clarification answers.",
             ]
         schema = {
             "schema_version": "1.0",

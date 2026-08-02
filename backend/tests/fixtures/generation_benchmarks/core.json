@@ -104,11 +104,11 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["none_until_clarified"],
       "expected_printability_constraints": ["not applicable until clarified"],
-      "compile_expectation": "no_scad_generated",
+      "compile_expectation": "no_cadquery_generated",
       "mesh_expectation": "none",
       "expected_geometric_invariants": [],
       "revision_expectation": "not applicable",
-      "protected_design_invariants": ["no accepted SCAD before clarification"],
+      "protected_design_invariants": ["no accepted CadQuery before clarification"],
       "unacceptable_outcomes": ["generic bracket accepted", "silent load assumption"]
     },
     {
@@ -121,12 +121,73 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["none_until_clarified"],
       "expected_printability_constraints": ["not applicable until clarified"],
-      "compile_expectation": "no_scad_generated",
+      "compile_expectation": "no_cadquery_generated",
       "mesh_expectation": "none",
       "expected_geometric_invariants": [],
       "revision_expectation": "not applicable",
       "protected_design_invariants": ["conflict must not be silently resolved"],
-      "unacceptable_outcomes": ["choosing either width silently", "accepted SCAD"]
+      "unacceptable_outcomes": ["choosing either width silently", "accepted CadQuery"]
+    },
+    {
+      "id": "creative_fish_shelf_bracket",
+      "suite": "core",
+      "input_prompt": "Create a 90 degree shelf bracket with an 80 mm wall leg, 70 mm shelf leg, 18 mm width, 5 mm material thickness, two wall mounting holes, two shelf mounting holes, and make the visible underside silhouette look like a fish.",
+      "required_dimensions": ["wall_leg_length=80 mm", "shelf_leg_length=70 mm", "bracket_width=18 mm", "material_thickness=5 mm", "wall_hole_count=2", "shelf_hole_count=2"],
+      "allowed_assumptions": ["hole_diameter=4.5 mm for M4 clearance", "fish styling may use bounded outline relief, fins, tail, or local silhouette shaping away from mounting faces"],
+      "expected_clarification": "none",
+      "expected_modules": ["functional_l_bracket_core", "wall_mounting_holes", "shelf_mounting_holes", "fish_silhouette"],
+      "expected_parameters": ["wall_leg_length", "shelf_leg_length", "bracket_width", "material_thickness", "hole_diameter", "fish_style"],
+      "expected_printability_constraints": ["functional mounting faces remain flat", "decorative features do not sever load path"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "one connected 90 degree bracket with visible fish underside styling",
+      "expected_geometric_invariants": [
+        {"type": "hole_group", "feature_id": "wall_mounting_holes", "count": 2, "diameter_mm": 4.5, "axis": "x", "verification": "verified_or_warning"},
+        {"type": "hole_group", "feature_id": "shelf_mounting_holes", "count": 2, "diameter_mm": 4.5, "axis": "z", "verification": "verified_or_warning"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified_or_warning"}
+      ],
+      "revision_expectation": "style changes preserve hole count, bracket legs, and flat mounting faces",
+      "protected_design_invariants": ["true 90 degree bracket", "wall mounting holes", "shelf mounting holes", "flat mounting faces", "visible underside fish silhouette"],
+      "unacceptable_outcomes": ["plain L bracket with no fish-like underside", "decorative fish that is disconnected from bracket", "fish cutouts remove mounting faces", "holes modeled as positive cylinders instead of subtractive cuts"]
+    },
+    {
+      "id": "honeycomb_angle_bracket",
+      "suite": "core",
+      "input_prompt": "Create a 90 degree angle bracket with two 80 x 45 x 5 mm flanges, four M5 clearance mounting holes, a triangular reinforcing rib, and a hexagonal honeycomb lightening pattern on the broad faces while keeping solid borders around edges and holes.",
+      "required_dimensions": ["flange_length=80 mm", "flange_width=45 mm", "material_thickness=5 mm", "hole_diameter=5.2 mm", "hole_count=4", "solid_border>=6 mm"],
+      "allowed_assumptions": ["rib_thickness=5 mm", "hex_flat_to_flat=10 mm", "hole bosses may remain solid"],
+      "expected_clarification": "none",
+      "expected_modules": ["angle_bracket_core", "mounting_holes", "reinforcing_rib", "honeycomb_cutouts"],
+      "expected_parameters": ["flange_length", "flange_width", "material_thickness", "hole_diameter", "hex_flat_to_flat", "border_thickness"],
+      "expected_printability_constraints": ["one connected body", "solid borders around holes and outer edges"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "connected L bracket with real honeycomb cutouts and mounting holes",
+      "expected_geometric_invariants": [
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 4, "diameter_mm": 5.2, "verification": "verified_or_warning"},
+        {"type": "wall_thickness", "value_mm": 5, "verification": "verified_or_warning"}
+      ],
+      "revision_expectation": "honeycomb size changes preserve hole bosses, borders, and 90 degree core",
+      "protected_design_invariants": ["true 90 degree bracket", "four M5 clearance holes", "triangular reinforcing rib", "hexagonal lightening pattern", "solid edge and hole borders"],
+      "unacceptable_outcomes": ["honeycomb represented as surface decoration only", "honeycomb cuts pass through mounting bosses", "missing rib", "holes missing or not through holes"]
+    },
+    {
+      "id": "threaded_control_knob",
+      "suite": "core",
+      "input_prompt": "Create a 32 mm diameter knurled control knob, 18 mm tall, with an M6x1 internal threaded hole through the center, a pointer indicator line on top, and editable diameter, height, and thread spec.",
+      "required_dimensions": ["knob_diameter=32 mm", "knob_height=18 mm", "internal_thread=M6x1", "thread_axis=z"],
+      "allowed_assumptions": ["BOSL2/threading allowed when curated library support is enabled", "knurling may be diamond or straight grip texture", "$fn may be 64"],
+      "expected_clarification": "none",
+      "expected_modules": ["knob_body", "knurled_grip", "internal_thread", "pointer_indicator"],
+      "expected_parameters": ["knob_diameter", "knob_height", "thread_spec", "indicator_width"],
+      "expected_printability_constraints": ["central hole remains open through the knob", "knurling does not create disconnected fragments"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "single knob body with functional center threaded hole and visible grip texture",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "x_mm": 32, "y_mm": 32, "z_mm": 18, "verification": "verified_or_warning"},
+        {"type": "hole", "axis": "z", "verification": "verified_or_warning"}
+      ],
+      "revision_expectation": "diameter and thread spec revisions preserve pointer indicator and grip texture",
+      "protected_design_invariants": ["central threaded through hole", "visible knurled grip", "top pointer indicator", "editable thread_spec parameter"],
+      "unacceptable_outcomes": ["solid knob with no center hole", "hand-rolled fake threads accepted as functional threads", "decorative ribs only with no grip texture", "thread spec not parameterized"]
     }
   ]
 }

@@ -1,3 +1,3 @@
-from app.services.cad.runner import CadCompileResult, OpenScadCliRunner
+from app.services.cad.cadquery_runner import CadQueryCliRunner, CadQueryCompileResult
 
-__all__ = ["CadCompileResult", "OpenScadCliRunner"]
+__all__ = ["CadQueryCliRunner", "CadQueryCompileResult"]

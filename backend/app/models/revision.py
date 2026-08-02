@@ -47,7 +47,12 @@ class Revision(Base):
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
     source_type: Mapped[str] = mapped_column(String(40), nullable=False)
     user_instruction: Mapped[str | None] = mapped_column(Text, nullable=True)
-    scad_source_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    cad_backend: Mapped[str] = mapped_column(String(40), nullable=False, default="cadquery")
+    source_language: Mapped[str] = mapped_column(String(40), nullable=False, default="python")
+    source_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    source_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    source_contract_version: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    execution_manifest_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     stl_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     compile_log_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     ai_output_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -60,6 +65,9 @@ class Revision(Base):
     status: Mapped[str] = mapped_column(String(40), nullable=False, default="pending")
     is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     review_state: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    functional_status: Mapped[str] = mapped_column(
+        String(48), nullable=False, default="functionally_unverified"
+    )
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     rejected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

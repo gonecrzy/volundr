@@ -14,38 +14,87 @@ from app.db.session import get_db
 from app.main import app
 from app.models.project import Project, utcnow
 from app.models.revision import Revision
-from app.services.cad.runner import CadCompileResult
+from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
 
 
+CADQUERY_MANUAL_SOURCE = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = [
+    ParameterSpec(id="width", label="Width", type="float", default=10.0, unit="mm"),
+    ParameterSpec(id="depth", label="Depth", type="float", default=20.0, unit="mm"),
+    ParameterSpec(id="height", label="Height", type="float", default=30.0, unit="mm"),
+]
+
+
+def build(params):
+    body = cq.Workplane("XY").box(params["width"], params["depth"], params["height"])
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(
+                output_id="body",
+                label="Body",
+                component_id="body",
+                component_ids=("body",),
+                model=body,
+                expected_solid_count=1,
+                allow_disconnected_solids=False,
+            )
+        ],
+    )
+"""
+
+CADQUERY_WIDE_SOURCE = CADQUERY_MANUAL_SOURCE.replace(
+    'ParameterSpec(id="width", label="Width", type="float", default=10.0',
+    'ParameterSpec(id="width", label="Width", type="float", default=20.0',
+)
+
+
 class FakeCadRunner:
-    async def compile(self, source: str, job_id: str) -> CadCompileResult:
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        parameter_values: dict | None = None,
+        requested_outputs: list[dict] | None = None,
+    ) -> CadQueryCompileResult:
         job_dir = Path("/tmp") / "volundr-fake-jobs" / job_id
         job_dir.mkdir(parents=True, exist_ok=True)
-        source_path = job_dir / "model.scad"
-        stl_path = job_dir / "model.stl"
+        output_id = requested_outputs[0]["output_id"] if requested_outputs else "body"
+        source_path = job_dir / "model.py"
+        stl_path = job_dir / f"{output_id}.stl"
+        step_path = job_dir / f"{output_id}.step"
+        brep_path = job_dir / f"{output_id}.brep"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
         metadata_path = job_dir / "metadata.json"
+        topology_path = job_dir / "topology.json"
+        execution_manifest_path = job_dir / "result.json"
         source_path.write_text(source, encoding="utf-8")
         stdout_path.write_text("", encoding="utf-8")
 
         if "broken" in source:
             stderr_path.write_text("Parser error", encoding="utf-8")
-            return CadCompileResult(
+            return CadQueryCompileResult(
                 job_id=job_id,
                 success=False,
                 timed_out=False,
                 exit_code=1,
                 source_path=source_path,
                 stl_path=None,
+                step_path=None,
                 stdout_path=stdout_path,
                 stderr_path=stderr_path,
                 metadata_path=None,
-                source_hash="fake-source-hash",
+                source_hash="fake-cadquery-source-hash",
                 output_size_bytes=0,
                 metadata=None,
                 error_message="Parser error",
+                outputs=[],
             )
 
         mesh = trimesh.creation.box(extents=(10.0, 20.0, 30.0))
@@ -64,21 +113,56 @@ class FakeCadRunner:
             center_of_mass=(5.0, 10.0, 15.0),
         )
         metadata_path.write_text('{"triangle_count": 12}', encoding="utf-8")
-        return CadCompileResult(
+        step_path.write_text("STEP", encoding="utf-8")
+        brep_path.write_text("BREP", encoding="utf-8")
+        topology_path.write_text(
+            '{"valid": true, "expected_solid_count": 1, "detected_solid_count": 1, '
+            '"allow_disconnected_solids": false}',
+            encoding="utf-8",
+        )
+        execution_manifest_path.write_text('{"success": true}', encoding="utf-8")
+        output = CadQueryOutputResult(
+            output_id=output_id,
+            entrypoint=output_id,
+            required=bool((requested_outputs or [{"required": True}])[0].get("required", True)),
+            success=True,
+            stl_path=stl_path,
+            step_path=step_path,
+            brep_path=brep_path,
+            metadata_path=metadata_path,
+            topology_metadata_path=topology_path,
+            stl_hash="1" * 64,
+            step_hash="2" * 64,
+            brep_hash="3" * 64,
+            output_size_bytes=stl_path.stat().st_size,
+            metadata=metadata,
+            topology_metadata={
+                "valid": True,
+                "expected_solid_count": 1,
+                "detected_solid_count": 1,
+                "allow_disconnected_solids": False,
+            },
+        )
+        result = CadQueryCompileResult(
             job_id=job_id,
             success=True,
             timed_out=False,
             exit_code=0,
             source_path=source_path,
             stl_path=stl_path,
+            step_path=step_path,
             stdout_path=stdout_path,
             stderr_path=stderr_path,
             metadata_path=metadata_path,
-            source_hash="fake-source-hash",
+            source_hash="fake-cadquery-source-hash",
             output_size_bytes=stl_path.stat().st_size,
             metadata=metadata,
             error_message=None,
+            command_args=["python", "_volundr_cadquery_runner.py"],
+            outputs=[output],
         )
+        object.__setattr__(result, "execution_manifest_path", execution_manifest_path)
+        return result
 
 
 def build_client(tmp_path: Path) -> TestClient:
@@ -123,7 +207,7 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     revision_response = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([10, 20, 30]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": "Initial manual model.",
         },
     )
@@ -132,6 +216,12 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     revision = revision_response.json()
     assert revision["status"] == "succeeded"
     assert revision["is_accepted"] is True
+    assert revision["cad_backend"] == "cadquery"
+    assert revision["source_language"] == "python"
+    assert revision["source_contract_version"] == "cadquery-v1"
+    assert revision["execution_manifest_path"] == f"projects/{project['id']}/revisions/{revision['id']}/execution-manifest.json"
+    assert revision["expected_output_count"] == 1
+    assert revision["successful_output_count"] == 1
     assert revision["metadata"]["triangle_count"] == 12
     assert revision["metadata"]["size_z_mm"] == 30.0
 
@@ -139,19 +229,42 @@ def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -
     assert refreshed_project["active_revision_id"] == revision["id"]
 
     revision_dir = tmp_path / "data" / "projects" / project["id"] / "revisions" / revision["id"]
-    assert (revision_dir / "model.scad").read_text(encoding="utf-8") == "cube([10, 20, 30]);"
-    assert (revision_dir / "model.stl").exists()
-    assert (revision_dir / "compile.log").read_text(encoding="utf-8") == "Compilation finished"
-    assert (revision_dir / "metadata.json").exists()
+    assert (revision_dir / "source.py").read_text(encoding="utf-8") == CADQUERY_MANUAL_SOURCE
+    assert (revision_dir / "stl" / "body.stl").exists()
+    assert (revision_dir / "step" / "body.step").exists()
+    assert (revision_dir / "brep" / "body.brep").exists()
+    assert (revision_dir / "execution-manifest.json").exists()
+    assert (revision_dir / "logs" / "cadquery.log").read_text(encoding="utf-8") == "Compilation finished"
+    assert (revision_dir / "metadata" / "body.metadata.json").exists()
 
     source_response = client.get(f"/api/revisions/{revision['id']}/source")
     assert source_response.status_code == 200
-    assert source_response.text == "cube([10, 20, 30]);"
+    assert source_response.text == CADQUERY_MANUAL_SOURCE
 
     revisions_response = client.get(f"/api/projects/{project['id']}/revisions")
     assert revisions_response.status_code == 200
     revisions = revisions_response.json()
     assert revisions[0]["metadata"]["triangle_count"] == 12
+
+
+def test_manual_revision_rejects_unknown_source_field(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={
+            "name": "Fish bracket",
+            "original_intent": "Create a styled shelf bracket.",
+        },
+    ).json()
+    response = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={
+            "source_code": "import cadquery as cq",
+            "user_instruction": "Initial manual model.",
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_revision_printability_endpoint_returns_profiled_findings(tmp_path: Path) -> None:
@@ -166,7 +279,7 @@ def test_revision_printability_endpoint_returns_profiled_findings(tmp_path: Path
     revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([10, 20, 30]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": "Initial manual model.",
         },
     ).json()
@@ -283,7 +396,7 @@ def test_draft_project_is_hidden_from_project_list_and_can_compile(tmp_path: Pat
     revision_response = client.post(
         f"/api/projects/{draft['id']}/revisions",
         json={
-            "scad_source": "cube([10, 20, 30]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": None,
         },
     )
@@ -301,7 +414,7 @@ def test_manual_revision_rejects_blank_source(tmp_path: Path) -> None:
     response = client.post(
         f"/api/projects/{draft['id']}/revisions",
         json={
-            "scad_source": "   \n\t",
+            "source": "   \n\t",
             "user_instruction": None,
         },
     )
@@ -338,7 +451,7 @@ def test_old_draft_projects_are_cleaned_after_fourteen_days(tmp_path: Path) -> N
     old_draft_revision = client.post(
         f"/api/projects/{old_draft['id']}/revisions",
         json={
-            "scad_source": "cube([10, 20, 30]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": None,
         },
     ).json()
@@ -376,7 +489,7 @@ def test_project_can_be_deleted_permanently_with_files(tmp_path: Path) -> None:
     revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([10, 20, 30]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": None,
         },
     ).json()
@@ -509,7 +622,7 @@ def test_project_messages_record_project_and_revision_events(tmp_path: Path) -> 
     revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([10, 20, 30]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": "Initial traceable model.",
         },
     ).json()
@@ -540,7 +653,7 @@ def test_failed_manual_revision_does_not_replace_active_revision(tmp_path: Path)
     first_revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([10, 10, 10]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": "Initial manual model.",
         },
     ).json()
@@ -548,7 +661,7 @@ def test_failed_manual_revision_does_not_replace_active_revision(tmp_path: Path)
     failed_response = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "broken(",
+            "source": "broken(",
             "user_instruction": "Bad manual edit.",
         },
     )
@@ -579,14 +692,14 @@ def test_successful_revision_can_be_restored_as_active(tmp_path: Path) -> None:
     first_revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([10, 10, 10]);",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": "Initial manual model.",
         },
     ).json()
     second_revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "cube([20, 10, 10]);",
+            "source": CADQUERY_WIDE_SOURCE,
             "user_instruction": "Wider handle.",
         },
     ).json()
@@ -600,7 +713,7 @@ def test_successful_revision_can_be_restored_as_active(tmp_path: Path) -> None:
     assert restored_project["active_revision_id"] == first_revision["id"]
 
     source_response = client.get(f"/api/revisions/{first_revision['id']}/source")
-    assert source_response.headers["content-disposition"].endswith('filename="model.scad"')
+    assert source_response.headers["content-disposition"].endswith('filename="source.py"')
 
 
 def test_revision_diff_compares_revision_to_parent(tmp_path: Path) -> None:
@@ -615,14 +728,14 @@ def test_revision_diff_compares_revision_to_parent(tmp_path: Path) -> None:
     first_revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "module main_model() {\n  cube([10, 10, 10]);\n}\nmain_model();\n",
+            "source": CADQUERY_MANUAL_SOURCE,
             "user_instruction": "Initial cube.",
         },
     ).json()
     second_revision = client.post(
         f"/api/projects/{project['id']}/revisions",
         json={
-            "scad_source": "module main_model() {\n  cube([20, 10, 10]);\n}\nmain_model();\n",
+            "source": CADQUERY_WIDE_SOURCE,
             "user_instruction": "Make it wider.",
         },
     ).json()
@@ -633,10 +746,13 @@ def test_revision_diff_compares_revision_to_parent(tmp_path: Path) -> None:
     assert response.text.splitlines() == [
         f"--- R{first_revision['revision_number']}",
         f"+++ R{second_revision['revision_number']}",
-        "@@ -1,4 +1,4 @@",
-        " module main_model() {",
-        "-  cube([10, 10, 10]);",
-        "+  cube([20, 10, 10]);",
-        " }",
-        " main_model();",
+        "@@ -3,7 +3,7 @@",
+        " from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product",
+        " ",
+        " PARAMETERS = [",
+        '-    ParameterSpec(id="width", label="Width", type="float", default=10.0, unit="mm"),',
+        '+    ParameterSpec(id="width", label="Width", type="float", default=20.0, unit="mm"),',
+        '     ParameterSpec(id="depth", label="Depth", type="float", default=20.0, unit="mm"),',
+        '     ParameterSpec(id="height", label="Height", type="float", default=30.0, unit="mm"),',
+        " ]",
     ]

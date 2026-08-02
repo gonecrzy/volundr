@@ -4,6 +4,51 @@ export type DesignPlanReviewState =
   | "approved"
   | "rejected";
 
+type RetentionProposal = {
+  strategy?: string;
+  release_behavior?: string;
+  removal_direction?: string;
+  parameters?: Array<{ id?: string; label?: string; value?: number | string | boolean | null; unit?: string | null }>;
+  verification?: { human_review_required?: boolean };
+};
+
+export function retentionProposalLines(
+  contract: { retention_interfaces?: RetentionProposal[] } | null | undefined,
+): string[] {
+  const retention = contract?.retention_interfaces?.[0];
+  if (!retention) {
+    return [];
+  }
+  const strategyLabels: Record<string, string> = {
+    flexible_snap_arm: "Flexible snap arm",
+    retaining_lip: "Retaining lip",
+    spring_clip: "Spring clip",
+    removable_strap: "Removable strap",
+    rotating_gate: "Rotating gate",
+    friction_band: "Friction band",
+    latch: "Latch",
+  };
+  const lines = [strategyLabels[retention.strategy ?? ""] ?? retention.strategy ?? "Retention mechanism"];
+  if (retention.release_behavior || retention.removal_direction) {
+    const releaseLabel = (retention.release_behavior ?? "review required")
+      .replace("one_handed", "one-handed")
+      .replaceAll("_", " ");
+    lines.push(
+      `Release: ${releaseLabel}; removal direction: ${retention.removal_direction ?? "review required"}`,
+    );
+  }
+  for (const parameter of retention.parameters ?? []) {
+    if (!parameter.label || parameter.value === null || parameter.value === undefined) {
+      continue;
+    }
+    lines.push(`${parameter.label}: ${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`);
+  }
+  if (retention.verification?.human_review_required) {
+    lines.push("Final retention strength requires review and print testing");
+  }
+  return lines;
+}
+
 export type DesignPlanSummary = {
   outcome: "plan_ready" | "plan_clarification_required" | "plan_failed";
   review_state: DesignPlanReviewState;
@@ -24,13 +69,19 @@ export type DesignPlanSummary = {
       label: string;
       value: number | string | boolean | null;
       unit?: string | null;
+      source?: string;
+      provenance?: { relationship?: string; explanation?: string | null };
       editable?: boolean;
       protected?: boolean;
     }>;
     derived_parameters?: Array<{
       id: string;
       label: string;
-      expression: string;
+      value?: number | string | boolean | null;
+      expression?: string | null;
+      unit?: string | null;
+      source?: string;
+      provenance?: { relationship?: string; explanation?: string | null };
       depends_on?: string[];
     }>;
     dependency_edges?: Array<{
@@ -72,17 +123,17 @@ export type DesignPlanSummary = {
 
 export function designPlanStageLabel(plan: DesignPlanSummary | null): string {
   if (!plan) {
-    return "Plan not created";
+    return "Waiting for proposed design";
   }
   switch (plan.review_state) {
     case "clarification_required":
-      return "Plan clarification required";
+      return "A few design details are needed";
     case "pending_review":
-      return "Plan review";
+      return "Ready for your review";
     case "approved":
-      return "Plan approved";
+      return "Ready to generate";
     case "rejected":
-      return "Plan rejected";
+      return "Proposal not used";
   }
 }
 

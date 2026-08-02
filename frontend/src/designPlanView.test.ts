@@ -5,6 +5,7 @@ import {
   designPlanClarificationQuestions,
   designPlanStageLabel,
   designPlanSummaryCounts,
+  retentionProposalLines,
   type DesignPlanSummary,
 } from "./designPlanView";
 
@@ -45,13 +46,13 @@ function plan(overrides: Partial<DesignPlanSummary>): DesignPlanSummary {
 
 describe("design plan view helpers", () => {
   it("renders stable review labels", () => {
-    expect(designPlanStageLabel(null)).toBe("Plan not created");
+    expect(designPlanStageLabel(null)).toBe("Waiting for proposed design");
     expect(designPlanStageLabel(plan({ review_state: "pending_review" }))).toBe(
-      "Plan review",
+      "Ready for your review",
     );
-    expect(designPlanStageLabel(plan({ review_state: "approved" }))).toBe("Plan approved");
+    expect(designPlanStageLabel(plan({ review_state: "approved" }))).toBe("Ready to generate");
     expect(designPlanStageLabel(plan({ review_state: "clarification_required" }))).toBe(
-      "Plan clarification required",
+      "A few design details are needed",
     );
   });
 
@@ -100,6 +101,31 @@ describe("design plan view helpers", () => {
         question: "Should the body and lid be separate outputs?",
         reason: "This affects the printable output manifest.",
       },
+    ]);
+  });
+
+  it("presents the concrete retention mechanism and human-review boundary", () => {
+    expect(
+      retentionProposalLines({
+        retention_interfaces: [
+          {
+            strategy: "flexible_snap_arm",
+            release_behavior: "one_handed_pull",
+            removal_direction: "+Z",
+            parameters: [
+              { id: "retention_overlap", label: "Snap overlap", value: 2, unit: "mm" },
+              { id: "retention_arm_thickness", label: "Snap thickness", value: 2.4, unit: "mm" },
+            ],
+            verification: { human_review_required: true },
+          },
+        ],
+      }),
+    ).toEqual([
+      "Flexible snap arm",
+      "Release: one-handed pull; removal direction: +Z",
+      "Snap overlap: 2 mm",
+      "Snap thickness: 2.4 mm",
+      "Final retention strength requires review and print testing",
     ]);
   });
 });

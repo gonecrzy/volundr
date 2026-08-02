@@ -106,7 +106,7 @@
       "expected_modules": ["saddle", "wall_plate", "mounting_holes", "retention_lip"],
       "expected_parameters": ["flashlight_diameter", "fit_clearance", "screw_size", "hole_spacing"],
       "expected_printability_constraints": ["plate flat", "gusseted holder"],
-      "compile_expectation": "no_scad_until_fasteners_clarified",
+      "compile_expectation": "no_cadquery_until_fasteners_clarified",
       "mesh_expectation": "one component after clarification",
       "revision_expectation": "diameter revision preserves screw spacing",
       "protected_design_invariants": ["flashlight clearance", "fastener geometry", "gussets"],
@@ -122,7 +122,7 @@
       "expected_modules": ["t_track_tongue", "stop_block", "bolt_hole"],
       "expected_parameters": ["slot_width", "sliding_clearance", "bolt_clearance_diameter"],
       "expected_printability_constraints": ["flat base", "tongue thickness >= 1.6 mm"],
-      "compile_expectation": "no_scad_until_track_depth_clarified",
+      "compile_expectation": "no_cadquery_until_track_depth_clarified",
       "mesh_expectation": "one component after clarification",
       "revision_expectation": "slot width revision adjusts tongue only",
       "protected_design_invariants": ["T-track mating geometry", "bolt hole", "tongue thickness"],
@@ -239,10 +239,10 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["none_until_clarified"],
       "expected_printability_constraints": ["not applicable until clarified"],
-      "compile_expectation": "no_scad_generated",
+      "compile_expectation": "no_cadquery_generated",
       "mesh_expectation": "none",
       "revision_expectation": "not applicable",
-      "protected_design_invariants": ["no accepted SCAD before clarification"],
+      "protected_design_invariants": ["no accepted CadQuery before clarification"],
       "unacceptable_outcomes": ["generic bracket accepted", "silent load assumption"]
     },
     {
@@ -255,11 +255,11 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["none_until_clarified"],
       "expected_printability_constraints": ["not applicable until clarified"],
-      "compile_expectation": "no_scad_generated",
+      "compile_expectation": "no_cadquery_generated",
       "mesh_expectation": "none",
       "revision_expectation": "not applicable",
       "protected_design_invariants": ["conflict must not be silently resolved"],
-      "unacceptable_outcomes": ["choosing either width silently", "accepted SCAD"]
+      "unacceptable_outcomes": ["choosing either width silently", "accepted CadQuery"]
     },
     {
       "id": "unprintable_overhang",
@@ -271,7 +271,7 @@
       "expected_modules": ["wall_plate", "shelf_arm", "gusset"],
       "expected_parameters": ["arm_length", "fastener_size", "gusset_thickness"],
       "expected_printability_constraints": ["no unsupported 120 mm ceiling", "gussets or clarification"],
-      "compile_expectation": "no_scad_until_load_and_support_decisions",
+      "compile_expectation": "no_cadquery_until_load_and_support_decisions",
       "mesh_expectation": "one component after clarification",
       "revision_expectation": "preserve load path",
       "protected_design_invariants": ["load path", "support-free constraint", "fastener geometry"],
@@ -287,7 +287,7 @@
       "expected_modules": ["none_until_clarified"],
       "expected_parameters": ["outer_diameter", "wall_thickness"],
       "expected_printability_constraints": ["avoid trapped support-only cavity unless split or vented"],
-      "compile_expectation": "no_scad_until_vent_or_split_decision",
+      "compile_expectation": "no_cadquery_until_vent_or_split_decision",
       "mesh_expectation": "none until clarified",
       "revision_expectation": "not applicable",
       "protected_design_invariants": ["no inaccessible sealed support cavity without user approval"],
@@ -328,6 +328,13 @@
       "suite": "full",
       "input_prompt": "Create a configurable electronics enclosure for a 70 x 45 x 18 mm PCB with standoffs, cable opening, and snap-on lid.",
       "required_dimensions": ["pcb=70x45x18 mm", "standoff_count=4", "standoff_hole=2.6 mm"],
+      "expected_explicit_requirements": {
+        "pcb_width": {"value": 70.0, "unit": "mm"},
+        "pcb_depth": {"value": 45.0, "unit": "mm"},
+        "pcb_height": {"value": 18.0, "unit": "mm"},
+        "standoff_count": {"value": 4, "unit": "count"},
+        "standoff_hole": {"value": 2.6, "unit": "mm"}
+      },
       "allowed_assumptions": ["wall_thickness=2.4 mm", "lid_clearance=0.3 mm per side"],
       "expected_clarification": "optional",
       "expected_modules": ["base_shell", "lid", "standoffs", "cable_opening"],
@@ -367,6 +374,13 @@
       "suite": "full",
       "input_prompt": "Create a configurable drawer organizer with editable row count, column count, cell size, wall thickness, and label tabs.",
       "required_dimensions": ["rows=3", "columns=4", "cell=35x25 mm", "wall_thickness=2 mm"],
+      "expected_explicit_requirements": {
+        "row_count": {"value": 3, "unit": "count"},
+        "column_count": {"value": 4, "unit": "count"},
+        "cell_width": {"value": 35.0, "unit": "mm"},
+        "cell_depth": {"value": 25.0, "unit": "mm"},
+        "wall_thickness": {"value": 2.0, "unit": "mm"}
+      },
       "allowed_assumptions": ["label_tab_height=8 mm", "corner_radius=1 mm"],
       "expected_clarification": "none",
       "expected_modules": ["outer_tray", "divider_grid", "label_tabs"],
@@ -583,7 +597,7 @@
       "protected_design_invariants": ["body output", "screw_spacing", "lid/body interface"],
       "unacceptable_outcomes": ["body module changes", "body output geometry drifts", "screw spacing changes"],
       "expected_component_revision": {
-        "prompt_template_version": "openscad-component-revision-v1",
+        "prompt_template_version": "cadquery-component-revision-v2",
         "targeted_components": ["lid"],
         "targeted_outputs": ["box_lid"],
         "protected_components": ["base"],
@@ -608,7 +622,7 @@
       "protected_design_invariants": ["carrier_body output", "tray_retention output", "handle attachment interface"],
       "unacceptable_outcomes": ["body or retention source changes", "mount spacing changes", "new undeclared output"],
       "expected_component_revision": {
-        "prompt_template_version": "openscad-component-revision-v1",
+        "prompt_template_version": "cadquery-component-revision-v2",
         "targeted_components": ["carry_handle"],
         "targeted_outputs": ["carry_handle"],
         "allowed_shared_modules": ["fastener_hole"],
@@ -637,6 +651,153 @@
         "protected_components": ["body"],
         "protected_outputs": ["body"],
         "expected_blocking_rule": "revision.protected_output_unexpected_change"
+      }
+    },
+    {
+      "id": "creative_fish_shelf_bracket",
+      "suite": "full",
+      "input_prompt": "Create a 90 degree shelf bracket with an 80 mm wall leg, 70 mm shelf leg, 18 mm width, 5 mm material thickness, two wall mounting holes, two shelf mounting holes, and make the visible underside silhouette look like a fish.",
+      "required_dimensions": ["wall_leg_length=80 mm", "shelf_leg_length=70 mm", "bracket_width=18 mm", "material_thickness=5 mm", "wall_hole_count=2", "shelf_hole_count=2"],
+      "allowed_assumptions": ["hole_diameter=4.5 mm for M4 clearance", "fish styling may use bounded outline relief, fins, tail, or local silhouette shaping away from mounting faces"],
+      "expected_clarification": "none",
+      "expected_modules": ["functional_l_bracket_core", "wall_mounting_holes", "shelf_mounting_holes", "fish_silhouette"],
+      "expected_parameters": ["wall_leg_length", "shelf_leg_length", "bracket_width", "material_thickness", "hole_diameter", "fish_style"],
+      "expected_printability_constraints": ["functional mounting faces remain flat", "decorative features do not sever load path"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "one connected 90 degree bracket with visible fish underside styling",
+      "expected_geometric_invariants": [
+        {"type": "hole_group", "feature_id": "wall_mounting_holes", "count": 2, "diameter_mm": 4.5, "axis": "x", "verification": "verified_or_warning"},
+        {"type": "hole_group", "feature_id": "shelf_mounting_holes", "count": 2, "diameter_mm": 4.5, "axis": "z", "verification": "verified_or_warning"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified_or_warning"}
+      ],
+      "revision_expectation": "style changes preserve hole count, bracket legs, and flat mounting faces",
+      "protected_design_invariants": ["true 90 degree bracket", "wall mounting holes", "shelf mounting holes", "flat mounting faces", "visible underside fish silhouette"],
+      "unacceptable_outcomes": ["plain L bracket with no fish-like underside", "decorative fish that is disconnected from bracket", "fish cutouts remove mounting faces", "holes modeled as positive cylinders instead of subtractive cuts"],
+      "expected_design_plan": {
+        "design_level": "single_part",
+        "components": ["wall_leg", "shelf_leg", "reinforcing_profile", "fish_styling"],
+        "features": ["wall_mounting_holes", "shelf_mounting_holes", "fish_underside_silhouette"],
+        "dependency_edges": ["material_thickness -> bracket_strength", "hole_diameter -> mounting_holes", "fish_style -> styled_regions"],
+        "presets": ["plain", "fish"],
+        "printable_outputs": ["fish_bracket"]
+      }
+    },
+    {
+      "id": "honeycomb_angle_bracket",
+      "suite": "full",
+      "input_prompt": "Create a 90 degree angle bracket with two 80 x 45 x 5 mm flanges, four M5 clearance mounting holes, a triangular reinforcing rib, and a hexagonal honeycomb lightening pattern on the broad faces while keeping solid borders around edges and holes.",
+      "required_dimensions": ["flange_length=80 mm", "flange_width=45 mm", "material_thickness=5 mm", "hole_diameter=5.2 mm", "hole_count=4", "solid_border>=6 mm"],
+      "allowed_assumptions": ["rib_thickness=5 mm", "hex_flat_to_flat=10 mm", "hole bosses may remain solid"],
+      "expected_clarification": "none",
+      "expected_modules": ["angle_bracket_core", "mounting_holes", "reinforcing_rib", "honeycomb_cutouts"],
+      "expected_parameters": ["flange_length", "flange_width", "material_thickness", "hole_diameter", "hex_flat_to_flat", "border_thickness"],
+      "expected_printability_constraints": ["one connected body", "solid borders around holes and outer edges"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "connected L bracket with real honeycomb cutouts and mounting holes",
+      "expected_geometric_invariants": [
+        {"type": "hole_group", "feature_id": "mounting_holes", "count": 4, "diameter_mm": 5.2, "verification": "verified_or_warning"},
+        {"type": "wall_thickness", "value_mm": 5, "verification": "verified_or_warning"}
+      ],
+      "revision_expectation": "honeycomb size changes preserve hole bosses, borders, and 90 degree core",
+      "protected_design_invariants": ["true 90 degree bracket", "four M5 clearance holes", "triangular reinforcing rib", "hexagonal lightening pattern", "solid edge and hole borders"],
+      "unacceptable_outcomes": ["honeycomb represented as surface decoration only", "honeycomb cuts pass through mounting bosses", "missing rib", "holes missing or not through holes"],
+      "expected_design_plan": {
+        "design_level": "single_part",
+        "components": ["wall_flange", "shelf_flange", "rib", "honeycomb_cut_region"],
+        "features": ["mounting_holes", "hex_lightening_cutouts", "solid_borders"],
+        "dependency_edges": ["hole_diameter -> mounting_holes", "hex_flat_to_flat -> honeycomb_pattern", "border_thickness -> cutout_mask"],
+        "presets": ["solid", "lightweight"],
+        "printable_outputs": ["honeycomb_bracket"]
+      }
+    },
+    {
+      "id": "accidental_multiple_solids",
+      "suite": "full",
+      "input_prompt": "Create a flawed one-output CadQuery mounting base example: a 70 x 30 x 6 mm base and two raised 8 mm alignment bosses that are accidentally left 1 mm above the base as loose separate solids. Keep the output declared as one required printable output with expected_solid_count=1 and allow_disconnected_solids=false so topology validation can reject it.",
+      "required_dimensions": ["base=70x30x6 mm", "boss_count=2", "boss_diameter=8 mm", "boss_height=4 mm"],
+      "allowed_assumptions": ["boss spacing=40 mm", "bosses are intentionally not fused for this negative-control benchmark"],
+      "expected_clarification": "none",
+      "expected_modules": ["base_plate", "alignment_bosses", "mounting_holes"],
+      "expected_parameters": ["base_width", "base_depth", "base_thickness", "boss_diameter", "boss_spacing"],
+      "expected_printability_constraints": ["candidate must be blocked", "raised bosses are loose separate solids", "flat on build plate"],
+      "compile_expectation": "source_may_compile_but_candidate_blocks",
+      "mesh_expectation": "candidate blocks because bosses are disconnected from the base",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "x_mm": 70, "y_mm": 30, "z_mm": 10, "verification": "verified_or_warning"},
+        {"type": "build_plate", "min_z_mm": 0, "verification": "verified"}
+      ],
+      "revision_expectation": "not applicable; negative-control source must be blocked before acceptance",
+      "protected_design_invariants": ["single printable output", "bosses remain disconnected for negative-control validation", "expected_solid_count=1", "allow_disconnected_solids=false"],
+      "unacceptable_outcomes": ["bosses generated as separate loose solids", "allow_disconnected_solids used to hide accidental disconnection", "candidate accepted with detected_solid_count greater than one"],
+      "expected_design_plan": {
+        "design_level": "single_part",
+        "components": ["base_plate", "alignment_bosses"],
+        "features": ["fused_bosses", "mounting_holes"],
+        "dependency_edges": ["boss_spacing -> boss_positions", "base_thickness -> boss_overlap"],
+        "presets": ["standard"],
+        "printable_outputs": ["mounting_base"]
+      }
+    },
+    {
+      "id": "configuration_exceeds_build_volume",
+      "suite": "full",
+      "input_prompt": "Create a configurable wall rail organizer with editable rail length, hook count, hook spacing, and a compact default length that fits a 220 x 220 x 250 mm printer.",
+      "required_dimensions": ["default_rail_length=180 mm", "hook_count=6", "hook_spacing=28 mm", "printer_build_volume=220x220x250 mm"],
+      "allowed_assumptions": ["wall_thickness=5 mm", "M4 mounting holes", "hooks are fused into the rail"],
+      "expected_clarification": "none",
+      "expected_modules": ["rail_body", "repeated_hooks", "mounting_holes", "build_volume_validation"],
+      "expected_parameters": ["rail_length", "hook_count", "hook_spacing", "wall_thickness"],
+      "expected_printability_constraints": ["default fits build volume", "oversized configuration blocks candidate", "one connected output"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "one connected rail body unless configuration exceeds build volume",
+      "revision_expectation": "rail length revision preserves hooks and mount holes while rerunning build-volume validation",
+      "protected_design_invariants": ["provider-free configuration", "build volume violations block acceptance", "hook_count drives repeated hooks", "mounting holes remain through holes"],
+      "unacceptable_outcomes": ["oversized configuration accepted", "provider called for parameter-only length change", "hooks disconnected from rail", "fixed hook count despite editable parameter"],
+      "expected_design_plan": {
+        "design_level": "product",
+        "components": ["rail_body", "hook_array", "mounting_holes"],
+        "features": ["repeated_hooks", "wall_mounting", "build_volume_check"],
+        "dependency_edges": ["rail_length -> hook_positions", "hook_count -> hook_positions", "rail_length -> build_volume_fit"],
+        "presets": ["compact", "oversize_test"],
+        "printable_outputs": ["wall_rail"]
+      },
+      "expected_configuration": {
+        "editable_parameters": ["rail_length", "hook_count", "hook_spacing"],
+        "requested_overrides": {"rail_length": 360},
+        "expected_affected_parameters": ["rail_length", "hook_positions", "overall_bounds"],
+        "expected_affected_components": ["rail_body", "hook_array"],
+        "expected_affected_outputs": ["wall_rail"],
+        "expected_validation_state": "configuration_blocked_build_volume",
+        "provider_call_forbidden": true,
+        "expected_blocking_rule": "profile.build_volume"
+      }
+    },
+    {
+      "id": "threaded_control_knob",
+      "suite": "full",
+      "input_prompt": "Create a 32 mm diameter knurled control knob, 18 mm tall, with an M6x1 internal threaded hole through the center, a pointer indicator line on top, and editable diameter, height, and thread spec.",
+      "required_dimensions": ["knob_diameter=32 mm", "knob_height=18 mm", "internal_thread=M6x1", "thread_axis=z"],
+      "allowed_assumptions": ["BOSL2/threading allowed when curated library support is enabled", "knurling may be diamond or straight grip texture", "$fn may be 64"],
+      "expected_clarification": "none",
+      "expected_modules": ["knob_body", "knurled_grip", "internal_thread", "pointer_indicator"],
+      "expected_parameters": ["knob_diameter", "knob_height", "thread_spec", "indicator_width"],
+      "expected_printability_constraints": ["central hole remains open through the knob", "knurling does not create disconnected fragments"],
+      "compile_expectation": "success_without_repair",
+      "mesh_expectation": "single knob body with functional center threaded hole and visible grip texture",
+      "expected_geometric_invariants": [
+        {"type": "bounds", "x_mm": 32, "y_mm": 32, "z_mm": 18, "verification": "verified_or_warning"},
+        {"type": "hole", "axis": "z", "verification": "verified_or_warning"}
+      ],
+      "revision_expectation": "diameter and thread spec revisions preserve pointer indicator and grip texture",
+      "protected_design_invariants": ["central threaded through hole", "visible knurled grip", "top pointer indicator", "editable thread_spec parameter"],
+      "unacceptable_outcomes": ["solid knob with no center hole", "hand-rolled fake threads accepted as functional threads", "decorative ribs only with no grip texture", "thread spec not parameterized"],
+      "expected_design_plan": {
+        "design_level": "single_part",
+        "components": ["knob_body", "grip_texture", "threaded_hole", "pointer_indicator"],
+        "features": ["internal_thread", "knurling", "top_indicator"],
+        "dependency_edges": ["thread_spec -> internal_thread", "knob_diameter -> grip_texture", "knob_height -> thread_depth"],
+        "presets": ["M6", "M8"],
+        "printable_outputs": ["control_knob"]
       }
     }
   ]

@@ -1,15 +1,19 @@
+import ast
 import asyncio
 import difflib
 import hashlib
 import json
 import re
 import shutil
+import subprocess
 import time
 import zipfile
 from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
+from uuid import uuid4
 
 import trimesh
 from pydantic import ValidationError
@@ -20,6 +24,7 @@ from app.core.config import settings
 from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
+from app.models.design_artifact_consistency import DesignArtifactConsistencyResult
 from app.models.design_plan import (
     DesignPlan,
     DesignPlanClarificationAnswer,
@@ -42,6 +47,13 @@ from app.models.revision_plan import (
 )
 from app.models.source_validation_result import SourceValidationResult
 from app.models.validation_finding import ValidationFinding
+from app.models.workflow import (
+    FrontendWorkflowEvent,
+    WorkflowArtifact,
+    WorkflowDiagnosis,
+    WorkflowEvent,
+    WorkflowRun,
+)
 from app.schemas.project import (
     ClarificationAnswersCreate,
     ClarificationQuestionRead,
@@ -53,6 +65,7 @@ from app.schemas.project import (
     ConfigurationPresetRead,
     ConfigurationValidationState,
     ComponentRevisionSummaryRead,
+    DesignArtifactConsistencyRead,
     DesignSpecificationPayload,
     DesignSpecificationRead,
     DesignPlanClarificationQuestionRead,
@@ -66,7 +79,9 @@ from app.schemas.project import (
     ManualRevisionCreate,
     MeshMetadataRead,
     ProjectCreate,
+    ProjectLibraryRead,
     ProjectMessageRead,
+    ProjectWorkspaceRead,
     ProjectSave,
     ProjectUpdate,
     RevisionRead,
@@ -94,23 +109,106 @@ from app.services.ai.provider import (
     RequirementExtractionRequest,
     RevisionPlanRequest,
 )
-from app.services.ai.source_extraction import SourceExtractionError, extract_scad_source
-from app.services.cad.runner import OpenScadCliRunner
+from app.services.ai.source_extraction import (
+    SourceExtractionError,
+    extract_python_source,
+)
+from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
+from app.services.cad.cadquery_source_authority import (
+    CadQuerySourceAuthorityError,
+    authority_from_generation_context,
+    validate_cadquery_source_authority,
+)
+from app.services.cad.geometry_bodies import (
+    GEOMETRY_BODIES_SCHEMA_VERSION,
+    GeometryBodyError,
+    assemble_geometry_bodies,
+    build_geometry_function_inventory,
+    validate_geometry_body_repair_scope,
+)
+from app.services.cad.patterns import exposed_control_ids, normalize_pattern_specs, validate_pattern_specs
+from app.services.cad.runtime_diagnostics import (
+    classify_worker_diagnostic,
+    runtime_repair_is_eligible,
+)
+from app.services.cad.source_scaffold import (
+    SCAFFOLD_VERSION,
+    ScaffoldSourceError,
+    extract_geometry_functions,
+    render_cadquery_scaffold,
+    validate_scaffold_source,
+)
+from app.services.cad.worker_client import FilesystemCadWorkerRunner
+from app.services.cad.source_metadata import (
+    SourceMapping,
+    SourceMetadata,
+    SourceModuleFingerprint,
+    SourceOutputMapping,
+    SourceParameterMapping,
+    evaluate_constants,
+)
 from app.services.generation.failure_taxonomy import FailureClass
+from app.services.functional.intent import (
+    resolve_retention_proposals,
+    validate_functional_plan,
+    validate_revision_success_criteria,
+)
+from app.services.projects.design_artifact_consistency import (
+    certify_design_artifact_consistency,
+    consistency_failure_message,
+)
+from app.services.provider_interoperability import (
+    ProviderContractError,
+    build_focused_plan_repair_context,
+    build_provider_contract_manifest,
+    compare_plan_repair,
+    validate_plan_repair_preservation,
+)
+from app.services.projects.plan_provenance import (
+    normalize_plan_provenance,
+    validate_plan_provenance,
+)
+from app.services.projects.plan_constraints import (
+    explicit_control_requests,
+    normalize_compact_component_feature_semantics,
+    normalize_plan_constraints,
+)
+from app.services.projects.requirement_ledger import (
+    RequirementLedgerStore,
+    active_requirements,
+    requirement_delta_for_message,
+)
+from app.services.planning.brief import DirectCadBriefBuilder
+from app.services.planning.context import PromptContextPackBuilder, normalize_geometry_execution_context
+from app.services.planning.depth import PlanningDepth, PlanningDepthRouter, PlanningRouteDecision
+from app.services.workflow.observability import WorkflowRecorder
+from app.services.requirements.trace import (
+    RequirementTraceError,
+    build_explicit_requirement_inventory,
+    inventory_from_design_specification,
+    merge_resolved_requirements,
+    requirement_trace_payload,
+    validate_design_plan_trace,
+    validate_design_specification_trace,
+    validate_execution_parameters,
+    validate_requirement_extraction_trace,
+    validate_source_parameter_trace,
+)
 from app.services.geometry.invariants import (
     GeometricAnalysisContext,
     GeometricFinding,
     GeometryAnalyzerRegistry,
     mesh_hash,
 )
-from app.services.mesh.inspect import MeshMetadata, _as_mesh
-from app.services.openscad.source_contract import (
-    SourceContractFinding,
-    SourceContractResult,
-    SourceContractValidator,
-    _evaluate_constants,
+from app.services.geometry.snapshots import SnapshotService
+from app.services.geometry.functional import (
+    FunctionalGeometryContext,
+    FunctionalGeometryVerifierRegistry,
 )
+from app.services.geometry.requirement_compliance import evaluate_requirement_compliance
+from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
+from app.services.workflow.observability import WorkflowRecorder
 
 DRAFT_RETENTION_DAYS = 14
 ARCHIVED_RETENTION_DAYS = 60
@@ -121,7 +219,7 @@ OUTPUT_READY_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
 PRINTABLE_OUTPUT_TYPES = frozenset(
     {"printable_component", "repeated_printable_component", "optional_printable_component"}
 )
-RETRYABLE_OUTPUT_ERRORS = frozenset({"openscad_process", "openscad_timeout", "worker_failure", "artifact_write"})
+RETRYABLE_OUTPUT_ERRORS = frozenset({"cadquery_process", "cadquery_timeout", "worker_failure", "artifact_write"})
 BLOCKING_RULE_IDS = frozenset(
     {
         "mesh.empty_or_zero_volume",
@@ -138,12 +236,40 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
 )
 REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v1"
-PLANNED_OPENSCAD_PROMPT_VERSION = "openscad-generation-v5"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
+COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v2"
+CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
-STRUCTURED_REVISION_PROMPT_VERSION = "openscad-revision-v2"
+
+
+def _compact_plan_parameters(raw_parameters: Any) -> list[dict[str, Any]]:
+    """Normalize the common map-shaped provider parameter representation."""
+
+    if isinstance(raw_parameters, dict):
+        result: list[dict[str, Any]] = []
+        for parameter_id, value in raw_parameters.items():
+            if isinstance(value, dict):
+                entry = dict(value)
+                entry.setdefault("id", entry.get("parameter_id") or str(parameter_id))
+            else:
+                entry = {"id": str(parameter_id), "value": value}
+            result.append(entry)
+        return result
+    result = []
+    for item in (raw_parameters or []):
+        if not isinstance(item, dict):
+            continue
+        entry = dict(item)
+        if not entry.get("id") and entry.get("parameter_id"):
+            entry["id"] = entry["parameter_id"]
+        result.append(entry)
+    return result
+CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
 REVISION_PLAN_SCHEMA_VERSION = "revision-plan-v1"
+PLANNING_ROUTE_PROMPT_VERSION = "planning-depth-v1"
 DEFAULT_REQUIREMENT_PROFILE = {
     "version": "volundr-defaults-v1",
     "units": "mm",
@@ -163,18 +289,39 @@ class _StoppedWithRevision(Exception):
         self.revision = revision
 
 
+def _control_source_inventory(
+    design_plan_payload: dict[str, Any] | None,
+    inventory: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Keep source-parameter enforcement scoped to explicitly exposed controls.
+
+    Legacy plans without an ``exposed_controls`` field retain their historical
+    source-trace behavior.  Modern requirement-led plans may inline ordinary
+    values and are checked against the resulting geometry instead.
+    """
+
+    if not isinstance(design_plan_payload, dict) or "exposed_controls" not in design_plan_payload:
+        return inventory
+    controls = exposed_control_ids(design_plan_payload)
+    return [
+        item
+        for item in inventory
+        if str(item.get("requirement_id") or item.get("id") or "") in controls
+    ]
+
+
 class ProjectService:
     def __init__(
         self,
         *,
         db: Session,
         data_dir: Path | None = None,
-        cad_runner: OpenScadCliRunner | None = None,
+        cad_runner: Any | None = None,
         ai_provider: AiProvider | None = None,
     ) -> None:
         self.db = db
         self.data_dir = data_dir or settings.data_dir
-        self.cad_runner = cad_runner or OpenScadCliRunner()
+        self.cad_runner = cad_runner or FilesystemCadWorkerRunner()
         self.ai_provider = ai_provider
 
     def create_project(self, payload: ProjectCreate) -> Project:
@@ -251,6 +398,93 @@ class ProjectService:
             )
         )
 
+    def list_project_library(self) -> list[ProjectLibraryRead]:
+        projects = self.list_projects()
+        results: list[ProjectLibraryRead] = []
+        snapshot_service = SnapshotService(db=self.db, data_dir=self.data_dir)
+        for project in projects:
+            revisions = list(
+                self.db.scalars(
+                    select(Revision)
+                    .where(Revision.project_id == project.id)
+                    .order_by(Revision.revision_number.desc())
+                )
+            )
+            latest = revisions[0] if revisions else None
+            current = self.db.get(Revision, project.active_revision_id) if project.active_revision_id else None
+            latest_successful = next(
+                (
+                    revision
+                    for revision in revisions
+                    if revision.status == "succeeded"
+                    and revision.review_state in ACCEPTABLE_CANDIDATE_STATES | {"accepted"}
+                ),
+                None,
+            )
+            active_workflow = self.db.scalar(
+                select(WorkflowRun)
+                .where(WorkflowRun.project_id == project.id)
+                .where(WorkflowRun.status == "running")
+                .order_by(WorkflowRun.updated_at.desc())
+            )
+            count_revision = current or latest
+            part_count = (
+                int(
+                    self.db.scalar(
+                        select(func.count(RevisionOutput.id)).where(RevisionOutput.revision_id == count_revision.id)
+                    )
+                    or 0
+                )
+                if count_revision is not None
+                else 0
+            )
+            warning_count = (
+                int(
+                    self.db.scalar(
+                        select(func.count(ValidationFinding.id))
+                        .where(ValidationFinding.revision_id == count_revision.id)
+                        .where(ValidationFinding.is_blocking.is_(False))
+                        .where(ValidationFinding.finding_state == "open")
+                    )
+                    or 0
+                )
+                if count_revision is not None
+                else 0
+            )
+            preview_revision = current or latest_successful
+            preview_packet = (
+                snapshot_service.get_packet(preview_revision.id, project_id=project.id)
+                if preview_revision is not None
+                else None
+            )
+            results.append(
+                ProjectLibraryRead(
+                    **{
+                        "id": project.id,
+                        "name": project.name,
+                        "slug": project.slug,
+                        "original_intent": project.original_intent,
+                        "status": project.status,
+                        "active_revision_id": project.active_revision_id,
+                        "created_at": project.created_at,
+                        "updated_at": project.updated_at,
+                        "archived_at": project.archived_at,
+                        "latest_revision_id": latest.id if latest else None,
+                        "active_workflow_status": active_workflow.status if active_workflow else None,
+                        "printable_part_count": part_count,
+                        "unresolved_warning_count": warning_count,
+                        "preview_revision_id": preview_revision.id if preview_revision else None,
+                        "preview_snapshot_artifact_id": (
+                            preview_packet.get("packet_artifact_id")
+                            if isinstance(preview_packet, dict)
+                            and preview_packet.get("status") is None
+                            else None
+                        ),
+                    },
+                )
+            )
+        return results
+
     def cleanup_expired_projects(self) -> int:
         return self.cleanup_expired_drafts() + self.cleanup_expired_archived_projects()
 
@@ -295,6 +529,83 @@ class ProjectService:
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
+
+    def get_workspace(self, project_id: str) -> ProjectWorkspaceRead | None:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None
+
+        WorkflowRecorder(db=self.db, data_dir=self.data_dir).classify_stale_runs(
+            max_running_seconds=settings.workflow_stale_seconds,
+        )
+        messages = self.list_project_messages(project_id) or []
+        revisions = self.list_revisions(project_id)
+        active_workflow = self.db.scalar(
+            select(WorkflowRun)
+            .where(WorkflowRun.project_id == project_id)
+            .where(WorkflowRun.status == "running")
+            .order_by(WorkflowRun.updated_at.desc(), WorkflowRun.started_at.desc())
+        )
+        active_revision = self.db.get(Revision, project.active_revision_id) if project.active_revision_id else None
+        required_paths: list[str] = []
+        missing_paths: list[str] = []
+        for revision in self.db.scalars(
+            select(Revision)
+            .where(Revision.project_id == project_id, Revision.status == "succeeded")
+        ):
+            for output in revision.outputs:
+                for relative_path in (output.stl_path, output.step_path, output.brep_path):
+                    if not relative_path:
+                        continue
+                    required_paths.append(relative_path)
+                    if not (self.data_dir / relative_path).is_file():
+                        missing_paths.append(relative_path)
+        snapshot_artifacts = list(
+            self.db.scalars(
+                select(WorkflowArtifact)
+                .where(WorkflowArtifact.project_id == project_id)
+                .where(
+                    WorkflowArtifact.artifact_type.in_(
+                        ("geometry_snapshot_packet", "geometry_snapshot", "component_snapshot", "section_snapshot", "revision_comparison_manifest")
+                    )
+                )
+            )
+        )
+        for artifact in snapshot_artifacts:
+            required_paths.append(artifact.path)
+            if not (self.data_dir / artifact.path).is_file():
+                missing_paths.append(artifact.path)
+        ledger = RequirementLedgerStore(self.db).load(project_id)
+        return ProjectWorkspaceRead(
+            project=project,
+            messages=messages,
+            revisions=revisions,
+            active_requirements=active_requirements(ledger),
+            current_working_revision_id=(
+                active_revision.id
+                if active_revision is not None and active_revision.is_accepted and active_revision.status == "succeeded"
+                else None
+            ),
+            active_workflow=(
+                {
+                    "id": active_workflow.id,
+                    "project_id": active_workflow.project_id,
+                    "workflow_type": active_workflow.workflow_type,
+                    "status": active_workflow.status,
+                    "correlation_id": active_workflow.correlation_id,
+                    "started_at": active_workflow.started_at,
+                    "updated_at": active_workflow.updated_at,
+                }
+                if active_workflow is not None
+                else None
+            ),
+            artifact_integrity={
+                "checked_count": len(required_paths),
+                "missing_count": len(missing_paths),
+                "missing_paths": missing_paths,
+                "status": "missing" if missing_paths else "ok",
+            },
+        )
 
     def get_active_revision(self, project_id: str) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
@@ -351,9 +662,13 @@ class ProjectService:
         if project is None:
             return False
         deleted_project_id = project.id
+        workflow_run_ids = list(
+            self.db.scalars(select(WorkflowRun.id).where(WorkflowRun.project_id == deleted_project_id))
+        )
         self._delete_project_records(project)
         self.db.commit()
         self._delete_project_files(deleted_project_id)
+        self._delete_workflow_debug_bundles(workflow_run_ids)
         return True
 
     def list_revisions(self, project_id: str) -> list[RevisionRead]:
@@ -405,8 +720,6 @@ class ProjectService:
                 .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
             )
         )
-        if not outputs and revision.stl_path is not None:
-            return [self._legacy_revision_output_read(revision)]
         return [self._revision_output_read(output) for output in outputs]
 
     def get_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
@@ -508,11 +821,19 @@ class ProjectService:
             return None
         if revision.review_state not in ACCEPTABLE_CANDIDATE_STATES:
             raise ValueError("candidate state does not permit acceptance")
+        if revision.cad_backend == "cadquery" and revision.design_plan_id is not None:
+            self._require_revision_base_ready(revision, purpose="candidate acceptance")
         if self._has_blocking_findings(revision.id):
             raise ValueError("candidate has unresolved blocking validation findings")
         project = self.db.get(Project, revision.project_id)
         if project is None:
             return None
+        parent_run = self._workflow_run_for_revision(revision.id)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="candidate_acceptance",
+            parent=parent_run,
+        )
         now = project_utcnow()
         revision.review_state = "accepted"
         revision.is_accepted = True
@@ -524,76 +845,303 @@ class ProjectService:
             role="system_event",
             content=f"Accepted R{revision.revision_number}",
         )
+        self._record_workflow_event(
+            workflow_run,
+            stage="acceptance",
+            event_type="candidate.accepted",
+            severity="summary",
+            message=f"Accepted R{revision.revision_number}.",
+            deduplication_key=f"candidate-accepted-{revision.id}",
+            revision_id=revision.id,
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
+        if parent_run is not None:
+            self._workflow_recorder().complete_run(parent_run, status="completed")
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision)
 
-    async def _compile_revision_output(
+    def _cadquery_runner(self) -> Any:
+        return self.cad_runner
+
+    def _workflow_recorder(self) -> WorkflowRecorder:
+        return WorkflowRecorder(db=self.db, data_dir=self.data_dir)
+
+    def _latest_root_workflow_run(self, project_id: str) -> WorkflowRun | None:
+        return self.db.scalar(
+            select(WorkflowRun)
+            .where(WorkflowRun.project_id == project_id)
+            .where(WorkflowRun.root_workflow_run_id == WorkflowRun.id)
+            .where(WorkflowRun.status == "running")
+            .order_by(WorkflowRun.started_at.desc())
+        )
+
+    def _workflow_run_for_revision(self, revision_id: str) -> WorkflowRun | None:
+        matched_run = self.db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(WorkflowEvent.revision_id == revision_id)
+            .order_by(WorkflowRun.started_at.asc())
+        )
+        if matched_run is None:
+            return None
+        return self.db.get(WorkflowRun, matched_run.root_workflow_run_id or matched_run.id)
+
+    def _workflow_run_for_revision_plan(self, revision_plan_id: str) -> WorkflowRun | None:
+        matched_run = self.db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(WorkflowEvent.revision_plan_id == revision_plan_id)
+            .order_by(WorkflowRun.started_at.asc())
+        )
+        return matched_run
+
+    def _ensure_initial_workflow_run(self, project: Project) -> WorkflowRun:
+        existing = self._latest_root_workflow_run(project.id)
+        if existing is not None:
+            return existing
+        return self._workflow_recorder().start_run(
+            project_id=project.id,
+            workflow_type="initial_generation",
+            logging_mode="standard",
+            provider=self._provider_name(),
+            model=self._provider_model(),
+            prompt_versions={
+                "requirements": self._requirement_prompt_template_version(),
+                "design_plan": self._design_plan_prompt_template_version(),
+                "cadquery": self._provider_cadquery_prompt_template_version(),
+                "revision_plan": self._revision_plan_prompt_template_version(),
+            },
+            application_commit=self._application_commit(),
+            worker_version="cad-worker-v1",
+        )
+
+    def _start_child_workflow_run(
+        self,
+        *,
+        project_id: str,
+        workflow_type: str,
+        parent: WorkflowRun | None = None,
+    ) -> WorkflowRun:
+        parent_run = parent or self._latest_root_workflow_run(project_id)
+        return self._workflow_recorder().start_run(
+            project_id=project_id,
+            workflow_type=workflow_type,
+            parent_workflow_run_id=parent_run.id if parent_run is not None else None,
+            logging_mode=parent_run.logging_mode if parent_run is not None else "standard",
+            provider=self._provider_name(),
+            model=self._provider_model(),
+            prompt_versions=json.loads(parent_run.prompt_versions_json)
+            if parent_run is not None
+            else {},
+            application_commit=parent_run.application_commit if parent_run is not None else self._application_commit(),
+            worker_version=parent_run.worker_version if parent_run is not None else "cad-worker-v1",
+        )
+
+    def _complete_workflow_lineage(self, workflow_run: WorkflowRun, *, status: str) -> None:
+        recorder = self._workflow_recorder()
+        recorder.complete_run(workflow_run, status=status)
+        root_id = workflow_run.root_workflow_run_id or workflow_run.id
+        if root_id == workflow_run.id:
+            return
+        root = self.db.get(WorkflowRun, root_id)
+        if root is not None and root.status == "running":
+            recorder.complete_run(root, status=status)
+
+    def _record_workflow_event(
+        self,
+        workflow_run: WorkflowRun | None,
+        *,
+        stage: str,
+        event_type: str,
+        severity: str = "standard",
+        message: str,
+        blocking: bool = False,
+        rule_id: str | None = None,
+        deduplication_key: str | None = None,
+        caused_by_event_id: str | None = None,
+        is_root_failure: bool = False,
+        is_downstream_symptom: bool = False,
+        entity_type: str | None = None,
+        entity_id: str | None = None,
+        expected: Any = None,
+        detected: Any = None,
+        generation_attempt_id: str | None = None,
+        design_specification_id: str | None = None,
+        design_plan_id: str | None = None,
+        revision_id: str | None = None,
+        revision_output_id: str | None = None,
+        revision_plan_id: str | None = None,
+        configuration_change_id: str | None = None,
+        worker_job_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ):
+        if workflow_run is None:
+            return None
+        return self._workflow_recorder().record_event(
+            workflow_run,
+            stage=stage,
+            event_type=event_type,
+            severity=severity,
+            message=message,
+            blocking=blocking,
+            rule_id=rule_id,
+            deduplication_key=deduplication_key,
+            caused_by_event_id=caused_by_event_id,
+            is_root_failure=is_root_failure,
+            is_downstream_symptom=is_downstream_symptom,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            expected=expected,
+            detected=detected,
+            generation_attempt_id=generation_attempt_id,
+            design_specification_id=design_specification_id,
+            design_plan_id=design_plan_id,
+            revision_id=revision_id,
+            revision_output_id=revision_output_id,
+            revision_plan_id=revision_plan_id,
+            configuration_change_id=configuration_change_id,
+            worker_job_id=worker_job_id,
+            metadata=metadata,
+        )
+
+    def _record_workflow_artifact(
+        self,
+        workflow_run: WorkflowRun | None,
+        *,
+        stage: str,
+        artifact_type: str,
+        role: str,
+        relative_path: str | None,
+        redacted: bool = False,
+        supersedes_artifact_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ):
+        if workflow_run is None or not relative_path:
+            return None
+        return self._workflow_recorder().record_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type=artifact_type,
+            role=role,
+            path=self.data_dir / relative_path,
+            redacted=redacted,
+            supersedes_artifact_id=supersedes_artifact_id,
+            metadata=metadata,
+        )
+
+    def _design_plan_parameter_values(self, design_plan_payload: dict[str, Any]) -> dict[str, Any]:
+        values: dict[str, Any] = {}
+        for parameter in design_plan_payload.get("parameters", []):
+            if not isinstance(parameter, dict):
+                continue
+            parameter_id = str(parameter.get("id") or "").strip()
+            if parameter_id:
+                values[parameter_id] = parameter.get("value")
+        return values
+
+    def _optional_int(self, value: Any) -> int | None:
+        if value is None or value == "":
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _optional_bool(self, value: Any) -> bool | None:
+        if value is None or value == "":
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"true", "1", "yes"}:
+                return True
+            if normalized in {"false", "0", "no"}:
+                return False
+            return None
+        if isinstance(value, (int, float)):
+            return bool(value)
+        return None
+
+    def _apply_topology_metadata_fields(
+        self,
+        output: RevisionOutput,
+        topology_metadata: dict[str, Any] | None,
+    ) -> None:
+        if topology_metadata is None:
+            return
+        expected_solid_count = self._optional_int(topology_metadata.get("expected_solid_count"))
+        detected_solid_count = self._optional_int(topology_metadata.get("detected_solid_count"))
+        allow_disconnected_solids = self._optional_bool(
+            topology_metadata.get("allow_disconnected_solids")
+        )
+        if expected_solid_count is not None:
+            output.expected_solid_count = expected_solid_count
+        if detected_solid_count is not None:
+            output.detected_solid_count = detected_solid_count
+        if allow_disconnected_solids is not None:
+            output.allow_disconnected_solids = allow_disconnected_solids
+
+    def _persist_cadquery_output_artifacts(
         self,
         *,
         revision: Revision,
         output: RevisionOutput,
-        scad_source: str,
-        source_hash: str,
+        output_result: Any,
+        source: str,
         stl_dir: Path,
-        log_dir: Path,
+        step_dir: Path,
+        brep_dir: Path,
         metadata_dir: Path,
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
-        compile_defines: dict[str, str | int | float | bool] | None = None,
     ) -> None:
-        started = time.perf_counter()
-        output.output_state = "compiling"
-        output.updated_at = project_utcnow()
-        self.db.flush()
-
-        job_id = f"{revision.id}-{output.output_id}"
-        result = await self.cad_runner.compile(
-            scad_source,
-            job_id=job_id,
-            selected_output=output.output_id,
-            defines=compile_defines,
-        )
-        output.compile_ms = round((time.perf_counter() - started) * 1000, 3)
-        output.compile_command_json = json.dumps(result.command_args or [])
-
-        compile_log_path = log_dir / f"{self._safe_stem(output.output_id)}.log"
-        compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
-        output.compile_log_path = self._relative(compile_log_path)
-        output.compile_error = result.error_message
-        output.source_hash = source_hash
-
-        if not result.success or result.stl_path is None or result.metadata is None:
-            output.output_state = "failed"
-            output.updated_at = project_utcnow()
-            output.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
-            self.db.flush()
-            return
-
-        output.output_state = "validating"
+        output.execution_state = "validating"
         stl_path = stl_dir / output.filename
-        shutil.copyfile(result.stl_path, stl_path)
-        metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.json"
-        metadata_path.write_text(json.dumps(asdict(result.metadata), indent=2), encoding="utf-8")
+        shutil.copyfile(output_result.stl_path, stl_path)
         output.stl_path = self._relative(stl_path)
         output.stl_hash = self._file_sha256(stl_path)
-        output.metadata_json = json.dumps(asdict(result.metadata), sort_keys=True)
-
-        self._persist_geometric_analysis(
-            revision=revision,
-            stl_path=stl_path,
-            scad_source=scad_source,
-            design_specification_payload=design_specification_payload,
-            design_specification_id=design_specification_id,
-            revision_output=output,
-        )
-        self._persist_validation_findings(revision=revision, stl_path=stl_path, revision_output=output)
-        output.output_state = self._derive_output_state(output.id)
+        if output_result.step_path is not None:
+            step_path = step_dir / f"{Path(output.filename).stem}.step"
+            shutil.copyfile(output_result.step_path, step_path)
+            output.step_path = self._relative(step_path)
+            output.step_hash = self._file_sha256(step_path)
+        if output_result.brep_path is not None:
+            brep_path = brep_dir / f"{Path(output.filename).stem}.brep"
+            shutil.copyfile(output_result.brep_path, brep_path)
+            output.brep_path = self._relative(brep_path)
+            output.brep_hash = self._file_sha256(brep_path)
+        if output_result.topology_metadata is not None:
+            output.topology_metadata_json = json.dumps(
+                output_result.topology_metadata,
+                sort_keys=True,
+            )
+            self._apply_topology_metadata_fields(output, output_result.topology_metadata)
+        if output_result.metadata is not None:
+            metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.metadata.json"
+            metadata_path.write_text(
+                json.dumps(asdict(output_result.metadata), indent=2, sort_keys=True),
+                encoding="utf-8",
+            )
+            mesh_metadata_json = json.dumps(asdict(output_result.metadata), sort_keys=True)
+            output.mesh_metadata_json = mesh_metadata_json
+            output.metadata_json = mesh_metadata_json
+            self._persist_geometric_analysis(
+                revision=revision,
+                stl_path=stl_path,
+                source=source,
+                design_specification_payload=design_specification_payload,
+                design_specification_id=design_specification_id,
+                revision_output=output,
+            )
+            self._persist_validation_findings(revision=revision, stl_path=stl_path, revision_output=output)
+        output.compile_error = output_result.compile_error
+        output.execution_state = self._derive_execution_state(output.id)
         output.validation_summary_json = json.dumps(
             self._validation_summary(output.revision_id, revision_output_id=output.id).model_dump()
         )
         output.updated_at = project_utcnow()
-        self.db.flush()
 
     def _persist_assembly_output_findings(self, revision: Revision) -> None:
         outputs = list(
@@ -617,7 +1165,7 @@ class ProjectService:
                 )
             )
         for output in outputs:
-            if output.required and output.output_state == "failed":
+            if output.required and output.execution_state == "failed":
                 self.db.add(
                     self._assembly_finding(
                         revision.id,
@@ -630,7 +1178,7 @@ class ProjectService:
                         detected_value=output.output_id,
                     )
                 )
-            elif not output.required and output.output_state == "failed":
+            elif not output.required and output.execution_state == "failed":
                 self.db.add(
                     self._assembly_finding(
                         revision.id,
@@ -680,12 +1228,12 @@ class ProjectService:
         )
         revision.expected_output_count = len(outputs)
         revision.required_output_count = sum(1 for output in outputs if output.required)
-        revision.successful_output_count = sum(1 for output in outputs if output.output_state in OUTPUT_READY_STATES)
-        revision.blocked_output_count = sum(1 for output in outputs if output.output_state == "blocked")
-        revision.failed_output_count = sum(1 for output in outputs if output.output_state == "failed")
+        revision.successful_output_count = sum(1 for output in outputs if output.execution_state in OUTPUT_READY_STATES)
+        revision.blocked_output_count = sum(1 for output in outputs if output.execution_state == "blocked")
+        revision.failed_output_count = sum(1 for output in outputs if output.execution_state == "failed")
         self.db.flush()
 
-    def _derive_output_state(self, output_artifact_id: str) -> str:
+    def _derive_execution_state(self, output_artifact_id: str) -> str:
         findings = list(
             self.db.scalars(
                 select(ValidationFinding).where(
@@ -704,7 +1252,7 @@ class ProjectService:
             select(RevisionOutput)
             .where(
                 RevisionOutput.revision_id == revision.id,
-                RevisionOutput.output_state.in_(OUTPUT_READY_STATES),
+                RevisionOutput.execution_state.in_(OUTPUT_READY_STATES),
                 RevisionOutput.stl_path.is_not(None),
             )
             .order_by(RevisionOutput.required.desc(), RevisionOutput.created_at.asc())
@@ -722,10 +1270,59 @@ class ProjectService:
         )
         lines = ["Multi-output compilation summary"]
         for output in outputs:
-            lines.append(f"{output.output_id}: {output.output_state}")
+            lines.append(f"{output.output_id}: {output.execution_state}")
             if output.compile_error:
                 lines.append(output.compile_error)
         path.write_text("\n".join(lines), encoding="utf-8")
+        return path
+
+    def _write_revision_execution_manifest(
+        self,
+        *,
+        revision: Revision,
+        source_hash: str,
+        parameter_hash: str,
+        parameter_values: dict[str, Any],
+    ) -> Path:
+        revision_dir = self._revision_dir(revision.project_id, revision.id)
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        payload = {
+            "cad_backend": revision.cad_backend,
+            "source_language": revision.source_language,
+            "source_contract_version": revision.source_contract_version,
+            "source_hash": source_hash,
+            "parameter_hash": parameter_hash,
+            "parameters": parameter_values,
+            "requested_output_ids": [output.output_id for output in outputs],
+            "output_ids": [
+                output.output_id
+                for output in outputs
+                if output.execution_state in OUTPUT_READY_STATES
+            ],
+            "outputs": [
+                {
+                    "output_id": output.output_id,
+                    "required": output.required,
+                    "success": output.execution_state in OUTPUT_READY_STATES,
+                    "topology_metadata": json.loads(output.topology_metadata_json)
+                    if output.topology_metadata_json
+                    else None,
+                    "compile_error": output.compile_error,
+                    "stl_hash": output.stl_hash,
+                    "step_hash": output.step_hash,
+                    "brep_hash": output.brep_hash,
+                }
+                for output in outputs
+            ],
+        }
+        path = revision_dir / "execution-manifest.json"
+        self._write_json(path, payload)
         return path
 
     def reject_candidate(self, revision_id: str) -> RevisionRead | None:
@@ -737,6 +1334,23 @@ class ProjectService:
         revision.review_state = "rejected"
         revision.is_accepted = False
         revision.rejected_at = project_utcnow()
+        parent_run = self._workflow_run_for_revision(revision.id) or self._latest_root_workflow_run(
+            revision.project_id
+        )
+        workflow_run = self._start_child_workflow_run(
+            project_id=revision.project_id,
+            workflow_type="candidate_rejection",
+            parent=parent_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="rejection",
+            event_type="candidate.rejected",
+            severity="summary",
+            message="Candidate revision rejected by user.",
+            deduplication_key=f"candidate-rejected-{revision.id}",
+            revision_id=revision.id,
+        )
         self._record_message(
             project_id=revision.project_id,
             revision_id=revision.id,
@@ -744,6 +1358,9 @@ class ProjectService:
             content=f"Rejected R{revision.revision_number}",
         )
         self.db.commit()
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
+        if parent_run is not None:
+            self._workflow_recorder().complete_run(parent_run, status="completed")
         self.db.refresh(revision)
         return self._revision_read(revision)
 
@@ -774,13 +1391,62 @@ class ProjectService:
             return None
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
+        workflow_run = self._ensure_initial_workflow_run(project)
+        self._record_workflow_event(
+            workflow_run,
+            stage="project_request",
+            event_type="project_request.submitted",
+            severity="summary",
+            message="Project request submitted for requirement extraction.",
+            deduplication_key=f"project-request-{project.id}-{payload.user_instruction}",
+        )
+        inventory = build_explicit_requirement_inventory(payload.user_instruction)
+        defaults = dict(DEFAULT_REQUIREMENT_PROFILE)
+        defaults["explicit_requirements"] = {
+            item["requirement_id"]: {
+                "value": item["value"],
+                "unit": item.get("unit"),
+                "source": item["source"],
+                "authority": item["authority"],
+                "protected": item["protected"],
+            }
+            for item in inventory
+        }
         request = RequirementExtractionRequest(
             project_name=project.name,
             original_intent=project.original_intent,
             user_instruction=payload.user_instruction,
-            defaults=DEFAULT_REQUIREMENT_PROFILE,
+            defaults=defaults,
         )
-        return await self._run_requirement_extraction(project=project, request=request)
+        previous_specification = self._latest_design_specification(project.id)
+        result = await self._run_requirement_extraction(
+            project=project,
+            request=request,
+            superseded_specification_id=previous_specification.id if previous_specification else None,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="raw_provider_response",
+            role="requirement_raw_response",
+            relative_path=result.raw_response_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="design_specification",
+            role="design_specification_version",
+            relative_path=result.specification_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="requirement_extraction",
+            event_type="requirement_extraction.completed",
+            severity="summary",
+            message="Requirement extraction completed.",
+            deduplication_key=f"requirement-extraction-completed-{project.id}",
+        )
+        return result
 
     def get_current_design_specification(self, project_id: str) -> DesignSpecificationRead | None:
         if self.db.get(Project, project_id) is None:
@@ -807,12 +1473,13 @@ class ProjectService:
         if context is None:
             return None
         _project, base_revision, _design_plan, design_plan_payload, source, _source_hash = context
-        metadata = SourceContractValidator().validate(
-            source,
-            design_specification=self._revision_design_specification_payload(base_revision),
-            design_plan=design_plan_payload,
-            source_type="configuration",
-        ).source_metadata
+        self._require_revision_base_ready(base_revision, purpose="configuration parameter review")
+        metadata = self._configuration_source_metadata(
+            source=source,
+            design_plan_payload=design_plan_payload,
+            cad_backend=base_revision.cad_backend,
+            design_specification_payload=self._revision_design_specification_payload(base_revision),
+        )
         return [
             self._configuration_parameter_read(parameter, design_plan_payload, metadata)
             for parameter in design_plan_payload.get("parameters", [])
@@ -858,12 +1525,14 @@ class ProjectService:
         context = self._configuration_context(project_id)
         if context is None:
             return None
-        _project, _base_revision, design_plan, design_plan_payload, source, _source_hash = context
+        _project, base_revision, design_plan, design_plan_payload, source, _source_hash = context
+        self._require_revision_base_ready(base_revision, purpose="configuration preset")
         if payload.design_plan_id is not None and payload.design_plan_id != design_plan.id:
             raise ValueError("preset Design Plan does not match the active revision")
         validation = self._resolve_configuration(
             design_plan_payload=design_plan_payload,
             source=source,
+            cad_backend=base_revision.cad_backend,
             selected_preset_id=None,
             requested_values=payload.parameter_values,
             user_overrides={},
@@ -891,9 +1560,11 @@ class ProjectService:
         if context is None:
             return None
         _project, base_revision, design_plan, design_plan_payload, source, source_hash = context
+        self._require_revision_base_ready(base_revision, purpose="configuration preview")
         resolution = self._resolve_configuration(
             design_plan_payload=design_plan_payload,
             source=source,
+            cad_backend=base_revision.cad_backend,
             selected_preset_id=payload.selected_preset_id,
             requested_values=payload.parameter_values,
             user_overrides=payload.user_overrides,
@@ -944,6 +1615,7 @@ class ProjectService:
         design_plan = self.db.get(DesignPlan, change.design_plan_id)
         if base_revision is None or design_plan is None:
             raise ValueError("configuration base revision or Design Plan is missing")
+        self._require_revision_base_ready(base_revision, purpose="configuration generation")
         source_path = self.resolve_revision_source(base_revision.id)
         if source_path is None:
             raise ValueError("base revision source is missing")
@@ -952,22 +1624,48 @@ class ProjectService:
         if change.base_source_hash and change.base_source_hash != source_hash:
             raise ValueError("base source hash changed; configuration cannot be reproduced")
         manifest = self._configuration_override_manifest(change)
-        revision = await self._create_revision_from_planned_source(
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        if base_revision.cad_backend != "cadquery":
+            raise ValueError("configuration generation requires a CadQuery base revision")
+        workflow_run = self._start_child_workflow_run(
             project_id=change.project_id,
-            scad_source=source,
+            workflow_type="configuration_change",
+            parent=self._workflow_run_for_revision(base_revision.id),
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="configuration_execution",
+            event_type="configuration_execution.started",
+            severity="summary",
+            message="Configuration generation started.",
+            deduplication_key=f"configuration-started-{change.id}",
+            configuration_change_id=change.id,
+            revision_id=base_revision.id,
+            metadata={
+                "provider_call_count": 0,
+                "base_source_hash": source_hash,
+                "parameter_hash": self._configuration_parameter_hash(manifest["parameter_values"]),
+            },
+        )
+        revision = await self._create_cadquery_revision_from_planned_source(
+            project_id=change.project_id,
+            source=source,
             user_instruction=f"Configuration change {change.id}",
             source_type="configuration_change",
             raw_ai_output=None,
             design_specification_id=change.design_specification_id,
             design_specification_payload=self._configured_design_specification_payload(base_revision, change),
             design_plan_id=change.design_plan_id,
-            design_plan_payload=self._read_design_plan_payload(design_plan),
+            design_plan_payload=design_plan_payload,
             source_validation_result_id=None,
-            compile_defines=manifest["openscad_defines"],
+            parameter_values=manifest["parameter_values"],
+            parameter_overrides=manifest["parameter_values"],
             parent_revision_id=base_revision.id,
             configuration_change_id=change.id,
+            workflow_run=workflow_run,
         )
         if revision is None:
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return None
         generated_revision = self.db.get(Revision, revision.id)
         if generated_revision is not None:
@@ -988,6 +1686,20 @@ class ProjectService:
                 )
             if change.override_manifest_path:
                 self._write_json(self.data_dir / change.override_manifest_path, self._configuration_override_manifest(change))
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="configuration_execution",
+                artifact_type="configuration_change",
+                role="configuration_change_record",
+                relative_path=change.configuration_path,
+            )
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="configuration_execution",
+                artifact_type="parameter_manifest",
+                role="configuration_override_manifest",
+                relative_path=change.override_manifest_path,
+            )
             generated_revision.output_manifest_path = self._relative(
                 self._write_output_manifest(generated_revision)
             )
@@ -999,6 +1711,25 @@ class ProjectService:
             )
             self.db.commit()
             self.db.refresh(generated_revision)
+            self._record_workflow_event(
+                workflow_run,
+                stage="configuration_execution",
+                event_type="configuration_execution.completed",
+                severity="summary" if generated_revision.status == "succeeded" else "error",
+                blocking=generated_revision.status != "succeeded",
+                rule_id="configuration_execution.failed"
+                if generated_revision.status != "succeeded"
+                else None,
+                message="Configuration generation completed.",
+                deduplication_key=f"configuration-completed-{change.id}",
+                configuration_change_id=change.id,
+                revision_id=generated_revision.id,
+                metadata={"provider_call_count": 0, "status": generated_revision.status},
+            )
+            self._workflow_recorder().complete_run(
+                workflow_run,
+                status="completed" if generated_revision.status == "succeeded" else "failed",
+            )
             return self._revision_read(generated_revision)
         return revision
 
@@ -1030,11 +1761,14 @@ class ProjectService:
             raise ValueError("base revision not found for project")
         if base_revision.status != "succeeded":
             raise ValueError("base revision must be successful")
+        if base_revision.cad_backend != "cadquery":
+            raise ValueError("structured revision generation requires a CadQuery base revision")
         if base_revision.design_plan_id is None:
             raise ValueError("structured revision planning requires a Design Plan")
         design_plan = self.db.get(DesignPlan, base_revision.design_plan_id)
         if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
             raise ValueError("base revision must reference an approved Design Plan")
+        self._require_revision_base_ready(base_revision, purpose="revision planning")
         design_plan_payload = self._read_design_plan_payload(design_plan)
         design_specification = (
             self.db.get(DesignSpecification, base_revision.design_specification_id)
@@ -1055,12 +1789,26 @@ class ProjectService:
             revision_id=base_revision.id,
             finding_ids=payload.targeted_finding_ids,
         )
-        source_metadata = SourceContractValidator().validate(
-            base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        ledger_store = RequirementLedgerStore(self.db)
+        requirement_delta, physical_observation = requirement_delta_for_message(
+            payload.user_instruction
+        )
+        ledger = ledger_store.load(project.id)
+        if requirement_delta:
+            ledger = ledger_store.apply_delta(
+                project_id=project.id,
+                changes=requirement_delta,
+                originating_message=payload.user_instruction,
+                observation=physical_observation,
+            )
+        active_requirement_items = active_requirements(ledger)
+        source_metadata = self._revision_source_metadata(
+            source=base_source,
+            cad_backend=base_revision.cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type=base_revision.source_type,
-        ).source_metadata.to_json()
+        ).to_json()
         request = RevisionPlanRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -1077,6 +1825,8 @@ class ProjectService:
             output_manifest=output_manifest,
             source_metadata=source_metadata,
             selected_findings=selected_findings,
+            active_requirements=active_requirement_items,
+            requirement_delta=requirement_delta,
         )
         superseded = self._latest_revision_plan(project.id, base_revision_id=base_revision.id)
         return await self._run_revision_planning(
@@ -1087,6 +1837,268 @@ class ProjectService:
             request=request,
             superseded_revision_plan_id=superseded.id if superseded else None,
         )
+
+    def create_deterministic_revision_brief(
+        self,
+        project_id: str,
+        payload: RevisionPlanCreate,
+        *,
+        workflow_run: WorkflowRun | None = None,
+    ) -> tuple[RevisionPlanRead | None, PlanningRouteDecision]:
+        """Persist a narrow revision brief without a planning-provider call."""
+
+        project = self.db.get(Project, project_id)
+        if project is None:
+            return None, PlanningRouteDecision(PlanningDepth.CLARIFICATION_REQUIRED)
+        base_revision_id = payload.base_revision_id or project.active_revision_id
+        base_revision = self.db.get(Revision, base_revision_id) if base_revision_id else None
+        if base_revision is None or base_revision.project_id != project.id:
+            raise ValueError("base revision not found for project")
+        if base_revision.status != "succeeded" or base_revision.design_plan_id is None:
+            raise ValueError("base revision must reference a successful planned design")
+        design_plan = self.db.get(DesignPlan, base_revision.design_plan_id)
+        if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
+            raise ValueError("base revision must reference an approved Design Plan")
+        design_plan_payload = self._read_design_plan_payload(design_plan)
+        specification = (
+            self.db.get(DesignSpecification, base_revision.design_specification_id)
+            if base_revision.design_specification_id else None
+        )
+        specification_payload = (
+            self._read_design_specification_payload(specification) if specification is not None else {}
+        )
+        delta, observation = requirement_delta_for_message(payload.user_instruction)
+        if not delta:
+            raise ValueError("revision is not narrow enough for a deterministic revision brief")
+        ledger_store = RequirementLedgerStore(self.db)
+        current_ledger = ledger_store.load(project.id)
+        decision = PlanningDepthRouter().route_revision(
+            active_requirements=active_requirements(current_ledger),
+            revision_delta=delta,
+            project_state=self._planning_project_state(specification_payload),
+        )
+        if decision.outcome != PlanningDepth.DIRECT_BRIEF:
+            return None, decision
+        ledger = ledger_store.apply_delta(
+            project_id=project.id,
+            changes=delta,
+            originating_message=payload.user_instruction,
+            observation=observation,
+        )
+        planning_run = workflow_run or self._ensure_initial_workflow_run(project)
+        revision_plan_id = str(uuid4())
+        scope = self._revision_preservation_envelope(design_plan_payload, delta)
+        target_components = list(scope["targeted_components"])
+        target_outputs = list(scope["targeted_outputs"])
+        plan_parameter_ids = {
+            str(item.get("id")) for item in design_plan_payload.get("parameters", []) or []
+            if isinstance(item, dict) and item.get("id")
+        }
+        requested_changes: list[dict[str, Any]] = []
+        allowed_parameter_changes: list[str] = []
+        targeted_features: list[str] = list(scope["targeted_features"])
+        for change in delta:
+            target_id = str(change.get("requirement_id") or change.get("target") or "requirement")
+            target_type = "product_parameter" if target_id in plan_parameter_ids else "requirement"
+            requested_changes.append({
+                "target_type": target_type,
+                "target_id": target_id,
+                "current_value": self._design_plan_parameter_values(design_plan_payload).get(target_id),
+                "requested_value": change.get("value"),
+                "change_type": str(change.get("operation") or "modify"),
+                "source": str(change.get("source") or "revision_user"),
+            })
+            if target_type == "product_parameter":
+                allowed_parameter_changes.append(target_id)
+            target = str(change.get("target") or "")
+            if target and target in {
+                str(item.get("id")) for item in design_plan_payload.get("features", []) or []
+                if isinstance(item, dict) and item.get("id")
+            } and target not in targeted_features:
+                targeted_features.append(target)
+        payload_body = {
+            "schema_version": "cad-revision-brief-v1",
+            "project_id": project.id,
+            "base_revision_id": base_revision.id,
+            "base_design_plan_id": design_plan.id,
+            "reason": payload.reason,
+            "summary": payload.user_instruction,
+            "user_instruction": payload.user_instruction,
+            "requested_changes": requested_changes,
+            "targeted_components": target_components[:1],
+            "targeted_features": targeted_features,
+            "targeted_outputs": target_outputs[:1],
+            "allowed_parameter_changes": allowed_parameter_changes,
+            "required_dependency_changes": [],
+            "protected_components": scope["protected_components"],
+            "protected_features": scope["protected_features"],
+            "protected_outputs": scope["protected_outputs"],
+            "allowed_component_changes": target_components[:1],
+            "allowed_feature_changes": targeted_features,
+            "prohibited_changes": [],
+            "success_criteria": [],
+            "requires_design_specification_version": bool(allowed_parameter_changes),
+            "requires_design_plan_version": bool(allowed_parameter_changes),
+            "clarification_questions": [],
+            "outcome": RevisionPlanOutcome.REVISION_READY.value,
+            "clarification_required": False,
+            "revision_ready": True,
+            "active_requirements": active_requirements(ledger),
+            "requirement_delta": delta,
+            "physical_test_observation": observation,
+        }
+        plan_dir = self._revision_plan_dir(project.id, revision_plan_id)
+        plan_dir.mkdir(parents=True, exist_ok=True)
+        plan_path = plan_dir / "cad-revision-brief.json"
+        self._write_json(plan_path, payload_body)
+        output_manifest = self.read_output_manifest(base_revision.id) or {}
+        revision_plan = RevisionPlan(
+            id=revision_plan_id,
+            project_id=project.id,
+            base_revision_id=base_revision.id,
+            base_design_specification_id=specification.id if specification else None,
+            base_design_plan_id=design_plan.id,
+            version_number=self._next_revision_plan_version(project.id),
+            schema_version="cad-revision-brief-v1",
+            prompt_template_version=PLANNING_ROUTE_PROMPT_VERSION,
+            ruleset_version=self._ruleset_version(),
+            provider="deterministic_volundr",
+            provider_model=None,
+            user_instruction=payload.user_instruction,
+            reason=payload.reason,
+            raw_response_path=None,
+            plan_path=self._relative(plan_path),
+            content_hash=self._sha256(json.dumps(payload_body, sort_keys=True)),
+            base_source_hash=self._sha256(self.read_revision_source(base_revision.id) or ""),
+            base_output_manifest_hash=self._sha256(json.dumps(output_manifest, sort_keys=True)),
+            base_design_specification_hash=self._sha256(json.dumps(specification_payload, sort_keys=True)) if specification else None,
+            base_design_plan_hash=self._sha256(json.dumps(design_plan_payload, sort_keys=True)),
+            outcome=RevisionPlanOutcome.REVISION_READY.value,
+            review_state=RevisionPlanReviewState.APPROVED.value,
+            clarification_required=False,
+            revision_ready=True,
+            approved_at=project_utcnow(),
+        )
+        self.db.add(revision_plan)
+        self.db.flush()
+        if payload_body["requires_design_plan_version"]:
+            revised_specification = self._persist_revision_specification_snapshot(
+                project=project,
+                base_specification=specification,
+                revision_plan=revision_plan,
+                base_payload=specification_payload,
+                revision_plan_payload=payload_body,
+            )
+            revision_plan.revised_design_specification_id = revised_specification.id
+            revised_plan = self._persist_revision_design_plan_snapshot(
+                project=project,
+                base_plan=design_plan,
+                revision_plan=revision_plan,
+                base_payload=design_plan_payload,
+                revision_plan_payload=payload_body,
+            )
+            revision_plan.revised_design_plan_id = revised_plan.id
+        self.db.flush()
+        brief_artifact = self._record_workflow_artifact(
+            planning_run,
+            stage="revision_planning",
+            artifact_type="cad_revision_brief",
+            role="selected_deterministic_revision_brief",
+            relative_path=self._relative(plan_path),
+            metadata={"revision_plan_id": revision_plan.id, "planning_depth": decision.outcome.value},
+        )
+        self._record_workflow_event(
+            planning_run,
+            stage="revision_planning",
+            event_type="revision_plan.route.selected",
+            severity="summary",
+            message="A deterministic revision brief was selected for a narrow change.",
+            deduplication_key=f"deterministic-revision-brief-{revision_plan.id}",
+            revision_id=base_revision.id,
+            revision_plan_id=revision_plan.id,
+            metadata={**decision.to_payload(), "brief_artifact_id": brief_artifact.id if brief_artifact else None},
+        )
+        self.db.commit()
+        self.db.refresh(revision_plan)
+        return self._revision_plan_read(revision_plan), decision
+
+    def _revision_preservation_envelope(
+        self,
+        design_plan_payload: dict[str, Any],
+        changes: list[dict[str, Any]],
+    ) -> dict[str, list[str]]:
+        """Derive affected and preserved identities from a requirement delta."""
+
+        components = [
+            str(item.get("id"))
+            for item in design_plan_payload.get("components", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        features = [
+            item for item in design_plan_payload.get("features", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        parameters = [
+            item for item in design_plan_payload.get("parameters", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        changed_ids = {
+            str(change.get("requirement_id") or change.get("target_id") or "")
+            for change in changes
+            if isinstance(change, dict)
+        }
+        changed_targets = {
+            str(change.get("target") or "")
+            for change in changes
+            if isinstance(change, dict) and change.get("target")
+        }
+        affected_components = set(changed_targets) & set(components)
+        affected_features: set[str] = set()
+        for parameter in parameters:
+            if str(parameter["id"]) in changed_ids and parameter.get("component_id"):
+                affected_components.add(str(parameter["component_id"]))
+        for feature in features:
+            feature_id = str(feature["id"])
+            feature_component = str(feature.get("component_id") or "")
+            if feature_id in changed_ids or feature_id in changed_targets:
+                affected_features.add(feature_id)
+                if feature_component:
+                    affected_components.add(feature_component)
+            if set(map(str, feature.get("parameters", []) or [])) & changed_ids:
+                affected_features.add(feature_id)
+                if feature_component:
+                    affected_components.add(feature_component)
+        if not affected_components and components:
+            affected_components.add(components[0])
+        outputs = [
+            item for item in design_plan_payload.get("printable_outputs", []) or []
+            if isinstance(item, dict) and item.get("id")
+        ]
+        targeted_outputs = [
+            str(output["id"])
+            for output in outputs
+            if set(map(str, output.get("component_ids", []) or [])) & affected_components
+        ]
+        if not targeted_outputs and outputs:
+            targeted_outputs = [str(outputs[0]["id"])]
+        return {
+            "targeted_components": [item for item in components if item in affected_components],
+            "targeted_features": [
+                str(item["id"]) for item in features if str(item["id"]) in affected_features
+            ],
+            "targeted_outputs": targeted_outputs,
+            "protected_components": [item for item in components if item not in affected_components],
+            "protected_features": [
+                str(item["id"])
+                for item in features
+                if str(item["id"]) not in affected_features
+            ],
+            "protected_outputs": [
+                str(output["id"])
+                for output in outputs
+                if str(output["id"]) not in targeted_outputs
+            ],
+        }
 
     def approve_revision_plan(self, revision_plan_id: str) -> RevisionPlanRead | None:
         plan = self.db.get(RevisionPlan, revision_plan_id)
@@ -1103,6 +2115,19 @@ class ProjectService:
             revision_id=plan.base_revision_id,
             role="system_event",
             content=f"Revision Plan v{plan.version_number} approved",
+        )
+        workflow_run = self._workflow_run_for_revision_plan(plan.id)
+        self._record_workflow_event(
+            workflow_run,
+            stage="revision_planning",
+            event_type="revision_plan.approved",
+            severity="summary",
+            message="Revision Plan approved for source generation.",
+            deduplication_key=f"revision-plan-approved-{plan.id}",
+            revision_id=plan.base_revision_id,
+            revision_plan_id=plan.id,
+            design_plan_id=plan.base_design_plan_id,
+            metadata={"review_state": plan.review_state},
         )
         self.db.commit()
         self.db.refresh(plan)
@@ -1162,6 +2187,7 @@ class ProjectService:
         )
         if project is None or base_revision is None or design_plan is None:
             raise ValueError("Revision Plan context is incomplete")
+        self._require_revision_base_ready(base_revision, purpose="revision planning")
         previous_payload = self._read_revision_plan_payload(plan)
         answers: list[dict[str, Any]] = []
         questions_context: list[dict[str, Any]] = []
@@ -1202,12 +2228,11 @@ class ProjectService:
             else None
         )
         base_source = self.read_revision_source(base_revision.id) or ""
-        source_metadata = SourceContractValidator().validate(
+        source_metadata = self._cadquery_revision_source_metadata(
             base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
-            source_type=base_revision.source_type,
-        ).source_metadata.to_json()
+            design_plan_payload,
+        ).to_json()
+        ledger = RequirementLedgerStore(self.db).load(project.id)
         request = RevisionPlanRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -1226,6 +2251,8 @@ class ProjectService:
             clarification_questions=questions_context,
             clarification_answers=answers,
             previous_revision_plan=previous_payload,
+            active_requirements=active_requirements(ledger),
+            requirement_delta=list(previous_payload.get("requirement_delta", [])),
         )
         return await self._run_revision_planning(
             project=project,
@@ -1244,6 +2271,8 @@ class ProjectService:
             raise ValueError("Revision Plan must be approved before source revision")
         if self._has_newer_revision_plan(plan):
             raise ValueError("Revision Plan has been superseded")
+        if plan.generated_revision_id is not None:
+            raise ValueError("Revision Plan has already generated a candidate")
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
         project = self.db.get(Project, plan.project_id)
@@ -1259,6 +2288,7 @@ class ProjectService:
         )
         if project is None or base_revision is None or design_plan is None:
             raise ValueError("Revision Plan context is incomplete")
+        self._require_revision_base_ready(base_revision, purpose="component revision generation")
         base_source = self.read_revision_source(base_revision.id)
         if base_source is None:
             raise ValueError("base revision source is missing")
@@ -1270,30 +2300,30 @@ class ProjectService:
             else None
         )
         configuration_context: dict[str, Any] | None = None
-        compile_defines: dict[str, str | int | float | bool] | None = None
+        cadquery_parameter_values: dict[str, Any] | None = None
         configuration_change_id: str | None = None
         if base_revision.configuration_change_id is not None:
             change = self.db.get(ConfigurationChange, base_revision.configuration_change_id)
             if change is not None:
                 configuration_change_id = change.id
+                override_manifest = self._configuration_override_manifest(change)
                 configuration_context = {
                     "configuration_change": self._configuration_change_payload(change),
-                    "override_manifest": self._configuration_override_manifest(change),
+                    "override_manifest": override_manifest,
                 }
-                compile_defines = configuration_context["override_manifest"]["openscad_defines"]
+                cadquery_parameter_values = dict(override_manifest.get("parameter_values") or {})
         selected_findings = self._selected_finding_payloads(
             project_id=project.id,
             revision_id=base_revision.id,
             finding_ids=revision_plan_payload.get("targeted_findings", []),
         )
-        base_source_metadata = SourceContractValidator(
-            ruleset_version=self._gemini_ruleset_version()
-        ).validate(
-            base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        base_source_metadata = self._revision_source_metadata(
+            source=base_source,
+            cad_backend=base_revision.cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type="ai_revision",
-        ).source_metadata.to_json()
+        ).to_json()
         scoped_revision_context = self._component_revision_scope_context(
             revision_plan_payload=revision_plan_payload,
             design_plan_payload=design_plan_payload,
@@ -1301,6 +2331,23 @@ class ProjectService:
             output_manifest=self.read_output_manifest(base_revision.id),
             selected_findings=selected_findings,
             configuration_context=configuration_context,
+        )
+        parent_workflow_run = self._workflow_run_for_revision_plan(plan.id)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="component_revision",
+            parent=parent_workflow_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="component_revision",
+            event_type="component_revision.started",
+            severity="summary",
+            message="Component-targeted revision generation started.",
+            deduplication_key=f"component-revision-started-{plan.id}",
+            revision_plan_id=plan.id,
+            revision_id=base_revision.id,
+            metadata={"base_revision_id": base_revision.id},
         )
         generation_request = self._generation_request(
             project=project,
@@ -1317,6 +2364,22 @@ class ProjectService:
             source_metadata=base_source_metadata,
             scoped_revision_context=scoped_revision_context,
             configuration_context=configuration_context,
+            active_requirement_items=active_requirements(
+                RequirementLedgerStore(self.db).load(project.id)
+            ),
+            requirement_delta=list(revision_plan_payload.get("requirement_delta", [])),
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload,
+                design_plan_id=design_plan.id,
+                payload=GenerationCreate(
+                    user_instruction=plan.user_instruction,
+                    design_specification_id=design_specification.id if design_specification else None,
+                ),
+                workflow_run_id=workflow_run.id,
+            ),
+            workflow_run_id=workflow_run.id,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
@@ -1325,10 +2388,27 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        self._persist_prompt_context_pack_for_attempt(
+            workflow_run=workflow_run,
+            attempt=generation_attempt,
+            pack=generation_request.prompt_context_pack,
+            provider_contract_manifest=generation_request.provider_contract_manifest,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_generation",
+            event_type="provider.request_prepared",
+            severity="summary",
+            message="Revision source provider request prepared.",
+            deduplication_key=f"revision-provider-request-{generation_attempt.id}",
+            generation_attempt_id=generation_attempt.id,
+            revision_plan_id=plan.id,
+        )
         try:
-            generation_result = await self.ai_provider.generate_model(generation_request)
+            generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(generation_attempt)
+            self._workflow_recorder().complete_run(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -1337,20 +2417,65 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise
 
         self._record_generation_result(generation_attempt, generation_result)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_generation",
+            artifact_type="raw_provider_response",
+            role="raw_revision_source_response",
+            relative_path=generation_attempt.raw_output_path,
+            redacted=generation_attempt.raw_output_path is None,
+        )
         try:
-            revised_source = extract_scad_source(generation_result.raw_output)
-        except SourceExtractionError as exc:
+            revised_source = self._prepare_generated_source(
+                raw_output=generation_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=generation_request.generation_contract_version,
+                attempt=generation_attempt,
+                workflow_run=workflow_run,
+                role="component_revision_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
+            if isinstance(exc, GeometryBodyError):
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="source_extraction",
+                    event_type="geometry_body.failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id=exc.rule_id,
+                    message=str(exc),
+                    deduplication_key=f"geometry-body-failed-{generation_attempt.id}",
+                    generation_attempt_id=generation_attempt.id,
+                    revision_plan_id=plan.id,
+                    metadata=exc.details,
+                )
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
             )
             raise ValueError(str(exc)) from exc
-        self._record_generation_extracted_source(generation_attempt, revised_source)
+        self._record_generation_extracted_source(
+            generation_attempt,
+            revised_source,
+            source_language="python",
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_extraction",
+            artifact_type="cadquery_source",
+            role="component_revised_source",
+            relative_path=generation_attempt.source_path,
+        )
         source_validation = self._persist_source_contract_validation(
             project=project,
             attempt=generation_attempt,
@@ -1361,15 +2486,45 @@ class ProjectService:
             design_plan=design_plan,
             design_plan_payload=design_plan_payload,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_contract_validation",
+            artifact_type="source_validation_result",
+            role="source_contract_result",
+            relative_path=source_validation.result_path,
+        )
         if not source_validation.passed_hard_checks:
             message = self._source_contract_rejection_message(source_validation)
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_contract_validation",
+                event_type="source_contract.failed",
+                severity="error",
+                blocking=True,
+                rule_id="source_contract.hard_rejection",
+                message=message,
+                deduplication_key=f"revision-source-contract-failed-{source_validation.id}",
+                generation_attempt_id=generation_attempt.id,
+                revision_plan_id=plan.id,
+            )
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=message,
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise ValueError(message)
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_contract_validation",
+            event_type="source_contract.passed",
+            severity="summary",
+            message="Revision source contract passed.",
+            deduplication_key=f"revision-source-contract-passed-{source_validation.id}",
+            generation_attempt_id=generation_attempt.id,
+            revision_plan_id=plan.id,
+        )
         compliance = self._persist_revision_compliance_result(
             project=project,
             revision_plan=plan,
@@ -1380,42 +2535,96 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
             configuration_context=configuration_context,
+            cad_backend=base_revision.cad_backend,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_scope_validation",
+            artifact_type="revision_compliance_result",
+            role="scope_compliance_result",
+            relative_path=compliance.result_path,
         )
         if not compliance.passed:
+            first_scope_finding = next(
+                (
+                    finding
+                    for finding in (self._read_json_file(compliance.result_path) or {}).get("findings", [])
+                    if isinstance(finding, dict) and finding.get("is_blocking")
+                ),
+                {},
+            )
+            self._record_workflow_event(
+                workflow_run,
+                stage="revision_scope_validation",
+                event_type="revision_scope.failed",
+                severity="error",
+                blocking=True,
+                rule_id=str(first_scope_finding.get("rule_id") or "revision.scope_exceeded"),
+                message="Revised source exceeded the approved Revision Plan scope.",
+                deduplication_key=f"revision-scope-failed-{compliance.id}",
+                generation_attempt_id=generation_attempt.id,
+                revision_plan_id=plan.id,
+                metadata={"compliance_result_id": compliance.id},
+            )
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
                 failure_class=FailureClass.REVISION_REGRESSION,
                 error_message="Revised source exceeded approved Revision Plan scope",
             )
-            (
-                revised_source,
-                raw_ai_output,
-                generation_attempt,
-                source_validation,
-                compliance,
-            ) = await self._attempt_scope_correction(
-                project=project,
-                base_revision=base_revision,
-                revision_plan=plan,
-                failed_source=revised_source,
-                revision_plan_payload=revision_plan_payload,
-                design_specification=design_specification,
-                design_specification_payload=design_specification_payload,
-                design_plan=design_plan,
-                design_plan_payload=design_plan_payload,
-                output_manifest=self.read_output_manifest(base_revision.id),
-                selected_findings=selected_findings,
-                scoped_revision_context=scoped_revision_context,
-                configuration_context=configuration_context,
-                compliance_findings=compliance,
+            try:
+                (
+                    revised_source,
+                    raw_ai_output,
+                    generation_attempt,
+                    source_validation,
+                    compliance,
+                ) = await self._attempt_scope_correction(
+                    project=project,
+                    base_revision=base_revision,
+                    revision_plan=plan,
+                    failed_source=revised_source,
+                    revision_plan_payload=revision_plan_payload,
+                    design_specification=design_specification,
+                    design_specification_payload=design_specification_payload,
+                    design_plan=design_plan,
+                    design_plan_payload=design_plan_payload,
+                    output_manifest=self.read_output_manifest(base_revision.id),
+                    selected_findings=selected_findings,
+                    scoped_revision_context=scoped_revision_context,
+                    configuration_context=configuration_context,
+                    compliance_findings=compliance,
+                    cad_backend=base_revision.cad_backend,
+                    workflow_run=workflow_run,
+                )
+            except ValueError as exc:
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="scope_correction",
+                    event_type="scope_correction.failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id="revision.scope_exceeded",
+                    message="Scope correction did not produce an approved revision.",
+                    deduplication_key=f"scope-correction-failed-{plan.id}",
+                    revision_plan_id=plan.id,
+                    metadata={"error": str(exc)},
+                )
+                self._workflow_recorder().complete_run(workflow_run, status="failed")
+                raise
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="scope_correction",
+                artifact_type="cadquery_source",
+                role="scope_corrected_source",
+                relative_path=generation_attempt.source_path,
             )
             generation_result_raw_output = raw_ai_output
         else:
             generation_result_raw_output = generation_result.raw_output
-        candidate = await self._create_revision_from_planned_source(
+        candidate = await self._create_cadquery_revision_from_planned_source(
             project_id=project.id,
-            scad_source=revised_source,
+            source=revised_source,
             user_instruction=plan.user_instruction,
             source_type="ai_revision",
             raw_ai_output=generation_result_raw_output,
@@ -1424,9 +2633,11 @@ class ProjectService:
             design_plan_id=design_plan.id,
             design_plan_payload=design_plan_payload,
             source_validation_result_id=source_validation.id,
-            compile_defines=compile_defines,
+            parameter_values=cadquery_parameter_values or self._cadquery_source_parameter_values(revised_source),
+            parameter_overrides=cadquery_parameter_values,
             parent_revision_id=base_revision.id,
             configuration_change_id=configuration_change_id,
+            workflow_run=workflow_run,
         )
         if candidate is None:
             self._finish_generation_attempt(
@@ -1435,7 +2646,21 @@ class ProjectService:
                 failure_class=FailureClass.UNKNOWN_FAILURE,
                 error_message="revision candidate was not created",
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             return None
+        if candidate.status != "succeeded":
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+                if self._has_design_artifact_consistency_blockers(candidate.id)
+                else FailureClass.CADQUERY_COMPILE_FAILURE,
+                error_message=candidate.error_message,
+                resulting_revision_id=candidate.id,
+            )
+            self.db.commit()
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
+            return candidate
         plan.generated_revision_id = candidate.id
         compliance.revision_id = candidate.id
         self._persist_revision_success_results(
@@ -1445,8 +2670,9 @@ class ProjectService:
             revision_id=candidate.id,
             source=revised_source,
             revision_plan_payload=revision_plan_payload,
+            cad_backend=base_revision.cad_backend,
         )
-        self._persist_component_revision_summary(
+        component_summary = self._persist_component_revision_summary(
             project=project,
             revision_plan=plan,
             generation_attempt=generation_attempt,
@@ -1458,6 +2684,25 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
             compliance_result=compliance,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="component_revision_summary",
+            role="output_preservation_result",
+            relative_path=component_summary.summary_path,
+        )
+        consistency_result = self._latest_design_artifact_consistency(candidate.id)
+        if consistency_result is not None:
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="artifact_consistency",
+                artifact_type="design_consistency_result",
+                role="design_consistency_result",
+                relative_path=consistency_result.result_path,
+            )
+        component_summary_payload = self._read_json_file(component_summary.summary_path) or {}
+        targeted_outputs = component_summary_payload.get("targeted_outputs", [])
+        protected_outputs = component_summary_payload.get("protected_outputs", [])
         self._finish_generation_attempt(
             generation_attempt,
             status="succeeded",
@@ -1465,6 +2710,36 @@ class ProjectService:
             resulting_revision_id=candidate.id,
         )
         self.db.commit()
+        self._record_workflow_event(
+            workflow_run,
+            stage="component_revision",
+            event_type="component_revision.completed",
+            severity="summary",
+            message="Component-targeted revision generation completed.",
+            deduplication_key=f"component-revision-completed-{plan.id}",
+            revision_plan_id=plan.id,
+            revision_id=candidate.id,
+            metadata={
+                "targeted_outputs": [
+                    {
+                        "output_id": item.get("output_id"),
+                        "change_state": item.get("change_state"),
+                    }
+                    for item in targeted_outputs
+                    if isinstance(item, dict)
+                ],
+                "protected_outputs": [
+                    {
+                        "output_id": item.get("output_id"),
+                        "preservation_state": item.get("preservation_state"),
+                    }
+                    for item in protected_outputs
+                    if isinstance(item, dict)
+                ],
+                "output_count": candidate.expected_output_count,
+            },
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         revision = self.db.get(Revision, candidate.id)
         if revision is not None:
             revision.review_state = self._derive_review_state(revision.id)
@@ -1530,6 +2805,8 @@ class ProjectService:
         scoped_revision_context: dict[str, Any],
         configuration_context: dict[str, Any] | None,
         compliance_findings: RevisionComplianceResult,
+        cad_backend: str,
+        workflow_run: WorkflowRun | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult, RevisionComplianceResult]:
         payload = self._read_json_file(compliance_findings.result_path) or {}
         correction_request = self._generation_request(
@@ -1556,7 +2833,7 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         try:
-            correction_result = await self.ai_provider.generate_model(correction_request)  # type: ignore[union-attr]
+            correction_result = await self._generate_source_model(correction_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(correction_attempt)
             raise
@@ -1570,16 +2847,31 @@ class ProjectService:
             raise
         self._record_generation_result(correction_attempt, correction_result)
         try:
-            corrected_source = extract_scad_source(correction_result.raw_output)
-        except SourceExtractionError as exc:
+            corrected_source = self._prepare_generated_source(
+                raw_output=correction_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=correction_request.generation_contract_version,
+                attempt=correction_attempt,
+                workflow_run=workflow_run,
+                role="scope_correction_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
                 correction_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
             )
             raise ValueError(str(exc)) from exc
-        self._record_generation_extracted_source(correction_attempt, corrected_source)
+        self._record_generation_extracted_source(
+            correction_attempt,
+            corrected_source,
+            source_language="python",
+        )
         corrected_validation = self._persist_source_contract_validation(
             project=project,
             attempt=correction_attempt,
@@ -1609,6 +2901,7 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
             configuration_context=configuration_context,
+            cad_backend=cad_backend,
         )
         if not corrected_compliance.passed:
             message = "Revised source rejected before compile by Revision Plan compliance"
@@ -1662,12 +2955,7 @@ class ProjectService:
             return None
         plan_payload = self._read_revision_plan_payload(plan)
         design_plan_payload = self._read_design_plan_payload(design_plan)
-        metadata = SourceContractValidator().validate(
-            source,
-            design_specification=self._revision_design_specification_payload(base_revision),
-            design_plan=design_plan_payload,
-            source_type="ai_revision",
-        ).source_metadata.to_json()
+        metadata = self._cadquery_revision_source_metadata(source, design_plan_payload).to_json()
         configuration_context = None
         if base_revision.configuration_change_id is not None:
             change = self.db.get(ConfigurationChange, base_revision.configuration_change_id)
@@ -1721,20 +3009,110 @@ class ProjectService:
         if project is None:
             return None
 
+        parent_run = self._ensure_initial_workflow_run(project)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="design_plan_creation",
+            parent=parent_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="design_plan_generation",
+            event_type="design_plan_generation.started",
+            severity="summary",
+            message="Design Plan generation started.",
+            deduplication_key=f"design-plan-generation-started-{specification.id}",
+        )
         superseded_plan = self._latest_design_plan(project.id, specification_id=specification.id)
+        ledger_store = RequirementLedgerStore(self.db)
+        ledger = ledger_store.ensure_from_specification(
+            project_id=project.id,
+            specification=self._read_design_specification_payload(specification),
+            originating_message=specification.user_instruction,
+        )
         request = DesignPlanRequest(
             project_name=project.name,
             original_intent=project.original_intent,
             user_instruction=specification.user_instruction,
             design_specification=self._read_design_specification_payload(specification),
             defaults=DEFAULT_REQUIREMENT_PROFILE,
+            active_requirements=active_requirements(ledger),
         )
-        return await self._run_design_planning(
-            project=project,
-            specification=specification,
-            request=request,
-            superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
+        try:
+            result = await self._run_design_planning(
+                project=project,
+                specification=specification,
+                request=request,
+                superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
+                workflow_run=workflow_run,
+            )
+        except asyncio.CancelledError:
+            self._record_workflow_event(
+                workflow_run,
+                stage="design_plan_validation",
+                event_type="design_plan.validation.cancelled",
+                severity="warning",
+                blocking=True,
+                rule_id="design_plan.cancelled",
+                message="Design Plan generation was cancelled before approval.",
+                deduplication_key=f"design-plan-validation-cancelled-{specification.id}",
+                is_root_failure=True,
+            )
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
+            raise
+        except Exception as exc:
+            error_message = str(exc)
+            cause = exc.__cause__
+            while cause is not None:
+                cause_message = str(cause)
+                if cause_message.startswith("Functional Design Plan validation failed:"):
+                    error_message = cause_message
+                    break
+                cause = cause.__cause__
+            rule_id = "design_plan.generation_failed"
+            stage = "design_plan_generation"
+            event_type = "design_plan_generation.failed"
+            if error_message.startswith("Functional Design Plan validation failed:"):
+                stage = "design_plan_validation"
+                event_type = "design_plan.validation.failed"
+                rule_id = error_message.split(":", 1)[1].split(";", 1)[0].strip() or rule_id
+            self._record_workflow_event(
+                workflow_run,
+                stage=stage,
+                event_type=event_type,
+                severity="error",
+                blocking=True,
+                rule_id=rule_id,
+                message=error_message,
+                deduplication_key=f"design-plan-failed-{specification.id}",
+                is_root_failure=True,
+            )
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            raise
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="design_plan_generation",
+            artifact_type="raw_provider_response",
+            role="design_plan_raw_response",
+            relative_path=result.raw_response_path,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="design_plan_generation",
+            artifact_type="design_plan",
+            role="design_plan_version",
+            relative_path=result.plan_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="design_plan_generation",
+            event_type="design_plan_generation.completed",
+            severity="summary",
+            message="Design Plan generation completed.",
+            deduplication_key=f"design-plan-generation-completed-{specification.id}",
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
+        return result
 
     def approve_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
         plan = self.db.get(DesignPlan, design_plan_id)
@@ -1755,6 +3133,659 @@ class ProjectService:
         self.db.commit()
         self.db.refresh(plan)
         return self._design_plan_read(plan)
+
+    async def create_proportional_plan_from_specification(
+        self,
+        specification_id: str,
+        *,
+        workflow_run: WorkflowRun | None = None,
+        revision_delta: list[dict[str, Any]] | None = None,
+        preserved_requirements: list[dict[str, Any]] | None = None,
+    ) -> tuple[DesignPlanRead | None, PlanningRouteDecision]:
+        """Choose and persist the smallest plan contract for one generation.
+
+        Detailed plans continue through ``create_design_plan_from_specification``.
+        Direct briefs are deterministic and compact plans use the provider's
+        versioned compact contract; all three still return the existing
+        ``DesignPlanRead`` boundary to the generation pipeline.
+        """
+
+        specification = self.db.get(DesignSpecification, specification_id)
+        if specification is None:
+            raise LookupError("Design Specification not found")
+        project = self.db.get(Project, specification.project_id)
+        if project is None:
+            raise LookupError("Project not found")
+        ledger = RequirementLedgerStore(self.db).ensure_from_specification(
+            project_id=project.id,
+            specification=self._read_design_specification_payload(specification),
+            originating_message=specification.user_instruction,
+        )
+        active = active_requirements(ledger)
+        state = self._planning_project_state(
+            self._read_design_specification_payload(specification),
+            project_intent=project.original_intent,
+        )
+        decision = PlanningDepthRouter().route(
+            active_requirements=active,
+            project_state=state,
+            specification=self._read_design_specification_payload(specification),
+        )
+        planning_run = workflow_run or self._ensure_initial_workflow_run(project)
+        route_path = self._planning_artifact_path(project.id, planning_run.id, "route-decision.json")
+        self._write_json(
+            route_path,
+            {
+                **decision.to_payload(),
+                "project_id": project.id,
+                "workflow_run_id": planning_run.id,
+                "design_specification_id": specification.id,
+                "revision_delta": revision_delta or [],
+                "preserved_requirement_ids": [
+                    item.get("requirement_id") for item in preserved_requirements or []
+                ],
+            },
+        )
+        route_artifact = self._record_workflow_artifact(
+            planning_run,
+            stage="planning",
+            artifact_type="planning_route_decision",
+            role="planning_route_decision",
+            relative_path=self._relative(route_path),
+            metadata={"planning_depth": decision.outcome.value, "policy_version": decision.policy_version},
+        )
+        self._record_workflow_event(
+            planning_run,
+            stage="planning",
+            event_type="planning.route.selected",
+            severity="summary",
+            message=f"Planning route selected: {decision.outcome.value}.",
+            deduplication_key=f"planning-route-{specification.id}-{decision.outcome.value}",
+            design_specification_id=specification.id,
+            metadata=decision.to_payload(),
+        )
+        if decision.outcome == PlanningDepth.CLARIFICATION_REQUIRED:
+            return None, decision
+        if decision.outcome == PlanningDepth.DETAILED_PLAN:
+            plan = await self.create_design_plan_from_specification(specification.id)
+            if plan is not None:
+                plan_artifact = self._record_workflow_artifact(
+                    planning_run,
+                    stage="planning",
+                    artifact_type="detailed_design_plan",
+                    role="selected_detailed_plan",
+                    relative_path=plan.plan_path,
+                    metadata={"design_plan_id": plan.id, "schema_version": plan.schema_version},
+                )
+                context = normalize_geometry_execution_context(
+                    planning_depth=PlanningDepth.DETAILED_PLAN.value,
+                    plan_artifact_id=plan_artifact.id if plan_artifact else plan.id,
+                    plan=plan.plan,
+                    active_requirements=active,
+                    revision_delta=revision_delta or [],
+                    preserved_requirements=preserved_requirements or [],
+                    source_plan_kind=plan.schema_version,
+                )
+                self._persist_execution_context_artifact(
+                    project=project,
+                    workflow_run=planning_run,
+                    context=context,
+                    plan_id=plan.id,
+                    revision_id=None,
+                )
+            return plan, decision
+        if decision.outcome == PlanningDepth.COMPACT_PLAN:
+            superseded = self._latest_design_plan(project.id, specification_id=specification.id)
+            plan = await self._create_compact_plan_from_specification(
+                project=project,
+                specification=specification,
+                workflow_run=planning_run,
+                active_requirements=active,
+                revision_delta=revision_delta or [],
+                preserved_requirements=preserved_requirements or [],
+                superseded_plan_id=superseded.id if superseded is not None else None,
+            )
+            return plan, decision
+
+        brief = DirectCadBriefBuilder().build(
+            project_id=project.id,
+            active_requirements=active,
+            revision_delta=revision_delta or [],
+            preserved_requirements=preserved_requirements or [],
+            project_state=state,
+        ).to_payload()
+        brief_path = self._planning_artifact_path(project.id, planning_run.id, "cad-brief.json")
+        self._write_json(brief_path, brief)
+        brief_artifact = self._record_workflow_artifact(
+            planning_run,
+            stage="planning",
+            artifact_type="cad_brief",
+            role="selected_direct_brief",
+            relative_path=self._relative(brief_path),
+            metadata={"artifact_contract": "cad-brief-v1", "route_artifact_id": route_artifact.id if route_artifact else None},
+        )
+        superseded = self._latest_design_plan(project.id, specification_id=specification.id)
+        plan = self._persist_deterministic_plan(
+            project=project,
+            specification=specification,
+            payload=brief,
+            plan_path=brief_path,
+            superseded_design_plan_id=superseded.id if superseded is not None else None,
+        )
+        context = normalize_geometry_execution_context(
+            planning_depth=decision.outcome.value,
+            plan_artifact_id=brief_artifact.id if brief_artifact else None,
+            plan=brief,
+            active_requirements=active,
+            revision_delta=revision_delta or [],
+            preserved_requirements=preserved_requirements or [],
+            source_plan_kind=brief["schema_version"],
+        )
+        self._persist_execution_context_artifact(
+            project=project,
+            workflow_run=planning_run,
+            context=context,
+            plan_id=plan.id,
+            revision_id=None,
+        )
+        return self._design_plan_read(plan), decision
+
+    async def _create_compact_plan_from_specification(
+        self,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        workflow_run: WorkflowRun,
+        active_requirements: list[dict[str, Any]],
+        revision_delta: list[dict[str, Any]],
+        preserved_requirements: list[dict[str, Any]],
+        superseded_plan_id: str | None,
+    ) -> DesignPlanRead:
+        repair_context = None
+        rejected_payload: dict[str, Any] | None = None
+        rejected_raw_output: str | None = None
+        comparison: dict[str, Any] | None = None
+        for repair_round in range(2):
+            result = None
+            request = DesignPlanRequest(
+                project_name=project.name,
+                original_intent=project.original_intent,
+                user_instruction=specification.user_instruction,
+                design_specification=self._read_design_specification_payload(specification),
+                defaults=DEFAULT_REQUIREMENT_PROFILE,
+                active_requirements=active_requirements,
+                requirement_delta=revision_delta,
+                planning_depth=PlanningDepth.COMPACT_PLAN.value,
+                schema_repair_of_raw_output=rejected_raw_output,
+                schema_validation_error=(
+                    repair_context.get("validation_error") if repair_context else None
+                ),
+                plan_repair_context=repair_context,
+            )
+            attempt = self._start_design_plan_attempt(project=project, request=request)
+            try:
+                result = await self.ai_provider.create_design_plan(request)
+                self._record_generation_result(attempt, result)
+                payload = self._parse_compact_plan_payload(
+                    result.raw_output,
+                    project=project,
+                    specification=specification,
+                    active_requirements=active_requirements,
+                    revision_delta=revision_delta,
+                    preserved_requirements=preserved_requirements,
+                )
+                if rejected_payload is not None:
+                    repaired_payload = self._safe_provider_json_object(result.raw_output)
+                    if repaired_payload is None:
+                        raise ProviderContractError("focused Plan repair did not return a JSON object")
+                    comparison = validate_plan_repair_preservation(
+                        rejected_payload,
+                        repaired_payload,
+                        affected_feature_ids=set(repair_context.get("affected_feature_ids", [])) if repair_context else set(),
+                        affected_layout_ids=set(repair_context.get("affected_layout_ids", [])) if repair_context else set(),
+                    )
+                    comparison["findings_resolved"] = [
+                        str(item.get("rule_id"))
+                        for item in (repair_context or {}).get("findings", [])
+                        if isinstance(item, dict) and item.get("rule_id")
+                    ]
+                    self._persist_plan_repair_comparison(
+                        workflow_run=workflow_run,
+                        attempt=attempt,
+                        comparison=comparison,
+                    )
+                break
+            except asyncio.CancelledError:
+                self._finish_provider_cancelled_attempt(attempt)
+                raise
+            except (ValueError, ValidationError, ProviderContractError) as exc:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                    error_message=str(exc),
+                )
+                if repair_round == 1:
+                    if rejected_payload is not None and result is not None:
+                        repaired_payload = self._safe_provider_json_object(result.raw_output)
+                        comparison = self._plan_repair_failure_comparison(
+                            rejected_payload,
+                            repaired_payload,
+                            repair_context=repair_context,
+                            error=str(exc),
+                        )
+                        self._persist_plan_repair_comparison(
+                            workflow_run=workflow_run,
+                            attempt=attempt,
+                            comparison=comparison,
+                        )
+                    raise
+                if result is None:
+                    raise
+                rejected_payload = self._safe_provider_json_object(result.raw_output)
+                rejected_raw_output = result.raw_output
+                repair_context = build_focused_plan_repair_context(
+                    rejected_payload or {},
+                    findings=[{"rule_id": "planning.compact_plan_invalid", "message": str(exc)}],
+                )
+                repair_context["validation_error"] = str(exc)
+                continue
+            except RuntimeError as exc:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=self._provider_failure_class(str(exc)),
+                    error_message=str(exc),
+                )
+                raise
+        else:
+            raise RuntimeError("compact Plan repair exhausted")
+        plan = self._persist_design_plan(
+            project=project,
+            specification=specification,
+            attempt=attempt,
+            payload=payload,
+            raw_response_path=attempt.raw_output_path,
+            superseded_design_plan_id=superseded_plan_id,
+        )
+        self._finish_generation_attempt(attempt, status="succeeded", failure_class=FailureClass.NONE)
+        plan_artifact = self._record_workflow_artifact(
+            workflow_run,
+            stage="planning",
+            artifact_type="compact_cad_plan",
+            role="selected_compact_plan",
+            relative_path=plan.plan_path,
+            metadata={"design_plan_id": plan.id, "schema_version": plan.schema_version},
+        )
+        context = normalize_geometry_execution_context(
+            planning_depth=PlanningDepth.COMPACT_PLAN.value,
+            plan_artifact_id=plan_artifact.id if plan_artifact else plan.id,
+            plan=payload,
+            active_requirements=active_requirements,
+            revision_delta=revision_delta,
+            preserved_requirements=preserved_requirements,
+            source_plan_kind=payload["schema_version"],
+        )
+        self._persist_execution_context_artifact(
+            project=project,
+            workflow_run=workflow_run,
+            context=context,
+            plan_id=plan.id,
+            revision_id=None,
+        )
+        return self._design_plan_read(plan)
+
+    def _parse_compact_plan_payload(
+        self,
+        raw_output: str,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        active_requirements: list[dict[str, Any]],
+        revision_delta: list[dict[str, Any]],
+        preserved_requirements: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        text = raw_output.strip()
+        if text.startswith("```"):
+            text = re.sub(r"\A```(?:json)?\s*|\s*```\Z", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"compact plan is not valid JSON: {exc.msg}") from exc
+        if not isinstance(payload, dict):
+            raise ValueError("compact plan must be a JSON object")
+        if payload.get("schema_version") not in {"compact-cad-plan-v1", "compact-plan-v1"}:
+            raise ValueError("compact plan must use schema_version compact-cad-plan-v1")
+        clarification_required = bool(payload.get("clarification_required"))
+        clarification_questions = [
+            dict(item) for item in payload.get("clarification_questions", []) or []
+            if isinstance(item, dict) and item.get("question")
+        ]
+        components = [dict(item) for item in payload.get("components", []) or [] if isinstance(item, dict)]
+        if not components:
+            components = [{"id": "primary_part", "label": "Primary printable part", "role": "printable_part"}]
+        normalized_components: list[dict[str, Any]] = []
+        for index, component in enumerate(components):
+            component.setdefault("id", component.get("component_id") or ("primary_part" if index == 0 else f"component_{index + 1}"))
+            component.setdefault("label", component.get("name") or str(component["id"]).replace("_", " ").title())
+            component.setdefault("role", "printable_part")
+            component.setdefault("required", True)
+            component.setdefault("parameters", [])
+            normalized_components.append(component)
+        features = [dict(item) for item in payload.get("features", []) or [] if isinstance(item, dict)]
+        normalized_features: list[dict[str, Any]] = []
+        for index, feature in enumerate(features):
+            feature.setdefault("id", feature.get("feature_id") or f"feature_{index + 1}")
+            feature.setdefault("type", feature.get("feature_type") or "feature")
+            feature.setdefault("parameters", [])
+            normalized_features.append(feature)
+        outputs = [dict(item) for item in payload.get("printable_outputs", []) or [] if isinstance(item, dict)]
+        semantic_plan = normalize_compact_component_feature_semantics(
+            {
+                "components": normalized_components,
+                "features": normalized_features,
+                "printable_outputs": outputs,
+                "relationships": [dict(item) for item in payload.get("relationships", []) or [] if isinstance(item, dict)],
+            },
+            compact=True,
+        )
+        normalized_components = semantic_plan["components"]
+        normalized_features = semantic_plan["features"]
+        outputs = semantic_plan["printable_outputs"]
+        if not outputs:
+            outputs = [
+                {
+                    "id": "primary_printable_output",
+                    "label": "Primary printable part",
+                    "component_ids": [item["id"] for item in normalized_components],
+                    "required": True,
+                    "quantity": 1,
+                    "expected_solid_count": 1,
+                    "allow_disconnected_solids": False,
+                }
+            ]
+        for output in outputs:
+            output.setdefault("component_ids", [output.get("component_id") or normalized_components[0]["id"]])
+            output.setdefault("required", True)
+            output.setdefault("quantity", 1)
+            output.setdefault("expected_solid_count", 1)
+            output.setdefault("allow_disconnected_solids", False)
+        self._validate_compact_plan_semantics(
+            payload,
+            component_ids={str(item["id"]) for item in normalized_components},
+            feature_component_ids={
+                str(item.get("component_id"))
+                for item in normalized_features
+                if item.get("component_id")
+            },
+            output_component_ids={
+                str(component_id)
+                for item in outputs
+                for component_id in item.get("component_ids", []) or []
+                if component_id
+            },
+        )
+        normalized_payload = {
+            "schema_version": "compact-cad-plan-v1",
+            "planning_depth": PlanningDepth.COMPACT_PLAN.value,
+            "project_id": project.id,
+            "design_specification_id": specification.id,
+            "units": payload.get("units") or "mm",
+            "requirements": [dict(item) for item in active_requirements],
+            "revision_delta": [dict(item) for item in revision_delta],
+            "preserved_requirements": [dict(item) for item in preserved_requirements],
+            "proposals": [
+                {**dict(item), "source": "volundr_proposal"}
+                for item in payload.get("proposals", []) or []
+                if isinstance(item, dict)
+            ],
+            "components": normalized_components,
+            "features": normalized_features,
+            "relationships": [dict(item) for item in payload.get("relationships", []) or [] if isinstance(item, dict)],
+            "coordinate_frames": [dict(item) for item in payload.get("coordinate_frames", []) or [] if isinstance(item, dict)],
+            "validation_targets": [dict(item) for item in payload.get("validation_targets", []) or [] if isinstance(item, dict)],
+            "exposed_controls": [dict(item) for item in payload.get("exposed_controls", []) or [] if isinstance(item, dict)],
+            "parameters": _compact_plan_parameters(payload.get("parameters")),
+            "derived_parameters": [dict(item) for item in payload.get("derived_parameters", []) or [] if isinstance(item, dict)],
+            "dependency_edges": [dict(item) for item in payload.get("dependency_edges", []) or [] if isinstance(item, dict)],
+            "feature_layouts": [dict(item) for item in payload.get("feature_layouts", []) or [] if isinstance(item, dict)],
+            "patterns": [dict(item) for item in payload.get("patterns", []) or [] if isinstance(item, dict)],
+            "printable_outputs": outputs,
+            "normalization_findings": semantic_plan.get("normalization_findings", []),
+            "normalization_version": semantic_plan.get("normalization_version"),
+            "outcome": (
+                DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED.value
+                if clarification_required
+                else DesignPlanOutcome.PLAN_READY.value
+            ),
+            "clarification_required": clarification_required,
+            "clarification_questions": clarification_questions,
+            "plan_ready": not clarification_required,
+        }
+        specification_payload = (
+            self._read_design_specification_payload(specification)
+            if getattr(specification, "specification_path", None)
+            else None
+        )
+        normalized_payload = normalize_plan_provenance(
+            normalized_payload,
+            specification_payload,
+        )
+        normalized_payload = normalize_plan_constraints(
+            normalized_payload,
+            request_context=getattr(specification, "user_instruction", None),
+        )
+        normalized_payload = normalize_pattern_specs(normalized_payload)
+        validate_pattern_specs(normalized_payload)
+        return normalized_payload
+
+    def _safe_provider_json_object(self, raw_output: str | None) -> dict[str, Any] | None:
+        if not raw_output:
+            return None
+        text = raw_output.strip()
+        if text.startswith("```"):
+            text = re.sub(r"\A```(?:json)?\s*|\s*```\Z", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+        try:
+            payload = json.loads(text)
+        except (TypeError, json.JSONDecodeError):
+            return None
+        return payload if isinstance(payload, dict) else None
+
+    def _persist_plan_repair_comparison(
+        self,
+        *,
+        workflow_run: WorkflowRun | None,
+        attempt: GenerationAttempt,
+        comparison: dict[str, Any],
+    ) -> None:
+        path = self._generation_attempt_dir(attempt.project_id, attempt.id) / "plan-repair-comparison.json"
+        self._write_json(path, comparison)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="planning_repair",
+            artifact_type="provider_plan_repair_comparison",
+            role="focused_plan_repair_comparison",
+            relative_path=self._relative(path),
+            metadata={
+                "schema_version": comparison.get("schema_version"),
+                "identities_added": comparison.get("identities_added", []),
+                "identities_removed": comparison.get("identities_removed", []),
+            },
+        )
+
+    def _plan_repair_failure_comparison(
+        self,
+        original: dict[str, Any],
+        repaired: dict[str, Any] | None,
+        *,
+        repair_context: dict[str, Any] | None,
+        error: str,
+    ) -> dict[str, Any]:
+        """Persist a comparison even when a focused repair remains invalid."""
+
+        if repaired is None:
+            comparison = {
+                "schema_version": "provider-plan-repair-comparison-v1",
+                "comparison_unavailable": True,
+                "reason": "repaired provider response was not a JSON object",
+                "fields_preserved": [],
+                "fields_changed": [],
+                "fields_removed": [],
+                "identities_added": [],
+                "identities_removed": [],
+            }
+        else:
+            comparison = compare_plan_repair(
+                original,
+                repaired,
+                affected_feature_ids=set((repair_context or {}).get("affected_feature_ids", [])),
+            )
+        comparison["findings_repeated"] = [
+            str(item.get("rule_id"))
+            for item in (repair_context or {}).get("findings", [])
+            if isinstance(item, dict) and item.get("rule_id")
+        ]
+        comparison["repair_error"] = error
+        return comparison
+
+    @staticmethod
+    def _validate_compact_plan_semantics(
+        payload: dict[str, Any],
+        *,
+        component_ids: set[str],
+        feature_component_ids: set[str],
+        output_component_ids: set[str],
+    ) -> None:
+        conflicts = payload.get("conflicts") or payload.get("contradictions") or []
+        if conflicts:
+            raise ValueError("compact plan contains unresolved requirement contradictions")
+        unknown_output_components = output_component_ids - component_ids
+        if unknown_output_components:
+            raise ValueError(
+                "compact plan output references unknown components: "
+                + ", ".join(sorted(unknown_output_components))
+            )
+        unknown_feature_components = feature_component_ids - component_ids
+        if unknown_feature_components:
+            raise ValueError(
+                "compact plan feature references unknown components: "
+                + ", ".join(sorted(unknown_feature_components))
+            )
+
+    def _planning_project_state(
+        self,
+        specification: dict[str, Any],
+        *,
+        project_intent: str | None = None,
+    ) -> dict[str, Any]:
+        semantic_text = " ".join(
+            str(specification.get(key) or "")
+            for key in ("purpose", "user_instruction", "object_type", "project_original_intent")
+        ).lower()
+        if project_intent:
+            semantic_text = f"{semantic_text} {project_intent.lower()}"
+        component_count = len(specification.get("components") or [])
+        if component_count == 0 and re.search(
+            r"\b(?:two|2)[ -]?piece\b|\bseparate\s+parts?\b|\bmultiple\s+parts?\b|\bmultipart\b",
+            semantic_text,
+        ):
+            component_count = 2
+        assembly_relationships = list(specification.get("assembly_relationships") or [])
+        if not assembly_relationships and re.search(
+            r"\b(?:removable\s+lid|mating|mates|fits?\s+over|assembly|separate\s+parts?)\b",
+            semantic_text,
+        ):
+            assembly_relationships = [{"type": "semantic_assembly_relationship", "source": "requirement_text"}]
+        return {
+            "units": specification.get("units") or "mm",
+            "printable_component_count": component_count,
+            "output_count": len(specification.get("printable_outputs") or []),
+            "assembly_relationships": assembly_relationships,
+            "moving_interfaces": specification.get("moving_interfaces") or [],
+            "mating_interfaces": specification.get("mating_interfaces") or [],
+            "functional_feature_count": len(specification.get("functional_requirements") or []),
+        }
+
+    def _planning_artifact_path(self, project_id: str, workflow_run_id: str, name: str) -> Path:
+        path = self.data_dir / "projects" / project_id / "workflow-runs" / workflow_run_id / "planning" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _persist_execution_context_artifact(
+        self,
+        *,
+        project: Project,
+        workflow_run: WorkflowRun,
+        context: dict[str, Any],
+        plan_id: str,
+        revision_id: str | None,
+    ) -> None:
+        path = self._planning_artifact_path(project.id, workflow_run.id, "geometry-execution-context.json")
+        self._write_json(path, context)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="planning",
+            artifact_type="geometry_execution_context",
+            role="normalized_geometry_execution_context",
+            relative_path=self._relative(path),
+            metadata={"design_plan_id": plan_id, "revision_id": revision_id, "schema_version": context["schema_version"]},
+        )
+        manifest = build_provider_contract_manifest(
+            context,
+            planning_depth=context.get("planning_depth"),
+        )
+        manifest_path = self._planning_artifact_path(
+            project.id,
+            workflow_run.id,
+            "provider-contract-manifest.json",
+        )
+        self._write_json(manifest_path, manifest)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="planning",
+            artifact_type="provider_contract_manifest",
+            role="planning_provider_contract_manifest",
+            relative_path=self._relative(manifest_path),
+            metadata={
+                "manifest_hash": manifest["manifest_hash"],
+                "plan_id": plan_id,
+            },
+        )
+
+    def _persist_deterministic_plan(
+        self,
+        *,
+        project: Project,
+        specification: DesignSpecification,
+        payload: dict[str, Any],
+        plan_path: Path,
+        superseded_design_plan_id: str | None,
+    ) -> DesignPlan:
+        plan = DesignPlan(
+            project_id=project.id,
+            design_specification_id=specification.id,
+            generation_attempt_id=None,
+            superseded_design_plan_id=superseded_design_plan_id,
+            version_number=self._next_design_plan_version(project.id),
+            schema_version=str(payload.get("schema_version") or "cad-brief-v1"),
+            prompt_template_version=PLANNING_ROUTE_PROMPT_VERSION,
+            ruleset_version=self._ruleset_version(),
+            provider="deterministic_volundr",
+            provider_model=None,
+            raw_response_path=None,
+            plan_path=self._relative(plan_path),
+            content_hash=self._sha256(json.dumps(payload, sort_keys=True)),
+            outcome=DesignPlanOutcome.PLAN_READY.value,
+            review_state=DesignPlanReviewState.APPROVED.value,
+            clarification_required=False,
+            plan_ready=True,
+            approved_at=project_utcnow(),
+        )
+        self.db.add(plan)
+        self.db.flush()
+        self.db.commit()
+        self.db.refresh(plan)
+        return plan
 
     def reject_design_plan(self, design_plan_id: str) -> DesignPlanRead | None:
         plan = self.db.get(DesignPlan, design_plan_id)
@@ -1850,6 +3881,9 @@ class ProjectService:
             clarification_questions=questions_context,
             clarification_answers=answers,
             defaults=DEFAULT_REQUIREMENT_PROFILE,
+            active_requirements=active_requirements(
+                RequirementLedgerStore(self.db).load(project.id)
+            ),
         )
         return await self._run_design_planning(
             project=project,
@@ -1866,7 +3900,7 @@ class ProjectService:
         if plan is None:
             return None
         if plan.review_state != DesignPlanReviewState.APPROVED.value:
-            raise ValueError("Design Plan must be approved before OpenSCAD generation")
+            raise ValueError("Design Plan must be approved before CAD generation")
         if self._has_newer_design_plan(plan):
             raise ValueError("Design Plan has been superseded")
         specification = self.db.get(DesignSpecification, plan.design_specification_id)
@@ -1934,6 +3968,19 @@ class ProjectService:
         project = self.db.get(Project, specification.project_id)
         if project is None:
             return None
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="requirement_clarification",
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="requirement_clarification",
+            event_type="requirement_clarification.answers_submitted",
+            severity="summary",
+            message="Clarification answers submitted for requirement review.",
+            deduplication_key=f"requirement-clarification-answers-{specification.id}",
+            design_specification_id=specification.id,
+        )
         request = RequirementExtractionRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -1951,11 +3998,37 @@ class ProjectService:
             clarification_answers=answers,
             defaults=DEFAULT_REQUIREMENT_PROFILE,
         )
-        return await self._run_requirement_extraction(
+        result = await self._run_requirement_extraction(
             project=project,
             request=request,
             superseded_specification_id=specification.id,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="raw_provider_response",
+            role="clarification_requirement_raw_response",
+            relative_path=result.raw_response_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="requirement_extraction",
+            artifact_type="design_specification",
+            role="clarified_design_specification_version",
+            relative_path=result.specification_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="requirement_extraction",
+            event_type="requirement_clarification.completed",
+            severity="summary",
+            message="Clarification answers produced an updated requirements version.",
+            deduplication_key=f"requirement-clarification-completed-{result.id}",
+            design_specification_id=result.id,
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
+        self.db.commit()
+        return result
 
     async def generate_from_design_specification(
         self,
@@ -1968,18 +4041,36 @@ class ProjectService:
             user_instruction=specification.user_instruction,
             design_specification_id=specification.id,
         )
-        return await self.generate_initial_revision(specification.project_id, payload)
+        design_plan = self._latest_design_plan(
+            specification.project_id,
+            specification_id=specification.id,
+        )
+        if design_plan is None or design_plan.review_state != DesignPlanReviewState.APPROVED.value:
+            raise ValueError("Approved Design Plan is required before CAD generation")
+        return await self.generate_initial_revision(
+            specification.project_id,
+            payload,
+            design_plan=design_plan,
+        )
 
     async def create_manual_revision(
         self,
         project_id: str,
         payload: ManualRevisionCreate,
     ) -> RevisionRead | None:
-        return await self._create_revision_from_source(
+        return await self._create_cadquery_revision_from_planned_source(
             project_id=project_id,
-            scad_source=payload.scad_source,
+            source=payload.source,
             user_instruction=payload.user_instruction,
             source_type="manual_edit",
+            raw_ai_output=None,
+            design_specification_id=None,
+            design_specification_payload=None,
+            design_plan_id=None,
+            design_plan_payload=self._cadquery_manual_design_plan_payload(payload.source),
+            source_validation_result_id=None,
+            parameter_values=self._cadquery_source_parameter_values(payload.source),
+            auto_accept=True,
         )
 
     async def generate_initial_revision(
@@ -2005,7 +4096,7 @@ class ProjectService:
             if design_specification is None or design_specification.project_id != project.id:
                 raise ValueError("Design Specification not found for project")
             if design_specification.outcome != RequirementOutcome.GENERATION_READY.value:
-                raise ValueError("Design Specification must be generation_ready before OpenSCAD generation")
+                raise ValueError("Design Specification must be generation_ready before CAD generation")
             if self._has_newer_design_specification(design_specification):
                 raise ValueError("Design Specification has been superseded")
             design_specification_payload = self._read_design_specification_payload(design_specification)
@@ -2027,13 +4118,38 @@ class ProjectService:
                     )
         elif design_specification is None:
             raise ValueError("Design Specification is required before initial AI generation")
+        if design_plan is None or design_plan_payload is None:
+            raise ValueError("Approved Design Plan is required before CAD generation")
 
+        parent_run = self._ensure_initial_workflow_run(project)
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="source_generation",
+            parent=parent_run,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_generation",
+            event_type="source_generation.started",
+            severity="summary",
+            message="CadQuery source generation started.",
+            deduplication_key=f"source-generation-started-{project.id}-{design_plan.id}",
+        )
         generation_request = self._generation_request(
             project=project,
             payload=payload,
             current_source=current_source,
             design_specification=design_specification_payload,
             design_plan=design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload,
+                design_plan_id=design_plan.id,
+                payload=payload,
+                workflow_run_id=workflow_run.id,
+            ),
+            workflow_run_id=workflow_run.id,
         )
         generation_attempt = self._start_generation_attempt(
             project=project,
@@ -2042,10 +4158,26 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        self._persist_prompt_context_pack_for_attempt(
+            workflow_run=workflow_run,
+            attempt=generation_attempt,
+            pack=generation_request.prompt_context_pack,
+            provider_contract_manifest=generation_request.provider_contract_manifest,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="source_generation",
+            event_type="provider.request_prepared",
+            severity="standard",
+            message="Provider request prepared for CadQuery source generation.",
+            deduplication_key=f"provider-request-prepared-{generation_attempt.id}",
+            generation_attempt_id=generation_attempt.id,
+        )
         try:
-            generation_result = await self.ai_provider.generate_model(generation_request)
+            generation_result = await self._generate_source_model(generation_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(generation_attempt)
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -2054,10 +4186,11 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
             raise
 
         try:
-            scad_source, raw_ai_output, active_attempt, source_validation = (
+            source, raw_ai_output, active_attempt, source_validation = (
                 await self._extract_validate_or_repair_source(
                     project=project,
                     payload=payload,
@@ -2068,34 +4201,32 @@ class ProjectService:
                     design_specification_payload=design_specification_payload,
                     design_plan=design_plan,
                     design_plan_payload=design_plan_payload,
+                    generation_contract_version=generation_request.generation_contract_version,
+                    workflow_run=workflow_run,
                 )
             )
         except _StoppedWithRevision as exc:
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return exc.revision
-        if design_plan is not None and design_plan_payload is not None:
-            initial_revision = await self._create_revision_from_planned_source(
-                project_id=project_id,
-                scad_source=scad_source,
-                user_instruction=payload.user_instruction,
-                source_type=source_type,
-                raw_ai_output=raw_ai_output,
-                design_specification_id=design_specification.id if design_specification else None,
-                design_specification_payload=design_specification_payload,
-                design_plan_id=design_plan.id,
-                design_plan_payload=design_plan_payload,
-                source_validation_result_id=source_validation.id,
-            )
-        else:
-            initial_revision = await self._create_revision_from_source(
-                project_id=project_id,
-                scad_source=scad_source,
-                user_instruction=payload.user_instruction,
-                source_type=source_type,
-                raw_ai_output=raw_ai_output,
-                design_specification_id=design_specification.id if design_specification else None,
-                design_specification_payload=design_specification_payload,
-                source_validation_result_id=source_validation.id,
-            )
+        except asyncio.CancelledError:
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
+            raise
+        except Exception:
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            raise
+        initial_revision = await self._create_cadquery_revision_from_planned_source(
+            project_id=project_id,
+            source=source,
+            user_instruction=payload.user_instruction,
+            source_type=source_type,
+            raw_ai_output=raw_ai_output,
+            design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=design_plan.id,
+            design_plan_payload=design_plan_payload,
+            source_validation_result_id=source_validation.id,
+            workflow_run=workflow_run,
+        )
         if initial_revision is None or initial_revision.status == "succeeded":
             self._finish_generation_attempt(
                 active_attempt,
@@ -2105,23 +4236,86 @@ class ProjectService:
                 else FailureClass.UNKNOWN_FAILURE,
                 resulting_revision_id=initial_revision.id if initial_revision is not None else None,
             )
+            self._workflow_recorder().complete_run(
+                workflow_run,
+                status="completed" if initial_revision is not None else "failed",
+            )
             return initial_revision
 
         self._finish_generation_attempt(
             active_attempt,
             status="failed",
-            failure_class=FailureClass.OPENSCAD_COMPILE_FAILURE,
+            failure_class=FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+            if self._has_design_artifact_consistency_blockers(initial_revision.id)
+            else FailureClass.CADQUERY_COMPILE_FAILURE,
             error_message=initial_revision.error_message,
             resulting_revision_id=initial_revision.id,
         )
+        runtime_finding = classify_worker_diagnostic(
+            initial_revision.error_message,
+            traceback=self.read_revision_compile_log(initial_revision.id),
+        )
+        if runtime_finding is not None:
+            if (
+                generation_request.generation_contract_version == SCAFFOLD_VERSION
+                and runtime_repair_is_eligible(runtime_finding)
+            ):
+                runtime_revision, _ = await self._attempt_runtime_geometry_body_repair(
+                    project=project,
+                    payload=payload,
+                    failed_revision=initial_revision,
+                    failed_attempt=active_attempt,
+                    raw_ai_output=raw_ai_output,
+                    finding=runtime_finding,
+                    design_specification=design_specification,
+                    design_specification_payload=design_specification_payload,
+                    design_plan=design_plan,
+                    design_plan_payload=design_plan_payload,
+                    workflow_run=workflow_run,
+                )
+                self._complete_workflow_lineage(
+                    workflow_run,
+                    status="completed"
+                    if runtime_revision is not None and runtime_revision.status == "succeeded"
+                    else "failed",
+                )
+                return runtime_revision
+            self._record_workflow_event(
+                workflow_run,
+                stage="cad_execution",
+                event_type="geometry_body.runtime_repair_unavailable",
+                severity="error",
+                blocking=True,
+                rule_id=str(runtime_finding["rule_id"]),
+                message="CAD worker source-scope failure could not be safely mapped to one provider function; no guessed repair was attempted.",
+                deduplication_key=f"geometry-body-runtime-repair-unavailable-{initial_revision.id}",
+                revision_id=initial_revision.id,
+                generation_attempt_id=active_attempt.id,
+                metadata=runtime_finding,
+            )
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            return initial_revision
+
+        if self._has_design_artifact_consistency_blockers(initial_revision.id):
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            return initial_revision
 
         repair_request = self._generation_request(
             project=project,
             payload=payload,
-            current_source=scad_source,
+            current_source=source,
             compiler_diagnostics=initial_revision.error_message,
             design_specification=design_specification_payload,
             design_plan=design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload or {},
+                design_plan_id=design_plan.id if design_plan is not None else "unknown-plan",
+                payload=payload,
+                workflow_run_id=workflow_run.id if workflow_run is not None else "unbound",
+            ) if design_plan_payload else None,
+            workflow_run_id=workflow_run.id if workflow_run is not None else None,
         )
         repair_attempt = self._start_generation_attempt(
             project=project,
@@ -2130,10 +4324,18 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        if workflow_run is not None:
+            self._persist_prompt_context_pack_for_attempt(
+                workflow_run=workflow_run,
+                attempt=repair_attempt,
+                pack=repair_request.prompt_context_pack,
+                provider_contract_manifest=repair_request.provider_contract_manifest,
+            )
         try:
-            repair_result = await self.ai_provider.generate_model(repair_request)
+            repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
+            self._complete_workflow_lineage(workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -2142,12 +4344,20 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
         try:
-            repaired_source = extract_scad_source(repair_result.raw_output)
-        except SourceExtractionError as exc:
+            repaired_source = self._prepare_generated_source(
+                raw_output=repair_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=repair_request.generation_contract_version,
+                attempt=repair_attempt,
+                workflow_run=workflow_run,
+                role="execution_repair_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             failed_repair = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
@@ -2158,10 +4368,15 @@ class ProjectService:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
                 resulting_revision_id=failed_repair.id,
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return failed_repair
 
         self._record_generation_extracted_source(repair_attempt, repaired_source)
@@ -2183,42 +4398,36 @@ class ProjectService:
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=error_message,
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
             return initial_revision
-        if design_plan is not None and design_plan_payload is not None:
-            repair_revision = await self._create_revision_from_planned_source(
-                project_id=project_id,
-                scad_source=repaired_source,
-                user_instruction=payload.user_instruction,
-                source_type="ai_repair",
-                raw_ai_output=repair_result.raw_output,
-                design_specification_id=design_specification.id if design_specification else None,
-                design_specification_payload=design_specification_payload,
-                design_plan_id=design_plan.id,
-                design_plan_payload=design_plan_payload,
-                source_validation_result_id=repair_source_validation.id,
-            )
-        else:
-            repair_revision = await self._create_revision_from_source(
-                project_id=project_id,
-                scad_source=repaired_source,
-                user_instruction=payload.user_instruction,
-                source_type="ai_repair",
-                raw_ai_output=repair_result.raw_output,
-                design_specification_id=design_specification.id if design_specification else None,
-                design_specification_payload=design_specification_payload,
-                source_validation_result_id=repair_source_validation.id,
-            )
+        repair_revision = await self._create_cadquery_revision_from_planned_source(
+            project_id=project_id,
+            source=repaired_source,
+            user_instruction=payload.user_instruction,
+            source_type="ai_repair",
+            raw_ai_output=repair_result.raw_output,
+            design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=design_plan.id,
+            design_plan_payload=design_plan_payload,
+            source_validation_result_id=repair_source_validation.id,
+            workflow_run=workflow_run,
+        )
         self._finish_generation_attempt(
             repair_attempt,
             status="succeeded" if repair_revision and repair_revision.status == "succeeded" else "failed",
             failure_class=FailureClass.NONE
             if repair_revision and repair_revision.status == "succeeded"
-            else FailureClass.OPENSCAD_COMPILE_FAILURE,
+            else FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+            if repair_revision and self._has_design_artifact_consistency_blockers(repair_revision.id)
+            else FailureClass.CADQUERY_COMPILE_FAILURE,
             error_message=None
             if repair_revision and repair_revision.status == "succeeded"
             else repair_revision.error_message if repair_revision else "repair revision was not created",
             resulting_revision_id=repair_revision.id if repair_revision else None,
         )
+        status = "completed" if repair_revision is not None and repair_revision.status == "succeeded" else "failed"
+        self._complete_workflow_lineage(workflow_run, status=status)
         return repair_revision
 
     async def _extract_validate_or_repair_source(
@@ -2233,11 +4442,73 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
+        generation_contract_version: str = "v1",
+        workflow_run: WorkflowRun | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="provider_response",
+            artifact_type="raw_provider_response",
+            role="initial_raw_response",
+            relative_path=generation_attempt.raw_output_path,
+            redacted=False,
+        )
+        active_role = "initial_generated_source"
         try:
-            scad_source = extract_scad_source(generation_result.raw_output)
-        except SourceExtractionError as exc:
+            source = self._prepare_generated_source(
+                raw_output=generation_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=generation_contract_version,
+                attempt=generation_attempt,
+                workflow_run=workflow_run,
+                role="initial_geometry",
+            )
+        except GeometryBodyError as exc:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_body.failed",
+                severity="error",
+                blocking=True,
+                rule_id=exc.rule_id,
+                message=str(exc),
+                deduplication_key=f"geometry-body-failed-{generation_attempt.id}",
+                generation_attempt_id=generation_attempt.id,
+                metadata=exc.details,
+            )
+            self._finish_generation_attempt(
+                generation_attempt,
+                status="failed",
+                failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+                error_message=str(exc),
+            )
+            repaired = await self._attempt_geometry_body_repair(
+                project=project,
+                payload=payload,
+                failed_attempt=generation_attempt,
+                failed_response=generation_result,
+                diagnostics=exc,
+                design_specification=design_specification,
+                design_specification_payload=design_specification_payload,
+                design_plan=design_plan,
+                design_plan_payload=design_plan_payload,
+                workflow_run=workflow_run,
+            )
+            if repaired is None:
+                failed_revision = self._create_failed_ai_revision(
+                    project=project,
+                    user_instruction=payload.user_instruction,
+                    source_type=source_type,
+                    raw_ai_output=generation_result.raw_output,
+                    error_message=str(exc),
+                )
+                generation_attempt.resulting_revision_id = failed_revision.id
+                self.db.commit()
+                raise _StoppedWithRevision(failed_revision) from exc
+            source, generation_result, generation_attempt = repaired
+            active_role = "geometry_body_repaired_source"
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             failed_revision = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
@@ -2248,17 +4519,33 @@ class ProjectService:
             self._finish_generation_attempt(
                 generation_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
                 resulting_revision_id=failed_revision.id,
             )
             raise _StoppedWithRevision(failed_revision) from exc
 
-        self._record_generation_extracted_source(generation_attempt, scad_source)
+        self._record_generation_extracted_source(
+            generation_attempt,
+            source,
+            source_language="python",
+        )
+        initial_source_artifact = self._record_workflow_artifact(
+            workflow_run,
+            stage="source_extraction",
+            artifact_type="cadquery_source",
+            role=active_role,
+            relative_path=generation_attempt.source_path,
+            redacted=False,
+        )
         source_validation = self._persist_source_contract_validation(
             project=project,
             attempt=generation_attempt,
-            source=scad_source,
+            source=source,
             source_type=source_type,
             design_specification=design_specification,
             design_specification_payload=design_specification_payload,
@@ -2266,9 +4553,31 @@ class ProjectService:
             design_plan_payload=design_plan_payload,
         )
         if source_validation.passed_hard_checks:
-            return scad_source, generation_result.raw_output, generation_attempt, source_validation
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_contract_validation",
+                event_type="source_contract.passed",
+                severity="summary",
+                message="CadQuery source contract passed.",
+                deduplication_key=f"source-contract-passed-{generation_attempt.id}",
+                generation_attempt_id=generation_attempt.id,
+                metadata={"source_validation_result_id": source_validation.id},
+            )
+            return source, generation_result.raw_output, generation_attempt, source_validation
 
         contract_diagnostics = self._source_contract_rejection_message(source_validation)
+        source_failure_event = self._record_workflow_event(
+            workflow_run,
+            stage="source_contract_validation",
+            event_type="source_contract.failed",
+            severity="error",
+            blocking=True,
+            rule_id="source_contract.failed",
+            message=contract_diagnostics,
+            deduplication_key=f"source-contract-failed-{generation_attempt.id}",
+            generation_attempt_id=generation_attempt.id,
+            metadata={"source_validation_result_id": source_validation.id},
+        )
         self._finish_generation_attempt(
             generation_attempt,
             status="failed",
@@ -2279,7 +4588,7 @@ class ProjectService:
         repair_request = self._generation_request(
             project=project,
             payload=payload,
-            current_source=scad_source,
+            current_source=source,
             contract_diagnostics=contract_diagnostics,
             design_specification=design_specification_payload,
             design_plan=design_plan_payload,
@@ -2291,10 +4600,31 @@ class ProjectService:
             design_specification_payload=design_specification_payload,
             design_plan_payload=design_plan_payload,
         )
+        repair_workflow_run = None
+        if workflow_run is not None:
+            repair_workflow_run = self._start_child_workflow_run(
+                project_id=project.id,
+                workflow_type="contract_repair",
+                parent=self.db.get(WorkflowRun, workflow_run.root_workflow_run_id)
+                if workflow_run.root_workflow_run_id
+                else workflow_run,
+            )
+            self._record_workflow_event(
+                repair_workflow_run,
+                stage="contract_repair",
+                event_type="contract_repair.started",
+                severity="summary",
+                message="Contract repair started.",
+                deduplication_key=f"contract-repair-started-{repair_attempt.id}",
+                caused_by_event_id=source_failure_event.id if source_failure_event is not None else None,
+                generation_attempt_id=repair_attempt.id,
+            )
         try:
-            repair_result = await self.ai_provider.generate_model(repair_request)
+            repair_result = await self._generate_source_model(repair_request)
         except asyncio.CancelledError:
             self._finish_provider_cancelled_attempt(repair_attempt)
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="cancelled")
             raise
         except RuntimeError as exc:
             self._finish_generation_attempt(
@@ -2303,21 +4633,59 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="provider_response",
+            artifact_type="raw_provider_response",
+            role="contract_repair_raw_response",
+            relative_path=repair_attempt.raw_output_path,
+            redacted=False,
+        )
         try:
-            repaired_source = extract_scad_source(repair_result.raw_output)
-        except SourceExtractionError as exc:
+            repaired_source = self._prepare_generated_source(
+                raw_output=repair_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=repair_request.generation_contract_version,
+                attempt=repair_attempt,
+                workflow_run=repair_workflow_run or workflow_run,
+                role="contract_repair_geometry",
+            )
+        except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
-                failure_class=FailureClass.SOURCE_EXTRACTION_FAILURE,
+                failure_class=(
+                    FailureClass.GEOMETRY_BODY_FAILURE
+                    if isinstance(exc, GeometryBodyError)
+                    else FailureClass.SOURCE_EXTRACTION_FAILURE
+                ),
                 error_message=str(exc),
             )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
             raise ValueError(str(exc)) from exc
 
-        self._record_generation_extracted_source(repair_attempt, repaired_source)
+        self._record_generation_extracted_source(
+            repair_attempt,
+            repaired_source,
+            source_language="python",
+        )
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            artifact_type="cadquery_source",
+            role="contract_repaired_source",
+            relative_path=repair_attempt.source_path,
+            redacted=False,
+            supersedes_artifact_id=initial_source_artifact.id
+            if initial_source_artifact is not None
+            else None,
+        )
         repaired_validation = self._persist_source_contract_validation(
             project=project,
             attempt=repair_attempt,
@@ -2330,14 +4698,39 @@ class ProjectService:
         )
         if not repaired_validation.passed_hard_checks:
             error_message = self._source_contract_rejection_message(repaired_validation)
+            self._record_workflow_event(
+                repair_workflow_run or workflow_run,
+                stage="contract_repair",
+                event_type="contract_repair.failed",
+                severity="error",
+                blocking=True,
+                rule_id="source_contract.failed",
+                message=error_message,
+                deduplication_key=f"contract-repair-failed-{repair_attempt.id}",
+                generation_attempt_id=repair_attempt.id,
+            )
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
                 failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
                 error_message=error_message,
             )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
             raise ValueError(error_message)
 
+        self._record_workflow_event(
+            repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            event_type="contract_repair.succeeded",
+            severity="summary",
+            message="Contract repair produced source that passed hard checks.",
+            deduplication_key=f"contract-repair-succeeded-{repair_attempt.id}",
+            caused_by_event_id=source_failure_event.id if source_failure_event is not None else None,
+            generation_attempt_id=repair_attempt.id,
+        )
+        if repair_workflow_run is not None:
+            self._workflow_recorder().complete_run(repair_workflow_run, status="completed")
         return repaired_source, repair_result.raw_output, repair_attempt, repaired_validation
 
     def _generation_request(
@@ -2357,7 +4750,74 @@ class ProjectService:
         source_metadata: dict[str, Any] | None = None,
         scoped_revision_context: dict[str, Any] | None = None,
         configuration_context: dict[str, Any] | None = None,
+        geometry_body_diagnostics: str | None = None,
+        active_requirement_items: list[dict[str, Any]] | None = None,
+        requirement_delta: list[dict[str, Any]] | None = None,
+        planning_depth: str = "detailed_plan",
+        geometry_execution_context: dict[str, Any] | None = None,
+        prompt_context_pack: dict[str, Any] | None = None,
+        workflow_run_id: str | None = None,
     ) -> ModelGenerationRequest:
+        source_authority = authority_from_generation_context(
+            design_plan_payload=design_plan,
+            revision_plan_payload=revision_plan,
+        )
+        provider_contract_manifest = None
+        if design_plan:
+            provider_contract_manifest = build_provider_contract_manifest(
+                design_plan,
+                planning_depth=planning_depth,
+                geometry_inventory=build_geometry_function_inventory(design_plan),
+            )
+        active_items = (
+            list(active_requirement_items)
+            if active_requirement_items is not None
+            else active_requirements(RequirementLedgerStore(self.db).load(project.id))
+        )
+        delta_items = (
+            list(requirement_delta)
+            if requirement_delta is not None
+            else requirement_delta_for_message(payload.user_instruction)[0]
+        )
+        if prompt_context_pack is None and geometry_execution_context is not None:
+            prompt_context_pack = PromptContextPackBuilder().build(
+                project_id=project.id,
+                workflow_run_id=workflow_run_id or "unbound",
+                planning_depth=planning_depth,
+                active_requirements=active_items,
+                revision_delta=delta_items,
+                preserved_requirements=geometry_execution_context.get("preserve_requirements", []),
+                plan_artifact={
+                    "artifact_id": geometry_execution_context.get("plan_artifact_id"),
+                    "payload": design_plan or {},
+                },
+                selected_components=[
+                    str(item.get("id")) for item in (design_plan or {}).get("components", []) or []
+                    if isinstance(item, dict) and item.get("id")
+                ],
+                selected_features=[
+                    str(item.get("id")) for item in (design_plan or {}).get("features", []) or []
+                    if isinstance(item, dict) and item.get("id")
+                ],
+                current_revision_summary={"revision_id": project.active_revision_id},
+                relevant_findings=selected_findings or [],
+                scaffold_contract={
+                    "generation_contract_version": self._provider_generation_contract_version(),
+                    "source_authority": source_authority,
+                },
+                exposed_controls=(design_plan or {}).get("exposed_controls", []) or [],
+                provider_contract_manifest=provider_contract_manifest,
+                prompt_version=self._prompt_template_version(
+                    ModelGenerationRequest(
+                        project_name=project.name,
+                        original_intent=project.original_intent,
+                        user_instruction=payload.user_instruction,
+                        generation_contract_version=self._provider_generation_contract_version(),
+                        geometry_body_diagnostics=geometry_body_diagnostics,
+                        planning_depth=planning_depth,
+                    )
+                ),
+            )
         return ModelGenerationRequest(
             project_name=project.name,
             original_intent=project.original_intent,
@@ -2374,7 +4834,503 @@ class ProjectService:
             source_metadata=source_metadata,
             scoped_revision_context=scoped_revision_context,
             configuration_context=configuration_context,
+            source_authority=source_authority,
+            geometry_body_diagnostics=geometry_body_diagnostics,
+            active_requirements=active_items,
+            requirement_delta=delta_items,
+            generation_contract_version=self._provider_generation_contract_version(),
+            planning_depth=planning_depth,
+            geometry_execution_context=geometry_execution_context,
+            prompt_context_pack=prompt_context_pack,
+            provider_contract_manifest=provider_contract_manifest,
         )
+
+    def _planning_depth_for_plan(self, plan: dict[str, Any] | None) -> str:
+        schema_version = str((plan or {}).get("schema_version") or "")
+        if schema_version == "cad-brief-v1":
+            return PlanningDepth.DIRECT_BRIEF.value
+        if schema_version == "compact-cad-plan-v1":
+            return PlanningDepth.COMPACT_PLAN.value
+        return PlanningDepth.DETAILED_PLAN.value
+
+    def _geometry_execution_context_for_generation(
+        self,
+        *,
+        project: Project,
+        design_plan: dict[str, Any],
+        design_plan_id: str,
+        payload: GenerationCreate,
+        workflow_run_id: str,
+    ) -> dict[str, Any]:
+        ledger = RequirementLedgerStore(self.db).load(project.id)
+        return normalize_geometry_execution_context(
+            planning_depth=self._planning_depth_for_plan(design_plan),
+            plan_artifact_id=design_plan_id,
+            plan=design_plan,
+            active_requirements=active_requirements(ledger),
+            revision_delta=requirement_delta_for_message(payload.user_instruction)[0],
+            preserved_requirements=[],
+            source_plan_kind=design_plan.get("schema_version"),
+        )
+
+    def _persist_prompt_context_pack_for_attempt(
+        self,
+        *,
+        workflow_run: WorkflowRun,
+        attempt: GenerationAttempt,
+        pack: dict[str, Any] | None,
+        provider_contract_manifest: dict[str, Any] | None = None,
+    ) -> None:
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        if pack:
+            path = run_dir / "prompt-context-pack.json"
+            self._write_json(path, pack)
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="source_generation",
+                artifact_type="prompt_context_pack",
+                role="generation_prompt_context_pack",
+                relative_path=self._relative(path),
+                metadata={
+                    "context_hash": pack.get("context_hash"),
+                    "included_artifact_ids": pack.get("included_artifact_ids", []),
+                    "excluded_context_categories": pack.get("excluded_context_categories", []),
+                },
+            )
+        if provider_contract_manifest:
+            manifest_path = run_dir / "provider-contract-manifest.json"
+            self._write_json(manifest_path, provider_contract_manifest)
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="source_generation",
+                artifact_type="provider_contract_manifest",
+                role="provider_contract_manifest",
+                relative_path=self._relative(manifest_path),
+                metadata={
+                    "manifest_hash": provider_contract_manifest.get("manifest_hash"),
+                    "schema_version": provider_contract_manifest.get("schema_version"),
+                },
+            )
+
+    async def _generate_source_model(self, request: ModelGenerationRequest):
+        generator = getattr(self.ai_provider, "generate_cadquery_model", None)
+        if not callable(generator):
+            raise RuntimeError("AI provider does not support CadQuery generation")
+        return await generator(request)
+
+    def _provider_generation_contract_version(self) -> str:
+        version = getattr(self.ai_provider, "cadquery_generation_contract_version", None)
+        if callable(version):
+            return str(version())
+        return "v1"
+
+    def _prepare_generated_source(
+        self,
+        *,
+        raw_output: str,
+        design_plan_payload: dict[str, Any] | None,
+        generation_contract_version: str,
+        attempt: GenerationAttempt,
+        workflow_run: WorkflowRun | None,
+        role: str,
+    ) -> str:
+        if generation_contract_version != SCAFFOLD_VERSION:
+            return self._extract_generated_source(raw_output)
+        if not design_plan_payload:
+            raise ScaffoldSourceError("scaffold generation requires an approved Design Plan")
+        inventory = build_geometry_function_inventory(design_plan_payload)
+        assembly = assemble_geometry_bodies(raw_output, inventory)
+        geometry_functions = assembly.functions
+        rendered = render_cadquery_scaffold(design_plan_payload, geometry_functions)
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        parsed_path = run_dir / "geometry-bodies.json"
+        original_path = run_dir / "geometry-bodies-original.json"
+        geometry_path = run_dir / "geometry-bodies.py"
+        self._write_json(parsed_path, assembly.payload)
+        self._write_json(
+            original_path,
+            {
+                "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
+                "functions": [
+                    {
+                        "function_id": function_id,
+                        "statements": assembly.original_body_lines[function_id],
+                        "result_symbol": assembly.result_symbols[function_id],
+                    }
+                    for function_id in assembly.original_body_lines
+                ],
+            },
+        )
+        geometry_path.write_text(
+            "\n\n".join(geometry_functions[name] for name in rendered.expected_geometry_functions) + "\n",
+            encoding="utf-8",
+        )
+        scaffold_manifest_path = run_dir / "scaffold-manifest.json"
+        provider_contract_manifest = build_provider_contract_manifest(
+            design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_inventory=inventory,
+        )
+        self._write_json(
+            scaffold_manifest_path,
+            {
+                "schema_version": SCAFFOLD_VERSION,
+                "geometry_body_schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
+                "scaffold_hash": rendered.scaffold_hash,
+                "expected_geometry_functions": list(rendered.expected_geometry_functions),
+                "function_body_hashes": assembly.function_body_hashes,
+                "derived_parameter_manifest": rendered.derived_parameter_manifest,
+                "pattern_manifest": rendered.pattern_manifest,
+                "parameter_effect_manifest": rendered.parameter_effect_manifest,
+                "derived_dependency_findings": list(assembly.dependency_findings),
+                "symbol_evidence": assembly.symbol_evidence,
+                "provider_contract_manifest": provider_contract_manifest,
+                "assembled_source_hash": self._sha256(rendered.source),
+                "role": role,
+            },
+        )
+        stage = "source_extraction" if role == "initial_geometry" else "contract_repair"
+        diagnostic_dependency_findings = [
+            item
+            for item in assembly.dependency_findings
+            if not item.get("blocking", item.get("is_blocking", True))
+        ]
+        if diagnostic_dependency_findings:
+            self._record_workflow_event(
+                workflow_run,
+                stage=stage,
+                event_type="planning.derived_dependency_classified",
+                severity="warning",
+                blocking=False,
+                rule_id="planning.derived_dependency_unused_or_incomplete",
+                message="Derived dependency metadata was retained as diagnostic evidence because it is not required by the executable geometry contract.",
+                generation_attempt_id=attempt.id,
+                metadata={"findings": diagnostic_dependency_findings},
+            )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_body_json",
+            role=f"{role}_parsed_geometry_bodies",
+            relative_path=self._relative(parsed_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_body_original",
+            role=f"{role}_original_body_statements",
+            relative_path=self._relative(original_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_bodies",
+            role=role,
+            relative_path=self._relative(geometry_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_scaffold_manifest",
+            role=f"{role}_scaffold_manifest",
+            relative_path=self._relative(scaffold_manifest_path),
+            redacted=False,
+        )
+        return rendered.source
+
+    def _extract_generated_source(self, raw_output: str) -> str:
+        return extract_python_source(raw_output)
+
+    async def _attempt_runtime_geometry_body_repair(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        failed_revision: RevisionRead,
+        failed_attempt: GenerationAttempt,
+        raw_ai_output: str | None,
+        finding: dict[str, Any],
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan,
+        design_plan_payload: dict[str, Any],
+        workflow_run: WorkflowRun | None,
+    ) -> tuple[RevisionRead | None, bool]:
+        """Repair one safely identified provider body after a runtime source failure."""
+
+        if not raw_ai_output or not runtime_repair_is_eligible(finding):
+            return failed_revision, False
+        diagnostics = GeometryBodyError(
+            str(finding["rule_id"]),
+            str(finding.get("message") or "CAD worker reported a provider source-scope failure."),
+            details={
+                **finding,
+                "affected_function_id": finding.get("function_id"),
+                "repair_available": True,
+            },
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="cad_execution",
+            event_type="geometry_body.runtime_source_failure",
+            severity="error",
+            blocking=True,
+            rule_id=diagnostics.rule_id,
+            message="CAD worker failure was classified as a localized provider source defect.",
+            deduplication_key=f"geometry-body-runtime-failure-{failed_revision.id}",
+            revision_id=failed_revision.id,
+            generation_attempt_id=failed_attempt.id,
+            metadata=finding,
+        )
+        repaired = await self._attempt_geometry_body_repair(
+            project=project,
+            payload=payload,
+            failed_attempt=failed_attempt,
+            failed_response=SimpleNamespace(raw_output=raw_ai_output),
+            diagnostics=diagnostics,
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
+            workflow_run=workflow_run,
+        )
+        if repaired is None:
+            return failed_revision, True
+        repaired_source, repair_result, repair_attempt = repaired
+        repair_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=repair_attempt,
+            source=repaired_source,
+            source_type="ai_repair",
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
+        )
+        if not repair_validation.passed_hard_checks:
+            message = self._source_contract_rejection_message(repair_validation)
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+                error_message=message,
+                resulting_revision_id=failed_revision.id,
+            )
+            return failed_revision, True
+        repaired_revision = await self._create_cadquery_revision_from_planned_source(
+            project_id=project.id,
+            source=repaired_source,
+            user_instruction=payload.user_instruction,
+            source_type="ai_repair",
+            raw_ai_output=repair_result.raw_output,
+            design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=design_plan.id,
+            design_plan_payload=design_plan_payload,
+            source_validation_result_id=repair_validation.id,
+            workflow_run=workflow_run,
+        )
+        self._finish_generation_attempt(
+            repair_attempt,
+            status="succeeded"
+            if repaired_revision is not None and repaired_revision.status == "succeeded"
+            else "failed",
+            failure_class=FailureClass.NONE
+            if repaired_revision is not None and repaired_revision.status == "succeeded"
+            else FailureClass.CADQUERY_COMPILE_FAILURE,
+            error_message=None
+            if repaired_revision is not None and repaired_revision.status == "succeeded"
+            else repaired_revision.error_message if repaired_revision is not None else "runtime repair revision was not created",
+            resulting_revision_id=repaired_revision.id if repaired_revision is not None else failed_revision.id,
+        )
+        return repaired_revision or failed_revision, True
+
+    async def _attempt_geometry_body_repair(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        failed_attempt: GenerationAttempt,
+        failed_response: Any,
+        diagnostics: GeometryBodyError,
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan | None,
+        design_plan_payload: dict[str, Any] | None,
+        workflow_run: WorkflowRun | None,
+    ) -> tuple[str, Any, GenerationAttempt] | None:
+        """Try one structured body repair without reopening scaffold authority."""
+
+        repair_request = self._generation_request(
+            project=project,
+            payload=payload,
+            current_source=failed_response.raw_output,
+            design_specification=design_specification_payload,
+            design_plan=design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_execution_context=self._geometry_execution_context_for_generation(
+                project=project,
+                design_plan=design_plan_payload or {},
+                design_plan_id=design_plan.id if design_plan is not None else "unknown-plan",
+                payload=payload,
+                workflow_run_id=workflow_run.id if workflow_run is not None else "unbound",
+            ) if design_plan_payload else None,
+            workflow_run_id=workflow_run.id if workflow_run is not None else None,
+            geometry_body_diagnostics=json.dumps(
+                {"rule_id": diagnostics.rule_id, "message": str(diagnostics), "details": diagnostics.details},
+                sort_keys=True,
+            ),
+        )
+        repair_attempt = self._start_generation_attempt(
+            project=project,
+            request=repair_request,
+            base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        if workflow_run is not None:
+            self._persist_prompt_context_pack_for_attempt(
+                workflow_run=workflow_run,
+                attempt=repair_attempt,
+                pack=repair_request.prompt_context_pack,
+                provider_contract_manifest=repair_request.provider_contract_manifest,
+            )
+        repair_workflow_run = None
+        if workflow_run is not None:
+            root = self.db.get(WorkflowRun, workflow_run.root_workflow_run_id) if workflow_run.root_workflow_run_id else workflow_run
+            repair_workflow_run = self._start_child_workflow_run(
+                project_id=project.id,
+                workflow_type="contract_repair",
+                parent=root or workflow_run,
+            )
+            self._record_workflow_event(
+                repair_workflow_run,
+                stage="contract_repair",
+                event_type="geometry_body.repair_started",
+                severity="summary",
+                message="Structured geometry-body repair started.",
+                deduplication_key=f"geometry-body-repair-started-{repair_attempt.id}",
+                caused_by_event_id=None,
+                generation_attempt_id=repair_attempt.id,
+                metadata={"rule_id": diagnostics.rule_id, "failed_attempt_id": failed_attempt.id},
+            )
+        try:
+            repair_result = await self._generate_source_model(repair_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(repair_attempt)
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="cancelled")
+            raise
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=self._provider_failure_class(str(exc)),
+                error_message=str(exc),
+            )
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
+            return None
+
+        self._record_generation_result(repair_attempt, repair_result)
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="provider_response",
+            artifact_type="raw_provider_response",
+            role="geometry_body_repair_raw_response",
+            relative_path=repair_attempt.raw_output_path,
+            redacted=False,
+        )
+        try:
+            if self._sha256(failed_response.raw_output) == self._sha256(repair_result.raw_output):
+                raise GeometryBodyError(
+                    "geometry_body.repair_unchanged",
+                    "Geometry-body repair returned an identical rejected response; retry stopped.",
+                    details={"failed_response_hash": self._sha256(failed_response.raw_output)},
+                )
+            affected_function_id = diagnostics.details.get("affected_function_id")
+            if isinstance(affected_function_id, str) and affected_function_id:
+                repair_scope = validate_geometry_body_repair_scope(
+                    original_raw_output=failed_response.raw_output,
+                    repaired_raw_output=repair_result.raw_output,
+                    affected_function_ids={affected_function_id},
+                )
+            else:
+                repair_scope = None
+            repaired_source = self._prepare_generated_source(
+                raw_output=repair_result.raw_output,
+                design_plan_payload=design_plan_payload,
+                generation_contract_version=repair_request.generation_contract_version,
+                attempt=repair_attempt,
+                workflow_run=repair_workflow_run or workflow_run,
+                role="geometry_body_repair",
+            )
+        except GeometryBodyError as exc:
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+                error_message=str(exc),
+            )
+            if repair_workflow_run is not None:
+                self._record_workflow_event(
+                    repair_workflow_run,
+                    stage="contract_repair",
+                    event_type="geometry_body.repair_failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id=exc.rule_id,
+                    message=str(exc),
+                    deduplication_key=f"geometry-body-repair-failed-{repair_attempt.id}",
+                    generation_attempt_id=repair_attempt.id,
+                )
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
+            return None
+
+        self._record_generation_extracted_source(repair_attempt, repaired_source)
+        self._record_workflow_artifact(
+            repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            artifact_type="cadquery_source",
+            role="geometry_body_repaired_source",
+            relative_path=repair_attempt.source_path,
+            redacted=False,
+        )
+        if repair_workflow_run is not None:
+            self._record_workflow_event(
+                repair_workflow_run,
+                stage="contract_repair",
+                event_type="geometry_body.repair_succeeded",
+                severity="summary",
+                message="Structured geometry-body repair produced an assembled source.",
+                deduplication_key=f"geometry-body-repair-succeeded-{repair_attempt.id}",
+                generation_attempt_id=repair_attempt.id,
+                metadata={"repair_scope": repair_scope} if repair_scope is not None else None,
+            )
+            self._workflow_recorder().complete_run(repair_workflow_run, status="completed")
+        return repaired_source, repair_result, repair_attempt
+
+    def _routing_for_request(self, request: Any) -> dict[str, Any]:
+        resolver = getattr(self.ai_provider, "routing_for_request", None)
+        if callable(resolver):
+            decision = resolver(request)
+            as_dict = getattr(decision, "as_dict", None)
+            if callable(as_dict):
+                return as_dict()
+            if isinstance(decision, dict):
+                return dict(decision)
+        model = self._provider_model()
+        return {
+            "prompt_mode": "provider_managed",
+            "provider": self._provider_name(),
+            "selected_model": model,
+            "policy_version": "provider-managed",
+            "routing_reason": "provider_managed",
+            "fallback_chain": [model] if model else [],
+        }
 
     def _start_generation_attempt(
         self,
@@ -2385,20 +5341,25 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None = None,
         design_plan_payload: dict[str, Any] | None = None,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._prompt_template_version(request),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
+            prompt_version=self._prompt_template_version(request),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
             failure_class=FailureClass.NONE.value,
         )
+        attempt.cad_backend = "cadquery"
+        attempt.source_language = "python"
+        attempt.source_contract_version = "cadquery-v1"
         self.db.add(attempt)
         self.db.flush()
 
@@ -2414,7 +5375,7 @@ class ProjectService:
         prompt_path.write_text(self._render_prompt(request), encoding="utf-8")
         self._write_json(
             design_spec_path,
-            design_specification_payload or self._legacy_design_spec(request),
+            design_specification_payload or self._cadquery_design_spec_placeholder(request),
         )
         if design_plan_payload is not None:
             self._write_json(design_plan_path, design_plan_payload)
@@ -2434,19 +5395,37 @@ class ProjectService:
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
         raw_output_path = run_dir / "raw-output.txt"
         raw_output_path.write_text(generation_result.raw_output, encoding="utf-8")
-        attempt.provider = generation_result.provider
-        attempt.provider_model = generation_result.provider_model
+        attempt.provider_id = generation_result.provider
+        attempt.model_id = generation_result.provider_model
+        usage_metadata = getattr(generation_result, "usage_metadata", None)
+        attempt.provider_usage_json = json.dumps(usage_metadata, sort_keys=True) if usage_metadata else None
+        attempt.provider_request_id = getattr(generation_result, "provider_request_id", None)
+        result_routing = getattr(generation_result, "routing_metadata", None)
+        if isinstance(result_routing, dict) and result_routing:
+            stored_routing = json.loads(attempt.routing_metadata_json or "{}")
+            stored_routing.update(result_routing)
+            attempt.routing_metadata_json = json.dumps(stored_routing, sort_keys=True)
+        attempt.provider_latency_ms = getattr(generation_result, "provider_latency_ms", None)
         attempt.raw_output_path = self._relative(raw_output_path)
         attempt.output_hash = self._sha256(generation_result.raw_output)
         self._update_attempt_chain(attempt, status=attempt.status)
         self.db.commit()
 
-    def _record_generation_extracted_source(self, attempt: GenerationAttempt, source: str) -> None:
+    def _record_generation_extracted_source(
+        self,
+        attempt: GenerationAttempt,
+        source: str,
+        *,
+        source_language: str = "python",
+    ) -> None:
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
-        source_path = run_dir / "extracted-source.scad"
+        source_path = run_dir / "extracted-source.py"
         source_path.write_text(source, encoding="utf-8")
-        attempt.extracted_source_path = self._relative(source_path)
+        attempt.source_path = self._relative(source_path)
         attempt.source_hash = self._sha256(source)
+        attempt.cad_backend = "cadquery"
+        attempt.source_language = "python"
+        attempt.source_contract_version = "cadquery-v1"
         self._update_attempt_chain(attempt, status=attempt.status)
         self.db.commit()
 
@@ -2535,6 +5514,34 @@ class ProjectService:
                 request=repair_request,
                 superseded_specification_id=superseded_specification_id,
             )
+        inventory = build_explicit_requirement_inventory(request.user_instruction)
+        requirement_stage: dict[str, Any] | None = None
+        specification_stage: dict[str, Any] | None = None
+        if inventory:
+            parsed_payload, requirement_stage = validate_requirement_extraction_trace(
+                parsed_payload,
+                inventory,
+            )
+            parsed_payload, specification_stage = validate_design_specification_trace(
+                parsed_payload,
+                inventory,
+            )
+            parsed_payload["outcome"] = self._derive_requirement_outcome(parsed_payload).value
+            parsed_payload["clarification_required"] = (
+                parsed_payload["outcome"] == RequirementOutcome.CLARIFICATION_REQUIRED.value
+            )
+            parsed_payload["generation_ready"] = (
+                parsed_payload["outcome"] == RequirementOutcome.GENERATION_READY.value
+            )
+            self._persist_requirement_trace(
+                attempt=attempt,
+                inventory=inventory,
+                stages=[
+                    stage
+                    for stage in (requirement_stage, specification_stage)
+                    if stage is not None
+                ],
+            )
 
         specification = self._persist_design_specification(
             project=project,
@@ -2551,6 +5558,25 @@ class ProjectService:
         )
         return self._design_specification_read(specification)
 
+    def _persist_requirement_trace(
+        self,
+        *,
+        attempt: GenerationAttempt,
+        inventory: list[dict[str, Any]],
+        stages: list[dict[str, Any]],
+    ) -> str:
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        trace_path = run_dir / "requirement-trace.json"
+        self._write_json(
+            trace_path,
+            requirement_trace_payload(
+                inventory=inventory,
+                resolved_requirements=merge_resolved_requirements(inventory),
+                stages=stages,
+            ),
+        )
+        return self._relative(trace_path)
+
     async def _run_design_planning(
         self,
         *,
@@ -2558,6 +5584,7 @@ class ProjectService:
         specification: DesignSpecification,
         request: DesignPlanRequest,
         superseded_design_plan_id: str | None = None,
+        workflow_run: WorkflowRun | None = None,
     ) -> DesignPlanRead:
         attempt = self._start_design_plan_attempt(project=project, request=request)
         try:
@@ -2583,6 +5610,9 @@ class ProjectService:
                 design_specification_id=specification.id,
                 generation_attempt_id=attempt.id,
                 design_specification_payload=request.design_specification,
+                request_context=" ".join(
+                    value for value in (request.original_intent, request.user_instruction) if value
+                ),
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -2604,12 +5634,79 @@ class ProjectService:
                 schema_repair_of_raw_output=planning_result.raw_output,
                 schema_validation_error=str(exc),
                 defaults=request.defaults,
+                active_requirements=request.active_requirements,
+                requirement_delta=request.requirement_delta,
+                planning_depth=request.planning_depth,
+                plan_repair_context={
+                    **build_focused_plan_repair_context(
+                        self._safe_provider_json_object(planning_result.raw_output) or {},
+                        findings=[{"rule_id": "planning.design_plan_invalid", "message": str(exc)}],
+                    ),
+                    "validation_error": str(exc),
+                },
             )
             return await self._run_design_planning(
                 project=project,
                 specification=specification,
                 request=repair_request,
                 superseded_design_plan_id=superseded_design_plan_id,
+                workflow_run=workflow_run,
+            )
+
+        if request.plan_repair_context and request.schema_repair_of_raw_output:
+            rejected_payload = self._safe_provider_json_object(request.schema_repair_of_raw_output)
+            repaired_payload = self._safe_provider_json_object(planning_result.raw_output)
+            if rejected_payload is None or repaired_payload is None:
+                comparison = {
+                    "schema_version": "provider-plan-repair-comparison-v1",
+                    "comparison_unavailable": True,
+                    "reason": "one provider response was not a JSON object",
+                    "fields_preserved": [],
+                    "fields_changed": [],
+                    "identities_added": [],
+                    "identities_removed": [],
+                }
+            else:
+                try:
+                    comparison = validate_plan_repair_preservation(
+                        rejected_payload,
+                        repaired_payload,
+                        affected_feature_ids=set(request.plan_repair_context.get("affected_feature_ids", [])),
+                        affected_layout_ids=set(request.plan_repair_context.get("affected_layout_ids", [])),
+                    )
+                except ProviderContractError as exc:
+                    comparison = compare_plan_repair(
+                        rejected_payload,
+                        repaired_payload,
+                        affected_feature_ids=set(request.plan_repair_context.get("affected_feature_ids", [])),
+                    )
+                    comparison["findings_repeated"] = [
+                        str(item.get("rule_id"))
+                        for item in request.plan_repair_context.get("findings", [])
+                        if isinstance(item, dict) and item.get("rule_id")
+                    ]
+                    comparison["repair_error"] = str(exc)
+                    self._persist_plan_repair_comparison(
+                        workflow_run=workflow_run,
+                        attempt=attempt,
+                        comparison=comparison,
+                    )
+                    self._finish_generation_attempt(
+                        attempt,
+                        status="failed",
+                        failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                        error_message=str(exc),
+                    )
+                    raise
+                comparison["findings_resolved"] = [
+                    str(item.get("rule_id"))
+                    for item in request.plan_repair_context.get("findings", [])
+                    if isinstance(item, dict) and item.get("rule_id")
+                ]
+            self._persist_plan_repair_comparison(
+                workflow_run=workflow_run,
+                attempt=attempt,
+                comparison=comparison,
             )
 
         plan = self._persist_design_plan(
@@ -2637,10 +5734,40 @@ class ProjectService:
         request: RevisionPlanRequest,
         superseded_revision_plan_id: str | None = None,
     ) -> RevisionPlanRead:
+        workflow_run = self._start_child_workflow_run(
+            project_id=project.id,
+            workflow_type="revision_planning",
+        )
         attempt = self._start_revision_plan_attempt(
             project=project,
             base_revision_id=base_revision.id,
             request=request,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="revision_planning",
+            event_type="revision_plan_generation.started",
+            severity="summary",
+            message="Revision Plan generation started.",
+            deduplication_key=f"revision-plan-started-{attempt.id}",
+            generation_attempt_id=attempt.id,
+            revision_id=base_revision.id,
+            design_plan_id=design_plan.id,
+            metadata={"base_revision_id": base_revision.id},
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="provider_request_metadata",
+            role="revision_plan_request",
+            relative_path=attempt.request_payload_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="rendered_prompt",
+            role="revision_plan_prompt",
+            relative_path=attempt.prompt_path,
         )
         try:
             planner = getattr(self.ai_provider, "create_revision_plan")
@@ -2655,9 +5782,17 @@ class ProjectService:
                 failure_class=self._provider_failure_class(str(exc)),
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             raise
 
         self._record_generation_result(attempt, planning_result)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="raw_provider_response",
+            role="revision_plan_provider_response",
+            relative_path=attempt.raw_output_path,
+        )
         try:
             parsed_payload = self._parse_revision_plan_payload(
                 planning_result.raw_output,
@@ -2668,6 +5803,9 @@ class ProjectService:
                 else None,
                 base_design_plan_id=design_plan.id,
                 generation_attempt_id=attempt.id,
+                design_plan_payload=self._read_design_plan_payload(design_plan),
+                active_requirements=request.active_requirements,
+                requirement_delta=request.requirement_delta,
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -2676,6 +5814,7 @@ class ProjectService:
                 failure_class=FailureClass.REVISION_REGRESSION,
                 error_message=str(exc),
             )
+            self._workflow_recorder().complete_run(workflow_run, status="failed")
             if request.schema_repair_of_raw_output is not None:
                 raise RuntimeError("revision planning returned invalid Revision Plan") from exc
             repair_request = RevisionPlanRequest(
@@ -2700,6 +5839,8 @@ class ProjectService:
                 previous_revision_plan=request.previous_revision_plan,
                 schema_repair_of_raw_output=planning_result.raw_output,
                 schema_validation_error=str(exc),
+                active_requirements=request.active_requirements,
+                requirement_delta=request.requirement_delta,
             )
             return await self._run_revision_planning(
                 project=project,
@@ -2720,11 +5861,32 @@ class ProjectService:
             raw_response_path=attempt.raw_output_path,
             superseded_revision_plan_id=superseded_revision_plan_id,
         )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="revision_planning",
+            artifact_type="revision_plan",
+            role="approved_revision_plan",
+            relative_path=plan.plan_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="revision_planning",
+            event_type="revision_plan_generation.completed",
+            severity="summary",
+            message="Revision Plan generated for review.",
+            deduplication_key=f"revision-plan-completed-{plan.id}",
+            generation_attempt_id=attempt.id,
+            revision_id=base_revision.id,
+            revision_plan_id=plan.id,
+            design_plan_id=design_plan.id,
+            metadata={"review_state": plan.review_state},
+        )
         self._finish_generation_attempt(
             attempt,
             status="succeeded",
             failure_class=FailureClass.NONE,
         )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         return self._revision_plan_read(plan)
 
     def _start_revision_plan_attempt(
@@ -2734,15 +5896,17 @@ class ProjectService:
         base_revision_id: str,
         request: RevisionPlanRequest,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._revision_plan_prompt_template_version(),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
+            prompt_version=self._revision_plan_prompt_template_version(),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -2782,15 +5946,17 @@ class ProjectService:
         project: Project,
         request: DesignPlanRequest,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._design_plan_prompt_template_version(),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
+            prompt_version=self._design_plan_prompt_template_version(request),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -2826,15 +5992,17 @@ class ProjectService:
         project: Project,
         request: RequirementExtractionRequest,
     ) -> GenerationAttempt:
+        routing = self._routing_for_request(request)
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
-            provider=self._provider_name(),
-            provider_model=self._provider_model(),
+            provider_id=self._provider_name(),
+            model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
-            prompt_template_version=self._requirement_prompt_template_version(),
-            gemini_ruleset_version=self._gemini_ruleset_version(),
+            routing_metadata_json=json.dumps(routing, sort_keys=True),
+            prompt_version=self._requirement_prompt_template_version(),
+            ruleset_version=self._ruleset_version(),
             request_payload_path="",
             prompt_path="",
             status="started",
@@ -3036,6 +6204,7 @@ class ProjectService:
         design_specification_id: str,
         generation_attempt_id: str,
         design_specification_payload: dict[str, Any] | None = None,
+        request_context: str | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -3046,16 +6215,51 @@ class ProjectService:
             payload["schema_version"] = DESIGN_PLAN_SCHEMA_VERSION
         validated = DesignPlanPayload.model_validate(payload)
         normalized = validated.model_dump(mode="json", by_alias=True)
+        normalized = resolve_retention_proposals(normalized)
+        normalized = normalize_plan_provenance(
+            normalized,
+            design_specification_payload,
+        )
+        normalized = normalize_compact_component_feature_semantics(
+            normalized,
+            compact=False,
+        )
+        normalized = normalize_plan_constraints(
+            normalized,
+            request_context=request_context,
+        )
+        normalized = normalize_pattern_specs(normalized)
+        validate_pattern_specs(normalized)
         outcome = self._derive_design_plan_outcome(normalized)
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = (
             outcome == DesignPlanOutcome.PLAN_CLARIFICATION_REQUIRED
         )
         normalized["plan_ready"] = outcome == DesignPlanOutcome.PLAN_READY
+        provenance_findings = validate_plan_provenance(
+            normalized,
+            design_specification_payload,
+        )
+        if any(finding.get("is_blocking") for finding in provenance_findings):
+            raise ValueError(
+                "Design Plan provenance validation failed: "
+                + "; ".join(str(finding.get("rule_id")) for finding in provenance_findings)
+            )
         self._validate_design_plan_source_requirement_links(
             normalized,
             design_specification_payload=design_specification_payload,
         )
+        functional_findings = validate_functional_plan(normalized)
+        if any(finding.get("is_blocking") for finding in functional_findings):
+            raise ValueError(
+                "Functional Design Plan validation failed: "
+                + "; ".join(str(finding.get("rule_id")) for finding in functional_findings)
+            )
+        if functional_findings:
+            normalized["functional_validation_findings"] = functional_findings
+        explicit_inventory = inventory_from_design_specification(design_specification_payload)
+        if explicit_inventory:
+            validate_design_plan_trace(normalized, explicit_inventory)
         self._validate_design_plan_dependency_edges(normalized)
         return normalized
 
@@ -3076,6 +6280,9 @@ class ProjectService:
                 continue
             source_id = parameter.get("source_requirement_id")
             if not source_id or source_id not in source_values:
+                continue
+            provenance = parameter.get("provenance")
+            if isinstance(provenance, dict) and provenance.get("relationship") not in {None, "direct"}:
                 continue
             expected = source_values[source_id]
             detected = self._to_float(parameter.get("value"))
@@ -3186,6 +6393,9 @@ class ProjectService:
         base_design_specification_id: str | None,
         base_design_plan_id: str | None,
         generation_attempt_id: str,
+        design_plan_payload: dict[str, Any] | None = None,
+        active_requirements: list[dict[str, Any]] | None = None,
+        requirement_delta: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -3201,6 +6411,17 @@ class ProjectService:
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = outcome == RevisionPlanOutcome.CLARIFICATION_REQUIRED
         normalized["revision_ready"] = outcome == RevisionPlanOutcome.REVISION_READY
+        normalized["active_requirements"] = list(active_requirements or [])
+        normalized["requirement_delta"] = list(requirement_delta or [])
+        criteria_findings = validate_revision_success_criteria(
+            normalized,
+            plan=design_plan_payload,
+        )
+        if any(finding.get("is_blocking") for finding in criteria_findings):
+            raise ValueError(
+                "Revision success criteria validation failed: "
+                + "; ".join(str(finding.get("rule_id")) for finding in criteria_findings)
+            )
         return normalized
 
     def _derive_revision_plan_outcome(self, payload: dict[str, Any]) -> RevisionPlanOutcome:
@@ -3234,10 +6455,10 @@ class ProjectService:
             superseded_specification_id=superseded_specification_id,
             version_number=self._next_design_specification_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
-            prompt_template_version=attempt.prompt_template_version,
-            gemini_ruleset_version=attempt.gemini_ruleset_version,
-            provider=attempt.provider,
-            provider_model=attempt.provider_model,
+            prompt_template_version=attempt.prompt_version,
+            ruleset_version=attempt.ruleset_version,
+            provider=attempt.provider_id,
+            provider_model=attempt.model_id,
             user_instruction=request.user_instruction,
             raw_response_path=raw_response_path,
             specification_path=self._relative(spec_path),
@@ -3295,10 +6516,10 @@ class ProjectService:
             superseded_design_plan_id=superseded_design_plan_id,
             version_number=self._next_design_plan_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
-            prompt_template_version=attempt.prompt_template_version,
-            gemini_ruleset_version=attempt.gemini_ruleset_version,
-            provider=attempt.provider,
-            provider_model=attempt.provider_model,
+            prompt_template_version=attempt.prompt_version,
+            ruleset_version=attempt.ruleset_version,
+            provider=attempt.provider_id,
+            provider_model=attempt.model_id,
             raw_response_path=raw_response_path,
             plan_path=self._relative(plan_path),
             content_hash=content_hash,
@@ -3344,8 +6565,6 @@ class ProjectService:
     ) -> RevisionPlan:
         run_dir = self._generation_attempt_dir(project.id, attempt.id)
         plan_path = run_dir / "parsed-revision-plan.json"
-        self._write_json(plan_path, payload)
-        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
         base_source = self.read_revision_source(base_revision.id) or ""
         base_manifest = self.read_output_manifest(base_revision.id) or {}
         base_spec_payload = (
@@ -3361,6 +6580,14 @@ class ProjectService:
             review_state = RevisionPlanReviewState.CLARIFICATION_REQUIRED
         else:
             review_state = RevisionPlanReviewState.REJECTED
+        request_instruction = self._revision_plan_request_instruction(attempt)
+        requested_controls = explicit_control_requests(base_plan_payload, request_instruction)
+        if requested_controls:
+            payload["requires_design_plan_version"] = True
+            payload["requested_exposed_controls"] = requested_controls
+        self._write_json(plan_path, payload)
+        content_hash = self._sha256(json.dumps(payload, sort_keys=True))
+
         plan = RevisionPlan(
             project_id=project.id,
             base_revision_id=base_revision.id,
@@ -3370,10 +6597,10 @@ class ProjectService:
             superseded_revision_plan_id=superseded_revision_plan_id,
             version_number=self._next_revision_plan_version(project.id),
             schema_version=str(payload.get("schema_version", REVISION_PLAN_SCHEMA_VERSION)),
-            prompt_template_version=attempt.prompt_template_version,
-            gemini_ruleset_version=attempt.gemini_ruleset_version,
-            provider=attempt.provider,
-            provider_model=attempt.provider_model,
+            prompt_template_version=attempt.prompt_version,
+            ruleset_version=attempt.ruleset_version,
+            provider=attempt.provider_id,
+            provider_model=attempt.model_id,
             user_instruction=str(payload.get("user_instruction") or attempt.project.original_intent)
             if getattr(attempt, "project", None) is not None
             else str(payload.get("summary") or ""),
@@ -3392,7 +6619,7 @@ class ProjectService:
             clarification_required=bool(payload.get("clarification_required", False)),
             revision_ready=bool(payload.get("revision_ready", False)),
         )
-        plan.user_instruction = self._revision_plan_request_instruction(attempt)
+        plan.user_instruction = request_instruction
         self.db.add(plan)
         self.db.flush()
         for index, question_payload in enumerate(payload.get("clarification_questions", [])):
@@ -3472,13 +6699,13 @@ class ProjectService:
             "error_message": error_message,
             "stages": [
                 {
-                    "stage": "legacy_openscad_generation",
-                    "prompt_template_version": attempt.prompt_template_version,
-                    "gemini_ruleset_version": attempt.gemini_ruleset_version,
+                    "stage": "cadquery_generation",
+                    "prompt_version": attempt.prompt_version,
+                    "ruleset_version": attempt.ruleset_version,
                     "request_payload_path": attempt.request_payload_path,
                     "prompt_path": attempt.prompt_path,
                     "raw_output_path": attempt.raw_output_path,
-                    "extracted_source_path": attempt.extracted_source_path,
+                    "source_path": attempt.source_path,
                     "design_spec_path": attempt.design_spec_path,
                     "design_plan_path": attempt.design_plan_path,
                     "source_contract_result_path": source_validation.result_path
@@ -3496,9 +6723,9 @@ class ProjectService:
             ],
         }
 
-    def _legacy_design_spec(self, request: ModelGenerationRequest) -> dict:
+    def _cadquery_design_spec_placeholder(self, request: ModelGenerationRequest) -> dict:
         return {
-            "design_specification_version": "legacy-design-spec-placeholder-v1",
+            "design_specification_version": "cadquery-design-spec-placeholder-v1",
             "artifact_status": "placeholder_until_staged_requirements",
             "sources": [
                 "user",
@@ -3514,9 +6741,9 @@ class ProjectService:
         }
 
     def _render_prompt(self, request: ModelGenerationRequest) -> str:
-        build_prompt = getattr(self.ai_provider, "build_prompt", None)
-        if callable(build_prompt):
-            return build_prompt(request)
+        build_cadquery_prompt = getattr(self.ai_provider, "build_cadquery_prompt", None)
+        if callable(build_cadquery_prompt):
+            return build_cadquery_prompt(request)
         return ""
 
     def _render_requirement_prompt(self, request: RequirementExtractionRequest) -> str:
@@ -3538,22 +6765,30 @@ class ProjectService:
         return ""
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
-        version_for = getattr(self.ai_provider, "prompt_template_version_for", None)
-        if callable(version_for):
-            return str(version_for(request))
-        if request.contract_diagnostics:
-            return "contract-repair-v2"
+        if request.geometry_body_diagnostics:
+            return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
+        if request.generation_contract_version == SCAFFOLD_VERSION:
+            return CADQUERY_GEOMETRY_BODY_PROMPT_VERSION
         if request.compiler_diagnostics:
-            return "legacy-compile-repair-v1"
+            return "cadquery-execution-repair-v2"
+        if request.contract_diagnostics:
+            return "cadquery-contract-repair-v2"
+        if request.scope_diagnostics:
+            return "cadquery-scope-correction-v2"
+        if request.revision_plan and request.scoped_revision_context:
+            return "cadquery-component-revision-v2"
         if request.revision_plan:
-            return STRUCTURED_REVISION_PROMPT_VERSION
-        if request.current_source:
-            return "legacy-revision-v1"
-        if request.design_plan:
-            return PLANNED_OPENSCAD_PROMPT_VERSION
-        if request.design_specification:
-            return "openscad-generation-v3"
-        return "legacy-initial-v1"
+            return "cadquery-revision-v1"
+        version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return "cadquery-generation-v1"
+
+    def _provider_cadquery_prompt_template_version(self) -> str:
+        version = getattr(self.ai_provider, "cadquery_prompt_template_version", None)
+        if callable(version):
+            return str(version())
+        return CADQUERY_GENERATION_PROMPT_VERSION
 
     def _requirement_prompt_template_version(self) -> str:
         version = getattr(self.ai_provider, "requirement_prompt_template_version", None)
@@ -3561,7 +6796,9 @@ class ProjectService:
             return str(version())
         return REQUIREMENTS_PROMPT_VERSION
 
-    def _design_plan_prompt_template_version(self) -> str:
+    def _design_plan_prompt_template_version(self, request: DesignPlanRequest | None = None) -> str:
+        if request is not None and request.planning_depth == PlanningDepth.COMPACT_PLAN.value:
+            return COMPACT_PLAN_PROMPT_VERSION
         version = getattr(self.ai_provider, "design_plan_prompt_template_version", None)
         if callable(version):
             return str(version())
@@ -3573,8 +6810,8 @@ class ProjectService:
             return str(version())
         return REVISION_PLAN_PROMPT_VERSION
 
-    def _gemini_ruleset_version(self) -> str:
-        return str(getattr(self.ai_provider, "gemini_ruleset_version", "gemini-ruleset-v1"))
+    def _ruleset_version(self) -> str:
+        return str(getattr(self.ai_provider, "ruleset_version", "gemini-ruleset-v1"))
 
     def _provider_name(self) -> str:
         return type(self.ai_provider).__name__ if self.ai_provider is not None else "unknown"
@@ -3593,6 +6830,24 @@ class ProjectService:
             if value is not None:
                 settings_payload[name] = value
         return settings_payload
+
+    def _application_commit(self) -> str | None:
+        configured = getattr(settings, "application_commit", None)
+        if configured:
+            return str(configured)
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.data_dir.parent if self.data_dir.name == "data" else Path.cwd(),
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=1,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        commit = result.stdout.strip()
+        return commit or None
 
     def _latest_design_specification(self, project_id: str) -> DesignSpecification | None:
         return self.db.scalar(
@@ -3689,7 +6944,7 @@ class ProjectService:
             version_number=specification.version_number,
             schema_version=specification.schema_version,
             prompt_template_version=specification.prompt_template_version,
-            gemini_ruleset_version=specification.gemini_ruleset_version,
+            ruleset_version=specification.ruleset_version,
             provider=specification.provider,
             provider_model=specification.provider_model,
             user_instruction=specification.user_instruction,
@@ -3727,7 +6982,7 @@ class ProjectService:
             version_number=plan.version_number,
             schema_version=plan.schema_version,
             prompt_template_version=plan.prompt_template_version,
-            gemini_ruleset_version=plan.gemini_ruleset_version,
+            ruleset_version=plan.ruleset_version,
             provider=plan.provider,
             provider_model=plan.provider_model,
             raw_response_path=plan.raw_response_path,
@@ -3772,7 +7027,7 @@ class ProjectService:
             version_number=plan.version_number,
             schema_version=plan.schema_version,
             prompt_template_version=plan.prompt_template_version,
-            gemini_ruleset_version=plan.gemini_ruleset_version,
+            ruleset_version=plan.ruleset_version,
             provider=plan.provider,
             provider_model=plan.provider_model,
             user_instruction=plan.user_instruction,
@@ -3810,41 +7065,137 @@ class ProjectService:
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
     ) -> SourceValidationResult:
-        validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
-        result = validator.validate(
-            source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        return self._persist_cadquery_source_contract_validation(
+            project=project,
+            attempt=attempt,
+            source=source,
             source_type=source_type,
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
         )
+
+    def _persist_cadquery_source_contract_validation(
+        self,
+        *,
+        project: Project,
+        attempt: GenerationAttempt,
+        source: str,
+        source_type: str,
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None = None,
+        design_plan_payload: dict[str, Any] | None = None,
+    ) -> SourceValidationResult:
+        started = time.perf_counter()
+        source_hash = self._sha256(source)
+        hard_violations: list[dict[str, Any]] = []
+        metadata: dict[str, Any] | None = None
+        try:
+            source_metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+            hard_violations.extend(validate_scaffold_source(source))
+            metadata = asdict(source_metadata)
+            explicit_inventory = inventory_from_design_specification(design_specification_payload)
+            explicit_inventory = _control_source_inventory(design_plan_payload, explicit_inventory)
+            if explicit_inventory:
+                validate_source_parameter_trace(
+                    {
+                        "parameter_ids": source_metadata.parameter_ids,
+                        "parameter_defaults": source_metadata.parameter_defaults,
+                    },
+                        explicit_inventory,
+                    )
+            source_authority = authority_from_generation_context(
+                design_plan_payload=design_plan_payload,
+            )
+            if source_authority:
+                validate_cadquery_source_authority(source, source_authority)
+        except CadQueryContractError as exc:
+            hard_violations.append(
+                {
+                    "rule_id": "cadquery.contract",
+                    "category": "source_contract",
+                    "severity": "critical",
+                    "is_blocking": True,
+                    "title": "CadQuery source contract violation",
+                    "explanation": str(exc),
+                    "suggested_correction": "Regenerate or repair the CadQuery source so it satisfies cadquery-v1.",
+                }
+            )
+        except RequirementTraceError as exc:
+            hard_violations.extend(exc.findings)
+        except CadQuerySourceAuthorityError as exc:
+            hard_violations.extend(exc.findings)
+        validation_ms = round((time.perf_counter() - started) * 1000, 3)
         run_dir = self._generation_attempt_dir(project.id, attempt.id)
         result_path = run_dir / "source-contract.json"
-        self._write_json(result_path, result.to_json())
-
+        self._write_json(
+            result_path,
+            {
+                "contract_version": "cadquery-v1",
+                "validator_version": "cadquery-ast-validator-v2",
+                "ruleset_version": self._ruleset_version(),
+                "passed_hard_checks": not hard_violations,
+                "hard_violations": hard_violations,
+                "quality_findings": [],
+                "specification_findings": [],
+                "source_metadata": metadata or {"source_hash": source_hash},
+                "validation_ms": validation_ms,
+                "source_type": source_type,
+            },
+        )
         source_validation = SourceValidationResult(
             project_id=project.id,
             generation_attempt_id=attempt.id,
             design_specification_id=design_specification.id if design_specification else None,
-            contract_version=result.contract_version,
-            ruleset_version=result.ruleset_version,
-            validator_version=result.validator_version,
-            source_hash=result.source_metadata.source_hash,
+            validator_id="cadquery-ast-validator",
+            cad_backend="cadquery",
+            source_language="python",
+            contract_version="cadquery-v1",
+            ruleset_version=self._ruleset_version(),
+            validator_version="cadquery-ast-validator-v2",
+            source_hash=source_hash,
             result_path=self._relative(result_path),
-            passed_hard_checks=result.passed_hard_checks,
-            validation_ms=result.validation_ms,
+            passed_hard_checks=not hard_violations,
+            validation_ms=validation_ms,
         )
         self.db.add(source_validation)
         self.db.flush()
-
-        for finding in (
-            result.hard_violations + result.specification_findings + result.quality_findings
-        ):
+        for violation in hard_violations:
             self.db.add(
-                self._validation_finding_from_source_contract(
-                    finding,
+                ValidationFinding(
+                    revision_id=None,
                     generation_attempt_id=attempt.id,
                     design_specification_id=design_specification.id if design_specification else None,
                     source_validation_result_id=source_validation.id,
+                    rule_id=str(violation.get("rule_id") or "cadquery.contract"),
+                    category=str(violation.get("category") or "source_contract"),
+                    severity=str(violation.get("severity") or "critical"),
+                    is_blocking=bool(violation.get("is_blocking", True)),
+                    title=str(violation.get("title") or "CadQuery source contract violation"),
+                    explanation=str(violation.get("explanation") or ""),
+                    suggested_correction=str(
+                        violation.get("suggested_correction")
+                        or "Regenerate or repair the CadQuery source so it satisfies cadquery-v1."
+                    ),
+                    detected_value=json.dumps(violation.get("detected_value"), sort_keys=True)
+                    if violation.get("detected_value") is not None
+                    else None,
+                    threshold_value=json.dumps(violation.get("expected_value"), sort_keys=True)
+                    if violation.get("expected_value") is not None
+                    else None,
+                    orientation_dependent=False,
+                    metadata_json=json.dumps(
+                        {
+                            "finding_origin": "source_contract",
+                            "parameter_id": violation.get("parameter_id"),
+                            "component_id": violation.get("component_id"),
+                            "feature_id": violation.get("feature_id"),
+                            "output_id": violation.get("output_id"),
+                            "identity_id": violation.get("identity_id"),
+                            "metadata": violation.get("metadata"),
+                        },
+                        sort_keys=True,
+                    ),
                 )
             )
         self._update_attempt_chain(attempt, status=attempt.status)
@@ -3852,39 +7203,8 @@ class ProjectService:
         self.db.refresh(source_validation)
         return source_validation
 
-    def _validation_finding_from_source_contract(
-        self,
-        finding: SourceContractFinding,
-        *,
-        generation_attempt_id: str,
-        design_specification_id: str | None,
-        source_validation_result_id: str,
-    ) -> ValidationFinding:
-        metadata = dict(finding.metadata)
-        metadata["finding_origin"] = "source_contract"
-        return ValidationFinding(
-            revision_id=None,
-            generation_attempt_id=generation_attempt_id,
-            design_specification_id=design_specification_id,
-            source_validation_result_id=source_validation_result_id,
-            rule_id=finding.rule_id,
-            category=finding.category,
-            severity=finding.severity,
-            is_blocking=finding.is_blocking,
-            title=finding.title,
-            explanation=finding.explanation,
-            suggested_correction=finding.suggested_correction,
-            detected_value=finding.detected_value,
-            unit=finding.unit,
-            threshold_value=finding.threshold_value,
-            source_line_start=finding.source_line_start,
-            source_line_end=finding.source_line_end,
-            orientation_dependent=False,
-            affected_geometry_summary=None,
-            metadata_json=json.dumps(metadata, sort_keys=True),
-        )
-
     def _source_contract_rejection_message(self, source_validation: SourceValidationResult) -> str:
+        header = "The generated model did not implement the approved design identities."
         findings = list(
             self.db.scalars(
                 select(ValidationFinding)
@@ -3894,10 +7214,12 @@ class ProjectService:
             )
         )
         if not findings:
-            return "Model source rejected before compile"
-        lines = ["Model source rejected before compile"]
+            return header
+        lines = [header, "The model was not executed."]
         for finding in findings[:8]:
-            detail = finding.title
+            detail = f"{finding.rule_id} - {finding.title}"
+            if finding.explanation:
+                detail += f": {finding.explanation}"
             if finding.detected_value is not None or finding.threshold_value is not None:
                 detail += (
                     f": expected {finding.threshold_value or 'n/a'}, "
@@ -3909,6 +7231,193 @@ class ProjectService:
         if len(findings) > 8:
             lines.append(f"- {len(findings) - 8} additional blocking findings")
         return "\n".join(lines)
+
+    def _source_validation_generation_attempt_id(
+        self,
+        source_validation_result_id: str | None,
+    ) -> str | None:
+        if source_validation_result_id is None:
+            return None
+        source_validation = self.db.get(SourceValidationResult, source_validation_result_id)
+        return source_validation.generation_attempt_id if source_validation is not None else None
+
+    def _persist_design_artifact_consistency(
+        self,
+        *,
+        revision: Revision,
+        source: str,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any],
+        execution_parameters: dict[str, Any] | None = None,
+        execution_manifest: dict[str, Any] | None = None,
+        output_manifest: dict[str, Any] | None = None,
+        parameter_overrides: dict[str, Any] | None = None,
+        generation_attempt_id: str | None = None,
+    ) -> DesignArtifactConsistencyResult:
+        started = time.perf_counter()
+        payload = certify_design_artifact_consistency(
+            project_id=revision.project_id,
+            revision_id=revision.id,
+            design_specification_id=revision.design_specification_id,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=revision.design_plan_id,
+            design_plan_payload=design_plan_payload,
+            source=source,
+            execution_parameters=execution_parameters,
+            execution_manifest=execution_manifest,
+            output_manifest=output_manifest,
+            parameter_overrides=parameter_overrides,
+        )
+        result_dir = self._revision_dir(revision.project_id, revision.id) / "metadata"
+        result_dir.mkdir(parents=True, exist_ok=True)
+        result_path = result_dir / "design-artifact-consistency.json"
+        self._write_json(result_path, payload)
+        row = DesignArtifactConsistencyResult(
+            project_id=revision.project_id,
+            revision_id=revision.id,
+            design_specification_id=revision.design_specification_id,
+            design_plan_id=revision.design_plan_id,
+            generation_attempt_id=generation_attempt_id,
+            schema_version=str(payload["schema_version"]),
+            validator_version=str(payload["validator_version"]),
+            source_hash=payload.get("source_hash"),
+            parameter_hash=payload.get("parameter_hash"),
+            output_manifest_hash=payload.get("output_manifest_hash"),
+            result_path=self._relative(result_path),
+            pre_execution_passed=bool(payload.get("pre_execution_passed")),
+            post_execution_passed=bool(payload.get("post_execution_passed")),
+            revision_base_ready=bool(payload.get("revision_base_ready")),
+            configuration_ready=bool(payload.get("configuration_ready")),
+            validation_ms=round((time.perf_counter() - started) * 1000, 3),
+        )
+        self.db.add(row)
+        self.db.flush()
+        self._persist_design_artifact_findings(revision=revision, payload=payload)
+        return row
+
+    def _persist_design_artifact_findings(
+        self,
+        *,
+        revision: Revision,
+        payload: dict[str, Any],
+    ) -> None:
+        self.db.execute(
+            delete(ValidationFinding).where(
+                ValidationFinding.revision_id == revision.id,
+                ValidationFinding.category == "design_artifact_consistency",
+            )
+        )
+        for finding in payload.get("findings", []):
+            if not isinstance(finding, dict):
+                continue
+            self.db.add(
+                ValidationFinding(
+                    revision_id=revision.id,
+                    rule_id=str(finding.get("rule_id") or "design_artifact.consistency"),
+                    category="design_artifact_consistency",
+                    severity=str(finding.get("severity") or "critical"),
+                    is_blocking=bool(finding.get("is_blocking", True)),
+                    title=str(finding.get("title") or "Design artifact consistency"),
+                    explanation=str(finding.get("explanation") or "Design artifacts are inconsistent."),
+                    suggested_correction=str(
+                        finding.get("suggested_correction")
+                        or "Regenerate from the approved Design Plan."
+                    ),
+                    detected_value=self._value_to_text(finding.get("detected_value")),
+                    unit=finding.get("unit") if isinstance(finding.get("unit"), str) else None,
+                    threshold_value=self._value_to_text(finding.get("expected_value")),
+                    orientation_dependent=False,
+                    metadata_json=json.dumps(
+                        {
+                            "finding_origin": "design_artifact_consistency",
+                            "phase": finding.get("phase"),
+                            "parameter_id": finding.get("parameter_id"),
+                            "component_id": finding.get("component_id"),
+                            "feature_id": finding.get("feature_id"),
+                            "output_id": finding.get("output_id"),
+                        },
+                        sort_keys=True,
+                    ),
+                )
+            )
+        self.db.flush()
+
+    def _latest_design_artifact_consistency(
+        self,
+        revision_id: str,
+    ) -> DesignArtifactConsistencyResult | None:
+        return self.db.scalar(
+            select(DesignArtifactConsistencyResult)
+            .where(DesignArtifactConsistencyResult.revision_id == revision_id)
+            .order_by(DesignArtifactConsistencyResult.created_at.desc())
+        )
+
+    def _read_design_artifact_consistency_payload(
+        self,
+        result: DesignArtifactConsistencyResult,
+    ) -> dict[str, Any]:
+        return self._read_json_file(result.result_path) or {}
+
+    def _certify_revision_artifacts(
+        self,
+        revision: Revision,
+    ) -> DesignArtifactConsistencyResult:
+        source = self.read_revision_source(revision.id)
+        if source is None:
+            raise ValueError("base revision source is missing")
+        design_plan_payload = self._revision_design_plan_payload(revision)
+        if design_plan_payload is None:
+            raise ValueError("base revision must reference an approved Design Plan")
+        design_specification_payload = self._revision_design_specification_payload(revision)
+        output_manifest = self.read_output_manifest(revision.id)
+        execution_manifest = None
+        if revision.execution_manifest_path:
+            execution_manifest = self._read_json_file(revision.execution_manifest_path)
+        execution_parameters = (
+            execution_manifest.get("parameters")
+            if isinstance(execution_manifest, dict) and isinstance(execution_manifest.get("parameters"), dict)
+            else None
+        )
+        parameter_overrides = None
+        if revision.configuration_change_id is not None:
+            change = self.db.get(ConfigurationChange, revision.configuration_change_id)
+            if change is not None:
+                override_manifest = self._configuration_override_manifest(change)
+                parameter_overrides = dict(override_manifest.get("parameter_values") or {})
+        result = self._persist_design_artifact_consistency(
+            revision=revision,
+            source=source,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+            execution_parameters=execution_parameters,
+            execution_manifest=execution_manifest,
+            output_manifest=output_manifest,
+            parameter_overrides=parameter_overrides,
+        )
+        if revision.status == "succeeded":
+            revision.review_state = self._derive_review_state(revision.id)
+        self.db.flush()
+        return result
+
+    def _require_revision_base_ready(
+        self,
+        revision: Revision,
+        *,
+        purpose: str,
+    ) -> DesignArtifactConsistencyResult:
+        result = self._certify_revision_artifacts(revision)
+        if not result.revision_base_ready:
+            payload = self._read_design_artifact_consistency_payload(result)
+            self.db.commit()
+            raise ValueError(consistency_failure_message(payload))
+        return result
+
+    def _value_to_text(self, value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        return json.dumps(value, sort_keys=True)
 
     def _attach_source_validation_to_revision(
         self,
@@ -3939,21 +7448,23 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_plan_payload: dict[str, Any],
         configuration_context: dict[str, Any] | None = None,
+        cad_backend: str = "cadquery",
     ) -> RevisionComplianceResult:
         started = time.perf_counter()
-        validator = SourceContractValidator(ruleset_version=self._gemini_ruleset_version())
-        base_scan = validator.validate(
-            base_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        base_scan = self._revision_source_metadata(
+            source=base_source,
+            cad_backend=cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type="ai_revision",
-        ).source_metadata
-        revised_scan = validator.validate(
-            revised_source,
-            design_specification=design_specification_payload,
-            design_plan=design_plan_payload,
+        )
+        revised_scan = self._revision_source_metadata(
+            source=revised_source,
+            cad_backend=cad_backend,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
             source_type="ai_revision",
-        ).source_metadata
+        )
         findings = self._revision_compliance_findings(
             base_scan=base_scan,
             revised_scan=revised_scan,
@@ -4004,6 +7515,408 @@ class ProjectService:
         self.db.flush()
         return row
 
+    def _revision_source_metadata(
+        self,
+        *,
+        source: str,
+        cad_backend: str,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any] | None,
+        source_type: str,
+    ) -> SourceMetadata:
+        if cad_backend != "cadquery":
+            raise ValueError("CadQuery source is required for revision metadata")
+        return self._cadquery_revision_source_metadata(source, design_plan_payload or {})
+
+    def _cadquery_revision_source_metadata(
+        self,
+        source: str,
+        design_plan_payload: dict[str, Any],
+    ) -> SourceMetadata:
+        metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        tree = ast.parse(source)
+        source_hash = self._sha256(source)
+        parameter_mappings: dict[str, SourceParameterMapping] = {}
+        parameter_fingerprints: dict[str, str] = {}
+        for call in self._cadquery_runtime_calls(tree, "ParameterSpec"):
+            parameter_id = self._cadquery_static_string_keyword(call, "id")
+            if not parameter_id:
+                continue
+            parameter_mappings[parameter_id] = SourceParameterMapping(
+                parameter_id=parameter_id,
+                target_name=parameter_id,
+                target_kind="ParameterSpec",
+                line=getattr(call, "lineno", 1),
+            )
+            parameter_fingerprints[parameter_id] = self._cadquery_normalized_hash(call)
+
+        component_mappings: dict[str, SourceMapping] = {}
+        feature_mappings: dict[str, SourceMapping] = {}
+        shared_module_mappings: dict[str, SourceMapping] = {}
+        module_fingerprints: dict[str, SourceModuleFingerprint] = {}
+        top_level_functions = self._cadquery_top_level_functions(tree)
+        functions_by_name = {function.name: function for function in top_level_functions}
+        for function in top_level_functions:
+            ownership = self._cadquery_function_ownership(function)
+            component_ids = ownership["component_ids"]
+            feature_ids = ownership["feature_ids"]
+            shared_helper_ids = ownership["shared_helper_ids"]
+            for component_id in component_ids:
+                component_mappings[component_id] = SourceMapping(
+                    requirement_id=component_id,
+                    marker_type="component",
+                    target_name=function.name,
+                    target_kind="function",
+                    line=function.lineno,
+                )
+            for feature_id, component_id in ownership["feature_components"].items():
+                feature_mappings[feature_id] = SourceMapping(
+                    requirement_id=feature_id,
+                    marker_type="feature",
+                    target_name=function.name,
+                    target_kind="function",
+                    line=function.lineno,
+                )
+                if component_id and component_id not in component_ids:
+                    component_ids.append(component_id)
+            for helper_id in shared_helper_ids:
+                shared_module_mappings[helper_id] = SourceMapping(
+                    requirement_id=helper_id,
+                    marker_type="shared_helper",
+                    target_name=function.name,
+                    target_kind="function",
+                    line=function.lineno,
+                )
+            if component_ids or feature_ids or shared_helper_ids:
+                called_modules = self._cadquery_called_functions(function)
+                fingerprint_nodes = [function]
+                fingerprint_nodes.extend(
+                    functions_by_name[name]
+                    for name in called_modules
+                    if name.startswith("_ai_") and name in functions_by_name
+                )
+                module_fingerprints[function.name] = SourceModuleFingerprint(
+                    module_name=function.name,
+                    line=function.lineno,
+                    normalized_hash=self._cadquery_normalized_hash(
+                        ast.Module(body=fingerprint_nodes, type_ignores=[])
+                    ),
+                    called_modules=called_modules,
+                    referenced_parameters=self._cadquery_referenced_parameters(function),
+                    component_ids=component_ids,
+                    feature_ids=feature_ids,
+                    is_shared=bool(shared_helper_ids) and not component_ids and not feature_ids,
+                )
+
+        for component_id in metadata.component_ids:
+            component_mappings.setdefault(
+                component_id,
+                SourceMapping(
+                    requirement_id=component_id,
+                    marker_type="component",
+                    target_name="build",
+                    target_kind="function",
+                    line=1,
+                ),
+            )
+
+        output_mappings: dict[str, SourceOutputMapping] = {}
+        output_fingerprints: dict[str, str] = {}
+        for call in self._cadquery_runtime_calls(tree, "PrintableOutput"):
+            output_id = self._cadquery_static_string_keyword(call, "output_id")
+            if not output_id:
+                continue
+            component_ids = self._cadquery_output_component_ids(call)
+            output_module_name = f"output:{output_id}"
+            output_mappings[output_id] = SourceOutputMapping(
+                output_id=output_id,
+                component_ids=component_ids,
+                target_name=output_id,
+                target_kind="PrintableOutput",
+                line=getattr(call, "lineno", 1),
+                module_name=output_module_name,
+                filename=f"{output_id}.stl",
+                required=self._cadquery_static_bool_keyword(call, "required", default=True),
+            )
+            output_fingerprints[output_id] = self._cadquery_normalized_hash(call)
+            module_fingerprints[output_module_name] = SourceModuleFingerprint(
+                module_name=output_module_name,
+                line=getattr(call, "lineno", 1),
+                normalized_hash=output_fingerprints[output_id],
+                component_ids=component_ids,
+                output_ids=[output_id],
+            )
+
+        for output_id in metadata.output_ids:
+            output_mappings.setdefault(
+                output_id,
+                SourceOutputMapping(
+                    output_id=output_id,
+                    component_ids=list(metadata.output_component_ids.get(output_id, [])),
+                    target_name=output_id,
+                    target_kind="PrintableOutput",
+                    line=1,
+                    module_name=f"output:{output_id}",
+                    filename=f"{output_id}.stl",
+                    required=True,
+                ),
+            )
+        for feature in design_plan_payload.get("features", []):
+            feature_id = str(feature.get("id") or "")
+            if not feature_id:
+                continue
+            if feature_id in feature_mappings:
+                continue
+            component_id = str(feature.get("component_id") or "")
+            if component_id and component_id not in metadata.component_ids:
+                continue
+            feature_mappings[feature_id] = SourceMapping(
+                requirement_id=feature_id,
+                marker_type="feature",
+                target_name=component_mappings.get(component_id, SourceMapping("", "", "build", "function", 1)).target_name
+                if component_id
+                else "build",
+                target_kind="function",
+                line=1,
+            )
+        return SourceMetadata(
+            source_hash=source_hash,
+            source_size_bytes=len(source.encode("utf-8")),
+            line_count=len(source.splitlines()),
+            module_names=sorted(set(["build", *module_fingerprints])),
+            parameter_names=list(metadata.parameter_ids),
+            feature_mappings=feature_mappings,
+            component_mappings=component_mappings,
+            parameter_mappings=parameter_mappings,
+            output_mappings=output_mappings,
+            shared_module_mappings=shared_module_mappings,
+            module_fingerprints=module_fingerprints,
+            parameter_fingerprints=parameter_fingerprints,
+            output_fingerprints=output_fingerprints,
+            assignments={
+                parameter_id: self._cadquery_assignment_literal(default)
+                for parameter_id, default in metadata.parameter_defaults.items()
+            },
+            assignment_lines={
+                parameter_id: parameter_mappings.get(
+                    parameter_id,
+                    SourceParameterMapping(parameter_id, parameter_id, "ParameterSpec", 1),
+                ).line
+                for parameter_id in metadata.parameter_defaults
+            },
+        )
+
+    def _cadquery_top_level_functions(self, tree: ast.Module) -> list[ast.FunctionDef]:
+        return [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+
+    def _cadquery_runtime_calls(self, tree: ast.AST, call_name: str) -> list[ast.Call]:
+        return [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and self._cadquery_call_name(node.func) == call_name
+        ]
+
+    def _cadquery_call_name(self, node: ast.expr) -> str | None:
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Attribute):
+            return node.attr
+        return None
+
+    def _cadquery_function_ownership(self, node: ast.FunctionDef) -> dict[str, Any]:
+        component_ids: list[str] = []
+        feature_ids: list[str] = []
+        feature_components: dict[str, str | None] = {}
+        shared_helper_ids: list[str] = []
+        for decorator in node.decorator_list:
+            if not isinstance(decorator, ast.Call) or not isinstance(decorator.func, ast.Name):
+                continue
+            decorator_name = decorator.func.id
+            decorator_id = self._cadquery_static_positional_string(decorator, 0)
+            if not decorator_id:
+                continue
+            if decorator_name == "component":
+                component_ids.append(decorator_id)
+            elif decorator_name == "feature":
+                feature_ids.append(decorator_id)
+                feature_components[decorator_id] = self._cadquery_static_string_keyword(decorator, "component")
+            elif decorator_name == "shared_helper":
+                shared_helper_ids.append(decorator_id)
+        return {
+            "component_ids": list(dict.fromkeys(component_ids)),
+            "feature_ids": list(dict.fromkeys(feature_ids)),
+            "feature_components": feature_components,
+            "shared_helper_ids": list(dict.fromkeys(shared_helper_ids)),
+        }
+
+    def _cadquery_normalized_hash(self, node: ast.AST) -> str:
+        return self._sha256(ast.dump(node, include_attributes=False, annotate_fields=True))
+
+    def _cadquery_called_functions(self, node: ast.AST) -> list[str]:
+        names: list[str] = []
+        for call in (child for child in ast.walk(node) if isinstance(child, ast.Call)):
+            name = self._cadquery_call_name(call.func)
+            if name:
+                names.append(name)
+        return sorted(set(names))
+
+    def _cadquery_referenced_parameters(self, node: ast.AST) -> list[str]:
+        names: list[str] = []
+        for child in ast.walk(node):
+            if (
+                isinstance(child, ast.Subscript)
+                and isinstance(child.value, ast.Name)
+                and child.value.id == "params"
+                and isinstance(child.slice, ast.Constant)
+                and isinstance(child.slice.value, str)
+            ):
+                names.append(child.slice.value)
+        return sorted(set(names))
+
+    def _cadquery_static_positional_string(self, node: ast.Call, index: int) -> str | None:
+        if len(node.args) <= index:
+            return None
+        value = node.args[index]
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            return value.value
+        return None
+
+    def _cadquery_static_string_keyword(self, node: ast.Call, name: str) -> str | None:
+        for keyword in node.keywords:
+            if keyword.arg == name and isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, str):
+                return keyword.value.value
+        return None
+
+    def _cadquery_static_bool_keyword(self, node: ast.Call, name: str, *, default: bool) -> bool:
+        for keyword in node.keywords:
+            if keyword.arg == name and isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, bool):
+                return keyword.value.value
+        return default
+
+    def _cadquery_output_component_ids(self, node: ast.Call) -> list[str]:
+        component_ids: list[str] = []
+        component_id = self._cadquery_static_string_keyword(node, "component_id")
+        if component_id:
+            component_ids.append(component_id)
+        for keyword in node.keywords:
+            if keyword.arg != "component_ids" or not isinstance(keyword.value, ast.List | ast.Tuple):
+                continue
+            for element in keyword.value.elts:
+                if isinstance(element, ast.Constant) and isinstance(element.value, str):
+                    component_ids.append(element.value)
+        return list(dict.fromkeys(component_ids))
+
+    def _cadquery_source_parameter_values(self, source: str) -> dict[str, Any]:
+        try:
+            metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        except CadQueryContractError:
+            return {}
+        return dict(metadata.parameter_defaults)
+
+    def _cadquery_execution_parameter_values(
+        self,
+        *,
+        source: str,
+        design_plan_payload: dict[str, Any],
+        overrides: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        values = self._cadquery_source_parameter_values(source)
+        values.update(self._design_plan_parameter_values(design_plan_payload))
+        if overrides is not None:
+            values.update(overrides)
+        try:
+            metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        except CadQueryContractError:
+            return values
+        return {
+            parameter_id: self._coerce_cadquery_parameter_value(
+                value,
+                parameter_type=metadata.parameter_types.get(parameter_id),
+            )
+            for parameter_id, value in values.items()
+        }
+
+    def _coerce_cadquery_parameter_value(self, value: Any, *, parameter_type: str | None) -> Any:
+        if parameter_type == "int" and isinstance(value, float) and value.is_integer():
+            return int(value)
+        if parameter_type == "float" and isinstance(value, int) and not isinstance(value, bool):
+            return float(value)
+        return value
+
+    def _cadquery_manual_design_plan_payload(self, source: str) -> dict[str, Any]:
+        try:
+            metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
+        except CadQueryContractError:
+            return {
+                "parameters": [],
+                "components": [{"id": "model", "label": "Model"}],
+                "features": [],
+                "printable_outputs": [
+                    {
+                        "id": "model",
+                        "label": "Model",
+                        "component_id": "model",
+                        "component_ids": ["model"],
+                        "filename": "model.stl",
+                        "quantity": 1,
+                        "required": True,
+                        "output_type": "printable_component",
+                    }
+                ],
+            }
+        components = [
+            {"id": component_id, "label": component_id.replace("_", " ").title()}
+            for component_id in metadata.component_ids
+        ]
+        outputs = []
+        for output_id in metadata.output_ids:
+            component_ids = list(metadata.output_component_ids.get(output_id) or [])
+            component_id = component_ids[0] if component_ids else None
+            outputs.append(
+                {
+                    "id": output_id,
+                    "label": output_id.replace("_", " ").title(),
+                    "component_id": component_id,
+                    "component_ids": component_ids,
+                    "filename": f"{output_id}.stl",
+                    "quantity": 1,
+                    "required": True,
+                    "output_type": "printable_component",
+                }
+            )
+        if not outputs:
+            outputs.append(
+                {
+                    "id": "model",
+                    "label": "Model",
+                    "component_id": "model",
+                    "component_ids": ["model"],
+                    "filename": "model.stl",
+                    "quantity": 1,
+                    "required": True,
+                    "output_type": "printable_component",
+                }
+            )
+        return {
+            "parameters": [
+                {
+                    "id": parameter_id,
+                    "label": parameter_id.replace("_", " ").title(),
+                    "value": metadata.parameter_defaults.get(parameter_id),
+                    "editable": True,
+                }
+                for parameter_id in metadata.parameter_ids
+            ],
+            "components": components or [{"id": "model", "label": "Model"}],
+            "features": [],
+            "printable_outputs": outputs,
+        }
+
+    def _cadquery_assignment_literal(self, value: Any) -> str:
+        if isinstance(value, bool):
+            return "1" if value else "0"
+        return str(value)
+
     def _revision_compliance_findings(
         self,
         *,
@@ -4022,6 +7935,21 @@ class ProjectService:
             for item in revision_plan_payload.get("protected_parameters", [])
             if item.get("parameter_id")
         }
+        modern_requirement_contract = "exposed_controls" in design_plan_payload
+        exposed_control_ids = {
+            str(item.get("parameter_id"))
+            for item in design_plan_payload.get("exposed_controls", []) or []
+            if isinstance(item, dict) and item.get("parameter_id")
+        }
+        if modern_requirement_contract:
+            # Ordinary revisions are judged by the active requirement ledger
+            # and post-worker evidence.  Source-level preservation remains
+            # strict only for controls the user explicitly exposed.
+            protected_parameters = {
+                parameter_id: item
+                for parameter_id, item in protected_parameters.items()
+                if str(parameter_id) in exposed_control_ids
+            }
         plan_parameter_ids = {
             str(item.get("id"))
             for item in (
@@ -4030,8 +7958,15 @@ class ProjectService:
             )
             if item.get("id")
         }
-        base_constants = _evaluate_constants(base_scan.assignments)
-        revised_constants = _evaluate_constants(revised_scan.assignments)
+        if modern_requirement_contract:
+            plan_parameter_ids = exposed_control_ids
+        plan_output_ids = {
+            str(output.get("id"))
+            for output in design_plan_payload.get("printable_outputs", [])
+            if output.get("id")
+        }
+        base_constants = evaluate_constants(base_scan.assignments)
+        revised_constants = evaluate_constants(revised_scan.assignments)
         for parameter_id, protected in protected_parameters.items():
             expected = protected.get("expected_value")
             detected = revised_constants.get(parameter_id)
@@ -4059,7 +7994,7 @@ class ProjectService:
                         detected=detected,
                     )
                 )
-        ignored = {"selected_output", "$fn", "eps"}
+        ignored: set[str] = set()
         for name in sorted(set(base_scan.assignments) & set(revised_scan.assignments)):
             if name in ignored or name in allowed_parameters:
                 continue
@@ -4078,6 +8013,23 @@ class ProjectService:
                         detected=revised_value,
                     )
                 )
+        for parameter_id in sorted(set(base_scan.parameter_fingerprints) & set(revised_scan.parameter_fingerprints)):
+            if parameter_id in allowed_parameters:
+                continue
+            if parameter_id not in plan_parameter_ids and parameter_id not in protected_parameters:
+                continue
+            if base_scan.parameter_fingerprints[parameter_id] == revised_scan.parameter_fingerprints[parameter_id]:
+                continue
+            findings.append(
+                self._revision_compliance_finding(
+                    "revision.unauthorized_parameter_definition_change",
+                    "Unauthorized parameter definition changed",
+                    f"{parameter_id} changed its ParameterSpec declaration outside the approved revision scope.",
+                    parameter_id=parameter_id,
+                    expected=base_scan.parameter_fingerprints[parameter_id],
+                    detected=revised_scan.parameter_fingerprints[parameter_id],
+                )
+            )
         for component_id in revision_plan_payload.get("protected_components", []):
             if component_id and component_id not in revised_scan.component_mappings:
                 findings.append(
@@ -4128,6 +8080,30 @@ class ProjectService:
                         detected=revised_mapping.module_name,
                     )
                 )
+        targeted_outputs = set(map(str, revision_plan_payload.get("targeted_outputs", [])))
+        protected_outputs = set(map(str, revision_plan_payload.get("protected_outputs", [])))
+        for output_id in sorted(set(base_scan.output_fingerprints) & set(revised_scan.output_fingerprints)):
+            if output_id in targeted_outputs:
+                continue
+            if output_id not in protected_outputs and output_id not in plan_output_ids:
+                continue
+            if base_scan.output_fingerprints[output_id] == revised_scan.output_fingerprints[output_id]:
+                continue
+            rule_id = (
+                "revision.protected_output_declaration_changed"
+                if output_id in protected_outputs
+                else "revision.unexpected_output_declaration_changed"
+            )
+            findings.append(
+                self._revision_compliance_finding(
+                    rule_id,
+                    "Output declaration changed outside revision scope",
+                    f"Output {output_id} changed its PrintableOutput declaration outside the approved revision scope.",
+                    output_id=output_id,
+                    expected=base_scan.output_fingerprints[output_id],
+                    detected=revised_scan.output_fingerprints[output_id],
+                )
+            )
         findings.extend(
             self._component_scope_findings(
                 base_scan=base_scan,
@@ -4205,8 +8181,6 @@ class ProjectService:
             features=targeted_features,
             outputs=targeted_outputs,
         ) | allowed_shared_modules
-        if targeted_outputs:
-            allowed_modules.add("render_selected_output")
         protected_modules = self._modules_for_scope(
             base_scan,
             components=protected_components,
@@ -4340,8 +8314,8 @@ class ProjectService:
         revision_plan_payload: dict[str, Any],
     ) -> list[dict[str, Any]]:
         findings: list[dict[str, Any]] = []
-        base_constants = _evaluate_constants(base_scan.assignments)
-        revised_constants = _evaluate_constants(revised_scan.assignments)
+        base_constants = evaluate_constants(base_scan.assignments)
+        revised_constants = evaluate_constants(revised_scan.assignments)
         for interface in revision_plan_payload.get("protected_interfaces", []):
             interface_id = str(interface.get("id") or "interface")
             for parameter_id in map(str, interface.get("parameters", [])):
@@ -4370,8 +8344,9 @@ class ProjectService:
             return []
         manifest = configuration_context.get("override_manifest") or {}
         findings: list[dict[str, Any]] = []
-        for parameter_id in sorted((manifest.get("openscad_defines") or {})):
-            if parameter_id not in revised_scan.assignments:
+        required_parameters = set((manifest.get("parameter_values") or {}).keys())
+        for parameter_id in sorted(required_parameters):
+            if not self._parameter_has_source_mapping(parameter_id, revised_scan):
                 findings.append(
                     self._revision_compliance_finding(
                         "revision.configured_parameter_removed",
@@ -4488,14 +8463,16 @@ class ProjectService:
         revision_id: str,
         source: str,
         revision_plan_payload: dict[str, Any],
+        cad_backend: str = "cadquery",
     ) -> None:
-        metadata = SourceContractValidator().validate(
-            source,
-            design_specification=None,
-            design_plan=None,
+        metadata = self._revision_source_metadata(
+            source=source,
+            cad_backend=cad_backend,
+            design_specification_payload=None,
+            design_plan_payload=None,
             source_type="ai_revision",
-        ).source_metadata
-        constants = _evaluate_constants(metadata.assignments)
+        )
+        constants = evaluate_constants(metadata.assignments)
         outputs = {
             output.output_id: output
             for output in self.db.scalars(
@@ -4526,8 +8503,8 @@ class ProjectService:
                     explanation = f"{target_id} does not match the Revision Plan success criterion."
             elif criterion_type == "output_exists":
                 output = outputs.get(target_id)
-                detected = output.output_state if output is not None else None
-                if output is not None and output.output_state in OUTPUT_READY_STATES:
+                detected = output.execution_state if output is not None else None
+                if output is not None and output.execution_state in OUTPUT_READY_STATES:
                     state = "success_verified"
                     explanation = f"Output {target_id} exists and is available for review."
                 else:
@@ -4679,7 +8656,7 @@ class ProjectService:
         base_output: RevisionOutput | None,
         revised_output: RevisionOutput | None,
     ) -> dict[str, Any]:
-        if revised_output is None or revised_output.output_state not in OUTPUT_READY_STATES:
+        if revised_output is None or revised_output.execution_state not in OUTPUT_READY_STATES:
             return {
                 "output_id": output_id,
                 "change_state": "changed_but_failed_validation",
@@ -4716,7 +8693,7 @@ class ProjectService:
                 )
             )
             return {"output_id": output_id, "preservation_state": "unexpected_change"}
-        if revised_output.output_state not in OUTPUT_READY_STATES:
+        if revised_output.execution_state not in OUTPUT_READY_STATES:
             self.db.add(
                 self._output_preservation_finding(
                     revision.id,
@@ -4797,6 +8774,11 @@ class ProjectService:
         if component_delta != 0:
             beyond = True
             changed = True
+        topology = self._compare_output_topology(base_output, revised_output)
+        if topology.get("changed"):
+            changed = True
+        if topology.get("beyond_tolerance"):
+            beyond = True
         return {
             "profile_version": "output-preservation-v1",
             "changed": changed,
@@ -4804,6 +8786,7 @@ class ProjectService:
             "dimensions": dimensions,
             "volume_mm3": {"base": base_volume, "revised": revised_volume, "delta": volume_delta},
             "connected_components_delta": component_delta,
+            "topology": topology,
             "hash_equal": base_output.stl_hash == revised_output.stl_hash,
             "tolerances": tolerances,
         }
@@ -4816,6 +8799,91 @@ class ProjectService:
         except json.JSONDecodeError:
             return None
 
+    def _compare_output_topology(
+        self,
+        base_output: RevisionOutput,
+        revised_output: RevisionOutput,
+    ) -> dict[str, Any]:
+        base_topology = self._output_topology_metadata(base_output)
+        revised_topology = self._output_topology_metadata(revised_output)
+        if base_topology is None or revised_topology is None:
+            return {"unverifiable": True, "reason": "missing_topology_metadata"}
+        changed = False
+        beyond = False
+        scalar_fields = (
+            "valid",
+            "detected_solid_count",
+            "expected_solid_count",
+            "allow_disconnected_solids",
+            "shell_count",
+        )
+        scalars: dict[str, dict[str, Any]] = {}
+        for field in scalar_fields:
+            base_value = base_topology.get(field)
+            revised_value = revised_topology.get(field)
+            scalars[field] = {"base": base_value, "revised": revised_value}
+            if base_value != revised_value:
+                changed = True
+                if field in {"valid", "detected_solid_count", "expected_solid_count", "shell_count"}:
+                    beyond = True
+        bounding_box = self._compare_bounding_boxes(
+            base_topology.get("bounding_box_mm"),
+            revised_topology.get("bounding_box_mm"),
+        )
+        if bounding_box.get("changed"):
+            changed = True
+        if bounding_box.get("beyond_tolerance"):
+            beyond = True
+        advisory: dict[str, dict[str, Any]] = {}
+        for field in ("face_count", "edge_count", "volume_mm3"):
+            if field not in base_topology and field not in revised_topology:
+                continue
+            base_value = base_topology.get(field)
+            revised_value = revised_topology.get(field)
+            advisory[field] = {"base": base_value, "revised": revised_value}
+            if base_value != revised_value:
+                changed = True
+        return {
+            "unverifiable": False,
+            "changed": changed,
+            "beyond_tolerance": beyond,
+            "scalars": scalars,
+            "bounding_box_mm": bounding_box,
+            "advisory": advisory,
+        }
+
+    def _compare_bounding_boxes(self, base: Any, revised: Any) -> dict[str, Any]:
+        if not isinstance(base, dict) or not isinstance(revised, dict):
+            return {"unverifiable": True, "reason": "missing_bounding_box"}
+        tolerances = {"dimension_mm": 0.25}
+        axes: dict[str, dict[str, float]] = {}
+        changed = False
+        beyond = False
+        for key in ("xlen", "ylen", "zlen"):
+            base_value = float(base.get(key, 0) or 0)
+            revised_value = float(revised.get(key, 0) or 0)
+            delta = abs(revised_value - base_value)
+            axes[key] = {"base": base_value, "revised": revised_value, "delta": delta}
+            if delta > 1e-6:
+                changed = True
+            if delta > tolerances["dimension_mm"]:
+                beyond = True
+        return {
+            "unverifiable": False,
+            "changed": changed,
+            "beyond_tolerance": beyond,
+            "dimensions": axes,
+            "tolerances": tolerances,
+        }
+
+    def _output_topology_metadata(self, output: RevisionOutput) -> dict[str, Any] | None:
+        if not output.topology_metadata_json:
+            return None
+        try:
+            return json.loads(output.topology_metadata_json)
+        except json.JSONDecodeError:
+            return None
+
     def _component_interface_checks(
         self,
         *,
@@ -4824,20 +8892,11 @@ class ProjectService:
         revised_source: str,
         revision_plan_payload: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        base_scan = SourceContractValidator().validate(
-            base_source,
-            design_specification=None,
-            design_plan=None,
-            source_type="ai_revision",
-        ).source_metadata
-        revised_scan = SourceContractValidator().validate(
-            revised_source,
-            design_specification=None,
-            design_plan=None,
-            source_type="ai_revision",
-        ).source_metadata
-        base_constants = _evaluate_constants(base_scan.assignments)
-        revised_constants = _evaluate_constants(revised_scan.assignments)
+        design_plan_payload = self._revision_design_plan_payload(revision) or {}
+        base_scan = self._cadquery_revision_source_metadata(base_source, design_plan_payload)
+        revised_scan = self._cadquery_revision_source_metadata(revised_source, design_plan_payload)
+        base_constants = evaluate_constants(base_scan.assignments)
+        revised_constants = evaluate_constants(revised_scan.assignments)
         checks: list[dict[str, Any]] = []
         for interface in revision_plan_payload.get("protected_interfaces", []):
             interface_id = str(interface.get("id") or "interface")
@@ -4980,7 +9039,7 @@ class ProjectService:
             version_number=self._next_design_specification_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_SPEC_SCHEMA_VERSION)),
             prompt_template_version=revision_plan.prompt_template_version,
-            gemini_ruleset_version=revision_plan.gemini_ruleset_version,
+            ruleset_version=revision_plan.ruleset_version,
             provider=revision_plan.provider,
             provider_model=revision_plan.provider_model,
             user_instruction=revision_plan.user_instruction,
@@ -5013,6 +9072,24 @@ class ProjectService:
             for parameter in payload.get("parameters", []):
                 if parameter.get("id") == target_id:
                     parameter["value"] = change.get("requested_value")
+        requested_controls = [
+            item for item in revision_plan_payload.get("requested_exposed_controls", []) or []
+            if isinstance(item, dict) and item.get("parameter_id")
+        ]
+        if requested_controls:
+            existing_controls = [
+                item if isinstance(item, dict) else {"parameter_id": item}
+                for item in payload.get("exposed_controls", []) or []
+                if item
+            ]
+            by_id = {
+                str(item.get("parameter_id")): item
+                for item in existing_controls
+                if item.get("parameter_id")
+            }
+            for control in requested_controls:
+                by_id[str(control["parameter_id"])] = dict(control)
+            payload["exposed_controls"] = list(by_id.values())
         payload["superseded_by_revision_plan_id"] = revision_plan.id
         plan_dir = self._revision_plan_dir(project.id, revision_plan.id)
         plan_dir.mkdir(parents=True, exist_ok=True)
@@ -5027,7 +9104,7 @@ class ProjectService:
             version_number=self._next_design_plan_version(project.id),
             schema_version=str(payload.get("schema_version", DESIGN_PLAN_SCHEMA_VERSION)),
             prompt_template_version=revision_plan.prompt_template_version,
-            gemini_ruleset_version=revision_plan.gemini_ruleset_version,
+            ruleset_version=revision_plan.ruleset_version,
             provider=revision_plan.provider,
             provider_model=revision_plan.provider_model,
             raw_response_path=None,
@@ -5072,7 +9149,7 @@ class ProjectService:
         *,
         revision: Revision,
         stl_path: Path,
-        scad_source: str,
+        source: str,
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
         revision_output: RevisionOutput | None = None,
@@ -5081,11 +9158,11 @@ class ProjectService:
             return
         loaded = trimesh.load(stl_path, force="mesh")
         mesh = _as_mesh(loaded)
-        source_metadata = SourceContractValidator().validate(
-            scad_source,
-            design_specification=design_specification_payload,
-            source_type=revision.source_type,
-        ).source_metadata
+        source_metadata = self._cadquery_revision_source_metadata(
+            source,
+            self._revision_design_plan_payload(revision) or {},
+        )
+        design_plan_payload = self._revision_design_plan_payload(revision) or {}
         context = GeometricAnalysisContext(
             mesh=mesh,
             design_specification=design_specification_payload,
@@ -5094,12 +9171,68 @@ class ProjectService:
             mesh_hash=mesh_hash(mesh),
         )
         result = GeometryAnalyzerRegistry.default().analyze(context)
+        functional_contract = design_plan_payload.get("functional_contract")
+        if isinstance(functional_contract, dict):
+            parameter_manifest = None
+            if revision.execution_manifest_path:
+                execution_manifest = self._read_json_file(revision.execution_manifest_path)
+                if isinstance(execution_manifest, dict):
+                    parameter_manifest = execution_manifest.get("parameters")
+            result.findings.extend(
+                FunctionalGeometryVerifierRegistry.default().verify(
+                    FunctionalGeometryContext(
+                        product_plan=design_plan_payload,
+                        output_shape=mesh,
+                        source_metadata=source_metadata,
+                        parameter_manifest=parameter_manifest,
+                    )
+                )
+            )
+        authority = authority_from_generation_context(design_plan_payload=design_plan_payload)
+        if authority is not None:
+            try:
+                validate_cadquery_source_authority(source, authority)
+            except CadQuerySourceAuthorityError as error:
+                for source_finding in error.findings:
+                    if source_finding.get("rule_id") not in {
+                        "cadquery.protected_parameter_no_geometry_effect",
+                        "cadquery.functional_parameter_unused",
+                        "functional.feature_declared_not_invoked",
+                        "functional.feature_result_discarded",
+                        "functional.protected_feature_missing",
+                        "geometry_body.required_effect_missing",
+                        "geometry_body.derived_dependency_broken",
+                        "geometry_body.pattern_count_hardcoded",
+                        "geometry_body.pattern_spacing_hardcoded",
+                        "geometry_body.dimension_bypassed_by_literal",
+                        "geometry_body.effect_unverifiable",
+                    }:
+                        continue
+                    result.findings.append(
+                        GeometricFinding(
+                            rule_id=f"functional.{source_finding['rule_id'].split('.', 1)[-1]}",
+                            requirement_id=source_finding.get("parameter_id"),
+                            verification_state="violated",
+                            expected_value=source_finding.get("expected_value"),
+                            detected_value=source_finding.get("detected_value"),
+                            unit=None,
+                            tolerance=None,
+                            confidence=1.0,
+                            severity="critical",
+                            is_blocking=True,
+                            title="Functional parameter or feature implementation",
+                            explanation=source_finding.get("explanation") or source_finding.get("message") or "Functional source evidence is missing.",
+                            suggested_correction="Regenerate the source so the approved functional parameter or feature changes the intended geometry.",
+                            feature_id=source_finding.get("feature_id"),
+                            metadata={"source_contract_rule_id": source_finding.get("rule_id")},
+                        )
+                    )
         if not source_metadata.geometry_mappings and self._has_protected_design_invariants(
             design_specification_payload
         ):
             result.findings.append(
                 GeometricFinding(
-                    rule_id="geometry.missing_geometry_markers",
+                    rule_id="geometry.missing_geometry_metadata",
                     requirement_id=None,
                     verification_state="unverifiable",
                     expected_value="protected geometry metadata",
@@ -5110,9 +9243,19 @@ class ProjectService:
                     severity="warning",
                     is_blocking=False,
                     title="Geometric invariants not verified",
-                    explanation="The compiled model has protected Design Specification values, but the source did not include parseable geometry markers for supported invariant checks.",
-                    suggested_correction="Review the model manually or revise the source to add geometry markers for measurable protected bounds, holes, hole groups, or wall thickness.",
-                    metadata={"marker_format": "@volundr-geometry"},
+                    explanation="The compiled model has protected Design Specification values, but the source and Design Plan did not provide parseable geometry metadata for supported invariant checks.",
+                    suggested_correction="Review the model manually or revise the source or Design Plan metadata to map measurable protected bounds, holes, hole groups, or wall thickness.",
+                    metadata={"metadata_source": "cadquery_source_and_design_plan"},
+                )
+            )
+        requirement_ledger = RequirementLedgerStore(self.db).load(revision.project_id)
+        active_requirement_items = active_requirements(requirement_ledger)
+        if active_requirement_items:
+            result.findings.extend(
+                evaluate_requirement_compliance(
+                    active_requirement_items,
+                    evidence=list(result.findings),
+                    present_feature_ids=set(source_metadata.feature_mappings),
                 )
             )
         revision_dir = self._revision_dir(revision.project_id, revision.id)
@@ -5138,7 +9281,7 @@ class ProjectService:
         self.db.add(persisted)
         self.db.flush()
         for index, finding in enumerate(result.findings):
-            if finding.verification_state in {"violated", "unverifiable"}:
+            if finding.verification_state in {"violated", "unverifiable", "human_review"}:
                 validation_finding = self._validation_finding_from_geometric_result(
                     finding,
                     revision_id=revision.id,
@@ -5193,7 +9336,7 @@ class ProjectService:
             revision_output_id=revision_output_id,
             design_specification_id=design_specification_id,
             rule_id=finding.rule_id,
-            category="geometry",
+            category="requirement" if finding.rule_id.startswith("requirement.") else "geometry",
             severity=finding.severity,
             is_blocking=finding.is_blocking,
             title=finding.title,
@@ -5323,6 +9466,40 @@ class ProjectService:
             return "ready_with_warnings"
         return "ready"
 
+    def _derive_functional_status(self, revision_id: str) -> str:
+        revision = self.db.get(Revision, revision_id)
+        findings = list(
+            self.db.scalars(
+                select(ValidationFinding).where(
+                    ValidationFinding.revision_id == revision_id,
+                    ValidationFinding.rule_id.like("functional.%"),
+                )
+            )
+        )
+        if not findings:
+            plan_payload = (
+                self._read_json_file(revision.design_plan.plan_path)
+                if revision is not None and revision.design_plan is not None
+                else None
+            )
+            functional_contract = plan_payload.get("functional_contract") if isinstance(plan_payload, dict) else None
+            if not isinstance(functional_contract, dict) or not any(
+                isinstance(functional_contract.get(collection), list) and functional_contract.get(collection)
+                for collection in (
+                    "mounting_interfaces",
+                    "support_interfaces",
+                    "containment_interfaces",
+                    "retention_interfaces",
+                )
+            ):
+                return "functionally_verified"
+            return "functionally_unverified"
+        if any(finding.is_blocking for finding in findings):
+            return "functionally_violated"
+        if any(finding.verification_state in {"partially_verified", "unverifiable"} for finding in findings):
+            return "functionally_partially_verified"
+        return "functionally_verified"
+
     def _should_auto_accept_revision(
         self,
         *,
@@ -5341,6 +9518,18 @@ class ProjectService:
             self.db.scalar(
                 select(func.count(ValidationFinding.id)).where(
                     ValidationFinding.revision_id == revision_id,
+                    ValidationFinding.is_blocking.is_(True),
+                )
+            )
+            or 0
+        ) > 0
+
+    def _has_design_artifact_consistency_blockers(self, revision_id: str) -> bool:
+        return (
+            self.db.scalar(
+                select(func.count(ValidationFinding.id)).where(
+                    ValidationFinding.revision_id == revision_id,
+                    ValidationFinding.category == "design_artifact_consistency",
                     ValidationFinding.is_blocking.is_(True),
                 )
             )
@@ -5379,7 +9568,9 @@ class ProjectService:
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
-            scad_source_path="",
+            cad_backend="cadquery",
+            source_language="python",
+            source_path="",
             status="failed",
             is_accepted=False,
         )
@@ -5388,14 +9579,16 @@ class ProjectService:
 
         revision_dir = self._revision_dir(project.id, revision.id)
         revision_dir.mkdir(parents=True, exist_ok=True)
-        source_path = revision_dir / "model.scad"
+        source_path = revision_dir / "source.py"
         source_path.write_text("", encoding="utf-8")
         ai_output_path = revision_dir / "ai-output.txt"
         ai_output_path.write_text(raw_ai_output, encoding="utf-8")
         compile_log_path = revision_dir / "compile.log"
         compile_log_path.write_text(error_message, encoding="utf-8")
 
-        revision.scad_source_path = self._relative(source_path)
+        revision.source_path = self._relative(source_path)
+        revision.source_hash = self._sha256("")
+        revision.source_contract_version = "cadquery-v1"
         revision.ai_output_path = self._relative(ai_output_path)
         revision.compile_log_path = self._relative(compile_log_path)
         self._record_revision_messages(revision=revision, user_instruction=user_instruction)
@@ -5403,115 +9596,25 @@ class ProjectService:
         self.db.refresh(revision)
         return self._revision_read(revision, error_message=error_message)
 
-    async def _create_revision_from_source(
+    async def _create_cadquery_revision_from_planned_source(
         self,
         *,
         project_id: str,
-        scad_source: str,
-        user_instruction: str | None,
-        source_type: str,
-        raw_ai_output: str | None = None,
-        design_specification_id: str | None = None,
-        design_specification_payload: dict[str, Any] | None = None,
-        source_validation_result_id: str | None = None,
-    ) -> RevisionRead | None:
-        project = self.db.get(Project, project_id)
-        if project is None:
-            return None
-
-        revision_number = self._next_revision_number(project_id)
-        revision = Revision(
-            project_id=project_id,
-            parent_revision_id=project.active_revision_id,
-            design_specification_id=design_specification_id,
-            revision_number=revision_number,
-            source_type=source_type,
-            user_instruction=user_instruction,
-            scad_source_path="",
-            status="compiling",
-            is_accepted=False,
-        )
-        self.db.add(revision)
-        self.db.flush()
-        if source_validation_result_id is not None:
-            self._attach_source_validation_to_revision(
-                source_validation_result_id=source_validation_result_id,
-                revision_id=revision.id,
-            )
-
-        revision_dir = self._revision_dir(project_id, revision.id)
-        revision_dir.mkdir(parents=True, exist_ok=True)
-        source_path = revision_dir / "model.scad"
-        source_path.write_text(scad_source, encoding="utf-8")
-
-        ai_output_relative_path: str | None = None
-        if raw_ai_output is not None:
-            ai_output_path = revision_dir / "ai-output.txt"
-            ai_output_path.write_text(raw_ai_output, encoding="utf-8")
-            ai_output_relative_path = self._relative(ai_output_path)
-
-        result = await self.cad_runner.compile(scad_source, job_id=revision.id)
-
-        compile_log_path = revision_dir / "compile.log"
-        compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
-
-        metadata: MeshMetadata | None = None
-        stl_relative_path: str | None = None
-        if result.success and result.stl_path is not None and result.metadata is not None:
-            stl_path = revision_dir / "model.stl"
-            shutil.copyfile(result.stl_path, stl_path)
-            metadata_path = revision_dir / "metadata.json"
-            metadata_path.write_text(json.dumps(asdict(result.metadata), indent=2), encoding="utf-8")
-            metadata = result.metadata
-            stl_relative_path = self._relative(stl_path)
-            revision.status = "succeeded"
-            self._persist_geometric_analysis(
-                revision=revision,
-                stl_path=stl_path,
-                scad_source=scad_source,
-                design_specification_payload=design_specification_payload,
-                design_specification_id=design_specification_id,
-            )
-            self._persist_validation_findings(revision=revision, stl_path=stl_path)
-            review_state = self._derive_review_state(revision.id)
-            if self._should_auto_accept_revision(project=project, source_type=source_type, review_state=review_state):
-                revision.review_state = "accepted"
-                revision.is_accepted = True
-                revision.accepted_at = project_utcnow()
-                project.active_revision_id = revision.id
-            else:
-                revision.review_state = review_state
-                revision.is_accepted = False
-        else:
-            revision.status = "failed"
-            revision.is_accepted = False
-            revision.review_state = None
-
-        revision.scad_source_path = self._relative(source_path)
-        revision.stl_path = stl_relative_path
-        revision.compile_log_path = self._relative(compile_log_path)
-        revision.ai_output_path = ai_output_relative_path
-        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
-        self.db.commit()
-        self.db.refresh(revision)
-        return self._revision_read(revision, metadata=metadata, error_message=result.error_message)
-
-    async def _create_revision_from_planned_source(
-        self,
-        *,
-        project_id: str,
-        scad_source: str,
+        source: str,
         user_instruction: str | None,
         source_type: str,
         raw_ai_output: str | None,
         design_specification_id: str | None,
         design_specification_payload: dict[str, Any] | None,
-        design_plan_id: str,
+        design_plan_id: str | None,
         design_plan_payload: dict[str, Any],
         source_validation_result_id: str | None,
-        compile_defines: dict[str, str | int | float | bool] | None = None,
+        parameter_values: dict[str, Any] | None = None,
         parent_revision_id: str | None = None,
         configuration_change_id: str | None = None,
+        parameter_overrides: dict[str, Any] | None = None,
+        auto_accept: bool = False,
+        workflow_run: WorkflowRun | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -5531,7 +9634,9 @@ class ProjectService:
             revision_number=revision_number,
             source_type=source_type,
             user_instruction=user_instruction,
-            scad_source_path="",
+            cad_backend="cadquery",
+            source_language="python",
+            source_path="",
             status="compiling",
             is_accepted=False,
             expected_output_count=len(outputs),
@@ -5551,27 +9656,73 @@ class ProjectService:
         revision_dir = self._revision_dir(project_id, revision.id)
         revision_dir.mkdir(parents=True, exist_ok=True)
         stl_dir = revision_dir / "stl"
+        step_dir = revision_dir / "step"
+        brep_dir = revision_dir / "brep"
         log_dir = revision_dir / "logs"
         metadata_dir = revision_dir / "metadata"
-        stl_dir.mkdir(parents=True, exist_ok=True)
-        log_dir.mkdir(parents=True, exist_ok=True)
-        metadata_dir.mkdir(parents=True, exist_ok=True)
+        for directory in (stl_dir, step_dir, brep_dir, log_dir, metadata_dir):
+            directory.mkdir(parents=True, exist_ok=True)
 
-        source_path = revision_dir / "project.scad"
-        source_path.write_text(scad_source, encoding="utf-8")
-        source_hash = hashlib.sha256(scad_source.encode("utf-8")).hexdigest()
-
+        source_path = revision_dir / "source.py"
+        source_path.write_text(source, encoding="utf-8")
+        source_hash = self._sha256(source)
         ai_output_relative_path: str | None = None
         if raw_ai_output is not None:
             ai_output_path = revision_dir / "ai-output.txt"
             ai_output_path.write_text(raw_ai_output, encoding="utf-8")
             ai_output_relative_path = self._relative(ai_output_path)
 
+        compile_parameter_values = self._cadquery_execution_parameter_values(
+            source=source,
+            design_plan_payload=design_plan_payload,
+            overrides=parameter_values,
+        )
+        explicit_inventory = inventory_from_design_specification(design_specification_payload)
+        explicit_inventory = _control_source_inventory(design_plan_payload, explicit_inventory)
+        if explicit_inventory:
+            validate_execution_parameters(compile_parameter_values, explicit_inventory)
+        parameter_hash = self._configuration_parameter_hash(compile_parameter_values)
+        generation_attempt_id = self._source_validation_generation_attempt_id(source_validation_result_id)
+        if design_plan_id is not None:
+            pre_execution_consistency = self._persist_design_artifact_consistency(
+                revision=revision,
+                source=source,
+                design_specification_payload=design_specification_payload,
+                design_plan_payload=design_plan_payload,
+                execution_parameters=compile_parameter_values,
+                parameter_overrides=parameter_overrides,
+                generation_attempt_id=generation_attempt_id,
+            )
+            if not pre_execution_consistency.pre_execution_passed:
+                payload = self._read_design_artifact_consistency_payload(pre_execution_consistency)
+                error_message = consistency_failure_message(payload)
+                revision.status = "failed"
+                revision.review_state = "blocked"
+                revision.source_path = self._relative(source_path)
+                revision.source_hash = source_hash
+                revision.source_contract_version = "cadquery-v1"
+                revision.ai_output_path = ai_output_relative_path
+                self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+                self.db.commit()
+                self.db.refresh(revision)
+                return self._revision_read(revision, error_message=error_message)
         used_filenames: set[str] = set()
         output_records: list[RevisionOutput] = []
+        requested_outputs: list[dict[str, Any]] = []
         for output in outputs:
             filename = self._safe_output_filename(output["output_id"], output["filename"], used_filenames)
             used_filenames.add(filename.lower())
+            requested_output = {
+                "output_id": output["output_id"],
+                "required": output["required"],
+            }
+            if output["expected_solid_count"] is not None:
+                requested_output["expected_solid_count"] = output["expected_solid_count"]
+            if output["allow_disconnected_solids"] is not None:
+                requested_output["allow_disconnected_solids"] = output[
+                    "allow_disconnected_solids"
+                ]
+            requested_outputs.append(requested_output)
             record = RevisionOutput(
                 revision_id=revision.id,
                 design_plan_id=design_plan_id,
@@ -5579,14 +9730,17 @@ class ProjectService:
                 output_id=output["output_id"],
                 component_id=output["component_id"],
                 component_ids_json=json.dumps(output["component_ids"]),
-                output_state="queued",
+                execution_state="queued",
                 output_type=output["output_type"],
                 label=output["label"],
                 filename=filename,
                 quantity=output["quantity"],
                 required=output["required"],
-                module_name=output["module_name"],
+                entrypoint=output["entrypoint"],
                 source_hash=source_hash,
+                parameter_hash=parameter_hash,
+                expected_solid_count=output["expected_solid_count"],
+                allow_disconnected_solids=output["allow_disconnected_solids"],
                 preferred_orientation_json=json.dumps(output["preferred_orientation"])
                 if output["preferred_orientation"] is not None
                 else None,
@@ -5595,35 +9749,361 @@ class ProjectService:
             output_records.append(record)
         self.db.flush()
 
+        started = time.perf_counter()
         for output_record in output_records:
-            await self._compile_revision_output(
+            output_record.execution_state = "compiling"
+        self.db.flush()
+        self._record_workflow_event(
+            workflow_run,
+            stage="worker_submission",
+            event_type="worker.submitted",
+            severity="summary",
+            message="CAD worker job submitted.",
+            deduplication_key=f"worker-submitted-{revision.id}",
+            revision_id=revision.id,
+            worker_job_id=revision.id,
+            metadata={
+                "requested_output_ids": [item["output_id"] for item in requested_outputs],
+                "source_hash": source_hash,
+                "parameter_hash": parameter_hash,
+            },
+        )
+        for parameter_id, parameter_value in sorted(compile_parameter_values.items()):
+            self._record_workflow_event(
+                workflow_run,
+                stage="worker_submission",
+                event_type="execution.parameter_submitted",
+                severity="standard",
+                message=f"Parameter {parameter_id} submitted to CAD worker.",
+                deduplication_key=f"worker-parameter-{revision.id}-{parameter_id}",
+                entity_type="parameter",
+                entity_id=str(parameter_id),
+                detected=parameter_value,
+                revision_id=revision.id,
+                design_specification_id=design_specification_id,
+                design_plan_id=design_plan_id,
+                configuration_change_id=configuration_change_id,
+                worker_job_id=revision.id,
+                metadata={"value_source": "submitted_parameter"},
+            )
+        result = await self._cadquery_runner().compile(
+            source,
+            job_id=revision.id,
+            parameter_values=compile_parameter_values,
+            requested_outputs=requested_outputs,
+        )
+        compile_ms = round((time.perf_counter() - started) * 1000, 3)
+        worker_event = self._record_workflow_event(
+            workflow_run,
+            stage="cad_execution",
+            event_type="worker.completed" if result.success else "worker.failed",
+            severity="summary" if result.success else "error",
+            blocking=not result.success,
+            rule_id="cad_execution.failed" if not result.success else None,
+            message="CAD worker job completed." if result.success else result.error_message or "CAD worker job failed.",
+            deduplication_key=f"worker-completed-{revision.id}",
+            revision_id=revision.id,
+            worker_job_id=result.job_id,
+            metadata={"compile_ms": compile_ms},
+        )
+        compile_log_path = log_dir / "cadquery.log"
+        compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
+        execution_manifest_source = getattr(result, "execution_manifest_path", None)
+        execution_manifest_relative_path: str | None = None
+        if isinstance(execution_manifest_source, Path) and execution_manifest_source.exists():
+            execution_manifest_path = revision_dir / "execution-manifest.json"
+            shutil.copyfile(execution_manifest_source, execution_manifest_path)
+            execution_manifest_relative_path = self._relative(execution_manifest_path)
+        result_outputs = {output.output_id: output for output in getattr(result, "outputs", [])}
+        for output_record in output_records:
+            output_result = result_outputs.get(output_record.output_id)
+            output_record.compile_ms = compile_ms
+            output_record.execution_command_json = json.dumps(result.command_args or [])
+            output_record.compile_log_path = self._relative(compile_log_path)
+            output_record.source_hash = source_hash
+            output_record.parameter_hash = parameter_hash
+            if output_result is None or not output_result.success or output_result.stl_path is None:
+                output_record.execution_state = "failed"
+                output_record.compile_error = (
+                    output_result.compile_error
+                    if output_result is not None
+                    else result.error_message or "CadQuery output was not produced"
+                )
+                if output_result is not None and output_result.topology_metadata is not None:
+                    output_record.topology_metadata_json = json.dumps(
+                        output_result.topology_metadata,
+                        sort_keys=True,
+                    )
+                    self._apply_topology_metadata_fields(
+                        output_record,
+                        output_result.topology_metadata,
+                    )
+                output_record.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
+                continue
+            self._persist_cadquery_output_artifacts(
                 revision=revision,
                 output=output_record,
-                scad_source=scad_source,
-                source_hash=source_hash,
+                output_result=output_result,
+                source=source,
                 stl_dir=stl_dir,
-                log_dir=log_dir,
+                step_dir=step_dir,
+                brep_dir=brep_dir,
                 metadata_dir=metadata_dir,
                 design_specification_payload=design_specification_payload,
                 design_specification_id=design_specification_id,
-                compile_defines=compile_defines,
             )
 
         self._persist_assembly_output_findings(revision)
         self._refresh_revision_output_counts(revision)
-        revision.status = "succeeded"
-        revision.scad_source_path = self._relative(source_path)
+        first_blocking_validation_event = None
+        for output_record in output_records:
+            topology = self._output_topology_metadata(output_record)
+            if not topology or topology.get("valid", True) is not False:
+                continue
+            first_blocking_validation_event = first_blocking_validation_event or self._record_workflow_event(
+                workflow_run,
+                stage="topology_validation",
+                event_type="topology.failed",
+                severity="error",
+                blocking=True,
+                rule_id="topology.solid_count_mismatch",
+                message="A required printable part contains separate solid bodies that were expected to be connected.",
+                deduplication_key=f"topology-failed-{output_record.id}",
+                revision_id=revision.id,
+                revision_output_id=output_record.id,
+                expected=output_record.expected_solid_count,
+                detected=output_record.detected_solid_count,
+                worker_job_id=revision.id,
+                metadata={"output_id": output_record.output_id, "topology": topology},
+            )
+        revision.status = "succeeded" if revision.successful_output_count > 0 else "failed"
+        revision.source_path = self._relative(source_path)
+        revision.source_hash = source_hash
+        revision.source_contract_version = "cadquery-v1"
+        revision.execution_manifest_path = execution_manifest_relative_path
         revision.ai_output_path = ai_output_relative_path
-        revision.compile_log_path = self._relative(self._write_assembly_compile_log(revision, log_dir))
+        revision.compile_log_path = self._relative(compile_log_path)
         revision.stl_path = self._first_successful_output_stl(revision)
-        revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
-        revision.review_state = self._derive_review_state(revision.id)
+        output_manifest_path = self._write_output_manifest(revision)
+        revision.output_manifest_path = self._relative(output_manifest_path)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="source_generation" if source_type in {"ai_initial", "ai_revision"} else "configuration_execution",
+            artifact_type="cadquery_source",
+            role=f"{source_type}_source",
+            relative_path=revision.source_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_diagnostics",
+            role="compile_log",
+            relative_path=revision.compile_log_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_result_manifest",
+            role="execution_manifest",
+            relative_path=revision.execution_manifest_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="output_manifest",
+            role="output_manifest",
+            relative_path=revision.output_manifest_path,
+        )
+        for output_record in output_records:
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="topology_validation",
+                artifact_type="topology_result",
+                role=f"topology_{output_record.output_id}",
+                relative_path=revision.output_manifest_path,
+                metadata={"output_id": output_record.output_id},
+            )
+        execution_manifest_payload = (
+            self._read_json_file(execution_manifest_relative_path)
+            if execution_manifest_relative_path is not None
+            else None
+        )
+        output_manifest_payload = self._read_json_file(revision.output_manifest_path)
+        if design_plan_id is not None:
+            self._persist_design_artifact_consistency(
+                revision=revision,
+                source=source,
+                design_specification_payload=design_specification_payload,
+                design_plan_payload=design_plan_payload,
+                execution_parameters=compile_parameter_values,
+                execution_manifest=execution_manifest_payload,
+                output_manifest=output_manifest_payload,
+                parameter_overrides=parameter_overrides,
+                generation_attempt_id=generation_attempt_id,
+            )
+        functional_findings = list(
+            self.db.scalars(
+                select(ValidationFinding).where(
+                    ValidationFinding.revision_id == revision.id,
+                    ValidationFinding.rule_id.like("functional.%"),
+                )
+            )
+        )
+        functional_validation_event = None
+        if functional_findings:
+            first_functional = functional_findings[0]
+            functional_validation_event = self._record_workflow_event(
+                workflow_run,
+                stage="topology_validation",
+                event_type="functional.verification.completed",
+                severity="error" if any(item.is_blocking for item in functional_findings) else "summary",
+                blocking=any(item.is_blocking for item in functional_findings),
+                rule_id=first_functional.rule_id,
+                message="Functional design checks completed.",
+                deduplication_key=f"functional-verification-{revision.id}",
+                revision_id=revision.id,
+                metadata={
+                    "finding_count": len(functional_findings),
+                    "blocking_count": sum(1 for item in functional_findings if item.is_blocking),
+                },
+            )
+        revision.functional_status = self._derive_functional_status(revision.id)
+        revision.review_state = (
+            self._derive_review_state(revision.id)
+            if revision.status == "succeeded" or source_type != "manual_edit"
+            else None
+        )
+        self._generate_revision_snapshot_evidence(
+            project=project,
+            revision=revision,
+            output_records=output_records,
+            workflow_run=workflow_run,
+            design_plan_payload=design_plan_payload,
+            user_instruction=user_instruction,
+            generation_attempt_id=generation_attempt_id,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="candidate_classification",
+            event_type="candidate.classified",
+            severity="summary" if revision.review_state in ACCEPTABLE_CANDIDATE_STATES else "error",
+            blocking=revision.review_state == "blocked" or revision.status == "failed",
+            rule_id="candidate.blocked"
+            if revision.review_state == "blocked" or revision.status == "failed"
+            else None,
+            message=f"Candidate classified as {revision.review_state or revision.status}.",
+            deduplication_key=f"candidate-classified-{revision.id}",
+            caused_by_event_id=(
+                first_blocking_validation_event.id
+                if first_blocking_validation_event is not None
+                else (
+                    functional_validation_event.id
+                    if functional_validation_event is not None and functional_validation_event.blocking
+                    else worker_event.id
+                    if revision.status == "failed" and worker_event is not None
+                    else None
+                )
+            ),
+            is_downstream_symptom=(
+                first_blocking_validation_event is not None
+                or (functional_validation_event is not None and functional_validation_event.blocking)
+                or revision.status == "failed"
+            ),
+            revision_id=revision.id,
+            metadata={
+                "review_state": revision.review_state,
+                "status": revision.status,
+                "successful_output_count": revision.successful_output_count,
+                "failed_output_count": revision.failed_output_count,
+                "blocked_output_count": revision.blocked_output_count,
+            },
+        )
         revision.is_accepted = False
-
+        if (
+            auto_accept
+            and revision.status == "succeeded"
+            and self._should_auto_accept_revision(
+                project=project,
+                source_type=source_type,
+                review_state=revision.review_state,
+            )
+        ):
+            revision.review_state = "accepted"
+            revision.is_accepted = True
+            revision.accepted_at = project_utcnow()
+            project.active_revision_id = revision.id
         self._record_revision_messages(revision=revision, user_instruction=user_instruction)
         self.db.commit()
         self.db.refresh(revision)
-        return self._revision_read(revision)
+        revision_error = None
+        if revision.status == "failed":
+            revision_error = result.error_message or next(
+                (output.compile_error for output in output_records if output.compile_error),
+                None,
+            )
+        return self._revision_read(revision, error_message=revision_error)
+
+    def _generate_revision_snapshot_evidence(
+        self,
+        *,
+        project: Project,
+        revision: Revision,
+        output_records: list[RevisionOutput],
+        workflow_run: WorkflowRun | None,
+        design_plan_payload: dict[str, Any] | None,
+        user_instruction: str | None,
+        generation_attempt_id: str | None,
+    ) -> None:
+        """Observe worker geometry without changing validation or promotion."""
+        snapshot_run = workflow_run
+        owns_run = False
+        if snapshot_run is None:
+            snapshot_run = self._workflow_recorder().start_run(
+                project_id=project.id,
+                workflow_type="snapshot_generation",
+                metadata={"revision_id": revision.id, "reason": "post_worker_observation"},
+            )
+            owns_run = True
+        service = SnapshotService(db=self.db, data_dir=self.data_dir)
+        candidate_state = "blocked" if revision.review_state == "blocked" or revision.status == "failed" else "ready"
+        try:
+            result = service.generate_for_revision(
+                workflow_run=snapshot_run,
+                revision=revision,
+                outputs=output_records,
+                candidate_state=candidate_state,
+                execution_context={"design_plan": design_plan_payload or {}},
+                attempt_id=generation_attempt_id,
+            )
+            if result.packet is not None and revision.parent_revision_id:
+                before_revision = self.db.get(Revision, revision.parent_revision_id)
+                before_packet = service.get_packet(
+                    revision.parent_revision_id,
+                    project_id=project.id,
+                )
+                if before_revision is not None and before_packet is not None:
+                    service.compare_revisions(
+                        workflow_run=snapshot_run,
+                        before_revision=before_revision,
+                        after_revision=revision,
+                        revision_instruction=user_instruction,
+                        before_packet=before_packet,
+                        after_packet=result.packet,
+                    )
+        except Exception as exc:
+            self._record_workflow_event(
+                snapshot_run,
+                stage="snapshot_generation",
+                event_type="snapshot.generation_failed",
+                severity="warning",
+                message="Deterministic geometry snapshots could not be generated.",
+                revision_id=revision.id,
+                deduplication_key=f"snapshot-generation-failed-{revision.id}",
+                metadata={"error": str(exc), "nonblocking": True},
+            )
+        finally:
+            if owns_run:
+                self._workflow_recorder().complete_run(snapshot_run, status="completed")
 
     def read_revision_source(self, revision_id: str) -> str | None:
         path = self.resolve_revision_source(revision_id)
@@ -5633,9 +10113,9 @@ class ProjectService:
 
     def resolve_revision_source(self, revision_id: str) -> Path | None:
         revision = self.db.get(Revision, revision_id)
-        if revision is None or not revision.scad_source_path:
+        if revision is None or not revision.source_path:
             return None
-        path = self.data_dir / revision.scad_source_path
+        path = self.data_dir / revision.source_path
         return path if path.exists() else None
 
     def read_revision_compile_log(self, revision_id: str) -> str | None:
@@ -5690,6 +10170,13 @@ class ProjectService:
         path = self.data_dir / output.stl_path
         return path if path.exists() else None
 
+    def resolve_revision_output_step(self, output_artifact_id: str) -> Path | None:
+        output = self.db.get(RevisionOutput, output_artifact_id)
+        if output is None or output.step_path is None:
+            return None
+        path = self.data_dir / output.step_path
+        return path if path.exists() else None
+
     def read_revision_output_compile_log(self, output_artifact_id: str) -> str | None:
         output = self.db.get(RevisionOutput, output_artifact_id)
         if output is None or output.compile_log_path is None:
@@ -5713,6 +10200,21 @@ class ProjectService:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
             return None
+        if revision.status != "succeeded" or revision.review_state not in {"accepted", "ready", "ready_with_warnings"}:
+            raise ValueError("exports require a successful non-blocked revision")
+        workflow_run = self._start_child_workflow_run(
+            project_id=revision.project_id,
+            workflow_type="export",
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="export",
+            event_type="export.requested",
+            severity="summary",
+            message="Revision export requested.",
+            deduplication_key=f"export-requested-{revision.id}",
+            revision_id=revision.id,
+        )
         revision_dir = self._revision_dir(revision.project_id, revision.id)
         revision_dir.mkdir(parents=True, exist_ok=True)
         export_path = revision_dir / "project-export.zip"
@@ -5740,7 +10242,11 @@ class ProjectService:
             )
             source_path = self.resolve_revision_source(revision.id)
             if source_path is not None:
-                archive.write(source_path, f"{root}/project.scad")
+                archive.write(source_path, f"{root}/{source_path.name}")
+            if revision.execution_manifest_path:
+                execution_manifest_path = self.data_dir / revision.execution_manifest_path
+                if execution_manifest_path.exists():
+                    archive.write(execution_manifest_path, f"{root}/execution-manifest.json")
             archive.writestr(
                 f"{root}/output-manifest.json",
                 json.dumps(payload, indent=2, sort_keys=True),
@@ -5764,13 +10270,49 @@ class ProjectService:
                 stl_path = self.data_dir / output.stl_path
                 if stl_path.exists():
                     archive.write(stl_path, f"{root}/stl/{output.filename}")
+                if output.step_path:
+                    step_path = self.data_dir / output.step_path
+                    if step_path.exists():
+                        archive.write(step_path, f"{root}/step/{Path(output.step_path).name}")
+                if output.brep_path:
+                    brep_path = self.data_dir / output.brep_path
+                    if brep_path.exists():
+                        archive.write(brep_path, f"{root}/brep/{Path(output.brep_path).name}")
+                metadata_json = output.mesh_metadata_json or output.metadata_json
+                if metadata_json:
+                    archive.writestr(
+                        f"{root}/metadata/{self._safe_stem(output.output_id)}.metadata.json",
+                        json.dumps(json.loads(metadata_json), indent=2, sort_keys=True),
+                    )
+            snapshot_root = self.data_dir / "projects" / revision.project_id / "revisions" / revision.id / "snapshots"
+            if snapshot_root.is_dir():
+                for snapshot_path in sorted(path for path in snapshot_root.rglob("*") if path.is_file()):
+                    archive.write(snapshot_path, f"{root}/snapshots/{snapshot_path.relative_to(snapshot_root)}")
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="export",
+            artifact_type="export_zip",
+            role="revision_export",
+            relative_path=self._relative(export_path),
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="export",
+            event_type="export.completed",
+            severity="summary",
+            message="Revision export bundle created.",
+            deduplication_key=f"export-completed-{revision.id}",
+            revision_id=revision.id,
+            metadata={"path": self._relative(export_path)},
+        )
+        self._workflow_recorder().complete_run(workflow_run, status="completed")
         return export_path
 
     async def retry_revision_output(self, output_artifact_id: str) -> RevisionOutputRead | None:
         output = self.db.get(RevisionOutput, output_artifact_id)
         if output is None:
             return None
-        if output.output_state != "failed":
+        if output.execution_state != "failed":
             raise ValueError("Only failed outputs can be retried")
         revision = self.db.get(Revision, output.revision_id)
         if revision is None:
@@ -5782,35 +10324,298 @@ class ProjectService:
         expected_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
         if output.source_hash and output.source_hash != expected_hash:
             raise ValueError("Source hash changed; output retry is not safe")
+        if revision.cad_backend != "cadquery":
+            raise ValueError("output retry requires a CadQuery revision")
+
+        active_retry = self.db.scalar(
+            select(WorkflowRun)
+            .join(WorkflowEvent, WorkflowEvent.workflow_run_id == WorkflowRun.id)
+            .where(
+                WorkflowRun.workflow_type == "output_retry",
+                WorkflowRun.status == "running",
+                WorkflowEvent.revision_output_id == output.id,
+            )
+        )
+        if active_retry is not None:
+            raise ValueError("Output retry is already running")
 
         revision_dir = self._revision_dir(revision.project_id, revision.id)
-        compile_defines: dict[str, str | int | float | bool] | None = None
+        workflow_run = self._start_child_workflow_run(
+            project_id=revision.project_id,
+            workflow_type="output_retry",
+            parent=self._workflow_run_for_revision(revision.id),
+        )
+        pre_retry_snapshot_path = revision_dir / "logs" / f"{self._safe_stem(output.output_id)}-pre-retry.json"
+        pre_retry_snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+        self._write_json(
+            pre_retry_snapshot_path,
+            {
+                "schema_version": "workflow-output-retry-snapshot-v1",
+                "revision_output_id": output.id,
+                "revision_id": revision.id,
+                "output_id": output.output_id,
+                "execution_state": output.execution_state,
+                "compile_error": output.compile_error,
+                "compile_log_path": output.compile_log_path,
+                "source_hash": output.source_hash,
+                "parameter_hash": output.parameter_hash,
+                "topology_metadata": json.loads(output.topology_metadata_json)
+                if output.topology_metadata_json
+                else None,
+                "validation_summary": json.loads(output.validation_summary_json)
+                if output.validation_summary_json
+                else None,
+            },
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="worker_result_snapshot",
+            role="pre_retry_worker_result",
+            relative_path=self._relative(pre_retry_snapshot_path),
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="output_preservation",
+            event_type="output_retry.started",
+            severity="summary",
+            message="Output retry started.",
+            deduplication_key=f"output-retry-started-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            metadata={"output_id": output.output_id},
+        )
+        design_plan_payload = self._revision_design_plan_payload(revision)
+        parameter_overrides = None
         if revision.configuration_change_id is not None:
             change = self.db.get(ConfigurationChange, revision.configuration_change_id)
             if change is not None:
-                compile_defines = self._configuration_override_manifest(change)["openscad_defines"]
-        await self._compile_revision_output(
-            revision=revision,
-            output=output,
-            scad_source=source,
-            source_hash=expected_hash,
-            stl_dir=revision_dir / "stl",
-            log_dir=revision_dir / "logs",
-            metadata_dir=revision_dir / "metadata",
-            design_specification_payload=self._revision_design_specification_payload(revision),
-            design_specification_id=revision.design_specification_id,
-            compile_defines=compile_defines,
+                parameter_overrides = dict(
+                    self._configuration_override_manifest(change).get("parameter_values") or {}
+                )
+        parameter_values = (
+            self._cadquery_execution_parameter_values(
+                source=source,
+                design_plan_payload=design_plan_payload,
+                overrides=parameter_overrides,
+            )
+            if design_plan_payload is not None
+            else self._cadquery_source_parameter_values(source)
         )
+        parameter_hash = self._configuration_parameter_hash(parameter_values)
+        if output.parameter_hash is None:
+            raise ValueError("Parameter hash is missing; output retry is not safe")
+        if output.parameter_hash != parameter_hash:
+            raise ValueError("Parameter hash changed; output retry is not safe")
+        stl_dir = revision_dir / "stl"
+        step_dir = revision_dir / "step"
+        brep_dir = revision_dir / "brep"
+        log_dir = revision_dir / "logs"
+        metadata_dir = revision_dir / "metadata"
+        for directory in (stl_dir, step_dir, brep_dir, log_dir, metadata_dir):
+            directory.mkdir(parents=True, exist_ok=True)
+        requested_output = {"output_id": output.output_id, "required": output.required}
+        if output.expected_solid_count is not None:
+            requested_output["expected_solid_count"] = output.expected_solid_count
+        if output.allow_disconnected_solids is not None:
+            requested_output["allow_disconnected_solids"] = output.allow_disconnected_solids
+        requested_outputs = [requested_output]
+        retry_job_id = f"{revision.id}-{output.id}-retry-{time.time_ns()}"
+        self._record_workflow_event(
+            workflow_run,
+            stage="worker_submission",
+            event_type="worker.submitted",
+            severity="summary",
+            message="CAD worker retry submitted.",
+            deduplication_key=f"output-retry-worker-submitted-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            worker_job_id=retry_job_id,
+            metadata={
+                "output_id": output.output_id,
+                "source_hash": expected_hash,
+                "parameter_hash": parameter_hash,
+                "requested_output_ids": [output.output_id],
+            },
+        )
+        output.execution_state = "compiling"
+        self.db.commit()
+        started = time.perf_counter()
+        result = await self._cadquery_runner().compile(
+            source,
+            job_id=retry_job_id,
+            parameter_values=parameter_values,
+            requested_outputs=requested_outputs,
+        )
+        compile_ms = round((time.perf_counter() - started) * 1000, 3)
+        self._record_workflow_event(
+            workflow_run,
+            stage="cad_execution",
+            event_type="worker.completed" if result.success else "worker.failed",
+            severity="summary" if result.success else "error",
+            blocking=not result.success,
+            rule_id="cad_execution.failed" if not result.success else None,
+            message="Output retry worker job completed."
+            if result.success
+            else result.error_message or "Output retry worker job failed.",
+            deduplication_key=f"output-retry-worker-completed-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            worker_job_id=result.job_id,
+            metadata={"compile_ms": compile_ms, "source_hash": expected_hash, "parameter_hash": parameter_hash},
+        )
+        compile_log_path = log_dir / f"{self._safe_stem(output.output_id)}-retry.log"
+        compile_log_path.write_text(self._compile_log(result), encoding="utf-8")
+        output_result = next(
+            (candidate for candidate in getattr(result, "outputs", []) if candidate.output_id == output.output_id),
+            None,
+        )
+        output.compile_ms = compile_ms
+        output.execution_command_json = json.dumps(result.command_args or [])
+        output.compile_log_path = self._relative(compile_log_path)
+        output.source_hash = expected_hash
+        output.parameter_hash = parameter_hash
+        if output_result is None or not output_result.success or output_result.stl_path is None:
+            output.execution_state = "failed"
+            output.compile_error = (
+                output_result.compile_error
+                if output_result is not None
+                else result.error_message or "CadQuery output was not produced"
+            )
+            if output_result is not None and output_result.topology_metadata is not None:
+                output.topology_metadata_json = json.dumps(
+                    output_result.topology_metadata,
+                    sort_keys=True,
+                )
+                self._apply_topology_metadata_fields(output, output_result.topology_metadata)
+            output.validation_summary_json = json.dumps(ValidationSummaryRead().model_dump())
+        else:
+            output.compile_error = None
+            self._persist_cadquery_output_artifacts(
+                revision=revision,
+                output=output,
+                output_result=output_result,
+                source=source,
+                stl_dir=stl_dir,
+                step_dir=step_dir,
+                brep_dir=brep_dir,
+                metadata_dir=metadata_dir,
+                design_specification_payload=self._revision_design_specification_payload(revision),
+                design_specification_id=revision.design_specification_id,
+            )
         self._clear_assembly_output_findings(revision.id)
         self._persist_assembly_output_findings(revision)
         self._refresh_revision_output_counts(revision)
+        revision.status = (
+            "succeeded"
+            if revision.successful_output_count >= revision.required_output_count
+            else "failed"
+        )
         revision.stl_path = self._first_successful_output_stl(revision)
         revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
+        revision.execution_manifest_path = self._relative(
+            self._write_revision_execution_manifest(
+                revision=revision,
+                source_hash=expected_hash,
+                parameter_hash=parameter_hash,
+                parameter_values=parameter_values,
+            )
+        )
         revision.compile_log_path = self._relative(
             self._write_assembly_compile_log(revision, revision_dir / "logs")
         )
+        self._certify_revision_artifacts(revision)
         revision.review_state = self._derive_review_state(revision.id)
+        retry_outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        retry_project = self.db.get(Project, revision.project_id)
+        if retry_project is not None:
+            self._generate_revision_snapshot_evidence(
+                project=retry_project,
+                revision=revision,
+                output_records=retry_outputs,
+                workflow_run=workflow_run,
+                design_plan_payload=design_plan_payload,
+                user_instruction=revision.user_instruction,
+                generation_attempt_id=None,
+            )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_diagnostics",
+            role="retry_compile_log",
+            relative_path=output.compile_log_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="output_preservation",
+            artifact_type="output_manifest",
+            role="retry_output_manifest",
+            relative_path=revision.output_manifest_path,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="cad_execution",
+            artifact_type="worker_result_manifest",
+            role="retry_execution_manifest",
+            relative_path=revision.execution_manifest_path,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="output_preservation",
+            event_type="output_retry.completed",
+            severity="summary" if output.execution_state != "failed" else "error",
+            blocking=output.execution_state == "failed",
+            rule_id="output_retry.failed" if output.execution_state == "failed" else None,
+            message="Output retry completed.",
+            deduplication_key=f"output-retry-completed-{output.id}",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            metadata={"execution_state": output.execution_state, "revision_status": revision.status},
+        )
+        retry_worker_event = self.db.scalar(
+            select(WorkflowEvent)
+            .where(WorkflowEvent.workflow_run_id == workflow_run.id)
+            .where(WorkflowEvent.event_type.in_(("worker.completed", "worker.failed")))
+            .order_by(WorkflowEvent.sequence_number.desc())
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="candidate_classification",
+            event_type="candidate.classified",
+            severity="summary" if revision.review_state in ACCEPTABLE_CANDIDATE_STATES else "error",
+            blocking=revision.review_state == "blocked" or revision.status == "failed",
+            rule_id="candidate.blocked"
+            if revision.review_state == "blocked" or revision.status == "failed"
+            else None,
+            message=f"Candidate classified as {revision.review_state or revision.status} after output retry.",
+            deduplication_key=f"output-retry-candidate-classified-{output.id}",
+            caused_by_event_id=(
+                retry_worker_event.id
+                if retry_worker_event is not None and revision.status == "failed"
+                else None
+            ),
+            is_downstream_symptom=revision.status == "failed",
+            revision_id=revision.id,
+            revision_output_id=output.id,
+            worker_job_id=retry_job_id,
+            metadata={
+                "review_state": revision.review_state,
+                "status": revision.status,
+                "source_hash": expected_hash,
+                "parameter_hash": parameter_hash,
+            },
+        )
         self.db.commit()
+        self._workflow_recorder().complete_run(
+            workflow_run,
+            status="completed" if output.execution_state != "failed" else "failed",
+        )
         self.db.refresh(output)
         return self._revision_output_read(output)
 
@@ -5902,6 +10707,18 @@ class ProjectService:
             affected_outputs=affected["affected_outputs"],
         )
 
+    def _configuration_source_metadata(
+        self,
+        *,
+        source: str,
+        design_plan_payload: dict[str, Any],
+        cad_backend: str,
+        design_specification_payload: dict[str, Any] | None = None,
+    ) -> Any:
+        if cad_backend != "cadquery":
+            raise ValueError("CadQuery source is required for configuration metadata")
+        return validate_cadquery_source(source, contract_version="cadquery-v1")
+
     def _configuration_preset_read(self, preset: ConfigurationPreset) -> ConfigurationPresetRead:
         return ConfigurationPresetRead(
             id=preset.id,
@@ -5919,6 +10736,7 @@ class ProjectService:
         *,
         design_plan_payload: dict[str, Any],
         source: str,
+        cad_backend: str,
         selected_preset_id: str | None,
         requested_values: dict[str, Any],
         user_overrides: dict[str, Any],
@@ -5941,12 +10759,11 @@ class ProjectService:
             project_id=project_id,
             design_plan_id=design_plan_id,
         )
-        source_metadata = SourceContractValidator().validate(
-            source,
-            design_specification=None,
-            design_plan=design_plan_payload,
-            source_type="configuration",
-        ).source_metadata
+        source_metadata = self._configuration_source_metadata(
+            source=source,
+            design_plan_payload=design_plan_payload,
+            cad_backend=cad_backend,
+        )
         combined: dict[str, Any] = {}
         combined.update(preset_values)
         combined.update(requested_values)
@@ -5959,7 +10776,7 @@ class ProjectService:
                     self._configuration_error(
                         "derived_parameter_not_directly_editable",
                         parameter_id,
-                        "Derived parameters are recalculated by the OpenSCAD source and cannot be overridden directly.",
+                        "Derived parameters are recalculated by the CadQuery source and cannot be overridden directly.",
                     )
                 )
                 continue
@@ -5982,21 +10799,25 @@ class ProjectService:
                     )
                 )
                 continue
+            if bool(parameter.get("protected", False)) and value != parameter.get("value"):
+                structural_errors.append(
+                    self._configuration_error(
+                        "protected_parameter_change",
+                        parameter_id,
+                        "Protected Design Plan parameter values require a structured design revision.",
+                        {
+                            "expected_value": parameter.get("value"),
+                            "detected_value": value,
+                        },
+                    )
+                )
+                continue
             if not self._parameter_has_source_mapping(parameter_id, source_metadata):
                 structural_errors.append(
                     self._configuration_error(
                         "parameter_not_source_mapped",
                         parameter_id,
-                        "The accepted OpenSCAD source does not expose this parameter for command-line override.",
-                    )
-                )
-                continue
-            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", parameter_id):
-                structural_errors.append(
-                    self._configuration_error(
-                        "parameter_id_not_openscad_identifier",
-                        parameter_id,
-                        "The parameter ID cannot be safely passed to OpenSCAD as a -D override.",
+                        "The accepted CAD source does not expose this parameter for configuration.",
                     )
                 )
                 continue
@@ -6023,7 +10844,6 @@ class ProjectService:
             "preset_values": preset_values,
             "user_overrides": dict(user_overrides),
             "resolved_parameters": resolved,
-            "openscad_defines": combined if state == ConfigurationValidationState.CONFIGURATION_READY.value else {},
             "affected_parameters": affected_parameters,
             "affected_components": impacts["affected_components"],
             "affected_outputs": impacts["affected_outputs"],
@@ -6117,7 +10937,12 @@ class ProjectService:
         )
 
     def _parameter_has_source_mapping(self, parameter_id: str, metadata: Any) -> bool:
-        return parameter_id in metadata.parameter_mappings or parameter_id in metadata.assignments
+        parameter_ids = set(getattr(metadata, "parameter_ids", []) or [])
+        if parameter_id in parameter_ids:
+            return True
+        parameter_mappings = getattr(metadata, "parameter_mappings", {}) or {}
+        assignments = getattr(metadata, "assignments", {}) or {}
+        return parameter_id in parameter_mappings or parameter_id in assignments
 
     def _affected_parameters(
         self,
@@ -6202,6 +11027,11 @@ class ProjectService:
             "message": message,
             "metadata": metadata or {},
         }
+
+    def _configuration_parameter_hash(self, parameter_values: dict[str, Any]) -> str:
+        return hashlib.sha256(
+            json.dumps(parameter_values, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
     def _persist_configuration_change(
         self,
@@ -6291,21 +11121,27 @@ class ProjectService:
         }
 
     def _configuration_override_manifest(self, change: ConfigurationChange) -> dict[str, Any]:
-        openscad_defines = {}
-        if change.validation_state == ConfigurationValidationState.CONFIGURATION_READY.value:
-            openscad_defines.update(json.loads(change.preset_values_json))
-            openscad_defines.update(json.loads(change.requested_changes_json))
-            openscad_defines.update(json.loads(change.user_overrides_json))
+        base_revision = self.db.get(Revision, change.base_revision_id)
+        cad_backend = base_revision.cad_backend if base_revision is not None else "cadquery"
+        source_language = base_revision.source_language if base_revision is not None else "python"
+        parameter_values = (
+            json.loads(change.resolved_parameters_json)
+            if change.validation_state == ConfigurationValidationState.CONFIGURATION_READY.value
+            else {}
+        )
         return {
             "schema_version": "parameter-overrides-v1",
             "configuration_change_id": change.id,
             "base_revision_id": change.base_revision_id,
             "base_source_hash": change.base_source_hash,
+            "cad_backend": cad_backend,
+            "source_language": source_language,
             "selected_preset_id": change.selected_preset_id,
             "preset_values": json.loads(change.preset_values_json),
             "user_overrides": json.loads(change.user_overrides_json),
+            "parameter_values": parameter_values,
+            "parameter_hash": self._configuration_parameter_hash(parameter_values),
             "resolved_parameters": json.loads(change.resolved_parameters_json),
-            "openscad_defines": openscad_defines,
             "affected_parameters": json.loads(change.affected_parameters_json),
             "affected_components": json.loads(change.affected_components_json),
             "affected_outputs": json.loads(change.affected_outputs_json),
@@ -6391,7 +11227,12 @@ class ProjectService:
             revision_number=revision.revision_number,
             source_type=revision.source_type,
             user_instruction=revision.user_instruction,
-            scad_source_path=revision.scad_source_path,
+            cad_backend=revision.cad_backend,
+            source_language=revision.source_language,
+            source_path=revision.source_path,
+            source_hash=revision.source_hash,
+            source_contract_version=revision.source_contract_version,
+            execution_manifest_path=revision.execution_manifest_path,
             stl_path=revision.stl_path,
             compile_log_path=revision.compile_log_path,
             ai_output_path=revision.ai_output_path,
@@ -6404,12 +11245,52 @@ class ProjectService:
             status=revision.status,
             is_accepted=revision.is_accepted,
             review_state=revision.review_state,
+            functional_status=revision.functional_status,
             accepted_at=revision.accepted_at,
             rejected_at=revision.rejected_at,
             created_at=revision.created_at,
             metadata=metadata_read,
             error_message=error_message,
             validation_summary=self._validation_summary(revision.id),
+            design_consistency=self._design_artifact_consistency_read(revision),
+        )
+
+    def _design_artifact_consistency_read(
+        self,
+        revision: Revision,
+    ) -> DesignArtifactConsistencyRead | None:
+        if revision.cad_backend != "cadquery" or revision.design_plan_id is None:
+            return None
+        result = self._latest_design_artifact_consistency(revision.id)
+        if result is None:
+            return DesignArtifactConsistencyRead(status="legacy_unverified")
+        payload = self._read_design_artifact_consistency_payload(result)
+        findings = [
+            finding for finding in payload.get("findings", []) if isinstance(finding, dict)
+        ]
+        blocking_count = sum(1 for finding in findings if finding.get("is_blocking"))
+        advisory_count = len(findings) - blocking_count
+        if result.revision_base_ready:
+            status = "passed"
+        elif blocking_count:
+            status = "blocked"
+        elif result.pre_execution_passed and not result.post_execution_passed:
+            status = "needs_execution_evidence"
+        else:
+            status = "legacy_unverified"
+        return DesignArtifactConsistencyRead(
+            schema_version=result.schema_version,
+            status=status,
+            pre_execution_passed=result.pre_execution_passed,
+            post_execution_passed=result.post_execution_passed,
+            revision_base_ready=result.revision_base_ready,
+            configuration_ready=result.configuration_ready,
+            blocking_count=blocking_count,
+            advisory_count=advisory_count,
+            findings=findings,
+            result_id=result.id,
+            result_path=result.result_path,
+            certified_at=str(payload.get("certified_at") or result.created_at.isoformat()),
         )
 
     def _revision_output_read(self, output: RevisionOutput) -> RevisionOutputRead:
@@ -6425,20 +11306,34 @@ class ProjectService:
             output_id=output.output_id,
             component_id=output.component_id,
             component_ids=json.loads(output.component_ids_json),
-            output_state=output.output_state,
+            execution_state=output.execution_state,
             output_type=output.output_type,
             label=output.label,
             filename=output.filename,
             quantity=output.quantity,
             required=output.required,
-            module_name=output.module_name,
+            entrypoint=output.entrypoint,
             source_hash=output.source_hash,
+            parameter_hash=output.parameter_hash,
+            step_path=output.step_path,
+            step_hash=output.step_hash,
+            brep_path=output.brep_path,
+            brep_hash=output.brep_hash,
             stl_path=output.stl_path,
             stl_hash=output.stl_hash,
             compile_log_path=output.compile_log_path,
             compile_ms=output.compile_ms,
             compile_error=output.compile_error,
-            compile_command=json.loads(output.compile_command_json),
+            expected_solid_count=output.expected_solid_count,
+            detected_solid_count=output.detected_solid_count,
+            allow_disconnected_solids=output.allow_disconnected_solids,
+            execution_command=json.loads(output.execution_command_json),
+            topology_metadata=json.loads(output.topology_metadata_json)
+            if output.topology_metadata_json
+            else None,
+            mesh_metadata=MeshMetadataRead(**json.loads(output.mesh_metadata_json))
+            if output.mesh_metadata_json
+            else None,
             metadata=metadata,
             validation_summary=self._validation_summary(
                 output.revision_id,
@@ -6462,37 +11357,6 @@ class ProjectService:
             return {"description": value}
         return {"value": value}
 
-    def _legacy_revision_output_read(self, revision: Revision) -> RevisionOutputRead:
-        metadata = self._read_revision_metadata(revision)
-        return RevisionOutputRead(
-            id=f"legacy-{revision.id}",
-            revision_id=revision.id,
-            design_plan_id=revision.design_plan_id,
-            design_specification_id=revision.design_specification_id,
-            output_id="model",
-            component_id=None,
-            component_ids=[],
-            output_state="ready" if revision.status == "succeeded" else revision.status,
-            output_type="printable_component",
-            label="Model",
-            filename="model.stl",
-            quantity=1,
-            required=True,
-            module_name="main_model",
-            source_hash=None,
-            stl_path=revision.stl_path,
-            stl_hash=None,
-            compile_log_path=revision.compile_log_path,
-            compile_ms=None,
-            compile_error=None,
-            compile_command=[],
-            metadata=metadata,
-            validation_summary=self._validation_summary(revision.id),
-            preferred_orientation=None,
-            created_at=revision.created_at,
-            updated_at=revision.created_at,
-        )
-
     def _planned_printable_outputs(self, design_plan_payload: dict[str, Any]) -> list[dict[str, Any]]:
         outputs: list[dict[str, Any]] = []
         for output in design_plan_payload.get("printable_outputs", []):
@@ -6513,7 +11377,7 @@ class ProjectService:
                 if component_id
             ]
             component_id = str(output.get("component_id") or (component_ids[0] if component_ids else ""))
-            module_name = str(output.get("module_name") or output.get("module") or output_id).strip()
+            entrypoint = str(output.get("entrypoint") or output_id).strip()
             required = bool(output.get("required", output_type != "optional_printable_component"))
             preferred_orientation = output.get("preferred_orientation") or output.get("orientation")
             outputs.append(
@@ -6522,10 +11386,16 @@ class ProjectService:
                     "label": str(output.get("label") or output_id),
                     "component_id": component_id or None,
                     "component_ids": component_ids,
-                    "module_name": module_name,
+                    "entrypoint": entrypoint,
                     "filename": str(output.get("filename") or f"{output_id}.stl"),
                     "quantity": int(output.get("quantity") or 1),
                     "required": required,
+                    "expected_solid_count": self._optional_int(
+                        output.get("expected_solid_count")
+                    ),
+                    "allow_disconnected_solids": self._optional_bool(
+                        output.get("allow_disconnected_solids")
+                    ),
                     "output_type": output_type,
                     "preferred_orientation": preferred_orientation,
                 }
@@ -6577,21 +11447,32 @@ class ProjectService:
         )
         source_path = self.resolve_revision_source(revision.id)
         source_hash = self._file_sha256(source_path) if source_path is not None else None
+        parameter_hash = next(
+            (output.parameter_hash for output in outputs if output.parameter_hash),
+            None,
+        )
         return {
             "schema_version": "output-manifest-v1",
             "project_id": revision.project_id,
             "revision_id": revision.id,
             "design_plan_id": revision.design_plan_id,
             "configuration_change_id": revision.configuration_change_id,
+            "parameter_hash": parameter_hash,
             "source": {
-                "filename": "project.scad" if revision.design_plan_id else "model.scad",
+                "filename": Path(revision.source_path).name if revision.source_path else None,
+                "path": revision.source_path,
                 "sha256": source_hash,
+                "cad_backend": revision.cad_backend,
+                "source_language": revision.source_language,
+                "source_contract_version": revision.source_contract_version,
             },
             "outputs": [self._output_manifest_entry(output) for output in outputs],
         }
 
     def _output_manifest_entry(self, output: RevisionOutput) -> dict[str, Any]:
-        metadata = json.loads(output.metadata_json) if output.metadata_json else None
+        metadata = json.loads(output.mesh_metadata_json or output.metadata_json) if (
+            output.mesh_metadata_json or output.metadata_json
+        ) else None
         dimensions = None
         if metadata is not None:
             dimensions = {
@@ -6604,10 +11485,22 @@ class ProjectService:
             "component_id": output.component_id,
             "component_ids": json.loads(output.component_ids_json),
             "filename": output.filename,
+            "entrypoint": output.entrypoint,
+            "parameter_hash": output.parameter_hash,
             "quantity": output.quantity,
             "required": output.required,
-            "state": output.output_state,
+            "state": output.execution_state,
+            "compile_ms": output.compile_ms,
+            "expected_solid_count": output.expected_solid_count,
+            "detected_solid_count": output.detected_solid_count,
+            "allow_disconnected_solids": output.allow_disconnected_solids,
+            "step": {"path": output.step_path, "sha256": output.step_hash},
+            "brep": {"path": output.brep_path, "sha256": output.brep_hash},
+            "stl": {"path": output.stl_path, "sha256": output.stl_hash},
             "sha256": output.stl_hash,
+            "topology": json.loads(output.topology_metadata_json)
+            if output.topology_metadata_json
+            else None,
             "dimensions_mm": dimensions,
         }
 
@@ -6672,7 +11565,7 @@ class ProjectService:
         lines.extend(["", "## Printable Outputs"])
         for output in outputs:
             lines.append(
-                f"- {output.label}: {output.filename}, quantity {output.quantity}, state {output.output_state}"
+                f"- {output.label}: {output.filename}, quantity {output.quantity}, state {output.execution_state}"
             )
         lines.extend(
             [
@@ -6700,7 +11593,7 @@ class ProjectService:
                 "Volundr validates printable artifacts, but this export does not prove assembled fit, fastener compatibility, or load capacity.",
                 "",
                 "## Regeneration",
-                "Regenerate from the included Design Specification, Design Plan, and project.scad to reproduce these outputs.",
+                "Regenerate from the included Design Specification, Design Plan, and source.py to reproduce these outputs.",
             ]
         )
         return "\n".join(lines) + "\n"
@@ -6820,9 +11713,9 @@ class ProjectService:
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def _read_revision_metadata(self, revision: Revision) -> MeshMetadataRead | None:
-        if revision.status != "succeeded" or not revision.scad_source_path:
+        if revision.status != "succeeded" or not revision.source_path:
             return None
-        metadata_path = (self.data_dir / revision.scad_source_path).parent / "metadata.json"
+        metadata_path = (self.data_dir / revision.source_path).parent / "metadata.json"
         if not metadata_path.exists():
             output = self.db.scalar(
                 select(RevisionOutput)
@@ -6857,9 +11750,24 @@ class ProjectService:
         if project_dir.exists():
             shutil.rmtree(project_dir)
 
+    def _delete_workflow_debug_bundles(self, workflow_run_ids: list[str]) -> None:
+        bundle_dir = self.data_dir / "workflow-debug-bundles"
+        if bundle_dir.exists():
+            for workflow_run_id in workflow_run_ids:
+                (bundle_dir / f"workflow-debug-{workflow_run_id}.zip").unlink(missing_ok=True)
+
     def _delete_project_records(self, project: Project) -> None:
         project.active_revision_id = None
         self.db.flush()
+        run_ids = list(
+            self.db.scalars(select(WorkflowRun.id).where(WorkflowRun.project_id == project.id))
+        )
+        if run_ids:
+            self.db.execute(delete(FrontendWorkflowEvent).where(FrontendWorkflowEvent.project_id == project.id))
+            self.db.execute(delete(WorkflowDiagnosis).where(WorkflowDiagnosis.workflow_run_id.in_(run_ids)))
+            self.db.execute(delete(WorkflowArtifact).where(WorkflowArtifact.project_id == project.id))
+            self.db.execute(delete(WorkflowEvent).where(WorkflowEvent.project_id == project.id))
+            self.db.execute(delete(WorkflowRun).where(WorkflowRun.project_id == project.id))
         self.db.execute(delete(ProjectMessage).where(ProjectMessage.project_id == project.id))
         self.db.execute(delete(Revision).where(Revision.project_id == project.id))
         self.db.delete(project)

@@ -42,6 +42,26 @@ class DesignPlanReviewState(StrEnum):
     REJECTED = "rejected"
 
 
+class DesignPlanConstraintMode(StrEnum):
+    FIXED_CONSTRAINT = "fixed_constraint"
+    CONFIGURABLE_PARAMETER = "configurable_parameter"
+    DERIVED_PARAMETER = "derived_parameter"
+    EXPLICIT_LAYOUT = "explicit_layout"
+    PROPOSED_VALUE = "proposed_value"
+    COSMETIC_FREEDOM = "cosmetic_freedom"
+
+
+class DesignPlanLayoutMode(StrEnum):
+    FIXED_POSITIONS = "fixed_positions"
+    PROPOSED_POSITIONS = "proposed_positions"
+    PARAMETERIZED_POSITIONS = "parameterized_positions"
+    UNIFORM_LINEAR = "uniform_linear"
+    RECTANGULAR_GRID = "rectangular_grid"
+    CIRCULAR = "circular"
+    DISTRIBUTED_WITHIN_REGION = "distributed_within_region"
+    DERIVED_CUSTOM = "derived_custom"
+
+
 class RevisionPlanOutcome(StrEnum):
     REVISION_READY = "revision_ready"
     CLARIFICATION_REQUIRED = "clarification_required"
@@ -94,6 +114,37 @@ class ProjectRead(BaseModel):
     archived_at: datetime | None
 
 
+class ProjectLibraryRead(ProjectRead):
+    latest_revision_id: str | None = None
+    active_workflow_status: str | None = None
+    printable_part_count: int = 0
+    unresolved_warning_count: int = 0
+    preview_revision_id: str | None = None
+    preview_snapshot_artifact_id: str | None = None
+
+
+class GenerationAttemptEvidenceRead(BaseModel):
+    """Safe provider-attempt metadata for diagnostics and live workflow tests."""
+
+    attempt_id: str
+    attempt_number: int
+    provider: str
+    model: str | None
+    status: str
+    failure_class: str
+    prompt_version: str
+    started_at: datetime
+    completed_at: datetime | None
+    duration_ms: int | None
+    provider_usage: dict[str, Any] | None
+    provider_request_id: str | None
+    routing_metadata: dict[str, Any]
+    provider_latency_ms: int | None
+    estimated_prompt_tokens: int | None
+    estimated_output_tokens: int | None
+    resulting_revision_id: str | None
+
+
 class ProjectMessageRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -102,18 +153,42 @@ class ProjectMessageRead(BaseModel):
     revision_id: str | None
     role: str
     content: str
+    client_message_id: str | None = None
     created_at: datetime
 
 
+class ChatMessageCreate(BaseModel):
+    message: str = Field(min_length=1, max_length=12000)
+    client_message_id: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+class ChatWorkflowResponse(BaseModel):
+    workflow_run_id: str | None = None
+    action: str
+    current_stage: str
+    input_required: bool = False
+    assistant_message: str
+    current_working_revision_id: str | None = None
+    active_generation_run: dict[str, Any] | None = None
+    blocked_attempt: dict[str, Any] | None = None
+    revision_id: str | None = None
+    design_specification_id: str | None = None
+    design_plan_id: str | None = None
+    revision_plan_id: str | None = None
+    configuration_change_id: str | None = None
+    planning_depth: str | None = None
+    active_requirements: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class ManualRevisionCreate(BaseModel):
-    scad_source: str = Field(min_length=1)
+    source: str = Field(min_length=1)
     user_instruction: str | None = None
 
-    @field_validator("scad_source")
+    @field_validator("source")
     @classmethod
     def require_non_blank_source(cls, value: str) -> str:
         if not value.strip():
-            raise ValueError("OpenSCAD source cannot be blank")
+            raise ValueError("CAD source cannot be blank")
         return value
 
 
@@ -250,7 +325,7 @@ class DesignSpecificationRead(BaseModel):
     version_number: int
     schema_version: str
     prompt_template_version: str
-    gemini_ruleset_version: str
+    ruleset_version: str
     provider: str
     provider_model: str | None
     user_instruction: str
@@ -274,9 +349,11 @@ class DesignPlanParameter(BaseModel):
     value: float | int | str | bool | None = None
     unit: str | None = None
     editable: bool = True
+    constraint_mode: DesignPlanConstraintMode | None = None
     protected: bool = False
     component_id: str | None = None
     source_requirement_id: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
 
 
 class DesignPlanDerivedParameter(BaseModel):
@@ -284,9 +361,10 @@ class DesignPlanDerivedParameter(BaseModel):
 
     id: str = Field(min_length=1)
     label: str = Field(min_length=1)
-    expression: str = Field(min_length=1)
+    expression: str | None = None
     unit: str | None = None
     depends_on: list[str] = Field(default_factory=list)
+    constraint_mode: DesignPlanConstraintMode | None = None
 
 
 class DesignPlanDependencyEdge(BaseModel):
@@ -305,6 +383,7 @@ class DesignPlanComponent(BaseModel):
     description: str = Field(min_length=1)
     features: list[str] = Field(default_factory=list)
     parameters: list[str] = Field(default_factory=list)
+    role: str = "printable_part"
 
 
 class DesignPlanFeature(BaseModel):
@@ -316,6 +395,48 @@ class DesignPlanFeature(BaseModel):
     description: str = Field(min_length=1)
     parameters: list[str] = Field(default_factory=list)
     protected: bool = False
+    layout_mode: DesignPlanLayoutMode | None = None
+    layout: dict[str, Any] = Field(default_factory=dict)
+
+
+class DesignPlanFeatureLayout(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    feature_id: str = Field(min_length=1)
+    owning_component_id: str | None = None
+    layout_mode: DesignPlanLayoutMode
+    required_count: int | None = Field(default=None, ge=1)
+    positions: list[dict[str, float]] = Field(default_factory=list)
+    hole_axis: str | None = None
+    arrangement_axis: str | None = None
+    mounting_plane: str | None = None
+    count_parameter_id: str | None = None
+    spacing_parameter_id: str | None = None
+    dimension_parameter_ids: list[str] = Field(default_factory=list)
+    source: str | None = None
+
+
+class DesignPlanPattern(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    pattern_id: str = Field(min_length=1)
+    owning_feature_id: str = Field(min_length=1)
+    owning_component_id: str | None = None
+    pattern_type: str = Field(min_length=1)
+    point_parameter_id: str | None = None
+    count_parameter_id: str | None = None
+    spacing_parameter_id: str | None = None
+    rows_parameter_id: str | None = None
+    columns_parameter_id: str | None = None
+    row_spacing_parameter_id: str | None = None
+    column_spacing_parameter_id: str | None = None
+    radius_parameter_id: str | None = None
+    axis: str | None = None
+    plane: str | None = None
+    centered: bool = True
+    origin: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    start_angle: float = 0.0
+    unit: str = "mm"
 
 
 class DesignPlanPreset(BaseModel):
@@ -326,6 +447,16 @@ class DesignPlanPreset(BaseModel):
     parameter_values: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
 
 
+class DesignPlanExposedControl(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    parameter_id: str = Field(min_length=1)
+    label: str | None = None
+    unit: str | None = None
+    description: str | None = None
+    source: str = "explicit_user_request"
+
+
 class DesignPlanPrintableOutput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -333,14 +464,86 @@ class DesignPlanPrintableOutput(BaseModel):
     label: str = Field(min_length=1)
     component_ids: list[str] = Field(min_length=1)
     component_id: str | None = None
-    module_name: str | None = None
+    entrypoint: str | None = None
     filename: str | None = None
     quantity: int = Field(default=1, ge=1)
     required: bool = True
+    expected_solid_count: int | None = Field(default=None, ge=0)
+    allow_disconnected_solids: bool | None = None
     output_type: str = "printable_component"
     orientation: str | None = None
     preferred_orientation: str | None = None
     notes: str | None = None
+
+
+class FunctionalCoordinateFrame(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    axes: dict[str, str] = Field(default_factory=dict)
+
+
+class FunctionalMountingInterface(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    type: str = Field(min_length=1)
+    component_id: str | None = None
+    feature_id: str | None = None
+    coordinate_frame_id: str | None = None
+    mounting_plane: str | None = None
+    normal_axis: str | None = None
+    fastener_count: int | None = Field(default=None, ge=1)
+    count_constraint_mode: DesignPlanConstraintMode | None = None
+    fastener_type: str | None = None
+    hole_axis: str | None = None
+    arrangement_axis: str | None = None
+    hole_style: str | None = None
+    spacing: dict[str, Any] | None = None
+    layout_mode: DesignPlanLayoutMode | None = None
+    hole_diameter_parameter_id: str | None = None
+
+
+class FunctionalSupportInterface(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    type: str | None = None
+    component_id: str | None = None
+    object_requirement_id: str | None = None
+    primary_axis: str | None = None
+    bottom_support_required: bool = False
+    minimum_floor_thickness: dict[str, Any] | None = None
+    removal_direction: str | None = None
+
+
+class FunctionalRetentionInterface(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    type: str = "retention"
+    required: bool = False
+    environment: str | None = None
+    release_behavior: str | None = None
+    strategy: str | None = None
+    component_id: str | None = None
+    feature_id: str | None = None
+    retained_object_requirement_id: str | None = None
+    retention_direction: str | None = None
+    removal_direction: str | None = None
+    parameters: list[dict[str, Any]] = Field(default_factory=list)
+    parameter_free: bool = False
+    verification: dict[str, Any] = Field(default_factory=dict)
+
+
+class FunctionalDesignContract(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    coordinate_frames: list[FunctionalCoordinateFrame] = Field(default_factory=list)
+    mounting_interfaces: list[FunctionalMountingInterface] = Field(default_factory=list)
+    support_interfaces: list[FunctionalSupportInterface] = Field(default_factory=list)
+    containment_interfaces: list[FunctionalSupportInterface] = Field(default_factory=list)
+    retention_interfaces: list[FunctionalRetentionInterface] = Field(default_factory=list)
 
 
 class DesignPlanPayload(BaseModel):
@@ -359,9 +562,13 @@ class DesignPlanPayload(BaseModel):
     dependency_edges: list[DesignPlanDependencyEdge] = Field(default_factory=list)
     components: list[DesignPlanComponent] = Field(default_factory=list)
     features: list[DesignPlanFeature] = Field(default_factory=list)
+    feature_layouts: list[DesignPlanFeatureLayout] = Field(default_factory=list)
+    patterns: list[DesignPlanPattern] = Field(default_factory=list)
     presets: list[DesignPlanPreset] = Field(default_factory=list)
+    exposed_controls: list[DesignPlanExposedControl] = Field(default_factory=list)
     assembly_strategy: dict[str, Any] = Field(default_factory=dict)
     printable_outputs: list[DesignPlanPrintableOutput] = Field(default_factory=list)
+    functional_contract: FunctionalDesignContract | None = None
     risks: list[dict[str, Any]] = Field(default_factory=list)
     clarification_required: bool = False
     clarification_questions: list[dict[str, Any]] = Field(default_factory=list)
@@ -393,7 +600,7 @@ class DesignPlanRead(BaseModel):
     version_number: int
     schema_version: str
     prompt_template_version: str
-    gemini_ruleset_version: str
+    ruleset_version: str
     provider: str
     provider_model: str | None
     raw_response_path: str | None
@@ -472,11 +679,14 @@ class ConfigurationOverrideManifestRead(BaseModel):
     configuration_change_id: str
     base_revision_id: str
     base_source_hash: str | None = None
+    cad_backend: str = "cadquery"
+    source_language: str = "python"
     selected_preset_id: str | None = None
     preset_values: dict[str, Any] = Field(default_factory=dict)
     user_overrides: dict[str, Any] = Field(default_factory=dict)
+    parameter_values: dict[str, Any] = Field(default_factory=dict)
+    parameter_hash: str | None = None
     resolved_parameters: dict[str, Any] = Field(default_factory=dict)
-    openscad_defines: dict[str, Any] = Field(default_factory=dict)
     affected_parameters: list[str] = Field(default_factory=list)
     affected_components: list[str] = Field(default_factory=list)
     affected_outputs: list[str] = Field(default_factory=list)
@@ -579,7 +789,7 @@ class RevisionPlanRead(BaseModel):
     version_number: int
     schema_version: str
     prompt_template_version: str
-    gemini_ruleset_version: str
+    ruleset_version: str
     provider: str
     provider_model: str | None
     user_instruction: str
@@ -679,6 +889,21 @@ class ValidationSummaryRead(BaseModel):
     dismissed_count: int = 0
 
 
+class DesignArtifactConsistencyRead(BaseModel):
+    schema_version: str = "design-artifact-consistency-v1"
+    status: str = "legacy_unverified"
+    pre_execution_passed: bool = False
+    post_execution_passed: bool = False
+    revision_base_ready: bool = False
+    configuration_ready: bool = False
+    blocking_count: int = 0
+    advisory_count: int = 0
+    findings: list[dict[str, Any]] = Field(default_factory=list)
+    result_id: str | None = None
+    result_path: str | None = None
+    certified_at: str | None = None
+
+
 class RevisionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -691,7 +916,12 @@ class RevisionRead(BaseModel):
     revision_number: int
     source_type: str
     user_instruction: str | None
-    scad_source_path: str
+    cad_backend: str = "cadquery"
+    source_language: str = "python"
+    source_path: str
+    source_hash: str | None = None
+    source_contract_version: str | None = None
+    execution_manifest_path: str | None = None
     stl_path: str | None
     compile_log_path: str | None
     ai_output_path: str | None
@@ -704,12 +934,50 @@ class RevisionRead(BaseModel):
     status: str
     is_accepted: bool
     review_state: str | None = None
+    functional_status: str = "functionally_unverified"
     accepted_at: datetime | None = None
     rejected_at: datetime | None = None
     created_at: datetime
     metadata: MeshMetadataRead | None = None
     error_message: str | None = None
     validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
+    design_consistency: DesignArtifactConsistencyRead | None = None
+
+
+class ProjectWorkspaceRead(BaseModel):
+    """Authoritative state needed to restore a project in one request."""
+
+    project: ProjectRead
+    messages: list[ProjectMessageRead] = Field(default_factory=list)
+    revisions: list[RevisionRead] = Field(default_factory=list)
+    active_requirements: list[dict[str, Any]] = Field(default_factory=list)
+    current_working_revision_id: str | None = None
+    active_workflow: dict[str, Any] | None = None
+    artifact_integrity: dict[str, Any] = Field(default_factory=dict)
+
+
+class ExportCreate(BaseModel):
+    export_type: str = Field(min_length=1, max_length=40)
+    revision_id: str | None = None
+    output_id: str | None = Field(default=None, max_length=120)
+
+
+class ExportRead(BaseModel):
+    id: str
+    project_id: str
+    revision_id: str
+    export_type: str
+    status: str
+    filename: str
+    output_path: str | None = None
+    component_ids: list[str] = Field(default_factory=list)
+    manifest: dict[str, Any] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    sha256: str | None = None
+    size_bytes: int | None = None
+    error_message: str | None = None
+    created_at: datetime
+    completed_at: datetime | None = None
 
 
 class RevisionOutputRead(BaseModel):
@@ -722,20 +990,30 @@ class RevisionOutputRead(BaseModel):
     output_id: str
     component_id: str | None = None
     component_ids: list[str] = Field(default_factory=list)
-    output_state: str
+    execution_state: str
     output_type: str
     label: str
     filename: str
     quantity: int
     required: bool
-    module_name: str
+    entrypoint: str
     source_hash: str | None = None
+    parameter_hash: str | None = None
+    step_path: str | None = None
+    step_hash: str | None = None
+    brep_path: str | None = None
+    brep_hash: str | None = None
     stl_path: str | None = None
     stl_hash: str | None = None
+    expected_solid_count: int | None = None
+    detected_solid_count: int | None = None
+    allow_disconnected_solids: bool | None = None
     compile_log_path: str | None = None
     compile_ms: float | None = None
     compile_error: str | None = None
-    compile_command: list[str] = Field(default_factory=list)
+    execution_command: list[str] = Field(default_factory=list)
+    topology_metadata: dict[str, Any] | None = None
+    mesh_metadata: MeshMetadataRead | None = None
     metadata: MeshMetadataRead | None = None
     validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)
     preferred_orientation: dict[str, Any] | None = None

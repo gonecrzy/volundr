@@ -1,6 +1,8 @@
 FROM node:22-slim AS build
 
 WORKDIR /app
+ARG VITE_VOLUNDR_CHAT_FIRST=true
+ENV VITE_VOLUNDR_CHAT_FIRST=${VITE_VOLUNDR_CHAT_FIRST}
 
 COPY package.json package-lock.json ./
 RUN npm ci

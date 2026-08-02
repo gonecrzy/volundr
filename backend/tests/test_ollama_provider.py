@@ -30,8 +30,41 @@ def test_ollama_provider_settings_are_non_secret() -> None:
         "timeout_seconds": 45,
         "endpoint": "/api/generate",
         "stream": False,
+        "think": None,
         "auth_mode": "local_ollama",
     }
+
+
+@pytest.mark.asyncio
+async def test_ollama_provider_can_disable_thinking_for_thinking_models() -> None:
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = httpx.Request(
+            request.method,
+            request.url,
+            content=request.content,
+        ).read()
+        return httpx.Response(200, json={"response": "{\"ok\": true}", "thinking": "hidden"})
+
+    provider = OllamaProvider(
+        base_url="http://ollama.local:11434",
+        model="qwen3.5:9b",
+        think=False,
+        transport=_mock_transport(handler),
+    )
+
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert result.raw_output == "{\"ok\": true}"
+    assert provider.provider_settings()["think"] is False
+    assert b'"think":false' in captured["payload"]
 
 
 @pytest.mark.asyncio
@@ -71,13 +104,13 @@ async def test_ollama_extract_requirements_posts_prompt_and_returns_response() -
 
 
 @pytest.mark.asyncio
-async def test_ollama_generate_model_uses_existing_openscad_prompt_contract() -> None:
+async def test_ollama_generate_model_uses_cadquery_prompt_contract() -> None:
     captured_prompt = ""
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal captured_prompt
         captured_prompt = request.read().decode("utf-8")
-        return httpx.Response(200, json={"response": "```scad\ncube([1,1,1]);\n```"})
+        return httpx.Response(200, json={"response": "```python\nimport cadquery as cq\n```"})
 
     provider = OllamaProvider(
         base_url="http://ollama.local:11434",
@@ -95,8 +128,9 @@ async def test_ollama_generate_model_uses_existing_openscad_prompt_contract() ->
 
     assert result.provider == "ollama"
     assert result.provider_model == "qwen3.5:9b"
-    assert result.raw_output == "```scad\ncube([1,1,1]);\n```"
-    assert "You generate OpenSCAD for Volundr." in captured_prompt
+    assert result.raw_output == "```python\nimport cadquery as cq\n```"
+    assert "You generate CadQuery Python for Volundr." in captured_prompt
+    assert "Follow the cadquery-v1 source contract" in captured_prompt
 
 
 @pytest.mark.asyncio

@@ -134,17 +134,17 @@ export type ComponentRevisionSummary = {
 
 export function revisionPlanStageLabel(plan: RevisionPlanSummary | null): string {
   if (!plan) {
-    return "Revision plan not created";
+    return "Waiting for planned changes";
   }
   switch (plan.review_state) {
     case "clarification_required":
-      return "Revision clarification required";
+      return "A few change details are needed";
     case "pending_review":
-      return "Revision plan review";
+      return "Ready for your review";
     case "approved":
-      return "Revision plan approved";
+      return "Ready to generate";
     case "rejected":
-      return "Revision plan rejected";
+      return "Changes not used";
   }
 }
 
@@ -154,6 +154,10 @@ export function canApproveRevisionPlan(plan: RevisionPlanSummary | null): boolea
 
 export function canGenerateFromRevisionPlan(plan: RevisionPlanSummary | null): boolean {
   return plan?.review_state === "approved" && plan.revision_ready && !plan.generated_revision_id;
+}
+
+export function shouldLoadComponentRevisionSummary(plan: RevisionPlanSummary | null): boolean {
+  return Boolean(plan?.generated_revision_id);
 }
 
 export function revisionPlanSummaryCounts(plan: RevisionPlanSummary | null): {

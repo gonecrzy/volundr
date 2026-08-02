@@ -2,13 +2,15 @@
 
 This document defines the canonical Docker names and deployment boundaries for V1.
 
+`docs/CADQUERY_BACKEND.md` supersedes this baseline where it describes OpenSCAD execution or weaker CAD-worker isolation. The completed transition requires an isolated non-root no-network CadQuery worker with no provider credentials.
+
 ## Services
 
 | Service | Container | Purpose |
 |---|---|---|
 | `volundr-web` | `volundr-web` | React frontend and browser entrypoint |
-| `volundr-api` | `volundr-api` | FastAPI, SQLite, Gemini CLI, projects, revisions |
-| `volundr-cad-worker` | `volundr-cad-worker` | OpenSCAD compilation and trimesh inspection |
+| `volundr-api` | `volundr-api` | FastAPI, SQLite, provider orchestration, projects, revisions |
+| `volundr-cad-worker` | `volundr-cad-worker` | Isolated CadQuery execution, topology validation, STEP/STL export, and mesh inspection |
 
 ## Network
 

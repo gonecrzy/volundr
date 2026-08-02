@@ -25,6 +25,58 @@ REQUIRED_BENCHMARK_FIELDS = frozenset(
     }
 )
 
+PHASE_VALIDATION_SCENARIO_SCHEMA_VERSION = "phase-validation-scenarios-v1"
+STAGED_PRODUCT_GATE_SCENARIO_SCHEMA_VERSION = "staged-product-gate-scenarios-v1"
+PHASE_VALIDATION_BENCHMARK_IDS = (
+    "creative_fish_shelf_bracket",
+    "honeycomb_angle_bracket",
+    "threaded_control_knob",
+)
+STAGED_PRODUCT_GATE_BENCHMARK_IDS = (
+    "simple_mounting_plate",
+    "parametric_adapter",
+    "parametric_electronics_enclosure",
+    "parametric_repeated_slot_rack",
+    "parametric_multi_part_hinged_box",
+    "parametric_case_carrier",
+    "parametric_configurable_organizer",
+    "component_revision_lid_only",
+    "vague_clarification",
+    "box_with_lid",
+    "accidental_multiple_solids",
+    "configuration_exceeds_build_volume",
+)
+
+
+def phase_validation_benchmark_ids() -> tuple[str, ...]:
+    """Return the small scenario set used for before/after phase validation runs."""
+    return PHASE_VALIDATION_BENCHMARK_IDS
+
+
+def staged_product_gate_benchmark_ids() -> tuple[str, ...]:
+    """Return the product-quality gate set required by the CadQuery transition."""
+    return STAGED_PRODUCT_GATE_BENCHMARK_IDS
+
+
+def phase_validation_scenario_set() -> dict[str, Any]:
+    return {
+        "schema_version": PHASE_VALIDATION_SCENARIO_SCHEMA_VERSION,
+        "purpose": "quick before/after signal for generation pipeline changes",
+        "benchmark_ids": list(PHASE_VALIDATION_BENCHMARK_IDS),
+    }
+
+
+def staged_product_gate_scenario_set() -> dict[str, Any]:
+    return {
+        "schema_version": STAGED_PRODUCT_GATE_SCENARIO_SCHEMA_VERSION,
+        "purpose": (
+            "strict staged product-quality signal covering requirements, Design Plan, "
+            "source generation, execution, configuration, revision, topology, and "
+            "human review gates"
+        ),
+        "benchmark_ids": list(STAGED_PRODUCT_GATE_BENCHMARK_IDS),
+    }
+
 
 @dataclass(frozen=True)
 class GenerationBenchmark:
@@ -47,6 +99,7 @@ class GenerationBenchmark:
     expected_revision_plan: dict[str, Any]
     expected_configuration: dict[str, Any]
     expected_component_revision: dict[str, Any]
+    expected_explicit_requirements: dict[str, dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -128,6 +181,10 @@ def _parse_benchmark(payload: object) -> GenerationBenchmark:
         expected_revision_plan=_optional_object(payload, "expected_revision_plan"),
         expected_configuration=_optional_object(payload, "expected_configuration"),
         expected_component_revision=_optional_object(payload, "expected_component_revision"),
+        expected_explicit_requirements=_optional_object(
+            payload,
+            "expected_explicit_requirements",
+        ),
     )
 
 

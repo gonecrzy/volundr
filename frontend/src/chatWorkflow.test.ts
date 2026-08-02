@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyChatClarificationAnswer } from "./chatWorkflow";
+import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
 
 const questions = [
   { id: "tray_count", question: "How many trays?" },
@@ -39,5 +39,29 @@ describe("chat workflow helpers", () => {
     expect(result.answeredQuestionId).toBeNull();
     expect(result.nextQuestionId).toBe("tray_count");
     expect(result.readyToSubmit).toBe(false);
+  });
+
+  it("sends normal follow-up prompts to generation in simple mode", () => {
+    expect(
+      nextChatWorkflowAction({
+        advancedWorkflowEnabled: false,
+        hasRequirementClarificationPending: false,
+        hasDesignPlanClarificationPending: false,
+        hasRevisionPlanClarificationPending: false,
+        canPlanRevisionFromCurrentContext: true,
+      }),
+    ).toBe("generate");
+  });
+
+  it("routes follow-up prompts to revision planning only in advanced mode", () => {
+    expect(
+      nextChatWorkflowAction({
+        advancedWorkflowEnabled: true,
+        hasRequirementClarificationPending: false,
+        hasDesignPlanClarificationPending: false,
+        hasRevisionPlanClarificationPending: false,
+        canPlanRevisionFromCurrentContext: true,
+      }),
+    ).toBe("plan_revision");
   });
 });

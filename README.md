@@ -1,42 +1,83 @@
 # Volundr
 
-Volundr is a self-hosted, single-user application for generating, compiling, previewing, revising, and exporting functional parametric 3D-printing models through OpenSCAD and Gemini CLI.
+Volundr is a self-hosted, single-user application for generating, executing,
+previewing, revising, and exporting functional 3D-printing products. Every
+design remains revisionable through chat; parametric controls are optional and
+explicitly requested.
+The current architecture uses CadQuery Python as the authoritative CAD source,
+OpenCascade B-Rep topology validation, STEP as the primary geometry artifact,
+STL as the derived print/preview artifact, Gemini API as the primary runtime AI
+provider, and a staged Design Specification and Design Plan workflow.
+
+The normal flagged frontend is a persistent chat-first workspace with a
+conversation column, viewer, and compact inspector. See
+`docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` for responsive and usability
+evidence. Every design remains revisionable through chat; parametric controls
+are optional and explicitly requested.
 
 ## Status
 
-Stage 1 and Stage 2 are complete. The manual OpenSCAD workspace can create
-projects, compile SCAD into immutable revisions, persist source/STL/log/metadata
-assets, show compile diagnostics, restore successful revisions, preview STL
-geometry, and download SCAD/STL outputs. Docker Compose is the official V1
-deployment method.
+The current checkout is CadQuery-primary for product CAD generation and
+execution. Generated source is CadQuery Python, execution goes through the
+isolated `volundr-cad-worker`, STEP is the primary geometry artifact, and STL is
+derived for print preview and printing. The live Gemini benchmark gate, local
+verification, Docker verification, and remaining product-quality limitations are
+recorded in `docs/CADQUERY_TRANSITION_EVALUATION.md`.
 
-Implementation should begin with the secure OpenSCAD execution foundation described in:
+The authoritative direction is defined in:
 
-- `CODEX_KICKOFF_PROMPT.md`
-- `docs/CURRENT_STAGE_ROADMAP.md`
+- `docs/CADQUERY_BACKEND.md`
+- `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md`
+- `docs/CADQUERY_TRANSITION_EVALUATION.md`
+- `docs/PRODUCT_VALIDATION_ROUND_1.md` (current product-shell and live-matrix evidence)
 
-## Intended V1 Workflow
+## Intended Product Workflow
 
 ```text
-describe part
-  -> generate parameterized OpenSCAD through Gemini CLI
-  -> compile through OpenSCAD CLI
-  -> inspect STL in browser
-  -> revise conversationally or edit source
-  -> preserve revision history
-  -> download SCAD and STL
+describe product
+  -> extract requirements
+  -> clarify only essential Design Specification decisions
+  -> create and validate Design Plan
+  -> generate CadQuery Python through Gemini API
+  -> validate source contract
+  -> execute in isolated CAD worker
+  -> validate B-Rep topology
+  -> export STEP and STL
+  -> automatically promote passing candidate to Current working version
+  -> revise or export through chat
 ```
 
 ## Product Constraints
 
 - self-hosted through Docker Compose
 - single-user
-- no API requirement for V1
 - no paid CAD software
-- Gemini CLI authentication performed once on the host
-- OpenSCAD source is the editable source of truth
-- STL is an export
-- functional FDM parts are the initial focus
+- Gemini API is the primary runtime AI provider
+- CadQuery Python is the editable regeneration source of truth
+- STEP is the primary interoperable geometry artifact
+- STL is derived for print preview and printing
+- functional printable products and indefinitely revisionable chat workflows are the focus
+- parametric controls are optional and explicitly requested
+
+Product validation status: the successful spacer supports real browser
+create/reopen/export and durable Current working version protection. Compact
+and detailed live cases remain separately gated while their provider/plan
+interoperability failures are diagnosed. See
+`docs/LIVE_DESIGN_MATRIX_EVALUATION.md` and
+`docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md`.
+
+Compact and detailed plan interoperability is normalized through the
+component/feature boundary, repeated-feature layout contract, and Plan/source
+identity boundary. See `docs/COMPACT_PLAN_CONTRACT.md`,
+`docs/REPEATED_FEATURE_LAYOUTS.md`, and
+`docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md` for the current live
+evidence and remaining provider-quality gates.
+
+Provider interoperability is independently evidenced through persisted
+contract manifests, focused Plan/geometry repairs, and one-attempt worker
+diagnostic repair. See `docs/PROVIDER_INTEROPERABILITY_CONTRACT.md`,
+`docs/WORKER_DIAGNOSTIC_REPAIR.md`, and
+`docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md`.
 
 ## Documentation
 
@@ -57,7 +98,8 @@ Runtime data is stored outside the containers in persistent bind mounts.
 
 ## Milestone 1 Setup
 
-Backend tests require Python 3.12+ and OpenSCAD on the host.
+Backend tests require Python 3.12+ and the Python dependencies declared by
+`backend/pyproject.toml`, including CadQuery.
 
 ```bash
 cd backend
@@ -94,72 +136,125 @@ cd backend
 VOLUNDR_DATA_DIR=../data .venv/bin/alembic upgrade head
 ```
 
-The API container and local database must be on the current migration head. A stale runtime can continue using the legacy one-step Gemini prompt and bypass the staged Design Specification, Design Plan, source-contract, candidate, and validation gates.
+The API container and local database must be on the current migration head. A stale runtime can continue using older workflow behavior and bypass current requirement, plan, source-contract, candidate, and validation gates.
 
-The frontend includes the Stage 2 manual CAD workspace and staged AI generation
-path. Development defaults to a local Ollama provider at
-`http://10.1.20.25:11434` using `qwen3.5:9b`. Gemini remains available as an
-explicit provider switch.
+The Docker frontend build enables the chat-first Design Specification and
+Design Plan workflow. Passing generated revisions become the Current working
+version automatically; blocked attempts remain in history and never replace
+it. The maintained staged approval UI is available only to developer and
+deterministic test runs with `VITE_VOLUNDR_CHAT_FIRST=false`.
 
-If a project has an active revision, the Generate action sends that revision's
-OpenSCAD source as context and stores the result as a follow-up AI revision.
-Child revisions expose a unified source diff against their parent in the
-diagnostics panel.
-The workspace parses simple numeric and boolean assignments in the marked
-`USER PARAMETERS` section and exposes controls that update the SCAD source for
-manual recompilation.
+If a project has an active revision, structured revision planning uses that
+revision's accepted CadQuery source, output manifest, and validation summaries
+as context for a full-source CadQuery revision. Child revisions expose a unified
+source diff against their parent in the diagnostics panel. Parameter changes use
+typed CadQuery parameter execution without source rewriting.
+
+Advanced technical details include a diagnostic bundle action after a workflow
+run is available. The bundle is generated by
+`GET /api/workflow-runs/{workflow_run_id}/debug-bundle.zip` and contains
+redacted workflow events, diagnosis, stage trace, artifact registry records,
+manifest metadata, and redaction report. Large STEP/STL/BREP geometry is
+excluded unless explicitly requested.
 Projects can be renamed or archived from the browser workspace; archived
 projects are hidden from the default project list.
 Project activity is captured as a per-project message ledger for the original
 intent, revision instructions, and system events.
+
+Projects reopen at stable `/projects/{project_id}` URLs through the authoritative
+workspace endpoint. The backend owns current-working-version selection, stale
+workflow recovery, artifact-integrity checks, and explicit `ExportRecord`
+packaging. See `docs/PROJECT_PERSISTENCE.md`, `docs/EXPORTS.md`, and
+`docs/DEPLOYMENT.md`.
 
 ## AI Provider Setup
 
 Volundr selects the AI backend with:
 
 ```bash
-VOLUNDR_AI_PROVIDER=ollama
+VOLUNDR_AI_PROVIDER=gemini_api
 ```
 
-The development default is Ollama:
+Gemini API is the primary runtime provider for the CadQuery transition. Ollama
+may remain available for local development and provider-adapter comparison, but
+it is not the product default.
+
+Optional Ollama comparison settings:
 
 ```bash
 VOLUNDR_OLLAMA_BASE_URL=http://10.1.20.25:11434
-VOLUNDR_OLLAMA_MODEL=qwen3.5:9b
+VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b
 VOLUNDR_OLLAMA_TIMEOUT_SECONDS=300
+# Optional for thinking-capable models:
+VOLUNDR_OLLAMA_THINK=false
 ```
 
-Make sure the model is available on the Ollama host:
+For Ollama comparison runs, make sure the model is available on the Ollama host:
 
 ```bash
-ollama pull qwen3.5:9b
+ollama pull qwen2.5-coder:14b
 ```
 
-Generation attempts record `provider=ollama`, the model, endpoint, timeout, and
-`auth_mode=local_ollama`; no API keys are stored.
+Notes from prior local model testing:
 
-### Gemini CLI Setup
+- `qwen2.5-coder:14b` was the strongest local model in older OpenSCAD-era comparisons.
+- Thinking-capable Ollama models can be tested with `VOLUNDR_OLLAMA_THINK=false` to suppress reasoning and keep `response` clean.
+- `deepseek-coder-v2:16b` remains a slower fallback comparison model.
+- `joshuaokolo/C3Dv0:latest` was not compatible with the older OpenSCAD prompt contract without a separate adapter.
 
-The API service is the only service that mounts Gemini credentials:
+Generation attempts record provider, model, non-secret endpoint/auth metadata,
+timeouts, prompt versions, and failure state; API keys are not stored.
 
-```text
-${VOLUNDR_GEMINI_DIR:-./data/gemini}:/home/volundr/.gemini
-```
+### Gemini API Setup
 
-Authenticate Gemini CLI for that profile before using the browser Generate
-button, or use API-key based auth.
-
-For API-key based auth, set:
+Use API-key based auth for the primary Gemini provider:
 
 ```bash
-VOLUNDR_AI_PROVIDER=gemini_cli
+VOLUNDR_AI_PROVIDER=gemini_api
 GEMINI_API_KEY=<your key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
-Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, no-tools policy path, and non-secret auth mode (`api_key` or `gemini_profile`) so quota or policy issues can be traced without storing credentials.
+Stage-specific models and Gemini generation tuning use typed built-in defaults.
+For an advanced deployment, set `VOLUNDR_GEMINI_POLICY_PATH` to a credential-free
+TOML policy file. Legacy stage-model and API-tuning environment variables remain
+temporary compatibility overrides and emit deprecation warnings; see
+`docs/ENVIRONMENT_VARIABLES.md` for precedence and the policy schema.
 
-## Manual Compile API
+The Compose file mounts a Gemini CLI profile only into `volundr-api` for the
+optional CLI provider path. The CAD worker must never receive Gemini CLI profile
+data, Gemini API keys, Ollama credentials, or arbitrary API environment
+variables.
+
+Use an API key from a dedicated Google AI/Gemini project for Volundr, with billing/quota controls appropriate for automated generation runs. Generation attempts record the Gemini model, transport, non-secret auth mode, and configured thinking level so quota or policy issues can be traced without storing credentials. `gemini_cli` remains available for a configured Gemini CLI profile, but API-key operation should use `gemini_api`.
+
+Requirements, planning, and geometry use the configured policy, falling back to
+`VOLUNDR_GEMINI_MODEL` when a stage is not separately assigned. Keep the typed
+thinking default at `minimal` unless you are deliberately testing deeper
+reasoning; unbounded thinking can consume the response with reasoning text
+instead of a complete fenced CadQuery source block.
+
+### Live browser smoke tests
+
+The browser smoke suite is separate from the benchmark CLI and is never part of
+the normal Playwright command. It starts a disposable SQLite API, the real CAD
+worker, and the Vite frontend, while sourcing `GEMINI_API_KEY` only inside the
+backend process:
+
+```bash
+VOLUNDR_RUN_LIVE_E2E=true npm --prefix frontend run test:e2e:live
+```
+
+The suite runs explicit mounting-plate and intent-first holder workflows. It
+records provider timing, generation evidence, workflow traces, and a
+secret-redacted diagnostic bundle. The worker and browser never receive the
+API key, and the command fails if the key is found in generated evidence.
+Live smoke tests consume provider quota and are not run in CI.
+
+## Manual Source API
+
+Manual source revisions use CadQuery Python satisfying the `cadquery-v1`
+contract. They create candidate revisions and still require explicit acceptance.
 
 Create a project:
 
@@ -169,21 +264,43 @@ curl -X POST http://localhost:8000/api/projects \
   -d '{"name":"Mounting bracket","original_intent":"A flat bracket with two holes."}'
 ```
 
-Compile a manual revision:
-
-```bash
-curl -X POST http://localhost:8000/api/projects/<project-id>/revisions \
-  -H 'content-type: application/json' \
-  -d '{"scad_source":"cube([10, 20, 30]);","user_instruction":"Initial manual model."}'
-```
-
 Successful revision assets are stored under:
 
 ```text
 data/projects/<project-id>/revisions/<revision-id>/
-├── model.scad
-├── model.stl
-├── compile.log
+├── source.py
+├── execution-manifest.json
+├── output-manifest.json
+├── step/
+│   └── body.step
+├── stl/
+│   └── body.stl
 ├── ai-output.txt
 └── metadata.json
 ```
+
+## Design Workflow And Diagnostics
+
+The primary workflow is chat-first: describe, clarify only essential details,
+automatically create and validate a first version, revise through chat, and
+explicitly export. Technical source/build evidence is secondary. Open
+**Technical details** in the workspace to download a secret-redacted
+diagnostic bundle. See `docs/CHAT_FIRST_WORKFLOW.md`,
+`docs/FRONTEND_WORKFLOW_AUDIT.md`, `docs/FRONTEND_USER_TESTING_PLAN.md`, and
+`docs/WORKFLOW_OBSERVABILITY.md`.
+
+The current workspace layout and responsive evidence are recorded in
+`docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md`.
+
+Planning is proportional to semantic complexity: direct CAD briefs avoid an
+unnecessary planning-provider call for sufficiently specified simple parts,
+compact plans handle interacting single-part features, and detailed Design
+Plans remain available for multipart or assembly work. See
+`docs/PLANNING_DEPTH_MODEL.md` and `docs/AI_CAD_DIRECTION_ALIGNMENT.md`.
+
+Functional readiness is reported separately from CAD execution and printability. See `docs/FUNCTIONAL_DESIGN_INTENT.md` and `docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md` before treating a generated candidate as physically verified.
+
+Successful or blocked worker attempts also retain deterministic multi-view
+snapshot packets and revision comparisons as secondary evidence. See
+`docs/MULTI_VIEW_SNAPSHOT_CONTRACT.md`, `docs/REVISION_EVIDENCE_MODEL.md`, and
+`docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md`.

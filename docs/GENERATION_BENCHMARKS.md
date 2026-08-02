@@ -19,38 +19,104 @@ Live benchmark runs do not promote prompts automatically. Reviewers must score a
 
 ## Shared Acceptance Criteria
 
-All generated OpenSCAD benchmarks must:
+All generated CadQuery benchmarks must:
 
-- follow `gemini-ruleset-v1`
-- pass `source-contract-v1` hard checks before compile
+- follow the active CadQuery prompt mode and provider-neutral ruleset recorded in the run manifest
+- pass `cadquery-v1` source-contract hard checks before execution
 - extract cleanly
-- compile within timeout
-- produce one intended printable part unless multiple parts are explicitly requested
+- execute within timeout in the isolated CAD worker
+- produce one intended printable output unless multiple outputs are explicitly requested
 - have nonzero volume
 - be watertight for ordinary functional parts
 - stay at or above Z=0
-- expose required parameters in `USER PARAMETERS`
-- map every protected critical dimension with `@volundr-requirement`
-- map every protected functional requirement with `@volundr-feature`
-- include `@volundr-geometry` markers for supported protected bounds, hole, hole-group, and wall-thickness invariants
-- when an approved Design Plan is present, map its components, features, dependency edges, and printable outputs with the markers defined in `docs/MODEL_GENERATION_CONTRACT.md`
-- when an approved Design Plan is present, use the selected-output contract and artifact lifecycle in `docs/MULTI_OUTPUT_GENERATION.md`
-- compile every required printable output, persist component-scoped validation results, and produce a reproducible `output-manifest.json`
+- expose required parameters through `ParameterSpec(...)`
+- declare printable outputs through `PrintableOutput(...)` with output IDs, component IDs, expected solid counts, and disconnected-solid policy
+- preserve approved Design Plan components, features, dependency edges, and printable outputs
+- provide or preserve geometry metadata for supported protected bounds, hole, hole-group, and wall-thickness invariants when those invariants are expected to be machine-verified
+- when an approved Design Plan is present, use the CadQuery output contract and artifact lifecycle in `docs/MULTI_OUTPUT_GENERATION.md`
+- execute and export every required printable output, persist component-scoped validation results, and produce a reproducible `output-manifest.json`
 - for revision benchmarks, produce a `revision-plan-v1` artifact before source generation that names allowed changes, required dependencies, protected parameters/components/features/outputs, targeted outputs, and success criteria
 - verify supported protected geometric invariants according to `docs/GEOMETRIC_INVARIANT_VALIDATION.md`
-- avoid unrequested decorative or weight-reduction features
+- avoid unrequested decorative or weight-reduction features while preserving explicitly requested style, theme, silhouette, and decorative intent
 - classify assumptions and warnings
 - preserve protected design invariants during repair and revision
 
-Clarification benchmarks must not generate SCAD.
+Clarification benchmarks must not generate CadQuery source before required information is supplied.
 
-Protected design invariants include user-provided dimensions, required features, mating geometry, fastener geometry, print orientation, and unrelated modules.
+Protected design invariants include user-provided dimensions, required features, mating geometry, fastener geometry, print orientation, and unrelated components or outputs.
 
-Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, and conflicting dimensions. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, and the remaining model categories.
+Current deterministic fixtures live under `backend/tests/fixtures/generation_benchmarks/`. The core suite is used for frequent checks and now explicitly covers ready specifications, vague clarification, conflicting dimensions, and three quick phase-validation scenarios. The full suite covers missing fit data, missing fastener data, inaccessible cavity ambiguity, creative-functional generation, curated-library pressure cases, and the remaining model categories.
 
-Fixture-generated source must contain the required skeleton, pass hard source-contract validation, and preserve protected marker mappings before benchmark compile assertions are evaluated. Fixture-generated meshes should also include expected geometric invariant assertions for supported cases: bounding dimensions, build-plate placement, cylindrical hole diameter, hole count, hole spacing, and wall-thickness estimates.
+Fixture-generated source must contain the required CadQuery contract, pass hard source-contract validation, and preserve protected source metadata before benchmark execution assertions are evaluated. Fixture-generated meshes should also include expected geometric invariant assertions for supported cases: bounding dimensions, build-plate placement, cylindrical hole diameter, hole count, hole spacing, and wall-thickness estimates.
 
 Live evaluation artifacts are written under `output/live-benchmarks/` and are intentionally ignored by git. Each run stores `run-manifest.json`, prompt-version comparison, per-case reports, human scoring forms, rendered prompts, and any provider outputs collected during live mode. See `docs/LIVE_GENERATION_EVALUATION.md` for the manifest schema and quota controls.
+
+## Phase Validation Scenario Set
+
+Between implementation phases, run the same three realistic cases to get a fast directional signal before spending time on full CAD review:
+
+```bash
+cd backend
+VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b \
+VOLUNDR_OLLAMA_THINK=false \
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase-check \
+  --phase-validation \
+  --source-brief \
+  --source-probe \
+  --source-probe-repair \
+  --provider ollama \
+  --max-runs 3
+```
+
+Use dry-run first when validating harness behavior:
+
+```bash
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/core.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label phase-check-dry-run \
+  --phase-validation \
+  --provider dry-run \
+  --max-runs 3
+```
+
+The phase-validation set is intentionally small:
+
+- `creative_fish_shelf_bracket`: tests whether functional mounting geometry and explicit creative styling coexist.
+- `honeycomb_angle_bracket`: tests real subtractive cutouts, borders, holes, and reinforcement.
+- `threaded_control_knob`: tests whether the pipeline can progress toward curated-library-backed CAD patterns instead of fake hand-rolled threads.
+
+Compare each phase run against the previous run using the generated `run-manifest.json`, `aggregate-metrics.json`, raw provider outputs, and human scoring forms. Improvement means fewer blocking/unacceptable outcomes, better preservation of function plus style, and clearer evidence about whether failures belong to prompt quality, parameter modeling, geometry generation, library support, printability, or UX.
+
+When `--source-probe` is enabled, compare `source-parameter-analysis.json` for each case as a fast parameterization signal and the source compile artifacts as a syntax/mesh smoke signal. Useful movement means the model returns extractable CadQuery source, exposes more of the expected functional/style parameters as simple top-level controls, compiles to nonzero STEP/STL/BREP artifacts, avoids obvious runtime warnings, and reduces disconnected mesh counts. Add `--source-brief` to require a compact structured understanding pass before source generation; the resulting brief is fed into the source prompt and stored separately so intent understanding can be compared with mesh results. Add `--source-probe-repair` when you want one bounded repair attempt after a failed CadQuery source-probe extraction/compile or after a successful compile whose mesh has more connected components than the parsed source brief expects. Add `--design-plan-probe` when you want the live harness to collect a staged Design Plan and score expected components, features, printable outputs, and dependency edges. Add `--configuration-probe` when you want the harness to rerun generated CadQuery source with fixture parameter overrides and record printability blocking rules such as `profile.build_volume`. These probes are still not a substitute for human visual review or candidate acceptance.
+
+## Staged Product Gate
+
+Before prompt promotion, run the bundled CadQuery staged product gate. It selects
+the transition-required product-quality cases and automatically enables source
+brief, source probe, bounded source repair, Design Plan, and configuration
+probes:
+
+```bash
+PYTHONPATH=. python3 scripts/run_live_generation_benchmarks.py \
+  --suite tests/fixtures/generation_benchmarks/full.json \
+  --output-dir ../output/live-benchmarks \
+  --run-label staged-product-gate-dry-run \
+  --staged-product-gate \
+  --provider dry-run
+```
+
+For a live Gemini API run, use the same flag with `--provider gemini-api` and
+`--allow-live` after the dry-run manifest is reviewed. The case set covers the
+simple mounting bracket, measured adapter, electronics enclosure with lid,
+repeated-slot rack, multi-part hinged box, case/carrier, deterministic parameter
+configuration, component-targeted revision, ambiguous clarification, multi-output
+body/lid behavior, accidental multi-solid rejection, and build-volume
+configuration blocking. Prompt promotion still requires human review of the
+artifacts and scoring forms.
 
 The full machine-readable suite also includes parametric-product Design Plan expectations for:
 
@@ -61,6 +127,8 @@ The full machine-readable suite also includes parametric-product Design Plan exp
 - case/carrier
 - multi-part hinged box
 - repeated-slot rack
+- accidental multiple-solid rejection as a negative-control case that should be blocked by topology validation
+- configuration that exceeds build volume
 
 These cases assert generic plan shape: parameters, derived dependencies, components, features, presets where useful, assembly strategy, printable outputs, risks, and design level. The case/carrier benchmark includes a fishing-tray carrier as one acceptance case, not as a schema template.
 
@@ -113,6 +181,9 @@ Core suite:
 - 10. Critical-Dimension Revision
 - 12. Intentionally Vague Request
 - 13. Conflicting Dimensions
+- Phase check: Creative Fish Shelf Bracket
+- Phase check: Honeycomb Angle Bracket
+- Phase check: Threaded Control Knob
 
 Full stability suite:
 
@@ -363,6 +434,6 @@ Configuration benchmark entries should additionally include:
 - requested overrides
 - expected affected parameters, components, and outputs
 - expected validation state
-- expected OpenSCAD `-D` defines
+- expected CadQuery parameter values and resolved parameter manifest
 - expected candidate state after deterministic regeneration
 - whether a provider call is forbidden

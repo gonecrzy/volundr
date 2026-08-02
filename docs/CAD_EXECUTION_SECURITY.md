@@ -1,6 +1,6 @@
 # Volundr CAD Execution Security
 
-This document defines how Volundr treats AI-generated OpenSCAD as untrusted input and how compilation must be isolated, limited, logged, and failed safely.
+This document defines how Volundr treats AI-generated CAD source as untrusted input and how execution must be isolated, limited, logged, and failed safely. `docs/CADQUERY_BACKEND.md` is authoritative for the CadQuery worker target.
 
 ## Container Boundaries
 
@@ -14,14 +14,17 @@ volundr-web
 
 volundr-api
   - application orchestration
-  - Gemini CLI credentials
+  - provider credentials
   - database and project metadata
+  - no generated CadQuery execution in the completed architecture
 
 volundr-cad-worker
-  - untrusted generated OpenSCAD
+  - untrusted generated CadQuery
   - restricted CAD execution
   - no Gemini credentials
+  - no Ollama/provider credentials
   - no Docker socket
+  - no outbound network access
 ```
 
 Container names are part of the operational contract and should remain stable for logs, health checks, backup procedures, and Traefik configuration.
@@ -38,12 +41,12 @@ The system must assume generated code may:
 - create enormous output
 - recursively expand geometry
 - reference unauthorized files
-- attempt unsupported import paths
+- attempt unsupported imports, subprocesses, sockets, HTTP calls, or environment access
 - produce malformed or empty geometry
 
 ## Execution Rules
 
-OpenSCAD must be launched using:
+Generated CAD execution must use:
 
 - a fixed executable path
 - a fixed argument list
@@ -60,11 +63,11 @@ Never run:
 subprocess.run(user_generated_string, shell=True)
 ```
 
-Use:
+For subprocess execution, use fixed argument arrays and scrubbed environments:
 
 ```python
 subprocess.run(
-    [OPENSCAD_BINARY, "-o", output_path, source_path],
+    [CAD_EXECUTOR, "--job", job_manifest_path],
     shell=False,
     ...
 )
@@ -90,16 +93,31 @@ It should not see:
 
 ## Network
 
-The CAD runner does not require network access.
+The CAD worker does not require network access. Disable network access for the worker with `network_mode: none` or an equally strong mechanism.
 
-Disable network access for the isolated worker when practical.
+## Job Transport
+
+Phase 2 uses filesystem-backed atomic job directories. A job directory contains only a structured manifest and approved input files. The worker validates relative paths, source hashes, schema version, backend, language, timeout, and source location before execution.
+
+Results are written through an atomic `result.json` replacement. Duplicate completion is rejected so a worker restart or repeated processing attempt cannot silently overwrite the first terminal result.
+
+Worker submissions and results are also registered in workflow observability
+records. The registry stores job IDs, source hashes, parameter hashes, manifest
+paths, worker diagnostics, output metadata, and retry snapshots. Earlier failed
+manifests and retry snapshots must remain reconstructable even when latest
+revision/output rows are updated.
+
+Debug bundles are generated through the allowlist redactor described in
+`docs/WORKFLOW_OBSERVABILITY.md`. Provider credentials, authorization headers,
+cookies, signed URLs, environment values, and arbitrary request headers must not
+be emitted to worker logs or diagnostic bundles.
 
 ## Limits
 
 Initial configurable limits should include:
 
 ```text
-compile timeout: 60 seconds
+execution timeout: 60 seconds
 maximum source size: 500 KB
 maximum STL size: 100 MB
 maximum job directory size: 150 MB
@@ -110,18 +128,30 @@ maximum triangle count: warning and hard ceiling
 
 These values are defaults and may be adjusted after testing.
 
+The Compose worker policy documents the initial container bounds:
+
+```text
+network: disabled
+root filesystem: read-only
+temporary writable path: /tmp tmpfs
+process limit: 128
+memory limit: 1024 MB
+CPU limit: 1.0
+security option: no-new-privileges
+```
+
 ## Source Screening
 
-Before compilation, reject or flag:
+The CadQuery source contract rejects dangerous Python before execution,
+including unauthorized imports, `open`, `exec`, `eval`, `compile`, `__import__`,
+subprocess access, sockets, HTTP libraries, filesystem libraries, environment
+access, dynamic code loading, reflection, dangerous dunder access, arbitrary
+top-level calls, uncontrolled exception suppression, source-controlled export
+paths, and interpreter/global environment mutation.
 
-- `import(`
-- `surface(`
-- unexpected absolute paths
-- parent directory traversal
-- disallowed `use` or `include` paths
-- source beyond size limits
+AST validation is defense in depth. It does not replace the worker sandbox.
 
-OpenSCAD is more constrained than general-purpose Python, but source validation is still required.
+The runner validates generated artifacts before returning success. STL output must be parseable mesh data, STEP output must be present and recognizable as ISO-10303-21 content, and worker result paths must remain inside the job directory. A required output with malformed or escaped artifacts fails the job instead of becoming an accepted candidate.
 
 ## Logging
 
@@ -139,7 +169,7 @@ Store:
 
 Do not log Google OAuth tokens or environment secrets.
 
-## Gemini CLI Isolation
+## Provider Credential Isolation
 
 Gemini credentials must be mounted only where the AI provider needs them.
 

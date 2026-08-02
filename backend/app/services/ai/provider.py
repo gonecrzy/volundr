@@ -19,7 +19,15 @@ class ModelGenerationRequest:
     source_metadata: dict[str, Any] | None = None
     scoped_revision_context: dict[str, Any] | None = None
     configuration_context: dict[str, Any] | None = None
+    source_authority: dict[str, Any] | None = None
+    geometry_body_diagnostics: str | None = None
+    active_requirements: list[dict[str, Any]] = field(default_factory=list)
+    requirement_delta: list[dict[str, Any]] = field(default_factory=list)
     generation_contract_version: str = "v1"
+    planning_depth: str = "detailed_plan"
+    geometry_execution_context: dict[str, Any] | None = None
+    prompt_context_pack: dict[str, Any] | None = None
+    provider_contract_manifest: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -27,6 +35,10 @@ class ModelGenerationResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +59,31 @@ class RequirementExtractionResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
+
+
+@dataclass(frozen=True)
+class SourceBriefRequest:
+    project_name: str
+    original_intent: str
+    user_instruction: str
+    expected_parameters: list[str] = field(default_factory=list)
+    expected_geometric_invariants: list[dict[str, Any]] = field(default_factory=list)
+    mesh_expectation: str | None = None
+
+
+@dataclass(frozen=True)
+class SourceBriefResult:
+    raw_output: str
+    provider: str
+    provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -61,6 +98,10 @@ class DesignPlanRequest:
     schema_repair_of_raw_output: str | None = None
     schema_validation_error: str | None = None
     defaults: dict[str, Any] = field(default_factory=dict)
+    active_requirements: list[dict[str, Any]] = field(default_factory=list)
+    requirement_delta: list[dict[str, Any]] = field(default_factory=list)
+    planning_depth: str = "detailed_plan"
+    plan_repair_context: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -68,6 +109,10 @@ class DesignPlanResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -93,6 +138,8 @@ class RevisionPlanRequest:
     previous_revision_plan: dict[str, Any] | None = None
     schema_repair_of_raw_output: str | None = None
     schema_validation_error: str | None = None
+    active_requirements: list[dict[str, Any]] = field(default_factory=list)
+    requirement_delta: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -100,16 +147,29 @@ class RevisionPlanResult:
     raw_output: str
     provider: str
     provider_model: str | None = None
+    usage_metadata: dict[str, Any] | None = None
+    provider_request_id: str | None = None
+    routing_metadata: dict[str, Any] = field(default_factory=dict)
+    provider_latency_ms: int | None = None
 
 
 class AiProvider(Protocol):
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         ...
 
+    async def generate_cadquery_model(
+        self,
+        request: ModelGenerationRequest,
+    ) -> ModelGenerationResult:
+        ...
+
     async def extract_requirements(
         self,
         request: RequirementExtractionRequest,
     ) -> RequirementExtractionResult:
+        ...
+
+    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
         ...
 
     async def create_design_plan(self, request: DesignPlanRequest) -> DesignPlanResult:

@@ -1,6 +1,7 @@
 import numpy as np
 import trimesh
 
+from app.services.cad.source_metadata import SourceGeometryMapping, SourceMetadata
 from app.services.geometry.invariants import (
     GEOMETRIC_ANALYZER_VERSION,
     GEOMETRIC_TOLERANCE_PROFILE_VERSION,
@@ -12,7 +13,6 @@ from app.services.geometry.invariants import (
     HoleGroupAnalyzer,
     WallThicknessAnalyzer,
 )
-from app.services.openscad.source_contract import scan_openscad_source
 
 
 DESIGN_SPEC = {
@@ -85,57 +85,58 @@ DESIGN_SPEC = {
 }
 
 
-SOURCE = """
-/*
-Project: Geometry fixture
-Units: millimeters
-Purpose: verify geometry
-Assumptions: none
-Print notes: flat
-*/
-// ===== QUALITY =====
-$fn = 48;
-// ===== USER PARAMETERS =====
-// @volundr-requirement part_width
-part_width = 80;
-// @volundr-requirement part_depth
-part_depth = 35;
-// @volundr-requirement part_height
-part_height = 6;
-// @volundr-requirement mount_hole_diameter
-mount_hole_diameter = 5;
-// @volundr-requirement mount_hole_spacing
-mount_hole_spacing = 50;
-// @volundr-requirement wall_thickness
-wall_thickness = 3;
-// ===== DERIVED VALUES =====
-// ===== VALIDATION =====
-assert(part_width > 0);
-// ===== MODULES =====
-// @volundr-geometry type=bounds x=part_width y=part_depth z=part_height
-// @volundr-feature mounting_holes
-// @volundr-geometry type=hole_group count=2 diameter=mount_hole_diameter spacing=mount_hole_spacing axis=z
-module mounting_holes() {}
-// @volundr-geometry type=wall_thickness value=wall_thickness region=main_body
-module main_model() { cube([part_width, part_depth, part_height]); }
-// ===== FINAL MODEL =====
-main_model();
-"""
+def fixture_source_metadata() -> SourceMetadata:
+    return SourceMetadata(
+        source_hash="source-hash",
+        source_size_bytes=0,
+        line_count=1,
+        geometry_mappings=[
+            SourceGeometryMapping(
+                geometry_type="bounds",
+                attributes={"x": "part_width", "y": "part_depth", "z": "part_height"},
+                line=1,
+            ),
+            SourceGeometryMapping(
+                geometry_type="hole_group",
+                attributes={
+                    "count": "2",
+                    "diameter": "mount_hole_diameter",
+                    "spacing": "mount_hole_spacing",
+                    "axis": "z",
+                },
+                line=1,
+                feature_id="mounting_holes",
+            ),
+            SourceGeometryMapping(
+                geometry_type="wall_thickness",
+                attributes={"value": "wall_thickness", "region": "main_body"},
+                line=1,
+            ),
+        ],
+        assignments={
+            "part_width": "80",
+            "part_depth": "35",
+            "part_height": "6",
+            "mount_hole_diameter": "5",
+            "mount_hole_spacing": "50",
+            "wall_thickness": "3",
+        },
+    )
 
 
-def context(mesh: trimesh.Trimesh, source: str = SOURCE) -> GeometricAnalysisContext:
-    scan = scan_openscad_source(source)
+def context(mesh: trimesh.Trimesh) -> GeometricAnalysisContext:
+    metadata = fixture_source_metadata()
     return GeometricAnalysisContext(
         mesh=mesh,
         design_specification=DESIGN_SPEC,
-        source_metadata=scan.metadata,
-        source_hash=scan.metadata.source_hash,
+        source_metadata=metadata,
+        source_hash=metadata.source_hash,
         mesh_hash="mesh-hash",
     )
 
 
-def test_scanner_extracts_geometry_markers() -> None:
-    metadata = scan_openscad_source(SOURCE).metadata
+def test_fixture_metadata_contains_geometry_mappings() -> None:
+    metadata = fixture_source_metadata()
 
     assert metadata.geometry_mappings[0].geometry_type == "bounds"
     assert metadata.geometry_mappings[0].attributes["x"] == "part_width"

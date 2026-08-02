@@ -14,6 +14,8 @@ from app.services.ai.provider import (
     RequirementExtractionResult,
     RevisionPlanRequest,
     RevisionPlanResult,
+    SourceBriefRequest,
+    SourceBriefResult,
 )
 
 
@@ -26,15 +28,23 @@ class OllamaProvider(GeminiCliProvider):
         base_url: str | None = None,
         model: str | None = None,
         timeout_seconds: int | None = None,
+        think: bool | str | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
         self.model = model or settings.ollama_model
         self.timeout_seconds = timeout_seconds or settings.ollama_timeout_seconds
+        self.think = self._normalize_think(settings.ollama_think if think is None else think)
         self._transport = transport
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
-        prompt = self.build_prompt(request)
+        return await self.generate_cadquery_model(request)
+
+    async def generate_cadquery_model(
+        self,
+        request: ModelGenerationRequest,
+    ) -> ModelGenerationResult:
+        prompt = self.build_cadquery_prompt(request)
         raw_output = await self._run_prompt(prompt)
         return ModelGenerationResult(
             raw_output=raw_output,
@@ -49,6 +59,15 @@ class OllamaProvider(GeminiCliProvider):
         prompt = self.build_requirement_prompt(request)
         raw_output = await self._run_prompt(prompt)
         return RequirementExtractionResult(
+            raw_output=raw_output,
+            provider="ollama",
+            provider_model=self.model,
+        )
+
+    async def create_source_brief(self, request: SourceBriefRequest) -> SourceBriefResult:
+        prompt = self.build_source_brief_prompt(request)
+        raw_output = await self._run_prompt(prompt)
+        return SourceBriefResult(
             raw_output=raw_output,
             provider="ollama",
             provider_model=self.model,
@@ -78,6 +97,8 @@ class OllamaProvider(GeminiCliProvider):
             "prompt": prompt,
             "stream": False,
         }
+        if self.think is not None:
+            payload["think"] = self.think
         try:
             async with httpx.AsyncClient(
                 base_url=self.base_url,
@@ -115,6 +136,7 @@ class OllamaProvider(GeminiCliProvider):
             "timeout_seconds": self.timeout_seconds,
             "endpoint": "/api/generate",
             "stream": False,
+            "think": self.think,
             "auth_mode": "local_ollama",
         }
 
@@ -128,3 +150,19 @@ class OllamaProvider(GeminiCliProvider):
         if isinstance(error, str) and error.strip():
             return error.strip()
         return f"Ollama request failed with HTTP {response.status_code}"
+
+    def _normalize_think(self, value: bool | str | None) -> bool | str | None:
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        normalized = value.strip().lower()
+        if normalized in {"", "unset", "none", "null"}:
+            return None
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+        if normalized in {"low", "medium", "high", "max"}:
+            return normalized
+        return value

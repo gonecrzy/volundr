@@ -2,25 +2,41 @@
 
 This document defines what Volundr is, who it serves, the value it should provide, and the principles used to decide which capabilities belong in the product.
 
+## CadQuery Transition Status
+
+`docs/CADQUERY_BACKEND.md` supersedes earlier product-direction claims about an
+OpenSCAD-first CAD kernel, Gemini CLI-first provider choice, or Ollama defaults.
+The product direction is CadQuery-primary and chat-first under the feature
+flag. Every design remains revisionable; parametric controls are optional and
+explicitly requested.
+
 ## Working Description
 
-Volundr is a self-hosted AI-assisted parametric modeling workspace for creating functional 3D-printable parts from plain-language instructions.
+Volundr is a self-hosted AI-assisted modeling workspace for creating functional
+3D-printable parts from plain-language instructions and revising them through
+chat.
 
 It combines:
 
 - conversational design requests
-- parameterized OpenSCAD generation
+- requirements-led CadQuery generation with optional exposed controls
 - deterministic CAD compilation
 - interactive 3D preview
 - revision history
 - direct source editing
 - local project storage
 
+The normal interaction surface is a persistent chat-first workspace. Every
+design remains revisionable through chat; parametric controls are optional and
+explicitly requested.
+
 Volundr should feel like a focused workshop for producing useful parts, not a general-purpose AI chatbot with a model viewer attached.
 
 ## Product Goal
 
-Help a technically capable maker move from a practical need to a printable parametric model with less manual CAD work.
+Help a technically capable maker move from a practical need to a printable
+model with less manual CAD work, while keeping every design indefinitely
+revisionable through chat.
 
 Examples include:
 
@@ -62,22 +78,22 @@ V1 has one owner and one active application user.
 The user:
 
 - hosts Volundr on their own server
-- authenticates Gemini CLI once on the host
+- configures Gemini API credentials for AI generation
 - stores projects locally
 - understands basic dimensions and 3D-printing concepts
 - wants practical printable results
-- may directly edit OpenSCAD when necessary
+- may inspect and, where supported, edit generated CadQuery source
 
 ## V1 Value Proposition
 
 The user can:
 
 1. Explain the part they need.
-2. Receive valid, parameterized OpenSCAD.
+2. Receive valid CadQuery source and a useful working version.
 3. Inspect the generated model.
 4. Ask for targeted changes.
 5. Restore earlier working revisions.
-6. Download the source and printable STL.
+6. Download source, STEP, and printable STL artifacts.
 
 ## Product Principles
 
@@ -92,13 +108,16 @@ V1 does not need to support a parallel native-host installation path. Keeping on
 
 Prioritize accurate dimensions, sensible tolerances, mounting features, and editability over organic or artistic modeling.
 
-### Parametric before disposable
+### Revisionable without mandatory parametrics
 
-Generated models should expose meaningful variables and reusable modules rather than burying all geometry in magic numbers.
+Every design remains revisionable through chat. Exposed parametric controls and
+reusable modules are optional capabilities added when explicitly requested;
+ordinary source need not be generalized for values the user did not ask to
+configure.
 
 ### Products before isolated solids
 
-For complex functional designs, Volundr should model the product structure before generating source: components, owned features, editable parameters, derived dependencies, presets, assembly strategy, and separate printable outputs. This keeps changes such as tray count, carrier size, retention geometry, handle position, and reinforcement layout connected instead of forcing Gemini to rediscover the design from OpenSCAD text.
+For complex functional designs, Volundr should model the product structure before generating source: components, owned features, editable parameters, derived dependencies, presets, assembly strategy, and separate printable outputs. This keeps changes such as tray count, carrier size, retention geometry, handle position, and reinforcement layout connected instead of forcing Gemini to rediscover the design from source text alone.
 
 ### Source-controlled by design
 
@@ -110,7 +129,7 @@ Project prompts, source files, STL outputs, and revision history remain on the s
 
 ### AI as an operator, not the kernel
 
-The AI creates and revises code. OpenSCAD remains the deterministic geometry engine.
+The AI creates and revises code. CadQuery and OpenCascade are the deterministic geometry engine. Gemini is not a CAD kernel, and mesh inspection is not a replacement for B-Rep topology validation.
 
 ### Useful failure
 
@@ -130,12 +149,12 @@ V1 is successful when the user can reliably create and revise several families o
 
 A model generation is considered successful when:
 
-- OpenSCAD compiles it
-- an STL is produced
+- CadQuery executes successfully in the isolated worker
+- STEP and STL artifacts are produced for every required output
+- B-Rep topology is valid
 - the mesh has non-zero volume
 - dimensions are plausible
 - the model is viewable
-- the source has named parameters
 - the user can request a targeted revision
 - the prior revision remains restorable
 
@@ -152,9 +171,22 @@ Potential later capabilities include:
 - reusable component library
 - image-assisted feedback
 - imported SVG extrusion
-- CadQuery or build123d provider
-- STEP export
 - optional multi-provider AI support
 - optional trusted multi-user operation
 
 These are not V1 requirements.
+
+## User-Facing Workflow
+
+Every design remains revisionable through chat. Parametric controls are
+optional and explicitly requested. Planning depth is selected from requirement
+and project semantics: a deterministic direct brief for a sufficiently
+specified simple part, a compact plan for interacting features, and the
+existing detailed plan for multipart or assembly work. These are execution
+artifacts, not competing requirement stores.
+
+Volundr should guide a careful chat-first CAD-design conversation: describe the object, answer only essential fit/function/assembly questions, let Volundr automatically plan, generate, validate, and promote a passing Current working version, then explicitly export. Users must be able to distinguish values they supplied, Volundr proposals, and calculated values without reading pipeline terminology. Technical evidence belongs in secondary details and diagnostic bundles. See `docs/CHAT_FIRST_WORKFLOW.md`.
+
+Deterministic multi-view snapshots and revision comparisons improve evidence
+without turning image review into an AI gate. Visual review remains advisory
+and planned separately; see `docs/AI_VISUAL_REVIEW_PLAN.md`.

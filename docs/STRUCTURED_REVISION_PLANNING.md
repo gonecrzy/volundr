@@ -2,9 +2,16 @@
 
 This document defines Volundr's revision-planning lifecycle. It is the authority for bounded AI revisions after an accepted Design Plan and output manifest exist.
 
+## CadQuery Transition Status
+
+Revision planning is CadQuery-primary for staged workflow revisions. CadQuery
+revisions use complete-source Python regeneration, AST-visible `ParameterSpec`
+and `PrintableOutput` metadata, source-contract validation, and output
+preservation checks based on persisted STEP/B-Rep/STL summaries.
+
 ## Purpose
 
-Structured revision planning turns a user revision request or selected validation finding into an immutable `revision-plan-v1` artifact before Gemini is allowed to modify OpenSCAD.
+Structured revision planning turns a user revision request or selected validation finding into an immutable `revision-plan-v1` artifact before Gemini is allowed to modify accepted CadQuery source.
 
 The plan answers:
 
@@ -15,7 +22,8 @@ The plan answers:
 - whether the request needs clarification, conflicts with accepted requirements, or is unsupported
 - how the revised source will be checked before compile and after candidate creation
 
-Revision planning does not generate OpenSCAD.
+Revision planning does not generate source; it gates later complete-source
+CadQuery regeneration.
 
 ## Lifecycle
 
@@ -26,7 +34,7 @@ accepted assembly revision
   -> clarification_required | revision_conflict | unsupported_revision | planning_failed
   -> revision_ready
   -> explicit plan approval
-  -> openscad-component-revision-v1 for component/output-scoped structural revisions
+  -> cadquery-component-revision-v1 for component/output-scoped structural revisions
   -> source-contract validation
   -> revision compliance validation
   -> per-output compile and validation
@@ -34,7 +42,7 @@ accepted assembly revision
   -> explicit accept or reject
 ```
 
-OpenSCAD generation is forbidden until the Revision Plan is `revision_ready` and `approved`.
+CadQuery generation is forbidden until the Revision Plan is `revision_ready` and `approved`.
 The backend keeps approval and source generation as distinct operations. The current frontend combines them into an approve-and-generate action for ready plans, while retaining a separate generate action only for already-approved plans that have not produced a revision.
 
 ## Revision Plan Record
@@ -165,7 +173,7 @@ Questions must reference named parameters, components, outputs, or findings when
 
 ## Compliance Checks
 
-After `openscad-component-revision-v1` returns revised complete source and before compilation, Volundr compares base and revised source metadata against the approved Revision Plan.
+After `cadquery-component-revision-v1` returns revised complete source and before execution, Volundr compares base and revised source metadata against the approved Revision Plan.
 
 Blocking compliance failures include:
 
@@ -185,6 +193,17 @@ Blocking compliance failures include:
 - revision source introduces a source-contract hard violation
 
 Allowed changes are limited to approved requested changes and required dependency changes. Static comparison is conservative; if a protected invariant cannot be verified from source metadata, the generation attempt fails before compile.
+
+For CadQuery source, the static compliance pass reads:
+
+- parameter IDs and defaults from `ParameterSpec(...)`
+- output IDs and component ownership from `PrintableOutput(...)`
+- component and feature ownership from the approved Design Plan
+- active configured parameter IDs from `parameter-overrides.json`
+
+Unconfigured CadQuery structured revisions execute with the revised source `ParameterSpec` defaults. Revisions based on a configured candidate preserve and execute with the active configuration manifest instead.
+
+Current CadQuery static fingerprints are ownership-level fingerprints. Function/body-level protected geometry comparison is enforced after compile through output preservation summaries until the CadQuery source contract grows explicit function ownership annotations.
 
 Component-targeted full-source revisions and post-compile output preservation are defined in `docs/COMPONENT_TARGETED_REVISIONS.md`.
 
@@ -206,9 +225,9 @@ Candidate review may start a Revision Plan from a selected validation finding. T
 
 Finding-driven revisions still require explicit plan approval. Compiler repair is not used for geometric, printability, or product-scope violations.
 
-## Legacy Compatibility
+## Development Data Policy
 
-Accepted legacy revisions without an approved Design Plan remain loadable. Structured revision planning requires an accepted base revision with an approved Design Plan and output manifest. Legacy AI source editing paths may remain only as compatibility paths and should be clearly labeled when used.
+Structured revision planning requires an accepted CadQuery base revision with an approved Design Plan and output manifest. Old development revisions without that staged context are not compatibility targets for the CadQuery-primary architecture; recreate or regenerate them through the staged workflow instead of preserving legacy AI source-editing paths.
 
 ## Known Limitations
 

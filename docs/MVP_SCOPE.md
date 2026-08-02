@@ -2,6 +2,12 @@
 
 This document is the V1 feature boundary. It lists what Volundr must include, what is explicitly excluded, and the test used to prevent premature scope expansion.
 
+## CadQuery Transition Status
+
+`docs/CADQUERY_BACKEND.md` supersedes the original OpenSCAD V1 scope. The V1
+scope is CadQuery-primary, Gemini API-primary, chat-first under its feature
+flag, and automatic promotion of passing candidates. Export remains explicit.
+
 ## Included
 
 ### Projects
@@ -10,36 +16,42 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - View recent projects.
 - Rename and archive projects.
 - Store the original project intent separately from later revision instructions.
+- Reopen a project from a stable `/projects/{project_id}` URL with persisted
+  messages, requirements, workflow state, revisions, and current working
+  version.
+- Recover stale interrupted workflow records without silently retrying provider
+  work.
 
 ### AI Generation
 
-- Generate OpenSCAD through Gemini CLI.
+- Generate CadQuery Python through Gemini API.
 - Supply a controlled system prompt and model-generation contract.
 - Capture raw model output.
-- Extract SCAD from markdown or surrounding explanation when necessary.
+- Extract CadQuery Python from markdown or strict raw source when necessary.
 - Limit automatic repair attempts.
 - Store every attempt, including failures.
-- Ask for clarification before OpenSCAD generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
-- Persist a versioned Design Specification before new initial OpenSCAD generation.
-- Generate and persist an immutable Parametric Design Plan from a ready Design Specification.
-- Require explicit Design Plan approval before new initial OpenSCAD generation in the stabilized frontend flow.
-- Use the approved Design Plan as product-structure authority for OpenSCAD generation.
-- Generate and persist immutable structured Revision Plans before scoped AI revisions.
-- Require explicit Revision Plan approval before AI source revision.
+- Ask for clarification before CadQuery generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
+- Persist a versioned Design Specification before new initial CadQuery generation.
+- Generate and persist a validated Design Plan from a ready Design Specification.
+- Use the approved Design Plan as product-structure authority for CadQuery generation.
+- Generate and persist immutable structured Revision Plans before AI revisions;
+  chat automatically approves the internal plan after validation.
 - Support component-targeted full-source AI revisions that preserve protected components, outputs, interfaces, shared modules, and active configuration overrides.
 - Allow direct editing of approved editable Design Plan parameters and preset switching through deterministic configuration changes without invoking Gemini.
-- Validate new AI OpenSCAD against the source contract before compilation, including security rules, required structure, protected Design Specification values, and advisory quality findings.
-- Validate revised AI source against the approved Revision Plan before compilation.
+- Validate new AI CadQuery source against the source contract before execution, including security rules, required structure, protected Design Specification values, output declarations, topology expectations, and advisory quality findings.
+- Validate revised AI source against the approved Revision Plan before execution.
 - Preserve prompt version, provider/model, request context, raw output, extracted source, validation result, and failure class for each generation attempt.
-- Present successful AI generations as candidate revisions until the user explicitly accepts or rejects them.
+- Automatically promote passing AI generations to the Current working version;
+  preserve blocked attempts without replacing the prior working version.
 
-### OpenSCAD Execution
+### CadQuery Execution
 
-- Compile source using OpenSCAD CLI.
-- Use isolated temporary job directories.
+- Execute source through an isolated non-root no-network CAD worker.
+- Use structured job manifests and atomic result manifests.
 - Enforce runtime and output limits.
 - Capture warnings and errors.
-- Produce STL output.
+- Validate B-Rep topology before mesh checks.
+- Produce STEP and STL artifacts for every successful required output.
 - Reject missing, empty, or implausibly large outputs.
 
 ### Model Inspection
@@ -80,13 +92,18 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 
 ### Downloads
 
-- Download `.scad`.
+- Download accepted CadQuery source.
+- Download `.step`.
 - Download `.stl`.
 - Download one STL per Design Plan printable output.
 - Download `output-manifest.json`.
 - Download deterministic ZIP exports containing source, Design Specification, Design Plan, output manifest, assembly notes, and STL artifacts.
 - Include configuration metadata and parameter override manifests in exports for configuration-generated revisions.
 - Use clear filenames derived from the project and revision.
+- Persist explicit export records with deterministic filenames, hashes, warnings,
+  and selected revision identity.
+- Provide printable-parts and complete project-package ZIP exports; do not claim
+  3MF support until a valid end-to-end 3MF artifact path exists.
 
 ### Deployment
 
@@ -124,7 +141,7 @@ This document is the V1 feature boundary. It lists what Volundr must include, wh
 - Model marketplace
 - Custom AI training
 - Native-host installation as a separately supported V1 deployment path
-- Browser-side OpenSCAD as the primary engine
+- Browser-side CAD execution as the primary engine
 - Real-time collaborative editing
 
 ## Scope Guard
@@ -136,3 +153,21 @@ A feature belongs in V1 only when it materially improves this core loop:
 ```text
 describe -> generate -> compile -> inspect -> revise -> export
 ```
+
+For the user-facing V1 workflow, this means describe -> clarify only essential details -> review requirements and proposals -> generate -> review a new version -> accept -> export. Diagnostics, source editing, and workflow IDs remain advanced details rather than primary design actions.
+
+The MVP reports conservative functional checks but does not certify loads, materials, friction, arbitrary motion, or one-handed usability. Chat-first automatic progression is the normal flagged path; blocked attempts never replace the Current working version. Export remains explicit.
+
+Planning is proportional to complexity and remains invisible in normal chat.
+Every design remains revisionable; parametric controls are optional and
+explicitly requested. Direct briefs, compact plans, and detailed Design Plans
+are derived artifacts within the same lifecycle.
+
+The normal flagged frontend is a persistent chat-first workspace with
+Conversation, Model, and Details surfaces that adapt across desktop, drawer,
+and mobile-tab layouts. Every design remains revisionable through chat;
+parametric controls are optional and explicitly requested.
+
+Deterministic post-worker Views and revision comparisons are included as
+secondary evidence. AI visual review is planned, not implemented, and is not a
+promotion requirement.
