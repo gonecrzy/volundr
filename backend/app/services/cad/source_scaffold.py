@@ -23,6 +23,7 @@ from app.services.cad.patterns import (
     normalize_pattern_specs,
     validate_pattern_specs,
 )
+from app.services.cad.python_symbols import analyze_scaffold_source
 
 
 SCAFFOLD_VERSION = "cadquery-scaffold-v1"
@@ -367,7 +368,7 @@ def validate_scaffold_source(source: str) -> list[dict[str, Any]]:
                 "suggested_correction": "Regenerate the source from the approved Volundr scaffold.",
             }
         ]
-    return []
+    return analyze_scaffold_source(source)
 
 
 def geometry_function_names(design_plan: dict[str, Any]) -> tuple[str, ...]:

@@ -11,6 +11,7 @@ import zipfile
 from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
@@ -123,8 +124,13 @@ from app.services.cad.geometry_bodies import (
     GeometryBodyError,
     assemble_geometry_bodies,
     build_geometry_function_inventory,
+    validate_geometry_body_repair_scope,
 )
 from app.services.cad.patterns import normalize_pattern_specs, validate_pattern_specs
+from app.services.cad.runtime_diagnostics import (
+    classify_worker_name_failure,
+    runtime_repair_is_eligible,
+)
 from app.services.cad.source_scaffold import (
     SCAFFOLD_VERSION,
     ScaffoldSourceError,
@@ -221,8 +227,8 @@ REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v6"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v6"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v7"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v7"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
@@ -3941,6 +3947,51 @@ class ProjectService:
             self._complete_workflow_lineage(workflow_run, status="failed")
             return initial_revision
 
+        runtime_finding = classify_worker_name_failure(
+            initial_revision.error_message,
+            traceback=self.read_revision_compile_log(initial_revision.id),
+        )
+        if runtime_finding is not None:
+            if (
+                generation_request.generation_contract_version == SCAFFOLD_VERSION
+                and runtime_repair_is_eligible(runtime_finding)
+            ):
+                runtime_revision, _ = await self._attempt_runtime_geometry_body_repair(
+                    project=project,
+                    payload=payload,
+                    failed_revision=initial_revision,
+                    failed_attempt=active_attempt,
+                    raw_ai_output=raw_ai_output,
+                    finding=runtime_finding,
+                    design_specification=design_specification,
+                    design_specification_payload=design_specification_payload,
+                    design_plan=design_plan,
+                    design_plan_payload=design_plan_payload,
+                    workflow_run=workflow_run,
+                )
+                self._complete_workflow_lineage(
+                    workflow_run,
+                    status="completed"
+                    if runtime_revision is not None and runtime_revision.status == "succeeded"
+                    else "failed",
+                )
+                return runtime_revision
+            self._record_workflow_event(
+                workflow_run,
+                stage="cad_execution",
+                event_type="geometry_body.runtime_repair_unavailable",
+                severity="error",
+                blocking=True,
+                rule_id=str(runtime_finding["rule_id"]),
+                message="CAD worker source-scope failure could not be safely mapped to one provider function; no guessed repair was attempted.",
+                deduplication_key=f"geometry-body-runtime-repair-unavailable-{initial_revision.id}",
+                revision_id=initial_revision.id,
+                generation_attempt_id=active_attempt.id,
+                metadata=runtime_finding,
+            )
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            return initial_revision
+
         repair_request = self._generation_request(
             project=project,
             payload=payload,
@@ -4287,6 +4338,21 @@ class ProjectService:
             redacted=False,
         )
         try:
+            if self._sha256(failed_response.raw_output) == self._sha256(repair_result.raw_output):
+                raise GeometryBodyError(
+                    "geometry_body.repair_unchanged",
+                    "Geometry-body repair returned an identical rejected response; retry stopped.",
+                    details={"failed_response_hash": self._sha256(failed_response.raw_output)},
+                )
+            affected_function_id = diagnostics.details.get("affected_function_id")
+            if isinstance(affected_function_id, str) and affected_function_id:
+                repair_scope = validate_geometry_body_repair_scope(
+                    original_raw_output=failed_response.raw_output,
+                    repaired_raw_output=repair_result.raw_output,
+                    affected_function_ids={affected_function_id},
+                )
+            else:
+                repair_scope = None
             repaired_source = self._prepare_generated_source(
                 raw_output=repair_result.raw_output,
                 design_plan_payload=design_plan_payload,
@@ -4594,6 +4660,7 @@ class ProjectService:
                 "pattern_manifest": rendered.pattern_manifest,
                 "parameter_effect_manifest": rendered.parameter_effect_manifest,
                 "derived_dependency_findings": list(assembly.dependency_findings),
+                "symbol_evidence": assembly.symbol_evidence,
                 "assembled_source_hash": self._sha256(rendered.source),
                 "role": role,
             },
@@ -4652,6 +4719,110 @@ class ProjectService:
 
     def _extract_generated_source(self, raw_output: str) -> str:
         return extract_python_source(raw_output)
+
+    async def _attempt_runtime_geometry_body_repair(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        failed_revision: RevisionRead,
+        failed_attempt: GenerationAttempt,
+        raw_ai_output: str | None,
+        finding: dict[str, Any],
+        design_specification: DesignSpecification | None,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan: DesignPlan,
+        design_plan_payload: dict[str, Any],
+        workflow_run: WorkflowRun | None,
+    ) -> tuple[RevisionRead | None, bool]:
+        """Repair one safely identified provider body after a runtime name failure."""
+
+        if not raw_ai_output or not runtime_repair_is_eligible(finding):
+            return failed_revision, False
+        diagnostics = GeometryBodyError(
+            str(finding["rule_id"]),
+            str(finding.get("message") or "CAD worker reported a provider source-scope failure."),
+            details={
+                **finding,
+                "affected_function_id": finding.get("function_id"),
+                "repair_available": True,
+            },
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="cad_execution",
+            event_type="geometry_body.runtime_source_failure",
+            severity="error",
+            blocking=True,
+            rule_id=diagnostics.rule_id,
+            message="CAD worker failure was classified as a provider source-scope defect.",
+            deduplication_key=f"geometry-body-runtime-failure-{failed_revision.id}",
+            revision_id=failed_revision.id,
+            generation_attempt_id=failed_attempt.id,
+            metadata=finding,
+        )
+        repaired = await self._attempt_geometry_body_repair(
+            project=project,
+            payload=payload,
+            failed_attempt=failed_attempt,
+            failed_response=SimpleNamespace(raw_output=raw_ai_output),
+            diagnostics=diagnostics,
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
+            workflow_run=workflow_run,
+        )
+        if repaired is None:
+            return failed_revision, True
+        repaired_source, repair_result, repair_attempt = repaired
+        repair_validation = self._persist_source_contract_validation(
+            project=project,
+            attempt=repair_attempt,
+            source=repaired_source,
+            source_type="ai_repair",
+            design_specification=design_specification,
+            design_specification_payload=design_specification_payload,
+            design_plan=design_plan,
+            design_plan_payload=design_plan_payload,
+        )
+        if not repair_validation.passed_hard_checks:
+            message = self._source_contract_rejection_message(repair_validation)
+            self._finish_generation_attempt(
+                repair_attempt,
+                status="failed",
+                failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+                error_message=message,
+                resulting_revision_id=failed_revision.id,
+            )
+            return failed_revision, True
+        repaired_revision = await self._create_cadquery_revision_from_planned_source(
+            project_id=project.id,
+            source=repaired_source,
+            user_instruction=payload.user_instruction,
+            source_type="ai_repair",
+            raw_ai_output=repair_result.raw_output,
+            design_specification_id=design_specification.id if design_specification else None,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=design_plan.id,
+            design_plan_payload=design_plan_payload,
+            source_validation_result_id=repair_validation.id,
+            workflow_run=workflow_run,
+        )
+        self._finish_generation_attempt(
+            repair_attempt,
+            status="succeeded"
+            if repaired_revision is not None and repaired_revision.status == "succeeded"
+            else "failed",
+            failure_class=FailureClass.NONE
+            if repaired_revision is not None and repaired_revision.status == "succeeded"
+            else FailureClass.CADQUERY_COMPILE_FAILURE,
+            error_message=None
+            if repaired_revision is not None and repaired_revision.status == "succeeded"
+            else repaired_revision.error_message if repaired_revision is not None else "runtime repair revision was not created",
+            resulting_revision_id=repaired_revision.id if repaired_revision is not None else failed_revision.id,
+        )
+        return repaired_revision or failed_revision, True
 
     async def _attempt_geometry_body_repair(
         self,
@@ -4797,6 +4968,7 @@ class ProjectService:
                 message="Structured geometry-body repair produced an assembled source.",
                 deduplication_key=f"geometry-body-repair-succeeded-{repair_attempt.id}",
                 generation_attempt_id=repair_attempt.id,
+                metadata={"repair_scope": repair_scope} if repair_scope is not None else None,
             )
             self._workflow_recorder().complete_run(repair_workflow_run, status="completed")
         return repaired_source, repair_result, repair_attempt

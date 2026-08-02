@@ -39,8 +39,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v6"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v6"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v7"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v7"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -675,6 +675,18 @@ class GeminiCliProvider:
             "Canonical parameter IDs: " + ", ".join(parameter_ids),
             "Required function authority inventory:",
             json.dumps(inventory["functions"], indent=2, sort_keys=True),
+            "Exact symbol authority:",
+            "Each function receives only its listed signature arguments, approved module aliases, approved helpers, approved safe builtins, and the params access interface.",
+            "Do not use a Plan parameter ID as a bare Python name. Access values as params[<parameter_id>] or params.get(<parameter_id>), or assign a local from that interface first.",
+            "Volundr rejects unresolved names, conditionally assigned names, prohibited names, and provider-defined imports before worker submission.",
+            json.dumps(
+                {
+                    str(function.get("function_id")): function.get("symbol_inventory", {})
+                    for function in inventory["functions"]
+                },
+                indent=2,
+                sort_keys=True,
+            ),
             "",
             "Requirement-led implementation contract:",
             "Satisfy every active requirement and preserve unaffected requirements during revisions.",

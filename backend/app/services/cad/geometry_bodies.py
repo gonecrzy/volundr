@@ -22,6 +22,10 @@ from app.services.cad.parameter_effects import (
     validate_parameter_effects,
 )
 from app.services.cad.patterns import pattern_parameter_ids
+from app.services.cad.python_symbols import (
+    allowed_symbol_inventory,
+    analyze_function_symbols,
+)
 
 
 GEOMETRY_BODIES_SCHEMA_VERSION = "cadquery-geometry-bodies-v2"
@@ -72,6 +76,7 @@ class GeometryBodyAssembly:
     function_body_hashes: dict[str, str]
     result_symbols: dict[str, str]
     dependency_findings: list[dict[str, Any]]
+    symbol_evidence: dict[str, list[dict[str, Any]]]
 
 
 def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
@@ -120,6 +125,11 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
                 ],
             }
         entry.update(_effect_inventory_fields(effect_by_function.get(entry["function_id"])))
+        entry["symbol_inventory"] = allowed_symbol_inventory(
+            signature=entry["signature"],
+            parameter_ids=set(parameters),
+            scaffold_owned_identifiers=_SCAFFOLD_OWNED_NAMES,
+        )
         entries.append(entry)
     for feature in plan.get("features", []) or []:
         if not isinstance(feature, dict) or not feature.get("id"):
@@ -141,6 +151,11 @@ def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
                 ],
             }
         entry.update(_effect_inventory_fields(effect_by_function.get(entry["function_id"])))
+        entry["symbol_inventory"] = allowed_symbol_inventory(
+            signature=entry["signature"],
+            parameter_ids=set(parameters),
+            scaffold_owned_identifiers=_SCAFFOLD_OWNED_NAMES,
+        )
         entries.append(entry)
     return {
         "schema_version": GEOMETRY_BODIES_SCHEMA_VERSION,
@@ -178,6 +193,7 @@ def assemble_geometry_bodies(
     canonical: dict[str, list[str]] = {}
     functions: dict[str, str] = {}
     result_symbols: dict[str, str] = {}
+    symbol_evidence: dict[str, list[dict[str, Any]]] = {}
     seen: set[str] = set()
     for record in records:
         if not isinstance(record, dict) or not isinstance(record.get("function_id"), str):
@@ -208,7 +224,7 @@ def assemble_geometry_bodies(
             )
         result_symbol = record.get("result_symbol")
         original[function_id] = list(statements)
-        canonical_lines, function_source = _canonicalize_function(
+        canonical_lines, function_source, function_symbol_evidence = _canonicalize_function(
             function_id=function_id,
             statements=statements,
             result_symbol=result_symbol,
@@ -221,6 +237,7 @@ def assemble_geometry_bodies(
         canonical[function_id] = canonical_lines
         functions[function_id] = function_source
         result_symbols[function_id] = str(result_symbol)
+        symbol_evidence[function_id] = function_symbol_evidence
         effect_findings = validate_parameter_effects(
             function_source,
             spec,
@@ -278,6 +295,7 @@ def assemble_geometry_bodies(
         },
         result_symbols={function_id: result_symbols[function_id] for function_id in expected},
         dependency_findings=dependency_findings,
+        symbol_evidence={function_id: symbol_evidence.get(function_id, []) for function_id in expected},
     )
 
 
@@ -306,6 +324,81 @@ def _parse_payload(raw_output: str) -> dict[str, Any]:
     return payload
 
 
+def geometry_body_record_hashes(raw_output: str) -> dict[str, str]:
+    """Hash provider records before canonicalization for repair-scope evidence."""
+
+    payload = _parse_payload(raw_output)
+    records = payload.get("functions")
+    if not isinstance(records, list):
+        raise GeometryBodyError(
+            "geometry_body.invalid_json",
+            "Geometry body response must contain a functions array.",
+        )
+    hashes: dict[str, str] = {}
+    for record in records:
+        if not isinstance(record, dict) or not isinstance(record.get("function_id"), str):
+            raise GeometryBodyError(
+                "geometry_body.invalid_json",
+                "Each geometry function must contain a string function_id.",
+            )
+        function_id = record["function_id"]
+        if function_id in hashes:
+            raise GeometryBodyError(
+                "geometry_body.duplicate_function",
+                f"Geometry function `{function_id}` was returned more than once.",
+            )
+        hashes[function_id] = hashlib.sha256(
+            json.dumps(
+                {
+                    "function_id": function_id,
+                    "statements": record.get("statements"),
+                    "result_symbol": record.get("result_symbol"),
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+    return hashes
+
+
+def validate_geometry_body_repair_scope(
+    *,
+    original_raw_output: str,
+    repaired_raw_output: str,
+    affected_function_ids: set[str],
+) -> dict[str, Any]:
+    """Reject a repair that changes any provider body outside its proven scope."""
+
+    original_hashes = geometry_body_record_hashes(original_raw_output)
+    repaired_hashes = geometry_body_record_hashes(repaired_raw_output)
+    changed = {
+        function_id: {
+            "original": original_hashes.get(function_id),
+            "repaired": repaired_hashes.get(function_id),
+        }
+        for function_id in sorted(set(original_hashes) | set(repaired_hashes))
+        if function_id not in affected_function_ids
+        and original_hashes.get(function_id) != repaired_hashes.get(function_id)
+    }
+    if changed:
+        raise GeometryBodyError(
+            "geometry_body.repair_scope_violation",
+            "Geometry-body repair changed an unaffected provider function.",
+            details={
+                "affected_function_ids": sorted(affected_function_ids),
+                "changed_unaffected_functions": changed,
+                "original_function_hashes": original_hashes,
+                "repaired_function_hashes": repaired_hashes,
+            },
+        )
+    return {
+        "affected_function_ids": sorted(affected_function_ids),
+        "original_function_hashes": original_hashes,
+        "repaired_function_hashes": repaired_hashes,
+        "changed_unaffected_functions": {},
+    }
+
+
 def _canonicalize_function(
     *,
     function_id: str,
@@ -314,7 +407,7 @@ def _canonicalize_function(
     signature: str,
     allowed_parameters: set[str],
     scaffold_owned_identifiers: set[str],
-) -> tuple[list[str], str]:
+) -> tuple[list[str], str, list[dict[str, Any]]]:
     if not isinstance(result_symbol, str) or not result_symbol.strip():
         raise GeometryBodyError(
             "geometry_body.result_symbol_missing",
@@ -393,7 +486,31 @@ def _canonicalize_function(
                         raise GeometryBodyError(
                             "geometry_body.undeclared_parameter",
                             f"Geometry body references undeclared parameter `{parameter_id}`.",
-                    )
+                        )
+        if isinstance(child, ast.Lambda):
+            raise GeometryBodyError(
+                "geometry_body.invalid_statement",
+                f"Geometry function `{function_id}` cannot declare lambda functions.",
+            )
+    symbol_analysis = analyze_function_symbols(
+        node,
+        function_id=function_id,
+        parameter_ids=allowed_parameters,
+        scaffold_owned_identifiers=scaffold_owned_identifiers,
+        source_text=f"def {function_id}{signature}:\n{textwrap.indent(normalized, '    ')}\n",
+    )
+    if symbol_analysis.findings:
+        finding = symbol_analysis.findings[0]
+        raise GeometryBodyError(
+            str(finding["rule_id"]),
+            str(finding.get("message") or "Geometry body contains an invalid Python name."),
+            details={
+                "function_id": function_id,
+                "findings": list(symbol_analysis.findings),
+                "symbol_evidence": list(symbol_analysis.classifications),
+                "affected_function_id": function_id,
+            },
+        )
     assignment_status = _result_assignment_status(node.body, result_symbol)
     if assignment_status == "missing":
         raise GeometryBodyError(
@@ -413,7 +530,7 @@ def _canonicalize_function(
     node.body.append(ast.Return(value=ast.Name(id=result_symbol, ctx=ast.Load())))
     canonical_function = ast.unparse(node)
     canonical_body = canonical_function.splitlines()[1:]
-    return canonical_body, canonical_function
+    return canonical_body, canonical_function, list(symbol_analysis.classifications)
 
 
 def _result_assignment_status(statements: list[ast.stmt], symbol: str) -> str:
