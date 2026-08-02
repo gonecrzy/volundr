@@ -804,6 +804,28 @@ def test_exposed_control_without_source_parameter_trace_blocks() -> None:
     assert finding["is_blocking"] is True
 
 
+def test_ordinary_numeric_plan_value_does_not_require_source_parameter_identity() -> None:
+    plan = copy.deepcopy(TRACE_PLAN)
+    plan["parameters"] = [{
+        "id": "plate_width",
+        "label": "Plate width",
+        "value": 80.0,
+        "unit": "mm",
+        "source": "requirement_ledger",
+        "protected": False,
+    }]
+    plan["exposed_controls"] = []
+
+    result = certify(TRACE_SOURCE, specification=TRACE_SPECIFICATION, plan=plan)
+
+    assert result["pre_execution_passed"] is True
+    assert any(
+        finding["rule_id"] == "design_artifact.parameter_missing"
+        and finding["is_blocking"] is False
+        for finding in result["findings"]
+    )
+
+
 def test_multiple_printable_components_cannot_collapse_into_one_output() -> None:
     plan = copy.deepcopy(TRACE_PLAN)
     plan["components"].append({"id": "lid", "role": "printable_part", "required": True})

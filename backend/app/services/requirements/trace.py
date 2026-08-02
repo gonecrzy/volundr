@@ -112,6 +112,11 @@ def normalize_requirement_semantics(item: dict[str, Any]) -> dict[str, Any]:
     operator = str(normalized.get("operator") or _operator_for_requirement(normalized, kind))
     normalized["kind"] = kind
     normalized["operator"] = operator
+    # Capacity is a semantic kind, not merely a numeric dimension.  Preserve
+    # that distinction even when an older provider record called it an
+    # exact_dimension or explicit_count.
+    if kind == "capacity":
+        normalized["type"] = "capacity"
     if normalized.get("raw_evidence") is None:
         evidence = normalized.get("evidence")
         if isinstance(evidence, dict):
@@ -597,6 +602,7 @@ def _parse_requirement_text(text: str) -> list[dict[str, Any]]:
 
     lowered = text.lower()
     items.extend(_parse_capacity_phrases(text))
+    items.extend(_parse_feature_semantics(text))
     if "label tabs" in lowered or "label_tabs" in lowered:
         items.append(explicit_item("label_tabs", True, requirement_type="explicit_feature", evidence="label tabs"))
     for feature in FEATURE_WORDS:
@@ -901,6 +907,37 @@ def _parse_capacity_phrases(text: str) -> list[dict[str, Any]]:
                 target=f"{unit}_storage",
             )
         )
+    return items
+
+
+def _parse_feature_semantics(text: str) -> list[dict[str, Any]]:
+    """Preserve generic feature presence/absence without a product vocabulary."""
+
+    items: list[dict[str, Any]] = []
+    patterns = (
+        ("absent", False, r"\b(?:without|no longer needs?|does not need|doesn't need)\s+(?:a|an|the)?\s*(?P<feature>[a-z][a-z0-9 _-]*?)(?=\s*(?:[,.;]|$|\band\b))"),
+        ("present", True, r"\b(?:with|has|have|includes?|including)\s+(?:a|an|the)\s+(?P<feature>[a-z][a-z0-9_-]*)(?=\s*(?:[,.;]|$|\band\b))"),
+    )
+    for operator, value, pattern in patterns:
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+            phrase = str(match.group("feature") or "").strip()
+            object_type, unit = _object_semantics(phrase)
+            if not object_type:
+                continue
+            requirement_id = canonical_requirement_id(object_type)
+            items.append(
+                explicit_item(
+                    requirement_id,
+                    value,
+                    label=phrase.replace("_", " ").title(),
+                    requirement_type="feature_absence" if not value else "feature_presence",
+                    evidence=match.group(0).strip(),
+                    kind="feature",
+                    operator=operator,
+                    object_type=object_type,
+                    target=object_type,
+                )
+            )
     return items
 
 

@@ -22,7 +22,10 @@ from app.models.requirement_ledger import (
     RequirementDelta,
     RequirementLedgerEntry,
 )
-from app.services.requirements.trace import normalize_requirement_semantics
+from app.services.requirements.trace import (
+    build_explicit_requirement_inventory,
+    normalize_requirement_semantics,
+)
 
 
 REQUIREMENT_LEDGER_VERSION = "requirement-ledger-v1"
@@ -136,7 +139,17 @@ def requirement_delta_for_message(
     lowered = text.lower()
     observation: dict[str, Any] | None = None
     changes: list[dict[str, Any]] = []
-    if "too tight" in lowered and "diameter" in lowered:
+    semantic_changes = _semantic_revision_changes(text, source=source)
+    physical_feedback_signal = bool(
+        re.search(
+            r"\b(?:too\s+tight|too\s+loose|too\s+stiff|flex(?:es|ed)?|cracked|broke|"
+            r"does\s+not\s+seat|test\s+print|interferes?)\b",
+            lowered,
+        )
+    )
+    if semantic_changes and not physical_feedback_signal:
+        changes.extend(semantic_changes)
+    elif "too tight" in lowered and "diameter" in lowered:
         observation = _observation(text, "fit_too_tight", "physical_test_feedback")
         match = re.search(r"to\s+([0-9]+(?:\.[0-9]+)?)\s*mm", lowered)
         changes.append(
@@ -277,6 +290,98 @@ def requirement_delta_for_message(
     ):
         observation = _observation(text, "physical_test_observation", "physical_test_feedback")
     return changes, observation
+
+
+def _semantic_revision_changes(message: str, *, source: str) -> list[dict[str, Any]]:
+    """Extract only unambiguous semantic deltas from ordinary revision text.
+
+    This intentionally returns requirement deltas, not exposed controls.  The
+    active ledger remains the authority for matching an existing requirement
+    when a user uses a shorter label such as ``capacity``.
+    """
+
+    extracted = build_explicit_requirement_inventory(message)
+    semantic_items = [
+        item for item in extracted
+        if item.get("kind") in {"capacity", "feature"}
+        and item.get("operator") in {"up_to", "at_least", "exact", "range", "present", "absent"}
+    ]
+    if semantic_items:
+        return [
+            {
+                **item,
+                "operation": "change",
+                "source": source,
+                "explicit": True,
+            }
+            for item in semantic_items
+        ]
+
+    approximate = re.search(
+        r"\b(?:make|set|change)\s+(?:the\s+)?(?P<label>[a-z][a-z0-9 _-]*?)\s+"
+        r"(?P<operator>approximately|about|approx)\s+(?P<value>[0-9]+(?:\.[0-9]+)?)\s*"
+        r"(?P<unit>[a-z]+)?\b",
+        message.lower(),
+    )
+    if approximate:
+        return [_numeric_revision_change(
+            label=approximate.group("label"),
+            value=float(approximate.group("value")),
+            unit=approximate.group("unit"),
+            operator="approximately",
+            source=source,
+        )]
+
+    numeric = re.search(
+        r"\b(?:increase|raise|reduce|decrease|lower|change|set|make)\s+(?:the\s+)?"
+        r"(?P<label>[a-z][a-z0-9 _-]*?)\s+(?:from\s+[^\d]+[0-9]+(?:\.[0-9]+)?\s*[a-z]+\s+)?"
+        r"to\s+(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>[a-z]+)?\b",
+        message.lower(),
+    )
+    if not numeric:
+        return []
+    return [_numeric_revision_change(
+        label=numeric.group("label"),
+        value=float(numeric.group("value")),
+        unit=numeric.group("unit"),
+        operator=None,
+        source=source,
+    )]
+
+
+def _numeric_revision_change(
+    *,
+    label: str,
+    value: float,
+    unit: str | None,
+    operator: str | None,
+    source: str,
+) -> dict[str, Any]:
+    clean_label = re.sub(r"\s+from\s+.*$", "", label).strip(" _-")
+    qualifier = None
+    qualifier_match = re.match(r"^(maximum|minimum)\s+(.+)$", clean_label)
+    if qualifier_match:
+        qualifier = qualifier_match.group(1)
+        clean_label = qualifier_match.group(2).strip()
+    requirement_id = re.sub(r"[^a-z0-9]+", "_", clean_label).strip("_")
+    is_capacity = "capacity" in requirement_id
+    resolved_operator = operator or qualifier or "exact"
+    return {
+        "operation": "change",
+        "requirement_id": requirement_id,
+        "type": "capacity" if is_capacity else (
+            "maximum_dimension" if resolved_operator == "maximum" else
+            "minimum_dimension" if resolved_operator == "minimum" else
+            "exact_dimension"
+        ),
+        "kind": "capacity" if is_capacity else "dimension",
+        "operator": resolved_operator,
+        "value": int(value) if value.is_integer() else value,
+        "unit": unit or ("count" if is_capacity else None),
+        "source": source,
+        "explicit": True,
+        "target": requirement_id,
+    }
 
 
 class RequirementLedgerStore:
@@ -557,7 +662,7 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         if isinstance(verification_evidence, dict) and "evidence" in verification_evidence
         else verification_evidence
     )
-    return {
+    return normalize_requirement_semantics({
         "record_id": row.id,
         "requirement_id": row.requirement_id,
         "source": row.source,
@@ -580,7 +685,7 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         "raw_evidence": semantic.get("raw_evidence"),
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
-    }
+    })
 
 
 def _json_value(value: Any) -> str | None:

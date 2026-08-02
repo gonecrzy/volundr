@@ -56,6 +56,17 @@ def certify_design_artifact_consistency(
     plan_outputs = _plan_outputs(design_plan_payload)
     plan_parameters = _plan_parameters(design_plan_payload)
     derived_parameters = _derived_parameters(design_plan_payload)
+    modern_parameter_contract = "exposed_controls" in design_plan_payload
+    exposed_control_ids = {
+        str(entry.get("parameter_id") or entry.get("id"))
+        for entry in design_plan_payload.get("exposed_controls", []) or []
+        if isinstance(entry, dict) and (entry.get("parameter_id") or entry.get("id"))
+    }
+    exposed_control_ids.update(
+        str(entry)
+        for entry in design_plan_payload.get("exposed_controls", []) or []
+        if isinstance(entry, str) and entry
+    )
     overrides = dict(parameter_overrides or {})
     if execution_manifest and isinstance(execution_manifest.get("parameter_overrides"), dict):
         overrides.update(execution_manifest["parameter_overrides"])
@@ -225,6 +236,10 @@ def certify_design_artifact_consistency(
         )
 
     for parameter_id, parameter in plan_parameters.items():
+        parameter_blocking = (
+            not modern_parameter_contract
+            or parameter_id in exposed_control_ids
+        )
         plan_value = parameter.get("value")
         source_default = source_defaults.get(parameter_id)
         execution_value = (execution_parameters or {}).get(parameter_id)
@@ -236,6 +251,7 @@ def certify_design_artifact_consistency(
                     "design_artifact.parameter_missing",
                     f"planned parameter `{parameter_id}` has no matching CadQuery ParameterSpec",
                     parameter_id=parameter_id,
+                    blocking=parameter_blocking,
                 )
             )
         elif not _values_equal(plan_value, source_default):
@@ -248,6 +264,7 @@ def certify_design_artifact_consistency(
                     expected=plan_value,
                     detected=source_default,
                     unit=parameter.get("unit"),
+                    blocking=parameter_blocking,
                 )
             )
         plan_type = _plan_parameter_type(parameter)
@@ -261,6 +278,7 @@ def certify_design_artifact_consistency(
                     parameter_id=parameter_id,
                     expected=plan_type,
                     detected=source_type,
+                    blocking=parameter_blocking,
                 )
             )
         plan_unit = parameter.get("unit")
@@ -275,6 +293,7 @@ def certify_design_artifact_consistency(
                     expected=plan_unit,
                     detected=source_unit,
                     unit=str(plan_unit),
+                    blocking=parameter_blocking,
                 )
             )
         plan_protected = bool(parameter.get("protected", False))
@@ -288,6 +307,7 @@ def certify_design_artifact_consistency(
                     parameter_id=parameter_id,
                     expected=plan_protected,
                     detected=source_protected_value,
+                    blocking=parameter_blocking,
                 )
             )
         source_requirement_id = parameter.get("source_requirement_id")
@@ -302,6 +322,7 @@ def certify_design_artifact_consistency(
                     parameter_id=parameter_id,
                     expected=source_requirement_id,
                     detected=source_declared_requirement_id,
+                    blocking=parameter_blocking,
                 )
             )
         plan_source = parameter.get("source")
@@ -316,6 +337,7 @@ def certify_design_artifact_consistency(
                     parameter_id=parameter_id,
                     expected=plan_source,
                     detected=source_declared_source,
+                    blocking=parameter_blocking,
                 )
             )
         if execution_parameters is not None and parameter_id in execution_parameters:
@@ -329,6 +351,7 @@ def certify_design_artifact_consistency(
                         expected=plan_value,
                         detected=execution_value,
                         unit=parameter.get("unit"),
+                        blocking=parameter_blocking,
                     )
                 )
             elif parameter_id in overrides:
@@ -375,6 +398,7 @@ def certify_design_artifact_consistency(
                     f"submitted parameter `{parameter_id}` is not declared by the CadQuery source",
                     parameter_id=parameter_id,
                     detected=execution_parameters.get(parameter_id),
+                    blocking=not modern_parameter_contract,
                 )
             )
 

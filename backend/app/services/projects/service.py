@@ -188,6 +188,7 @@ from app.services.requirements.trace import (
     build_explicit_requirement_inventory,
     inventory_from_design_specification,
     merge_resolved_requirements,
+    normalize_requirement_semantics,
     requirement_trace_payload,
     validate_design_plan_trace,
     validate_design_specification_trace,
@@ -3613,7 +3614,7 @@ class ProjectService:
             "project_id": project.id,
             "design_specification_id": specification.id,
             "units": payload.get("units") or "mm",
-            "requirements": [dict(item) for item in active_requirements],
+            "requirements": [normalize_requirement_semantics(dict(item)) for item in active_requirements],
             "revision_delta": [dict(item) for item in revision_delta],
             "preserved_requirements": [dict(item) for item in preserved_requirements],
             "proposals": [
@@ -4473,21 +4474,31 @@ class ProjectService:
             )
             return initial_revision
 
+        worker_traceback = self.read_revision_compile_log(initial_revision.id)
+        worker_error = initial_revision.error_message or worker_traceback
         runtime_finding = classify_worker_diagnostic(
-            initial_revision.error_message,
-            traceback=self.read_revision_compile_log(initial_revision.id),
+            worker_error,
+            traceback=worker_traceback,
+        )
+        worker_failed = (
+            initial_revision.status == "failed"
+            and bool(
+                initial_revision.compile_log_path
+                or initial_revision.execution_manifest_path
+                or initial_revision.output_manifest_path
+            )
         )
         self._finish_generation_attempt(
             active_attempt,
             status="failed",
             failure_class=(
                 FailureClass.CADQUERY_COMPILE_FAILURE
-                if runtime_finding is not None
+                if runtime_finding is not None or worker_failed
                 else FailureClass.DESIGN_ARTIFACT_INCONSISTENT
                 if self._has_design_artifact_consistency_blockers(initial_revision.id)
                 else FailureClass.CADQUERY_COMPILE_FAILURE
             ),
-            error_message=initial_revision.error_message,
+            error_message=worker_error,
             resulting_revision_id=initial_revision.id,
         )
         if runtime_finding is not None:
@@ -4528,6 +4539,10 @@ class ProjectService:
                 generation_attempt_id=active_attempt.id,
                 metadata=runtime_finding,
             )
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            return initial_revision
+
+        if worker_failed:
             self._complete_workflow_lineage(workflow_run, status="failed")
             return initial_revision
 
@@ -6468,6 +6483,14 @@ class ProjectService:
             payload["schema_version"] = DESIGN_PLAN_SCHEMA_VERSION
         validated = DesignPlanPayload.model_validate(payload)
         normalized = validated.model_dump(mode="json", by_alias=True)
+        # The ledger remains authoritative; this derived field makes the
+        # semantic requirement contract available to detailed-plan consumers
+        # without pretending the provider's parameter list is the ledger.
+        explicit_inventory = inventory_from_design_specification(design_specification_payload)
+        normalized["requirements"] = [
+            normalize_requirement_semantics(dict(item))
+            for item in explicit_inventory
+        ]
         normalized = resolve_retention_proposals(normalized)
         normalized = normalize_plan_provenance(
             normalized,
@@ -6517,7 +6540,6 @@ class ProjectService:
             )
         if functional_findings:
             normalized["functional_validation_findings"] = functional_findings
-        explicit_inventory = inventory_from_design_specification(design_specification_payload)
         if explicit_inventory and strict_parameter_trace:
             validate_design_plan_trace(normalized, explicit_inventory)
         self._validate_design_plan_dependency_edges(normalized)

@@ -149,10 +149,36 @@ class DirectCadBriefBuilder:
         targets = []
         for item in requirements:
             requirement_type = str(item.get("type") or item.get("requirement_type") or "")
-            if requirement_type in {"count", "position", "orientation", "fit", "mounting_interface", "support", "retention", "removal_access"}:
-                targets.append({
-                    "requirement_id": item.get("requirement_id") or item.get("id"),
-                    "type": requirement_type,
-                    "status": "required_evidence",
-                })
+            requirement_id = item.get("requirement_id") or item.get("id")
+            kind = str(item.get("kind") or requirement_type).lower()
+            measurable = {
+                "capacity": "supported_capacity",
+                "count": "count",
+                "dimension": "dimension",
+                "clearance": "clearance",
+                "fit": "fit",
+                "spacing": "spacing",
+                "position": "position",
+                "orientation": "orientation",
+            }
+            measurement = measurable.get(kind)
+            if measurement is None and requirement_type in {
+                "count", "position", "orientation", "fit", "mounting_interface",
+                "support", "retention", "removal_access",
+            }:
+                measurement = requirement_type
+            if measurement is None:
+                continue
+            target = {
+                "id": f"verify_{requirement_id}",
+                "requirement_id": requirement_id,
+                "type": kind,
+                "measurement": measurement,
+                "operator": item.get("operator"),
+                "expected_value": item.get("value"),
+                "unit": item.get("unit"),
+                "object_type": item.get("object_type"),
+                "status": "required_evidence",
+            }
+            targets.append({key: value for key, value in target.items() if value is not None})
         return targets

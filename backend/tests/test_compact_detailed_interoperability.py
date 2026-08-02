@@ -138,7 +138,7 @@ def test_requirement_target_fallback_does_not_conflict_with_other_measurements()
             "printable_outputs": [{"id": "frame_output", "component_ids": ["frame"]}],
             "validation_targets": [
                 {
-                    "id": "capacity_target",
+                    "validation_target_id": "capacity_target",
                     "feature_id": "storage_slots",
                     "measurement": "slot_count",
                     "requirement_ids": ["storage_capacity"],
@@ -169,6 +169,46 @@ def test_requirement_target_fallback_does_not_conflict_with_other_measurements()
     )
     obligation = result["normalized"]["obligations"][0]
     assert obligation["validation_target_id"] == "capacity_target"
+
+
+def test_orientation_requirement_uses_typed_storage_feature_without_product_vocabulary() -> None:
+    result = build_requirement_trace_manifest(
+        design_specification_payload={
+            "functional_requirements": [{
+                "id": "req_loading",
+                "type": "orientation",
+                "kind": "orientation",
+                "object_type": "storage_item",
+                "operator": "present",
+                "description": "Items enter through the upper opening.",
+                "raw_evidence": "items slide in from the top",
+                "source": "user",
+                "protected": True,
+            }],
+        },
+        design_plan_payload={
+            "components": [{"id": "frame"}],
+            "features": [{
+                "id": "storage_slots",
+                "component_id": "frame",
+                "object_type": "slot_array",
+                "description": "Vertical storage slots.",
+            }],
+            "printable_outputs": [{"id": "frame_output", "component_ids": ["frame"]}],
+        },
+        source_component_ids={"frame"},
+        source_component_symbols={"frame": "build_frame"},
+        source_feature_components={"storage_slots": "frame"},
+        source_feature_symbols={"storage_slots": "apply_storage_slots"},
+        source_output_ids={"frame_output"},
+        source_output_components={"frame_output": ["frame"]},
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["plan_feature_id"] == "storage_slots"
+    assert obligation["status"] == "source_trace"
+    assert not any(item["is_blocking"] for item in result["findings"])
 
 
 def test_compact_feature_owner_defaults_only_for_an_unambiguous_single_part() -> None:
