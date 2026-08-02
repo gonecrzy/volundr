@@ -123,3 +123,37 @@ provider and the localized repairs cannot resolve repeated runtime failures.
 Observed frontend usability testing may proceed with deterministic fixtures.
 Live CAD-quality testing should continue through this fixed matrix until
 compact and detailed worker reliability is materially better.
+
+## 2026-08-02 — Tackle-tray pattern coordinate-space rerun
+
+The preserved project `9bebb910-9967-4148-88a4-457756639c2e` was rerun without
+deleting earlier attempts. Its compact Plan defines `tray_slot_pattern` for
+`tray_slots` on `tackle_tray_holder_body`, with five component-local 3D points
+along Z in `root_frame`. The provider consumed those points through
+`pushPoints()` on a Z-facing workplane, first directly and then through a
+list-comprehension that dropped the Z coordinate.
+
+The first post-contract run reached the worker. CadQuery completed, but the
+result was correctly blocked after execution because the output had
+disconnected solids and the wall-mount requirement was not satisfied. No
+Current working version, snapshot, or export was promoted from that attempt.
+
+The subsequent rerun and one bounded geometry repair were stopped before the
+worker by `geometry_body.pattern_coordinate_space_mismatch`. The source
+contract evidence records the original component-local points, `root_frame`,
+the consuming `pushPoints()` statement, and the Z workplane. Dropping the
+normal coordinate was not treated as a safe conversion. This is the intended
+new failure boundary: the provider must choose a compatible plane, perform a
+verified frame conversion, or place separate cutters.
+
+The rerun did not create a candidate or alter the Current working version.
+The worker was not reached on the final source-contract attempt, so there is
+no new topology, snapshot, artifact-readiness, or physical-function pass to
+claim. The exact blocker remains provider geometry construction, not Plan
+semantics, requirement tracing, or promotion policy.
+
+The same project’s chat ledger was corrected without destructive history
+rewriting: the initial request is rendered once, the legacy workflow
+instruction is an internal event, and `wall mounted` is persisted as explicit
+`clarification_user` evidence linked to its clarification question, answer,
+and project message.
