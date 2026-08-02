@@ -13,26 +13,56 @@ class PatternSpecError(ValueError):
     """A pattern cannot be resolved deterministically from its specification."""
 
 
+WORKPLANE_LOCAL_2D = "workplane_local_2d"
+WORKPLANE_LOCAL_3D = "workplane_local_3d"
+COMPONENT_LOCAL_3D = "component_local_3d"
+WORLD_3D = "world_3d"
+_COORDINATE_SPACES = {
+    WORKPLANE_LOCAL_2D,
+    WORKPLANE_LOCAL_3D,
+    COMPONENT_LOCAL_3D,
+    WORLD_3D,
+}
+
+
 @dataclass(frozen=True)
 class PatternPointSet:
     """Canonical points plus the provenance needed to audit their construction."""
 
-    points: tuple[tuple[float, float, float], ...]
+    points: tuple[tuple[float, ...], ...]
     pattern_type: str
     unit: str = "mm"
     provenance: dict[str, Any] = field(default_factory=dict)
+    coordinate_space: str = COMPONENT_LOCAL_3D
+    coordinate_frame_id: str | None = None
+    arrangement_axis: str | None = None
+    point_dimensionality: int | None = None
+    consumer_operation: str | None = None
+    host_plane: str | None = None
     content_hash: str = field(init=False)
 
     def __post_init__(self) -> None:
         normalized = tuple(tuple(_finite_number(value, "point coordinate") for value in point) for point in self.points)
-        if any(len(point) != 3 for point in normalized):
-            raise PatternSpecError("pattern points must be three-dimensional")
+        if any(len(point) not in {2, 3} for point in normalized):
+            raise PatternSpecError("pattern points must be two- or three-dimensional")
+        dimensionality = self.point_dimensionality or (len(normalized[0]) if normalized else 3)
+        if dimensionality not in {2, 3} or any(len(point) != dimensionality for point in normalized):
+            raise PatternSpecError("pattern points must have one stable dimensionality")
+        if self.coordinate_space not in _COORDINATE_SPACES:
+            raise PatternSpecError(f"unsupported coordinate space `{self.coordinate_space}`")
         object.__setattr__(self, "points", normalized)
+        object.__setattr__(self, "point_dimensionality", dimensionality)
         payload = {
             "pattern_type": self.pattern_type,
             "unit": self.unit,
             "points": normalized,
             "provenance": self.provenance,
+            "coordinate_space": self.coordinate_space,
+            "coordinate_frame_id": self.coordinate_frame_id,
+            "arrangement_axis": self.arrangement_axis,
+            "point_dimensionality": dimensionality,
+            "consumer_operation": self.consumer_operation,
+            "host_plane": self.host_plane,
         }
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
         object.__setattr__(self, "content_hash", hashlib.sha256(encoded).hexdigest())
@@ -53,6 +83,11 @@ def linear_pattern_points(
     *,
     unit: str = "mm",
     provenance: Mapping[str, Any] | None = None,
+    coordinate_space: str = COMPONENT_LOCAL_3D,
+    coordinate_frame_id: str | None = None,
+    arrangement_axis: str | None = None,
+    consumer_operation: str | None = None,
+    host_plane: str | None = None,
 ) -> PatternPointSet:
     count = _positive_integer(count, "count")
     spacing = _finite_number(spacing, "spacing")
@@ -64,7 +99,18 @@ def linear_pattern_points(
         point = list(origin)
         point[axis_index] += (index - center) * spacing
         points.append(tuple(point))
-    return PatternPointSet(tuple(points), "linear", unit, _provenance(provenance))
+    return PatternPointSet(
+        tuple(points),
+        "linear",
+        unit,
+        _provenance(provenance),
+        coordinate_space,
+        coordinate_frame_id,
+        arrangement_axis or str(axis).upper(),
+        3,
+        consumer_operation,
+        host_plane,
+    )
 
 
 def rectangular_pattern_points(
@@ -78,6 +124,11 @@ def rectangular_pattern_points(
     *,
     unit: str = "mm",
     provenance: Mapping[str, Any] | None = None,
+    coordinate_space: str = COMPONENT_LOCAL_3D,
+    coordinate_frame_id: str | None = None,
+    arrangement_axis: str | None = None,
+    consumer_operation: str | None = None,
+    host_plane: str | None = None,
 ) -> PatternPointSet:
     rows = _positive_integer(rows, "rows")
     columns = _positive_integer(columns, "columns")
@@ -94,7 +145,18 @@ def rectangular_pattern_points(
             point[plane_axes[0]] += (column - column_center) * column_spacing
             point[plane_axes[1]] += (row - row_center) * row_spacing
             points.append(tuple(point))
-    return PatternPointSet(tuple(points), "rectangular", unit, _provenance(provenance))
+    return PatternPointSet(
+        tuple(points),
+        "rectangular",
+        unit,
+        _provenance(provenance),
+        coordinate_space,
+        coordinate_frame_id,
+        arrangement_axis,
+        3,
+        consumer_operation,
+        host_plane,
+    )
 
 
 def circular_pattern_points(
@@ -104,6 +166,11 @@ def circular_pattern_points(
     *,
     unit: str = "mm",
     provenance: Mapping[str, Any] | None = None,
+    coordinate_space: str = WORKPLANE_LOCAL_3D,
+    coordinate_frame_id: str | None = None,
+    arrangement_axis: str | None = None,
+    consumer_operation: str | None = None,
+    host_plane: str | None = None,
 ) -> PatternPointSet:
     count = _positive_integer(count, "count")
     radius = _finite_number(radius, "radius")
@@ -118,7 +185,18 @@ def circular_pattern_points(
         )
         for index in range(count)
     )
-    return PatternPointSet(points, "circular", unit, _provenance(provenance))
+    return PatternPointSet(
+        points,
+        "circular",
+        unit,
+        _provenance(provenance),
+        coordinate_space,
+        coordinate_frame_id,
+        arrangement_axis,
+        3,
+        consumer_operation,
+        host_plane,
+    )
 
 
 def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]) -> PatternPointSet:
@@ -137,6 +215,11 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
     }
     provenance = dict(pattern.get("provenance") or {})
     provenance.update(values)
+    coordinate_space = str(pattern.get("coordinate_space") or COMPONENT_LOCAL_3D)
+    coordinate_frame_id = pattern.get("coordinate_frame_id") or pattern.get("frame_id")
+    arrangement_axis = pattern.get("arrangement_axis") or pattern.get("axis")
+    consumer_operation = pattern.get("consumer_operation")
+    host_plane = pattern.get("host_plane") or pattern.get("workplane")
     if pattern_type == "linear":
         return linear_pattern_points(
             _parameter_or_value(params, pattern, "count_parameter_id", "count"),
@@ -146,6 +229,11 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
             tuple(pattern.get("origin") or (0.0, 0.0, 0.0)),
             unit=unit,
             provenance=provenance,
+            coordinate_space=coordinate_space,
+            coordinate_frame_id=str(coordinate_frame_id) if coordinate_frame_id else None,
+            arrangement_axis=str(arrangement_axis).upper() if arrangement_axis else None,
+            consumer_operation=str(consumer_operation) if consumer_operation else None,
+            host_plane=str(host_plane) if host_plane else None,
         )
     if pattern_type == "rectangular":
         return rectangular_pattern_points(
@@ -158,6 +246,11 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
             tuple(pattern.get("origin") or (0.0, 0.0, 0.0)),
             unit=unit,
             provenance=provenance,
+            coordinate_space=coordinate_space,
+            coordinate_frame_id=str(coordinate_frame_id) if coordinate_frame_id else None,
+            arrangement_axis=str(arrangement_axis).upper() if arrangement_axis else None,
+            consumer_operation=str(consumer_operation) if consumer_operation else None,
+            host_plane=str(host_plane) if host_plane else None,
         )
     if pattern_type == "circular":
         return circular_pattern_points(
@@ -166,6 +259,11 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
             float(pattern.get("start_angle") or 0.0),
             unit=unit,
             provenance=provenance,
+            coordinate_space=coordinate_space,
+            coordinate_frame_id=str(coordinate_frame_id) if coordinate_frame_id else None,
+            arrangement_axis=str(arrangement_axis).upper() if arrangement_axis else None,
+            consumer_operation=str(consumer_operation) if consumer_operation else None,
+            host_plane=str(host_plane) if host_plane else None,
         )
     if pattern_type == "explicit":
         points = []
@@ -174,7 +272,18 @@ def resolve_pattern_points(pattern: Mapping[str, Any], params: Mapping[str, Any]
                 points.append((point.get("x", 0.0), point.get("y", 0.0), point.get("z", 0.0)))
             else:
                 points.append(tuple(point))
-        return PatternPointSet(tuple(points), "explicit", unit, provenance)
+        return PatternPointSet(
+            tuple(points),
+            "explicit",
+            unit,
+            provenance,
+            coordinate_space,
+            str(coordinate_frame_id) if coordinate_frame_id else None,
+            str(arrangement_axis).upper() if arrangement_axis else None,
+            None,
+            str(consumer_operation) if consumer_operation else None,
+            str(host_plane) if host_plane else None,
+        )
     raise PatternSpecError(f"unsupported pattern_type `{pattern_type}`")
 
 

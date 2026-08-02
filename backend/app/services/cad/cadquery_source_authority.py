@@ -15,6 +15,7 @@ from app.services.cad.parameter_effects import (
     classify_derived_dependency_findings,
     validate_parameter_effects,
 )
+from app.services.cad.pattern_coordinates import validate_pattern_push_points_source
 from app.services.cad.patterns import exposed_control_ids, parameter_requires_effect
 from app.services.requirements.trace import values_match
 
@@ -332,15 +333,22 @@ def format_authoritative_identity_section(authority: dict[str, Any] | None) -> s
         )
     lines.append("Canonical repeated patterns:")
     for pattern in authority.get("pattern_manifest", []) or []:
+        coordinate_description = (
+            f"space={pattern.get('coordinate_space')}, "
+            f"frame={pattern.get('coordinate_frame_id') or 'unspecified'}, "
+            f"axis={pattern.get('arrangement_axis') or 'unspecified'}, "
+            f"consumer={pattern.get('consumer_operation') or 'provider-selected'}"
+        )
         if pattern.get("effect_required", True):
             lines.append(
                 f"- {pattern.get('pattern_id')}: use params[{pattern.get('point_parameter_id')!r}] "
-                f"for {pattern.get('pattern_type')} points; provider must not replace or truncate it."
+                f"for {pattern.get('pattern_type')} points ({coordinate_description}); "
+                "provider must not replace or truncate it."
             )
         else:
             lines.append(
                 f"- {pattern.get('pattern_id')}: fixed layout; use the approved feature-layout positions "
-                "and do not infer future count or spacing sensitivity."
+                f"({coordinate_description}) and do not infer future count or spacing sensitivity."
             )
     lines.extend(
         [
@@ -361,6 +369,12 @@ def _validate_source_against_authority(
     structured_source = _is_structured_scaffold_source(source)
     if structured_source:
         findings.extend(_validate_parameter_effect_manifest(source, authority))
+        findings.extend(
+            validate_pattern_push_points_source(
+                source,
+                authority.get("pattern_manifest", []) or [],
+            )
+        )
     ast_metadata = _ast_identity_metadata(source)
     source_parameter_ids = set(source_metadata.parameter_ids)
     source_component_ids = set(source_metadata.component_ids) | set(ast_metadata["component_ids"])

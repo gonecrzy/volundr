@@ -39,8 +39,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v9"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v9"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -701,6 +701,9 @@ class GeminiCliProvider:
             "Exposed control IDs: " + (", ".join(exposed_control_ids) if exposed_control_ids else "none"),
             "For fixed or one-off layouts, use the approved feature geometry without inventing future configurability.",
             "For every required pattern (effect_required=true), Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array.",
+            "Pattern placements are not implicitly 2D: each pattern declares coordinate_space, coordinate_frame_id, point_dimensionality, arrangement_axis, and its intended consumer.",
+            "pushPoints accepts workplane-local 2D coordinates. Do not pass component-local or world 3D points directly to pushPoints. Convert them with the approved frame transform when the points are coplanar, choose a compatible host plane, or create one cutter/profile at each 3D placement using an approved CadQuery placement strategy.",
+            "Never flatten a 3D placement by dropping a coordinate or project noncoplanar points onto a workplane. Preserve point order and cardinality.",
             "Do not omit a required feature merely because its implementation is not parametric.",
             "Per-function obligations:",
             *[

@@ -248,8 +248,8 @@ DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v8"
 COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v3"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v9"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v9"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 
@@ -709,12 +709,48 @@ class ProjectService:
     def list_project_messages(self, project_id: str) -> list[ProjectMessageRead] | None:
         if self.db.get(Project, project_id) is None:
             return None
-        messages = self.db.scalars(
+        messages = list(self.db.scalars(
             select(ProjectMessage)
             .where(ProjectMessage.project_id == project_id)
             .order_by(ProjectMessage.created_at.asc())
-        )
-        return [ProjectMessageRead.model_validate(message) for message in messages]
+        ))
+        revisions = {
+            revision.id: revision
+            for revision in self.db.scalars(
+                select(Revision).where(Revision.project_id == project_id)
+            )
+        }
+        actual_user_messages = [
+            message
+            for message in messages
+            if message.role == "user" and message.client_message_id
+        ]
+        result: list[ProjectMessageRead] = []
+        for message in messages:
+            read_message = ProjectMessageRead.model_validate(message)
+            if (
+                message.role == "user"
+                and not message.client_message_id
+                and not message.chat_response_json
+                and message.revision_id
+            ):
+                revision = revisions.get(message.revision_id)
+                linked_submission = any(
+                    candidate.revision_id == message.revision_id
+                    or (
+                        revision is not None
+                        and candidate.content.strip() == message.content.strip()
+                        and (revision.user_instruction or "").strip() == message.content.strip()
+                    )
+                    for candidate in actual_user_messages
+                )
+                if linked_submission:
+                    # This is a legacy workflow instruction record, not a
+                    # second user submission. Preserve it in the database and
+                    # expose it only as an internal event so the UI filters it.
+                    read_message = read_message.model_copy(update={"role": "system_event"})
+            result.append(read_message)
+        return result
 
     def update_project(self, project_id: str, payload: ProjectUpdate) -> Project | None:
         project = self.db.get(Project, project_id)
@@ -2359,7 +2395,12 @@ class ProjectService:
             superseded_revision_plan_id=plan.id,
         )
 
-    async def generate_from_revision_plan(self, revision_plan_id: str) -> RevisionRead | None:
+    async def generate_from_revision_plan(
+        self,
+        revision_plan_id: str,
+        *,
+        user_message_id: str | None = None,
+    ) -> RevisionRead | None:
         plan = self.db.get(RevisionPlan, revision_plan_id)
         if plan is None:
             return None
@@ -2450,6 +2491,7 @@ class ProjectService:
             payload=GenerationCreate(
                 user_instruction=plan.user_instruction,
                 design_specification_id=design_specification.id if design_specification else None,
+                user_message_id=user_message_id,
             ),
             current_source=base_source,
             design_specification=design_specification_payload,
@@ -2472,6 +2514,7 @@ class ProjectService:
                 payload=GenerationCreate(
                     user_instruction=plan.user_instruction,
                     design_specification_id=design_specification.id if design_specification else None,
+                    user_message_id=user_message_id,
                 ),
                 workflow_run_id=workflow_run.id,
             ),
@@ -2722,6 +2765,7 @@ class ProjectService:
             project_id=project.id,
             source=revised_source,
             user_instruction=plan.user_instruction,
+            user_message_id=user_message_id,
             source_type="ai_revision",
             raw_ai_output=generation_result_raw_output,
             design_specification_id=design_specification.id if design_specification else None,
@@ -4204,6 +4248,8 @@ class ProjectService:
     async def generate_from_design_plan(
         self,
         design_plan_id: str,
+        *,
+        user_message_id: str | None = None,
     ) -> RevisionRead | None:
         plan = self.db.get(DesignPlan, design_plan_id)
         if plan is None:
@@ -4218,6 +4264,7 @@ class ProjectService:
         payload = GenerationCreate(
             user_instruction=specification.user_instruction,
             design_specification_id=specification.id,
+            user_message_id=user_message_id,
         )
         return await self.generate_initial_revision(
             specification.project_id,
@@ -4392,6 +4439,10 @@ class ProjectService:
         project = self.db.get(Project, project_id)
         if project is None:
             return None
+        # Repair legacy clarification provenance at the authoritative ledger
+        # boundary before a new attempt snapshots its requirements. This is
+        # identity- and workflow-linked, never text-only deduplication.
+        RequirementLedgerStore(self.db).reconcile_clarification_provenance(project_id)
         if self.ai_provider is None:
             raise RuntimeError("AI provider is not configured")
 
@@ -4527,6 +4578,7 @@ class ProjectService:
             project_id=project_id,
             source=source,
             user_instruction=payload.user_instruction,
+            user_message_id=payload.user_message_id,
             source_type=source_type,
             raw_ai_output=raw_ai_output,
             design_specification_id=design_specification.id if design_specification else None,
@@ -4556,6 +4608,9 @@ class ProjectService:
         runtime_finding = classify_worker_diagnostic(
             worker_error,
             traceback=worker_traceback,
+            pattern_manifest=(generation_request.source_authority or {}).get("pattern_manifest", [])
+            if generation_request.source_authority
+            else None,
         )
         worker_failed = (
             initial_revision.status == "failed"
@@ -4731,6 +4786,7 @@ class ProjectService:
             project_id=project_id,
             source=repaired_source,
             user_instruction=payload.user_instruction,
+            user_message_id=payload.user_message_id,
             source_type="ai_repair",
             raw_ai_output=repair_result.raw_output,
             design_specification_id=design_specification.id if design_specification else None,
@@ -5451,6 +5507,7 @@ class ProjectService:
             project_id=project.id,
             source=repaired_source,
             user_instruction=payload.user_instruction,
+            user_message_id=payload.user_message_id,
             source_type="ai_repair",
             raw_ai_output=repair_result.raw_output,
             design_specification_id=design_specification.id if design_specification else None,
@@ -9972,7 +10029,11 @@ class ProjectService:
         revision.source_contract_version = "cadquery-v1"
         revision.ai_output_path = self._relative(ai_output_path)
         revision.compile_log_path = self._relative(compile_log_path)
-        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+        self._record_revision_messages(
+            revision=revision,
+            user_instruction=user_instruction,
+            user_message_id=user_message_id,
+        )
         self.db.commit()
         self.db.refresh(revision)
         return self._revision_read(revision, error_message=error_message)
@@ -9983,6 +10044,7 @@ class ProjectService:
         project_id: str,
         source: str,
         user_instruction: str | None,
+        user_message_id: str | None = None,
         source_type: str,
         raw_ai_output: str | None,
         design_specification_id: str | None,
@@ -10106,7 +10168,11 @@ class ProjectService:
                 revision.source_hash = source_hash
                 revision.source_contract_version = "cadquery-v1"
                 revision.ai_output_path = ai_output_relative_path
-                self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+                self._record_revision_messages(
+                    revision=revision,
+                    user_instruction=user_instruction,
+                    user_message_id=user_message_id,
+                )
                 self.db.commit()
                 self.db.refresh(revision)
                 return self._revision_read(revision, error_message=error_message)
@@ -10436,7 +10502,11 @@ class ProjectService:
             revision.is_accepted = True
             revision.accepted_at = project_utcnow()
             project.active_revision_id = revision.id
-        self._record_revision_messages(revision=revision, user_instruction=user_instruction)
+        self._record_revision_messages(
+            revision=revision,
+            user_instruction=user_instruction,
+            user_message_id=user_message_id,
+        )
         self.db.commit()
         self.db.refresh(revision)
         revision_error = None
@@ -11576,8 +11646,13 @@ class ProjectService:
         *,
         revision: Revision,
         user_instruction: str | None,
+        user_message_id: str | None = None,
     ) -> None:
-        if user_instruction:
+        if user_message_id:
+            message = self.db.get(ProjectMessage, user_message_id)
+            if message is not None and message.project_id == revision.project_id and message.role == "user":
+                message.revision_id = revision.id
+        elif user_instruction:
             self._record_message(
                 project_id=revision.project_id,
                 revision_id=revision.id,

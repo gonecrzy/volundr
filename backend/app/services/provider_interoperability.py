@@ -66,6 +66,11 @@ def _layout_manifest(plan: dict[str, Any]) -> list[dict[str, Any]]:
             "arrangement_axis": raw.get("arrangement_axis") or raw.get("axis"),
             "hole_axis": raw.get("hole_axis") or raw.get("cutting_axis"),
             "centered": raw.get("centered"),
+            "coordinate_space": raw.get("coordinate_space") or "component_local_3d",
+            "coordinate_frame_id": raw.get("coordinate_frame_id") or raw.get("frame_id"),
+            "point_dimensionality": raw.get("point_dimensionality") or 3,
+            "consumer_operation": raw.get("consumer_operation"),
+            "host_plane": raw.get("host_plane") or raw.get("workplane"),
         }
         layouts.append({key: value for key, value in entry.items() if value is not None})
     return layouts

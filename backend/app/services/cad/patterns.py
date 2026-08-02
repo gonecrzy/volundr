@@ -7,6 +7,7 @@ import math
 from typing import Any
 
 from volundr_cad.patterns import PatternSpecError, resolve_pattern_points
+from volundr_cad.patterns import COMPONENT_LOCAL_3D
 
 
 PATTERN_SCHEMA_VERSION = "cadquery-patterns-v1"
@@ -336,6 +337,37 @@ def normalize_pattern_specs(plan: dict[str, Any]) -> dict[str, Any]:
             pattern["axis"] = axis_result[0]
             if axis_result[1] != 1:
                 pattern["axis_sign"] = axis_result[1]
+        # The deterministic pattern runtime emits three-dimensional
+        # component placements unless a Plan explicitly declares a local
+        # workplane representation.  Keep that space visible to geometry
+        # consumers instead of allowing an implicit 2D interpretation.
+        pattern.setdefault("coordinate_space", COMPONENT_LOCAL_3D)
+        pattern.setdefault("point_dimensionality", 3)
+        if pattern.get("coordinate_frame_id") is None and pattern.get("frame_id") is not None:
+            pattern["coordinate_frame_id"] = pattern["frame_id"]
+        if pattern.get("coordinate_frame_id") is None:
+            frames = [
+                item for item in normalized.get("coordinate_frames", []) or []
+                if isinstance(item, dict) and item.get("frame_id")
+            ]
+            if len(frames) == 1:
+                pattern["coordinate_frame_id"] = str(frames[0]["frame_id"])
+                _append_pattern_finding(
+                    normalized,
+                    _pattern_finding(
+                        rule_id="plan.pattern_alias_normalized",
+                        blocking=False,
+                        pattern_index=pattern_index,
+                        pattern_id=pattern_id or None,
+                        original=original,
+                        normalized=pattern,
+                        explanation="The pattern inherited the sole approved coordinate frame from the Plan.",
+                        suggested_correction="Declare coordinate_frame_id explicitly in future Design Plan responses.",
+                        decision="sole coordinate frame mapped to coordinate_frame_id",
+                    ),
+                )
+        if pattern.get("arrangement_axis") is None and pattern.get("axis") is not None:
+            pattern["arrangement_axis"] = pattern["axis"]
         if "spacing_mm" in pattern:
             spacing_mm = pattern.get("spacing_mm")
             if pattern.get("spacing") is not None and pattern.get("spacing") != spacing_mm:
@@ -773,7 +805,15 @@ def build_pattern_manifest(
     for pattern in normalized.get("patterns", []) or []:
         if not isinstance(pattern, dict):
             continue
-        resolved = resolve_pattern_points(pattern, values) if resolved_values is not None else None
+        resolved = None
+        try:
+            # Fixed/proposed layouts can be resolved without a parameter map;
+            # configurable layouts are resolved only when their approved
+            # values are supplied.
+            resolved = resolve_pattern_points(pattern, values)
+        except PatternSpecError:
+            if resolved_values is not None:
+                raise
         effect_fields = {
             "linear": (
                 ("count_parameter_id", "pattern_count"),
@@ -829,6 +869,12 @@ def build_pattern_manifest(
             "pattern_type": str(pattern["pattern_type"]),
             "point_parameter_id": str(pattern["point_parameter_id"]),
             "layout_mode": layout.get("layout_mode") if layout else pattern.get("layout_mode"),
+            "coordinate_space": resolved.coordinate_space if resolved else pattern.get("coordinate_space", COMPONENT_LOCAL_3D),
+            "coordinate_frame_id": resolved.coordinate_frame_id if resolved else pattern.get("coordinate_frame_id"),
+            "arrangement_axis": resolved.arrangement_axis if resolved else pattern.get("arrangement_axis") or pattern.get("axis"),
+            "point_dimensionality": resolved.point_dimensionality if resolved else pattern.get("point_dimensionality", 3),
+            "consumer_operation": resolved.consumer_operation if resolved else pattern.get("consumer_operation"),
+            "host_plane": resolved.host_plane if resolved else pattern.get("host_plane") or pattern.get("workplane"),
             "effect_required": effect_required,
             "specification": pattern,
             "required_parameter_effects": effects,
