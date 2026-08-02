@@ -73,6 +73,12 @@ identity boundary. See `docs/COMPACT_PLAN_CONTRACT.md`,
 `docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md` for the current live
 evidence and remaining provider-quality gates.
 
+Provider interoperability is independently evidenced through persisted
+contract manifests, focused Plan/geometry repairs, and one-attempt worker
+diagnostic repair. See `docs/PROVIDER_INTEROPERABILITY_CONTRACT.md`,
+`docs/WORKER_DIAGNOSTIC_REPAIR.md`, and
+`docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md`.
+
 ## Documentation
 
 Start with `docs/DOCUMENTATION_MAP.md`, then read every file in `docs/` before implementation.

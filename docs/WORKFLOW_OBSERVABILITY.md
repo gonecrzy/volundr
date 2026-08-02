@@ -15,6 +15,12 @@ stage diagnosis. The Product Validation Round 1 report records real browser
 project/revision/export identities separately from the isolated live matrix;
 neither report replaces the immutable underlying artifacts.
 
+Provider interoperability attempts additionally persist a contract-manifest
+artifact and, when repair is attempted, field/function preservation evidence.
+Worker-diagnostic repair retains the original traceback, localized statement,
+source hashes, repaired source, and second worker result. These records are
+diagnostic evidence and do not bypass downstream gates.
+
 ## Workflow Runs
 
 Chat progression events also record whether a transition was automatic,

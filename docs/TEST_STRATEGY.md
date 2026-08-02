@@ -37,6 +37,11 @@ worker, topology, artifact, and promotion gates remain authoritative, and a
 blocked live case is not converted into a UX fixture. See
 `docs/LIVE_DESIGN_MATRIX_EVALUATION.md`.
 
+Provider interoperability coverage also asserts contract-manifest identity and
+ownership evidence, focused Plan and geometry repair preservation, localized
+worker-diagnostic repair, hash-based loop prevention, and accurate blocked
+outcomes. See `docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md`.
+
 The normal chat-first path automatically progresses validated requirements and
 plans, generates a first draft, and promotes only passing candidates. Approval
 button scenarios remain developer/staged-mode coverage behind the disabled
