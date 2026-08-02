@@ -1,5 +1,9 @@
 data/
 .env
+.env.*
+!.env.example
+!backend/.env.example
+!frontend/.env.example
 .venv/
 backend/.venv/
 __pycache__/
@@ -11,5 +15,23 @@ __pycache__/
 output/
 node_modules/
 dist/
+frontend/test-results/
+frontend/playwright-report/
+playwright-report/
+.vite/
+coverage/
 *.tsbuildinfo
 *.pyc
+
+# Local credentials, certificates, and runtime databases/logs.
+secrets/
+.secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.db
+*.sqlite
+*.sqlite3
+*.log

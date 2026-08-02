@@ -182,7 +182,7 @@ it is not the product default.
 Optional Ollama comparison settings:
 
 ```bash
-VOLUNDR_OLLAMA_BASE_URL=http://10.1.20.25:11434
+VOLUNDR_OLLAMA_BASE_URL=http://127.0.0.1:11434
 VOLUNDR_OLLAMA_MODEL=qwen2.5-coder:14b
 VOLUNDR_OLLAMA_TIMEOUT_SECONDS=300
 # Optional for thinking-capable models:

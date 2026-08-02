@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     max_source_bytes: int = Field(default=500 * 1024)
     max_stl_bytes: int = Field(default=100 * 1024 * 1024)
     ai_provider: str = Field(default="gemini_api")
-    ollama_base_url: str = Field(default="http://10.1.20.25:11434")
+    ollama_base_url: str = Field(default="http://127.0.0.1:11434")
     ollama_model: str = Field(default="qwen2.5-coder:14b")
     ollama_timeout_seconds: int = Field(default=300)
     ollama_think: str | None = Field(default=None)

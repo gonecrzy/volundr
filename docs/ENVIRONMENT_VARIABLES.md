@@ -94,7 +94,7 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_GEMINI_API_MAX_RETRIES` | API | `2` | deprecated compatibility variable | yes | no | Move to `[model_policy.generation].max_retries`. |
 | `VOLUNDR_GEMINI_API_MAX_RETRY_SLEEP_SECONDS` | API | `60` | deprecated compatibility variable | yes | no | Move to `[model_policy.generation].max_retry_sleep_seconds`. |
 | `VOLUNDR_GEMINI_DIR` | Compose | `${VOLUNDR_DATA_DIR}/gemini` | deprecated compatibility variable | yes | no | Derived Gemini CLI profile mount; explicit override retained for existing deployments. |
-| `VOLUNDR_OLLAMA_BASE_URL` | Ollama provider | `http://10.1.20.25:11434` | provider-specific setting | yes | commented | Used only when `VOLUNDR_AI_PROVIDER=ollama`. |
+| `VOLUNDR_OLLAMA_BASE_URL` | Ollama provider | `http://127.0.0.1:11434` | provider-specific setting | yes | commented | Used only when `VOLUNDR_AI_PROVIDER=ollama`; set an explicit host URL for a separate Ollama service. |
 | `VOLUNDR_OLLAMA_MODEL` | Ollama provider | `qwen2.5-coder:14b` | provider-specific setting | yes | commented | Used only in Ollama mode. |
 | `VOLUNDR_OLLAMA_TIMEOUT_SECONDS` | Ollama provider | `300` | provider-specific setting | yes | no | Used only in Ollama mode. |
 | `VOLUNDR_OLLAMA_THINK` | Ollama provider | unset | provider-specific setting | yes | commented | Used only in Ollama mode. |

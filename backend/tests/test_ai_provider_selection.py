@@ -12,14 +12,14 @@ from app.services.ai.ollama import OllamaProvider
 def test_build_ai_provider_selects_ollama() -> None:
     settings = Settings(
         ai_provider="ollama",
-        ollama_base_url="http://10.1.20.25:11434",
+        ollama_base_url="http://127.0.0.1:11434",
         ollama_model="qwen3.5:9b",
     )
 
     provider = build_ai_provider(settings)
 
     assert isinstance(provider, OllamaProvider)
-    assert provider.base_url == "http://10.1.20.25:11434"
+    assert provider.base_url == "http://127.0.0.1:11434"
     assert provider.model == "qwen3.5:9b"
 
 
