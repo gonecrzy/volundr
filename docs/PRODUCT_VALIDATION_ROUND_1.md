@@ -188,6 +188,12 @@ reopened, and the same registered STL/STEP/package exports were downloaded.
 Hashes matched the pre-restart downloads. Snapshots and export records
 remained present. No stale workflow remained running.
 
+The opt-in real-provider browser harness was also rerun for the exact
+direct-brief spacer route after the changes: 1 Playwright test passed in
+17.4 seconds. The isolated live evidence was preserved at
+`/tmp/volundr-live-e2e.TtKzVh` during the run; the API key was excluded and the
+harness cleanup scan passed.
+
 ## 13. Remaining product risks
 
 - compact plans can produce invalid component/pattern identities;
