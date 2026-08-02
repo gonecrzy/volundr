@@ -13,7 +13,7 @@
 - Smallest-scope repairs: Planned next
 - Retrieval and assemblies: Later
 - Product shell, persistence, Current working version safety, and selected revision exports: Implemented
-- Product Validation Round 1: Implemented in this pass; compact/detailed live hardening remains next
+- Compact/detailed plan interoperability hardening: Implemented in this pass
 
 ## Normative direction
 
@@ -31,6 +31,12 @@ brief for a sufficiently specified single part, a compact plan for interacting
 features, and the existing detailed plan for multipart or assembly relationships.
 All routes use the existing generation, worker, validation, candidate, history,
 and export lifecycle.
+
+Compact plans distinguish independently printable components from integral
+features. Repeated layouts distinguish fixed or proposed numeric evidence from
+explicitly configurable patterns. Ordinary provider locals remain source
+implementation details; protected Plan/source identities continue to be
+strictly enforced.
 
 Deterministic B-Rep, topology, artifact, and functional evidence outranks source
 style preferences. Qualitative behavior that cannot be proven from available

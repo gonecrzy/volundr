@@ -31,9 +31,13 @@ After an answer changes the ledger, routing runs again. A previous
 ## Plan contracts
 
 `direct_brief` is deterministic and requires no planning-provider call.
-`compact_plan` uses the provider's smaller `compact-cad-plan-v1` contract and
-deterministically normalizes IDs, units, ownership, outputs, and validation
-targets. `detailed_plan` retains the existing full Design Plan validation.
+`compact_plan` uses the provider's smaller `compact-cad-plan-v1` contract
+(prompt contract `compact-cad-plan-v2`) and deterministically normalizes IDs,
+units, printable-component versus integral-feature ownership, fixed/proposed
+layouts, outputs, and validation targets. Numeric repeated-feature values do
+not become controls unless explicitly requested. `detailed_plan` retains the
+existing full Design Plan validation while accepting fixed/proposed one-off
+layout values without requiring a reusable spacing identity.
 Each plan remains a derived artifact; the requirement ledger remains authoritative.
 
 ## Revision routing

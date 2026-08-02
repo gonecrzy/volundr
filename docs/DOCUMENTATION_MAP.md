@@ -40,6 +40,10 @@ This file explains exactly what belongs in each project document.
 | `docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md` | Scaffold-owned geometry function signatures, lexical symbol binding, definite assignment, findings, runtime classification, and bounded repair. |
 | `docs/LIVE_DESIGN_MATRIX_EVALUATION.md` | Exact real-provider direct, compact, and detailed design matrix evidence. |
 | `docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md` | Stage-specific diagnosis of compact and detailed live pipeline failures. |
+| `docs/COMPACT_PLAN_CONTRACT.md` | Compact-plan component/feature boundary, normalization, repeated-layout semantics, and non-goals. |
+| `docs/REPEATED_FEATURE_LAYOUTS.md` | Fixed, proposed, configurable, and derived repeated-feature layout semantics. |
+| `docs/PLAN_SOURCE_IDENTITY_BOUNDARY.md` | Protected Plan/source identities versus provider-owned local implementation variables. |
+| `docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md` | Evidence for compact/detailed interoperability hardening and its safety boundary. |
 | `docs/PRODUCT_VALIDATION_ROUND_1.md` | Product-shell, export, revision-chain, live-matrix, frontend, and next-phase validation evidence. |
 | `docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md` | Facilitator-neutral observed frontend usability session script. |
 | `docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md` | Results template for a real observed frontend session. |

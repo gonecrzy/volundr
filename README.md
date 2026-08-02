@@ -66,6 +66,13 @@ interoperability failures are diagnosed. See
 `docs/LIVE_DESIGN_MATRIX_EVALUATION.md` and
 `docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md`.
 
+Compact and detailed plan interoperability is normalized through the
+component/feature boundary, repeated-feature layout contract, and Plan/source
+identity boundary. See `docs/COMPACT_PLAN_CONTRACT.md`,
+`docs/REPEATED_FEATURE_LAYOUTS.md`, and
+`docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md` for the current live
+evidence and remaining provider-quality gates.
+
 ## Documentation
 
 Start with `docs/DOCUMENTATION_MAP.md`, then read every file in `docs/` before implementation.

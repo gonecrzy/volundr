@@ -35,13 +35,14 @@ Transition order:
     first-failure diagnosis, stage traces, frontend correlation, debug bundles,
     and run comparison are defined in `docs/WORKFLOW_OBSERVABILITY.md`.
 
-Next planned task: harden compact/detailed provider-plan interoperability using
-the evidence in `docs/PRODUCT_VALIDATION_ROUND_1.md`. Continue deterministic
-chat-first UX testing in parallel. Durable project reopen, stale-workflow
-recovery, explicit export packaging, Compose healthchecks, and the multi-design
-live diagnostic set are implemented and documented. Do not use a live CAD
-result as a UX fixture or expand this into a general analytics platform or
-another broad CAD validation redesign.
+The compact/detailed interoperability hardening pass is implemented and
+documented in `docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md`.
+Normalization now distinguishes printable components from integral features,
+fixed/proposed layouts from configurable patterns, and Plan identities from
+provider locals. The final five-case live matrix remains gated by genuine
+provider/source and detailed-plan failures; continue deterministic chat-first
+UX testing in parallel. Do not use a live CAD result as a UX fixture or expand
+this into a general analytics platform or another broad CAD validation redesign.
 
 The current frontend checkpoint is complete: the persistent three-region chat
 workspace, responsive drawer/tab fallbacks, persisted assistant messages,

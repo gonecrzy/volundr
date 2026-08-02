@@ -28,6 +28,11 @@ worker generation setup, diagnostics, and rerun evidence. The requirement
 ledger wins when a derived execution artifact conflicts with active requirements.
 The source plan reference and artifact hash make the selected branch recoverable.
 
+For compact and detailed routes, the context carries normalized component and
+feature ownership plus repeated-layout semantics. A fixed or proposed layout
+does not create a source-effect obligation; an exposed configurable pattern
+does. Normalization evidence retains the original provider plan and reasons.
+
 The context is persisted through the existing immutable workflow artifact
 registry and linked in artifact metadata to the project, workflow run, plan, and
 revision where available. It is not stored only in generation-attempt metadata.
