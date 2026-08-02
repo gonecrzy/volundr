@@ -95,3 +95,19 @@ is preserved as an input clarification, not misclassified as a trace failure.
 The current geometry verifier cannot prove every qualitative behavior or
 maximum-capacity claim from source metadata alone. Such evidence remains
 explicitly uncertain and must not be presented as a deterministic pass.
+
+## Small cross-project audit
+
+The saved evaluation projects were reviewed read-only on 2026-08-02:
+
+| Project | Active semantic categories | Resulting audit note |
+| --- | --- | --- |
+| `1f3fc57d-f044-4062-8d6e-20e904d7dcfd` spacer | exact dimensions, hole positions/diameters, corner radius, printable output | Direct brief and worker evidence are available. Numeric values remain ordinary requirements; missing exact feature proof is warning/review evidence unless a reliable measurement exists. |
+| `01f8371b-1993-446b-a826-f42a9b1f7810` bushing | exact ID/OD, shoulder dimensions, total length, printable output | Dimension semantics are preserved as typed millimeter requirements; no reusable control is implied by the numeric values. |
+| `3a66a1b7-8f2b-4de4-8980-abf5132a3009` tackle holder | maximum capacity, top-loading access, carrying handle, retention, optional skeletonization | The capacity alias now links uniquely to `tray_slots`/`val_tray_capacity`; the older worker-reaching run still has a genuine CadQuery failure, while the fresh replay asks for missing tray dimensions. |
+
+Across these projects, the repeated defect was not loss of numeric units. It
+was the assumption that a measurable requirement must be represented as a
+provider parameter or perfectly repeated Plan identity. The corrected boundary
+keeps strict traces for exposed controls and required identities, while fixed
+dimensions, positions, and capacity measurements can defer to worker evidence.
