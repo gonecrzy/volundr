@@ -1,7 +1,7 @@
 from functools import cached_property
 from pathlib import Path
 
-from pydantic import AliasChoices, Field, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     snapshot_max_components: int = Field(default=24, ge=1, le=100)
     snapshot_section_enabled: bool = Field(default=True)
     snapshot_background: str = Field(default="neutral_light")
+
+    @field_validator("gemini_policy_path", mode="before")
+    @classmethod
+    def normalize_empty_gemini_policy_path(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     @model_validator(mode="after")
     def derive_storage_paths(self) -> "Settings":

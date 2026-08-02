@@ -83,3 +83,12 @@ def test_settings_include_restart_recovery_and_cors_defaults() -> None:
 
     assert settings.workflow_stale_seconds == 900
     assert settings.cors_origins == "http://localhost:5173,http://127.0.0.1:5173"
+
+
+def test_empty_optional_gemini_policy_path_is_unset(tmp_path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("VOLUNDR_GEMINI_POLICY_PATH=\n", encoding="utf-8")
+
+    configured = Settings(_env_file=env_file)
+
+    assert configured.gemini_policy_path is None
