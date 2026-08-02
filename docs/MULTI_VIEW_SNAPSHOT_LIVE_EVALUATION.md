@@ -68,3 +68,48 @@ pre-worker source failure, not evidence that snapshot rendering failed.
 Deterministic fixture coverage is already present in
 `frontend/e2e/snapshot-evidence.spec.ts`; it does not substitute for the
 real-provider result above.
+
+## Follow-up classification correction
+
+The earlier `hole_y_position` rejection exposed an unconditional dependency
+gate: malformed derived metadata was treated as a critical geometry failure
+even when the ordinary plan had no exposed controls and the generated source
+did not reference the value. The corrected contract retains that record as
+`planning.derived_dependency_unused_or_incomplete` warning evidence. Only an
+execution-relevant dependency remains `geometry_body.derived_dependency_broken`.
+The rerun outcome is recorded separately in the derived-dependency live
+evaluation evidence.
+
+## Corrected rerun — 2026-08-02
+
+The exact request was rerun once through the repaired live harness with the
+real Gemini API, FastAPI services, and CadQuery worker. The run completed
+without a binding failure and preserved isolated evidence at
+`/tmp/volundr-live-e2e.4037sv`.
+
+- route: `direct_brief`; no planning-provider call;
+- requirements: passed, `requirements-v3`, Gemini latency 2,788 ms;
+- structured geometry: assembled successfully under
+  `cadquery-geometry-body-v6`; no derived-dependency findings were emitted by
+  this provider response;
+- source contract: passed and the worker job was submitted;
+- worker: reached, but the generated source failed during execution with a
+  genuine `NameError` (`plate_width` was referenced without a local or
+  `params[...]` binding);
+- worker timing: the generation attempt recorded 1,160 ms provider latency;
+  the worker result recorded a 4,142.273 ms compile/worker phase before the
+  failure;
+- topology, functional mounting/hole, floor, removal, and retention checks:
+  not run because no worker geometry was produced;
+- snapshots: correctly marked not applicable before worker geometry;
+- STL/STEP/BREP readiness: failed with the worker output, with no fabricated
+  artifacts;
+- candidate: blocked; no Current working version was promoted;
+- revision: not attempted because there was no accepted parent version.
+
+This rerun demonstrates that the former unconditional dependency gate no
+longer blocks ordinary source assembly. It exposed a separate provider source
+execution defect, which remains correctly blocking. The classification-specific
+unused-metadata behavior is covered by the deterministic regression and
+scaffold-manifest evidence tests; this particular provider response did not
+repeat the malformed derived record.

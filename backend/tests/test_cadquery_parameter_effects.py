@@ -356,12 +356,16 @@ def test_range_count_and_approved_helper_receiving_count_pass() -> None:
 def test_broken_derived_dependency_path_blocks_assembly() -> None:
     plan = deepcopy(PLAN)
     plan["derived_parameters"][0]["depends_on"] = ["missing_bottle_input"]
+    plan["exposed_controls"] = [{"parameter_id": "bottle_inner_diameter"}]
     inventory = build_geometry_function_inventory(plan)
 
     with pytest.raises(GeometryBodyError) as error:
         assemble_geometry_bodies(
             _payload(
-                {"function_id": "_ai_component_holder_body", "body_lines": ["return cq.Workplane(\"XY\")"]},
+                {
+                    "function_id": "_ai_component_holder_body",
+                    "body_lines": ['return cq.Workplane("XY").cylinder(20, params["bottle_inner_diameter"] / 2)'],
+                },
                 {"function_id": "_ai_feature_bottle_cavity", "body_lines": ["return body"]},
                 {"function_id": "_ai_feature_mounting_holes", "body_lines": ["return body"]},
             ),
