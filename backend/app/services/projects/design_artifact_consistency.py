@@ -9,11 +9,7 @@ from app.services.cad.cadquery_contract import (
     CadQueryContractError,
     validate_cadquery_source,
 )
-from app.services.requirements.trace import (
-    RequirementTraceError,
-    inventory_from_design_specification,
-    validate_design_plan_trace,
-)
+from app.services.projects.requirement_trace_contract import build_requirement_trace_manifest
 
 
 SCHEMA_VERSION = "design-artifact-consistency-v1"
@@ -55,19 +51,6 @@ def certify_design_artifact_consistency(
             )
         )
 
-    inventory = inventory_from_design_specification(design_specification_payload)
-    if inventory:
-        try:
-            validate_design_plan_trace(design_plan_payload, inventory)
-        except RequirementTraceError as exc:
-            findings.append(
-                _finding(
-                    "design_artifact.requirement_trace_failed",
-                    "The approved Design Plan no longer preserves explicit user requirements.",
-                    detected=str(exc),
-                )
-            )
-
     plan_components = _plan_components(design_plan_payload)
     plan_features = _plan_features(design_plan_payload)
     plan_outputs = _plan_outputs(design_plan_payload)
@@ -92,6 +75,25 @@ def certify_design_artifact_consistency(
     source_output_components = dict(source_metadata.output_component_ids if source_metadata else {})
     source_symbols = _source_component_symbols(source) if source_metadata else {}
     source_features = _source_feature_components(source) if source_metadata else {}
+    source_feature_symbols = _source_feature_symbols(source) if source_metadata else {}
+
+    requirement_trace = build_requirement_trace_manifest(
+        design_specification_payload=design_specification_payload,
+        design_plan_payload=design_plan_payload,
+        source_component_ids=source_component_ids,
+        source_component_symbols=source_symbols,
+        source_feature_components=source_features,
+        source_feature_symbols=source_feature_symbols,
+        source_output_ids=source_output_ids,
+        source_output_components=source_output_components,
+        source_parameter_ids=source_parameter_ids,
+    )
+    findings.extend(requirement_trace["findings"])
+    normalized_trace_features = {
+        str(feature.get("id")): feature
+        for feature in requirement_trace.get("normalized", {}).get("features", [])
+        if isinstance(feature, dict) and feature.get("id")
+    }
 
     for component_id, component in plan_components.items():
         status = "consistent" if component_id in source_component_ids else "missing_source_component"
@@ -113,22 +115,48 @@ def certify_design_artifact_consistency(
             )
 
     for feature_id, feature in plan_features.items():
+        trace_feature = normalized_trace_features.get(feature_id, feature)
+        trace_component_id = str(
+            trace_feature.get("component_id")
+            or feature.get("component_id")
+            or feature.get("owner_component_id")
+            or feature.get("owning_component_id")
+            or ""
+        ) or None
         required = bool(feature.get("protected")) or bool(
             feature.get("revision_targetable") or feature.get("targetable")
         )
         source_component_id = source_features.get(feature_id)
-        status = "consistent" if source_component_id == feature.get("component_id") else "missing_source_feature"
+        integral_component_id = _integral_feature_component_source(
+            feature_id=feature_id,
+            feature=trace_feature,
+            components=plan_components,
+            source_component_ids=source_component_ids,
+        )
+        integral_in_component = (
+            source_component_id is None
+            and integral_component_id is not None
+            and integral_component_id == trace_component_id
+        )
+        status = (
+            "consistent"
+            if source_component_id == trace_component_id
+            else "integral_in_component_function"
+            if integral_in_component
+            else "missing_source_feature"
+        )
         feature_mappings.append(
             {
                 "plan_feature_id": feature_id,
-                "plan_component_id": feature.get("component_id"),
+                "plan_component_id": trace_component_id,
                 "source_feature_id": feature_id if source_component_id else None,
-                "source_component_id": source_component_id,
+                "source_component_id": source_component_id or integral_component_id,
+                "source_symbol": source_symbols.get(integral_component_id) if integral_in_component else None,
                 "required": required,
                 "status": status,
             }
         )
-        if status != "consistent":
+        if status == "missing_source_feature":
             findings.append(
                 _finding(
                     "design_artifact.feature_missing",
@@ -400,6 +428,7 @@ def certify_design_artifact_consistency(
         "feature_mappings": feature_mappings,
         "output_mappings": output_mappings,
         "parameter_mappings": parameter_mappings,
+        "requirement_trace": requirement_trace,
         "findings": findings,
         "certified_at": datetime.now(timezone.utc).isoformat(),
         "validator_version": VALIDATOR_VERSION,
@@ -608,12 +637,17 @@ def _finding(
     detected: Any = None,
     unit: str | None = None,
     blocking: bool = True,
+    requirement_id: str | None = None,
+    function_id: str | None = None,
+    trace_classification: str | None = None,
+    normalization_decision: str | None = None,
 ) -> dict[str, Any]:
     return {
         "rule_id": rule_id,
         "category": "design_artifact_consistency",
         "severity": "critical" if blocking else "warning",
         "is_blocking": blocking,
+        "blocking": blocking,
         "phase": phase,
         "title": rule_id.replace("design_artifact.", "").replace("_", " ").title(),
         "explanation": explanation,
@@ -627,6 +661,10 @@ def _finding(
         "expected_value": expected,
         "detected_value": detected,
         "unit": unit,
+        "requirement_id": requirement_id,
+        "function_id": function_id,
+        "trace_classification": trace_classification,
+        "normalization_decision": normalization_decision,
     }
 
 
@@ -644,6 +682,33 @@ def _plan_features(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
         for feature in payload.get("features", [])
         if isinstance(feature, dict) and feature.get("id")
     }
+
+
+def _integral_feature_component_source(
+    *,
+    feature_id: str,
+    feature: dict[str, Any],
+    components: dict[str, dict[str, Any]],
+    source_component_ids: set[str],
+) -> str | None:
+    component_id = str(feature.get("component_id") or "") or None
+    if component_id is None or component_id not in source_component_ids:
+        return None
+    component = components.get(component_id)
+    if component is None:
+        return None
+    declared_features = {
+        str(value)
+        for value in (component.get("features", []) or [])
+        if value
+    }
+    if feature_id not in declared_features:
+        return None
+    if feature.get("role") in {"printable_part", "printable_component", "independent_part"}:
+        return None
+    if feature.get("independent") or feature.get("separate_output"):
+        return None
+    return component_id
 
 
 def _plan_outputs(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -744,6 +809,27 @@ def _source_feature_components(source: str) -> dict[str, str]:
                     component_id = keyword.value.value
             if component_id:
                 result[decorator.args[0].value] = component_id
+    return result
+
+
+def _source_feature_symbols(source: str) -> dict[str, str]:
+    import ast
+
+    tree = ast.parse(source)
+    result: dict[str, str] = {}
+    for node in tree.body:
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        for decorator in node.decorator_list:
+            if not (
+                isinstance(decorator, ast.Call)
+                and getattr(decorator.func, "id", None) == "feature"
+                and decorator.args
+                and isinstance(decorator.args[0], ast.Constant)
+                and isinstance(decorator.args[0].value, str)
+            ):
+                continue
+            result[decorator.args[0].value] = node.name
     return result
 
 
