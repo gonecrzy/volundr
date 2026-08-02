@@ -125,6 +125,13 @@ class WorkflowDiagnosisService:
             "explanation": finding.explanation,
             "pattern_index": metadata.get("pattern_index"),
             "pattern_id": metadata.get("pattern_id"),
+            "requirement_id": metadata.get("requirement_id"),
+            "feature_id": metadata.get("feature_id"),
+            "component_id": metadata.get("component_id"),
+            "function_id": metadata.get("function_id"),
+            "output_id": metadata.get("output_id"),
+            "trace_classification": metadata.get("trace_classification"),
+            "normalization_decision": metadata.get("normalization_decision"),
         }
 
     def _root_event(

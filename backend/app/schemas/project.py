@@ -899,6 +899,7 @@ class DesignArtifactConsistencyRead(BaseModel):
     blocking_count: int = 0
     advisory_count: int = 0
     findings: list[dict[str, Any]] = Field(default_factory=list)
+    requirement_trace_artifacts: dict[str, str] = Field(default_factory=dict)
     result_id: str | None = None
     result_path: str | None = None
     certified_at: str | None = None

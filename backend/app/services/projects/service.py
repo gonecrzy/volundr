@@ -7499,6 +7499,15 @@ class ProjectService:
         )
         result_dir = self._revision_dir(revision.project_id, revision.id) / "metadata"
         result_dir.mkdir(parents=True, exist_ok=True)
+        trace_artifacts = payload.get("requirement_trace") or {}
+        original_trace_path = result_dir / "requirement-trace-original.json"
+        normalized_trace_path = result_dir / "requirement-trace-normalized.json"
+        self._write_json(original_trace_path, trace_artifacts.get("original") or {})
+        self._write_json(normalized_trace_path, trace_artifacts.get("normalized") or {})
+        payload["requirement_trace_artifacts"] = {
+            "original_path": self._relative(original_trace_path),
+            "normalized_path": self._relative(normalized_trace_path),
+        }
         result_path = result_dir / "design-artifact-consistency.json"
         self._write_json(result_path, payload)
         row = DesignArtifactConsistencyResult(
@@ -7564,6 +7573,10 @@ class ProjectService:
                             "component_id": finding.get("component_id"),
                             "feature_id": finding.get("feature_id"),
                             "output_id": finding.get("output_id"),
+                            "requirement_id": finding.get("requirement_id"),
+                            "function_id": finding.get("function_id"),
+                            "trace_classification": finding.get("trace_classification"),
+                            "normalization_decision": finding.get("normalization_decision"),
                         },
                         sort_keys=True,
                     ),
@@ -9922,8 +9935,31 @@ class ProjectService:
                 parameter_overrides=parameter_overrides,
                 generation_attempt_id=generation_attempt_id,
             )
+            consistency_payload = self._read_design_artifact_consistency_payload(pre_execution_consistency)
+            trace_artifacts = consistency_payload.get("requirement_trace_artifacts") or {}
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="artifact_consistency",
+                artifact_type="design_consistency_result",
+                role="design_consistency_result",
+                relative_path=pre_execution_consistency.result_path,
+            )
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="artifact_consistency",
+                artifact_type="requirement_trace_original",
+                role="requirement_trace_original",
+                relative_path=trace_artifacts.get("original_path"),
+            )
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="artifact_consistency",
+                artifact_type="requirement_trace_normalized",
+                role="requirement_trace_normalized",
+                relative_path=trace_artifacts.get("normalized_path"),
+            )
             if not pre_execution_consistency.pre_execution_passed:
-                payload = self._read_design_artifact_consistency_payload(pre_execution_consistency)
+                payload = consistency_payload
                 error_message = consistency_failure_message(payload)
                 revision.status = "failed"
                 revision.review_state = "blocked"
@@ -11517,6 +11553,7 @@ class ProjectService:
             blocking_count=blocking_count,
             advisory_count=advisory_count,
             findings=findings,
+            requirement_trace_artifacts=payload.get("requirement_trace_artifacts") or {},
             result_id=result.id,
             result_path=result.result_path,
             certified_at=str(payload.get("certified_at") or result.created_at.isoformat()),

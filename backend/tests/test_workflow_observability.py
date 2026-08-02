@@ -333,6 +333,37 @@ def test_diagnosis_uses_blocked_attempt_failure_metadata_and_revision_finding(tm
     assert diagnosis.root_cause["basis"]["worker_reached"] is False
 
 
+def test_diagnosis_summary_preserves_typed_requirement_trace_fields() -> None:
+    finding = ValidationFinding(
+        rule_id="design_artifact.feature_function_trace_missing",
+        category="design_artifact_consistency",
+        severity="critical",
+        is_blocking=True,
+        title="Feature function trace missing",
+        explanation="A required feature has no implementation or verification path.",
+        suggested_correction="Restore the feature trace.",
+        metadata_json=json.dumps(
+            {
+                "requirement_id": "required_handle",
+                "feature_id": "handle",
+                "component_id": "base",
+                "function_id": None,
+                "output_id": "base_output",
+                "trace_classification": "source_or_geometry_trace",
+                "normalization_decision": None,
+            }
+        ),
+    )
+
+    summary = WorkflowDiagnosisService._finding_summary(finding)
+
+    assert summary["requirement_id"] == "required_handle"
+    assert summary["feature_id"] == "handle"
+    assert summary["component_id"] == "base"
+    assert summary["output_id"] == "base_output"
+    assert summary["trace_classification"] == "source_or_geometry_trace"
+
+
 def test_plan_validation_block_persists_provider_and_normalized_evidence(tmp_path: Path) -> None:
     session, _SessionLocal = _session(tmp_path)
     project = _project(session)
