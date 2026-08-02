@@ -22,6 +22,8 @@ from app.models.requirement_ledger import (
     RequirementDelta,
     RequirementLedgerEntry,
 )
+from app.models.clarification_answer import ClarificationAnswer
+from app.models.project_message import ProjectMessage
 from app.services.requirements.trace import (
     build_explicit_requirement_inventory,
     normalize_requirement_semantics,
@@ -35,6 +37,7 @@ REMOVED = "removed"
 VALID_STATUSES = {ACTIVE, SUPERSEDED, REMOVED}
 VALID_SOURCES = {
     "initial_user",
+    "clarification_user",
     "revision_user",
     "derived_functional_necessity",
     "volundr_proposal",
@@ -405,6 +408,67 @@ class RequirementLedgerStore:
             "requirements": [_entry_payload(row) for row in rows],
         }
 
+    def reconcile_clarification_provenance(self, project_id: str) -> int:
+        """Correct legacy proposal labels when one clarification answer is unambiguous.
+
+        Older workflow runs persisted the answer-derived requirement as a
+        Volundr proposal.  This repair keeps the raw wording and answer
+        records, but restores explicit user provenance using the existing
+        clarification and client-message identities.
+        """
+
+        answers = list(
+            self.db.scalars(
+                select(ClarificationAnswer).where(ClarificationAnswer.project_id == project_id)
+            )
+        )
+        if not answers:
+            return 0
+        messages = list(
+            self.db.scalars(
+                select(ProjectMessage)
+                .where(ProjectMessage.project_id == project_id)
+                .where(ProjectMessage.role == "user")
+                .where(ProjectMessage.client_message_id.is_not(None))
+            )
+        )
+        rows = list(
+            self.db.scalars(
+                select(RequirementLedgerEntry)
+                .where(RequirementLedgerEntry.project_id == project_id)
+                .where(RequirementLedgerEntry.source == "volundr_proposal")
+            )
+        )
+        corrected = 0
+        for answer in answers:
+            matching_messages = [
+                message for message in messages if message.content.strip() == answer.answer.strip()
+            ]
+            matching_rows = [
+                row for row in rows if (row.originating_message or "").strip() == answer.answer.strip()
+            ]
+            if len(matching_messages) != 1 or len(matching_rows) != 1:
+                continue
+            row = matching_rows[0]
+            row.source = "clarification_user"
+            row.explicit = True
+            evidence = _parse_json(row.verification_evidence_json)
+            if not isinstance(evidence, dict):
+                evidence = {"evidence": evidence}
+            evidence["provenance"] = {
+                "source": "clarification_user",
+                "clarification_answer_id": answer.id,
+                "clarification_question_id": answer.question_id,
+                "project_message_id": matching_messages[0].id,
+                "normalization_rule": "legacy_clarification_provenance_reconciled",
+            }
+            row.verification_evidence_json = _json_value(evidence)
+            corrected += 1
+            rows.remove(row)
+        if corrected:
+            self.db.flush()
+        return corrected
+
     def ensure_from_specification(
         self,
         *,
@@ -440,6 +504,8 @@ class RequirementLedgerStore:
         project_id: str,
         specification: dict[str, Any],
         originating_message: str | None = None,
+        source: str | None = None,
+        project_message_id: str | None = None,
     ) -> dict[str, Any]:
         """Add newly interpreted requirements without rewriting active history."""
 
@@ -450,7 +516,12 @@ class RequirementLedgerStore:
             if item.get("requirement_id")
         }
         additions = [
-            {**item, "operation": "add"}
+            {
+                **item,
+                "operation": "add",
+                **({"source": source, "explicit": True} if source else {}),
+                **({"project_message_id": project_message_id} if project_message_id else {}),
+            }
             for item in _requirements_from_specification(specification)
             if str(item.get("requirement_id") or "") not in existing_ids
         ]
@@ -460,6 +531,7 @@ class RequirementLedgerStore:
             project_id=project_id,
             changes=additions,
             originating_message=originating_message or "",
+            project_message_id=project_message_id,
         )
 
     def apply_delta(
@@ -557,6 +629,7 @@ class RequirementLedgerStore:
                         for key in ("kind", "operator", "subject", "object_type", "raw_evidence")
                         if item.get(key) is not None
                     },
+                    "provenance": item.get("provenance"),
                 }
             )
         self.db.flush()
@@ -622,7 +695,7 @@ def _semantic_reconciliation_changes(
         existing = active.get(requirement_id)
         if not requirement_id or existing is None:
             continue
-        if item.get("source") not in {"initial_user", "clarification", "physical_test_feedback"}:
+        if item.get("source") not in {"initial_user", "clarification", "clarification_user", "physical_test_feedback"}:
             continue
         incoming_semantic = {
             key: item.get(key)
@@ -662,6 +735,11 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         if isinstance(verification_evidence, dict) and "evidence" in verification_evidence
         else verification_evidence
     )
+    provenance = (
+        verification_evidence.get("provenance")
+        if isinstance(verification_evidence, dict)
+        else None
+    )
     return normalize_requirement_semantics({
         "record_id": row.id,
         "requirement_id": row.requirement_id,
@@ -678,6 +756,7 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         "supersedes_requirement_id": row.supersedes_requirement_id,
         "superseded_by": row.superseded_by,
         "verification_evidence": evidence,
+        "provenance": provenance,
         "kind": semantic.get("kind") or _kind_from_legacy_row(row),
         "operator": semantic.get("operator") or _operator_from_legacy_row(row),
         "subject": semantic.get("subject"),
@@ -766,6 +845,8 @@ def _normalize_requirement(
     for key in ("kind", "operator", "subject", "object_type", "raw_evidence"):
         if item.get(key) is not None:
             normalized[key] = item[key]
+    if item.get("provenance") is not None:
+        normalized["provenance"] = item["provenance"]
     return normalize_requirement_semantics(normalized)
 
 

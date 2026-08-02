@@ -184,11 +184,14 @@ def build_client(tmp_path: Path) -> TestClient:
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_data_dir] = lambda: tmp_path / "data"
     app.dependency_overrides[get_cad_runner] = lambda: FakeCadRunner()
+    app.state.testing_session_local = TestingSessionLocal
     return TestClient(app)
 
 
 def teardown_function() -> None:
     app.dependency_overrides.clear()
+    if hasattr(app.state, "testing_session_local"):
+        del app.state.testing_session_local
 
 
 def test_create_project_and_compile_successful_manual_revision(tmp_path: Path) -> None:
@@ -699,6 +702,39 @@ def test_project_messages_record_project_and_revision_events(tmp_path: Path) -> 
     ]
     assert messages[2]["revision_id"] == revision["id"]
     assert messages[3]["revision_id"] == revision["id"]
+
+
+def test_legacy_workflow_user_instruction_is_hidden_from_chat(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={"name": "Legacy chat", "original_intent": "A holder project."},
+    ).json()
+    revision = client.post(
+        f"/api/projects/{project['id']}/revisions",
+        json={"source": CADQUERY_MANUAL_SOURCE, "user_instruction": "Create a holder."},
+    ).json()
+    with app.state.testing_session_local() as session:
+        session.add(
+            ProjectMessage(
+                project_id=project["id"],
+                revision_id=revision["id"],
+                role="user",
+                content="Create a holder.",
+                client_message_id="actual-submission-1",
+            )
+        )
+        session.commit()
+
+    messages = client.get(f"/api/projects/{project['id']}/messages").json()
+    assert [message["content"] for message in messages].count("Create a holder.") == 2
+    matching_user_messages = [
+        message for message in messages
+        if message["content"] == "Create a holder." and message["role"] == "user"
+    ]
+    assert len(matching_user_messages) == 1
+    assert matching_user_messages[0]["client_message_id"] == "actual-submission-1"
+    assert [message["role"] for message in messages].count("system_event") == 3
 
 
 def test_failed_manual_revision_does_not_replace_active_revision(tmp_path: Path) -> None:

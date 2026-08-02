@@ -109,7 +109,7 @@ def test_scaffold_prompt_requests_geometry_functions_only() -> None:
     assert "Volundr deterministically owns all parameters" in prompt
     assert "Do not use a Plan parameter ID as a bare Python name" in prompt
     assert "params[<parameter_id>]" in prompt
-    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-v8"
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-v9"
     assert "Requirement-led implementation contract" in prompt
     assert "Ordinary designs may use safe numeric literals" in prompt
     assert '"schema_version": "cadquery-parameter-effects-v1"' in prompt
@@ -144,7 +144,7 @@ def test_structured_geometry_body_repair_preserves_parameter_effect_manifest() -
 
     prompt = provider.build_prompt(request)
 
-    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-repair-v8"
+    assert provider.prompt_template_version_for(request) == "cadquery-geometry-body-repair-v9"
     assert "Repair only the structured geometry-body response" in prompt
     assert "mounting_screw_count" in prompt
     assert "mounting_hole_spacing" in prompt

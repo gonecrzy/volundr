@@ -195,6 +195,7 @@ class ManualRevisionCreate(BaseModel):
 class GenerationCreate(BaseModel):
     user_instruction: str = Field(min_length=1)
     design_specification_id: str | None = None
+    user_message_id: str | None = Field(default=None, min_length=1)
 
 
 class RevisionPlanCreate(BaseModel):

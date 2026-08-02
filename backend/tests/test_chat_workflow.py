@@ -116,6 +116,15 @@ def test_chat_clarification_resumes_without_an_approval_step() -> None:
             summary = client.get("/api/test-fixture/latest-summary").json()
             assert "compact_cad_plan" in summary["artifact_types"]
 
+            messages = client.get(f"/api/projects/{project['id']}/messages").json()
+            visible = [message for message in messages if message["role"] != "system_event"]
+            assert [message["content"] for message in visible].count("45 mm") == 1
+            assert [message["content"] for message in visible].count(
+                "Create a holder for my 70 mm wide device."
+            ) == 1
+            active = client.get(f"/api/projects/{project['id']}/requirements/active").json()["requirements"]
+            assert any(item.get("source") == "clarification_user" for item in active)
+
 
 def test_chat_multipart_request_keeps_detailed_plan_compatibility() -> None:
     with TemporaryDirectory() as directory:

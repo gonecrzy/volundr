@@ -199,6 +199,7 @@ class ChatWorkflowService:
         )
         self.db.add(user_message)
         self.db.flush()
+        self._active_user_message_id = user_message.id
         workflow_run = self.service._ensure_initial_workflow_run(project)
         self._event(workflow_run, "chat.message.submitted", "Chat message submitted.", "chat_message_submitted")
 
@@ -320,7 +321,16 @@ class ChatWorkflowService:
             planning_depth=planning_depth,
         )
 
-    async def _dispatch(self, project: Project, workflow_run: WorkflowRun, intent: RoutedIntent, message: str) -> ChatWorkflowResponse:
+    async def _dispatch(
+        self,
+        project: Project,
+        workflow_run: WorkflowRun,
+        intent: RoutedIntent,
+        message: str,
+        *,
+        user_message_id: str | None = None,
+    ) -> ChatWorkflowResponse:
+        user_message_id = user_message_id or getattr(self, "_active_user_message_id", None)
         if intent.action == "export_request":
             self._event(workflow_run, "export.requested", "Export requested from chat.", "export_requested")
             revision_id = project.active_revision_id
@@ -354,7 +364,13 @@ class ChatWorkflowService:
             return self._generated_response(workflow_run, "parameter_change", revision, base_revision_id=change.base_revision_id, configuration_change_id=change.id)
         if intent.action == "start_over":
             self._event(workflow_run, "start_over.branch_created", "A new design lineage was started while preserving previous versions.", "start_over_branch_created")
-            return await self._initial_design(project, workflow_run, message, action="start_over")
+            return await self._initial_design(
+                project,
+                workflow_run,
+                message,
+                action="start_over",
+                user_message_id=user_message_id,
+            )
         if intent.action in {"structural_revision", "component_revision", "control_request"}:
             revision_action = "structural_revision" if intent.action == "control_request" else intent.action
             self._event(workflow_run, f"{intent.action}.routed", f"Chat message routed to {intent.action.replace('_', ' ')}.", f"{intent.action}_routed")
@@ -400,7 +416,10 @@ class ChatWorkflowService:
                             revision_plan_id=deterministic_plan.id,
                             metadata={"planning_depth": route.outcome.value},
                         )
-                        revision = await self.service.generate_from_revision_plan(deterministic_plan.id)
+                        revision = await self.service.generate_from_revision_plan(
+                            deterministic_plan.id,
+                            user_message_id=user_message_id,
+                        )
                         return self._generated_response(
                             workflow_run,
                             revision_action,
@@ -425,12 +444,27 @@ class ChatWorkflowService:
             approved = self.service.approve_revision_plan(plan.id)
             if approved is None:
                 raise LookupError("Revision Plan not found")
-            revision = await self.service.generate_from_revision_plan(plan.id)
+            revision = await self.service.generate_from_revision_plan(
+                plan.id,
+                user_message_id=user_message_id,
+            )
             return self._generated_response(workflow_run, revision_action, revision, base_revision_id=project.active_revision_id, revision_plan_id=plan.id)
 
-        return await self._resume_or_initial(project, workflow_run, message)
+        return await self._resume_or_initial(
+            project,
+            workflow_run,
+            message,
+            user_message_id=user_message_id,
+        )
 
-    async def _resume_or_initial(self, project: Project, workflow_run: WorkflowRun, message: str) -> ChatWorkflowResponse:
+    async def _resume_or_initial(
+        self,
+        project: Project,
+        workflow_run: WorkflowRun,
+        message: str,
+        *,
+        user_message_id: str | None = None,
+    ) -> ChatWorkflowResponse:
         specification = self.service.get_current_design_specification(project.id)
         if specification is not None and specification.clarification_required:
             answered = await self.service.submit_clarification_answers(
@@ -446,9 +480,17 @@ class ChatWorkflowService:
                 project_id=project.id,
                 specification=answered.specification,
                 originating_message=message,
+                source="clarification_user",
+                project_message_id=user_message_id,
             )
             self._event(workflow_run, "requirements.progressed", "Requirements progressed after clarification.", "automatic_requirements_progressed", design_specification_id=answered.id)
-            return await self._plan_and_generate(project, workflow_run, answered, action="initial_design")
+            return await self._plan_and_generate(
+                project,
+                workflow_run,
+                answered,
+                action="initial_design",
+                user_message_id=user_message_id,
+            )
         plan = self.service.get_current_design_plan(project.id)
         if plan is not None and plan.clarification_required:
             answered = await self.service.submit_design_plan_clarification_answers(
@@ -462,7 +504,10 @@ class ChatWorkflowService:
             if answered is None or answered.clarification_required:
                 return self._response(workflow_run, "requirement_answer", "design_planning", True, _first_question(answered.clarification_questions if answered else []), design_plan_id=answered.id if answered else plan.id)
             approved = self.service.approve_design_plan(answered.id)
-            revision = await self.service.generate_from_design_plan(approved.id)
+            revision = await self.service.generate_from_design_plan(
+                approved.id,
+                user_message_id=user_message_id,
+            )
             return self._generated_response(workflow_run, "initial_design", revision, base_revision_id=project.active_revision_id, design_plan_id=approved.id)
         revision_plan = self.service.get_current_revision_plan(project.id)
         if revision_plan is not None and revision_plan.clarification_required:
@@ -476,11 +521,27 @@ class ChatWorkflowService:
             if answered is None or answered.clarification_required:
                 return self._response(workflow_run, "requirement_answer", "revision_planning", True, _first_question(answered.clarification_questions if answered else []), revision_plan_id=answered.id if answered else revision_plan.id)
             approved = self.service.approve_revision_plan(answered.id)
-            revision = await self.service.generate_from_revision_plan(approved.id)
+            revision = await self.service.generate_from_revision_plan(
+                approved.id,
+                user_message_id=user_message_id,
+            )
             return self._generated_response(workflow_run, "structural_revision", revision, base_revision_id=project.active_revision_id, revision_plan_id=approved.id)
-        return await self._initial_design(project, workflow_run, message)
+        return await self._initial_design(
+            project,
+            workflow_run,
+            message,
+            user_message_id=user_message_id,
+        )
 
-    async def _initial_design(self, project: Project, workflow_run: WorkflowRun, message: str, *, action: str = "initial_design") -> ChatWorkflowResponse:
+    async def _initial_design(
+        self,
+        project: Project,
+        workflow_run: WorkflowRun,
+        message: str,
+        *,
+        action: str = "initial_design",
+        user_message_id: str | None = None,
+    ) -> ChatWorkflowResponse:
         specification = await self.service.extract_requirements(project.id, RequirementExtractionCreate(user_instruction=message))
         if specification is None:
             raise LookupError("project not found")
@@ -489,6 +550,8 @@ class ChatWorkflowService:
                 project_id=project.id,
                 specification=specification.specification,
                 originating_message=message,
+                source="revision_user",
+                project_message_id=user_message_id,
             )
             changes, observation = requirement_delta_for_message(message)
             if changes:
@@ -508,9 +571,23 @@ class ChatWorkflowService:
             self._event(workflow_run, "clarification.requested", "Requirement clarification requested.", "clarification_requested")
             return self._response(workflow_run, action, "requirements", True, _first_question(specification.clarification_questions), design_specification_id=specification.id)
         self._event(workflow_run, "requirements.progressed", "Requirements progressed automatically.", "automatic_requirements_progressed", design_specification_id=specification.id)
-        return await self._plan_and_generate(project, workflow_run, specification, action=action)
+        return await self._plan_and_generate(
+            project,
+            workflow_run,
+            specification,
+            action=action,
+            user_message_id=user_message_id,
+        )
 
-    async def _plan_and_generate(self, project: Project, workflow_run: WorkflowRun, specification, *, action: str) -> ChatWorkflowResponse:
+    async def _plan_and_generate(
+        self,
+        project: Project,
+        workflow_run: WorkflowRun,
+        specification,
+        *,
+        action: str,
+        user_message_id: str | None = None,
+    ) -> ChatWorkflowResponse:
         plan, route = await self.service.create_proportional_plan_from_specification(
             specification.id,
             workflow_run=workflow_run,
@@ -549,7 +626,10 @@ class ChatWorkflowService:
             metadata={"planning_depth": route.outcome.value, "route_policy_version": route.policy_version},
         )
         self._event(workflow_run, "generation.started", "First-draft generation started automatically.", "automatic_generation_started", design_plan_id=approved.id)
-        revision = await self.service.generate_from_design_plan(approved.id)
+        revision = await self.service.generate_from_design_plan(
+            approved.id,
+            user_message_id=user_message_id,
+        )
         return self._generated_response(workflow_run, action, revision, base_revision_id=project.active_revision_id, design_specification_id=specification.id, design_plan_id=approved.id, planning_depth=route.outcome.value)
 
     def _generated_response(self, workflow_run: WorkflowRun, action: str, revision, *, base_revision_id: str | None, **ids) -> ChatWorkflowResponse:
