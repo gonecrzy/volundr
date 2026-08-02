@@ -4338,21 +4338,6 @@ class ProjectService:
             redacted=False,
         )
         try:
-            if self._sha256(failed_response.raw_output) == self._sha256(repair_result.raw_output):
-                raise GeometryBodyError(
-                    "geometry_body.repair_unchanged",
-                    "Geometry-body repair returned an identical rejected response; retry stopped.",
-                    details={"failed_response_hash": self._sha256(failed_response.raw_output)},
-                )
-            affected_function_id = diagnostics.details.get("affected_function_id")
-            if isinstance(affected_function_id, str) and affected_function_id:
-                repair_scope = validate_geometry_body_repair_scope(
-                    original_raw_output=failed_response.raw_output,
-                    repaired_raw_output=repair_result.raw_output,
-                    affected_function_ids={affected_function_id},
-                )
-            else:
-                repair_scope = None
             repaired_source = self._prepare_generated_source(
                 raw_output=repair_result.raw_output,
                 design_plan_payload=design_plan_payload,
@@ -4920,6 +4905,21 @@ class ProjectService:
             redacted=False,
         )
         try:
+            if self._sha256(failed_response.raw_output) == self._sha256(repair_result.raw_output):
+                raise GeometryBodyError(
+                    "geometry_body.repair_unchanged",
+                    "Geometry-body repair returned an identical rejected response; retry stopped.",
+                    details={"failed_response_hash": self._sha256(failed_response.raw_output)},
+                )
+            affected_function_id = diagnostics.details.get("affected_function_id")
+            if isinstance(affected_function_id, str) and affected_function_id:
+                repair_scope = validate_geometry_body_repair_scope(
+                    original_raw_output=failed_response.raw_output,
+                    repaired_raw_output=repair_result.raw_output,
+                    affected_function_ids={affected_function_id},
+                )
+            else:
+                repair_scope = None
             repaired_source = self._prepare_generated_source(
                 raw_output=repair_result.raw_output,
                 design_plan_payload=design_plan_payload,
