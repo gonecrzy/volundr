@@ -64,10 +64,35 @@ def test_chat_generation_failure_returns_structured_blocked_outcome(monkeypatch)
             body = result.json()
             assert body["current_stage"] == "blocked_attempt"
             assert body["input_required"] is False
-            assert "current working version is unchanged" in body["assistant_message"]
+            assert body["current_working_revision_id"] is None
+            assert "No working version has been created yet." in body["assistant_message"]
             assert body["blocked_attempt"]["failure_class"] == "workflow_failure"
             runs = client.get(f"/api/projects/{project['id']}/workflow-runs").json()
             assert all(run["status"] != "running" for run in runs)
+
+
+def test_chat_generation_failure_preserves_existing_current_version(monkeypatch) -> None:
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            baseline = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create an 80 mm mounting plate.", "client_message_id": "baseline"},
+            ).json()
+            assert baseline["current_working_revision_id"]
+
+            async def fail_generation(self, project, workflow_run, intent, message):
+                raise ValueError("source contract failed")
+
+            monkeypatch.setattr(ChatWorkflowService, "_dispatch", fail_generation)
+            result = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Make a revision that fails.", "client_message_id": "blocked-2"},
+            )
+            assert result.status_code == 200
+            body = result.json()
+            assert body["current_working_revision_id"] == baseline["current_working_revision_id"]
+            assert "Your Current working version is unchanged." in body["assistant_message"]
 
 
 def test_chat_clarification_resumes_without_an_approval_step() -> None:

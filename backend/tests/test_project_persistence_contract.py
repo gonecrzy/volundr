@@ -89,6 +89,31 @@ def test_workspace_reload_returns_authoritative_project_state(tmp_path: Path) ->
     assert "artifact_integrity" in workspace
 
 
+def test_workspace_reconnect_exposes_latest_user_safe_workflow_stage(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    project = client.post(
+        "/api/projects",
+        json={"name": "Running bracket", "original_intent": "Make a bracket."},
+    ).json()
+    with next(app.dependency_overrides[get_db]()) as session:
+        run = WorkflowRecorder(db=session, data_dir=tmp_path / "data").start_run(
+            project_id=project["id"],
+            workflow_type="initial_generation",
+        )
+        WorkflowRecorder(db=session, data_dir=tmp_path / "data").record_event(
+            run,
+            stage="cad_execution",
+            event_type="generation.started",
+            severity="summary",
+            message="Creating model",
+        )
+
+    workspace = client.get(f"/api/projects/{project['id']}/workspace").json()
+
+    assert workspace["active_workflow"]["status"] == "running"
+    assert workspace["active_workflow"]["stage"] == "cad_execution"
+
+
 def test_startup_recovery_classifies_stale_workflows_without_duplicate_runs(tmp_path: Path) -> None:
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)

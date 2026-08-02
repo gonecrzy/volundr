@@ -300,18 +300,21 @@ class ChatWorkflowService:
                         planning_depth = json.loads(route_path.read_text(encoding="utf-8")).get("outcome")
                     except (OSError, json.JSONDecodeError):
                         planning_depth = None
-        message = (
-            "Volundr could not create a valid design plan for this request. No working version was created."
-            if attempt is not None and attempt.failure_class == "design_plan_invalid"
-            else "Volundr could not create a valid new version. Your current working version is unchanged."
-        )
+        current_revision_id = current.active_revision_id if current is not None else None
+        if attempt is not None and attempt.failure_class == "design_plan_invalid":
+            message = (
+                "Volundr could not create a valid design plan for this request. "
+                f"{_working_version_state_message(current_revision_id)}"
+            )
+        else:
+            message = _blocked_version_message(current_revision_id)
         return self._response(
             workflow_run,
             action,
             "blocked_attempt",
             False,
             message,
-            current_revision_id=current.active_revision_id if current is not None else None,
+            current_revision_id=current_revision_id,
             blocked_attempt=blocked_attempt,
             design_plan_id=plan.id if plan is not None else None,
             planning_depth=planning_depth,
@@ -619,7 +622,17 @@ class ChatWorkflowService:
         )
         self.service._complete_workflow_lineage(workflow_run, status="failed")
         current_revision_id = self.db.get(Project, revision.project_id).active_revision_id
-        return self._response(workflow_run, action, "blocked_attempt", False, "Volundr could not create a valid new version. Your current working version is unchanged.", current_revision_id=current_revision_id, revision_id=revision.id, blocked_attempt=blocked, **ids)
+        return self._response(
+            workflow_run,
+            action,
+            "blocked_attempt",
+            False,
+            _blocked_version_message(current_revision_id),
+            current_revision_id=current_revision_id,
+            revision_id=revision.id,
+            blocked_attempt=blocked,
+            **ids,
+        )
 
     def _response(self, workflow_run: WorkflowRun, action: str, stage: str, input_required: bool, message: str, *, current_revision_id: str | None = None, revision_id: str | None = None, blocked_attempt: dict[str, Any] | None = None, **ids) -> ChatWorkflowResponse:
         self.db.flush()
@@ -630,7 +643,11 @@ class ChatWorkflowService:
             input_required=input_required,
             assistant_message=message,
             current_working_revision_id=current_revision_id,
-            active_generation_run={"workflow_run_id": workflow_run.id, "status": workflow_run.status} if workflow_run else None,
+            active_generation_run=(
+                {"workflow_run_id": workflow_run.id, "status": workflow_run.status, "stage": stage}
+                if workflow_run
+                else None
+            ),
             blocked_attempt=blocked_attempt,
             revision_id=revision_id,
             active_requirements=(
@@ -659,6 +676,20 @@ def _first_question(questions: list[Any]) -> str:
         return "Please clarify the design choice that matters most before I generate a version."
     question = questions[0]
     return getattr(question, "question", None) or question.get("question", "Please clarify this design choice.")
+
+
+def _blocked_version_message(current_revision_id: str | None) -> str:
+    if current_revision_id:
+        return "Volundr could not create a valid new version. Your Current working version is unchanged."
+    return "Volundr could not create a valid new version. No working version has been created yet."
+
+
+def _working_version_state_message(current_revision_id: str | None) -> str:
+    return (
+        "Your Current working version is unchanged."
+        if current_revision_id
+        else "No working version has been created yet."
+    )
 
 
 def _first_missing_information(items: list[dict[str, Any]]) -> str:

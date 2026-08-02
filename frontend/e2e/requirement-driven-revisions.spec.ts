@@ -39,5 +39,5 @@ test("ordinary feedback revisions remain available before and after an exposed c
   await page.goto(`/projects/${projectId}`);
   await expect(page.getByRole("heading", { name: "Current working version" })).toBeVisible();
   await page.getByRole("button", { name: "Projects" }).click();
-  await expect(page.locator("button.project-item", { hasText: project.name })).toBeVisible();
+  await expect(page.locator("button.project-item.selected", { hasText: project.name })).toBeVisible();
 });

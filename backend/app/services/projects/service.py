@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import time
 import zipfile
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -35,6 +35,7 @@ from app.models.geometric_analysis_result import GeometricAnalysisResult
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project, utcnow as project_utcnow
 from app.models.project_message import ProjectMessage
+from app.models.requirement_ledger import RequirementLedgerEntry
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
 from app.models.revision_plan import (
@@ -213,7 +214,6 @@ from app.services.printability.inspector import inspect_printability
 from app.services.workflow.observability import WorkflowRecorder
 
 DRAFT_RETENTION_DAYS = 14
-ARCHIVED_RETENTION_DAYS = 60
 AI_SOURCE_TYPES = frozenset({"ai_initial", "ai_revision", "ai_repair"})
 OPEN_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
 ACCEPTABLE_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings"})
@@ -222,6 +222,13 @@ PRINTABLE_OUTPUT_TYPES = frozenset(
     {"printable_component", "repeated_printable_component", "optional_printable_component"}
 )
 RETRYABLE_OUTPUT_ERRORS = frozenset({"cadquery_process", "cadquery_timeout", "worker_failure", "artifact_write"})
+
+
+@dataclass(frozen=True)
+class ArchivedProjectPurgeCandidate:
+    project_id: str
+    name: str
+    archived_at: Any
 BLOCKING_RULE_IDS = frozenset(
     {
         "mesh.empty_or_zero_volume",
@@ -508,7 +515,10 @@ class ProjectService:
         return results
 
     def cleanup_expired_projects(self) -> int:
-        return self.cleanup_expired_drafts() + self.cleanup_expired_archived_projects()
+        # Archived work is intentionally never removed as a side effect of
+        # normal project-list access.  Destructive archive cleanup is an
+        # explicit operator action through purge_archived_projects().
+        return self.cleanup_expired_drafts()
 
     def cleanup_expired_drafts(self) -> int:
         cutoff = project_utcnow() - timedelta(days=DRAFT_RETENTION_DAYS)
@@ -520,6 +530,9 @@ class ProjectService:
                 )
             )
         )
+        expired_drafts = [
+            project for project in expired_drafts if not self._draft_has_substantive_evidence(project.id)
+        ]
         expired_draft_ids = [project.id for project in expired_drafts]
         for project in expired_drafts:
             self._delete_project_records(project)
@@ -529,9 +542,16 @@ class ProjectService:
                 self._delete_project_files(project_id)
         return len(expired_drafts)
 
-    def cleanup_expired_archived_projects(self) -> int:
-        cutoff = project_utcnow() - timedelta(days=ARCHIVED_RETENTION_DAYS)
-        expired_archived_projects = list(
+    def purge_archived_projects(
+        self,
+        *,
+        older_than_days: int,
+        dry_run: bool = True,
+    ) -> list[ArchivedProjectPurgeCandidate]:
+        if older_than_days < 1:
+            raise ValueError("older_than_days must be at least 1")
+        cutoff = project_utcnow() - timedelta(days=older_than_days)
+        archived_projects = list(
             self.db.scalars(
                 select(Project).where(
                     Project.status == "archived",
@@ -540,14 +560,50 @@ class ProjectService:
                 )
             )
         )
-        expired_project_ids = [project.id for project in expired_archived_projects]
-        for project in expired_archived_projects:
-            self._delete_project_records(project)
-        if expired_archived_projects:
-            self.db.commit()
-            for project_id in expired_project_ids:
-                self._delete_project_files(project_id)
-        return len(expired_archived_projects)
+        candidates = [
+            ArchivedProjectPurgeCandidate(
+                project_id=project.id,
+                name=project.name,
+                archived_at=project.archived_at,
+            )
+            for project in archived_projects
+        ]
+        if not dry_run:
+            for project in archived_projects:
+                self.delete_project(project.id)
+        return candidates
+
+    def _draft_has_substantive_evidence(self, project_id: str) -> bool:
+        substantive_message = self.db.scalar(
+            select(ProjectMessage.id)
+            .where(ProjectMessage.project_id == project_id)
+            .where(ProjectMessage.role != "system_event")
+            .where(func.length(func.trim(ProjectMessage.content)) > 0)
+            .limit(1)
+        )
+        return any(
+            (
+                substantive_message is not None,
+                self.db.scalar(select(Revision.id).where(Revision.project_id == project_id).limit(1)) is not None,
+                self.db.scalar(select(WorkflowRun.id).where(WorkflowRun.project_id == project_id).limit(1)) is not None,
+                self.db.scalar(
+                    select(RequirementLedgerEntry.id).where(RequirementLedgerEntry.project_id == project_id).limit(1)
+                )
+                is not None,
+                self.db.scalar(
+                    select(WorkflowArtifact.id).where(WorkflowArtifact.project_id == project_id).limit(1)
+                )
+                is not None,
+                self.db.scalar(
+                    select(GenerationAttempt.id).where(GenerationAttempt.project_id == project_id).limit(1)
+                )
+                is not None,
+                self.db.scalar(
+                    select(DesignSpecification.id).where(DesignSpecification.project_id == project_id).limit(1)
+                )
+                is not None,
+            )
+        )
 
     def get_project(self, project_id: str) -> Project | None:
         return self.db.get(Project, project_id)
@@ -567,6 +623,17 @@ class ProjectService:
             .where(WorkflowRun.project_id == project_id)
             .where(WorkflowRun.status == "running")
             .order_by(WorkflowRun.updated_at.desc(), WorkflowRun.started_at.desc())
+        )
+        active_workflow_stage = (
+            self.db.scalar(
+                select(WorkflowEvent.stage)
+                .where(WorkflowEvent.workflow_run_id == active_workflow.id)
+                .where(WorkflowEvent.stage != "chat_workflow")
+                .order_by(WorkflowEvent.sequence_number.desc())
+                .limit(1)
+            )
+            if active_workflow is not None
+            else None
         )
         active_revision = self.db.get(Revision, project.active_revision_id) if project.active_revision_id else None
         required_paths: list[str] = []
@@ -614,6 +681,7 @@ class ProjectService:
                     "project_id": active_workflow.project_id,
                     "workflow_type": active_workflow.workflow_type,
                     "status": active_workflow.status,
+                    "stage": active_workflow_stage,
                     "correlation_id": active_workflow.correlation_id,
                     "started_at": active_workflow.started_at,
                     "updated_at": active_workflow.updated_at,

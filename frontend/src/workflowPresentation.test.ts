@@ -3,6 +3,7 @@ import {
   candidateStatusSummary,
   generationProgress,
   recoveryPresentation,
+  userWorkflowPhase,
 } from "./workflowPresentation";
 
 describe("workflow presentation", () => {
@@ -19,6 +20,20 @@ describe("workflow presentation", () => {
       label: "Reviewing printability",
       complete: true,
     });
+  });
+
+  it.each([
+    ["requirement_extraction", "understanding"],
+    ["compact_plan", "planning"],
+    ["cad_execution", "creating"],
+    ["snapshot_generation", "checking"],
+  ] as const)("maps %s to the %s user phase", (stage, phase) => {
+    expect(userWorkflowPhase(stage)).toBe(phase);
+  });
+
+  it("uses a neutral phase when the current stage is unavailable", () => {
+    expect(userWorkflowPhase("unknown_stage")).toBeNull();
+    expect(userWorkflowPhase(null)).toBeNull();
   });
 
   it("explains a blocked part without treating the candidate as the root problem", () => {

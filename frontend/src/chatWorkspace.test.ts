@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  blockedOutcomeSubtext,
+  blockedOutcomeMessage,
   classifyProjectMessage,
   layoutModeForWidth,
   userFacingSubmissionError,
@@ -53,5 +55,22 @@ describe("chat workspace presentation", () => {
     expect(canExportRevision(revision)).toBe(true);
     expect(canExportRevision({ review_state: "blocked", status: "failed", is_accepted: false })).toBe(false);
     expect(canExportRevision(null)).toBe(false);
+  });
+
+  it("uses the authoritative current revision state for blocked outcomes", () => {
+    expect(blockedOutcomeSubtext(null)).toBe("No working version has been created yet.");
+    expect(blockedOutcomeSubtext("revision-1")).toBe("Your Current working version is unchanged.");
+    expect(
+      blockedOutcomeMessage(
+        "Volundr could not create a valid new version. Your Current working version is unchanged.",
+        null,
+      ),
+    ).toBe("Volundr could not create a valid new version. No working version has been created yet.");
+    expect(
+      blockedOutcomeMessage(
+        "Volundr could not create a valid design plan for this request. No working version was created.",
+        null,
+      ),
+    ).toBe("Volundr could not create a valid design plan for this request. No working version has been created yet.");
   });
 });

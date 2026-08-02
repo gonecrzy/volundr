@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   canExportRevision,
+  blockedOutcomeMessage,
   classifyProjectMessage,
   layoutModeForWidth,
   type ChatDisplayKind,
@@ -13,6 +14,7 @@ import {
   type RevisionComparison,
   type SnapshotPacket,
 } from "./snapshotView";
+import { workflowProgress } from "./workflowPresentation";
 
 export type ChatWorkspaceMessage = {
   id: string;
@@ -271,8 +273,8 @@ export function ChatWorkspace({
           {overflowOpen ? (
             <div className="topbar-menu" role="menu">
               <button type="button" role="menuitem" onClick={() => { setOverflowOpen(false); setRenameValue(project?.name ?? ""); setRenameOpen(true); }}>Rename</button>
-              <button type="button" role="menuitem" disabled={!project} onClick={() => { setOverflowOpen(false); onArchive(); }}>Archive</button>
-              <button type="button" role="menuitem" disabled={!project} onClick={() => { setOverflowOpen(false); onDelete(); }}>Delete</button>
+              <button type="button" role="menuitem" aria-label="Archive: hide and preserve project" title="Archive hides and preserves this project for later reopening." disabled={!project} onClick={() => { setOverflowOpen(false); onArchive(); }}>Archive</button>
+              <button type="button" role="menuitem" aria-label="Delete: permanently remove project" title="Delete permanently removes this project and its files." disabled={!project} onClick={() => { setOverflowOpen(false); onDelete(); }}>Delete</button>
             </div>
           ) : null}
         </div>
@@ -307,6 +309,7 @@ export function ChatWorkspace({
             onClearError={onClearSubmissionError}
             onViewRevision={onViewRevision}
             onOpenExport={() => setExportOpen(true)}
+            currentWorkingRevisionId={currentWorkingRevisionId}
           />
         </section>
 
@@ -430,6 +433,7 @@ function ConversationPanel({
   onClearError,
   onViewRevision,
   onOpenExport,
+  currentWorkingRevisionId,
 }: {
   messages: ChatWorkspaceMessage[];
   pendingMessage: ChatWorkspacePendingMessage | null;
@@ -447,6 +451,7 @@ function ConversationPanel({
   onClearError: () => void;
   onViewRevision: (revisionId: string) => void;
   onOpenExport: () => void;
+  currentWorkingRevisionId: string | null;
 }) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const nearBottomRef = useRef(true);
@@ -488,9 +493,9 @@ function ConversationPanel({
         <div className="message-list" ref={listRef} onScroll={onScroll} aria-live="polite">
           {allMessages.length === 0 ? <EmptyConversation /> : null}
           {allMessages.map((message) => (
-            <ChatMessage key={message.id} message={message} onViewRevision={onViewRevision} onOpenExport={onOpenExport} />
+            <ChatMessage key={message.id} message={message} currentWorkingRevisionId={currentWorkingRevisionId} onViewRevision={onViewRevision} onOpenExport={onOpenExport} />
           ))}
-          {isChatActionPending && !pendingMessage ? <ProgressMessage /> : null}
+          {isChatActionPending && !pendingMessage ? <ProgressMessage stage={typeof activeWorkflow?.stage === "string" ? activeWorkflow.stage : null} /> : null}
         </div>
         {newMessages ? <button className="new-messages-button" type="button" onClick={jumpToLatest}>New messages</button> : null}
       </div>
@@ -519,7 +524,7 @@ function EmptyConversation() {
   );
 }
 
-function ChatMessage({ message, onViewRevision, onOpenExport }: { message: ChatWorkspaceMessage; onViewRevision: (revisionId: string) => void; onOpenExport: () => void }) {
+function ChatMessage({ message, currentWorkingRevisionId, onViewRevision, onOpenExport }: { message: ChatWorkspaceMessage; currentWorkingRevisionId: string | null; onViewRevision: (revisionId: string) => void; onOpenExport: () => void }) {
   const kind = classifyProjectMessage(message);
   if (kind === "hidden") return null;
   const assistant = kind !== "user";
@@ -527,15 +532,15 @@ function ChatMessage({ message, onViewRevision, onOpenExport }: { message: ChatW
   return (
     <article className={`chat-message chat-message-${kind}`} data-message-kind={kind}>
       <div className="message-meta"><span>{label}</span><time dateTime={message.created_at}>{formatMessageTime(message.created_at)}</time></div>
-      <p>{message.content}</p>
+      <p>{kind === "blocked" ? blockedOutcomeMessage(message.content, currentWorkingRevisionId) : message.content}</p>
       {kind === "success" && message.revision_id ? <div className="message-actions"><button className="text-action" type="button" onClick={() => onViewRevision(message.revision_id!)}>View version</button><button className="text-action" type="button" onClick={onOpenExport}>Export</button></div> : null}
-      {kind === "blocked" ? <p className="message-subtle">Your Current working version is unchanged.</p> : null}
     </article>
   );
 }
 
-function ProgressMessage() {
-  return <article className="chat-message chat-message-progress" aria-live="polite"><div className="message-meta"><span>Volundr</span><span>Working</span></div><p>Creating the model…</p><div className="progress-steps"><span className="complete">Understanding</span><span className="active">Planning</span><span>Creating</span><span>Checking</span></div></article>;
+function ProgressMessage({ stage }: { stage: string | null }) {
+  const progress = workflowProgress(stage);
+  return <article className="chat-message chat-message-progress" aria-live="polite"><div className="message-meta"><span>Volundr</span><span>Working</span></div><p>{progress.label}</p><div className="progress-steps">{progress.steps.map((step) => <span className={step.state === "pending" ? "" : step.state} aria-current={step.state === "active" ? "step" : undefined} key={step.label}>{step.label}</span>)}</div></article>;
 }
 
 function ViewerPanel({ viewer, hasModel, selectedRevision, currentRevision, selectedIsCurrent, onReturnToCurrent }: { viewer: ReactNode; hasModel: boolean; selectedRevision: ChatWorkspaceRevision | null; currentRevision: ChatWorkspaceRevision | null; selectedIsCurrent: boolean; onReturnToCurrent: () => void }) {
@@ -543,7 +548,7 @@ function ViewerPanel({ viewer, hasModel, selectedRevision, currentRevision, sele
     <section className="viewer-panel chat-viewer-panel">
       {viewer}
       {!hasModel ? <div className="viewer-empty-state"><h2>Your model will appear here</h2><p>Describe the part in the conversation. Volundr will create a model after it has enough information.</p></div> : null}
-      {selectedRevision && !selectedIsCurrent ? <div className="version-banner">Viewing Version {selectedRevision.revision_number} — Current working version is Version {currentRevision?.revision_number ?? "not created"}<button type="button" onClick={onReturnToCurrent}>Return to current</button></div> : null}
+      {selectedRevision && !selectedIsCurrent ? <div className="version-banner">Viewing Version {selectedRevision.revision_number} — {currentRevision ? `Current working version is Version ${currentRevision.revision_number}` : "No working version has been created yet"}<button type="button" onClick={onReturnToCurrent}>Return to current</button></div> : null}
       {selectedRevision?.review_state === "blocked" ? <div className="version-banner blocked-banner">Viewing blocked attempt — not the Current working version</div> : null}
       <div className="viewer-statusbar"><span>{selectedRevision ? `Version ${selectedRevision.revision_number}` : "No version selected"}</span><span>Selected part · mm</span></div>
     </section>

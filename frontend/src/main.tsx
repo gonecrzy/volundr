@@ -825,6 +825,10 @@ function App() {
   useEffect(() => {
     const routeProjectId = projectIdFromPath(window.location.pathname);
     if (routeProjectId) {
+      // Rehydrate the library independently from the opened workspace so a
+      // refresh on a stable project URL does not make the Projects drawer look
+      // as if only the current project exists.
+      void refreshProjects();
       void loadWorkspace(routeProjectId).catch(() => {
         setMessage("Project could not be reopened from the server");
         window.history.replaceState({}, "", "/");
@@ -2776,10 +2780,10 @@ function App() {
                 <button className="secondary compact" disabled={!canSaveProject || isSavingProject} onClick={() => void saveProject()}>
                   {isSavingProject ? "Saving" : "Save"}
                 </button>
-                <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
+                <button className="secondary compact" title="Archive hides and preserves this project for later reopening." disabled={!project || isSavingProject} onClick={() => void archiveProject()}>
                   Archive
                 </button>
-                <button className="secondary compact" disabled={!project || isSavingProject} onClick={() => void deleteProject()}>
+                <button className="secondary compact" title="Delete permanently removes this project and its files." disabled={!project || isSavingProject} onClick={() => void deleteProject()}>
                   Delete
                 </button>
               </div>

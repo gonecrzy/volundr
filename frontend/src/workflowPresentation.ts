@@ -3,6 +3,94 @@ export type GenerationStage = {
   complete: boolean;
 };
 
+export type UserWorkflowPhase = "understanding" | "planning" | "creating" | "checking";
+
+const phaseByStage: Record<UserWorkflowPhase, Set<string>> = {
+  understanding: new Set([
+    "project_request",
+    "requirements",
+    "requirement_extraction",
+    "requirement_validation",
+    "requirement_clarification",
+    "clarification",
+    "requirement_processing",
+  ]),
+  planning: new Set([
+    "planning",
+    "design_planning",
+    "design_plan_generation",
+    "design_plan_validation",
+    "direct_brief",
+    "compact_plan",
+    "detailed_plan",
+    "plan_validation",
+    "planning_repair",
+    "revision_planning",
+  ]),
+  creating: new Set([
+    "source_generation",
+    "source_extraction",
+    "source_contract_validation",
+    "contract_repair",
+    "worker_submission",
+    "cad_execution",
+    "configuration_execution",
+    "component_revision",
+  ]),
+  checking: new Set([
+    "topology_validation",
+    "mesh_validation",
+    "functional_validation",
+    "printability_validation",
+    "candidate_classification",
+    "output_preservation",
+    "artifact_consistency",
+    "snapshot_generation",
+    "export",
+  ]),
+};
+
+export function userWorkflowPhase(stage: string | null | undefined): UserWorkflowPhase | null {
+  if (!stage) {
+    return null;
+  }
+  for (const [phase, stages] of Object.entries(phaseByStage) as [UserWorkflowPhase, Set<string>][]) {
+    if (stages.has(stage)) {
+      return phase;
+    }
+  }
+  return null;
+}
+
+export function workflowProgress(stage: string | null | undefined): {
+  label: string;
+  phase: UserWorkflowPhase | null;
+  steps: Array<{ label: string; state: "complete" | "active" | "pending" }>;
+} {
+  const phase = userWorkflowPhase(stage);
+  const phases: Array<[UserWorkflowPhase, string]> = [
+    ["understanding", "Understanding"],
+    ["planning", "Planning"],
+    ["creating", "Creating"],
+    ["checking", "Checking"],
+  ];
+  const activeIndex = phase ? phases.findIndex(([value]) => value === phase) : -1;
+  return {
+    label: phase === "understanding"
+      ? "Understanding your request…"
+      : phase === "planning"
+        ? "Planning the design…"
+        : phase === "checking"
+          ? "Checking the model…"
+          : "Creating the model…",
+    phase,
+    steps: phases.map(([value, label], index) => ({
+      label,
+      state: activeIndex < 0 ? "pending" : index < activeIndex ? "complete" : index === activeIndex ? "active" : "pending",
+    })),
+  };
+}
+
 const generationStages: Record<string, GenerationStage> = {
   project_request: { label: "Understanding your request", complete: false },
   requirement_extraction: { label: "Understanding requirements", complete: false },

@@ -53,6 +53,25 @@ export function classifyProjectMessage(message: WorkspaceMessageLike): ChatDispl
   return "assistant";
 }
 
+export function blockedOutcomeSubtext(currentWorkingRevisionId: string | null | undefined): string {
+  return currentWorkingRevisionId
+    ? "Your Current working version is unchanged."
+    : "No working version has been created yet.";
+}
+
+export function blockedOutcomeMessage(
+  content: string,
+  currentWorkingRevisionId: string | null | undefined,
+): string {
+  // Older persisted blocked messages included the preservation sentence.
+  // Remove only that known suffix; the authoritative revision ID chooses the
+  // replacement, so historical messages cannot mislabel the workspace.
+  const base = content
+    .replace(/\s*(?:Your Current working version is unchanged\.|No working version has been created yet\.|No working version was created\.)\s*$/i, "")
+    .trim();
+  return `${base} ${blockedOutcomeSubtext(currentWorkingRevisionId)}`.trim();
+}
+
 export function layoutModeForWidth(width: number): WorkspaceLayoutMode {
   if (width >= 1280) {
     return "desktop";

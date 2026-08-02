@@ -13,6 +13,9 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.project import Project, utcnow
+from app.models.project_message import ProjectMessage
+from app.models.workflow import WorkflowRun
+from app.services.projects.service import ProjectService
 from app.models.revision import Revision
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.mesh.inspect import MeshMetadata
@@ -448,13 +451,6 @@ def test_old_draft_projects_are_cleaned_after_fourteen_days(tmp_path: Path) -> N
     client = build_client(tmp_path)
     current_draft = client.post("/api/projects/draft").json()
     old_draft = client.post("/api/projects/draft").json()
-    old_draft_revision = client.post(
-        f"/api/projects/{old_draft['id']}/revisions",
-        json={
-            "source": CADQUERY_MANUAL_SOURCE,
-            "user_instruction": None,
-        },
-    ).json()
 
     with next(app.dependency_overrides[get_db]()) as session:
         stored_old_draft = session.get(Project, old_draft["id"])
@@ -463,18 +459,12 @@ def test_old_draft_projects_are_cleaned_after_fourteen_days(tmp_path: Path) -> N
         stored_old_draft.updated_at = utcnow() - timedelta(days=15)
         session.commit()
         old_draft_id = stored_old_draft.id
-    old_project_dir = tmp_path / "data" / "projects" / old_draft_id
-
-    assert old_project_dir.exists()
-
     list_response = client.get("/api/projects")
 
     assert list_response.status_code == 200
     with next(app.dependency_overrides[get_db]()) as session:
         assert session.get(Project, old_draft_id) is None
-        assert session.get(Revision, old_draft_revision["id"]) is None
         assert session.get(Project, current_draft["id"]) is not None
-    assert not old_project_dir.exists()
 
 
 def test_project_can_be_deleted_permanently_with_files(tmp_path: Path) -> None:
@@ -507,7 +497,7 @@ def test_project_can_be_deleted_permanently_with_files(tmp_path: Path) -> None:
         assert session.get(Revision, revision["id"]) is None
 
 
-def test_old_archived_projects_are_cleaned_after_sixty_days(tmp_path: Path) -> None:
+def test_old_archived_projects_survive_project_list_access(tmp_path: Path) -> None:
     client = build_client(tmp_path)
 
     with next(app.dependency_overrides[get_db]()) as session:
@@ -543,10 +533,80 @@ def test_old_archived_projects_are_cleaned_after_sixty_days(tmp_path: Path) -> N
 
     assert list_response.status_code == 200
     with next(app.dependency_overrides[get_db]()) as session:
-        assert session.get(Project, old_archived_id) is None
+        assert session.get(Project, old_archived_id) is not None
         assert session.get(Project, recent_archived_id) is not None
-    assert not old_project_dir.exists()
+    assert old_project_dir.exists()
     assert recent_project_dir.exists()
+
+
+def test_old_archived_projects_can_be_purged_explicitly_or_in_dry_run(tmp_path: Path) -> None:
+    build_client(tmp_path)
+    with next(app.dependency_overrides[get_db]()) as session:
+        old_archived = Project(
+            name="Purge me",
+            slug="purge-me",
+            original_intent="An archived project.",
+            status="archived",
+            archived_at=utcnow() - timedelta(days=366),
+            created_at=utcnow() - timedelta(days=366),
+            updated_at=utcnow() - timedelta(days=366),
+        )
+        session.add(old_archived)
+        session.commit()
+        old_id = old_archived.id
+    project_dir = tmp_path / "data" / "projects" / old_id
+    project_dir.mkdir(parents=True)
+
+    with next(app.dependency_overrides[get_db]()) as session:
+        service = ProjectService(db=session, data_dir=tmp_path / "data")
+        dry_run = service.purge_archived_projects(older_than_days=365, dry_run=True)
+        assert [item.project_id for item in dry_run] == [old_id]
+        assert session.get(Project, old_id) is not None
+        assert project_dir.exists()
+        deleted = service.purge_archived_projects(older_than_days=365, dry_run=False)
+        assert [item.project_id for item in deleted] == [old_id]
+        assert session.get(Project, old_id) is None
+    assert not project_dir.exists()
+
+
+def test_old_drafts_with_user_or_workflow_evidence_are_retained(tmp_path: Path) -> None:
+    client = build_client(tmp_path)
+    with next(app.dependency_overrides[get_db]()) as session:
+        user_draft = Project(
+            name="User draft",
+            slug="user-draft",
+            original_intent="",
+            status="draft",
+            created_at=utcnow() - timedelta(days=30),
+            updated_at=utcnow() - timedelta(days=30),
+        )
+        workflow_draft = Project(
+            name="Workflow draft",
+            slug="workflow-draft",
+            original_intent="",
+            status="draft",
+            created_at=utcnow() - timedelta(days=30),
+            updated_at=utcnow() - timedelta(days=30),
+        )
+        session.add_all([user_draft, workflow_draft])
+        session.flush()
+        session.add(ProjectMessage(project_id=user_draft.id, role="user", content="Keep this draft."))
+        session.add(
+            WorkflowRun(
+                project_id=workflow_draft.id,
+                workflow_type="chat",
+                correlation_id=workflow_draft.id,
+                status="failed",
+            )
+        )
+        session.commit()
+        user_id = user_draft.id
+        workflow_id = workflow_draft.id
+
+    client.get("/api/projects")
+    with next(app.dependency_overrides[get_db]()) as session:
+        assert session.get(Project, user_id) is not None
+        assert session.get(Project, workflow_id) is not None
 
 
 def test_printability_profiles_can_be_saved_updated_listed_and_deleted(
