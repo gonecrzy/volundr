@@ -128,7 +128,7 @@ from app.services.cad.geometry_bodies import (
 )
 from app.services.cad.patterns import exposed_control_ids, normalize_pattern_specs, validate_pattern_specs
 from app.services.cad.runtime_diagnostics import (
-    classify_worker_name_failure,
+    classify_worker_diagnostic,
     runtime_repair_is_eligible,
 )
 from app.services.cad.source_scaffold import (
@@ -156,6 +156,13 @@ from app.services.functional.intent import (
 from app.services.projects.design_artifact_consistency import (
     certify_design_artifact_consistency,
     consistency_failure_message,
+)
+from app.services.provider_interoperability import (
+    ProviderContractError,
+    build_focused_plan_repair_context,
+    build_provider_contract_manifest,
+    compare_plan_repair,
+    validate_plan_repair_preservation,
 )
 from app.services.projects.plan_provenance import (
     normalize_plan_provenance,
@@ -232,10 +239,34 @@ DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
 COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v2"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v7"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v7"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
+
+
+def _compact_plan_parameters(raw_parameters: Any) -> list[dict[str, Any]]:
+    """Normalize the common map-shaped provider parameter representation."""
+
+    if isinstance(raw_parameters, dict):
+        result: list[dict[str, Any]] = []
+        for parameter_id, value in raw_parameters.items():
+            if isinstance(value, dict):
+                entry = dict(value)
+                entry.setdefault("id", entry.get("parameter_id") or str(parameter_id))
+            else:
+                entry = {"id": str(parameter_id), "value": value}
+            result.append(entry)
+        return result
+    result = []
+    for item in (raw_parameters or []):
+        if not isinstance(item, dict):
+            continue
+        entry = dict(item)
+        if not entry.get("id") and entry.get("parameter_id"):
+            entry["id"] = entry["parameter_id"]
+        result.append(entry)
+    return result
 CADQUERY_REVISION_PROMPT_VERSION = "cadquery-revision-v1"
 REVISION_PLAN_SCHEMA_VERSION = "revision-plan-v1"
 PLANNING_ROUTE_PROMPT_VERSION = "planning-depth-v1"
@@ -2361,6 +2392,7 @@ class ProjectService:
             workflow_run=workflow_run,
             attempt=generation_attempt,
             pack=generation_request.prompt_context_pack,
+            provider_contract_manifest=generation_request.provider_contract_manifest,
         )
         self._record_workflow_event(
             workflow_run,
@@ -3012,6 +3044,7 @@ class ProjectService:
                 specification=specification,
                 request=request,
                 superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
+                workflow_run=workflow_run,
             )
         except asyncio.CancelledError:
             self._record_workflow_event(
@@ -3268,47 +3301,105 @@ class ProjectService:
         preserved_requirements: list[dict[str, Any]],
         superseded_plan_id: str | None,
     ) -> DesignPlanRead:
-        request = DesignPlanRequest(
-            project_name=project.name,
-            original_intent=project.original_intent,
-            user_instruction=specification.user_instruction,
-            design_specification=self._read_design_specification_payload(specification),
-            defaults=DEFAULT_REQUIREMENT_PROFILE,
-            active_requirements=active_requirements,
-            requirement_delta=revision_delta,
-            planning_depth=PlanningDepth.COMPACT_PLAN.value,
-        )
-        attempt = self._start_design_plan_attempt(project=project, request=request)
-        try:
-            result = await self.ai_provider.create_design_plan(request)
-            self._record_generation_result(attempt, result)
-            payload = self._parse_compact_plan_payload(
-                result.raw_output,
-                project=project,
-                specification=specification,
+        repair_context = None
+        rejected_payload: dict[str, Any] | None = None
+        rejected_raw_output: str | None = None
+        comparison: dict[str, Any] | None = None
+        for repair_round in range(2):
+            result = None
+            request = DesignPlanRequest(
+                project_name=project.name,
+                original_intent=project.original_intent,
+                user_instruction=specification.user_instruction,
+                design_specification=self._read_design_specification_payload(specification),
+                defaults=DEFAULT_REQUIREMENT_PROFILE,
                 active_requirements=active_requirements,
-                revision_delta=revision_delta,
-                preserved_requirements=preserved_requirements,
+                requirement_delta=revision_delta,
+                planning_depth=PlanningDepth.COMPACT_PLAN.value,
+                schema_repair_of_raw_output=rejected_raw_output,
+                schema_validation_error=(
+                    repair_context.get("validation_error") if repair_context else None
+                ),
+                plan_repair_context=repair_context,
             )
-        except asyncio.CancelledError:
-            self._finish_provider_cancelled_attempt(attempt)
-            raise
-        except (ValueError, ValidationError) as exc:
-            self._finish_generation_attempt(
-                attempt,
-                status="failed",
-                failure_class=FailureClass.DESIGN_PLAN_INVALID,
-                error_message=str(exc),
-            )
-            raise
-        except RuntimeError as exc:
-            self._finish_generation_attempt(
-                attempt,
-                status="failed",
-                failure_class=self._provider_failure_class(str(exc)),
-                error_message=str(exc),
-            )
-            raise
+            attempt = self._start_design_plan_attempt(project=project, request=request)
+            try:
+                result = await self.ai_provider.create_design_plan(request)
+                self._record_generation_result(attempt, result)
+                payload = self._parse_compact_plan_payload(
+                    result.raw_output,
+                    project=project,
+                    specification=specification,
+                    active_requirements=active_requirements,
+                    revision_delta=revision_delta,
+                    preserved_requirements=preserved_requirements,
+                )
+                if rejected_payload is not None:
+                    repaired_payload = self._safe_provider_json_object(result.raw_output)
+                    if repaired_payload is None:
+                        raise ProviderContractError("focused Plan repair did not return a JSON object")
+                    comparison = validate_plan_repair_preservation(
+                        rejected_payload,
+                        repaired_payload,
+                        affected_feature_ids=set(repair_context.get("affected_feature_ids", [])) if repair_context else set(),
+                        affected_layout_ids=set(repair_context.get("affected_layout_ids", [])) if repair_context else set(),
+                    )
+                    comparison["findings_resolved"] = [
+                        str(item.get("rule_id"))
+                        for item in (repair_context or {}).get("findings", [])
+                        if isinstance(item, dict) and item.get("rule_id")
+                    ]
+                    self._persist_plan_repair_comparison(
+                        workflow_run=workflow_run,
+                        attempt=attempt,
+                        comparison=comparison,
+                    )
+                break
+            except asyncio.CancelledError:
+                self._finish_provider_cancelled_attempt(attempt)
+                raise
+            except (ValueError, ValidationError, ProviderContractError) as exc:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                    error_message=str(exc),
+                )
+                if repair_round == 1:
+                    if rejected_payload is not None and result is not None:
+                        repaired_payload = self._safe_provider_json_object(result.raw_output)
+                        comparison = self._plan_repair_failure_comparison(
+                            rejected_payload,
+                            repaired_payload,
+                            repair_context=repair_context,
+                            error=str(exc),
+                        )
+                        self._persist_plan_repair_comparison(
+                            workflow_run=workflow_run,
+                            attempt=attempt,
+                            comparison=comparison,
+                        )
+                    raise
+                if result is None:
+                    raise
+                rejected_payload = self._safe_provider_json_object(result.raw_output)
+                rejected_raw_output = result.raw_output
+                repair_context = build_focused_plan_repair_context(
+                    rejected_payload or {},
+                    findings=[{"rule_id": "planning.compact_plan_invalid", "message": str(exc)}],
+                )
+                repair_context["validation_error"] = str(exc)
+                continue
+            except RuntimeError as exc:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=self._provider_failure_class(str(exc)),
+                    error_message=str(exc),
+                )
+                raise
+        else:
+            raise RuntimeError("compact Plan repair exhausted")
         plan = self._persist_design_plan(
             project=project,
             specification=specification,
@@ -3454,7 +3545,7 @@ class ProjectService:
             "coordinate_frames": [dict(item) for item in payload.get("coordinate_frames", []) or [] if isinstance(item, dict)],
             "validation_targets": [dict(item) for item in payload.get("validation_targets", []) or [] if isinstance(item, dict)],
             "exposed_controls": [dict(item) for item in payload.get("exposed_controls", []) or [] if isinstance(item, dict)],
-            "parameters": [dict(item) for item in payload.get("parameters", []) or [] if isinstance(item, dict)],
+            "parameters": _compact_plan_parameters(payload.get("parameters")),
             "derived_parameters": [dict(item) for item in payload.get("derived_parameters", []) or [] if isinstance(item, dict)],
             "dependency_edges": [dict(item) for item in payload.get("dependency_edges", []) or [] if isinstance(item, dict)],
             "feature_layouts": [dict(item) for item in payload.get("feature_layouts", []) or [] if isinstance(item, dict)],
@@ -3471,6 +3562,15 @@ class ProjectService:
             "clarification_questions": clarification_questions,
             "plan_ready": not clarification_required,
         }
+        specification_payload = (
+            self._read_design_specification_payload(specification)
+            if getattr(specification, "specification_path", None)
+            else None
+        )
+        normalized_payload = normalize_plan_provenance(
+            normalized_payload,
+            specification_payload,
+        )
         normalized_payload = normalize_plan_constraints(
             normalized_payload,
             request_context=getattr(specification, "user_instruction", None),
@@ -3478,6 +3578,75 @@ class ProjectService:
         normalized_payload = normalize_pattern_specs(normalized_payload)
         validate_pattern_specs(normalized_payload)
         return normalized_payload
+
+    def _safe_provider_json_object(self, raw_output: str | None) -> dict[str, Any] | None:
+        if not raw_output:
+            return None
+        text = raw_output.strip()
+        if text.startswith("```"):
+            text = re.sub(r"\A```(?:json)?\s*|\s*```\Z", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+        try:
+            payload = json.loads(text)
+        except (TypeError, json.JSONDecodeError):
+            return None
+        return payload if isinstance(payload, dict) else None
+
+    def _persist_plan_repair_comparison(
+        self,
+        *,
+        workflow_run: WorkflowRun | None,
+        attempt: GenerationAttempt,
+        comparison: dict[str, Any],
+    ) -> None:
+        path = self._generation_attempt_dir(attempt.project_id, attempt.id) / "plan-repair-comparison.json"
+        self._write_json(path, comparison)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="planning_repair",
+            artifact_type="provider_plan_repair_comparison",
+            role="focused_plan_repair_comparison",
+            relative_path=self._relative(path),
+            metadata={
+                "schema_version": comparison.get("schema_version"),
+                "identities_added": comparison.get("identities_added", []),
+                "identities_removed": comparison.get("identities_removed", []),
+            },
+        )
+
+    def _plan_repair_failure_comparison(
+        self,
+        original: dict[str, Any],
+        repaired: dict[str, Any] | None,
+        *,
+        repair_context: dict[str, Any] | None,
+        error: str,
+    ) -> dict[str, Any]:
+        """Persist a comparison even when a focused repair remains invalid."""
+
+        if repaired is None:
+            comparison = {
+                "schema_version": "provider-plan-repair-comparison-v1",
+                "comparison_unavailable": True,
+                "reason": "repaired provider response was not a JSON object",
+                "fields_preserved": [],
+                "fields_changed": [],
+                "fields_removed": [],
+                "identities_added": [],
+                "identities_removed": [],
+            }
+        else:
+            comparison = compare_plan_repair(
+                original,
+                repaired,
+                affected_feature_ids=set((repair_context or {}).get("affected_feature_ids", [])),
+            )
+        comparison["findings_repeated"] = [
+            str(item.get("rule_id"))
+            for item in (repair_context or {}).get("findings", [])
+            if isinstance(item, dict) and item.get("rule_id")
+        ]
+        comparison["repair_error"] = error
+        return comparison
 
     @staticmethod
     def _validate_compact_plan_semantics(
@@ -3560,6 +3729,27 @@ class ProjectService:
             role="normalized_geometry_execution_context",
             relative_path=self._relative(path),
             metadata={"design_plan_id": plan_id, "revision_id": revision_id, "schema_version": context["schema_version"]},
+        )
+        manifest = build_provider_contract_manifest(
+            context,
+            planning_depth=context.get("planning_depth"),
+        )
+        manifest_path = self._planning_artifact_path(
+            project.id,
+            workflow_run.id,
+            "provider-contract-manifest.json",
+        )
+        self._write_json(manifest_path, manifest)
+        self._record_workflow_artifact(
+            workflow_run,
+            stage="planning",
+            artifact_type="provider_contract_manifest",
+            role="planning_provider_contract_manifest",
+            relative_path=self._relative(manifest_path),
+            metadata={
+                "manifest_hash": manifest["manifest_hash"],
+                "plan_id": plan_id,
+            },
         )
 
     def _persist_deterministic_plan(
@@ -3972,6 +4162,7 @@ class ProjectService:
             workflow_run=workflow_run,
             attempt=generation_attempt,
             pack=generation_request.prompt_context_pack,
+            provider_contract_manifest=generation_request.provider_contract_manifest,
         )
         self._record_workflow_event(
             workflow_run,
@@ -4060,11 +4251,7 @@ class ProjectService:
             error_message=initial_revision.error_message,
             resulting_revision_id=initial_revision.id,
         )
-        if self._has_design_artifact_consistency_blockers(initial_revision.id):
-            self._complete_workflow_lineage(workflow_run, status="failed")
-            return initial_revision
-
-        runtime_finding = classify_worker_name_failure(
+        runtime_finding = classify_worker_diagnostic(
             initial_revision.error_message,
             traceback=self.read_revision_compile_log(initial_revision.id),
         )
@@ -4109,6 +4296,10 @@ class ProjectService:
             self._complete_workflow_lineage(workflow_run, status="failed")
             return initial_revision
 
+        if self._has_design_artifact_consistency_blockers(initial_revision.id):
+            self._complete_workflow_lineage(workflow_run, status="failed")
+            return initial_revision
+
         repair_request = self._generation_request(
             project=project,
             payload=payload,
@@ -4138,6 +4329,7 @@ class ProjectService:
                 workflow_run=workflow_run,
                 attempt=repair_attempt,
                 pack=repair_request.prompt_context_pack,
+                provider_contract_manifest=repair_request.provider_contract_manifest,
             )
         try:
             repair_result = await self._generate_source_model(repair_request)
@@ -4570,6 +4762,13 @@ class ProjectService:
             design_plan_payload=design_plan,
             revision_plan_payload=revision_plan,
         )
+        provider_contract_manifest = None
+        if design_plan:
+            provider_contract_manifest = build_provider_contract_manifest(
+                design_plan,
+                planning_depth=planning_depth,
+                geometry_inventory=build_geometry_function_inventory(design_plan),
+            )
         active_items = (
             list(active_requirement_items)
             if active_requirement_items is not None
@@ -4607,6 +4806,7 @@ class ProjectService:
                     "source_authority": source_authority,
                 },
                 exposed_controls=(design_plan or {}).get("exposed_controls", []) or [],
+                provider_contract_manifest=provider_contract_manifest,
                 prompt_version=self._prompt_template_version(
                     ModelGenerationRequest(
                         project_name=project.name,
@@ -4642,6 +4842,7 @@ class ProjectService:
             planning_depth=planning_depth,
             geometry_execution_context=geometry_execution_context,
             prompt_context_pack=prompt_context_pack,
+            provider_contract_manifest=provider_contract_manifest,
         )
 
     def _planning_depth_for_plan(self, plan: dict[str, Any] | None) -> str:
@@ -4678,23 +4879,38 @@ class ProjectService:
         workflow_run: WorkflowRun,
         attempt: GenerationAttempt,
         pack: dict[str, Any] | None,
+        provider_contract_manifest: dict[str, Any] | None = None,
     ) -> None:
-        if not pack:
-            return
-        path = self._generation_attempt_dir(attempt.project_id, attempt.id) / "prompt-context-pack.json"
-        self._write_json(path, pack)
-        self._record_workflow_artifact(
-            workflow_run,
-            stage="source_generation",
-            artifact_type="prompt_context_pack",
-            role="generation_prompt_context_pack",
-            relative_path=self._relative(path),
-            metadata={
-                "context_hash": pack.get("context_hash"),
-                "included_artifact_ids": pack.get("included_artifact_ids", []),
-                "excluded_context_categories": pack.get("excluded_context_categories", []),
-            },
-        )
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        if pack:
+            path = run_dir / "prompt-context-pack.json"
+            self._write_json(path, pack)
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="source_generation",
+                artifact_type="prompt_context_pack",
+                role="generation_prompt_context_pack",
+                relative_path=self._relative(path),
+                metadata={
+                    "context_hash": pack.get("context_hash"),
+                    "included_artifact_ids": pack.get("included_artifact_ids", []),
+                    "excluded_context_categories": pack.get("excluded_context_categories", []),
+                },
+            )
+        if provider_contract_manifest:
+            manifest_path = run_dir / "provider-contract-manifest.json"
+            self._write_json(manifest_path, provider_contract_manifest)
+            self._record_workflow_artifact(
+                workflow_run,
+                stage="source_generation",
+                artifact_type="provider_contract_manifest",
+                role="provider_contract_manifest",
+                relative_path=self._relative(manifest_path),
+                metadata={
+                    "manifest_hash": provider_contract_manifest.get("manifest_hash"),
+                    "schema_version": provider_contract_manifest.get("schema_version"),
+                },
+            )
 
     async def _generate_source_model(self, request: ModelGenerationRequest):
         generator = getattr(self.ai_provider, "generate_cadquery_model", None)
@@ -4750,6 +4966,11 @@ class ProjectService:
             encoding="utf-8",
         )
         scaffold_manifest_path = run_dir / "scaffold-manifest.json"
+        provider_contract_manifest = build_provider_contract_manifest(
+            design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_inventory=inventory,
+        )
         self._write_json(
             scaffold_manifest_path,
             {
@@ -4763,6 +4984,7 @@ class ProjectService:
                 "parameter_effect_manifest": rendered.parameter_effect_manifest,
                 "derived_dependency_findings": list(assembly.dependency_findings),
                 "symbol_evidence": assembly.symbol_evidence,
+                "provider_contract_manifest": provider_contract_manifest,
                 "assembled_source_hash": self._sha256(rendered.source),
                 "role": role,
             },
@@ -4837,7 +5059,7 @@ class ProjectService:
         design_plan_payload: dict[str, Any],
         workflow_run: WorkflowRun | None,
     ) -> tuple[RevisionRead | None, bool]:
-        """Repair one safely identified provider body after a runtime name failure."""
+        """Repair one safely identified provider body after a runtime source failure."""
 
         if not raw_ai_output or not runtime_repair_is_eligible(finding):
             return failed_revision, False
@@ -4857,7 +5079,7 @@ class ProjectService:
             severity="error",
             blocking=True,
             rule_id=diagnostics.rule_id,
-            message="CAD worker failure was classified as a provider source-scope defect.",
+            message="CAD worker failure was classified as a localized provider source defect.",
             deduplication_key=f"geometry-body-runtime-failure-{failed_revision.id}",
             revision_id=failed_revision.id,
             generation_attempt_id=failed_attempt.id,
@@ -4974,6 +5196,7 @@ class ProjectService:
                 workflow_run=workflow_run,
                 attempt=repair_attempt,
                 pack=repair_request.prompt_context_pack,
+                provider_contract_manifest=repair_request.provider_contract_manifest,
             )
         repair_workflow_run = None
         if workflow_run is not None:
@@ -5361,6 +5584,7 @@ class ProjectService:
         specification: DesignSpecification,
         request: DesignPlanRequest,
         superseded_design_plan_id: str | None = None,
+        workflow_run: WorkflowRun | None = None,
     ) -> DesignPlanRead:
         attempt = self._start_design_plan_attempt(project=project, request=request)
         try:
@@ -5413,12 +5637,76 @@ class ProjectService:
                 active_requirements=request.active_requirements,
                 requirement_delta=request.requirement_delta,
                 planning_depth=request.planning_depth,
+                plan_repair_context={
+                    **build_focused_plan_repair_context(
+                        self._safe_provider_json_object(planning_result.raw_output) or {},
+                        findings=[{"rule_id": "planning.design_plan_invalid", "message": str(exc)}],
+                    ),
+                    "validation_error": str(exc),
+                },
             )
             return await self._run_design_planning(
                 project=project,
                 specification=specification,
                 request=repair_request,
                 superseded_design_plan_id=superseded_design_plan_id,
+                workflow_run=workflow_run,
+            )
+
+        if request.plan_repair_context and request.schema_repair_of_raw_output:
+            rejected_payload = self._safe_provider_json_object(request.schema_repair_of_raw_output)
+            repaired_payload = self._safe_provider_json_object(planning_result.raw_output)
+            if rejected_payload is None or repaired_payload is None:
+                comparison = {
+                    "schema_version": "provider-plan-repair-comparison-v1",
+                    "comparison_unavailable": True,
+                    "reason": "one provider response was not a JSON object",
+                    "fields_preserved": [],
+                    "fields_changed": [],
+                    "identities_added": [],
+                    "identities_removed": [],
+                }
+            else:
+                try:
+                    comparison = validate_plan_repair_preservation(
+                        rejected_payload,
+                        repaired_payload,
+                        affected_feature_ids=set(request.plan_repair_context.get("affected_feature_ids", [])),
+                        affected_layout_ids=set(request.plan_repair_context.get("affected_layout_ids", [])),
+                    )
+                except ProviderContractError as exc:
+                    comparison = compare_plan_repair(
+                        rejected_payload,
+                        repaired_payload,
+                        affected_feature_ids=set(request.plan_repair_context.get("affected_feature_ids", [])),
+                    )
+                    comparison["findings_repeated"] = [
+                        str(item.get("rule_id"))
+                        for item in request.plan_repair_context.get("findings", [])
+                        if isinstance(item, dict) and item.get("rule_id")
+                    ]
+                    comparison["repair_error"] = str(exc)
+                    self._persist_plan_repair_comparison(
+                        workflow_run=workflow_run,
+                        attempt=attempt,
+                        comparison=comparison,
+                    )
+                    self._finish_generation_attempt(
+                        attempt,
+                        status="failed",
+                        failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                        error_message=str(exc),
+                    )
+                    raise
+                comparison["findings_resolved"] = [
+                    str(item.get("rule_id"))
+                    for item in request.plan_repair_context.get("findings", [])
+                    if isinstance(item, dict) and item.get("rule_id")
+                ]
+            self._persist_plan_repair_comparison(
+                workflow_run=workflow_run,
+                attempt=attempt,
+                comparison=comparison,
             )
 
         plan = self._persist_design_plan(

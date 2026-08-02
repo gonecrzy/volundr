@@ -77,6 +77,7 @@ class PromptContextPackBuilder:
         relevant_findings: Iterable[dict[str, Any]],
         scaffold_contract: dict[str, Any],
         exposed_controls: Iterable[dict[str, Any]],
+        provider_contract_manifest: dict[str, Any] | None = None,
         unrelated_history: Iterable[dict[str, Any]] = (),
         prompt_version: str = "prompt-context-pack-v1",
         token_count: int | None = None,
@@ -98,6 +99,7 @@ class PromptContextPackBuilder:
             "relevant_findings": findings,
             "scaffold_contract": scaffold_contract or {},
             "exposed_controls": controls,
+            "provider_contract_manifest": provider_contract_manifest or {},
         }
         pack = {
             "schema_version": "prompt-context-pack-v1",
@@ -119,6 +121,7 @@ class PromptContextPackBuilder:
                 "preserved_requirements": "requirements explicitly preserved across this attempt",
                 "plan_artifact": "selected branch-specific execution plan",
                 "scaffold_contract": "safe geometry assembly contract",
+                "provider_contract_manifest": "exact provider identity, layout, and repair boundary",
             },
             "exclusion_reasons": {
                 "unrelated_history": "not relevant to the current branch or requested change",

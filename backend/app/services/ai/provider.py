@@ -27,6 +27,7 @@ class ModelGenerationRequest:
     planning_depth: str = "detailed_plan"
     geometry_execution_context: dict[str, Any] | None = None
     prompt_context_pack: dict[str, Any] | None = None
+    provider_contract_manifest: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -100,6 +101,7 @@ class DesignPlanRequest:
     active_requirements: list[dict[str, Any]] = field(default_factory=list)
     requirement_delta: list[dict[str, Any]] = field(default_factory=list)
     planning_depth: str = "detailed_plan"
+    plan_repair_context: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
