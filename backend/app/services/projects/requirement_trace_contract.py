@@ -937,7 +937,7 @@ def _resolve_validation_target(
     feature_id = str(feature.get("id")) if feature else None
     info: dict[str, Any] = {"considered": [], "rejected": [], "basis": []}
     explicit_target_id = item.get("validation_target_id") or item.get("verification_target_id")
-    exact = [
+    explicit = [
         target
         for target in targets
         if (
@@ -947,15 +947,44 @@ def _resolve_validation_target(
         or canonical_requirement_id(str(target.get("requirement_id") or "")) == requirement_id
         or canonical_requirement_id(str(target.get("id") or "")) == requirement_id
         or _contains_requirement_id(target, requirement_id)
-        or (feature_id and str(target.get("feature_id") or "") == feature_id)
     ]
-    if len(exact) == 1:
+    if len(explicit) == 1:
         info["basis"] = ["explicit_validation_target_link"]
-        return exact[0], info
-    if len(exact) > 1:
+        return explicit[0], info
+    if len(explicit) > 1:
         info["ambiguous"] = True
-        info["candidates"] = [str(target.get("id")) for target in exact]
+        info["candidates"] = [str(target.get("id") or target.get("validation_id")) for target in explicit]
         return None, info
+
+    # A feature may have several measurement targets.  The feature relationship
+    # is only a fallback: it must not turn unrelated measurements into an
+    # ambiguity.  Prefer one semantically compatible target; otherwise defer
+    # the qualitative requirement without inventing a target.
+    feature_targets = [
+        target for target in targets
+        if feature_id and str(target.get("feature_id") or "") == feature_id
+    ]
+    if len(feature_targets) == 1:
+        info["basis"] = ["feature_validation_target_link"]
+        return feature_targets[0], info
+    if len(feature_targets) > 1:
+        typed = []
+        for target in feature_targets:
+            score, basis = _target_semantic_score(item, target)
+            if score > 0:
+                typed.append((score, target, basis))
+        if typed:
+            typed.sort(key=lambda value: (-value[0], str(value[1].get("id") or value[1].get("validation_id") or "")))
+            best_score = typed[0][0]
+            best = [entry for entry in typed if entry[0] == best_score]
+            if len(best) == 1:
+                _, selected, basis = best[0]
+                info["basis"] = ["feature_validation_target_link", *basis]
+                info["normalized"] = True
+                return selected, info
+            info["ambiguous"] = True
+            info["candidates"] = [str(target.get("id") or target.get("validation_id")) for _, target, _ in best]
+            return None, info
 
     scored: list[tuple[int, dict[str, Any], list[str]]] = []
     for target in targets:

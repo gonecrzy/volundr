@@ -43,6 +43,10 @@ _INTEGRAL_FEATURE_TERMS = re.compile(
     r"floor|ledge|fillet|chamfer|snap|retention|drain|support|guide|clip)s?\b",
     re.IGNORECASE,
 )
+_INTEGRAL_COMPONENT_CUES = re.compile(
+    r"\b(?:integrated|integral|fused|fuse|built[- ]in|incorporated)\b",
+    re.IGNORECASE,
+)
 _PATTERN_TYPE_ALIASES = {
     "vertical": "linear",
     "horizontal": "linear",
@@ -192,7 +196,49 @@ def normalize_compact_component_feature_semantics(
         for component_id in output.get("component_ids", []) or []
         if component_id
     }
-    assembly_like = bool(relationships) or len(outputs) > 1
+    fusion_relationship_types = {
+        "fused",
+        "fused_to",
+        "integral_fused",
+        "same_solid",
+        "feature_owned_by",
+        "integral_feature",
+    }
+
+    def relationship_type(relationship: dict[str, Any]) -> str:
+        return str(
+            relationship.get("type")
+            or relationship.get("relationship_type")
+            or ""
+        ).lower()
+
+    def relationship_endpoints(relationship: dict[str, Any]) -> tuple[str, str]:
+        return (
+            str(
+                relationship.get("source_id")
+                or relationship.get("parent")
+                or relationship.get("parent_id")
+                or ""
+            ),
+            str(
+                relationship.get("target_id")
+                or relationship.get("child")
+                or relationship.get("child_id")
+                or ""
+            ),
+        )
+
+    def fused_to_primary(component_id: str, primary_id: str) -> bool:
+        return any(
+            relationship_type(item) in fusion_relationship_types
+            and set(relationship_endpoints(item)) == {primary_id, component_id}
+            for item in relationships
+        )
+
+    assembly_like = any(
+        relationship_type(item) not in fusion_relationship_types
+        for item in relationships
+    ) or len(outputs) > 1
     if len(components) > 1 and not assembly_like:
         primary_candidate = next(
             (item for item in components if str(item.get("role") or "").lower() == "printable_part"),
@@ -208,7 +254,7 @@ def normalize_compact_component_feature_semantics(
             for item in components
         )
 
-    if compact and components and not assembly_like and (len(outputs) <= 1):
+    if compact and components and (len(outputs) <= 1):
         primary_id = sole_component_id
         if primary_id is None:
             primary = next(
@@ -228,10 +274,27 @@ def normalize_compact_component_feature_semantics(
                 for key in ("id", "label", "description", "role")
             )
             role = str(component.get("role") or "").lower()
-            integral = role in {"integral_feature", "feature", "fused_feature"} or bool(
-                _INTEGRAL_FEATURE_TERMS.search(descriptor)
+            integral = (
+                role in {"integral_feature", "feature", "fused_feature"}
+                or bool(_INTEGRAL_FEATURE_TERMS.search(descriptor))
+                or bool(_INTEGRAL_COMPONENT_CUES.search(descriptor))
             )
-            if integral and component_id not in explicit_output_components:
+            has_independent_placement = any(
+                component.get(key) is not None
+                for key in ("placement", "position", "transform", "independent_placement")
+            )
+            has_independent_role = any(
+                component.get(key) is not None
+                for key in ("material", "material_id", "manufacturing_role", "independent_material", "independent_manufacturing")
+            )
+            is_integrated = (
+                integral
+                and component_id not in explicit_output_components
+                and not has_independent_placement
+                and not has_independent_role
+                and (not assembly_like or fused_to_primary(component_id, primary_id))
+            )
+            if is_integrated:
                 feature_id = component_id
                 feature = {
                     "id": feature_id,
@@ -241,6 +304,7 @@ def normalize_compact_component_feature_semantics(
                     "parameters": list(component.get("parameters", []) or []),
                     "protected": bool(component.get("protected", False)),
                     "source_component_id": component_id,
+                    "normalization_reason": "sole_output_integral_fusion",
                 }
                 if not any(str(item.get("id") or "") == feature_id for item in features):
                     features.append(feature)
@@ -261,6 +325,25 @@ def normalize_compact_component_feature_semantics(
             else:
                 retained.append(component)
         components = retained
+        if reclassified:
+            for feature in features:
+                if str(feature.get("component_id") or "") in reclassified:
+                    feature["component_id"] = primary_id
+            for relationship in relationships:
+                source_id, target_id = relationship_endpoints(relationship)
+                if source_id in reclassified:
+                    source_id = next(iter(reclassified))
+                if target_id in reclassified:
+                    target_id = target_id
+                if source_id or target_id:
+                    if "source_id" in relationship or "target_id" in relationship:
+                        relationship["source_id"] = source_id
+                        relationship["target_id"] = target_id
+                    else:
+                        relationship["parent"] = source_id
+                        relationship["child"] = target_id
+                    if relationship_type(relationship) in fusion_relationship_types:
+                        relationship["relationship_type"] = "integral_feature"
         if outputs:
             for output in outputs:
                 component_list = [

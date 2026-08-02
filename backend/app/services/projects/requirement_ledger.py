@@ -309,6 +309,16 @@ class RequirementLedgerStore:
     ) -> dict[str, Any]:
         current = self.load(project_id)
         if current["requirements"]:
+            semantic_changes = _semantic_reconciliation_changes(
+                current,
+                _requirements_from_specification(specification),
+            )
+            if semantic_changes:
+                return self.apply_delta(
+                    project_id=project_id,
+                    changes=semantic_changes,
+                    originating_message=originating_message or "",
+                )
             return current
         requirements = _requirements_from_specification(specification)
         ledger = build_requirement_ledger(
@@ -483,6 +493,54 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                 }
             )
     return items
+
+
+def _semantic_reconciliation_changes(
+    ledger: dict[str, Any],
+    incoming: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Supersede stale interpretations when an authoritative specification adds meaning.
+
+    This is deliberately limited to explicit/clarified requirements.  Proposal
+    records never rewrite user history, and an unchanged semantic payload is
+    idempotent.
+    """
+
+    active = {
+        str(item.get("requirement_id")): item
+        for item in active_requirements(ledger)
+        if item.get("requirement_id")
+    }
+    changes: list[dict[str, Any]] = []
+    for item in incoming:
+        requirement_id = str(item.get("requirement_id") or "")
+        existing = active.get(requirement_id)
+        if not requirement_id or existing is None:
+            continue
+        if item.get("source") not in {"initial_user", "clarification", "physical_test_feedback"}:
+            continue
+        incoming_semantic = {
+            key: item.get(key)
+            for key in ("kind", "operator", "subject", "object_type", "target", "raw_evidence")
+            if item.get(key) is not None
+        }
+        existing_semantic = {
+            key: existing.get(key)
+            for key in ("kind", "operator", "subject", "object_type", "target", "raw_evidence")
+            if existing.get(key) is not None
+        }
+        if not incoming_semantic or incoming_semantic == existing_semantic:
+            continue
+        changes.append(
+            {
+                **item,
+                "operation": "change",
+                "requirement_id": requirement_id,
+                "source": item.get("source"),
+                "explicit": True,
+            }
+        )
+    return changes
 
 
 def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:

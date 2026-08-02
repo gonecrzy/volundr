@@ -4473,18 +4473,22 @@ class ProjectService:
             )
             return initial_revision
 
-        self._finish_generation_attempt(
-            active_attempt,
-            status="failed",
-            failure_class=FailureClass.DESIGN_ARTIFACT_INCONSISTENT
-            if self._has_design_artifact_consistency_blockers(initial_revision.id)
-            else FailureClass.CADQUERY_COMPILE_FAILURE,
-            error_message=initial_revision.error_message,
-            resulting_revision_id=initial_revision.id,
-        )
         runtime_finding = classify_worker_diagnostic(
             initial_revision.error_message,
             traceback=self.read_revision_compile_log(initial_revision.id),
+        )
+        self._finish_generation_attempt(
+            active_attempt,
+            status="failed",
+            failure_class=(
+                FailureClass.CADQUERY_COMPILE_FAILURE
+                if runtime_finding is not None
+                else FailureClass.DESIGN_ARTIFACT_INCONSISTENT
+                if self._has_design_artifact_consistency_blockers(initial_revision.id)
+                else FailureClass.CADQUERY_COMPILE_FAILURE
+            ),
+            error_message=initial_revision.error_message,
+            resulting_revision_id=initial_revision.id,
         )
         if runtime_finding is not None:
             if (

@@ -12,6 +12,7 @@ from app.services.projects.plan_constraints import (
     normalize_plan_constraints,
 )
 from app.services.projects.requirement_ledger import requirement_delta_for_message
+from app.services.projects.requirement_trace_contract import build_requirement_trace_manifest
 from app.services.projects.service import ProjectService, _compact_plan_parameters
 
 
@@ -77,6 +78,97 @@ def test_single_output_with_ambiguous_printable_components_is_blocked() -> None:
         if item["rule_id"] == "plan.component_output_conflict"
     )
     assert finding["blocking"] is True
+
+
+def test_compact_integrated_component_with_fused_to_relationship_is_reclassified() -> None:
+    plan = normalize_compact_component_feature_semantics(
+        {
+            "components": [
+                {"id": "frame", "label": "Frame", "role": "printable_part"},
+                {
+                    "id": "handle",
+                    "label": "Integrated carrying handle",
+                    "description": "Handle fused to the frame; not separately printable.",
+                    "role": "printable_part",
+                },
+            ],
+            "features": [],
+            "relationships": [{"relationship_type": "fused_to", "source_id": "frame", "target_id": "handle"}],
+            "printable_outputs": [{
+                "id": "frame_output",
+                "component_ids": ["frame"],
+                "expected_solid_count": 1,
+                "allow_disconnected_solids": False,
+            }],
+        },
+        compact=True,
+    )
+
+    assert [item["id"] for item in plan["components"]] == ["frame"]
+    assert any(item["id"] == "handle" for item in plan["features"])
+    assert plan["printable_outputs"][0]["component_ids"] == ["frame"]
+    assert not any(
+        item["rule_id"] == "plan.component_output_conflict"
+        for item in plan["normalization_findings"]
+    )
+
+
+def test_requirement_target_fallback_does_not_conflict_with_other_measurements() -> None:
+    result = build_requirement_trace_manifest(
+        design_specification_payload={
+            "explicit_requirements": [{
+                "requirement_id": "storage_capacity",
+                "kind": "capacity",
+                "operator": "up_to",
+                "type": "capacity",
+                "value": 5,
+                "unit": "item",
+                "object_type": "storage_bin",
+            }],
+        },
+        design_plan_payload={
+            "components": [{"id": "frame"}],
+            "features": [{
+                "id": "storage_slots",
+                "component_id": "frame",
+                "type": "slot_array",
+                "requirement_ids": ["storage_capacity"],
+                "layout_mode": "proposed_positions",
+            }],
+            "printable_outputs": [{"id": "frame_output", "component_ids": ["frame"]}],
+            "validation_targets": [
+                {
+                    "id": "capacity_target",
+                    "feature_id": "storage_slots",
+                    "measurement": "slot_count",
+                    "requirement_ids": ["storage_capacity"],
+                    "value": 5,
+                    "unit": "item",
+                },
+                {
+                    "id": "width_target",
+                    "feature_id": "storage_slots",
+                    "measurement": "width",
+                    "value": 100,
+                    "unit": "mm",
+                },
+            ],
+        },
+        source_component_ids={"frame"},
+        source_component_symbols={"frame": "build_frame"},
+        source_feature_components={"storage_slots": "frame"},
+        source_feature_symbols={"storage_slots": "apply_storage_slots"},
+        source_output_ids={"frame_output"},
+        source_output_components={"frame_output": ["frame"]},
+        source_parameter_ids=set(),
+    )
+
+    assert not any(
+        item["rule_id"] == "design_artifact.requirement_trace_ambiguous"
+        for item in result["findings"]
+    )
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["validation_target_id"] == "capacity_target"
 
 
 def test_compact_feature_owner_defaults_only_for_an_unambiguous_single_part() -> None:

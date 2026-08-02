@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import Base
 from app.models.project import Project
-from app.models.requirement_ledger import PhysicalTestObservation, RequirementDelta
+from app.models.requirement_ledger import PhysicalTestObservation, RequirementDelta, RequirementLedgerEntry
 from app.services.projects.requirement_ledger import RequirementLedgerStore, active_requirements
 
 
@@ -70,3 +70,59 @@ def test_requirement_ledger_persists_deltas_and_physical_observations() -> None:
                 PhysicalTestObservation.project_id == project_id
             )
         ) == "fit_too_tight"
+
+
+def test_existing_ledger_semantics_are_reconciled_without_rewriting_history() -> None:
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        project = Project(name="Capacity", slug="capacity", original_intent="Make a holder")
+        session.add(project)
+        session.flush()
+        store = RequirementLedgerStore(session)
+        store.ensure_from_specification(
+            project_id=project.id,
+            specification={
+                "explicit_requirements": [
+                    {
+                        "requirement_id": "storage_capacity",
+                        "type": "explicit_count",
+                        "value": 5,
+                        "unit": "count",
+                    }
+                ]
+            },
+            originating_message="The old interpretation",
+        )
+        reconciled = store.ensure_from_specification(
+            project_id=project.id,
+            specification={
+                "explicit_requirements": [
+                    {
+                        "requirement_id": "storage_capacity",
+                        "type": "capacity",
+                        "kind": "capacity",
+                        "operator": "up_to",
+                        "value": 5,
+                        "unit": "item",
+                        "object_type": "storage_bin",
+                        "raw_evidence": "can hold up to 5 storage bins",
+                    }
+                ]
+            },
+            originating_message="The clarified semantic request",
+        )
+        rows = list(
+            session.scalars(
+                select(RequirementLedgerEntry).where(
+                    RequirementLedgerEntry.project_id == project.id
+                )
+            )
+        )
+        assert len(rows) == 2
+        active = active_requirements(reconciled)
+        assert len(active) == 1
+        assert active[0]["operator"] == "up_to"
+        assert active[0]["object_type"] == "storage_bin"
+        assert any(row.status == "superseded" for row in rows)
