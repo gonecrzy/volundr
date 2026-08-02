@@ -468,3 +468,9 @@ blocked by unused malformed planning metadata, while exposed controls,
 configurable patterns, scaffold obligations, and generated-source dependencies
 retain hard gates. The exact spacer live evaluation is the evidence check for
 worker reachability and resumed snapshot/export behavior.
+
+The current source-correctness checkpoint also includes a generic
+geometry-body symbol contract: provider-loaded names must resolve within the
+scaffold-owned function scope, and one safely targeted runtime repair is
+allowed. This does not restore source-parametric obligations for ordinary
+requirements.

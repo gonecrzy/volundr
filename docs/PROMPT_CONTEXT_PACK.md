@@ -36,3 +36,9 @@ new hash.
 Privacy/redaction follows the existing workflow artifact policy. Packs are
 available to diagnostics, reruns, debug bundles, live reports, revision history,
 and prompt reproduction without exposing them in normal chat.
+
+For structured geometry generation and repair, the pack also preserves the
+affected function's exact symbol inventory and any source-scope diagnostics.
+These include the approved signature, parameter access form, allowed helpers,
+and repair scope. They are execution evidence, not new requirement or
+parametric obligations.

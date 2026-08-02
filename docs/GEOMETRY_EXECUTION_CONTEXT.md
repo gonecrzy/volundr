@@ -50,3 +50,11 @@ diagnostic-only findings remain in the scaffold manifest and workflow evidence
 for Technical details and debug bundles. Post-worker requirement evidence
 continues to outrank source representation for ordinary non-parametric
 designs.
+
+## Geometry source handoff
+
+The normalized context is accompanied by a per-function scaffold symbol
+inventory. It defines the actual `(params)` or `(body, params)` signature,
+approved aliases/helpers, parameter access form, and result-symbol contract.
+This inventory prevents Plan IDs from being mistaken for Python globals while
+leaving ordinary dimensions implementation-flexible.

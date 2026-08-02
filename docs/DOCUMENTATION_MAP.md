@@ -37,6 +37,7 @@ This file explains exactly what belongs in each project document.
 | `docs/PROMPT_CONTEXT_PACK.md` | Branch-specific prompt selection, hashing, persistence, and reproducibility. |
 | `docs/PLANNING_DEPTH_LIVE_EVALUATION.md` | Actual evidence and separation for direct, compact, and detailed live cases. |
 | `docs/DERIVED_DEPENDENCY_CLASSIFICATION.md` | Execution-relevance classification for malformed derived metadata, blocking policy, persisted evidence, and non-goals. |
+| `docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md` | Scaffold-owned geometry function signatures, lexical symbol binding, definite assignment, findings, runtime classification, and bounded repair. |
 | `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md` | Exact real-provider requirement-led revision sequence, worker evidence, compliance, and limitations. |
 | `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |

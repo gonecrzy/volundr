@@ -48,3 +48,13 @@ scaffold obligations, or generated geometry remain blocking. Unused malformed
 derived metadata is retained as a warning and ordinary geometry is judged by
 worker and post-worker evidence. See
 `docs/DERIVED_DEPENDENCY_CLASSIFICATION.md`.
+
+## Provider source scope — Implemented in this pass
+
+Ordinary requirement-led designs remain free to use literals or local
+expressions. That freedom does not make unresolved Python names acceptable.
+Structured geometry bodies receive an exact scaffold-owned symbol inventory;
+loaded names are checked with conservative lexical and definite-assignment
+rules before worker submission. A safely identified runtime `NameError` can
+enter one targeted body repair, while unidentified failures remain blocked.
+This is source correctness, not a return to strict source parametrization.

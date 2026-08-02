@@ -319,6 +319,12 @@ The frontend uses fixed, typed workflow event names for request, review, progres
 
 Functional planning, source parameter-effect, feature implementation, and deterministic geometry findings are correlated evidence and do not replace earlier artifacts.
 
+Provider source-scope events include `geometry_body.runtime_source_failure`
+and `geometry_body.runtime_repair_unavailable` when a worker reports a
+`NameError`-style defect. Pre-worker symbol findings retain function ID,
+symbol, source location, classification, and repair eligibility; they do not
+appear as verbose normal-chat failures.
+
 Planning-depth evidence is also immutable workflow evidence: route decisions,
 missing-information records, direct/compact/detailed plan payloads, normalized
 GeometryExecutionContexts, and branch-specific prompt context packs are stored

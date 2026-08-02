@@ -69,3 +69,7 @@ absence into a browser console error.
 Snapshots are included in complete project packages. They are secondary
 evidence and must not be confused with the authoritative STL, STEP, BREP,
 source, or validation records.
+
+Snapshot generation occurs only after source-scope validation and worker
+geometry exist. A provider `NameError` or unresolved local therefore produces
+diagnostic source evidence and no fabricated snapshot packet.

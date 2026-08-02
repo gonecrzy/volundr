@@ -430,3 +430,10 @@ must remain blocking. Tests also inspect persisted scaffold-manifest evidence,
 warning severity, classification reasons, and mixed blocking/diagnostic
 findings. The exact spacer live case verifies that this diagnostic does not
 invoke geometry repair or prevent worker and snapshot evaluation.
+
+Geometry-body source-scope tests cover lexical bindings, conservative definite
+assignment, comprehension/exception scope, approved aliases/helpers, bare
+parameter diagnostics, deterministic scaffold scope, result symbols, repair
+scope preservation, and defensive runtime `NameError` classification. The
+exact live spacer case is also the worker/snapshot regression for the previous
+unbound `plate_width` defect.
