@@ -58,11 +58,11 @@ Rate 1 (low) to 5 (high), with a short explanation.
 
 ### Positive observations
 
-- 
+-
 
 ### Confusions and failure points
 
-- 
+-
 
 ### Exact tester language
 
@@ -72,7 +72,7 @@ Rate 1 (low) to 5 (high), with a short explanation.
 
 ### Recommended product changes
 
-- 
+-
 
 ## Evidence references
 

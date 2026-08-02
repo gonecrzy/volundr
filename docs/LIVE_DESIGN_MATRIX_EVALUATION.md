@@ -8,9 +8,9 @@ promoted. The second matrix run used the ordinary-plan source-contract
 correction from `23d58ab`; prompts, validation gates, and provider model were
 otherwise unchanged.
 
-Provider: `gemini_api`, `gemini-3.5-flash-lite`  
+Provider: `gemini_api`, `gemini-3.5-flash-lite`
 Prompt versions: `requirements-v3`, `compact-cad-plan-v1`, `design-plan-v6`,
-`cadquery-geometry-body-v7`, `cadquery-geometry-body-repair-v7`  
+`cadquery-geometry-body-v7`, `cadquery-geometry-body-repair-v7`
 Clarification questions: none were presented in these runs.
 
 ## Summary
