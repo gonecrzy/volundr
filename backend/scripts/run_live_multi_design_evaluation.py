@@ -28,16 +28,57 @@ from run_live_bottle_holder_workflow import free_port, terminate_process, wait_f
 
 CASES = (
     {
-        "case_id": "A_wall_bracket",
-        "request": "Create a compact wall-mounted tool bracket with two screw holes, a support ledge, and an open front for easy removal.",
+        "case_id": "A_direct_circular_spacer",
+        "expected_route": "direct_brief",
+        "request": (
+            "Create a circular spacer disk 60 mm in diameter and 5 mm thick. Add a "
+            "12 mm centered through-hole and three 4 mm mounting holes positioned at "
+            "irregular polar angles of 20, 145, and 265 degrees on a 42 mm bolt circle. "
+            "Add a 1 mm chamfer to the outside top edge."
+        ),
     },
     {
-        "case_id": "B_organizer_tray",
-        "request": "Create a desktop organizer tray with four equal compartments, rounded outside corners, and a stable flat base.",
+        "case_id": "B_irregular_bracket",
+        "expected_route": "direct_brief_or_compact_plan",
+        "request": (
+            "Create an L-shaped bracket with a 90 mm horizontal shelf, a 70 mm vertical "
+            "mounting face, and 5 mm wall thickness. Add three 5 mm mounting holes to "
+            "the vertical face. Place the lower hole 12 mm to the right of the vertical "
+            "center line, the middle hole on the center line, and the upper hole 8 mm to "
+            "the left of the center line. Add two triangular reinforcement ribs between "
+            "the shelf and mounting face."
+        ),
     },
     {
-        "case_id": "C_lidded_enclosure",
-        "request": "Create a small printable electronics enclosure with a removable lid, a cable opening, and mounting feet.",
+        "case_id": "C_compact_bottle_holder",
+        "expected_route": "compact_plan",
+        "request": (
+            "Create a wall-mounted holder for an 81 mm bottle, suitable for a moving "
+            "boat, with one-handed removal and two #8 mounting screws."
+        ),
+    },
+    {
+        "case_id": "D_compact_organizer",
+        "expected_route": "compact_plan",
+        "request": (
+            "Create a desktop organizer tray that is 180 mm wide, 120 mm deep, and "
+            "35 mm tall. Divide it into four compartments: two equal compartments "
+            "across the rear half and two unequal compartments across the front half, "
+            "with the front-left compartment 60 mm wide. Use 2.5 mm walls, a flat 3 mm "
+            "base, and 6 mm outside corner radii."
+        ),
+    },
+    {
+        "case_id": "E_detailed_two_piece_enclosure",
+        "expected_route": "detailed_plan",
+        "request": (
+            "Create a two-piece enclosure for a 100 mm by 65 mm by 24 mm electronics "
+            "board. Provide 1 mm clearance around the board. Use a removable lid "
+            "secured with four M3 screws, a 16 mm by 10 mm cable opening centered on the "
+            "left side and positioned 8 mm above the internal floor, twelve ventilation "
+            "slots on the top, and four 3 mm internal mounting posts located 5 mm from "
+            "each board corner. Use 2.5 mm walls and a 3 mm base."
+        ),
     },
 )
 
@@ -68,6 +109,7 @@ async def run_case(client: httpx.AsyncClient, case: dict[str, str]) -> dict[str,
     revision_id = response.get("revision_id") or response.get("current_working_revision_id")
     return {
         "case_id": case["case_id"],
+        "expected_route": case.get("expected_route"),
         "request": case["request"],
         "chat_elapsed_ms": elapsed_ms,
         "workflow_response": response,
