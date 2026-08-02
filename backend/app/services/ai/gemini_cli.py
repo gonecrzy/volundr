@@ -39,8 +39,8 @@ REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v9"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v9"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v10"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v10"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -368,7 +368,7 @@ class GeminiCliProvider:
             "Follow these rules exactly:",
             "- Use millimeters.",
             "- Follow the cadquery-v1 source contract.",
-            "- The only imports allowed are exactly `import cadquery as cq` and `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface`.",
+            "- The only imports allowed are exactly `import cadquery as cq` and `from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface, place_pattern_cutters`.",
             "- Define typed `ParameterSpec` entries for user-adjustable dimensions and options.",
             "- Runtime signatures: `ParameterSpec(id, label, type, default, unit=None, min_value=None, max_value=None, choices=(), editable=True, protected=False, source_requirement_id=None, source=None)`, `PrintableOutput(output_id, label, model, component_id=None, component_ids=(), quantity=1, required=True, expected_solid_count=1, allow_disconnected_solids=False, metadata={})`, and `Product(outputs, parameters=(), schema_version=\"cadquery-v1\", metadata={})`.",
             "- Use static ownership decorators on top-level helpers: `@component(\"component_id\")`, `@feature(\"feature_id\", component=\"component_id\")`, `@shared_helper(\"helper_id\")`, and `@protected_interface(\"interface_id\", parameters=(\"parameter_id\",))`.",
@@ -387,7 +387,7 @@ class GeminiCliProvider:
             "- Simple helper functions may also be defined inside build(params) when that makes the model easier to structure.",
             "- Do not run CadQuery operations, construct geometry, call helper functions, or do any other execution at top level.",
             "- Use params[\"parameter_id\"] inside build(params) instead of hard-coding editable dimensions.",
-            "- build(params) must create CadQuery Workplane, Shape, Solid, Compound, or Assembly-exportable objects for PrintableOutput.model.",
+            "- build(params) must create CadQuery Workplane, Shape, Solid, or Compound objects for PrintableOutput.model; do not return cq.Assembly directly as a printable model.",
             "- Do not use try/except; generated CadQuery must fail visibly so diagnostics can identify the real API or geometry issue.",
             "- Do not wrap fillet(), chamfer(), or optional details in try/except; use a simple known-good operation or omit the detail.",
             "- Do not import or use `math`; the only import allowed by the runner is `import cadquery as cq`.",
@@ -416,6 +416,9 @@ class GeminiCliProvider:
             "- Carrier handle posts must overlap side walls or the back wall, never float in the open center; place side handle posts at x = +/- (outer_width / 2 - wall_thickness / 2), or omit the handle rather than returning a disconnected or invalid handle.",
             "- For L brackets, prefer two overlapping rectangular flanges plus an overlapping triangular rib instead of one complex extruded L polyline.",
             "- Use `hole(diameter)` for holes; if you need several holes, use pushPoints([...]).hole(diameter).",
+            "- The worker pins CadQuery 2.8.0. Workplane has translate((x, y, z)), union(), and cut(); Workplane does not have an assembly() method.",
+            "- For nonplanar component-local 3D repeated placements, create one closed volumetric profile (for example cq.Workplane(\"XY\").rect(width, depth).extrude(height)) and call place_pattern_cutters(profile, points, coordinate_space=\"component_local_3d\"), then apply the returned Workplane with union() or cut(). A bare 2D wire is not a cutter profile.",
+            "- cq.Assembly() is an assembly container, not a Workplane cutter and not a direct PrintableOutput model. Do not call cq.Workplane(\"XY\").assembly().",
             "- For hinged boxes, prefer simple overlapping hinge tabs or barrels without pin-hole cuts; valid separate base and lid solids are more important than detailed hinge mechanics.",
             "- Do not call hallucinated or unavailable helpers such as `.holes()`, `.knurl()`, `.hexArray()`, `.triangle()`, `.distribute()`, `.add_knurling()`, or `show_object()`.",
             "- Do not add top-level execution such as `product = build(params)`; Volundr calls build(params).",
@@ -703,6 +706,7 @@ class GeminiCliProvider:
             "For every required pattern (effect_required=true), Volundr supplies the canonical point parameter in params. Use that exact point parameter in pushPoints; never rebuild, replace, reorder, slice, truncate, or offset the point array.",
             "Pattern placements are not implicitly 2D: each pattern declares coordinate_space, coordinate_frame_id, point_dimensionality, arrangement_axis, and its intended consumer.",
             "pushPoints accepts workplane-local 2D coordinates. Do not pass component-local or world 3D points directly to pushPoints. Convert them with the approved frame transform when the points are coplanar, choose a compatible host plane, or create one cutter/profile at each 3D placement using an approved CadQuery placement strategy.",
+            "For a component_local_3d pattern whose points vary along the consuming workplane normal, use a closed volumetric profile such as cq.Workplane(\"XY\").rect(width, depth).extrude(height) with place_pattern_cutters(profile, canonical_points, coordinate_space=\"component_local_3d\") and then cut or union the returned placed cutters. A bare 2D wire is not a cutter profile. Do not call Workplane.assembly(), construct an Assembly as a cutter, or discard a coordinate.",
             "Never flatten a 3D placement by dropping a coordinate or project noncoplanar points onto a workplane. Preserve point order and cardinality.",
             "Do not omit a required feature merely because its implementation is not parametric.",
             "Per-function obligations:",

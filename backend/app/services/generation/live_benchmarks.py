@@ -520,6 +520,8 @@ class LiveBenchmarkRunner:
         probe["parameter_values"] = parameter_values
         probe["expected_validation_state"] = configuration.get("expected_validation_state")
         probe["expected_blocking_rule"] = configuration.get("expected_blocking_rule")
+        probe["expected_advisory_rule"] = configuration.get("expected_advisory_rule")
+        probe["expected_advisory_rule_observed"] = False
         probe.update(
             _compile_source_probe_for_language(
                 source=source,
@@ -535,7 +537,7 @@ class LiveBenchmarkRunner:
             probe["status"] = "configuration_compile_failed"
             return probe
 
-        report_path, blocking_rule_ids = _write_printability_report_for_probe(
+        report_path, blocking_rule_ids, advisory_rule_ids = _write_printability_report_for_probe(
             benchmark=benchmark,
             run_dir=run_dir,
             artifact_dir=artifact_dir,
@@ -543,12 +545,23 @@ class LiveBenchmarkRunner:
         )
         probe["printability_report_path"] = report_path
         probe["blocking_rule_ids"] = blocking_rule_ids
+        probe["advisory_rule_ids"] = advisory_rule_ids
         expected_rule = probe["expected_blocking_rule"]
         probe["expected_blocking_rule_observed"] = (
             isinstance(expected_rule, str) and expected_rule in blocking_rule_ids
         )
+        expected_advisory_rule = probe["expected_advisory_rule"]
+        probe["expected_advisory_rule_observed"] = (
+            isinstance(expected_advisory_rule, str) and expected_advisory_rule in advisory_rule_ids
+        )
         expected_state = probe["expected_validation_state"]
-        if expected_state == "configuration_blocked_build_volume":
+        if expected_state == "configuration_warning_build_volume":
+            probe["status"] = (
+                "configuration_warning_build_volume"
+                if probe["expected_advisory_rule_observed"]
+                else "configuration_expected_warning_missing"
+            )
+        elif expected_state == "configuration_blocked_build_volume":
             probe["status"] = (
                 "configuration_blocked_build_volume"
                 if probe["expected_blocking_rule_observed"]
@@ -1656,6 +1669,9 @@ def _source_request_for(
         expected_rule = configuration.get("expected_blocking_rule")
         if isinstance(expected_rule, str):
             additions.append(f"Expected blocking validation rule when applicable: {expected_rule}.")
+        expected_advisory_rule = configuration.get("expected_advisory_rule")
+        if isinstance(expected_advisory_rule, str):
+            additions.append(f"Expected advisory validation rule when applicable: {expected_advisory_rule}.")
     if additions:
         user_instruction = "\n".join(
             [
@@ -2071,6 +2087,7 @@ def _empty_configuration_probe(*, enabled: bool) -> dict[str, Any]:
         "solid_count_rejection_count": 0,
         "printability_report_path": None,
         "blocking_rule_ids": [],
+        "advisory_rule_ids": [],
     }
 
 
@@ -2417,12 +2434,12 @@ def _write_printability_report_for_probe(
     run_dir: Path,
     artifact_dir: Path,
     compiled_stl_path: str | None,
-) -> tuple[str | None, list[str]]:
+) -> tuple[str | None, list[str], list[str]]:
     if compiled_stl_path is None:
-        return None, []
+        return None, [], []
     stl_path = run_dir / compiled_stl_path
     if not stl_path.exists():
-        return None, []
+        return None, [], []
     profile = _printability_profile_for_benchmark(benchmark)
     report = inspect_printability(stl_path, profile)
     report_path = artifact_dir / "configuration-printability-report.json"
@@ -2430,7 +2447,10 @@ def _write_printability_report_for_probe(
     blocking_rule_ids = [
         result.rule_id for result in report.results if result.severity == "Critical"
     ]
-    return _relative(report_path, run_dir), sorted(blocking_rule_ids)
+    advisory_rule_ids = [
+        result.rule_id for result in report.results if result.severity in {"Notice", "Warning"}
+    ]
+    return _relative(report_path, run_dir), sorted(blocking_rule_ids), sorted(advisory_rule_ids)
 
 
 def _printability_profile_for_benchmark(benchmark: GenerationBenchmark) -> PrintabilityProfile:

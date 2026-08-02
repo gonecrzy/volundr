@@ -141,7 +141,14 @@ class CadQueryCliRunner:
         except TimeoutError:
             timed_out = True
             self._terminate_process_group(process.pid)
-            stdout, stderr = await process.communicate()
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(),
+                    timeout=2,
+                )
+            except TimeoutError:
+                self._kill_process_group(process.pid)
+                stdout, stderr = await process.communicate()
 
         stdout_path.write_bytes(stdout)
         stderr_path.write_bytes(stderr)
@@ -436,6 +443,12 @@ class CadQueryCliRunner:
         except ProcessLookupError:
             return
 
+    def _kill_process_group(self, pid: int) -> None:
+        try:
+            os.killpg(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            return
+
     def _file_size(self, path: Path | None) -> int:
         return path.stat().st_size if path is not None and path.exists() else 0
 
@@ -483,6 +496,17 @@ class CadQueryCliRunner:
         env.setdefault("PATH", os.defpath)
         env["HOME"] = str(self.workspace_root / ".home")
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[3])
+        # CadQuery imports VTK and numerical libraries in the isolated child.
+        # Keep their thread pools bounded so one job cannot exhaust the
+        # worker's process/thread budget before the CAD timeout can intervene.
+        for key in (
+            "OPENBLAS_NUM_THREADS",
+            "OMP_NUM_THREADS",
+            "MKL_NUM_THREADS",
+            "NUMEXPR_NUM_THREADS",
+        ):
+            env[key] = os.environ.get(key, "1")
+        env["VTK_SMP_MAX_THREADS"] = os.environ.get("VTK_SMP_MAX_THREADS", "1")
         return env
 
 
@@ -584,6 +608,7 @@ def _write_partial_result(reason):
     try:
         _RESULT_PATH.write_text(json.dumps({
             "cad_backend": "cadquery",
+            "cadquery_version": getattr(cq, "__version__", "unknown"),
             "source_language": "python",
             "source_contract_version": "cadquery-v1",
             "success": False,
@@ -648,6 +673,7 @@ def main() -> int:
         json.dumps(
             {
                 "cad_backend": "cadquery",
+                "cadquery_version": getattr(cq, "__version__", "unknown"),
                 "source_language": "python",
                 "source_contract_version": "cadquery-v1",
                 "source_hash": _file_sha256(Path("model.py")),

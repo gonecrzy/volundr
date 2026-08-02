@@ -14,6 +14,7 @@ APPROVED_HELPERS = frozenset(
         "circular_pattern_points",
         "linear_pattern_points",
         "make_hole_pattern",
+        "place_pattern_cutters",
         "rectangular_pattern_points",
         "resolve_pattern_points",
     }

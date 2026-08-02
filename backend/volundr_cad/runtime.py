@@ -1,6 +1,9 @@
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal
+
+import cadquery as cq
 
 from volundr_cad.patterns import (
     circular_pattern_points,
@@ -8,6 +11,51 @@ from volundr_cad.patterns import (
     rectangular_pattern_points,
     resolve_pattern_points,
 )
+
+
+def place_pattern_cutters(
+    profile: Any,
+    points: Sequence[Sequence[float]],
+    *,
+    coordinate_space: str = "component_local_3d",
+) -> Any:
+    """Place one copy of a cutter profile at each canonical 3D point.
+
+    This helper intentionally handles only component-local placements. World
+    points must be transformed by Volundr before they reach provider-owned
+    geometry, and workplane-local points should use ``pushPoints`` instead.
+    The returned Workplane contains the placed solids and can be passed to a
+    normal CadQuery boolean such as ``body.cut(cutters)``.
+    """
+
+    if coordinate_space != "component_local_3d":
+        raise ValueError(
+            "place_pattern_cutters requires component_local_3d points; "
+            "transform world or workplane points before placement"
+        )
+    base_shape = profile.val() if hasattr(profile, "val") else profile
+    if not isinstance(base_shape, cq.Shape):
+        raise TypeError("pattern cutter profile must be a CadQuery Workplane or Shape")
+    shape_type = base_shape.ShapeType()
+    if shape_type not in {"Solid", "Compound"} or (
+        shape_type == "Compound" and not base_shape.Solids()
+    ):
+        raise TypeError(
+            "pattern cutter profile must be a volumetric Solid or Compound; "
+            "close and extrude the profile before placing it"
+        )
+    if not points:
+        raise ValueError("pattern cutter points cannot be empty")
+
+    placed_shapes = []
+    for index, point in enumerate(points):
+        if isinstance(point, (str, bytes)) or len(point) != 3:
+            raise ValueError(f"pattern point {index} must contain three coordinates")
+        coordinates = tuple(float(value) for value in point)
+        if not all(math.isfinite(value) for value in coordinates):
+            raise ValueError(f"pattern point {index} must contain finite coordinates")
+        placed_shapes.append(base_shape.translate(cq.Vector(*coordinates)))
+    return cq.Workplane("XY").newObject(placed_shapes)
 
 ParameterType = Literal["float", "int", "bool", "str", "enum"]
 

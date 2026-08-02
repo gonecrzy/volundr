@@ -42,6 +42,10 @@ strictly enforced.
 Deterministic B-Rep, topology, artifact, and functional evidence outranks source
 style preferences. Qualitative behavior that cannot be proven from available
 geometry remains human-review or test-print evidence rather than a false pass.
+CAD build-volume evidence is advisory in the CAD-first workflow: it informs
+scale, splitting, reorientation, and printer selection decisions without
+blocking otherwise valid CAD. Source safety, topology, artifact, and required
+functional gates remain blocking.
 
 Visual review will initially be advisory. Retrieval, examples, and richer
 assemblies remain later phases. Unrestricted live user CAD-quality testing stays

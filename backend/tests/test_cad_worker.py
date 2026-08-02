@@ -541,7 +541,7 @@ def test_backend_package_declares_cadquery_runtime_dependency() -> None:
     dependencies = pyproject["project"]["dependencies"]
     packages = pyproject["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
 
-    assert any(dependency.startswith("cadquery") for dependency in dependencies)
+    assert "cadquery==2.8.0" in dependencies
     assert "volundr_cad" in packages
 
 
@@ -612,6 +612,7 @@ async def test_cadquery_execution_manifest_records_source_parameter_and_contract
     assert result.execution_manifest_path.name == "execution-manifest.json"
     payload = json.loads(result.execution_manifest_path.read_text(encoding="utf-8"))
     assert payload["cad_backend"] == "cadquery"
+    assert payload["cadquery_version"] == "2.8.0"
     assert payload["source_language"] == "python"
     assert payload["source_contract_version"] == "cadquery-v1"
     assert payload["source_hash"] == result.source_hash

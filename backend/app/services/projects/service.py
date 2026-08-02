@@ -234,7 +234,6 @@ BLOCKING_RULE_IDS = frozenset(
         "mesh.empty_or_zero_volume",
         "orientation.below_build_plate",
         "orientation.above_build_plate",
-        "profile.build_volume",
     }
 )
 BLOCKING_CRITICAL_RULE_IDS = frozenset(
@@ -248,8 +247,8 @@ DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v8"
 COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v3"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
-CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v9"
-CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v9"
+CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v10"
+CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v10"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 
@@ -4605,12 +4604,18 @@ class ProjectService:
 
         worker_traceback = self.read_revision_compile_log(initial_revision.id)
         worker_error = initial_revision.error_message or worker_traceback
+        worker_manifest = (
+            self._read_json_file(initial_revision.execution_manifest_path)
+            if initial_revision.execution_manifest_path
+            else None
+        )
         runtime_finding = classify_worker_diagnostic(
             worker_error,
             traceback=worker_traceback,
             pattern_manifest=(generation_request.source_authority or {}).get("pattern_manifest", [])
             if generation_request.source_authority
             else None,
+            worker_metadata=worker_manifest,
         )
         worker_failed = (
             initial_revision.status == "failed"

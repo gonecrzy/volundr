@@ -72,11 +72,13 @@ def classify_worker_diagnostic(
     *,
     traceback: str | None = None,
     pattern_manifest: list[dict[str, Any]] | None = None,
+    worker_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Classify one safely localized provider-owned worker source failure."""
 
     name_failure = classify_worker_name_failure(error_message, traceback=traceback)
     if name_failure is not None:
+        _attach_worker_runtime_metadata(name_failure, worker_metadata)
         return name_failure
     text = "\n".join(item for item in (error_message or "", traceback or "") if item)
     if _NONPLANAR_RE.search(text):
@@ -119,6 +121,7 @@ def classify_worker_diagnostic(
                 )
                 if pattern.get(key) is not None
             }
+        _attach_worker_runtime_metadata(finding, worker_metadata)
         return finding
     if not re.search(r"(?:ParseException|StringSyntaxSelector|selector)", text, re.IGNORECASE):
         attribute_match = _ATTRIBUTE_ERROR_RE.search(text)
@@ -127,13 +130,13 @@ def classify_worker_diagnostic(
             return None
         statement_match = _STATEMENT_RE.search(traceback or "")
         if statement_match is None or not re.search(
-            r"\b(?:cq\.|body\.)",
+            r"\b(?:cq\.|body\.|place_pattern_cutters\b)",
             statement_match.group("statement"),
         ):
             return None
         function_match = _FUNCTION_RE.search(text)
         function_id = function_match.group("function") if function_match else None
-        return {
+        finding = {
             "rule_id": "geometry_body.cadquery_api_failure",
             "category": "worker_runtime",
             "severity": "critical",
@@ -147,13 +150,15 @@ def classify_worker_diagnostic(
             "safe_function_identified": bool(function_id),
             "traceback": traceback or error_message or "",
         }
+        _attach_worker_runtime_metadata(finding, worker_metadata)
+        return finding
     function_match = _FUNCTION_RE.search(text)
     statement_match = _STATEMENT_RE.search(traceback or "")
     selector_match = _SELECTOR_RE.search(traceback or "")
     function_id = function_match.group("function") if function_match else None
     source_statement = statement_match.group("statement").strip() if statement_match else None
     selector = selector_match.group("selector") if selector_match else None
-    return {
+    finding = {
         "rule_id": "geometry_body.cadquery_selector_failure",
         "category": "worker_runtime",
         "severity": "critical",
@@ -168,3 +173,25 @@ def classify_worker_diagnostic(
         "message": "CadQuery rejected a provider-owned selector expression.",
         "traceback": traceback or error_message or "",
     }
+    _attach_worker_runtime_metadata(finding, worker_metadata)
+    return finding
+
+
+def _attach_worker_runtime_metadata(
+    finding: dict[str, Any],
+    worker_metadata: dict[str, Any] | None,
+) -> None:
+    if not isinstance(worker_metadata, dict):
+        return
+    diagnostics = worker_metadata.get("diagnostics")
+    nested = diagnostics if isinstance(diagnostics, dict) else {}
+    source = {**worker_metadata, **nested}
+    runtime: dict[str, Any] = {}
+    cadquery_version = source.get("cadquery_version")
+    if cadquery_version is not None:
+        runtime["cadquery_version"] = cadquery_version
+    worker_version = source.get("worker_version") or source.get("cadquery_worker_version")
+    if worker_version is not None:
+        runtime["worker_version"] = worker_version
+    if runtime:
+        finding["worker_runtime"] = runtime

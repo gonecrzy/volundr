@@ -110,6 +110,25 @@ TypeError: Multiplied(): incompatible function arguments
     assert runtime_repair_is_eligible(finding)
 
 
+def test_localized_pattern_profile_failure_is_repairable() -> None:
+    traceback = """Traceback (most recent call last):
+  File "model.py", line 43, in _ai_feature_slots
+    cutters = place_pattern_cutters(profile, points, coordinate_space="component_local_3d")
+TypeError: pattern cutter profile must be a volumetric Solid or Compound; close and extrude the profile before placing it
+"""
+
+    finding = classify_worker_diagnostic(
+        "TypeError: pattern cutter profile must be a volumetric Solid or Compound; close and extrude the profile before placing it",
+        traceback=traceback,
+    )
+
+    assert finding is not None
+    assert finding["rule_id"] == "geometry_body.cadquery_api_failure"
+    assert finding["function_id"] == "_ai_feature_slots"
+    assert "place_pattern_cutters" in finding["source_statement"]
+    assert runtime_repair_is_eligible(finding)
+
+
 def test_deterministic_scaffold_names_are_checked_separately_from_provider_bodies() -> None:
     assert analyze_scaffold_source(
         "import cadquery as cq\n"

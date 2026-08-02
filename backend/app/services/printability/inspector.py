@@ -396,15 +396,15 @@ def _build_volume_result(
     max_overage = max(overages)
     if max_overage > EPSILON:
         return _result(
-            "Critical",
+            "Warning",
             "profile.build_volume",
             round(max_overage, 3),
             "mm",
-            "The model is larger than the configured printer build volume on at least one axis.",
-            "Scale the model down, split it into printable sections, or select a printer profile with a larger build volume.",
+            "The model is larger than the configured printer build volume on at least one axis. The CAD remains available for review, but this printer cannot print it as one piece without a different strategy.",
+            "Scale the model down, split it into printable sections, reorient it, or select a printer profile with a larger build volume.",
             orientation_dependent=True,
             affected_count=sum(1 for overage in overages if overage > EPSILON),
-            highlight=_bounds_highlight("profile.build_volume", "Critical", bounds),
+            highlight=_bounds_highlight("profile.build_volume", "Warning", bounds),
         )
     return _result(
         "Pass",

@@ -180,3 +180,50 @@ def test_runtime_nonplanar_finding_carries_the_canonical_pattern_contract() -> N
 
     assert finding["pattern_id"] == "slot_pattern"
     assert finding["pattern_coordinate_evidence"]["coordinate_space"] == COMPONENT_LOCAL_3D
+
+
+def test_runtime_cadquery_api_finding_carries_worker_version() -> None:
+    from app.services.cad.runtime_diagnostics import classify_worker_diagnostic
+
+    finding = classify_worker_diagnostic(
+        "AttributeError: 'Workplane' object has no attribute 'assembly'",
+        traceback=(
+            "Traceback (most recent call last):\n"
+            "  File \"source.py\", line 9, in _ai_feature_slots\n"
+            "    tool = cq.Workplane(\"XY\").assembly()\n"
+            "AttributeError: 'Workplane' object has no attribute 'assembly'\n"
+        ),
+        worker_metadata={"cadquery_version": "2.8.0", "worker_version": "cadquery-cli-runner-v1"},
+    )
+
+    assert finding is not None
+    assert finding["rule_id"] == "geometry_body.cadquery_api_failure"
+    assert finding["worker_runtime"] == {
+        "cadquery_version": "2.8.0",
+        "worker_version": "cadquery-cli-runner-v1",
+    }
+
+
+def test_runtime_metadata_can_be_read_from_worker_result_diagnostics() -> None:
+    from app.services.cad.runtime_diagnostics import classify_worker_diagnostic
+
+    finding = classify_worker_diagnostic(
+        "AttributeError: 'Workplane' object has no attribute 'assembly'",
+        traceback=(
+            "  File \"source.py\", line 9, in _ai_feature_slots\n"
+            "    tool = cq.Workplane(\"XY\").assembly()\n"
+            "AttributeError: 'Workplane' object has no attribute 'assembly'\n"
+        ),
+        worker_metadata={
+            "diagnostics": {
+                "cadquery_version": "2.8.0",
+                "cadquery_worker_version": "cadquery-cli-runner-v1",
+            }
+        },
+    )
+
+    assert finding is not None
+    assert finding["worker_runtime"] == {
+        "cadquery_version": "2.8.0",
+        "worker_version": "cadquery-cli-runner-v1",
+    }

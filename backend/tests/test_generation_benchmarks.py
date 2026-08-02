@@ -172,7 +172,7 @@ def test_full_generation_benchmark_fixture_covers_all_categories() -> None:
     )
     assert by_id["configuration_exceeds_build_volume"].expected_configuration[
         "expected_validation_state"
-    ] == "configuration_blocked_build_volume"
+    ] == "configuration_warning_build_volume"
     organizer = by_id["parametric_configurable_organizer"]
     assert organizer.expected_explicit_requirements["row_count"]["value"] == 3
     assert organizer.expected_explicit_requirements["column_count"]["value"] == 4
@@ -223,7 +223,7 @@ def test_staged_product_gate_selects_required_transition_cases() -> None:
         "source_may_compile_but_candidate_blocks"
     )
     assert by_id["configuration_exceeds_build_volume"].expected_configuration[
-        "expected_blocking_rule"
+        "expected_advisory_rule"
     ] == "profile.build_volume"
 
 
@@ -537,7 +537,7 @@ def test_live_benchmark_run_writes_configuration_probe_metrics(tmp_path: Path) -
     assert metrics["configuration_probe_status_counts"] == {"source_unavailable": 1}
 
 
-def test_configuration_probe_blocks_build_volume_override(tmp_path: Path) -> None:
+def test_configuration_probe_warns_for_build_volume_override(tmp_path: Path) -> None:
     suite = load_benchmark_suite(FIXTURE_DIR / "full.json")
     benchmark = {
         entry.id: entry for entry in suite.benchmarks
@@ -582,10 +582,12 @@ def build(params):
     )
 
     assert probe["enabled"] is True
-    assert probe["status"] == "configuration_blocked_build_volume"
+    assert probe["status"] == "configuration_warning_build_volume"
     assert probe["compile_status"] == "compile_succeeded"
-    assert probe["expected_blocking_rule_observed"] is True
-    assert probe["blocking_rule_ids"] == ["profile.build_volume"]
+    assert probe["expected_blocking_rule_observed"] is False
+    assert probe["expected_advisory_rule_observed"] is True
+    assert probe["blocking_rule_ids"] == []
+    assert probe["advisory_rule_ids"] == ["profile.build_volume"]
     assert probe["parameter_values"] == {"rail_length": 360}
 
 

@@ -17,6 +17,19 @@ attribute errors, and localized CadQuery type errors involving a Workplane,
 axis, or API call. The classifier is conservative and does not guess a
 function when the traceback is ambiguous.
 
+CadQuery API failures are evaluated against the worker’s recorded runtime
+version. For the current pinned CadQuery 2.8.0 contract, a repair may replace
+an invalid `Workplane.assembly()` call with the approved placed-cutter helper,
+or another supported Workplane/Shape construction, when the affected
+function and statement are unambiguous. This is a generic API correction, not
+a product-specific selector or geometry rewrite.
+
+Placed-cutter repairs must provide a volumetric Solid or Compound profile;
+passing a bare 2D wire is rejected deterministically. Worker child processes
+run with bounded numerical-library thread pools, and the runner force-kills a
+stuck process group after the configured timeout and grace period. These are
+execution-safety measures, not geometry-quality approvals.
+
 The same bounded path covers a localized `wires not planar` failure when the
 trace identifies a provider function and pattern-consuming statement. It is
 reported as `worker.pattern_points_not_planar_for_workplane` and receives the

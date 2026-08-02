@@ -49,6 +49,43 @@ When points are non-coplanar in one consumer plane, valid strategies are:
 The provider receives the approved strategy set and may choose among them, but
 may not relabel component-space points as workplane-local points.
 
+## Worker CadQuery API contract
+
+The CAD worker is pinned to CadQuery `2.8.0`. The supported placement path for
+nonplanar component-local patterns is the scaffold-owned
+`place_pattern_cutters(profile, points, coordinate_space="component_local_3d")`
+helper. It translates a validated profile to each canonical point and returns
+a Workplane suitable for `cut()` or `union()`.
+
+`Workplane.translate((x, y, z))`, `union()`, and `cut()` are supported in this
+contract. `Workplane.assembly()` is not a CadQuery API. `cq.Assembly()` is an
+assembly container and must not be returned directly as a printable output or
+used as a boolean cutter without conversion to a supported shape. The worker
+records the installed CadQuery version in each execution manifest so API
+diagnostics are reproducible.
+
+Placed cutter profiles must already be volumetric `Solid` or `Compound` shapes;
+the helper rejects a bare 2D wire before it reaches a boolean. The worker also
+limits OpenBLAS, OMP, MKL, NumExpr, and VTK thread pools to the bounded worker
+budget. A CAD timeout sends a graceful process-group termination first and a
+forced process-group kill after a short grace period, so a native OpenCascade
+call cannot strand the worker indefinitely.
+
+Live evidence (2026-08-02): the preserved tackle-tray attempt first failed on
+an unavailable `Workplane.assembly()` path, then on a worker thread-budget
+exhaustion while using a placed-cutter boolean. With the pinned API, a
+volumetric profile, bounded thread pools, and the cleanup path, the same source
+completed in the worker in 0.42 seconds and the real-provider rerun completed
+in 4.57 seconds with one valid solid and STL/STEP/BREP artifacts. Promotion
+remained blocked by the existing build-volume and mounting-requirement gates;
+no CAD API failure was masked as a pass.
+
+The CAD-first policy is now explicit: `profile.build_volume` remains measured
+and persisted evidence, but an oversized model is an advisory warning rather
+than a promotion blocker. A user can review, export, split, reorient, scale,
+or select a larger printer profile. Topology, source, artifact, and functional
+requirements remain blocking when they fail.
+
 ## Repair and findings
 
 The geometry prompt identifies the pattern, owner, frame, canonical points,

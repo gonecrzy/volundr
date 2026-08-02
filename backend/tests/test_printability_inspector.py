@@ -59,8 +59,10 @@ def test_printability_detects_components_build_volume_and_thin_features(tmp_path
     small_features = _result(report.results, "feature.small_features_gaps_holes")
     assert components.severity == "Warning"
     assert components.affected_count == 2
-    assert volume.severity == "Critical"
+    assert volume.severity == "Warning"
     assert volume.detected_value.units == "mm"
+    assert volume.highlight is not None
+    assert volume.highlight.severity == "Warning"
     assert thickness.severity == "Critical"
     assert thickness.detected_value.value == 0.3
     assert small_features.severity == "Critical"

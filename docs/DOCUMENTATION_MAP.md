@@ -107,6 +107,7 @@ Do not load the entire documentation tree by default.
 | `docs/PLAN_SOURCE_IDENTITY_BOUNDARY.md` | Protected Plan/source identities versus provider-owned local implementation variables. |
 | `docs/PROVIDER_INTEROPERABILITY_CONTRACT.md` | Provider boundary, contract manifests, protected identities, and focused repair preservation. |
 | `docs/WORKER_DIAGNOSTIC_REPAIR.md` | Localized worker failure classification and one-attempt CadQuery source repair. |
+| `docs/PATTERN_COORDINATE_SPACE_CONTRACT.md` | Repeated-feature coordinate spaces, CadQuery placement consumers, worker API contract, and bounded execution evidence. |
 | `docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md` | Final fixed five-case interoperability matrix, repair evidence, threshold, and remaining blockers. |
 | `docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md` | Evidence for compact/detailed interoperability hardening and its safety boundary. |
 | `docs/PRODUCT_VALIDATION_ROUND_1.md` | Product-shell, export, revision-chain, live-matrix, frontend, and next-phase validation evidence. |

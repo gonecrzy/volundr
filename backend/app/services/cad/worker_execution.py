@@ -1,3 +1,4 @@
+import json
 import time
 from pathlib import Path
 from typing import Any
@@ -51,6 +52,9 @@ async def execute_job_directory(
         "exit_code": compile_result.exit_code,
         "command_args": compile_result.command_args,
     }
+    runtime_metadata = _read_runtime_metadata(compile_result.execution_manifest_path)
+    if runtime_metadata:
+        diagnostics.update(runtime_metadata)
     outputs = _result_outputs(job_dir, compile_result)
     output_failure = any(output["required"] and not output["success"] for output in outputs)
     failure_class = None
@@ -95,6 +99,26 @@ def _persist_result(job_dir: Path, result: dict[str, Any]) -> None:
 
 def _duration(started: float) -> float:
     return round(time.monotonic() - started, 6)
+
+
+def _read_runtime_metadata(path: Path | None) -> dict[str, Any]:
+    if path is None or not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    metadata: dict[str, Any] = {}
+    for source_key, target_key in (
+        ("cadquery_version", "cadquery_version"),
+        ("worker_version", "cadquery_worker_version"),
+    ):
+        value = payload.get(source_key)
+        if isinstance(value, str) and value:
+            metadata[target_key] = value
+    return metadata
 
 
 def _relative_path(job_dir: Path, path: Path | None) -> str | None:

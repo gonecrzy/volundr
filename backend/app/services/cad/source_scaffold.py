@@ -163,7 +163,7 @@ def render_cadquery_scaffold(
         "# VOLUNDR_SCAFFOLD_VERSION: " + SCAFFOLD_VERSION,
         "# VOLUNDR_SCAFFOLD_HASH: __PLACEHOLDER__",
         "import cadquery as cq",
-        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface, resolve_pattern_points",
+        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface, resolve_pattern_points, place_pattern_cutters",
         "",
         "PARAMETERS = [",
     ]

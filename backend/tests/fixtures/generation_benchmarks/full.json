@@ -747,12 +747,12 @@
       "expected_clarification": "none",
       "expected_modules": ["rail_body", "repeated_hooks", "mounting_holes", "build_volume_validation"],
       "expected_parameters": ["rail_length", "hook_count", "hook_spacing", "wall_thickness"],
-      "expected_printability_constraints": ["default fits build volume", "oversized configuration blocks candidate", "one connected output"],
+      "expected_printability_constraints": ["default fits build volume", "oversized configuration produces a CAD-first warning", "one connected output"],
       "compile_expectation": "success_without_repair",
       "mesh_expectation": "one connected rail body unless configuration exceeds build volume",
       "revision_expectation": "rail length revision preserves hooks and mount holes while rerunning build-volume validation",
-      "protected_design_invariants": ["provider-free configuration", "build volume violations block acceptance", "hook_count drives repeated hooks", "mounting holes remain through holes"],
-      "unacceptable_outcomes": ["oversized configuration accepted", "provider called for parameter-only length change", "hooks disconnected from rail", "fixed hook count despite editable parameter"],
+      "protected_design_invariants": ["provider-free configuration", "build volume evidence remains visible as a warning", "hook_count drives repeated hooks", "mounting holes remain through holes"],
+      "unacceptable_outcomes": ["oversized configuration warning omitted", "provider called for parameter-only length change", "hooks disconnected from rail", "fixed hook count despite editable parameter"],
       "expected_design_plan": {
         "design_level": "product",
         "components": ["rail_body", "hook_array", "mounting_holes"],
@@ -767,9 +767,9 @@
         "expected_affected_parameters": ["rail_length", "hook_positions", "overall_bounds"],
         "expected_affected_components": ["rail_body", "hook_array"],
         "expected_affected_outputs": ["wall_rail"],
-        "expected_validation_state": "configuration_blocked_build_volume",
+        "expected_validation_state": "configuration_warning_build_volume",
         "provider_call_forbidden": true,
-        "expected_blocking_rule": "profile.build_volume"
+        "expected_advisory_rule": "profile.build_volume"
       }
     },
     {
