@@ -3023,6 +3023,8 @@ class ProjectService:
     async def create_design_plan_from_specification(
         self,
         specification_id: str,
+        *,
+        strict_parameter_trace: bool = True,
     ) -> DesignPlanRead | None:
         specification = self.db.get(DesignSpecification, specification_id)
         if specification is None:
@@ -3073,6 +3075,7 @@ class ProjectService:
                 request=request,
                 superseded_design_plan_id=superseded_plan.id if superseded_plan else None,
                 workflow_run=workflow_run,
+                strict_parameter_trace=strict_parameter_trace,
             )
         except asyncio.CancelledError:
             self._record_workflow_event(
@@ -3235,7 +3238,10 @@ class ProjectService:
         if decision.outcome == PlanningDepth.CLARIFICATION_REQUIRED:
             return None, decision
         if decision.outcome == PlanningDepth.DETAILED_PLAN:
-            plan = await self.create_design_plan_from_specification(specification.id)
+            plan = await self.create_design_plan_from_specification(
+                specification.id,
+                strict_parameter_trace=False,
+            )
             if plan is not None:
                 plan_artifact = self._record_workflow_artifact(
                     planning_run,
@@ -4057,6 +4063,8 @@ class ProjectService:
         self,
         design_plan_id: str,
         payload: ClarificationAnswersCreate,
+        *,
+        strict_parameter_trace: bool = True,
     ) -> DesignPlanRead | None:
         plan = self.db.get(DesignPlan, design_plan_id)
         if plan is None:
@@ -4122,6 +4130,7 @@ class ProjectService:
             specification=specification,
             request=request,
             superseded_design_plan_id=plan.id,
+            strict_parameter_trace=strict_parameter_trace,
         )
 
     async def generate_from_design_plan(
@@ -5835,6 +5844,7 @@ class ProjectService:
         request: DesignPlanRequest,
         superseded_design_plan_id: str | None = None,
         workflow_run: WorkflowRun | None = None,
+        strict_parameter_trace: bool = True,
     ) -> DesignPlanRead:
         attempt = self._start_design_plan_attempt(project=project, request=request)
         try:
@@ -5863,6 +5873,7 @@ class ProjectService:
                 request_context=" ".join(
                     value for value in (request.original_intent, request.user_instruction) if value
                 ),
+                strict_parameter_trace=strict_parameter_trace,
             )
         except (ValueError, ValidationError) as exc:
             if isinstance(exc, PlanNormalizationError) and planning_result is not None:
@@ -5918,6 +5929,7 @@ class ProjectService:
                 request=repair_request,
                 superseded_design_plan_id=superseded_design_plan_id,
                 workflow_run=workflow_run,
+                strict_parameter_trace=strict_parameter_trace,
             )
 
         if request.plan_repair_context and request.schema_repair_of_raw_output:

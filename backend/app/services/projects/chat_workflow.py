@@ -453,6 +453,7 @@ class ChatWorkflowService:
                 ClarificationAnswersCreate(
                     answers=[ClarificationAnswerCreate(question_id=q.id, answer=message) for q in plan.clarification_questions],
                 ),
+                strict_parameter_trace=False,
             )
             self._event(workflow_run, "clarification.answered", "Design Plan clarification answered.", "clarification_answered", metadata={"kind": "design_plan"})
             if answered is None or answered.clarification_required:
