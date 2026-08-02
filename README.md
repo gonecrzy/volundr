@@ -29,6 +29,7 @@ The authoritative direction is defined in:
 - `docs/CADQUERY_BACKEND.md`
 - `docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md`
 - `docs/CADQUERY_TRANSITION_EVALUATION.md`
+- `docs/PRODUCT_VALIDATION_ROUND_1.md` (current product-shell and live-matrix evidence)
 
 ## Intended Product Workflow
 
@@ -57,6 +58,13 @@ describe product
 - STL is derived for print preview and printing
 - functional printable products and indefinitely revisionable chat workflows are the focus
 - parametric controls are optional and explicitly requested
+
+Product validation status: the successful spacer supports real browser
+create/reopen/export and durable Current working version protection. Compact
+and detailed live cases remain separately gated while their provider/plan
+interoperability failures are diagnosed. See
+`docs/LIVE_DESIGN_MATRIX_EVALUATION.md` and
+`docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md`.
 
 ## Documentation
 

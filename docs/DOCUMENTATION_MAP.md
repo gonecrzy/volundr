@@ -38,6 +38,11 @@ This file explains exactly what belongs in each project document.
 | `docs/PLANNING_DEPTH_LIVE_EVALUATION.md` | Actual evidence and separation for direct, compact, and detailed live cases. |
 | `docs/DERIVED_DEPENDENCY_CLASSIFICATION.md` | Execution-relevance classification for malformed derived metadata, blocking policy, persisted evidence, and non-goals. |
 | `docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md` | Scaffold-owned geometry function signatures, lexical symbol binding, definite assignment, findings, runtime classification, and bounded repair. |
+| `docs/LIVE_DESIGN_MATRIX_EVALUATION.md` | Exact real-provider direct, compact, and detailed design matrix evidence. |
+| `docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md` | Stage-specific diagnosis of compact and detailed live pipeline failures. |
+| `docs/PRODUCT_VALIDATION_ROUND_1.md` | Product-shell, export, revision-chain, live-matrix, frontend, and next-phase validation evidence. |
+| `docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md` | Facilitator-neutral observed frontend usability session script. |
+| `docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md` | Results template for a real observed frontend session. |
 | `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md` | Exact real-provider requirement-led revision sequence, worker evidence, compliance, and limitations. |
 | `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |

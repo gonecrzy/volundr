@@ -31,6 +31,12 @@ compatibility, immutable route/context/pack artifacts, stable context hashes,
 and deterministic narrow revision briefs. The three live planning cases remain
 separate from deterministic UX fixture evidence.
 
+Product Validation Round 1 adds a five-case real-provider matrix and a real
+browser spacer/export acceptance record. The matrix is diagnostic: provider,
+worker, topology, artifact, and promotion gates remain authoritative, and a
+blocked live case is not converted into a UX fixture. See
+`docs/LIVE_DESIGN_MATRIX_EVALUATION.md`.
+
 The normal chat-first path automatically progresses validated requirements and
 plans, generates a first draft, and promotes only passing candidates. Approval
 button scenarios remain developer/staged-mode coverage behind the disabled

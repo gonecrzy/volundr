@@ -9,6 +9,12 @@ blocked-attempt preservation, start-over, and export events with the existing
 workflow run. User-facing chat hides internal system events while technical
 details and debug bundles retain them.
 
+Product validation reports preserve the workflow run, generation-attempt,
+revision, output, snapshot, comparison, and export identifiers used to make a
+stage diagnosis. The Product Validation Round 1 report records real browser
+project/revision/export identities separately from the isolated live matrix;
+neither report replaces the immutable underlying artifacts.
+
 ## Workflow Runs
 
 Chat progression events also record whether a transition was automatic,

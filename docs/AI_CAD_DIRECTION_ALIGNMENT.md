@@ -13,6 +13,7 @@
 - Smallest-scope repairs: Planned next
 - Retrieval and assemblies: Later
 - Product shell, persistence, Current working version safety, and selected revision exports: Implemented
+- Product Validation Round 1: Implemented in this pass; compact/detailed live hardening remains next
 
 ## Normative direction
 
@@ -58,3 +59,12 @@ loaded names are checked with conservative lexical and definite-assignment
 rules before worker submission. A safely identified runtime `NameError` can
 enter one targeted body repair, while unidentified failures remain blocked.
 This is source correctness, not a return to strict source parametrization.
+
+## Product validation — Implemented in this pass
+
+The successful spacer was accepted through the real frontend, reopened after
+an API restart, exported by selected revision, and retained its snapshots and
+export records. A real five-case design matrix then separated direct worker
+syntax failure from compact identity/pattern failures and detailed-plan
+interoperability failure. Deterministic fixtures are ready for observed UX
+testing; live CAD-quality testing remains a separate evidence track.

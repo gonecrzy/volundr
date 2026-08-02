@@ -141,3 +141,9 @@ The workspace now exposes deterministic snapshot Views and historical revision
 comparison evidence as secondary UI. UX participants should judge whether the
 views, current-version language, and change summary are understandable; they
 should not treat thumbnails as proof of qualitative physical behavior.
+
+The first observed-session script and blank results sheet are maintained in
+`docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md` and
+`docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md`. Product Validation Round
+1 did not include a real tester; the go decision is based on deterministic
+fixture coverage only.

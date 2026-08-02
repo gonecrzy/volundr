@@ -35,13 +35,13 @@ Transition order:
     first-failure diagnosis, stage traces, frontend correlation, debug bundles,
     and run comparison are defined in `docs/WORKFLOW_OBSERVABILITY.md`.
 
-Next planned task: continue deterministic chat-first UX testing while the
-separate live CAD-quality track evaluates real-provider geometry and physical
-evidence. Durable project reopen, stale-workflow recovery, explicit export
-packaging, Compose healthchecks, and the multi-design live diagnostic set are
-now implemented and documented. Do not use a live CAD result as a UX fixture or
-expand this into a general analytics platform or another broad CAD validation
-redesign.
+Next planned task: harden compact/detailed provider-plan interoperability using
+the evidence in `docs/PRODUCT_VALIDATION_ROUND_1.md`. Continue deterministic
+chat-first UX testing in parallel. Durable project reopen, stale-workflow
+recovery, explicit export packaging, Compose healthchecks, and the multi-design
+live diagnostic set are implemented and documented. Do not use a live CAD
+result as a UX fixture or expand this into a general analytics platform or
+another broad CAD validation redesign.
 
 The current frontend checkpoint is complete: the persistent three-region chat
 workspace, responsive drawer/tab fallbacks, persisted assistant messages,
