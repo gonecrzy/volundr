@@ -4593,11 +4593,29 @@ class ProjectService:
                 "derived_parameter_manifest": rendered.derived_parameter_manifest,
                 "pattern_manifest": rendered.pattern_manifest,
                 "parameter_effect_manifest": rendered.parameter_effect_manifest,
+                "derived_dependency_findings": list(assembly.dependency_findings),
                 "assembled_source_hash": self._sha256(rendered.source),
                 "role": role,
             },
         )
         stage = "source_extraction" if role == "initial_geometry" else "contract_repair"
+        diagnostic_dependency_findings = [
+            item
+            for item in assembly.dependency_findings
+            if not item.get("blocking", item.get("is_blocking", True))
+        ]
+        if diagnostic_dependency_findings:
+            self._record_workflow_event(
+                workflow_run,
+                stage=stage,
+                event_type="planning.derived_dependency_classified",
+                severity="warning",
+                blocking=False,
+                rule_id="planning.derived_dependency_unused_or_incomplete",
+                message="Derived dependency metadata was retained as diagnostic evidence because it is not required by the executable geometry contract.",
+                generation_attempt_id=attempt.id,
+                metadata={"findings": diagnostic_dependency_findings},
+            )
         self._record_workflow_artifact(
             workflow_run,
             stage=stage,

@@ -18,6 +18,7 @@ from app.services.cad.source_scaffold import (
 )
 from app.services.cad.parameter_effects import (
     build_parameter_effect_contract,
+    classify_derived_dependency_findings,
     validate_parameter_effects,
 )
 from app.services.cad.patterns import pattern_parameter_ids
@@ -70,6 +71,7 @@ class GeometryBodyAssembly:
     canonical_body_lines: dict[str, list[str]]
     function_body_hashes: dict[str, str]
     result_symbols: dict[str, str]
+    dependency_findings: list[dict[str, Any]]
 
 
 def build_geometry_function_inventory(plan: dict[str, Any]) -> dict[str, Any]:
@@ -166,13 +168,6 @@ def assemble_geometry_bodies(
             "geometry_body.invalid_json",
             "Geometry body response must contain a non-empty functions array.",
         )
-    dependency_findings = list(inventory.get("parameter_effect_contract", {}).get("dependency_findings", []))
-    if dependency_findings:
-        raise GeometryBodyError(
-            "geometry_body.derived_dependency_broken",
-            str(dependency_findings[0].get("message") or "Approved derived-parameter dependency path is invalid."),
-            details={"findings": dependency_findings},
-        )
     expected = list(inventory.get("expected_function_ids", []))
     specs = {
         str(spec.get("function_id")): spec
@@ -255,6 +250,21 @@ def assemble_geometry_bodies(
     ordered_functions = {function_id: functions[function_id] for function_id in expected}
     ordered_original = {function_id: original[function_id] for function_id in expected}
     ordered_canonical = {function_id: canonical[function_id] for function_id in expected}
+    contract = dict(inventory.get("parameter_effect_contract", {}))
+    dependency_findings = classify_derived_dependency_findings(
+        contract,
+        source="\n\n".join(ordered_functions.values()),
+    )
+    blocking_dependency_findings = [
+        item for item in dependency_findings if item.get("blocking", item.get("is_blocking", True))
+    ]
+    if blocking_dependency_findings:
+        first = blocking_dependency_findings[0]
+        raise GeometryBodyError(
+            "geometry_body.derived_dependency_broken",
+            str(first.get("message") or "Approved derived-parameter dependency path is invalid."),
+            details={"findings": dependency_findings},
+        )
     return GeometryBodyAssembly(
         payload=payload,
         functions=ordered_functions,
@@ -267,6 +277,7 @@ def assemble_geometry_bodies(
             for function_id in expected
         },
         result_symbols={function_id: result_symbols[function_id] for function_id in expected},
+        dependency_findings=dependency_findings,
     )
 
 

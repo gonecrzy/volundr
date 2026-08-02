@@ -12,6 +12,7 @@ from app.services.cad.cadquery_contract import (
 )
 from app.services.cad.parameter_effects import (
     build_parameter_effect_contract,
+    classify_derived_dependency_findings,
     validate_parameter_effects,
 )
 from app.services.cad.patterns import exposed_control_ids, parameter_requires_effect
@@ -241,6 +242,14 @@ def validate_cadquery_source_authority(
             "passed_hard_checks": True,
             "findings": [],
         }
+    contract = authority.get("parameter_effect_contract")
+    diagnostic_findings = []
+    if isinstance(contract, dict):
+        diagnostic_findings = [
+            deepcopy(item)
+            for item in classify_derived_dependency_findings(contract, source=None)
+            if not item.get("blocking", item.get("is_blocking", True))
+        ]
     findings = validate_cadquery_source_authority_inventory(authority)
     try:
         metadata = validate_cadquery_source(source, contract_version="cadquery-v1")
@@ -266,6 +275,7 @@ def validate_cadquery_source_authority(
         "schema_version": VALIDATOR_VERSION,
         "passed_hard_checks": True,
         "findings": [],
+        "diagnostic_findings": diagnostic_findings,
     }
 
 
@@ -976,8 +986,11 @@ def _validate_parameter_effect_manifest(
     if not isinstance(contract, dict):
         return []
     findings: list[dict[str, Any]] = []
-    for dependency_finding in contract.get("dependency_findings", []) or []:
-        if isinstance(dependency_finding, dict):
+    classified_dependencies = classify_derived_dependency_findings(contract, source=source)
+    for dependency_finding in classified_dependencies:
+        if isinstance(dependency_finding, dict) and dependency_finding.get(
+            "blocking", dependency_finding.get("is_blocking", True)
+        ):
             findings.append(dependency_finding)
     try:
         tree = ast.parse(source)

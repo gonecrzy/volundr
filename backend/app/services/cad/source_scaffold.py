@@ -14,7 +14,10 @@ import textwrap
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.services.cad.parameter_effects import build_parameter_effect_contract
+from app.services.cad.parameter_effects import (
+    build_parameter_effect_contract,
+    classify_derived_dependency_findings,
+)
 from app.services.cad.patterns import (
     build_pattern_manifest,
     normalize_pattern_specs,
@@ -143,7 +146,16 @@ def render_cadquery_scaffold(
         raise ScaffoldSourceError("unexpected geometry functions: " + ", ".join(sorted(extra)))
 
     effect_contract = build_parameter_effect_contract(design_plan)
-    if effect_contract.get("dependency_findings"):
+    dependency_findings = classify_derived_dependency_findings(
+        effect_contract,
+        source="\n\n".join(geometry_functions.values()),
+    )
+    blocking_dependency_findings = [
+        item
+        for item in dependency_findings
+        if item.get("blocking", item.get("is_blocking", True))
+    ]
+    if blocking_dependency_findings:
         raise ScaffoldSourceError("approved derived-parameter dependency graph is invalid")
 
     lines: list[str] = [
@@ -179,7 +191,22 @@ def render_cadquery_scaffold(
         )
         resolved_value = derived_record.get("resolved_value") if derived_record else None
         if resolved_value is None:
-            raise ScaffoldSourceError(f"derived parameter {derived['id']} could not be resolved")
+            dependency_finding = next(
+                (
+                    item
+                    for item in dependency_findings
+                    if str(item.get("parameter_id") or "") == str(derived["id"])
+                ),
+                None,
+            )
+            if dependency_finding and not dependency_finding.get(
+                "blocking", dependency_finding.get("is_blocking", True)
+            ):
+                resolved_value = derived.get("value")
+                if resolved_value is None:
+                    continue
+            if resolved_value is None:
+                raise ScaffoldSourceError(f"derived parameter {derived['id']} could not be resolved")
         parameter_entries.append(
             {
                 **derived,

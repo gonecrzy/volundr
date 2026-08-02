@@ -17,6 +17,7 @@ from app.services.cad.patterns import (
 )
 PARAMETER_EFFECT_CONTRACT_VERSION = "cadquery-parameter-effects-v1"
 PROVENANCE_VERSION = "design-plan-provenance-v1"
+DERIVED_DEPENDENCY_CLASSIFICATION_VERSION = "derived-dependency-classification-v1"
 SUPPORTED_EFFECT_TYPES = {
     "dimension",
     "diameter",
@@ -115,7 +116,7 @@ def build_parameter_effect_contract(
         patterns=pattern_manifest,
         effect_required_ids=effect_required_ids,
     )
-    return {
+    contract = {
         "schema_version": PARAMETER_EFFECT_CONTRACT_VERSION,
         "parametric_validation_active": effect_required_ids is None or bool(effect_required_ids),
         "exposed_control_ids": sorted(control_ids or set()),
@@ -132,6 +133,189 @@ def build_parameter_effect_contract(
         "functions": functions,
         "dependency_findings": _dependency_findings(plan, parameter_by_id),
     }
+    contract["dependency_findings"] = classify_derived_dependency_findings(contract)
+    return contract
+
+
+def classify_derived_dependency_findings(
+    contract: dict[str, Any],
+    *,
+    source: str | None = None,
+) -> list[dict[str, Any]]:
+    """Classify broken derived metadata by its actual execution relevance.
+
+    Planning metadata is intentionally retained even when it is not part of
+    the executable contract.  The geometry assembly and source-authority
+    layers may call this function again with the assembled source so a value
+    that is actually consumed becomes blocking.
+    """
+
+    derived = [
+        item for item in contract.get("derived_parameters", []) or []
+        if isinstance(item, dict) and item.get("parameter_id")
+    ]
+    derived_ids = {str(item["parameter_id"]) for item in derived}
+    dependencies = {
+        str(item["parameter_id"]): {
+            str(value) for value in item.get("direct_dependencies", []) or [] if value
+        }
+        for item in derived
+    }
+    exposed_ids = {
+        str(value) for value in contract.get("exposed_control_ids", []) or [] if value
+    }
+    source_references = _source_parameter_references(source)
+    function_required_ids = _required_contract_parameter_ids(contract.get("functions", []))
+    pattern_required_ids = _required_pattern_parameter_ids(contract.get("patterns", []))
+
+    classified: list[dict[str, Any]] = []
+    for raw in _dependency_findings_from_contract(contract):
+        finding = deepcopy(raw)
+        parameter_id = str(finding.get("parameter_id") or "")
+        reasons: list[str] = []
+
+        if parameter_id in exposed_ids:
+            reasons.append("exposed_control")
+        if any(control_id in _dependency_ancestors(parameter_id, dependencies) for control_id in exposed_ids):
+            reasons.append("supports_exposed_control")
+        if parameter_id in pattern_required_ids:
+            reasons.append("required_by_configurable_pattern")
+        if any(
+            parameter_id in _dependency_ancestors(required_id, dependencies)
+            for required_id in pattern_required_ids | function_required_ids
+        ):
+            reasons.append("supports_required_geometry_contract")
+        if parameter_id in function_required_ids:
+            reasons.append("required_by_geometry_function")
+        if parameter_id in source_references:
+            reasons.append("referenced_by_geometry")
+        if any(
+            parameter_id in _dependency_ancestors(referenced_id, dependencies)
+            for referenced_id in source_references & derived_ids
+        ):
+            reasons.append("supports_referenced_geometry")
+
+        blocking = bool(reasons)
+        finding.update(
+            {
+                "classification_version": DERIVED_DEPENDENCY_CLASSIFICATION_VERSION,
+                "dependency_status": "broken",
+                "blocking": blocking,
+                "classification": "blocking_required" if blocking else "diagnostic_only",
+                "reasons": list(dict.fromkeys(reasons))
+                or [
+                    "not_exposed",
+                    "not_referenced_by_geometry",
+                    "not_required_by_scaffold",
+                ],
+                "is_blocking": blocking,
+                "severity": "critical" if blocking else "warning",
+                "category": "geometry_body" if blocking else "planning",
+                "rule_id": (
+                    "geometry_body.derived_dependency_broken"
+                    if blocking
+                    else "planning.derived_dependency_unused_or_incomplete"
+                ),
+            }
+        )
+        if not blocking:
+            finding["message"] = (
+                str(raw.get("message") or "Derived parameter metadata is incomplete.")
+                + " It is retained as diagnostic evidence because it is not required by the executable geometry contract."
+            )
+        classified.append(finding)
+    return classified
+
+
+def _dependency_findings_from_contract(contract: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in contract.get("dependency_findings", []) or []
+        if isinstance(item, dict)
+    ]
+
+
+def _dependency_ancestors(parameter_id: str, dependencies: dict[str, set[str]]) -> set[str]:
+    ancestors: set[str] = set()
+    visiting: set[str] = set()
+
+    def visit(current: str) -> None:
+        if current in visiting:
+            return
+        visiting.add(current)
+        for dependency in dependencies.get(current, set()):
+            if dependency in ancestors:
+                continue
+            ancestors.add(dependency)
+            visit(dependency)
+        visiting.remove(current)
+
+    visit(parameter_id)
+    return ancestors
+
+
+def _required_contract_parameter_ids(functions: list[dict[str, Any]] | None) -> set[str]:
+    required: set[str] = set()
+    for function in functions or []:
+        if not isinstance(function, dict):
+            continue
+        for item in function.get("required_parameter_effects", []) or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("parameter_id"):
+                required.add(str(item["parameter_id"]))
+            required.update(str(value) for value in item.get("allowed_via", []) or [] if value)
+        required.update(str(value) for value in function.get("required_patterns", []) or [] if value)
+    return required
+
+
+def _required_pattern_parameter_ids(patterns: list[dict[str, Any]] | None) -> set[str]:
+    required: set[str] = set()
+    for pattern in patterns or []:
+        if not isinstance(pattern, dict) or not pattern.get("effect_required"):
+            continue
+        if pattern.get("point_parameter_id"):
+            required.add(str(pattern["point_parameter_id"]))
+        for item in pattern.get("required_parameter_effects", []) or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("parameter_id"):
+                required.add(str(item["parameter_id"]))
+            required.update(str(value) for value in item.get("allowed_via", []) or [] if value)
+    return required
+
+
+def _source_parameter_references(source: str | None) -> set[str]:
+    if not source:
+        return set()
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return set()
+    references: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) and node.value.id == "params":
+            parameter_id = _string_subscript(node.slice)
+            if parameter_id:
+                references.add(parameter_id)
+        elif (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "params"
+            and node.func.attr == "get"
+            and node.args
+        ):
+            parameter_id = _string_subscript(node.args[0])
+            if parameter_id:
+                references.add(parameter_id)
+    return references
+
+
+def _string_subscript(node: ast.expr) -> str | None:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
 
 
 def validate_parameter_effects(
