@@ -132,3 +132,7 @@ This contract does not make ordinary dimensions parametric, add a new CAD
 validation layer, infer physical compliance from source style, perform full
 Python theorem proving, or replace topology, artifact, functional, or
 post-worker requirement checks.
+
+Pattern-consuming statements are also checked against the canonical pattern
+coordinate space. A component/world 3D point set cannot be passed directly to
+`pushPoints()`; safe conversion and placement evidence is retained separately.

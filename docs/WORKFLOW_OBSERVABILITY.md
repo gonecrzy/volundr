@@ -392,3 +392,8 @@ verification obligations. A provider transport success, Plan validation block,
 clarification pause, worker failure, and final blocked workflow remain
 separate outcomes. Diagnosis uses the typed finding and authoritative workflow
 event instead of reporting a generic missing-blocking-event message.
+
+Pattern-related events retain the pattern ID, owner, coordinate space/frame,
+original and transformed points, consuming workplane, coplanarity result, and
+repair eligibility. Chat events retain client/project message identity and
+clarification provenance so replay cannot create a second visible submission.

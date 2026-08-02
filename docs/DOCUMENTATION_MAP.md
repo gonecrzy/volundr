@@ -144,3 +144,7 @@ Deterministic visual evidence and revision comparisons:
 
 Durable project reopen and explicit exports: `PROJECT_PERSISTENCE.md`,
 `EXPORTS.md`, `DEPLOYMENT.md`, and `ENVIRONMENT_VARIABLES.md`.
+
+For repeated geometry, read [Repeated Feature Layouts](REPEATED_FEATURE_LAYOUTS.md)
+and [Pattern Coordinate-Space Contract](PATTERN_COORDINATE_SPACE_CONTRACT.md).
+For chat persistence, read [Chat Message Identity Contract](CHAT_MESSAGE_IDENTITY_CONTRACT.md).

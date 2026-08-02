@@ -84,3 +84,7 @@ This contract does not create a second ledger, make all requirements
 parametric, infer product-specific vocabulary, invent geometry, or weaken
 source, topology, artifact, functional, export, or Current working version
 gates.
+
+Clarification answers are explicit `clarification_user` evidence rather than
+Volundr proposals. Message identity and replay behavior are defined in
+[Chat Message Identity Contract](CHAT_MESSAGE_IDENTITY_CONTRACT.md).

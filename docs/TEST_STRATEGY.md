@@ -471,3 +471,9 @@ revision supersession, unique typed feature/target linking, ambiguity, and
 deferred verification-obligation generation. They also verify that ordinary
 numeric requirements do not require source parameter identity while exposed
 controls retain strict tracing.
+
+Coordinate-space regression coverage includes local 2D, local 3D, safe frame
+conversion, non-coplanar rejection, source list-comprehension consumers, and
+worker diagnostic localization. Chat coverage includes client-ID idempotency,
+legacy workflow-message hiding, one visible clarification answer, and
+clarification provenance persistence.

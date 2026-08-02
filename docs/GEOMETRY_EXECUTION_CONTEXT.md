@@ -74,3 +74,8 @@ Requirement entries in the context retain `kind`, `operator`, `value`, `unit`,
 `subject`, and `object_type`. Normalized verification obligations preserve
 those semantics and are evidence of intended verification only; they do not
 assert a geometry pass before the worker executes.
+
+Repeated placements in `features` and `validation_targets` retain their
+coordinate-space and frame metadata. Planar consumers are checked against that
+metadata before source submission; see
+[Pattern Coordinate-Space Contract](PATTERN_COORDINATE_SPACE_CONTRACT.md).

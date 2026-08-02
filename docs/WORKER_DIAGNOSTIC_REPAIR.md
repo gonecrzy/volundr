@@ -17,6 +17,12 @@ attribute errors, and localized CadQuery type errors involving a Workplane,
 axis, or API call. The classifier is conservative and does not guess a
 function when the traceback is ambiguous.
 
+The same bounded path covers a localized `wires not planar` failure when the
+trace identifies a provider function and pattern-consuming statement. It is
+reported as `worker.pattern_points_not_planar_for_workplane` and receives the
+pattern’s coordinate-space evidence; it is not converted into a functional
+pass or a silent projection.
+
 ## Repair evidence
 
 The repair request contains the exact traceback and statement, required feature

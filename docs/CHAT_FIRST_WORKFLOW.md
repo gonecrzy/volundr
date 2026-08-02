@@ -32,6 +32,11 @@ prior accepted versions. Export is always explicit and supports STL, STEP, and
 the complete project package. Technical evidence remains available through
 workflow runs and diagnostic bundles.
 
+Each actual chat submission has one authoritative message identity. Automatic
+generation and clarification continuation reference that message instead of
+rendering a second user request; legacy internal workflow instructions are
+hidden as system events. See [Chat Message Identity Contract](CHAT_MESSAGE_IDENTITY_CONTRACT.md).
+
 The staged/developer UI remains available when the flag is false so existing
 diagnostic workflows can be maintained during rollout. After deterministic
 chat-first and live gates pass, remove the staged user-facing controls and

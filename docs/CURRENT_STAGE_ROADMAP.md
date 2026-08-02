@@ -499,3 +499,8 @@ to worker verification, and exposed-control/source identity gates remain
 strict. The next live evidence item is the preserved tackle-holder worker
 failure or an honest requirements clarification, not another source-style
 gate.
+
+Pattern coordinate-space validation and chat-message identity correction are
+implemented. The tackle-tray project remains a valid blocked live-quality
+case: the latest attempt was stopped before worker execution because the
+provider still tried to consume component-space placements as planar points.

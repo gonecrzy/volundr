@@ -33,6 +33,10 @@ inventory, diagnostic, and preserved function hashes. It may change only the
 named provider function. The structured-body contract still owns statement
 ordering, result symbols, imports, and final returns.
 
+Pattern manifests additionally identify the point space and consuming
+workplane. Provider-local arithmetic may prepare a feature, but it may not
+relabel or flatten canonical component/world placements for a planar consumer.
+
 Worker-diagnostic repair is limited to one safely localized provider statement
 and one repair attempt. The traceback, source statement, CadQuery exception,
 original source, repaired source, and second worker result are retained.

@@ -46,3 +46,12 @@ missing pattern type may be inferred as `linear`. A non-cardinal direction,
 conflicting layout fields, missing owner, or unknown owner remains a typed
 blocking Plan finding. Fixed layouts do not require count or spacing parameter
 IDs.
+
+## Placement coordinates
+
+Every resolved layout also declares `coordinate_space`, `coordinate_frame_id`,
+point dimensionality, arrangement axis, and intended consumer. See
+[Pattern Coordinate-Space Contract](PATTERN_COORDINATE_SPACE_CONTRACT.md).
+Component-local and world-space placements are not workplane-local
+`pushPoints()` inputs; they must be transformed safely or constructed with
+placed cutters.
