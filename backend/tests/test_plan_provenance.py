@@ -201,6 +201,23 @@ def test_normalization_links_same_id_direct_parameter_to_explicit_requirement() 
     assert normalized["parameters"][0]["provenance"]["source_requirement_ids"] == ["bottle_diameter"]
 
 
+def test_normalization_recovers_matching_same_id_value_from_provider_proposal() -> None:
+    plan = _base_plan()
+    parameter = plan["parameters"][0]
+    parameter.pop("source_requirement_id")
+    parameter.pop("provenance")
+    parameter["source"] = "ai_proposal"
+
+    normalized = normalize_plan_provenance(deepcopy(plan), _specification())
+
+    assert normalized["parameters"][0]["source_requirement_id"] == "bottle_diameter"
+    assert normalized["parameters"][0]["provenance"]["relationship"] == "direct"
+    assert any(
+        finding["rule_id"] == "plan.provenance_identity_recovered"
+        for finding in normalized["normalization_findings"]
+    )
+
+
 def test_normalization_resolves_lookup_value_for_scaffold_parameters() -> None:
     plan = _base_plan()
     lookup_parameter = plan["parameters"][4]

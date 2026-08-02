@@ -7,15 +7,25 @@ import pytest
 from app.services.cad.patterns import normalize_pattern_specs, validate_pattern_specs
 from volundr_cad.patterns import resolve_pattern_points
 from app.services.projects.plan_constraints import (
+    _layout_from_pattern,
     normalize_compact_component_feature_semantics,
     normalize_plan_constraints,
 )
 from app.services.projects.requirement_ledger import requirement_delta_for_message
-from app.services.projects.service import ProjectService
+from app.services.projects.service import ProjectService, _compact_plan_parameters
 
 
 def _positions(count: int) -> list[dict[str, float]]:
     return [{"x": float(index * 10), "y": 0.0, "z": 0.0} for index in range(count)]
+
+
+def test_compact_parameter_map_is_normalized_without_losing_ids() -> None:
+    normalized = _compact_plan_parameters({"outer_diameter": 60, "thickness": 5})
+
+    assert normalized == [
+        {"id": "outer_diameter", "value": 60},
+        {"id": "thickness", "value": 5},
+    ]
 
 
 def test_compact_integral_ribs_are_features_of_the_single_printable_part() -> None:
@@ -132,6 +142,51 @@ def test_fixed_count_without_positions_becomes_a_proposed_nonparametric_layout()
         "exposed_controls": [],
     })
     assert normalized["feature_layouts"][0]["layout_mode"] == "proposed_positions"
+
+
+def test_parameterized_layout_links_to_existing_feature_pattern_by_feature_id() -> None:
+    normalized = normalize_plan_constraints({
+        "parameters": [],
+        "components": [{"id": "lid"}],
+        "features": [{"id": "vents", "component_id": "lid", "type": "ventilation"}],
+        "feature_layouts": [{
+            "feature_id": "vents",
+            "layout_mode": "uniform_linear",
+            "required_count": 12,
+            "positions": [],
+        }],
+        "patterns": [{
+            "pattern_id": "vent_pattern",
+            "feature_id": "vents",
+            "pattern_type": "linear",
+            "count": 12,
+            "spacing": 5,
+            "axis": "X",
+        }],
+        "exposed_controls": [],
+    })
+
+    assert normalized["feature_layouts"][0]["pattern_id"] == "vent_pattern"
+
+
+def test_distributed_region_pattern_is_valid_plan_guidance_without_point_helper() -> None:
+    normalized = normalize_plan_constraints({
+        "parameters": [],
+        "components": [{"id": "bracket"}],
+        "features": [{"id": "ribs", "component_id": "bracket", "type": "reinforcement"}],
+        "patterns": [{
+            "pattern_id": "rib_pattern",
+            "feature_id": "ribs",
+            "pattern_type": "distributed_within_region",
+            "count": 2,
+            "region_guidance": "symmetric placement",
+        }],
+        "exposed_controls": [],
+    })
+    normalized = normalize_pattern_specs(normalized)
+    validate_pattern_specs(normalized)
+
+    assert normalized["patterns"][0]["pattern_type"] == "distributed_within_region"
 
 
 def test_compact_single_part_defaults_an_equivalent_unknown_feature_owner() -> None:
@@ -350,3 +405,17 @@ def test_fixed_count_pattern_without_spacing_control_becomes_a_proposed_layout()
     })
     validate_pattern_specs(normalized)
     assert normalized["patterns"][0]["layout_mode"] == "proposed_positions"
+
+
+def test_synthesized_fixed_count_layout_without_coordinates_is_proposed() -> None:
+    layout = _layout_from_pattern(
+        {"id": "lid_screw_holes", "component_id": "lid"},
+        {"fastener_count": 4, "arrangement_axis": "XY"},
+        {"pattern_id": "lid_screw_pattern", "pattern_type": "linear", "count": 4},
+        {},
+        {},
+    )
+
+    assert layout is not None
+    assert layout["layout_mode"] == "proposed_positions"
+    assert layout["required_count"] == 4

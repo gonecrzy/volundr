@@ -215,6 +215,23 @@ def test_body_validation_rejects_unsafe_or_incomplete_bodies(
     assert error.value.rule_id == f"geometry_body.{rule_id}"
 
 
+def test_geometry_body_failure_identifies_the_responsible_function() -> None:
+    with pytest.raises(GeometryBodyError) as error:
+        assemble_geometry_bodies(
+            _payload(
+                {
+                    "function_id": "_ai_component_body",
+                    "statements": ["def nested():", "    pass", "body = cq.Workplane('XY')"],
+                    "result_symbol": "body",
+                },
+                {"function_id": "_ai_feature_mounting_holes", "body_lines": ["return body"]},
+            ),
+            _inventory(),
+        )
+
+    assert error.value.details["affected_function_id"] == "_ai_component_body"
+
+
 def test_scaffold_hash_is_independent_of_provider_body_formatting() -> None:
     result = assemble_geometry_bodies(
         _payload(
