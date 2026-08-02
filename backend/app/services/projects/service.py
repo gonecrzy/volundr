@@ -311,6 +311,29 @@ def _control_source_inventory(
     ]
 
 
+def _preview_snapshot_image_artifact_id(packet: dict[str, Any] | None) -> str | None:
+    """Return the registered image used for a project-list preview.
+
+    Snapshot packets have their own JSON packet artifact as well as registered
+    image artifacts for each view.  The frontend image endpoint accepts only
+    the latter, so the library response must not expose the packet artifact.
+    """
+    if not isinstance(packet, dict) or packet.get("status") is not None:
+        return None
+    views = packet.get("component_views") or packet.get("views") or []
+    if not isinstance(views, list):
+        return None
+    ordered = sorted(
+        (view for view in views if isinstance(view, dict)),
+        key=lambda view: (view.get("view_name") != "isometric", str(view.get("view_id", ""))),
+    )
+    for view in ordered:
+        artifact_id = view.get("image_artifact_id")
+        if isinstance(artifact_id, str) and artifact_id:
+            return artifact_id
+    return None
+
+
 class ProjectService:
     def __init__(
         self,
@@ -476,10 +499,7 @@ class ProjectService:
                         "unresolved_warning_count": warning_count,
                         "preview_revision_id": preview_revision.id if preview_revision else None,
                         "preview_snapshot_artifact_id": (
-                            preview_packet.get("packet_artifact_id")
-                            if isinstance(preview_packet, dict)
-                            and preview_packet.get("status") is None
-                            else None
+                            _preview_snapshot_image_artifact_id(preview_packet)
                         ),
                     },
                 )

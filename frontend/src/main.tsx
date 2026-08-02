@@ -89,7 +89,14 @@ import {
   type WorkflowCorrelation,
 } from "./workflowTelemetry";
 import { applyChatClarificationAnswer, nextChatWorkflowAction } from "./chatWorkflow";
-import { projectIdFromPath, projectPath, saveStatusLabel, type SaveStatus } from "./projectPersistence";
+import {
+  planHasExposedControls,
+  projectIdFromPath,
+  projectPath,
+  saveStatusLabel,
+  shouldLoadCompileLog,
+  type SaveStatus,
+} from "./projectPersistence";
 import { userFacingSubmissionError } from "./chatWorkspace";
 import {
   ChatWorkspace,
@@ -451,6 +458,7 @@ type DesignPlan = {
       description?: string;
       mitigation?: string;
     }>;
+    exposed_controls?: Array<Record<string, unknown>>;
     functional_contract?: {
       retention_interfaces?: Array<{
         strategy?: string;
@@ -1039,13 +1047,16 @@ function App() {
 
   async function loadCurrentDesignPlan(projectId: string) {
     try {
-      setDesignPlan(
-        await request<DesignPlan>(`/projects/${projectId}/design-plan`, {
-          method: "GET",
-        }),
-      );
+      const plan = await request<DesignPlan>(`/projects/${projectId}/design-plan`, {
+        method: "GET",
+      });
+      setDesignPlan(plan);
       setDesignPlanAnswers({});
-      await loadConfigurationOptions(projectId);
+      if (planHasExposedControls(plan.plan)) {
+        await loadConfigurationOptions(projectId);
+      } else {
+        resetConfigurationState();
+      }
     } catch {
       setDesignPlan(null);
       setDesignPlanAnswers({});
@@ -2182,6 +2193,10 @@ function App() {
   }
 
   async function loadCompileLog(revision: Revision) {
+    if (!shouldLoadCompileLog(revision)) {
+      setCompileLog(null);
+      return;
+    }
     const response = await fetch(`${API_BASE}/revisions/${revision.id}/compile-log`);
     setCompileLog(response.ok ? await response.text() : null);
   }

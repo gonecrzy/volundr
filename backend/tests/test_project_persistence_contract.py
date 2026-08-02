@@ -12,6 +12,7 @@ from app.db.session import get_db
 from app.main import app
 from app.models.project import Project, utcnow
 from app.models.workflow import WorkflowRun
+from app.services.projects.service import _preview_snapshot_image_artifact_id
 from app.services.workflow.observability import WorkflowRecorder
 
 from test_project_api import CADQUERY_MANUAL_SOURCE, FakeCadRunner
@@ -40,6 +41,27 @@ def _client(tmp_path: Path) -> TestClient:
 
 def teardown_function() -> None:
     app.dependency_overrides.clear()
+
+
+def test_project_library_preview_uses_registered_image_not_packet_artifact() -> None:
+    packet = {
+        "packet_artifact_id": "snapshot-packet-json",
+        "component_views": [
+            {"view_name": "front", "image_artifact_id": "front-image"},
+            {"view_name": "isometric", "image_artifact_id": "isometric-image"},
+        ],
+    }
+
+    assert _preview_snapshot_image_artifact_id(packet) == "isometric-image"
+
+
+def test_project_library_preview_falls_back_to_first_registered_view() -> None:
+    packet = {
+        "packet_artifact_id": "snapshot-packet-json",
+        "views": [{"view_name": "front", "image_artifact_id": "front-image"}],
+    }
+
+    assert _preview_snapshot_image_artifact_id(packet) == "front-image"
 
 
 def test_workspace_reload_returns_authoritative_project_state(tmp_path: Path) -> None:
