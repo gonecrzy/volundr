@@ -113,3 +113,51 @@ execution defect, which remains correctly blocking. The classification-specific
 unused-metadata behavior is covered by the deterministic regression and
 scaffold-manifest evidence tests; this particular provider response did not
 repeat the malformed derived record.
+
+## Symbol-contract correction — 2026-08-02
+
+The preserved `NameError: name 'plate_width' is not defined` was traced to
+provider-owned statements in `_ai_component_primary_part(params)`. The
+scaffold supplied `params`; it did not create bare Python locals for Plan IDs.
+The structured-body validator previously checked syntax and safety but not
+lexical name resolution, so the worker was the first evaluator.
+
+The correction adds generic lexical and conservative definite-assignment
+analysis, exact per-function symbol inventories in the geometry prompt, and a
+bounded repair path for one safely identified provider function. The source
+contract still allows ordinary literals and local expressions; it only requires
+valid Python scope. See `GEOMETRY_BODY_SYMBOL_CONTRACT.md`.
+
+## Exact spacer rerun — 2026-08-02
+
+The exact spacer request was run through the opt-in live browser harness with
+the real Gemini API, FastAPI service, and CadQuery worker. The single selected
+scenario passed in 18.3 seconds. Preserved live data: `/tmp/volundr-live-e2e.qfNNKf`.
+
+- route: `direct_brief`; no planning-provider call;
+- geometry body: assembled and source-symbol validation passed;
+- bounded repair: not invoked because the live provider response used the
+  approved `params[...]` bindings; targeted repair remains available for a
+  pre-worker rejection or safely identified runtime name failure;
+- worker: reached and completed successfully in 3,566.152 ms;
+- topology: one valid solid, matching the required one-solid output;
+- artifacts: STL, STEP, and BREP produced with persisted hashes;
+- snapshots: packet and whole-design/component views generated;
+- candidate: `accepted`, Current working version promoted; API-facing review
+  state was `ready_with_warnings` because available requirement metadata did not
+  provide definitive geometric invariant evidence for every requested feature;
+- warnings: deterministic geometric/requirement findings remained nonblocking;
+- export: not exercised by this one-scenario routing test;
+- revision: not attempted because the live case was an initial request.
+
+No NameError, fake snapshot, fake topology result, or false blocked state was
+observed in this rerun. The result demonstrates that the source-scope defect is
+resolved for the covered case; it does not claim physical fit, print quality,
+or one-handed behavior beyond available deterministic evidence.
+
+Remaining blocker/evidence limitation: the worker and topology gates passed,
+but the current live direct brief did not provide enough deterministic
+geometric-invariant metadata to turn every requested hole position, corner
+radius, or fit statement into a definitive requirement-compliance pass. Those
+findings remain warnings and require review of the produced artifact; this pass
+does not add another requirement-validation layer.
