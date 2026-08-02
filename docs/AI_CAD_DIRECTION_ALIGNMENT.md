@@ -39,3 +39,12 @@ Visual review will initially be advisory. Retrieval, examples, and richer
 assemblies remain later phases. Unrestricted live user CAD-quality testing stays
 separate from deterministic UX fixture testing until the live evidence supports
 it.
+
+## Derived dependency classification — Implemented in this pass
+
+Derived metadata remains observable without becoming an unconditional source
+style gate. Dependencies that serve exposed controls, configurable patterns,
+scaffold obligations, or generated geometry remain blocking. Unused malformed
+derived metadata is retained as a warning and ordinary geometry is judged by
+worker and post-worker evidence. See
+`docs/DERIVED_DEPENDENCY_CLASSIFICATION.md`.

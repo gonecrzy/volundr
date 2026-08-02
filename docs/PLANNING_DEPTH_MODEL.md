@@ -51,3 +51,13 @@ normalized execution contexts, and prompt context packs are persisted through
 the existing workflow artifact registry. Normal chat shows only concise
 progress, clarification, change, success, and blocked messages. Route and
 artifact evidence is available in technical details and diagnostics.
+
+### Derived metadata quality
+
+Planning may contain incomplete derived metadata that is not needed by the
+selected execution contract. The parameter-effect contract classifies each
+broken dependency independently. Execution-critical dependencies remain
+blocking; unused dependencies are retained as
+`planning.derived_dependency_unused_or_incomplete` warning evidence and do not
+trigger another planning or geometry-provider call. This keeps proportional
+planning requirement-led rather than source-parametric.

@@ -422,3 +422,11 @@ omission, worker-retry capture, and revision geometry/finding deltas.
 `snapshot-evidence.spec.ts` exercises standard views and comparison evidence;
 `multi-view-snapshot.live.spec.ts` is opt-in and uses the real provider and
 worker.
+
+Derived dependency tests cover both sides of the execution boundary: malformed
+unused metadata must reach assembly and remain a warning, while broken
+exposed-control, configurable-pattern, scaffold, and generated-source paths
+must remain blocking. Tests also inspect persisted scaffold-manifest evidence,
+warning severity, classification reasons, and mixed blocking/diagnostic
+findings. The exact spacer live case verifies that this diagnostic does not
+invoke geometry repair or prevent worker and snapshot evaluation.

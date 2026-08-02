@@ -336,3 +336,11 @@ Post-worker evidence adds `snapshot.generated`,
 `revision.comparison.generated`. Packet hashes, image hashes, view timing,
 artifact IDs, and omission reasons remain in durable artifacts; workflow event
 metadata contains only concise indexes and summaries.
+
+Structured geometry attempts also persist per-derived dependency
+classification in `scaffold-manifest.json`. A diagnostic-only dependency emits
+`planning.derived_dependency_classified` with warning severity and
+`blocking=false`; its complete finding, reasons, and classification remain in
+the artifact metadata for Technical details and debug bundles. It does not
+start contract repair. A blocking dependency retains the same evidence in the
+assembly rejection details.

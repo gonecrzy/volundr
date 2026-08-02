@@ -462,3 +462,9 @@ staged/developer workflow only for diagnostic coverage. See
 The current evidence pass adds deterministic post-worker multi-view packets,
 component thumbnails, conservative sections, and revision comparisons. The
 next visual step is advisory review design, not an automatic image gate.
+
+Derived dependency classification is implemented: ordinary designs are not
+blocked by unused malformed planning metadata, while exposed controls,
+configurable patterns, scaffold obligations, and generated-source dependencies
+retain hard gates. The exact spacer live evaluation is the evidence check for
+worker reachability and resumed snapshot/export behavior.
