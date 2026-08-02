@@ -22,6 +22,7 @@ from app.models.requirement_ledger import (
     RequirementDelta,
     RequirementLedgerEntry,
 )
+from app.services.requirements.trace import normalize_requirement_semantics
 
 
 REQUIREMENT_LEDGER_VERSION = "requirement-ledger-v1"
@@ -433,7 +434,16 @@ class RequirementLedgerStore:
             row.originating_revision_id = item.get("originating_revision_id")
             row.supersedes_requirement_id = item.get("supersedes_requirement_id")
             row.superseded_by = item.get("superseded_by")
-            row.verification_evidence_json = _json_value(item.get("verification_evidence"))
+            row.verification_evidence_json = _json_value(
+                {
+                    "evidence": item.get("verification_evidence"),
+                    "semantic": {
+                        key: item.get(key)
+                        for key in ("kind", "operator", "subject", "object_type", "raw_evidence")
+                        if item.get(key) is not None
+                    },
+                }
+            )
         self.db.flush()
 
 
@@ -451,6 +461,17 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                 continue
             items.append(
                 {
+                    **{
+                        key: item.get(key)
+                        for key in (
+                            "kind",
+                            "operator",
+                            "subject",
+                            "object_type",
+                            "raw_evidence",
+                        )
+                        if item.get(key) is not None
+                    },
                     "requirement_id": item.get("requirement_id") or item.get("id"),
                     "target": item.get("target") or item.get("component_id"),
                     "type": item.get("type") or default_type,
@@ -465,6 +486,19 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
 
 
 def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
+    verification_evidence = _parse_json(row.verification_evidence_json)
+    semantic = (
+        verification_evidence.get("semantic")
+        if isinstance(verification_evidence, dict)
+        else None
+    )
+    if not isinstance(semantic, dict):
+        semantic = {}
+    evidence = (
+        verification_evidence.get("evidence")
+        if isinstance(verification_evidence, dict) and "evidence" in verification_evidence
+        else verification_evidence
+    )
     return {
         "record_id": row.id,
         "requirement_id": row.requirement_id,
@@ -480,7 +514,12 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         "originating_revision_id": row.originating_revision_id,
         "supersedes_requirement_id": row.supersedes_requirement_id,
         "superseded_by": row.superseded_by,
-        "verification_evidence": _parse_json(row.verification_evidence_json),
+        "verification_evidence": evidence,
+        "kind": semantic.get("kind") or _kind_from_legacy_row(row),
+        "operator": semantic.get("operator") or _operator_from_legacy_row(row),
+        "subject": semantic.get("subject"),
+        "object_type": semantic.get("object_type"),
+        "raw_evidence": semantic.get("raw_evidence"),
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
     }
@@ -497,6 +536,32 @@ def _parse_json(value: str | None) -> Any:
         return json.loads(value)
     except json.JSONDecodeError:
         return value
+
+
+def _kind_from_legacy_row(row: RequirementLedgerEntry) -> str:
+    requirement_type = str(row.requirement_type or "qualitative_behavior")
+    if requirement_type in {"capacity", "minimum_capacity", "maximum_capacity"}:
+        return "capacity"
+    if "count" in requirement_type or row.unit == "count":
+        return "count"
+    if "dimension" in requirement_type or requirement_type in {"clearance", "fit", "spacing", "position"}:
+        return "dimension" if requirement_type.endswith("dimension") else requirement_type
+    if requirement_type in {"explicit_feature", "feature_presence", "feature_absence"}:
+        return "feature"
+    return requirement_type
+
+
+def _operator_from_legacy_row(row: RequirementLedgerEntry) -> str:
+    requirement_type = str(row.requirement_type or "qualitative_behavior")
+    if "maximum" in requirement_type:
+        return "maximum"
+    if "minimum" in requirement_type:
+        return "minimum"
+    if requirement_type in {"qualitative_behavior"}:
+        return "qualitative"
+    if requirement_type == "explicit_feature":
+        return "present" if _parse_json(row.value_json) is True else "absent"
+    return "exact"
 
 
 def _normalize_requirement(
@@ -516,7 +581,7 @@ def _normalize_requirement(
     if status not in VALID_STATUSES:
         status = ACTIVE
     now = _now()
-    return {
+    normalized = {
         "record_id": str(item.get("record_id") or uuid4()),
         "requirement_id": requirement_id,
         "source": source,
@@ -535,6 +600,10 @@ def _normalize_requirement(
         "created_at": item.get("created_at") or now,
         "updated_at": now,
     }
+    for key in ("kind", "operator", "subject", "object_type", "raw_evidence"):
+        if item.get(key) is not None:
+            normalized[key] = item[key]
+    return normalize_requirement_semantics(normalized)
 
 
 def _dedupe_active(records: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -7,6 +7,7 @@ from typing import Any
 from app.services.requirements.trace import (
     canonical_requirement_id,
     inventory_from_design_specification,
+    normalize_requirement_semantics,
 )
 
 
@@ -39,6 +40,7 @@ _STOP_WORDS = {
     "with",
 }
 _NUMERIC_TYPES = {
+    "capacity",
     "count",
     "dimension",
     "explicit_count",
@@ -60,18 +62,30 @@ _SOURCE_TRACE_TYPES = {
     "protected_scaffold_identity",
     "required_output",
 }
-_GENERIC_MATCH_WORDS = {
-    "body",
+_CAPACITY_FEATURE_TYPES = {
+    "capacity",
+    "capacity_array",
+    "container",
+    "cavity",
+    "pocket",
+    "slot_array",
+    "storage",
+    "storage_array",
+}
+_CAPACITY_TARGET_TYPES = {
+    "capacity",
+    "clearance",
     "count",
-    "five",
-    "hold",
-    "include",
-    "number",
-    "part",
-    "size",
-    "top",
-    "tray",
-    "wall",
+    "fit",
+    "occupancy",
+    "slot_count",
+    "supported_capacity",
+}
+_CAPACITY_MEASUREMENTS = {
+    "capacity",
+    "occupancy",
+    "slot_count",
+    "supported_capacity",
 }
 
 
@@ -156,6 +170,7 @@ def build_requirement_trace_manifest(
         "schema_version": "requirement-trace-normalized-v1",
         "features": normalized_features,
         "obligations": obligations,
+        "validation_targets": deepcopy(validation_targets),
         "normalization_decisions": normalization_decisions,
     }
     findings.extend(
@@ -169,12 +184,13 @@ def build_requirement_trace_manifest(
         )
         for decision in normalization_decisions
     )
-    return {
+    result = {
         "schema_version": "requirement-trace-contract-v1",
         "original": original,
         "normalized": normalized,
         "findings": findings,
     }
+    return result
 
 
 def _classify_item(
@@ -199,8 +215,8 @@ def _classify_item(
     requirement_type = str(item.get("type") or "qualitative_behavior")
     component_ids = _matching_component_ids(item, plan_components)
     output_ids = _matching_output_ids(item, plan_outputs)
-    feature = _match_feature(item, plan_features, patterns)
-    target = _match_validation_target(item, feature, validation_targets)
+    feature, feature_match = _resolve_feature(item, plan_features, patterns)
+    target, target_match = _resolve_validation_target(item, feature, validation_targets)
     parameter_id = _matching_parameter_id(item, exposed_control_ids)
     exposed_control = parameter_id is not None
     explicit_feature_requirement = (
@@ -214,6 +230,7 @@ def _classify_item(
         or bool(output_ids)
     )
     findings: list[dict[str, Any]] = []
+    feature_like = feature is not None or explicit_feature_requirement
 
     if source_trace_required:
         classification = "source_trace_required"
@@ -239,6 +256,75 @@ def _classify_item(
         "validation_target_id": str(target.get("id")) if target and target.get("id") else None,
         "normalization_decision": None,
     }
+
+    if feature_match.get("ambiguous"):
+        obligation["blocking"] = True
+        obligation["status"] = "trace_ambiguous"
+        findings.append(
+            _trace_finding(
+                "design_artifact.requirement_trace_ambiguous",
+                f"Requirement `{requirement_id}` matches multiple Plan features and cannot be linked safely.",
+                item=item,
+                obligation=obligation,
+                blocking=True,
+                metadata={
+                    "candidate_matches": feature_match.get("candidates", []),
+                    "rejected_matches": feature_match.get("rejected", []),
+                    "normalization_rule": "typed_semantic_feature_matching",
+                },
+            )
+        )
+        return obligation, findings
+    if target_match.get("ambiguous"):
+        obligation["blocking"] = True
+        obligation["status"] = "trace_ambiguous"
+        findings.append(
+            _trace_finding(
+                "design_artifact.requirement_trace_ambiguous",
+                f"Requirement `{requirement_id}` matches multiple validation targets and cannot be linked safely.",
+                item=item,
+                obligation=obligation,
+                blocking=True,
+                metadata={
+                    "candidate_matches": target_match.get("candidates", []),
+                    "rejected_matches": target_match.get("rejected", []),
+                    "normalization_rule": "typed_semantic_validation_matching",
+                },
+            )
+        )
+        return obligation, findings
+    if feature_match.get("explicit_missing"):
+        obligation["blocking"] = True
+        obligation["status"] = "required_feature_missing"
+        findings.append(
+            _trace_finding(
+                "design_artifact.required_feature_missing",
+                f"Explicit Plan feature link for requirement `{requirement_id}` does not resolve.",
+                item=item,
+                obligation=obligation,
+                blocking=True,
+                metadata={"normalization_rule": "explicit_feature_link"},
+            )
+        )
+        return obligation, findings
+    if feature_match.get("incompatible"):
+        obligation["blocking"] = True
+        obligation["status"] = "geometry_verification_unmapped"
+        findings.append(
+            _trace_finding(
+                "design_artifact.requirement_trace_unverifiable",
+                f"No Plan feature has compatible semantics for measurable requirement `{requirement_id}`.",
+                item=item,
+                obligation=obligation,
+                blocking=True,
+                metadata={
+                    "candidate_matches": feature_match.get("considered", []),
+                    "rejected_matches": feature_match.get("rejected", []),
+                    "normalization_rule": "typed_semantic_feature_matching",
+                },
+            )
+        )
+        return obligation, findings
 
     if parameter_id is not None:
         obligation["parameter_id"] = parameter_id
@@ -401,6 +487,30 @@ def _classify_item(
             source_output_components,
         )
         obligation["output_id"] = output_id
+        if feature_match.get("normalized") or target_match.get("normalized"):
+            obligation["normalization_decision"] = "unique_typed_requirement_trace"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.requirement_trace_normalized",
+                    f"Uniquely linked requirement `{requirement_id}` to Plan feature `{feature_id}` and its validation target.",
+                    item=item,
+                    obligation=obligation,
+                    feature_id=feature_id,
+                    component_id=owner,
+                    blocking=False,
+                    normalization_decision="unique_typed_requirement_trace",
+                    metadata={
+                        "candidate_matches": feature_match.get("considered", []),
+                        "rejected_matches": feature_match.get("rejected", []),
+                        "selected_match": {
+                            "feature_id": feature_id,
+                            "validation_target_id": obligation.get("validation_target_id"),
+                        },
+                        "confidence_basis": feature_match.get("basis", []) + target_match.get("basis", []),
+                        "normalization_rule": "unique_typed_requirement_feature_target",
+                    },
+                )
+            )
 
         if owner not in source_component_ids:
             obligation["blocking"] = True
@@ -459,7 +569,11 @@ def _classify_item(
                 )
             )
         else:
-            obligation["status"] = "source_trace" if function_id else "geometry_verification_target"
+            obligation["status"] = (
+                "geometry_verification_target"
+                if classification == "geometry_verification_required" and target is not None
+                else "source_trace" if function_id else "geometry_verification_target"
+            )
 
         if target is not None and classification == "geometry_verification_required":
             findings.append(
@@ -546,6 +660,14 @@ def _trace_items(
             existing["label"] = str(entry.get("description") or entry.get("label") or existing.get("label") or requirement_id)
             existing["type"] = str(entry.get("type") or "qualitative_behavior")
             for key in (
+                "kind",
+                "operator",
+                "subject",
+                "object_type",
+                "target",
+                "value",
+                "unit",
+                "raw_evidence",
                 "feature_id",
                 "target_feature_id",
                 "component_id",
@@ -555,6 +677,7 @@ def _trace_items(
             ):
                 if entry.get(key) is not None:
                     existing[key] = deepcopy(entry[key])
+            existing.update(normalize_requirement_semantics(existing))
             continue
         items.setdefault(
             requirement_id,
@@ -568,6 +691,12 @@ def _trace_items(
                 "type": str(entry.get("type") or "qualitative_behavior"),
                 "protected": bool(entry.get("protected")),
                 "evidence": {"description": entry.get("description")},
+                "kind": entry.get("kind"),
+                "operator": entry.get("operator"),
+                "subject": entry.get("subject"),
+                "object_type": entry.get("object_type"),
+                "target": entry.get("target"),
+                "raw_evidence": entry.get("raw_evidence") or entry.get("description"),
             },
         )
     return [items[key] for key in sorted(items)]
@@ -716,86 +845,262 @@ def _matching_output_ids(
     return []
 
 
-def _match_feature(
+def _resolve_feature(
     item: dict[str, Any],
     features: list[dict[str, Any]],
     patterns: list[dict[str, Any]],
-) -> dict[str, Any] | None:
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    """Resolve a requirement to a Plan feature without product vocabulary.
+
+    Explicit IDs and structured semantic fields are authoritative. Text and
+    numeric evidence can support a unique match, but cannot manufacture a
+    match when multiple typed candidates remain.
+    """
+
     requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
+    info: dict[str, Any] = {"considered": [], "rejected": [], "basis": []}
     explicit_feature_id = item.get("feature_id") or item.get("target_feature_id")
     if explicit_feature_id:
         explicit = canonical_requirement_id(str(explicit_feature_id))
         matches = [feature for feature in features if canonical_requirement_id(str(feature.get("id"))) == explicit]
         if len(matches) == 1:
-            return matches[0]
+            info["basis"] = ["explicit_feature_id"]
+            return matches[0], info
+        info["explicit_missing"] = True
+        info["rejected"] = [explicit]
+        return None, info
+
+    linked = [
+        feature
+        for feature in features
+        if _contains_requirement_id(feature, requirement_id)
+    ]
+    if len(linked) == 1:
+        info["basis"] = ["feature_requirement_ids"]
+        return linked[0], info
+    if len(linked) > 1:
+        info["ambiguous"] = True
+        info["candidates"] = [str(feature.get("id")) for feature in linked]
+        return None, info
+
     value = item.get("value")
-    if str(item.get("type") or "") in {"explicit_count", "count", "spacing"}:
-        pattern_features: list[dict[str, Any]] = []
-        for pattern in patterns:
-            feature_id = pattern.get("feature_id") or pattern.get("owning_feature_id")
-            count = pattern.get("count")
-            if isinstance(count, dict):
-                count = count.get("value")
-            if feature_id and _values_equal(count, value):
-                pattern_features.extend(
-                    feature for feature in features if str(feature.get("id")) == str(feature_id)
-                )
-        if len(pattern_features) == 1:
-            return pattern_features[0]
-    tokens = _tokens(requirement_id + " " + str(item.get("label") or "") + " " + str(item.get("value") or ""))
-    scored: list[tuple[int, int, dict[str, Any]]] = []
+    pattern_features: list[dict[str, Any]] = []
+    for pattern in patterns:
+        feature_id = pattern.get("feature_id") or pattern.get("owning_feature_id")
+        count = pattern.get("count")
+        if isinstance(count, dict):
+            count = count.get("value")
+        if feature_id and _values_equal(count, value):
+            pattern_features.extend(
+                feature for feature in features if str(feature.get("id")) == str(feature_id)
+            )
+    if len(pattern_features) == 1:
+        info["basis"] = ["pattern_count_value"]
+        return pattern_features[0], info
+    if len(pattern_features) > 1:
+        info["ambiguous"] = True
+        info["candidates"] = [str(feature.get("id")) for feature in pattern_features]
+        return None, info
+
+    scored: list[tuple[int, dict[str, Any], list[str]]] = []
     for feature in features:
-        candidate_tokens = _tokens(
-            str(feature.get("id") or "")
-            + " "
-            + str(feature.get("description") or "")
-            + " "
-            + str(feature.get("type") or "")
-        )
-        matches = tokens & candidate_tokens
-        score = len(matches)
-        distinctive_score = len(matches - _GENERIC_MATCH_WORDS)
-        if score:
-            scored.append((distinctive_score, score, feature))
+        score, basis = _feature_semantic_score(item, feature)
+        if score <= 0:
+            continue
+        scored.append((score, feature, basis))
+    info["considered"] = [str(feature.get("id")) for _, feature, _ in scored]
     if not scored:
-        return None
-    scored.sort(key=lambda item: (-item[0], -item[1], str(item[2].get("id"))))
-    if len(scored) > 1 and scored[0][:2] == scored[1][:2]:
-        return None
-    if scored[0][1] < 2:
-        return None
-    return scored[0][2]
+        if str(item.get("kind") or item.get("type") or "").lower() == "capacity" and features:
+            info["incompatible"] = True
+            info["rejected"] = [str(feature.get("id")) for feature in features]
+        return None, info
+    scored.sort(key=lambda value: (-value[0], str(value[1].get("id"))))
+    best_score = scored[0][0]
+    best = [entry for entry in scored if entry[0] == best_score]
+    if len(best) > 1:
+        info["ambiguous"] = True
+        info["candidates"] = [str(feature.get("id")) for _, feature, _ in best]
+        info["rejected"] = [str(feature.get("id")) for _, feature, _ in scored if feature not in [entry[1] for entry in best]]
+        return None, info
+    selected_score, selected, basis = best[0]
+    info["basis"] = basis
+    info["normalized"] = True
+    return selected, info
 
 
-def _match_validation_target(
+def _resolve_validation_target(
     item: dict[str, Any],
     feature: dict[str, Any] | None,
     targets: list[dict[str, Any]],
-) -> dict[str, Any] | None:
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
     feature_id = str(feature.get("id")) if feature else None
+    info: dict[str, Any] = {"considered": [], "rejected": [], "basis": []}
+    explicit_target_id = item.get("validation_target_id") or item.get("verification_target_id")
     exact = [
         target
         for target in targets
-        if canonical_requirement_id(str(target.get("requirement_id") or "")) == requirement_id
+        if (
+            explicit_target_id
+            and canonical_requirement_id(str(target.get("id") or "")) == canonical_requirement_id(str(explicit_target_id))
+        )
+        or canonical_requirement_id(str(target.get("requirement_id") or "")) == requirement_id
         or canonical_requirement_id(str(target.get("id") or "")) == requirement_id
+        or _contains_requirement_id(target, requirement_id)
         or (feature_id and str(target.get("feature_id") or "") == feature_id)
     ]
-    if exact:
-        return exact[0]
-    tokens = _tokens(requirement_id + " " + str(item.get("label") or ""))
-    scored: list[tuple[int, dict[str, Any]]] = []
+    if len(exact) == 1:
+        info["basis"] = ["explicit_validation_target_link"]
+        return exact[0], info
+    if len(exact) > 1:
+        info["ambiguous"] = True
+        info["candidates"] = [str(target.get("id")) for target in exact]
+        return None, info
+
+    scored: list[tuple[int, dict[str, Any], list[str]]] = []
     for target in targets:
-        target_tokens = _tokens(str(target.get("id") or "") + " " + str(target.get("description") or ""))
-        score = len(tokens & target_tokens)
-        if score:
-            scored.append((score, target))
+        score, basis = _target_semantic_score(item, target)
+        if score <= 0:
+            continue
+        scored.append((score, target, basis))
+    info["considered"] = [str(target.get("id")) for _, target, _ in scored]
     if not scored:
-        return None
+        return None, info
     scored.sort(key=lambda value: (-value[0], str(value[1].get("id"))))
-    if scored[0][0] < 2:
-        return None
-    return scored[0][1]
+    best_score = scored[0][0]
+    best = [entry for entry in scored if entry[0] == best_score]
+    if len(best) > 1:
+        info["ambiguous"] = True
+        info["candidates"] = [str(target.get("id")) for _, target, _ in best]
+        info["rejected"] = [str(target.get("id")) for _, target, _ in scored if target not in [entry[1] for entry in best]]
+        return None, info
+    _, selected, basis = best[0]
+    info["basis"] = basis
+    info["normalized"] = True
+    return selected, info
+
+
+def _feature_semantic_score(item: dict[str, Any], feature: dict[str, Any]) -> tuple[int, list[str]]:
+    kind = str(item.get("kind") or item.get("type") or "").lower()
+    if kind not in {"capacity", "count"}:
+        return _legacy_feature_score(item, feature)
+
+    feature_type = str(
+        feature.get("semantic_type")
+        or feature.get("kind")
+        or feature.get("type")
+        or ""
+    ).lower()
+    score = 0
+    basis: list[str] = []
+    if feature_type in _CAPACITY_FEATURE_TYPES:
+        score += 60
+        basis.append("compatible_feature_semantics")
+    if feature.get("layout_mode") or feature.get("pattern_id"):
+        score += 15
+        basis.append("layout_semantics")
+    if _feature_value_matches(feature, item.get("value")):
+        score += 30
+        basis.append("numeric_value")
+    if _semantic_tokens(item) & _semantic_tokens(feature):
+        score += 15
+        basis.append("object_or_text_evidence")
+    if score < 30:
+        return 0, []
+    return score, basis
+
+
+def _target_semantic_score(item: dict[str, Any], target: dict[str, Any]) -> tuple[int, list[str]]:
+    kind = str(item.get("kind") or item.get("type") or "").lower()
+    target_type = str(target.get("measurement") or target.get("type") or "").lower()
+    score = 0
+    basis: list[str] = []
+    if kind == "capacity" and (target_type in _CAPACITY_MEASUREMENTS or str(target.get("type") or "").lower() in _CAPACITY_TARGET_TYPES):
+        score += 60
+        basis.append("compatible_measurement")
+    elif kind == "count" and target_type in _CAPACITY_TARGET_TYPES:
+        score += 50
+        basis.append("compatible_count_measurement")
+    elif kind in {"dimension", "clearance", "fit", "spacing", "position", "thickness", "count"} and target_type in {"dimension", "spacing", "position", "thickness", "clearance", "fit", "count"}:
+        score += 10
+        basis.append("measurable_target")
+    if _target_value_matches(target, item.get("value")):
+        score += 30
+        basis.append("numeric_value")
+    if _semantic_tokens(item) & _semantic_tokens(target):
+        score += 20
+        basis.append("object_or_text_evidence")
+    if score < 30:
+        return 0, []
+    return score, basis
+
+
+def _legacy_feature_score(item: dict[str, Any], feature: dict[str, Any]) -> tuple[int, list[str]]:
+    tokens = _tokens(
+        str(item.get("requirement_id") or item.get("id") or "")
+        + " "
+        + str(item.get("label") or "")
+        + " "
+        + str(item.get("value") or "")
+    )
+    candidate_tokens = _tokens(
+        str(feature.get("id") or "")
+        + " "
+        + str(feature.get("description") or "")
+        + " "
+        + str(feature.get("type") or "")
+    )
+    matches = tokens & candidate_tokens
+    if len(matches) < 2:
+        return 0, []
+    return len(matches), ["legacy_text_evidence"]
+
+
+def _contains_requirement_id(feature: dict[str, Any], requirement_id: str) -> bool:
+    values = feature.get("requirement_ids") or feature.get("requirements") or []
+    if isinstance(values, dict):
+        values = values.keys()
+    if isinstance(values, str):
+        values = [values]
+    return requirement_id in {
+        canonical_requirement_id(str(value))
+        for value in values
+        if value
+    }
+
+
+def _feature_value_matches(feature: dict[str, Any], expected: Any) -> bool:
+    for key in ("count", "capacity", "required_count", "slot_count", "value", "expected_value"):
+        if key in feature and _values_equal(feature.get(key), expected):
+            return True
+    return _value_in_text(expected, " ".join(str(feature.get(key) or "") for key in ("id", "name", "description")))
+
+
+def _target_value_matches(target: dict[str, Any], expected: Any) -> bool:
+    for key in ("expected_value", "value", "count", "capacity"):
+        if key in target and _values_equal(target.get(key), expected):
+            return True
+    return _value_in_text(expected, " ".join(str(target.get(key) or "") for key in ("id", "name", "description")))
+
+
+def _value_in_text(expected: Any, text: str) -> bool:
+    if isinstance(expected, dict):
+        return False
+    if _values_equal(expected, expected) and re.search(rf"\b{re.escape(str(expected))}\b", text):
+        return True
+    number_words = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+    return any(
+        value == expected and re.search(rf"\b{word}\b", text, flags=re.IGNORECASE)
+        for word, value in number_words.items()
+    )
+
+
+def _semantic_tokens(item: dict[str, Any]) -> set[str]:
+    value = " ".join(
+        str(item.get(key) or "")
+        for key in ("object_type", "subject", "target", "label", "description", "raw_evidence")
+    )
+    return _tokens(value)
 
 
 def _output_for_component(
@@ -904,10 +1209,11 @@ def _trace_finding(
     blocking: bool = True,
     detected: Any = None,
     normalization_decision: str | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     item = item or {}
     obligation = obligation or {}
-    return {
+    result = {
         "rule_id": rule_id,
         "category": "design_artifact_consistency",
         "severity": "critical" if blocking else "warning",
@@ -928,3 +1234,6 @@ def _trace_finding(
         "detected_value": detected,
         "unit": item.get("unit"),
     }
+    if metadata:
+        result["metadata"] = deepcopy(metadata)
+    return result

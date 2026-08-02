@@ -20,7 +20,14 @@ def test_requirement_ledger_persists_deltas_and_physical_observations() -> None:
             project_id=project.id,
             specification={
                 "explicit_requirements": [
-                    {"requirement_id": "bottle_diameter", "type": "exact_dimension", "value": 81, "unit": "mm"}
+                    {
+                        "requirement_id": "bottle_diameter",
+                        "type": "exact_dimension",
+                        "value": 81,
+                        "unit": "mm",
+                        "kind": "dimension",
+                        "operator": "exact",
+                    }
                 ]
             },
             originating_message="Create a holder for an 81 mm bottle.",
@@ -49,10 +56,14 @@ def test_requirement_ledger_persists_deltas_and_physical_observations() -> None:
 
     with Session(engine) as session:
         ledger = RequirementLedgerStore(session).load(project_id)
-        assert {item["requirement_id"] for item in active_requirements(ledger)} == {
+        active = active_requirements(ledger)
+        assert {item["requirement_id"] for item in active} == {
             "bottle_diameter",
             "bottle_clearance_per_side",
         }
+        diameter = next(item for item in active if item["requirement_id"] == "bottle_diameter")
+        assert diameter["kind"] == "dimension"
+        assert diameter["operator"] == "exact"
         assert session.scalar(select(RequirementDelta.project_id).where(RequirementDelta.project_id == project_id))
         assert session.scalar(
             select(PhysicalTestObservation.observation_type).where(

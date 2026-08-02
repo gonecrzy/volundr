@@ -50,15 +50,21 @@ class RequirementTraceError(ValueError):
 
 def explicit_item(
     requirement_id: str,
-    value: float | int | str | bool,
+    value: Any,
     *,
     unit: str | None = None,
     label: str | None = None,
     requirement_type: str | None = None,
     evidence: str | None = None,
+    kind: str | None = None,
+    operator: str | None = None,
+    subject: str | None = None,
+    object_type: str | None = None,
+    target: str | None = None,
+    raw_evidence: str | None = None,
 ) -> dict[str, Any]:
     normalized_id = canonical_requirement_id(requirement_id)
-    return {
+    item = {
         "requirement_id": normalized_id,
         "id": normalized_id,
         "label": label or _human_label(normalized_id),
@@ -71,6 +77,50 @@ def explicit_item(
         "type": requirement_type or _requirement_type(normalized_id, value, unit),
         "evidence": {"request_excerpt": evidence or requirement_id},
     }
+    if kind is not None:
+        item["kind"] = kind
+    if operator is not None:
+        item["operator"] = operator
+    if subject is not None:
+        item["subject"] = subject
+    if object_type is not None:
+        item["object_type"] = object_type
+    if target is not None:
+        item["target"] = target
+    if raw_evidence is not None:
+        item["raw_evidence"] = raw_evidence
+    return normalize_requirement_semantics(item)
+
+
+def normalize_requirement_semantics(item: dict[str, Any]) -> dict[str, Any]:
+    """Preserve requirement meaning in a stable, shared representation.
+
+    The ledger and planning contracts may add fields around this payload, but
+    these fields remain the semantic authority for operators and capacities.
+    """
+
+    normalized = deepcopy(item)
+    requirement_type = str(normalized.get("type") or "qualitative_behavior")
+    semantic_text = " ".join(
+        str(normalized.get(key) or "")
+        for key in ("label", "description", "raw_evidence", "evidence")
+    ).lower()
+    inferred_kind = _kind_for_requirement_type(requirement_type)
+    if not normalized.get("kind") and _capacity_language(semantic_text):
+        inferred_kind = "capacity"
+    kind = str(normalized.get("kind") or inferred_kind)
+    operator = str(normalized.get("operator") or _operator_for_requirement(normalized, kind))
+    normalized["kind"] = kind
+    normalized["operator"] = operator
+    if normalized.get("raw_evidence") is None:
+        evidence = normalized.get("evidence")
+        if isinstance(evidence, dict):
+            raw_evidence = evidence.get("raw_evidence") or evidence.get("request_excerpt")
+        else:
+            raw_evidence = evidence
+        if raw_evidence:
+            normalized["raw_evidence"] = str(raw_evidence)
+    return normalized
 
 
 def default_item(
@@ -397,6 +447,13 @@ def inventory_from_design_specification(payload: dict[str, Any] | None) -> list[
                 entry.get("value"),
                 unit=entry.get("unit"),
                 label=entry.get("label"),
+                requirement_type=entry.get("type"),
+                evidence=entry.get("raw_evidence") or entry.get("evidence"),
+                kind=entry.get("kind"),
+                operator=entry.get("operator"),
+                subject=entry.get("subject"),
+                object_type=entry.get("object_type"),
+                target=entry.get("target"),
             )
             if source == "clarification":
                 item["source"] = "clarification"
@@ -413,7 +470,13 @@ def inventory_from_design_specification(payload: dict[str, Any] | None) -> list[
                 str(entry.get("id") or entry.get("requirement_id")),
                 True,
                 label=str(entry.get("description") or entry.get("label") or ""),
-                requirement_type="explicit_feature",
+                requirement_type=entry.get("type") or "explicit_feature",
+                evidence=entry.get("raw_evidence") or entry.get("description"),
+                kind=entry.get("kind"),
+                operator=entry.get("operator"),
+                subject=entry.get("subject"),
+                object_type=entry.get("object_type"),
+                target=entry.get("target"),
             )
         )
     return merge_resolved_requirements(items)
@@ -533,6 +596,7 @@ def _parse_requirement_text(text: str) -> list[dict[str, Any]]:
         )
 
     lowered = text.lower()
+    items.extend(_parse_capacity_phrases(text))
     if "label tabs" in lowered or "label_tabs" in lowered:
         items.append(explicit_item("label_tabs", True, requirement_type="explicit_feature", evidence="label tabs"))
     for feature in FEATURE_WORDS:
@@ -552,6 +616,7 @@ def _dimension_component_names(key: str, count: int) -> list[str]:
 
 
 def _dimension_from_item(item: dict[str, Any]) -> dict[str, Any]:
+    normalized = normalize_requirement_semantics(item)
     return {
         "id": item["requirement_id"],
         "requirement_id": item["requirement_id"],
@@ -564,19 +629,35 @@ def _dimension_from_item(item: dict[str, Any]) -> dict[str, Any]:
         "protected": True,
         "authority": item["authority"],
         "authority_rank": item["authority_rank"],
+        "kind": normalized["kind"],
+        "operator": normalized["operator"],
+        "subject": normalized.get("subject"),
+        "object_type": normalized.get("object_type"),
+        "target": normalized.get("target"),
+        "raw_evidence": normalized.get("raw_evidence"),
     }
 
 
 def _functional_requirement_from_item(item: dict[str, Any]) -> dict[str, Any]:
+    normalized = normalize_requirement_semantics(item)
     return {
         "id": item["requirement_id"],
         "requirement_id": item["requirement_id"],
-        "description": f"{item['label']} {'enabled' if item.get('value') else 'disabled'}",
+        "description": item.get("label") or f"{item['label']} {'enabled' if item.get('value') else 'disabled'}",
         "source": item["source"],
         "importance": "critical",
         "protected": True,
         "authority": item["authority"],
         "authority_rank": item["authority_rank"],
+        "type": normalized.get("type"),
+        "kind": normalized["kind"],
+        "operator": normalized["operator"],
+        "value": normalized.get("value"),
+        "unit": normalized.get("unit"),
+        "subject": normalized.get("subject"),
+        "object_type": normalized.get("object_type"),
+        "target": normalized.get("target"),
+        "raw_evidence": normalized.get("raw_evidence"),
     }
 
 
@@ -594,7 +675,7 @@ def _normalize_item(item: dict[str, Any]) -> dict[str, Any]:
     normalized.setdefault("protected", authority == "explicit")
     normalized.setdefault("type", _requirement_type(item_id, normalized.get("value"), normalized.get("unit")))
     normalized.setdefault("evidence", {})
-    return normalized
+    return normalize_requirement_semantics(normalized)
 
 
 def _matching_parameter(parameters: list[dict[str, Any]], requirement_id: str) -> dict[str, Any] | None:
@@ -683,6 +764,178 @@ def _requirement_type(requirement_id: str, value: Any, unit: str | None) -> str:
     if isinstance(value, str):
         return "explicit_enum"
     return "missing_information"
+
+
+def _kind_for_requirement_type(requirement_type: str) -> str:
+    normalized = requirement_type.lower()
+    if normalized in {"capacity", "minimum_capacity", "maximum_capacity"}:
+        return "capacity"
+    if normalized in {"count", "explicit_count", "exact_count", "minimum_count", "maximum_count"}:
+        return "count"
+    if "dimension" in normalized or normalized in {"numeric", "explicit_numeric", "clearance", "fit", "spacing", "position"}:
+        return "dimension" if normalized not in {"clearance", "fit", "spacing", "position"} else normalized
+    if normalized in {"feature_presence", "feature_absence", "explicit_feature"}:
+        return "feature"
+    if normalized in {
+        "orientation",
+        "containment",
+        "support",
+        "retention",
+        "access",
+        "removal_access",
+        "relationship",
+        "process_constraint",
+        "qualitative_behavior",
+    }:
+        return normalized
+    return normalized
+
+
+def _operator_for_requirement(item: dict[str, Any], kind: str) -> str:
+    requirement_type = str(item.get("type") or "").lower()
+    value = item.get("value")
+    semantic_text = " ".join(
+        str(item.get(key) or "")
+        for key in ("label", "description", "raw_evidence", "evidence")
+    ).lower()
+    if re.search(r"\bup\s+to\b", semantic_text):
+        return "up_to"
+    if re.search(r"\bat\s+least\b", semantic_text):
+        return "at_least"
+    if re.search(r"\bbetween\b", semantic_text) and isinstance(value, dict) and {"min", "max"} <= set(value):
+        return "range"
+    if re.search(r"\b(?:about|approximately|approx)\b", semantic_text):
+        return "approximately"
+    if re.search(r"\bexactly\b", semantic_text):
+        return "exact"
+    if requirement_type in {"explicit_maximum", "maximum", "maximum_dimension", "maximum_count", "maximum_capacity"}:
+        return "maximum"
+    if requirement_type in {"explicit_minimum", "minimum", "minimum_dimension", "minimum_count", "minimum_capacity"}:
+        return "minimum"
+    if requirement_type in {"range", "numeric_range"} or isinstance(value, dict) and {"min", "max"} <= set(value):
+        return "range"
+    if requirement_type in {"approximate", "approximately"}:
+        return "approximately"
+    if requirement_type in {"feature_presence"} or kind == "feature" and value is True:
+        return "present"
+    if requirement_type in {"feature_absence"} or kind == "feature" and value is False:
+        return "absent"
+    if requirement_type in {"qualitative_behavior"}:
+        return "qualitative"
+    return "exact"
+
+
+def _capacity_language(text: str) -> bool:
+    return bool(
+        re.search(
+            r"\b(?:can|must|should|able\s+to)\b.{0,50}\b(?:hold|accommodate|fit)\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _parse_capacity_phrases(text: str) -> list[dict[str, Any]]:
+    """Parse generic capacity language without product vocabulary."""
+
+    number_words = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+    }
+    pattern = re.compile(
+        r"\b(?:can|must|should|able\s+to)\s+(?:hold|accommodate|fit|support)\s+"
+        r"(?:(?P<operator>up\s+to|at\s+least|exactly)\s+)?"
+        r"(?P<value>\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+        r"(?P<object>[a-z0-9][a-z0-9 _-]*?)(?=\s*(?:[,.;]|$|\b(?:with|that|which|and|needs|suitable)\b))",
+        flags=re.IGNORECASE,
+    )
+    range_pattern = re.compile(
+        r"\b(?:can|must|should|able\s+to)\s+(?:hold|accommodate|fit|support)\s+"
+        r"between\s+(?P<minimum>\d+)\s+and\s+(?P<maximum>\d+)\s+"
+        r"(?P<object>[a-z0-9][a-z0-9 _-]*?)(?=\s*(?:[,.;]|$|\b(?:with|that|which|and|needs|suitable)\b))",
+        flags=re.IGNORECASE,
+    )
+    items: list[dict[str, Any]] = []
+    matches = list(pattern.finditer(text)) + list(range_pattern.finditer(text))
+    for match in sorted(matches, key=lambda item: item.start()):
+        object_phrase = str(match.group("object") or "").strip()
+        object_type, unit = _object_semantics(object_phrase)
+        if not object_type or not unit:
+            continue
+        if "minimum" in match.groupdict():
+            value: Any = {
+                "min": int(match.group("minimum")),
+                "max": int(match.group("maximum")),
+            }
+            operator = "range"
+        else:
+            raw_value = str(match.group("value"))
+            value = number_words.get(raw_value.lower())
+            if value is None:
+                value = int(raw_value)
+            operator = str(match.group("operator") or "exact").replace(" ", "_").lower()
+            if operator == "exactly":
+                operator = "exact"
+        requirement_id = f"{unit}_capacity"
+        subject = _subject_before_capacity(text, match.start())
+        items.append(
+            explicit_item(
+                requirement_id,
+                value,
+                unit=unit,
+                label=f"{unit.replace('_', ' ').title()} capacity",
+                requirement_type="capacity",
+                evidence=match.group(0).strip(),
+                kind="capacity",
+                operator=operator,
+                subject=subject,
+                object_type=object_type,
+                target=f"{unit}_storage",
+            )
+        )
+    return items
+
+
+def _object_semantics(phrase: str) -> tuple[str, str | None]:
+    words = [
+        token
+        for token in re.findall(r"[a-z0-9]+", phrase.lower())
+        if token not in {"a", "an", "the", "of", "sized", "type"}
+    ]
+    if not words:
+        return "", None
+    words[-1] = _singularize(words[-1])
+    return canonical_requirement_id("_".join(words)), words[-1]
+
+
+def _singularize(word: str) -> str:
+    if word.endswith("ies") and len(word) > 4:
+        return word[:-3] + "y"
+    if word.endswith("ses") and len(word) > 4:
+        return word[:-2]
+    if word.endswith("s") and not word.endswith("ss") and len(word) > 3:
+        return word[:-1]
+    return word
+
+
+def _subject_before_capacity(text: str, start: int) -> str | None:
+    prefix = text[:start]
+    match = re.search(
+        r"\b(?:create|make|build|design)\s+(?:a|an|the)\s+([a-z0-9][a-z0-9 _-]*?)(?=\s*(?:,|\bthat\b|\bwhich\b|\bcan\b))",
+        prefix,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    return canonical_requirement_id(match.group(1).strip())
 
 
 def _default_unit_for_id(requirement_id: str) -> str | None:

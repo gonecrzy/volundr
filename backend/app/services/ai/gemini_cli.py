@@ -32,9 +32,9 @@ from app.services.cad.source_scaffold import SCAFFOLD_VERSION
 from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
-REQUIREMENTS_PROMPT_VERSION = "requirements-v3"
+REQUIREMENTS_PROMPT_VERSION = "requirements-v4"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v7"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v8"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 SCOPE_CORRECTION_PROMPT_VERSION = "cadquery-scope-correction-v2"
 CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
@@ -851,6 +851,8 @@ class GeminiCliProvider:
                 "Do not make a comprehensive parameter graph or reusable template mandatory for ordinary designs. Do not use a fishing-tray carrier as the schema template.",
                 "Record provenance.relationship when a parameter or proposal has a useful source: direct, derived_formula, calculated, standard_lookup, product_default, printer_default, ai_proposal, or user_override.",
                 "Every active requirement must be represented in the Plan or functional contract, but ordinary numeric values are not automatically reusable controls.",
+                "Preserve requirement semantics explicitly: distinguish exact, minimum, maximum, range, up_to, at_least, approximately, present, absent, and qualitative. Never turn an upper capacity into an exact current occupancy or a proposal into a user requirement.",
+                "For every requirement that has a Plan feature or validation target, include requirement_ids on the feature or target when the schema allows it. Preserve kind, operator, value, unit, subject, object_type, and target semantics. A unique typed relationship may be normalized later, but do not contradict one explicitly supplied.",
                 "Include exposed_controls only for controls explicitly requested by the user. Leave exposed_controls empty for ordinary designs.",
                 "A parameter with source_requirement_id must copy that source requirement's value and unit only when its provenance relationship is direct. Derived implementation dimensions must not be marked direct.",
                 "Use derived_parameters or derived_formula provenance for calculated stack, envelope, or overall product dimensions, not direct source-linked values.",
@@ -979,6 +981,21 @@ class GeminiCliProvider:
                     "description": "string",
                     "parameters": ["parameter_id"],
                     "protected": False,
+                    "requirement_ids": ["requirement_id"],
+                    "semantic_type": "string|null",
+                }
+            ],
+            "validation_targets": [
+                {
+                    "id": "validation_target_id",
+                    "requirement_ids": ["requirement_id"],
+                    "feature_id": "feature_id|null",
+                    "type": "count|capacity|dimension|clearance|fit|spacing|position|orientation|support|retention|qualitative",
+                    "measurement": "string|null",
+                    "expected_value": 0,
+                    "unit": "mm|count|string|null",
+                    "object_type": "string|null",
+                    "description": "string",
                 }
             ],
             "presets": [
@@ -1077,6 +1094,8 @@ class GeminiCliProvider:
                 "A printable component is an independently printable part. Ribs, holes, vents, bosses, openings, floors, fillets, chamfers, snap arms, and fused reinforcements are integral features owned by their printable component.",
                 "For an unambiguous single-part plan, a missing feature owner may default to the sole printable component. Never infer a multipart owner or silently create an extra printable output.",
                 "Use stable IDs and distinguish proposals from user requirements.",
+                "Preserve every active requirement's semantic kind and operator, including exact, minimum, maximum, range, up_to, at_least, approximately, present, absent, and qualitative. Do not turn capacity up_to N into exactly N occupied objects.",
+                "When a feature or validation target implements a requirement, include its requirement_ids, feature_id, component_id, measurement, value, unit, and object_type where known. Do not invent links that contradict the active requirement ledger.",
                 "Do not use ordinary local calculation names as component IDs, feature IDs, outputs, or exposed controls.",
                 "For repeated features choose fixed_positions, proposed_positions, uniform_linear, rectangular_grid, circular, or distributed_within_region according to the requirement. Numeric count, spacing, radius, positions, and region guidance are valid one-off plan values.",
                 "Only use configurable_pattern or parameter IDs for count, spacing, rows, columns, or radius when the user explicitly requests reusable adjustment or the relationship is explicitly exposed.",
@@ -1231,6 +1250,8 @@ class GeminiCliProvider:
                 "Classify whether generation is ready, clarification is required, requirements conflict, or the request is unsupported.",
                 "Do not silently invent critical dimensions. Use allowed defaults only when they are non-critical or explicitly defaultable.",
                 "Preserve nominal hardware designations as strings, including the # prefix. A designation such as #8 is not an 8 mm dimension; use a semantic ID such as mounting_screw_designation and leave hole diameter to a later standard lookup proposal.",
+                "Preserve requirement meaning explicitly. Use kind and operator fields to distinguish exact, minimum, maximum, range, up_to, at_least, approximately, present, absent, and qualitative. For capacity, preserve the supported object type and maximum/minimum meaning; 'up to N' is not 'exactly N'.",
+                "Keep the user's raw wording in raw_evidence and retain subject, object_type, and target when they are present or can be read directly from the request. Do not turn a Volundr or provider proposal into an explicit user requirement.",
                 "When the request says wall-mounted, wall-mounted means a vertical planar wall mount unless the user states otherwise; propose ordinary screw spacing and orientation rather than asking for them.",
                 "When a moving-vehicle request requires secure retention and one-handed removal, do not ask the user to choose an implementation mechanism when a supported concrete proposal is reasonable; let the Design Plan propose one.",
                 "do not ask the user to convert a nominal designation such as #8 into a metric diameter.",
@@ -1252,10 +1273,33 @@ class GeminiCliProvider:
                     "source": "user|clarification|calculated|printer_profile|product_default|ai_assumption",
                     "importance": "critical|important|optional|cosmetic",
                     "protected": True,
+                    "kind": "dimension|capacity|count|fit|clearance|support|retention|access|orientation|relationship|qualitative",
+                    "operator": "exact|minimum|maximum|range|up_to|at_least|approximately|present|absent|qualitative",
+                    "subject": "string|null",
+                    "object_type": "string|null",
+                    "target": "string|null",
+                    "raw_evidence": "string|null",
                 }
             ],
             "parameters": [],
-            "functional_requirements": [],
+            "functional_requirements": [
+                {
+                    "id": "string",
+                    "description": "string",
+                    "source": "user|clarification|calculated|product_default|ai_assumption",
+                    "importance": "critical|important|optional|cosmetic",
+                    "protected": True,
+                    "type": "feature_presence|feature_absence|capacity|support|retention|access|orientation|relationship|qualitative_behavior",
+                    "kind": "feature|capacity|support|retention|access|orientation|relationship|qualitative",
+                    "operator": "present|absent|exact|minimum|maximum|up_to|at_least|qualitative",
+                    "value": "string|number|boolean|object|null",
+                    "unit": "string|null",
+                    "subject": "string|null",
+                    "object_type": "string|null",
+                    "target": "string|null",
+                    "raw_evidence": "string|null",
+                }
+            ],
             "print_requirements": {},
             "assumptions": [],
             "conflicts": [],

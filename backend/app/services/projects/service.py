@@ -235,10 +235,10 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
         "feature.small_features_gaps_holes",
     }
 )
-REQUIREMENTS_PROMPT_VERSION = "requirements-v1"
+REQUIREMENTS_PROMPT_VERSION = "requirements-v4"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
-DESIGN_PLAN_PROMPT_VERSION = "design-plan-v6"
-COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v2"
+DESIGN_PLAN_PROMPT_VERSION = "design-plan-v8"
+COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v3"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
 CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v8"
 CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v8"
@@ -1430,6 +1430,12 @@ class ProjectService:
                 "source": item["source"],
                 "authority": item["authority"],
                 "protected": item["protected"],
+                "kind": item.get("kind"),
+                "operator": item.get("operator"),
+                "subject": item.get("subject"),
+                "object_type": item.get("object_type"),
+                "target": item.get("target"),
+                "raw_evidence": item.get("raw_evidence"),
             }
             for item in inventory
         }
@@ -6447,6 +6453,7 @@ class ProjectService:
         generation_attempt_id: str,
         design_specification_payload: dict[str, Any] | None = None,
         request_context: str | None = None,
+        strict_parameter_trace: bool = False,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -6507,7 +6514,7 @@ class ProjectService:
         if functional_findings:
             normalized["functional_validation_findings"] = functional_findings
         explicit_inventory = inventory_from_design_specification(design_specification_payload)
-        if explicit_inventory:
+        if explicit_inventory and strict_parameter_trace:
             validate_design_plan_trace(normalized, explicit_inventory)
         self._validate_design_plan_dependency_edges(normalized)
         return normalized
@@ -7597,6 +7604,12 @@ class ProjectService:
                             "function_id": finding.get("function_id"),
                             "trace_classification": finding.get("trace_classification"),
                             "normalization_decision": finding.get("normalization_decision"),
+                            "trace_metadata": finding.get("metadata"),
+                            "candidate_matches": finding.get("candidate_matches"),
+                            "rejected_matches": finding.get("rejected_matches"),
+                            "selected_match": finding.get("selected_match"),
+                            "confidence_basis": finding.get("confidence_basis"),
+                            "normalization_rule": finding.get("normalization_rule"),
                         },
                         sort_keys=True,
                     ),
