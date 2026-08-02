@@ -156,6 +156,10 @@ export function canGenerateFromRevisionPlan(plan: RevisionPlanSummary | null): b
   return plan?.review_state === "approved" && plan.revision_ready && !plan.generated_revision_id;
 }
 
+export function shouldLoadComponentRevisionSummary(plan: RevisionPlanSummary | null): boolean {
+  return Boolean(plan?.generated_revision_id);
+}
+
 export function revisionPlanSummaryCounts(plan: RevisionPlanSummary | null): {
   requestedChanges: number;
   dependencies: number;

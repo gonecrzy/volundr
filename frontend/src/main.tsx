@@ -76,6 +76,7 @@ import {
   revisionPlanStageLabel,
   revisionPlanSummaryCounts,
   revisionSuccessBuckets,
+  shouldLoadComponentRevisionSummary,
   type ComponentRevisionSummary,
   type RevisionComplianceResult,
   type RevisionPlanOutcome,
@@ -1089,6 +1090,10 @@ function App() {
   }
 
   async function loadRevisionPlanResults(plan: RevisionPlan) {
+    if (!shouldLoadComponentRevisionSummary(plan)) {
+      setComponentRevisionSummary(null);
+      return;
+    }
     try {
       setRevisionComplianceResult(
         await request<RevisionComplianceResult>(`/revision-plans/${plan.id}/compliance-result`, {
