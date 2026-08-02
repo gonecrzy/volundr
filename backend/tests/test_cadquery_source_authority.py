@@ -245,6 +245,21 @@ def test_missing_protected_parameters_fail_before_execution() -> None:
     assert {"cadquery.required_parameter_missing"} == finding_ids(exc.value.findings)
 
 
+def test_ordinary_modern_plan_does_not_require_source_parameter_metadata() -> None:
+    authority = build_cadquery_source_authority({**ENCLOSURE_PLAN, "exposed_controls": []})
+    source = _source(
+        parameters=COMPLETE_PARAMETERS.replace(
+            '    ParameterSpec(id="standoff_count", label="Standoff Count", type="int", default=4, unit="count", protected=True, source_requirement_id="standoff_count", source="user"),\n',
+            "",
+        ).replace(
+            '    ParameterSpec(id="standoff_hole", label="Standoff Hole", type="float", default=2.6, unit="mm", protected=True, source_requirement_id="standoff_hole", source="user"),\n',
+            "",
+        )
+    )
+
+    validate_cadquery_source_authority(source, authority)
+
+
 def test_declared_protected_count_parameter_must_be_used() -> None:
     authority = build_cadquery_source_authority(ENCLOSURE_PLAN)
     source = _source(

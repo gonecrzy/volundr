@@ -126,7 +126,7 @@ from app.services.cad.geometry_bodies import (
     build_geometry_function_inventory,
     validate_geometry_body_repair_scope,
 )
-from app.services.cad.patterns import normalize_pattern_specs, validate_pattern_specs
+from app.services.cad.patterns import exposed_control_ids, normalize_pattern_specs, validate_pattern_specs
 from app.services.cad.runtime_diagnostics import (
     classify_worker_name_failure,
     runtime_repair_is_eligible,
@@ -251,6 +251,27 @@ DEFAULT_REQUIREMENT_PROFILE = {
 class _StoppedWithRevision(Exception):
     def __init__(self, revision: RevisionRead) -> None:
         self.revision = revision
+
+
+def _control_source_inventory(
+    design_plan_payload: dict[str, Any] | None,
+    inventory: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Keep source-parameter enforcement scoped to explicitly exposed controls.
+
+    Legacy plans without an ``exposed_controls`` field retain their historical
+    source-trace behavior.  Modern requirement-led plans may inline ordinary
+    values and are checked against the resulting geometry instead.
+    """
+
+    if not isinstance(design_plan_payload, dict) or "exposed_controls" not in design_plan_payload:
+        return inventory
+    controls = exposed_control_ids(design_plan_payload)
+    return [
+        item
+        for item in inventory
+        if str(item.get("requirement_id") or item.get("id") or "") in controls
+    ]
 
 
 class ProjectService:
@@ -6686,6 +6707,7 @@ class ProjectService:
             hard_violations.extend(validate_scaffold_source(source))
             metadata = asdict(source_metadata)
             explicit_inventory = inventory_from_design_specification(design_specification_payload)
+            explicit_inventory = _control_source_inventory(design_plan_payload, explicit_inventory)
             if explicit_inventory:
                 validate_source_parameter_trace(
                     {
@@ -9268,6 +9290,7 @@ class ProjectService:
             overrides=parameter_values,
         )
         explicit_inventory = inventory_from_design_specification(design_specification_payload)
+        explicit_inventory = _control_source_inventory(design_plan_payload, explicit_inventory)
         if explicit_inventory:
             validate_execution_parameters(compile_parameter_values, explicit_inventory)
         parameter_hash = self._configuration_parameter_hash(compile_parameter_values)

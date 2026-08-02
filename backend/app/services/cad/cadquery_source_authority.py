@@ -393,6 +393,12 @@ def _validate_source_against_authority(
         for parameter in authority.get("parameters", []) or []
         if isinstance(parameter, dict) and parameter.get("id")
     }
+    modern_control_contract = authority.get("exposed_control_ids") is not None
+    exposed_control_ids = {
+        str(parameter_id)
+        for parameter_id in authority.get("exposed_control_ids", []) or []
+        if parameter_id
+    }
     approved_component_ids = {
         str(component.get("id"))
         for component in authority.get("components", []) or []
@@ -408,6 +414,11 @@ def _validate_source_against_authority(
             continue
         parameter_id = str(parameter["id"])
         required = bool(parameter.get("required", True))
+        if modern_control_contract:
+            # Ordinary modern plans are requirement-led and may implement
+            # values as literals or locals.  Only explicitly exposed
+            # controls require a matching ParameterSpec identity here.
+            required = parameter_id in exposed_control_ids
         if required and parameter_id not in source_parameter_ids:
             findings.append(
                 _finding(

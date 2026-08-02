@@ -862,7 +862,9 @@ def test_design_plan_missing_protected_requirement_is_repaired(tmp_path: Path) -
 
 
 def test_generated_source_parameter_drift_blocks_before_cad_runner(tmp_path: Path, monkeypatch) -> None:
-    provider = DriftSourceProvider(READY_PLAN)
+    provider = DriftSourceProvider(
+        {**READY_PLAN, "exposed_controls": [{"parameter_id": "mount_hole_spacing"}]}
+    )
     client, _SessionLocal = build_client(tmp_path, provider)
     _project, specification = create_project_and_spec(client)
     plan = client.post(f"/api/design-specifications/{specification['id']}/design-plan").json()

@@ -12,7 +12,7 @@ from app.services.cad.source_scaffold import SCAFFOLD_VERSION, render_cadquery_s
 from app.models.generation_attempt import GenerationAttempt
 from app.services.projects.plan_constraints import normalize_plan_constraints
 from app.services.projects.requirement_ledger import apply_requirement_delta, build_requirement_ledger
-from app.services.projects.service import ProjectService
+from app.services.projects.service import ProjectService, _control_source_inventory
 
 
 def _plan(*, exposed_controls: list[dict] | None = None) -> dict:
@@ -125,6 +125,20 @@ def _with_malformed_unused_derived(plan: dict) -> dict:
         }
     )
     return result
+
+
+def test_ordinary_source_inventory_is_empty_but_exposed_controls_remain_strict() -> None:
+    inventory = [
+        {"requirement_id": "plate_width", "value": 80},
+        {"requirement_id": "plate_thickness", "value": 6},
+    ]
+
+    assert _control_source_inventory({"exposed_controls": []}, inventory) == []
+    assert _control_source_inventory(
+        {"exposed_controls": [{"parameter_id": "plate_width"}]},
+        inventory,
+    ) == [inventory[0]]
+    assert _control_source_inventory({}, inventory) == inventory
 
 
 def test_unused_malformed_derived_dependency_is_diagnostic_only() -> None:
