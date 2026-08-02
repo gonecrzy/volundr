@@ -400,6 +400,7 @@ def get_workflow_diagnosis(
         "schema_version": diagnosis.schema_version,
         "workflow_run_id": diagnosis.workflow_run_id,
         "root_cause": diagnosis.root_cause,
+        "findings": diagnosis.root_cause.get("findings", []),
         "repairs": diagnosis.repairs,
         "downstream_effects": diagnosis.downstream_effects,
         "final_outcome": diagnosis.final_outcome,

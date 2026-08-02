@@ -22,6 +22,7 @@ from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.revision_plan import RevisionPlan
+from app.models.validation_finding import ValidationFinding
 from app.models.workflow import WorkflowArtifact, WorkflowRun
 from app.schemas.project import (
     ChatMessageCreate,
@@ -299,12 +300,17 @@ class ChatWorkflowService:
                         planning_depth = json.loads(route_path.read_text(encoding="utf-8")).get("outcome")
                     except (OSError, json.JSONDecodeError):
                         planning_depth = None
+        message = (
+            "Volundr could not create a valid design plan for this request. No working version was created."
+            if attempt is not None and attempt.failure_class == "design_plan_invalid"
+            else "Volundr could not create a valid new version. Your current working version is unchanged."
+        )
         return self._response(
             workflow_run,
             action,
             "blocked_attempt",
             False,
-            "Volundr could not create a valid new version. Your current working version is unchanged.",
+            message,
             current_revision_id=current.active_revision_id if current is not None else None,
             blocked_attempt=blocked_attempt,
             design_plan_id=plan.id if plan is not None else None,
@@ -564,7 +570,52 @@ class ChatWorkflowService:
             "validation_summary": revision.validation_summary.model_dump(),
             "error_message": revision.error_message,
         }
-        self._event(workflow_run, "blocked_attempt.preserved", "Blocked attempt preserved; Current working version unchanged.", "blocked_attempt_preserved", revision_id=revision.id, metadata=blocked)
+        attempt = self.db.scalar(
+            select(GenerationAttempt)
+            .where(GenerationAttempt.resulting_revision_id == revision.id)
+            .order_by(GenerationAttempt.started_at.desc())
+        )
+        blocking_findings = list(
+            self.db.scalars(
+                select(ValidationFinding)
+                .where(ValidationFinding.revision_id == revision.id)
+                .where(ValidationFinding.is_blocking.is_(True))
+                .order_by(ValidationFinding.created_at.asc(), ValidationFinding.rule_id.asc())
+            )
+        )
+        failure_class = attempt.failure_class if attempt is not None else "unknown_failure"
+        failure_stage = _failure_stage_for_blocked_attempt(failure_class)
+        blocked_event_metadata = {
+            **blocked,
+            "attempt_id": attempt.id if attempt is not None else None,
+            "failure_class": failure_class,
+            "failure_stage": failure_stage,
+            "error_message": revision.error_message
+            or (blocking_findings[0].explanation if blocking_findings else None),
+            "provider_response_received": bool(attempt and attempt.raw_output_path),
+            "geometry_generation_attempted": failure_stage != "plan_validation",
+            "worker_reached": failure_stage in {"worker_execution", "topology_validation", "functional_validation"},
+            "current_working_version_unchanged": True,
+            "blocking_findings": [
+                {
+                    "id": finding.id,
+                    "rule_id": finding.rule_id,
+                    "category": finding.category,
+                    "severity": finding.severity,
+                    "explanation": finding.explanation,
+                }
+                for finding in blocking_findings
+            ],
+        }
+        self._event(
+            workflow_run,
+            "blocked_attempt.preserved",
+            "Blocked attempt preserved; Current working version unchanged.",
+            "blocked_attempt_preserved",
+            generation_attempt_id=attempt.id if attempt is not None else None,
+            revision_id=revision.id,
+            metadata=blocked_event_metadata,
+        )
         self.service._complete_workflow_lineage(workflow_run, status="failed")
         current_revision_id = self.db.get(Project, revision.project_id).active_revision_id
         return self._response(workflow_run, action, "blocked_attempt", False, "Volundr could not create a valid new version. Your current working version is unchanged.", current_revision_id=current_revision_id, revision_id=revision.id, blocked_attempt=blocked, **ids)
@@ -631,3 +682,18 @@ def _assistant_message_role(response: ChatWorkflowResponse) -> str:
     if response.current_stage == "working_version":
         return "assistant_success"
     return "assistant_information"
+
+
+def _failure_stage_for_blocked_attempt(failure_class: str) -> str:
+    return {
+        "design_plan_invalid": "plan_validation",
+        "design_artifact_inconsistent": "artifact_consistency",
+        "source_extraction_failure": "source_extraction",
+        "geometry_body_failure": "source_contract_validation",
+        "source_contract_hard_rejection": "source_contract_validation",
+        "cadquery_compile_failure": "worker_execution",
+        "cadquery_timeout": "worker_execution",
+        "mesh_invalid": "topology_validation",
+        "mesh_empty_or_zero_volume": "topology_validation",
+        "mesh_non_watertight": "topology_validation",
+    }.get(failure_class, "candidate_validation")

@@ -14,6 +14,9 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.project import Project
+from app.models.generation_attempt import GenerationAttempt
+from app.models.revision import Revision
+from app.models.validation_finding import ValidationFinding
 from app.models.workflow import (
     FrontendWorkflowEvent,
     WorkflowArtifact,
@@ -28,6 +31,7 @@ from app.services.workflow.redaction import RedactionService
 from app.services.workflow.comparison import WorkflowRunComparisonService
 from app.services.workflow.stage_trace import WorkflowStageTraceService
 from app.services.projects.service import ProjectService
+from app.services.generation.failure_taxonomy import FailureClass
 from tests.test_design_plans import (
     FakeCadRunner,
     PlanningAiProvider,
@@ -201,6 +205,212 @@ def test_conservative_diagnosis_marks_candidate_block_as_symptom(tmp_path: Path)
     assert any(effect["event_id"] == candidate_block.id for effect in diagnosis.downstream_effects)
     stored = session.get(WorkflowDiagnosis, diagnosis.id)
     assert stored is not None
+
+
+def test_diagnosis_uses_plan_finding_when_legacy_block_event_is_nonblocking(tmp_path: Path) -> None:
+    session, _SessionLocal = _session(tmp_path)
+    project = _project(session)
+    recorder = WorkflowRecorder(db=session, data_dir=tmp_path / "data")
+    run = recorder.start_run(project_id=project.id, workflow_type="initial_generation")
+    attempt = GenerationAttempt(
+        project_id=project.id,
+        attempt_number=1,
+        provider_id="fake",
+        model_id="fake-model",
+        prompt_version="compact-cad-plan-v1",
+        ruleset_version="test-rules",
+        request_payload_path="request.json",
+        prompt_path="prompt.txt",
+        status="succeeded",
+        failure_class="design_plan_invalid",
+    )
+    session.add(attempt)
+    session.flush()
+    finding = ValidationFinding(
+        generation_attempt_id=attempt.id,
+        rule_id="plan.pattern_owner_missing",
+        category="plan_pattern",
+        severity="critical",
+        is_blocking=True,
+        title="Pattern owner missing",
+        explanation="The pattern does not identify its owning feature.",
+        suggested_correction="Reference an existing feature.",
+        metadata_json=json.dumps({"workflow_run_id": run.id}),
+    )
+    session.add(finding)
+    session.commit()
+    recorder.record_event(
+        run,
+        stage="blocked_attempt",
+        event_type="blocked_attempt.preserved",
+        severity="error",
+        blocking=False,
+        message="Blocked attempt preserved; Current working version unchanged.",
+        generation_attempt_id=attempt.id,
+        deduplication_key="legacy-blocked-attempt",
+    )
+
+    diagnosis = WorkflowDiagnosisService(db=session).diagnose(run.id)
+
+    assert diagnosis.root_cause["stage"] == "plan_validation"
+    assert diagnosis.root_cause["rule_id"] == "plan.pattern_owner_missing"
+    assert diagnosis.root_cause["confidence"] == "confirmed"
+
+
+def test_diagnosis_uses_blocked_attempt_failure_metadata_and_revision_finding(tmp_path: Path) -> None:
+    session, _SessionLocal = _session(tmp_path)
+    project = _project(session)
+    recorder = WorkflowRecorder(db=session, data_dir=tmp_path / "data")
+    run = recorder.start_run(project_id=project.id, workflow_type="initial_generation")
+    revision = Revision(
+        project_id=project.id,
+        revision_number=1,
+        source_type="ai_generated",
+        user_instruction="Create a tackle tray holder.",
+        source_path="projects/observable-bracket/revisions/1/source.py",
+        status="failed",
+        review_state="blocked",
+        is_accepted=False,
+    )
+    session.add(revision)
+    session.flush()
+    attempt = GenerationAttempt(
+        project_id=project.id,
+        resulting_revision_id=revision.id,
+        attempt_number=1,
+        provider_id="fake",
+        model_id="fake-model",
+        prompt_version="cadquery-geometry-body-v8",
+        ruleset_version="test-rules",
+        request_payload_path="request.json",
+        prompt_path="prompt.txt",
+        raw_output_path="raw-output.json",
+        status="failed",
+        failure_class="design_artifact_inconsistent",
+    )
+    session.add(attempt)
+    session.flush()
+    finding = ValidationFinding(
+        revision_id=revision.id,
+        generation_attempt_id=attempt.id,
+        rule_id="design_artifact.requirement_trace_failed",
+        category="design_artifact_consistency",
+        severity="critical",
+        is_blocking=True,
+        title="Requirement trace failed",
+        explanation="The approved Design Plan no longer preserves explicit user requirements.",
+        suggested_correction="Regenerate from the approved Design Plan.",
+    )
+    session.add(finding)
+    session.commit()
+    recorder.record_event(
+        run,
+        stage="chat_workflow",
+        event_type="blocked_attempt.preserved",
+        severity="summary",
+        blocking=False,
+        message="Blocked attempt preserved; Current working version unchanged.",
+        generation_attempt_id=attempt.id,
+        revision_id=revision.id,
+        deduplication_key="blocked-artifact-consistency",
+        metadata={
+            "attempt_id": attempt.id,
+            "revision_id": revision.id,
+            "failure_class": "design_artifact_inconsistent",
+            "failure_stage": "artifact_consistency",
+            "provider_response_received": True,
+            "geometry_generation_attempted": True,
+            "worker_reached": False,
+            "current_working_version_unchanged": True,
+        },
+    )
+
+    diagnosis = WorkflowDiagnosisService(db=session).diagnose(run.id)
+
+    assert diagnosis.root_cause["stage"] == "artifact_consistency"
+    assert diagnosis.root_cause["rule_id"] == "design_artifact.requirement_trace_failed"
+    assert diagnosis.root_cause["findings"][0]["rule_id"] == "design_artifact.requirement_trace_failed"
+    assert diagnosis.root_cause["basis"]["worker_reached"] is False
+
+
+def test_plan_validation_block_persists_provider_and_normalized_evidence(tmp_path: Path) -> None:
+    session, _SessionLocal = _session(tmp_path)
+    project = _project(session)
+    recorder = WorkflowRecorder(db=session, data_dir=tmp_path / "data")
+    run = recorder.start_run(project_id=project.id, workflow_type="design_plan_creation")
+    attempt = GenerationAttempt(
+        project_id=project.id,
+        attempt_number=1,
+        provider_id="fake",
+        model_id="fake-model",
+        prompt_version="compact-cad-plan-v2",
+        ruleset_version="test-rules",
+        request_payload_path="request.json",
+        prompt_path="prompt.txt",
+        status="succeeded",
+        failure_class=FailureClass.NONE.value,
+    )
+    session.add(attempt)
+    session.flush()
+    service = ProjectService(db=session, data_dir=tmp_path / "data")
+    service._generation_attempt_dir(project.id, attempt.id).mkdir(parents=True, exist_ok=True)
+    event_id = service._persist_plan_normalization_evidence(
+        workflow_run=run,
+        attempt=attempt,
+        specification=None,
+        raw_output=json.dumps({"patterns": [{"pattern_id": "tray_slots"}]}),
+        normalized_payload={"patterns": []},
+        findings=[
+            {
+                "rule_id": "plan.pattern_type_missing",
+                "category": "plan_pattern",
+                "severity": "critical",
+                "blocking": True,
+                "title": "Pattern type missing",
+                "explanation": "The pattern type cannot be inferred safely.",
+                "suggested_correction": "Provide an explicit layout type.",
+                "pattern_index": 0,
+                "pattern_id": "tray_slots",
+            }
+        ],
+        validation_outcome="blocked",
+    )
+    service._finish_generation_attempt(
+        attempt,
+        status="succeeded",
+        failure_class=FailureClass.DESIGN_PLAN_INVALID,
+    )
+    session.commit()
+
+    session.refresh(attempt)
+    routing = json.loads(attempt.routing_metadata_json)
+    finding = session.scalar(
+        select(ValidationFinding).where(ValidationFinding.generation_attempt_id == attempt.id)
+    )
+    artifacts = list(
+        session.scalars(
+            select(WorkflowArtifact).where(WorkflowArtifact.workflow_run_id == run.id)
+        )
+    )
+    event = session.get(WorkflowEvent, event_id)
+
+    assert attempt.status == "succeeded"
+    assert attempt.failure_class == FailureClass.DESIGN_PLAN_INVALID.value
+    assert routing["provider_response_received"] is True
+    assert routing["plan_validation_outcome"] == "blocked"
+    assert routing["geometry_generation_attempted"] is False
+    assert routing["worker_reached"] is False
+    assert finding is not None
+    assert finding.rule_id == "plan.pattern_type_missing"
+    assert finding.is_blocking is True
+    assert {artifact.artifact_type for artifact in artifacts} == {
+        "provider_plan_original",
+        "provider_plan_normalized",
+    }
+    assert event is not None
+    assert event.stage == "plan_validation"
+    assert event.blocking is True
+    assert event.rule_id == "plan.pattern_type_missing"
 
 
 def test_resolved_historical_failure_is_not_later_root_cause(tmp_path: Path) -> None:

@@ -170,6 +170,7 @@ from app.services.projects.plan_provenance import (
 )
 from app.services.projects.plan_constraints import (
     explicit_control_requests,
+    PlanNormalizationError,
     normalize_compact_component_feature_semantics,
     normalize_plan_constraints,
 )
@@ -3305,6 +3306,7 @@ class ProjectService:
         rejected_payload: dict[str, Any] | None = None
         rejected_raw_output: str | None = None
         comparison: dict[str, Any] | None = None
+        plan_validation_failure_event_ids: list[str] = []
         for repair_round in range(2):
             result = None
             request = DesignPlanRequest(
@@ -3359,12 +3361,31 @@ class ProjectService:
                 self._finish_provider_cancelled_attempt(attempt)
                 raise
             except (ValueError, ValidationError, ProviderContractError) as exc:
-                self._finish_generation_attempt(
-                    attempt,
-                    status="failed",
-                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
-                    error_message=str(exc),
-                )
+                if isinstance(exc, PlanNormalizationError) and result is not None:
+                    event_id = self._persist_plan_normalization_evidence(
+                        workflow_run=workflow_run,
+                        attempt=attempt,
+                        specification=specification,
+                        raw_output=result.raw_output,
+                        normalized_payload=exc.normalized_payload,
+                        findings=exc.findings,
+                        validation_outcome="blocked",
+                    )
+                    if event_id:
+                        plan_validation_failure_event_ids.append(event_id)
+                    self._finish_generation_attempt(
+                        attempt,
+                        status="succeeded",
+                        failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                        error_message=str(exc),
+                    )
+                else:
+                    self._finish_generation_attempt(
+                        attempt,
+                        status="failed",
+                        failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                        error_message=str(exc),
+                    )
                 if repair_round == 1:
                     if rejected_payload is not None and result is not None:
                         repaired_payload = self._safe_provider_json_object(result.raw_output)
@@ -3417,6 +3438,29 @@ class ProjectService:
             relative_path=plan.plan_path,
             metadata={"design_plan_id": plan.id, "schema_version": plan.schema_version},
         )
+        self._persist_plan_normalization_evidence(
+            workflow_run=workflow_run,
+            attempt=attempt,
+            specification=specification,
+            raw_output=result.raw_output,
+            normalized_payload=payload,
+            findings=list(payload.get("normalization_findings", []) or []),
+            validation_outcome="passed",
+        )
+        for event_id in plan_validation_failure_event_ids:
+            self._record_workflow_event(
+                workflow_run,
+                stage="plan_validation",
+                event_type="plan.validation.succeeded",
+                severity="summary",
+                blocking=False,
+                caused_by_event_id=event_id,
+                rule_id="plan.validation.resolved",
+                message="Plan normalization succeeded after the bounded Plan repair.",
+                deduplication_key=f"plan-validation-resolved-{event_id}",
+                generation_attempt_id=attempt.id,
+                design_specification_id=specification.id,
+            )
         context = normalize_geometry_execution_context(
             planning_depth=PlanningDepth.COMPACT_PLAN.value,
             plan_artifact_id=plan_artifact.id if plan_artifact else plan.id,
@@ -3489,6 +3533,18 @@ class ProjectService:
             },
             compact=True,
         )
+        blocking_normalization_findings = [
+            item
+            for item in semantic_plan.get("normalization_findings", []) or []
+            if isinstance(item, dict) and item.get("blocking")
+        ]
+        if blocking_normalization_findings:
+            raise PlanNormalizationError(
+                "Compact Plan normalization produced blocking findings: "
+                + "; ".join(str(item.get("rule_id")) for item in blocking_normalization_findings),
+                findings=blocking_normalization_findings,
+                normalized_payload=semantic_plan,
+            )
         normalized_components = semantic_plan["components"]
         normalized_features = semantic_plan["features"]
         outputs = semantic_plan["printable_outputs"]
@@ -3575,8 +3631,15 @@ class ProjectService:
             normalized_payload,
             request_context=getattr(specification, "user_instruction", None),
         )
-        normalized_payload = normalize_pattern_specs(normalized_payload)
-        validate_pattern_specs(normalized_payload)
+        try:
+            normalized_payload = normalize_pattern_specs(normalized_payload)
+            validate_pattern_specs(normalized_payload)
+        except ValueError as exc:
+            raise PlanNormalizationError(
+                str(exc),
+                findings=list(getattr(exc, "findings", []) or normalized_payload.get("normalization_findings", [])),
+                normalized_payload=getattr(exc, "normalized_plan", normalized_payload),
+            ) from exc
         return normalized_payload
 
     def _safe_provider_json_object(self, raw_output: str | None) -> dict[str, Any] | None:
@@ -3612,6 +3675,148 @@ class ProjectService:
                 "identities_removed": comparison.get("identities_removed", []),
             },
         )
+
+    def _persist_plan_normalization_evidence(
+        self,
+        *,
+        workflow_run: WorkflowRun | None,
+        attempt: GenerationAttempt,
+        specification: DesignSpecification | None,
+        raw_output: str,
+        normalized_payload: dict[str, Any] | None,
+        findings: list[dict[str, Any]],
+        validation_outcome: str,
+    ) -> str | None:
+        """Persist provider and normalized Plans plus typed validation evidence."""
+
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        original_payload = self._safe_provider_json_object(raw_output)
+        original_document = original_payload or {"raw_output": raw_output}
+        normalized_document = normalized_payload or {
+            "normalization_failed": True,
+            "validation_outcome": validation_outcome,
+        }
+        routing = json.loads(attempt.routing_metadata_json or "{}")
+        routing.update(
+            {
+                "provider_response_received": bool(raw_output),
+                "plan_validation_outcome": validation_outcome,
+                "plan_validation_stage": "plan_validation",
+                "geometry_generation_attempted": False,
+                "worker_reached": False,
+            }
+        )
+        attempt.routing_metadata_json = json.dumps(routing, sort_keys=True)
+        original_path = run_dir / "plan-original.json"
+        normalized_path = run_dir / "plan-normalized.json"
+        self._write_json(original_path, original_document)
+        self._write_json(normalized_path, normalized_document)
+        original_artifact = self._record_workflow_artifact(
+            workflow_run,
+            stage="plan_validation",
+            artifact_type="provider_plan_original",
+            role="provider_plan_original",
+            relative_path=self._relative(original_path),
+            redacted=False,
+        )
+        normalized_artifact = self._record_workflow_artifact(
+            workflow_run,
+            stage="plan_validation",
+            artifact_type="provider_plan_normalized",
+            role="provider_plan_normalized",
+            relative_path=self._relative(normalized_path),
+            redacted=False,
+            supersedes_artifact_id=original_artifact.id if original_artifact else None,
+            metadata={"validation_outcome": validation_outcome},
+        )
+        plan_artifact_id = normalized_artifact.id if normalized_artifact else None
+        unique_findings: list[dict[str, Any]] = []
+        seen_findings: set[tuple[str, Any, Any]] = set()
+        for finding in findings:
+            if not isinstance(finding, dict):
+                continue
+            identity = (
+                str(finding.get("rule_id") or "plan.contract_invalid"),
+                finding.get("pattern_index"),
+                finding.get("pattern_id"),
+            )
+            if identity in seen_findings:
+                continue
+            seen_findings.add(identity)
+            unique_findings.append(finding)
+        if not unique_findings:
+            unique_findings = [{
+                "rule_id": "plan.contract_invalid",
+                "category": "plan",
+                "severity": "critical",
+                "blocking": validation_outcome == "blocked",
+                "title": "Design Plan validation failed",
+                "explanation": "The provider Plan did not satisfy the execution contract.",
+                "suggested_correction": "Regenerate the Plan with the required existing identities and layout semantics.",
+            }]
+        for finding in unique_findings:
+            blocking = bool(finding.get("blocking", validation_outcome == "blocked"))
+            metadata = {
+                "workflow_run_id": workflow_run.id if workflow_run else None,
+                "plan_artifact_id": plan_artifact_id,
+                "validation_outcome": validation_outcome,
+                "pattern_index": finding.get("pattern_index"),
+                "pattern_id": finding.get("pattern_id"),
+                "original_record": finding.get("original_record"),
+                "normalized_record": finding.get("normalized_record"),
+                "normalization_decision": finding.get("normalization_decision"),
+            }
+            self.db.add(
+                ValidationFinding(
+                    generation_attempt_id=attempt.id,
+                    design_specification_id=specification.id if specification else None,
+                    rule_id=str(finding.get("rule_id") or "plan.contract_invalid"),
+                    category=str(finding.get("category") or "plan"),
+                    severity=str(finding.get("severity") or ("critical" if blocking else "warning")),
+                    is_blocking=blocking,
+                    title=str(finding.get("title") or "Design Plan validation finding"),
+                    explanation=str(finding.get("explanation") or finding.get("reason") or ""),
+                    suggested_correction=str(
+                        finding.get("suggested_correction")
+                        or "Regenerate the Plan with the required execution contract."
+                    ),
+                    detected_value=str(finding.get("pattern_id") or "") or None,
+                    unit="mm" if finding.get("rule_id") == "plan.pattern_alias_normalized" else None,
+                    threshold_value=None,
+                    affected_geometry_summary=(
+                        f"pattern={finding.get('pattern_id')}"
+                        if finding.get("pattern_id")
+                        else None
+                    ),
+                    metadata_json=json.dumps(metadata, sort_keys=True, default=str),
+                )
+            )
+        self.db.flush()
+        if validation_outcome == "blocked":
+            primary = unique_findings[0]
+            event = self._record_workflow_event(
+                workflow_run,
+                stage="plan_validation",
+                event_type="plan.validation.blocked",
+                severity="error",
+                blocking=True,
+                is_root_failure=True,
+                rule_id=str(primary.get("rule_id") or "plan.contract_invalid"),
+                message="Design Plan normalization blocked before geometry generation.",
+                deduplication_key=f"plan-validation-blocked-{attempt.id}",
+                generation_attempt_id=attempt.id,
+                design_specification_id=specification.id if specification else None,
+                metadata={
+                    "provider_response_received": True,
+                    "plan_validation_outcome": "blocked",
+                    "geometry_attempted": False,
+                    "worker_reached": False,
+                    "findings": unique_findings,
+                    "plan_artifact_id": plan_artifact_id,
+                },
+            )
+            return event.id if event else None
+        return plan_artifact_id
 
     def _plan_repair_failure_comparison(
         self,
@@ -5615,12 +5820,29 @@ class ProjectService:
                 ),
             )
         except (ValueError, ValidationError) as exc:
-            self._finish_generation_attempt(
-                attempt,
-                status="failed",
-                failure_class=FailureClass.DESIGN_PLAN_INVALID,
-                error_message=str(exc),
-            )
+            if isinstance(exc, PlanNormalizationError) and planning_result is not None:
+                self._persist_plan_normalization_evidence(
+                    workflow_run=workflow_run,
+                    attempt=attempt,
+                    specification=specification,
+                    raw_output=planning_result.raw_output,
+                    normalized_payload=exc.normalized_payload,
+                    findings=exc.findings,
+                    validation_outcome="blocked",
+                )
+                self._finish_generation_attempt(
+                    attempt,
+                    status="succeeded",
+                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                    error_message=str(exc),
+                )
+            else:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                    error_message=str(exc),
+                )
             if request.schema_repair_of_raw_output is not None:
                 raise RuntimeError("planning returned invalid Design Plan") from exc
             repair_request = DesignPlanRequest(
@@ -6228,8 +6450,15 @@ class ProjectService:
             normalized,
             request_context=request_context,
         )
-        normalized = normalize_pattern_specs(normalized)
-        validate_pattern_specs(normalized)
+        try:
+            normalized = normalize_pattern_specs(normalized)
+            validate_pattern_specs(normalized)
+        except ValueError as exc:
+            raise PlanNormalizationError(
+                str(exc),
+                findings=list(getattr(exc, "findings", []) or normalized.get("normalization_findings", [])),
+                normalized_payload=getattr(exc, "normalized_plan", normalized),
+            ) from exc
         outcome = self._derive_design_plan_outcome(normalized)
         normalized["outcome"] = outcome.value
         normalized["clarification_required"] = (
