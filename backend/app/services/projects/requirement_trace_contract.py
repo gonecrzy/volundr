@@ -198,6 +198,7 @@ def _classify_item(
     requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
     requirement_type = str(item.get("type") or "qualitative_behavior")
     component_ids = _matching_component_ids(item, plan_components)
+    output_ids = _matching_output_ids(item, plan_outputs)
     feature = _match_feature(item, plan_features, patterns)
     target = _match_validation_target(item, feature, validation_targets)
     parameter_id = _matching_parameter_id(item, exposed_control_ids)
@@ -210,6 +211,7 @@ def _classify_item(
         exposed_control
         or requirement_type in _SOURCE_TRACE_TYPES
         or bool(component_ids)
+        or bool(output_ids)
     )
     findings: list[dict[str, Any]] = []
 
@@ -230,6 +232,7 @@ def _classify_item(
         "status": "unresolved",
         "plan_feature_id": None,
         "component_ids": component_ids,
+        "output_ids": output_ids,
         "owning_component_id": None,
         "function_id": None,
         "output_id": None,
@@ -300,6 +303,25 @@ def _classify_item(
             )
         else:
             obligation["status"] = "source_component_output_trace"
+        return obligation, findings
+
+    if output_ids:
+        missing_outputs = [output_id for output_id in output_ids if output_id not in source_output_ids]
+        if missing_outputs:
+            obligation["blocking"] = True
+            obligation["status"] = "output_trace_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.output_trace_missing",
+                    f"Required output trace is missing for `{', '.join(missing_outputs)}`.",
+                    item=item,
+                    obligation=obligation,
+                    output_id=missing_outputs[0],
+                    blocking=True,
+                )
+            )
+        else:
+            obligation["status"] = "source_output_trace"
         return obligation, findings
 
     if feature is not None:
@@ -523,7 +545,14 @@ def _trace_items(
         if existing is not None:
             existing["label"] = str(entry.get("description") or entry.get("label") or existing.get("label") or requirement_id)
             existing["type"] = str(entry.get("type") or "qualitative_behavior")
-            for key in ("feature_id", "target_feature_id", "component_id", "target_component_id"):
+            for key in (
+                "feature_id",
+                "target_feature_id",
+                "component_id",
+                "target_component_id",
+                "output_id",
+                "target_output_id",
+            ):
                 if entry.get(key) is not None:
                     existing[key] = deepcopy(entry[key])
             continue
@@ -670,6 +699,21 @@ def _matching_component_ids(
         if identifiers and (identifiers & tokens):
             matches.append(component_id)
     return sorted(set(matches)) if len(matches) > 1 else []
+
+
+def _matching_output_ids(
+    item: dict[str, Any],
+    outputs: dict[str, dict[str, Any]],
+) -> list[str]:
+    explicit = item.get("output_ids") or item.get("target_output_ids")
+    if isinstance(explicit, list) and explicit:
+        matches = [str(value) for value in explicit if str(value) in outputs]
+        if len(matches) == len(explicit):
+            return matches
+    explicit_one = item.get("output_id") or item.get("target_output_id")
+    if explicit_one and str(explicit_one) in outputs:
+        return [str(explicit_one)]
+    return []
 
 
 def _match_feature(

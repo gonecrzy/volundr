@@ -509,6 +509,58 @@ def test_protected_integral_feature_can_trace_to_component_function() -> None:
     assert mapping["source_component_id"] == "base"
 
 
+def test_printable_component_requirement_traces_component_and_output() -> None:
+    specification = {
+        "critical_dimensions": [],
+        "parameters": [],
+        "functional_requirements": [
+            {
+                "id": "print_base",
+                "description": "Provide the printable base component",
+                "source": "user",
+                "protected": True,
+                "type": "printable_component",
+                "component_id": "base",
+            }
+        ],
+    }
+
+    result = certify(TRACE_SOURCE, specification=specification, plan=TRACE_PLAN)
+
+    assert result["pre_execution_passed"] is True
+    obligation = result["requirement_trace"]["normalized"]["obligations"][0]
+    assert obligation["trace_classification"] == "source_trace_required"
+    assert obligation["status"] == "source_component_output_trace"
+    assert obligation["component_ids"] == ["base"]
+    assert obligation["output_ids"] == ["base_output"]
+
+
+def test_required_output_requirement_reports_missing_output_trace() -> None:
+    specification = {
+        "critical_dimensions": [],
+        "parameters": [],
+        "functional_requirements": [
+            {
+                "id": "print_base",
+                "description": "Produce the base output",
+                "source": "user",
+                "protected": True,
+                "type": "required_output",
+                "output_id": "base_output",
+            }
+        ],
+    }
+
+    source = TRACE_SOURCE.replace('output_id="base_output"', 'output_id="other_output"')
+    result = certify(source, specification=specification, plan=TRACE_PLAN)
+
+    assert result["pre_execution_passed"] is False
+    assert any(
+        finding["rule_id"] == "design_artifact.output_trace_missing"
+        for finding in result["findings"]
+    )
+
+
 def test_required_feature_without_function_or_verification_target_blocks() -> None:
     specification = {
         "critical_dimensions": [],
