@@ -32,8 +32,10 @@ flag, and automatic promotion of passing candidates. Export remains explicit.
 - Store every attempt, including failures.
 - Ask for clarification before CadQuery generation when critical fit, fastener, load, orientation, or conflicting dimensions make generation unsafe to guess.
 - Persist a versioned Design Specification before new initial CadQuery generation.
-- Generate and persist a validated Design Plan from a ready Design Specification.
-- Use the approved Design Plan as product-structure authority for CadQuery generation.
+- Preserve the authoritative requirement ledger and select a proportional
+  direct brief, compact plan, or detailed plan from project semantics.
+- Normalize the selected planning artifact into the common
+  GeometryExecutionContext before CadQuery generation.
 - Generate and persist immutable structured Revision Plans before AI revisions;
   chat automatically approves the internal plan after validation.
 - Support component-targeted full-source AI revisions that preserve protected components, outputs, interfaces, shared modules, and active configuration overrides.
@@ -154,14 +156,14 @@ A feature belongs in V1 only when it materially improves this core loop:
 describe -> generate -> compile -> inspect -> revise -> export
 ```
 
-For the user-facing V1 workflow, this means describe -> clarify only essential details -> review requirements and proposals -> generate -> review a new version -> accept -> export. Diagnostics, source editing, and workflow IDs remain advanced details rather than primary design actions.
+For the user-facing V1 workflow, this means describe -> clarify only essential details -> automatically create a first version -> review the Current working version or a blocked attempt -> revise -> explicitly export. Diagnostics, source editing, and workflow IDs remain advanced details rather than primary design actions.
 
 The MVP reports conservative functional checks but does not certify loads, materials, friction, arbitrary motion, or one-handed usability. Chat-first automatic progression is the normal flagged path; blocked attempts never replace the Current working version. Export remains explicit.
 
 Planning is proportional to complexity and remains invisible in normal chat.
 Every design remains revisionable; parametric controls are optional and
-explicitly requested. Direct briefs, compact plans, and detailed Design Plans
-are derived artifacts within the same lifecycle.
+explicitly requested. Direct briefs, compact plans, and detailed plans are
+derived artifacts within the same lifecycle.
 
 The normal flagged frontend is a persistent chat-first workspace with
 Conversation, Model, and Details surfaces that adapt across desktop, drawer,

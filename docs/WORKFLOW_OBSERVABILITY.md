@@ -315,7 +315,7 @@ Summary stores stage transitions, final state, root failure, and provider/worker
 
 Normal projects should avoid unnecessary sensitive payload retention. Test and benchmark projects may use diagnostic mode and retain all prompts, responses, repairs, source attempts, manifests, diagnoses, and comparisons.
 
-Disk growth comes primarily from immutable source attempts, raw provider responses, worker logs, manifests, and optional geometry inclusion in debug bundles. Automated cleanup is intentionally minimal; project deletion removes associated trace records and generated debug bundles.
+Disk growth comes primarily from immutable source attempts, raw provider responses, worker logs, manifests, and optional geometry inclusion in debug bundles. Automated cleanup is intentionally minimal: archived projects and their trace records are retained indefinitely, while only genuinely untouched empty drafts may be cleaned after the bounded draft period. Explicit project deletion removes associated records and generated debug bundles. Operators may use the documented dry-run archive purge command when a reviewed maintenance deletion is necessary.
 
 ## API
 

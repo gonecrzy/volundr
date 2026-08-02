@@ -2,6 +2,68 @@
 
 This file explains exactly what belongs in each project document.
 
+## Authority categories
+
+### Normative current contracts
+
+These documents define intended behavior and should be read for the matching
+task:
+
+- Product direction and scope: `PRODUCT_DIRECTION.md`, `MVP_SCOPE.md`,
+  `AI_CAD_DIRECTION_ALIGNMENT.md`.
+- Conversation and planning: `CHAT_FIRST_WORKFLOW.md`,
+  `PLANNING_DEPTH_MODEL.md`, `REQUIREMENT_SEMANTICS_CONTRACT.md`.
+- CAD execution and source: `CADQUERY_BACKEND.md`,
+  `GEOMETRY_EXECUTION_CONTEXT.md`, `GEOMETRY_BODY_SYMBOL_CONTRACT.md`,
+  `GEMINI_RULESET.md`, `PLAN_SOURCE_IDENTITY_BOUNDARY.md`.
+- Persistence and output: `PROJECT_PERSISTENCE.md`, `EXPORTS.md`,
+  `MULTI_OUTPUT_GENERATION.md`, `DEPLOYMENT.md`,
+  `ENVIRONMENT_VARIABLES.md`.
+- Verification and testing: `GEOMETRIC_INVARIANT_VALIDATION.md`,
+  `FUNCTIONAL_GEOMETRY_VERIFICATION.md`, `TEST_STRATEGY.md`,
+  `FRONTEND_USER_TESTING_PLAN.md`.
+
+### Current evaluation evidence
+
+These reports describe what was actually tested and do not override current
+contracts: `PRODUCT_VALIDATION_ROUND_1.md`,
+`LIVE_DESIGN_MATRIX_EVALUATION.md`,
+`PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md`,
+`COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md`, and
+`USER_TESTING_CHECKPOINT.md` when present.
+
+### Historical evaluation evidence
+
+Earlier benchmark and transition reports remain useful for chronology, failure
+history, and regression context: `CADQUERY_TRANSITION_EVALUATION.md`,
+`MULTI_DESIGN_LIVE_EVALUATION.md`, `REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md`,
+`MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md`, and older generation/live reports.
+They are evidence, not current implementation authority.
+
+### Superseded or legacy references
+
+OpenSCAD-era contracts such as `MODEL_GENERATION_CONTRACT.md`, historical
+roadmap sections describing the pre-CadQuery implementation, and archived
+staged-workflow evaluations are retained for context only. They must not be
+used to infer current CAD, planning, or user-facing behavior.
+
+## Task-scoped minimum reading
+
+- Frontend: `CHAT_FIRST_WORKFLOW.md`, `FRONTEND_WORKFLOW_AUDIT.md`,
+  `PROJECT_PERSISTENCE.md`, `EXPORTS.md`, `FRONTEND_USER_TESTING_PLAN.md`.
+- Requirements: `REQUIREMENT_SEMANTICS_CONTRACT.md`,
+  `REQUIREMENT_TRACE_CONTRACT.md`, `REQUIREMENT_PIPELINE_AUDIT.md`.
+- Planning: `PLANNING_DEPTH_MODEL.md`, `CAD_BRIEF_CONTRACT.md`,
+  `COMPACT_PLAN_CONTRACT.md`, `GEOMETRY_EXECUTION_CONTEXT.md`.
+- CAD/source: `CADQUERY_BACKEND.md`, `GEOMETRY_BODY_SYMBOL_CONTRACT.md`,
+  `PLAN_SOURCE_IDENTITY_BOUNDARY.md`, `CAD_EXECUTION_SECURITY.md`.
+- Persistence/export: `PROJECT_PERSISTENCE.md`, `EXPORTS.md`,
+  `WORKFLOW_OBSERVABILITY.md`, `DEPLOYMENT.md`.
+- Testing/deployment: `TEST_STRATEGY.md`, `DEPLOYMENT.md`,
+  `ENVIRONMENT_VARIABLES.md`, and the relevant current evaluation report.
+
+Do not load the entire documentation tree by default.
+
 | File | Responsibility |
 |---|---|
 | `CODEX_KICKOFF_PROMPT.md` | The instruction Codex executes when beginning or resuming foundational work. |
@@ -50,13 +112,14 @@ This file explains exactly what belongs in each project document.
 | `docs/PRODUCT_VALIDATION_ROUND_1.md` | Product-shell, export, revision-chain, live-matrix, frontend, and next-phase validation evidence. |
 | `docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md` | Facilitator-neutral observed frontend usability session script. |
 | `docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md` | Results template for a real observed frontend session. |
+| `docs/USER_TESTING_CHECKPOINT.md` | Current read-only readiness checkpoint for the next observed frontend session. |
 | `docs/DETERMINISTIC_USER_WORKFLOW_GATE.md` | Disposable fixture architecture, five browser workflow scenarios, blocked-candidate recovery evidence, success gate, commands, and known limitations. |
 | `docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md` | Exact real-provider requirement-led revision sequence, worker evidence, compliance, and limitations. |
 | `docs/REQUIREMENT_SEMANTICS_CONTRACT.md` | Authoritative requirement kinds, operators, values, units, capacity semantics, proposals, controls, and revisions. |
 | `docs/REQUIREMENT_PIPELINE_AUDIT.md` | End-to-end requirement pipeline call graph, semantic coverage matrix, legacy boundaries, and exact-project evidence. |
 | `docs/REQUIREMENT_TRACE_NORMALIZATION.md` | Typed unique-match normalization, deferred obligations, ambiguity, evidence, and blocking boundaries. |
 | `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |
-| `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, and immutability rules. |
+| `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, immutability, and archive/deletion rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |
 

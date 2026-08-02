@@ -14,6 +14,16 @@ verified in `docs/CADQUERY_TRANSITION_EVALUATION.md`. The historical stages
 below describe how the old OpenSCAD implementation was built; they are not the
 current architecture.
 
+Current product-shell checkpoint: proportional planning, persistent chat-first
+projects, indefinite revision history, explicit selected-revision export, and
+safe Current working version protection are implemented. Archived projects are
+preserved by default. The first observed frontend session uses deterministic
+fixtures while live CAD-quality evaluation remains a separate track.
+
+V1 multipart support is limited to simple component/output relationships and
+printable-part packaging. True assembly mates, ports, kinematics, and mechanism
+support remain later work.
+
 Transition order:
 
 1. Establish CadQuery/Gemini/chat-first documentation authority.

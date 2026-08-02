@@ -14,6 +14,7 @@
 - Retrieval and assemblies: Later
 - Product shell, persistence, Current working version safety, and selected revision exports: Implemented
 - Compact/detailed plan interoperability hardening: Implemented in this pass
+- Archived project preservation and accurate blocked/progress presentation: Implemented in this pass
 
 ## Normative direction
 
@@ -46,6 +47,10 @@ Visual review will initially be advisory. Retrieval, examples, and richer
 assemblies remain later phases. Unrestricted live user CAD-quality testing stays
 separate from deterministic UX fixture testing until the live evidence supports
 it.
+
+V1 multipart output support means simple component/output relationships and
+explicit printable-part packaging. True assembly mates, ports, kinematics,
+and mechanism behavior remain later capabilities.
 
 ## Derived dependency classification — Implemented in this pass
 

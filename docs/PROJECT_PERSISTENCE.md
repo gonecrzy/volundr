@@ -26,6 +26,28 @@ artifact paths are persisted in SQLite and the mounted data directory. A
 blocked attempt is retained in the revision history and cannot replace the
 Current working version.
 
+## Archive and deletion
+
+Archive hides a project from the default active-project list but preserves its
+database records, requirements, conversation, revisions, snapshots, artifacts,
+and exports for later explicit URL access, revision, reprint, or export.
+Archived projects are not deleted by list access or scheduled application
+cleanup. Delete is the explicit destructive operation.
+
+If an operator needs to remove old archives, review a dry run first and keep a
+backup:
+
+```text
+cd backend
+VOLUNDR_DATA_DIR=../data .venv/bin/python scripts/purge_archived_projects.py \
+  --older-than-days 365 --dry-run
+```
+
+Only the explicit non-dry-run invocation deletes the listed archived projects.
+Untouched placeholder drafts may be cleaned after the bounded draft period;
+saved projects, user-authored drafts, workflow attempts, requirement ledgers,
+revisions, and registered artifacts are retained.
+
 The workspace response reports registered output files that are missing from
 durable storage. Missing files are not presented as downloadable artifacts.
 

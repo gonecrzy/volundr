@@ -62,9 +62,9 @@ active
 archived
 ```
 
-Draft projects support unnamed short-lived workspaces. They are hidden from the default project list, can own revisions, and become normal active projects when saved with a user-visible name. Draft projects older than 14 days may be deleted during opportunistic cleanup.
+Draft projects support unnamed short-lived workspaces. They are hidden from the default project list, can own revisions, and become normal active projects when saved with a user-visible name. Only untouched, evidence-free drafts are eligible for the bounded 14-day cleanup; a user message, workflow, requirement, revision, or artifact makes the draft retainable.
 
-Archived projects are hidden from the default project list but remain recoverable until removed. Archived projects older than 60 days may be permanently deleted during opportunistic cleanup, including their revisions, messages, and project files.
+Archived projects are hidden from the default project list and retained indefinitely for reopening, revision, reprinting, and export. They are not removed during ordinary project-list access. Permanent archive cleanup is an explicit operator action using the documented dry-run maintenance command, and includes the same backup and deletion safeguards as explicit project deletion.
 
 Permanent project deletion removes the project database row, dependent revisions and messages, and the project asset directory under `data/projects`.
 

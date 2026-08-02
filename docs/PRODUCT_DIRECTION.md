@@ -117,7 +117,7 @@ configure.
 
 ### Products before isolated solids
 
-For complex functional designs, Volundr should model the product structure before generating source: components, owned features, editable parameters, derived dependencies, presets, assembly strategy, and separate printable outputs. This keeps changes such as tray count, carrier size, retention geometry, handle position, and reinforcement layout connected instead of forcing Gemini to rediscover the design from source text alone.
+For complex functional designs, Volundr should model the product structure before generating source: components, owned features, optional exposed controls, relationships, assembly strategy, and separate printable outputs. This keeps changes such as carrier size, retention geometry, handle position, and reinforcement layout connected without making reusable parameters a prerequisite for revision.
 
 ### Source-controlled by design
 
@@ -186,6 +186,22 @@ existing detailed plan for multipart or assembly work. These are execution
 artifacts, not competing requirement stores.
 
 Volundr should guide a careful chat-first CAD-design conversation: describe the object, answer only essential fit/function/assembly questions, let Volundr automatically plan, generate, validate, and promote a passing Current working version, then explicitly export. Users must be able to distinguish values they supplied, Volundr proposals, and calculated values without reading pipeline terminology. Technical evidence belongs in secondary details and diagnostic bundles. See `docs/CHAT_FIRST_WORKFLOW.md`.
+
+### Assembly boundary
+
+V1 supports a small number of printable components and simple relationships
+needed to describe, validate, and export a product. True assembly mates, ports,
+kinematics, and mechanism behavior are later work; a multipart Plan does not
+claim those capabilities.
+
+### Nonblocking parametric opportunities
+
+Volundr may later identify advisory opportunities for reusable controls such as
+repeated item count, supported size range, compartment count, tray capacity,
+repeated spacing, wall thickness, and clearance. An opportunity never delays
+the first generation, creates an exposed control automatically, or activates
+strict parameter-effect validation. A future control must identify the
+dependent features before it is exposed.
 
 Deterministic multi-view snapshots and revision comparisons improve evidence
 without turning image review into an AI gate. Visual review remains advisory
