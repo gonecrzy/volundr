@@ -59,6 +59,7 @@ class RevisionOutput(Base):
     compile_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     execution_command_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     topology_metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    feature_trace_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     mesh_metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     validation_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")

@@ -1280,6 +1280,10 @@ class ProjectService:
                 sort_keys=True,
             )
             self._apply_topology_metadata_fields(output, output_result.topology_metadata)
+        output.feature_trace_json = json.dumps(
+            list(getattr(output_result, "feature_trace", []) or []),
+            sort_keys=True,
+        )
         if output_result.metadata is not None:
             metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.metadata.json"
             metadata_path.write_text(
@@ -1481,6 +1485,9 @@ class ProjectService:
                     "stl_hash": output.stl_hash,
                     "step_hash": output.step_hash,
                     "brep_hash": output.brep_hash,
+                    "feature_trace": json.loads(output.feature_trace_json)
+                    if output.feature_trace_json
+                    else [],
                 }
                 for output in outputs
             ],
@@ -11433,6 +11440,12 @@ class ProjectService:
             output_record.parameter_hash = parameter_hash
             if output_result is None or not output_result.success or output_result.stl_path is None:
                 output_record.execution_state = "failed"
+                output_record.feature_trace_json = json.dumps(
+                    list(getattr(output_result, "feature_trace", []) or [])
+                    if output_result is not None
+                    else [],
+                    sort_keys=True,
+                )
                 output_record.compile_error = (
                     output_result.compile_error
                     if output_result is not None
@@ -12097,6 +12110,12 @@ class ProjectService:
         output.parameter_hash = parameter_hash
         if output_result is None or not output_result.success or output_result.stl_path is None:
             output.execution_state = "failed"
+            output.feature_trace_json = json.dumps(
+                list(getattr(output_result, "feature_trace", []) or [])
+                if output_result is not None
+                else [],
+                sort_keys=True,
+            )
             output.compile_error = (
                 output_result.compile_error
                 if output_result is not None
@@ -12957,6 +12976,9 @@ class ProjectService:
             topology_metadata=json.loads(output.topology_metadata_json)
             if output.topology_metadata_json
             else None,
+            feature_trace=json.loads(output.feature_trace_json)
+            if output.feature_trace_json
+            else [],
             mesh_metadata=MeshMetadataRead(**json.loads(output.mesh_metadata_json))
             if output.mesh_metadata_json
             else None,

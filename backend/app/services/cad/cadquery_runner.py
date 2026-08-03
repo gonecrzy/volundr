@@ -34,6 +34,7 @@ class CadQueryOutputResult:
     output_size_bytes: int
     metadata: MeshMetadata | None
     topology_metadata: dict | None
+    feature_trace: list[dict] = field(default_factory=list)
     compile_error: str | None = None
 
 
@@ -432,6 +433,10 @@ class CadQueryCliRunner:
                     output_size_bytes=output_size,
                     metadata=metadata,
                     topology_metadata=topology_metadata if isinstance(topology_metadata, dict) else None,
+                    feature_trace=[
+                        item for item in raw_output.get("feature_trace", [])
+                        if isinstance(item, dict)
+                    ],
                     compile_error=str(compile_error) if compile_error else None,
                 )
             )
@@ -535,6 +540,7 @@ from volundr_cad.runtime import ParameterValues, PrintableOutput, Product
 PLACEMENT_POLICY = "cadquery-output-placement-v1"
 PLACEMENT_TOLERANCE_MM = 1e-6
 _TIMING = {"functions": [], "operations": [], "outputs": {}}
+_FEATURE_TRACE = []
 _RESULT_PATH = None
 _STARTED_AT = None
 _ACTIVE_OPERATION = None
@@ -569,6 +575,112 @@ def _shape_complexity(value):
         }
     except Exception:
         return {"face_count": None, "edge_count": None, "solid_count": None}
+
+
+def _shape_summary(value):
+    # Return a compact, deterministic identity for one provider shape.
+    try:
+        shape = value.val() if hasattr(value, "val") else value
+        if shape is None:
+            return None
+        bounds = shape.BoundingBox() if hasattr(shape, "BoundingBox") else None
+        summary = {
+            "solid_count": len(shape.Solids()) if hasattr(shape, "Solids") else None,
+            "volume": round(float(shape.Volume()), 6) if hasattr(shape, "Volume") else None,
+            "bounds": {
+                "xmin": round(float(bounds.xmin), 6),
+                "ymin": round(float(bounds.ymin), 6),
+                "zmin": round(float(bounds.zmin), 6),
+                "xmax": round(float(bounds.xmax), 6),
+                "ymax": round(float(bounds.ymax), 6),
+                "zmax": round(float(bounds.zmax), 6),
+            } if bounds is not None else None,
+            "face_count": len(shape.Faces()) if hasattr(shape, "Faces") else None,
+            "edge_count": len(shape.Edges()) if hasattr(shape, "Edges") else None,
+            "valid": bool(shape.isValid()) if hasattr(shape, "isValid") else None,
+        }
+        encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
+        summary["shape_hash"] = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        return summary
+    except Exception:
+        return None
+
+
+def _shape_argument(args):
+    for value in args:
+        if hasattr(value, "val") or hasattr(value, "Solids"):
+            return value
+    return None
+
+
+def _feature_operation_category(operation_names, *, shape_changed):
+    if not shape_changed:
+        return "no_effect"
+    names = set(operation_names)
+    if names & {"cut", "cutBlind", "cutThruAll", "hole", "shell"}:
+        return "subtractive"
+    if names & {"union", "extrude", "box", "cylinder", "loft"}:
+        return "additive"
+    if names & {"translate", "rotate", "mirror"}:
+        return "transform"
+    if names & {"fillet", "chamfer"}:
+        return "finishing"
+    return "unknown"
+
+
+def _wrap_provider_feature_functions(module):
+    # Wrap provider-owned component/feature functions without product knowledge.
+    for name, function in list(vars(module).items()):
+        if not callable(function) or not name.startswith("_ai_"):
+            continue
+
+        def traced(*args, _name=name, _function=function, **kwargs):
+            started = time.perf_counter()
+            input_shape = _shape_summary(_shape_argument(args))
+            operation_start = len(_TIMING["operations"])
+            record = {
+                "feature_id": _name.removeprefix("_ai_feature_"),
+                "source_function_id": _name,
+                "source_executed": False,
+                "input": input_shape,
+                "input_shape_hash": input_shape.get("shape_hash") if input_shape else None,
+                "output": None,
+                "output_shape_hash": None,
+                "shape_changed": False,
+                "operation_category": "unknown",
+                "operation_names": [],
+                "elapsed_ms": None,
+                "error": None,
+            }
+            try:
+                output = _function(*args, **kwargs)
+                output_shape = _shape_summary(output)
+                record["source_executed"] = True
+                record["output"] = output_shape
+                record["output_shape_hash"] = output_shape.get("shape_hash") if output_shape else None
+                record["shape_changed"] = bool(
+                    record["input_shape_hash"] != record["output_shape_hash"]
+                    if record["input_shape_hash"] is not None and record["output_shape_hash"] is not None
+                    else output_shape is not None
+                )
+                record["operation_names"] = [
+                    item.get("name")
+                    for item in _TIMING["operations"][operation_start:]
+                    if isinstance(item, dict) and item.get("name")
+                ]
+                record["operation_category"] = _feature_operation_category(
+                    record["operation_names"], shape_changed=record["shape_changed"]
+                )
+                return output
+            except Exception as exc:
+                record["error"] = type(exc).__name__
+                raise
+            finally:
+                record["source_executed"] = bool(record["source_executed"])
+                record["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 3)
+                _FEATURE_TRACE.append(record)
+
+        setattr(module, name, traced)
 
 
 def _install_operation_timing():
@@ -654,6 +766,7 @@ def main() -> int:
     if not hasattr(module, "build"):
         raise RuntimeError("generated source must define build(params)")
     originals = _install_operation_timing()
+    _wrap_provider_feature_functions(module)
     profiler = _FunctionProfiler()
     sys.setprofile(profiler)
     try:
@@ -694,6 +807,7 @@ def main() -> int:
                     "operations": _TIMING["operations"],
                     "outputs": _TIMING["outputs"],
                 },
+                "feature_trace": _FEATURE_TRACE,
                 "outputs": outputs,
                 "worker_version": "cadquery-cli-runner-v1",
             },
@@ -746,6 +860,10 @@ def _execute_product_outputs(product, requested_outputs, output_dir):
             continue
         started = time.perf_counter()
         result = _export_printable_output(output_dir, printable, required=required)
+        result["feature_trace"] = [
+            {**trace, "output_id": output_id}
+            for trace in _FEATURE_TRACE
+        ]
         result["timing"] = {"export_ms": round((time.perf_counter() - started) * 1000, 3)}
         results.append(result)
     return results
