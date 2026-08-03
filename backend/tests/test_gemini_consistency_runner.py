@@ -202,11 +202,45 @@ def test_runner_applies_recorded_rate_limit_backoff_between_cases(tmp_path, monk
     assert sleeps == [17.0, 17.0, 17.0, 17.0]
 
 
+def test_runner_cancellation_during_rate_limit_backoff_closes_active_run(tmp_path, monkeypatch) -> None:
+    fake = _FakeBenchmarkClient()
+    runner = GeminiConsistencyRunner(
+        BenchmarkRunnerConfig(
+            corpus_path=CORPUS_PATH,
+            models=("model-a", "model-b"),
+            pilot=True,
+            full=False,
+            case_filter=("case-001",),
+            rate_limit_backoff_seconds=17.0,
+            output_root=tmp_path / "data" / "debug-sessions" / "gemini-consistency",
+        ),
+        client=fake,
+    )
+
+    def interrupt(_seconds: float) -> None:
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr("app.services.gemini_consistency.runner.time.sleep", interrupt)
+    monkeypatch.setattr(
+        runner,
+        "_run_case",
+        lambda *args, **kwargs: {"state": "completed", "rate_limit_events": 1},
+    )
+
+    result = runner.run()
+
+    assert result["results"] == [{"state": "completed", "rate_limit_events": 1}]
+    assert fake.finished_runs == [("m1-run-1", "cancelled")]
+    assert fake.finished_experiments == [("experiment-1", "cancelled")]
+
+
 class _FakeBenchmarkClient:
     def __init__(self) -> None:
         self.history = []
         self.chat_calls = []
         self.completed = []
+        self.finished_runs = []
+        self.finished_experiments = []
 
     def ready(self):
         return {"ready": True}
@@ -263,9 +297,11 @@ class _FakeBenchmarkClient:
         return {"state": payload["state"]}
 
     def finish_experiment(self, experiment_id, state="completed"):
+        self.finished_experiments.append((experiment_id, state))
         return {"state": state}
 
     def finish_run(self, experiment_id, run_id, state="completed"):
+        self.finished_runs.append((run_id, state))
         return {"id": run_id, "state": state}
 
     def generate_report(self, experiment_id):

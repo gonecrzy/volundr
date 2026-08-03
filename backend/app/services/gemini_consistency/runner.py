@@ -566,7 +566,11 @@ class GeminiConsistencyRunner:
                     case_result = self._run_case(experiment_id, model, run, case, position, corpus)
                     result["results"].append(case_result)
                     if case_result.get("rate_limit_events", 0) and self.config.rate_limit_backoff_seconds > 0:
-                        time.sleep(self.config.rate_limit_backoff_seconds)
+                        try:
+                            time.sleep(self.config.rate_limit_backoff_seconds)
+                        except KeyboardInterrupt:
+                            self.request_stop()
+                            break
                 client.finish_run(experiment_id, str(run["id"]), "cancelled" if self.stop_requested else "completed")
                 if self.stop_requested:
                     break
