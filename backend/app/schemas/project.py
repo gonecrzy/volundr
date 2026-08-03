@@ -146,6 +146,7 @@ class GenerationAttemptEvidenceRead(BaseModel):
     estimated_prompt_tokens: int | None
     estimated_output_tokens: int | None
     resulting_revision_id: str | None
+    provider_response: dict[str, Any]
 
 
 class ProjectMessageRead(BaseModel):

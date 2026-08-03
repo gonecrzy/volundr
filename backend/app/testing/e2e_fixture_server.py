@@ -21,6 +21,8 @@ from app.db.session import get_db
 from app.models.revision import Revision
 from app.models.revision_plan import RevisionPlan
 from app.models.project import Project
+from app.models.project_message import ProjectMessage
+from app.models.generation_attempt import GenerationAttempt
 from app.models.workflow import FrontendWorkflowEvent, WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.ai.provider import (
     DesignPlanRequest,
@@ -40,6 +42,8 @@ from app.services.cad.source_scaffold import SCAFFOLD_VERSION, _component_geomet
 from app.services.mesh.inspect import MeshMetadata
 from app.schemas.project import ProjectCreate, RequirementExtractionCreate
 from app.services.projects.service import ProjectService
+from app.schemas.debug_batch import DebugBatchStart
+from app.services.debug_batches.service import DebugBatchService
 
 
 PLATE_SOURCE = '''
@@ -1212,6 +1216,119 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
             "current_workflow_run_id": current_workflow.id if current_workflow is not None else None,
             "blocked_workflow_run_id": blocked_workflow.id if blocked_workflow is not None else None,
         }
+
+    @app.post("/api/test-fixture/scenarios/provider-convergence", status_code=201, include_in_schema=False)
+    def seed_provider_convergence_case(
+        mode: str = "syntax-repaired-requirements",
+        db: Session = Depends(override_db),
+    ) -> dict[str, Any]:
+        allowed_modes = {
+            "syntax-repaired-requirements",
+            "provenance-normalized-plan",
+            "unchanged-repair",
+            "regressive-repair",
+            "debug-report-counts",
+        }
+        if mode not in allowed_modes:
+            raise HTTPException(status_code=400, detail="unsupported provider convergence fixture mode")
+
+        service = ProjectService(db=db, data_dir=data_dir, ai_provider=provider, cad_runner=runner)
+        project = service.create_project(
+            ProjectCreate(
+                name=f"Provider convergence {mode}",
+                original_intent="A deterministic provider-response convergence fixture.",
+            )
+        )
+        db.add_all(
+            [
+                ProjectMessage(project_id=project.id, role="user", content="Create the deterministic fixture."),
+                ProjectMessage(
+                    project_id=project.id,
+                    role="assistant",
+                    content=(
+                        "Volundr could not complete the design plan for this request. No working version was created."
+                        if mode in {"unchanged-repair", "regressive-repair"}
+                        else "The provider response was converged deterministically for this fixture."
+                    ),
+                ),
+            ]
+        )
+        run = WorkflowRun(
+            project_id=project.id,
+            workflow_type="initial_generation",
+            correlation_id=str(uuid4()),
+            status="blocked" if mode in {"unchanged-repair", "regressive-repair"} else "completed",
+        )
+        db.add(run)
+        db.flush()
+
+        classification = {
+            "syntax-repaired-requirements": "valid_after_normalization",
+            "provenance-normalized-plan": "valid_after_normalization",
+            "unchanged-repair": "unchanged_repair",
+            "regressive-repair": "regressive_repair",
+            "debug-report-counts": "valid_after_repair",
+        }[mode]
+        stage = "requirements" if mode == "syntax-repaired-requirements" else "compact_plan"
+        repair_attempted = mode in {"syntax-repaired-requirements", "unchanged-repair", "regressive-repair", "debug-report-counts"}
+        attempt = GenerationAttempt(
+            project_id=project.id,
+            attempt_number=1,
+            provider_call_count=2 if repair_attempted else 1,
+            provider_retry_count=0,
+            content_repair_count=1 if repair_attempted else 0,
+            provider_id="fixture",
+            model_id="fixture-model",
+            prompt_version="fixture-convergence-v1",
+            ruleset_version="fixture-ruleset-v1",
+            request_payload_path="projects/fixture/request.json",
+            prompt_path="projects/fixture/prompt.txt",
+            status="failed" if mode in {"unchanged-repair", "regressive-repair"} else "succeeded",
+            failure_class="design_plan_invalid" if mode in {"unchanged-repair", "regressive-repair"} else "none",
+            provider_response_stage=stage,
+            provider_response_classification=classification,
+            provider_response_original_path="projects/fixture/raw-output.txt",
+            provider_response_normalized_path="projects/fixture/provider-normalized.json",
+            provider_response_repaired_path="projects/fixture/provider-repaired.json" if repair_attempted else None,
+            provider_response_original_hash="a" * 64,
+            provider_response_normalized_hash="b" * 64,
+            provider_response_repaired_hash="c" * 64 if repair_attempted else None,
+            provider_response_final_hash="c" * 64 if mode not in {"unchanged-repair", "regressive-repair"} else None,
+            provider_response_final_stage="accepted" if mode not in {"unchanged-repair", "regressive-repair"} else None,
+            provider_response_manifest_json=json.dumps(
+                {
+                    "deterministically_normalized": mode in {"syntax-repaired-requirements", "provenance-normalized-plan"},
+                    "repair_outcome": "unchanged_repair" if mode == "unchanged-repair" else "regressive_repair" if mode == "regressive-repair" else "valid_after_repair" if repair_attempted else None,
+                },
+                sort_keys=True,
+            ),
+        )
+        db.add(attempt)
+        db.flush()
+        db.add(
+            WorkflowEvent(
+                workflow_run_id=run.id,
+                project_id=project.id,
+                correlation_id=run.correlation_id,
+                generation_attempt_id=attempt.id,
+                sequence_number=1,
+                stage=stage,
+                event_type="provider_response.classified",
+                severity="error" if attempt.status == "failed" else "summary",
+                blocking=attempt.status == "failed",
+                message=f"Provider response classified as {classification}.",
+                rule_id="repair.no_effect" if mode == "unchanged-repair" else "repair.regressed" if mode == "regressive-repair" else None,
+                deduplication_key=f"fixture-provider-response-{attempt.id}",
+            )
+        )
+        batch_id = None
+        if mode == "debug-report-counts":
+            batch_service = DebugBatchService(db=db, data_dir=data_dir)
+            batch = batch_service.start(DebugBatchStart(label=f"provider-convergence-{uuid4().hex[:8]}", target_project_count=1))
+            batch_service.attach_new_project(project)
+            batch_id = batch.id
+        db.commit()
+        return {"project": {"id": project.id, "name": project.name}, "batch_id": batch_id, "mode": mode}
 
     return app
 

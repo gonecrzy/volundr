@@ -1340,6 +1340,12 @@ def list_generation_attempt_evidence(
                 0,
                 round((attempt.completed_at - attempt.started_at).total_seconds() * 1000),
             )
+        response_manifest = (
+            json.loads(attempt.provider_response_manifest_json)
+            if attempt.provider_response_manifest_json
+            else {}
+        )
+        repair_outcome = response_manifest.get("repair_outcome")
         evidence.append(
             GenerationAttemptEvidenceRead(
                 attempt_id=attempt.id,
@@ -1370,6 +1376,17 @@ def list_generation_attempt_evidence(
                 estimated_prompt_tokens=_estimated_tokens(data_dir, attempt.prompt_path),
                 estimated_output_tokens=_estimated_tokens(data_dir, attempt.raw_output_path),
                 resulting_revision_id=attempt.resulting_revision_id,
+                provider_response={
+                    "stage": attempt.provider_response_stage,
+                    "classification": attempt.provider_response_classification,
+                    "original_response_received": bool(attempt.provider_response_original_path),
+                    "deterministic_normalization": bool(
+                        response_manifest.get("deterministically_normalized", False)
+                    ),
+                    "repair_attempted": bool(attempt.content_repair_count or repair_outcome),
+                    "repair_outcome": repair_outcome,
+                    "final_stage": attempt.provider_response_final_stage,
+                },
             )
         )
     return evidence

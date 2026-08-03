@@ -618,6 +618,9 @@ def test_ready_specification_creates_immutable_design_plan(tmp_path: Path) -> No
     evidence = client.get(f"/api/projects/{project['id']}/generation-attempts")
     assert evidence.status_code == 200
     assert evidence.json()[-1]["routing_metadata"]["prompt_mode"] == "design_plan"
+    assert evidence.json()[-1]["provider_response"]["stage"] == "detailed_plan"
+    assert evidence.json()[-1]["provider_response"]["classification"] == "valid"
+    assert evidence.json()[-1]["provider_response"]["repair_attempted"] is False
 
     run_dir = tmp_path / "data" / "projects" / project["id"] / "generation-runs" / attempt.id
     assert (run_dir / "raw-output.txt").exists()

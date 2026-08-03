@@ -1007,6 +1007,12 @@ textarea {
   margin-top: 11px;
 }
 
+.provider-response-lifecycle {
+  display: block;
+  color: var(--muted-text);
+  margin-top: 0.2rem;
+}
+
 .technical-section .candidate-review {
   border: 0;
   padding: 0;

@@ -50,6 +50,7 @@ import {
   reviewStepLabel,
 } from "./terminology";
 import { candidateStatusSummary, generationProgress, recoveryPresentation } from "./workflowPresentation";
+import { describeProviderResponse, type ProviderResponseTechnical } from "./providerResponsePresentation";
 import {
   canGenerateConfiguration,
   configurationControlKind,
@@ -223,6 +224,7 @@ type GenerationAttemptEvidence = {
   };
   provider_latency_ms: number | null;
   resulting_revision_id: string | null;
+  provider_response: ProviderResponseTechnical;
 };
 
 type ChatWorkflowResponse = {
@@ -2728,11 +2730,13 @@ function App() {
                 const routing = attempt.routing_metadata ?? {};
                 const usage = attempt.provider_usage ?? {};
                 const totalTokens = usage.totalTokenCount ?? usage.total_tokens;
+                const lifecycle = attempt.provider_response ? describeProviderResponse(attempt.provider_response) : null;
                 return (
                   <li key={attempt.attempt_id}>
                     {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
                     {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
                     {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
+                    {lifecycle ? <small className="provider-response-lifecycle">{lifecycle.received} · {lifecycle.normalization} · {lifecycle.repair} · {lifecycle.final}</small> : null}
                   </li>
                 );
               })}
@@ -3251,12 +3255,18 @@ function App() {
                       const routing = attempt.routing_metadata ?? {};
                       const usage = attempt.provider_usage ?? {};
                       const totalTokens = usage.totalTokenCount ?? usage.total_tokens;
+                      const lifecycle = attempt.provider_response ? describeProviderResponse(attempt.provider_response) : null;
                       return (
                         <li key={attempt.attempt_id}>
                           {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
                           {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
                           {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
                           {routing.routing_reason === "operational_fallback" ? " · operational fallback" : ""}
+                          {lifecycle ? (
+                            <small className="provider-response-lifecycle">
+                              {lifecycle.received} · {lifecycle.normalization} · {lifecycle.repair} · {lifecycle.final}
+                            </small>
+                          ) : null}
                         </li>
                       );
                     })}
