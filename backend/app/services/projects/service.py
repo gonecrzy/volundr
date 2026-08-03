@@ -233,6 +233,7 @@ from app.services.geometry.feature_evidence import (
     evaluate_feature_evidence,
     evidence_to_geometric_finding,
 )
+from app.services.geometry.feature_repair import build_feature_repair_context
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
 from app.services.workflow.observability import WorkflowRecorder
@@ -1975,6 +1976,13 @@ class ProjectService:
             revision_id=base_revision.id,
             finding_ids=payload.targeted_finding_ids,
         )
+        feature_repair_context = None
+        if payload.reason == "feature_repair":
+            feature_repair_context = build_feature_repair_context(
+                selected_findings,
+                worker_succeeded=True,
+                topology_valid=True,
+            )
         ledger_store = RequirementLedgerStore(self.db)
         requirement_delta, physical_observation = requirement_delta_for_message(
             payload.user_instruction
@@ -2011,6 +2019,11 @@ class ProjectService:
             output_manifest=output_manifest,
             source_metadata=source_metadata,
             selected_findings=selected_findings,
+            geometric_measurements=(
+                [feature_repair_context.to_json()]
+                if feature_repair_context is not None
+                else []
+            ),
             active_requirements=active_requirement_items,
             requirement_delta=requirement_delta,
         )
