@@ -692,6 +692,8 @@ class GeminiCliProvider:
             "Assign the requested result_symbol on every path. Volundr inserts the return statement.",
             "Never write files, use network or shell access, define nested functions/classes/lambdas, or mutate scaffold-owned names.",
             "Return every requested slot exactly once unless this is focused completion; never regenerate or alter completed slots.",
+            "For every Volundr one-part output obligation, return one connected solid: additive integral features must overlap the parent by at least 0.5 mm before union; only listed cut features may remove material; do not leave handles, rails, supports, ribs, tabs, or decorations tangent or separate.",
+            "The output obligation is authoritative Volundr guidance. Do not restate output IDs, solid-count metadata, or artifact metadata in the slot response.",
             "",
             f"Prompt version: {self.prompt_template_version_for(request)}",
             "Reduced geometry execution brief:",

@@ -18,6 +18,7 @@ from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
+from app.models.validation_finding import ValidationFinding
 from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.workflow.redaction import RedactionService
 from app.services.debug_batches.lifecycle import resolve_project_outcome
@@ -235,6 +236,14 @@ class DebugBatchReportService:
                 .order_by(RevisionOutput.created_at.asc(), RevisionOutput.id.asc())
             )
         )
+        validation_findings = list(
+            self.db.scalars(
+                select(ValidationFinding)
+                .join(Revision, ValidationFinding.revision_id == Revision.id)
+                .where(Revision.project_id == project.id)
+                .order_by(ValidationFinding.created_at.asc(), ValidationFinding.id.asc())
+            )
+        )
         exports = list(
             self.db.scalars(
                 select(ExportRecord)
@@ -268,6 +277,7 @@ class DebugBatchReportService:
             events,
             revisions,
             revision_outputs,
+            validation_findings,
         )
         lifecycle_state = outcome.lifecycle_state
         active_workflow = next((workflow for workflow in reversed(workflows) if workflow.status == "running"), None)
@@ -311,6 +321,7 @@ class DebugBatchReportService:
             "workflow_stage_attempt_count": workflow_stage_attempt_count,
             "user_operation_count": user_operation_count,
             "outcome_category": outcome_category,
+            "outcome_state": outcome.outcome_state,
             "final_outcome": final_outcome,
             "planning_completed": planning_completed,
             "geometry_generated": geometry_generated,

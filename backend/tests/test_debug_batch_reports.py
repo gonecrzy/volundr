@@ -9,6 +9,7 @@ from app.models.project import Project
 from app.models.generation_attempt import GenerationAttempt
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
+from app.models.validation_finding import ValidationFinding
 from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.reports import DebugBatchReportService
@@ -228,3 +229,82 @@ def test_report_and_batch_drawer_use_the_same_blocked_outcome(tmp_path: Path) ->
 
         assert report["projects"][0]["final_outcome"] == "Blocked after worker"
         assert drawer.memberships[0].final_outcome == report["projects"][0]["final_outcome"]
+
+
+def test_report_reconciles_stale_desktop_output_state_from_registered_evidence(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    with _session() as session:
+        service = DebugBatchService(db=session, data_dir=data_dir)
+        batch = service.start(DebugBatchStart(label="desktop", target_project_count=1))
+        project = Project(name="Desktop", slug="desktop", original_intent="Build an organizer")
+        session.add(project)
+        session.flush()
+        service.attach_new_project(project)
+        run = WorkflowRun(
+            project_id=project.id,
+            workflow_type="initial_generation",
+            correlation_id="desktop-correlation",
+            status="completed",
+        )
+        session.add(run)
+        session.flush()
+        session.add(
+            WorkflowEvent(
+                workflow_run_id=run.id,
+                project_id=project.id,
+                correlation_id=run.correlation_id,
+                sequence_number=1,
+                stage="cad_execution",
+                event_type="worker.completed",
+                message="worker completed",
+            )
+        )
+        revision = Revision(
+            project_id=project.id,
+            revision_number=1,
+            source_type="ai_initial",
+            source_path="projects/desktop/source.py",
+            source_contract_version="cadquery-v1",
+            status="succeeded",
+            review_state="blocked",
+        )
+        session.add(revision)
+        session.flush()
+        session.add(
+            RevisionOutput(
+                revision_id=revision.id,
+                output_id="desktop_organizer_output",
+                label="Desktop organizer",
+                filename="desktop.stl",
+                entrypoint="desktop_organizer_output",
+                execution_state="blocked",
+                stl_path="projects/desktop/desktop.stl",
+                stl_hash="stl-hash",
+                step_path="projects/desktop/desktop.step",
+                step_hash="step-hash",
+                brep_path="projects/desktop/desktop.brep",
+                brep_hash="brep-hash",
+                expected_solid_count=1,
+                detected_solid_count=1,
+                topology_metadata_json='{"valid": true, "expected_solid_count": 1, "detected_solid_count": 1}',
+            )
+        )
+        session.add(
+            ValidationFinding(
+                revision_id=revision.id,
+                rule_id="design_artifact.manifest_required_output_not_ready",
+                category="design_artifact_consistency",
+                severity="critical",
+                is_blocking=True,
+                title="Manifest Required Output Not Ready",
+                explanation="stale materialized state",
+                suggested_correction="reconcile",
+            )
+        )
+        session.commit()
+
+        report = DebugBatchReportService(db=session, data_dir=data_dir).generate(batch.id)["report"]
+        drawer = service.read(batch)
+
+        assert report["projects"][0]["outcome_state"] == "valid_geometry_unverified"
+        assert drawer.memberships[0].outcome_state == report["projects"][0]["outcome_state"]

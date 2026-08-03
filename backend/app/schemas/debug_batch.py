@@ -46,6 +46,7 @@ class DebugBatchMembershipRead(BaseModel):
     workflow_stage_attempt_count: int = 0
     user_operation_count: int = 0
     outcome_category: str = "not_started"
+    outcome_state: str = "interrupted"
     final_outcome: str = "Not started"
 
 

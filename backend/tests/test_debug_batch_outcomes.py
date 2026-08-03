@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from app.services.debug_batches.lifecycle import resolve_project_outcome
+from app.services.projects.output_outcomes import resolve_output_outcome
 
 
 def _project(*, active_revision_id: str | None = None) -> SimpleNamespace:
@@ -112,3 +113,65 @@ def test_feature_verification_block_wins_over_valid_geometry() -> None:
 
     assert outcome.category == "post_worker_verification_block"
     assert outcome.final_outcome == "Blocked after worker"
+
+
+def _valid_output(output_id: str = "part") -> dict:
+    return {
+        "output_id": output_id,
+        "required": True,
+        "expected_solid_count": 1,
+        "allow_disconnected_solids": False,
+        "required_artifact_formats": ["stl", "step", "brep"],
+    }
+
+
+def _registered_output(output_id: str = "part", *, state: str = "ready", valid: bool = True) -> dict:
+    return {
+        **_valid_output(output_id),
+        "execution_state": state,
+        "stl_path": f"revisions/r/{output_id}.stl",
+        "stl_hash": "stl-hash",
+        "step_path": f"revisions/r/{output_id}.step",
+        "step_hash": "step-hash",
+        "brep_path": f"revisions/r/{output_id}.brep",
+        "brep_hash": "brep-hash",
+        "topology_metadata": {
+            "valid": valid,
+            "expected_solid_count": 1,
+            "detected_solid_count": 1 if valid else 2,
+        },
+    }
+
+
+def test_canonical_output_resolver_reconciles_stale_manifest_state() -> None:
+    outcome = resolve_output_outcome(
+        expected_outputs=[_valid_output()],
+        worker_status="succeeded",
+        registered_artifacts=[_registered_output(state="blocked")],
+        artifact_readiness_findings=[
+            {
+                "rule_id": "design_artifact.manifest_required_output_not_ready",
+                "is_blocking": True,
+            }
+        ],
+    )
+
+    assert outcome.state == "valid_geometry_unverified"
+    assert outcome.is_candidate_eligible is True
+    assert outcome.integrity_findings[0]["rule_id"] == "integrity.stale_output_manifest_state"
+
+
+def test_canonical_output_resolver_distinguishes_artifact_and_topology_blocks() -> None:
+    incomplete = resolve_output_outcome(
+        expected_outputs=[_valid_output()],
+        worker_status="succeeded",
+        registered_artifacts=[{**_registered_output(), "step_path": None, "step_hash": None}],
+    )
+    invalid = resolve_output_outcome(
+        expected_outputs=[_valid_output()],
+        worker_status="succeeded",
+        registered_artifacts=[_registered_output(valid=False)],
+    )
+
+    assert incomplete.state == "incomplete_artifacts"
+    assert invalid.state == "invalid_topology"

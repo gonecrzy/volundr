@@ -71,6 +71,7 @@ def classify_worker_diagnostic(
     error_message: str | None,
     *,
     traceback: str | None = None,
+    source: str | None = None,
     pattern_manifest: list[dict[str, Any]] | None = None,
     worker_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
@@ -81,6 +82,13 @@ def classify_worker_diagnostic(
         _attach_worker_runtime_metadata(name_failure, worker_metadata)
         return name_failure
     text = "\n".join(item for item in (error_message or "", traceback or "") if item)
+    topology_failure = _classify_disconnected_integral_feature(
+        text,
+        source=source,
+        worker_metadata=worker_metadata,
+    )
+    if topology_failure is not None:
+        return topology_failure
     if _NONPLANAR_RE.search(text):
         function_match = _FUNCTION_RE.search(text)
         statement_match = _STATEMENT_RE.search(traceback or "")
@@ -175,6 +183,60 @@ def classify_worker_diagnostic(
     }
     _attach_worker_runtime_metadata(finding, worker_metadata)
     return finding
+
+
+def _classify_disconnected_integral_feature(
+    text: str,
+    *,
+    source: str | None,
+    worker_metadata: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Localize a one-part solid-count failure to one additive provider slot.
+
+    This classification requires both authoritative worker topology evidence
+    and source evidence showing exactly one provider function performing an
+    additive union. It never guesses among multiple candidate functions.
+    """
+
+    if source is None or not re.search(
+        r"solid_count_mismatch|output shape is invalid|separate solid",
+        text,
+        re.IGNORECASE,
+    ):
+        return None
+    functions = re.findall(
+        r"(?ms)^def (?P<function>_ai_(?:component|feature)_[A-Za-z_]\w*)\([^)]*\):(?P<body>.*?)(?=^def |\Z)",
+        source,
+    )
+    union_functions = [
+        (function, body)
+        for function, body in functions
+        if re.search(r"\.union\s*\(", body)
+    ]
+    if len(union_functions) != 1:
+        return None
+    function_id, body = union_functions[0]
+    return {
+        "rule_id": "geometry_body.disconnected_integral_feature",
+        "category": "worker_runtime",
+        "severity": "critical",
+        "is_blocking": True,
+        "blocking": True,
+        "function_id": function_id,
+        "source_statement": next(
+            (line.strip() for line in body.splitlines() if ".union(" in line),
+            None,
+        ),
+        "exception_type": "CadQuery disconnected integral feature",
+        "message": "A one-part output contains a provider additive feature that did not fuse into the parent solid.",
+        "repair_available": True,
+        "safe_function_identified": True,
+        "topology_obligation": {
+            "expected_solid_count": 1,
+            "required_relationship": "integral additive feature overlaps and fuses with parent",
+        },
+        "traceback": text,
+    }
 
 
 def _attach_worker_runtime_metadata(

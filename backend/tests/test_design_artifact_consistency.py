@@ -375,6 +375,57 @@ def test_post_execution_blocks_output_manifest_mismatch() -> None:
     assert "design_artifact.manifest_required_output_missing" in finding_ids(result)
 
 
+def test_stale_blocked_manifest_state_is_integrity_warning_when_artifacts_pass() -> None:
+    manifest = {
+        "outputs": [
+            {
+                "output_id": "base",
+                "component_ids": ["base_shell"],
+                "state": "blocked",
+                "required": True,
+                "expected_solid_count": 1,
+                "detected_solid_count": 1,
+                "topology": {"valid": True, "expected_solid_count": 1, "detected_solid_count": 1},
+                "stl": {"path": "base.stl", "sha256": "stl-base"},
+            },
+            {
+                "output_id": "lid",
+                "component_ids": ["snap_lid"],
+                "state": "blocked",
+                "required": True,
+                "expected_solid_count": 1,
+                "detected_solid_count": 1,
+                "topology": {"valid": True, "expected_solid_count": 1, "detected_solid_count": 1},
+                "stl": {"path": "lid.stl", "sha256": "stl-lid"},
+            },
+        ]
+    }
+
+    result = certify(
+        CONSISTENT_SOURCE,
+        execution_manifest={
+            "output_ids": ["base", "lid"],
+            "outputs": [
+                {
+                    "output_id": "base",
+                    "success": True,
+                    "topology_metadata": {"valid": True, "expected_solid_count": 1, "detected_solid_count": 1},
+                },
+                {
+                    "output_id": "lid",
+                    "success": True,
+                    "topology_metadata": {"valid": True, "expected_solid_count": 1, "detected_solid_count": 1},
+                },
+            ]
+        },
+        output_manifest=manifest,
+    )
+
+    assert result["post_execution_passed"] is True
+    assert "design_artifact.manifest_required_output_not_ready" not in finding_ids(result)
+    assert "integrity.stale_output_manifest_state" in finding_ids(result)
+
+
 def test_execution_override_is_accepted_when_declared() -> None:
     result = certify(
         CONSISTENT_SOURCE,

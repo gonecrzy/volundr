@@ -259,10 +259,38 @@ def test_provider_brief_is_reduced_to_geometry_relevant_fields() -> None:
         "relationships",
         "exposed_controls",
         "slots",
+        "output_obligations",
         "restrictions",
     }
     assert "validation_targets" not in brief
     assert "internal-only" not in json.dumps(brief)
+
+
+def test_one_part_obligation_requires_integral_features_and_declares_cuts() -> None:
+    brief = build_geometry_slot_brief(
+        planning_depth="compact_plan",
+        active_requirements=[],
+        requirement_delta=[],
+        preserved_requirements=[],
+        proposals=[],
+        design_plan={
+            "features": [
+                {"id": "base", "component_id": "body", "operation": "extrude_boss"},
+                {"id": "handle", "component_id": "body", "operation": "extrude_boss"},
+                {"id": "notch", "component_id": "body", "operation": "extrude_cut"},
+            ],
+            "printable_outputs": [
+                {
+                    "id": "body_output",
+                    "component_ids": ["body"],
+                    "expected_solid_count": 1,
+                }
+            ],
+        },
+        slot_manifest={**MANIFEST, "output_obligations": [{"output_id": "body_output"}]},
+    )
+
+    assert brief["output_obligations"] == [{"output_id": "body_output"}]
     assert "raw full chat" in " ".join(brief["restrictions"])
 
 

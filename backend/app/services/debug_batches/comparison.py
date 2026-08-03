@@ -121,6 +121,8 @@ class DebugBatchComparisonService:
                     "candidate_final_outcome": right_outcome.final_outcome if right_outcome else None,
                     "baseline_outcome_category": left_outcome.category if left_outcome else None,
                     "candidate_outcome_category": right_outcome.category if right_outcome else None,
+                    "baseline_outcome_state": left_outcome.outcome_state if left_outcome else None,
+                    "candidate_outcome_state": right_outcome.outcome_state if right_outcome else None,
                 }
             )
         return result

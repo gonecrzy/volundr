@@ -594,15 +594,30 @@ def _validate_output_manifest(
             )
         state = str(manifest_output.get("state") or "")
         if plan_output.get("required", True) and state not in READY_OUTPUT_STATES:
-            findings.append(
-                _finding(
-                    "design_artifact.manifest_required_output_not_ready",
-                    f"required manifest output `{output_id}` is not ready",
-                    output_id=output_id,
-                    detected=state,
-                    phase="post_execution",
+            if _manifest_output_has_complete_artifacts(manifest_output, plan_output) and _manifest_topology_passes(
+                manifest_output,
+                plan_output,
+            ):
+                findings.append(
+                    _finding(
+                        "integrity.stale_output_manifest_state",
+                        f"materialized state `{state}` for required output `{output_id}` was stale; registered artifacts and topology passed",
+                        output_id=output_id,
+                        detected=state,
+                        phase="post_execution",
+                        blocking=False,
+                    )
                 )
-            )
+            else:
+                findings.append(
+                    _finding(
+                        "design_artifact.manifest_required_output_not_ready",
+                        f"required manifest output `{output_id}` is not ready",
+                        output_id=output_id,
+                        detected=state,
+                        phase="post_execution",
+                    )
+                )
         topology = manifest_output.get("topology") if isinstance(manifest_output.get("topology"), dict) else {}
         if plan_output.get("required", True) and not topology:
             findings.append(
@@ -646,6 +661,30 @@ def _validate_topology(
                 phase=phase,
             )
         )
+
+
+def _manifest_output_has_complete_artifacts(
+    manifest_output: dict[str, Any],
+    plan_output: dict[str, Any],
+) -> bool:
+    formats = plan_output.get("required_artifact_formats") or ["stl"]
+    for name in formats:
+        node = manifest_output.get(str(name).lower())
+        if not isinstance(node, dict) or not node.get("path") or not node.get("sha256"):
+            return False
+    return True
+
+
+def _manifest_topology_passes(
+    manifest_output: dict[str, Any],
+    plan_output: dict[str, Any],
+) -> bool:
+    topology = manifest_output.get("topology")
+    if not isinstance(topology, dict) or topology.get("valid") is False:
+        return False
+    expected = plan_output.get("expected_solid_count")
+    detected = topology.get("detected_solid_count")
+    return expected is None or detected is None or int(expected) == int(detected)
 
 
 def _finding(

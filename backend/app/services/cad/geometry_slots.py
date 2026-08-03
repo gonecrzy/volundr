@@ -146,7 +146,73 @@ def build_geometry_slot_manifest(plan: dict[str, Any], *, planning_depth: str | 
         "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
         "planning_depth": planning_depth,
         "slots": slots,
+        "output_obligations": build_one_part_output_obligations(plan),
     }
+
+
+def build_one_part_output_obligations(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    """Derive Volundr-owned topology obligations for printable outputs.
+
+    The provider receives this as design guidance but cannot change output IDs,
+    solid-count policy, or the assembled output manifest.
+    """
+
+    features = [item for item in plan.get("features", []) or [] if isinstance(item, dict)]
+    obligations: list[dict[str, Any]] = []
+    for output in plan.get("printable_outputs", []) or []:
+        if not isinstance(output, dict):
+            continue
+        output_id = str(output.get("id") or output.get("output_id") or "").strip()
+        if not output_id:
+            continue
+        component_ids = [
+            str(value)
+            for value in (
+                output.get("component_ids")
+                or ([output.get("component_id")] if output.get("component_id") else [])
+            )
+            if value
+        ]
+        owned_features = [
+            feature
+            for feature in features
+            if str(feature.get("component_id") or "") in component_ids
+            and not feature.get("independent")
+            and not feature.get("separate_output")
+        ]
+        cut_features = [
+            str(feature.get("id") or feature.get("feature_id"))
+            for feature in owned_features
+            if "cut" in str(feature.get("operation") or "").lower()
+            or str(feature.get("object_type") or "").lower()
+            in {"pocket", "slot", "notch", "opening", "drainage_opening"}
+        ]
+        integral_features = [
+            str(feature.get("id") or feature.get("feature_id"))
+            for feature in owned_features
+            if str(feature.get("id") or feature.get("feature_id") or "")
+        ]
+        external_features = [
+            str(feature.get("id") or feature.get("feature_id"))
+            for feature in features
+            if str(feature.get("component_id") or "") in component_ids
+            and (feature.get("independent") or feature.get("separate_output"))
+        ]
+        obligations.append(
+            {
+                "output_id": output_id,
+                "component_ids": component_ids,
+                "expected_solid_count": int(output.get("expected_solid_count") or 1),
+                "integral_features": integral_features,
+                "features_permitted_to_cut_material": cut_features,
+                "features_must_not_remain_separate": integral_features,
+                "external_features": external_features,
+                "required_artifact_formats": list(
+                    output.get("required_artifact_formats") or ["stl", "step", "brep"]
+                ),
+            }
+        )
+    return obligations
 
 
 def build_geometry_slot_brief(
@@ -188,6 +254,7 @@ def build_geometry_slot_brief(
             for item in slot_manifest.get("slots", []) or []
             if isinstance(item, dict)
         ],
+        "output_obligations": list(slot_manifest.get("output_obligations", []) or []),
         "restrictions": [
             "Return only the supplied slot records; do not return function declarations, arguments, imports, IDs, parameters, scaffold, or entrypoint code.",
             "Do not include raw full chat history, lifecycle metadata, unrelated database IDs, provider provenance, validation-target records, workflow events, old responses, or debug bundles.",
@@ -397,6 +464,7 @@ def build_focused_slot_completion(
         "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
         "planning_depth": manifest.get("planning_depth"),
         "slots": [specs[slot_id] for slot_id in requested],
+        "output_obligations": list(manifest.get("output_obligations", []) or []),
     }
     return {
         "requested_slot_ids": requested,
@@ -435,6 +503,7 @@ def build_focused_slot_repair(
             "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
             "planning_depth": manifest.get("planning_depth"),
             "slots": [specs[slot_id]],
+            "output_obligations": list(manifest.get("output_obligations", []) or []),
         },
         "failed_function_id": function_id,
         "worker_diagnostics": worker_diagnostics,

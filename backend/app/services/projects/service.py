@@ -169,6 +169,11 @@ from app.services.projects.design_artifact_consistency import (
     certify_design_artifact_consistency,
     consistency_failure_message,
 )
+from app.services.projects.output_outcomes import (
+    READY_OUTCOME_STATES,
+    OutputOutcome,
+    resolve_output_outcome,
+)
 from app.services.provider_interoperability import (
     ProviderContractError,
     build_focused_plan_repair_context,
@@ -231,6 +236,7 @@ AI_SOURCE_TYPES = frozenset({"ai_initial", "ai_revision", "ai_repair"})
 OPEN_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
 ACCEPTABLE_CANDIDATE_STATES = frozenset({"ready", "ready_with_warnings"})
 OUTPUT_READY_STATES = frozenset({"ready", "ready_with_warnings", "blocked"})
+OUTPUT_ACCEPTABLE_STATES = frozenset({"ready", "ready_with_warnings"})
 PRINTABLE_OUTPUT_TYPES = frozenset(
     {"printable_component", "repeated_printable_component", "optional_printable_component"}
 )
@@ -827,7 +833,7 @@ class ProjectService:
     def list_candidates(self, project_id: str) -> list[RevisionRead] | None:
         if self.db.get(Project, project_id) is None:
             return None
-        revisions = self.db.scalars(
+        revisions = list(self.db.scalars(
             select(Revision)
             .where(
                 Revision.project_id == project_id,
@@ -835,12 +841,18 @@ class ProjectService:
                 Revision.review_state.in_(OPEN_CANDIDATE_STATES),
             )
             .order_by(Revision.revision_number.asc())
-        )
-        return [self._revision_read(revision) for revision in revisions]
+        ))
+        return [
+            self._revision_read(revision)
+            for revision in revisions
+            if self._revision_output_outcome(revision.id).state in READY_OUTCOME_STATES
+        ]
 
     def get_candidate(self, revision_id: str) -> RevisionRead | None:
         revision = self.db.get(Revision, revision_id)
         if revision is None or revision.review_state not in OPEN_CANDIDATE_STATES:
+            return None
+        if self._revision_output_outcome(revision.id).state not in READY_OUTCOME_STATES:
             return None
         return self._revision_read(revision)
 
@@ -964,7 +976,12 @@ class ProjectService:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
             return None
-        if revision.review_state not in ACCEPTABLE_CANDIDATE_STATES:
+        outcome = self._revision_output_outcome(revision.id)
+        if outcome.state in READY_OUTCOME_STATES:
+            revision.review_state = (
+                "ready" if outcome.state == "candidate_ready" else "ready_with_warnings"
+            )
+        if outcome.state not in READY_OUTCOME_STATES:
             raise ValueError("candidate state does not permit acceptance")
         if revision.cad_backend == "cadquery" and revision.design_plan_id is not None:
             self._require_revision_base_ready(revision, purpose="candidate acceptance")
@@ -1373,7 +1390,9 @@ class ProjectService:
         )
         revision.expected_output_count = len(outputs)
         revision.required_output_count = sum(1 for output in outputs if output.required)
-        revision.successful_output_count = sum(1 for output in outputs if output.execution_state in OUTPUT_READY_STATES)
+        revision.successful_output_count = sum(
+            1 for output in outputs if output.execution_state in OUTPUT_ACCEPTABLE_STATES
+        )
         revision.blocked_output_count = sum(1 for output in outputs if output.execution_state == "blocked")
         revision.failed_output_count = sum(1 for output in outputs if output.execution_state == "failed")
         self.db.flush()
@@ -1448,13 +1467,13 @@ class ProjectService:
             "output_ids": [
                 output.output_id
                 for output in outputs
-                if output.execution_state in OUTPUT_READY_STATES
+                if output.execution_state in OUTPUT_ACCEPTABLE_STATES
             ],
             "outputs": [
                 {
                     "output_id": output.output_id,
                     "required": output.required,
-                    "success": output.execution_state in OUTPUT_READY_STATES,
+                    "success": output.execution_state in OUTPUT_ACCEPTABLE_STATES,
                     "topology_metadata": json.loads(output.topology_metadata_json)
                     if output.topology_metadata_json
                     else None,
@@ -4650,6 +4669,7 @@ class ProjectService:
         runtime_finding = classify_worker_diagnostic(
             worker_error,
             traceback=worker_traceback,
+            source=source,
             pattern_manifest=(generation_request.source_authority or {}).get("pattern_manifest", [])
             if generation_request.source_authority
             else None,
@@ -4678,7 +4698,10 @@ class ProjectService:
         )
         if runtime_finding is not None:
             if (
-                generation_request.generation_contract_version == SCAFFOLD_VERSION
+                (
+                    generation_request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION
+                    or generation_request.generation_contract_version == SCAFFOLD_VERSION
+                )
                 and runtime_repair_is_eligible(runtime_finding)
             ):
                 runtime_revision, _ = await self._attempt_runtime_geometry_body_repair(
@@ -10912,14 +10935,119 @@ class ProjectService:
         return ", ".join(pieces) if pieces else None
 
     def _derive_review_state(self, revision_id: str) -> str:
-        findings = list(
-            self.db.scalars(select(ValidationFinding).where(ValidationFinding.revision_id == revision_id))
-        )
-        if any(finding.is_blocking for finding in findings):
-            return "blocked"
-        if findings:
+        outcome = self._revision_output_outcome(revision_id)
+        self._persist_outcome_integrity_findings(revision_id, outcome)
+        if outcome.state == "candidate_ready":
+            return "ready"
+        if outcome.state in {"candidate_ready_with_warnings", "valid_geometry_unverified"}:
             return "ready_with_warnings"
-        return "ready"
+        return "blocked"
+
+    def _revision_output_outcome(self, revision_id: str) -> OutputOutcome:
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return resolve_output_outcome(
+                expected_outputs=[],
+                worker_status="failed",
+                source_valid=False,
+                source_blocked=True,
+                revision_id=revision_id,
+            )
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision_id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        findings = list(
+            self.db.scalars(
+                select(ValidationFinding)
+                .where(ValidationFinding.revision_id == revision_id)
+                .order_by(ValidationFinding.created_at.asc(), ValidationFinding.id.asc())
+            )
+        )
+        worker_events = list(
+            self.db.scalars(
+                select(WorkflowEvent)
+                .where(
+                    WorkflowEvent.revision_id == revision_id,
+                    WorkflowEvent.stage.in_(("cad_execution", "worker")),
+                    WorkflowEvent.event_type.in_(("worker.completed", "worker.failed")),
+                )
+                .order_by(WorkflowEvent.recorded_at.asc(), WorkflowEvent.id.asc())
+            )
+        )
+        worker_status = None
+        if worker_events:
+            worker_status = "succeeded" if worker_events[-1].event_type == "worker.completed" else "failed"
+        elif outputs:
+            worker_status = (
+                "succeeded"
+                if any(output.stl_path for output in outputs)
+                else "failed"
+            )
+        artifact_findings = [
+            finding
+            for finding in findings
+            if finding.category == "design_artifact_consistency"
+            or finding.rule_id.startswith("integrity.")
+        ]
+        verification_findings = [
+            finding for finding in findings if finding.rule_id.startswith("functional.")
+        ]
+        candidate_findings = [
+            finding
+            for finding in findings
+            if finding not in artifact_findings and finding not in verification_findings
+        ]
+        source_valid = bool(revision.source_path and revision.source_contract_version)
+        return resolve_output_outcome(
+            expected_outputs=outputs,
+            worker_status=worker_status,
+            registered_artifacts=outputs,
+            artifact_readiness_findings=artifact_findings,
+            verification_findings=verification_findings,
+            candidate_findings=candidate_findings,
+            source_valid=source_valid,
+            source_blocked=not outputs and revision.status in {"failed", "blocked"},
+            parent_current_revision_id=revision.project.active_revision_id
+            if revision.project is not None
+            else None,
+            revision_id=revision.id,
+            verification_status=(
+                "verified" if revision.functional_status == "functionally_verified" else None
+            ),
+        )
+
+    def _persist_outcome_integrity_findings(
+        self,
+        revision_id: str,
+        outcome: OutputOutcome,
+    ) -> None:
+        for payload in outcome.integrity_findings:
+            rule_id = str(payload.get("rule_id") or "integrity.output_outcome")
+            exists = self.db.scalar(
+                select(ValidationFinding.id)
+                .where(ValidationFinding.revision_id == revision_id)
+                .where(ValidationFinding.rule_id == rule_id)
+            )
+            if exists is not None:
+                continue
+            self.db.add(
+                ValidationFinding(
+                    revision_id=revision_id,
+                    rule_id=rule_id,
+                    category="integrity",
+                    severity="warning",
+                    is_blocking=False,
+                    title="Derived output state reconciled",
+                    explanation=str(payload.get("message") or "Derived output state was reconciled from authoritative evidence."),
+                    suggested_correction="Preserve the original materialized evidence and derive future state from registered artifacts.",
+                    metadata_json=json.dumps(payload, sort_keys=True),
+                )
+            )
+        self.db.flush()
 
     def _derive_functional_status(self, revision_id: str) -> str:
         revision = self.db.get(Revision, revision_id)
@@ -10969,15 +11097,7 @@ class ProjectService:
         return project.active_revision_id is None
 
     def _has_blocking_findings(self, revision_id: str) -> bool:
-        return (
-            self.db.scalar(
-                select(func.count(ValidationFinding.id)).where(
-                    ValidationFinding.revision_id == revision_id,
-                    ValidationFinding.is_blocking.is_(True),
-                )
-            )
-            or 0
-        ) > 0
+        return self._revision_output_outcome(revision_id).state not in READY_OUTCOME_STATES
 
     def _has_design_artifact_consistency_blockers(self, revision_id: str) -> bool:
         return (
@@ -11456,10 +11576,13 @@ class ProjectService:
             )
         revision.functional_status = self._derive_functional_status(revision.id)
         revision.review_state = (
-            self._derive_review_state(revision.id)
-            if revision.status == "succeeded" or source_type != "manual_edit"
-            else None
+            None
+            if source_type == "manual_edit"
+            and revision.status == "failed"
+            and not any(output.stl_path for output in output_records)
+            else self._derive_review_state(revision.id)
         )
+        revision.output_manifest_path = self._relative(self._write_output_manifest(revision))
         self._generate_revision_snapshot_evidence(
             project=project,
             revision=revision,
@@ -11691,7 +11814,11 @@ class ProjectService:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
             return None
-        if revision.status != "succeeded" or revision.review_state not in {"accepted", "ready", "ready_with_warnings"}:
+        outcome = self._revision_output_outcome(revision.id)
+        if revision.status != "succeeded" or (
+            outcome.state not in READY_OUTCOME_STATES
+            and not (revision.is_accepted and outcome.has_valid_geometry)
+        ):
             raise ValueError("exports require a successful non-blocked revision")
         workflow_run = self._start_child_workflow_run(
             project_id=revision.project_id,
@@ -12948,6 +13075,7 @@ class ProjectService:
             (output.parameter_hash for output in outputs if output.parameter_hash),
             None,
         )
+        outcome = self._revision_output_outcome(revision.id)
         return {
             "schema_version": "output-manifest-v1",
             "project_id": revision.project_id,
@@ -12963,10 +13091,15 @@ class ProjectService:
                 "source_language": revision.source_language,
                 "source_contract_version": revision.source_contract_version,
             },
-            "outputs": [self._output_manifest_entry(output) for output in outputs],
+            "outputs": [self._output_manifest_entry(output, outcome=outcome) for output in outputs],
         }
 
-    def _output_manifest_entry(self, output: RevisionOutput) -> dict[str, Any]:
+    def _output_manifest_entry(
+        self,
+        output: RevisionOutput,
+        *,
+        outcome: OutputOutcome | None = None,
+    ) -> dict[str, Any]:
         metadata = json.loads(output.mesh_metadata_json or output.metadata_json) if (
             output.mesh_metadata_json or output.metadata_json
         ) else None
@@ -12986,7 +13119,7 @@ class ProjectService:
             "parameter_hash": output.parameter_hash,
             "quantity": output.quantity,
             "required": output.required,
-            "state": output.execution_state,
+            "state": self._manifest_state_for_outcome(outcome, output.execution_state),
             "compile_ms": output.compile_ms,
             "expected_solid_count": output.expected_solid_count,
             "detected_solid_count": output.detected_solid_count,
@@ -13000,6 +13133,23 @@ class ProjectService:
             else None,
             "dimensions_mm": dimensions,
         }
+
+    def _manifest_state_for_outcome(
+        self,
+        outcome: OutputOutcome | None,
+        fallback: str,
+    ) -> str:
+        if outcome is None:
+            return fallback
+        if outcome.state == "candidate_ready":
+            return "ready"
+        if outcome.state in {"candidate_ready_with_warnings", "valid_geometry_unverified"}:
+            return "ready_with_warnings"
+        if outcome.state == "interrupted":
+            return "validating"
+        if outcome.state == "worker_failed":
+            return "failed"
+        return "blocked"
 
     def _revision_design_plan_payload(self, revision: Revision) -> dict[str, Any] | None:
         if revision.design_plan_id is None:

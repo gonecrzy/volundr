@@ -129,6 +129,38 @@ TypeError: pattern cutter profile must be a volumetric Solid or Compound; close 
     assert runtime_repair_is_eligible(finding)
 
 
+def test_solid_count_failure_localizes_one_tangent_additive_feature() -> None:
+    source = """
+def _ai_component_body(params):
+    return cq.Workplane('XY').box(10, 10, 10)
+
+def _ai_feature_handle(body, params):
+    handle = cq.Workplane('YZ').circle(2).extrude(2)
+    modified_shape = body.union(handle)
+    return modified_shape
+"""
+    finding = classify_worker_diagnostic(
+        "output shape is invalid",
+        source=source,
+        worker_metadata={
+            "outputs": [
+                {
+                    "topology_metadata": {
+                        "outcome": "solid_count_mismatch",
+                        "expected_solid_count": 1,
+                        "detected_solid_count": 2,
+                    }
+                }
+            ]
+        },
+    )
+
+    assert finding is not None
+    assert finding["rule_id"] == "geometry_body.disconnected_integral_feature"
+    assert finding["function_id"] == "_ai_feature_handle"
+    assert runtime_repair_is_eligible(finding)
+
+
 def test_deterministic_scaffold_names_are_checked_separately_from_provider_bodies() -> None:
     assert analyze_scaffold_source(
         "import cadquery as cq\n"

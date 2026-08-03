@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import json
 from typing import Any
 
+from app.services.projects.output_outcomes import resolve_output_outcome
+
 
 WORKER_STAGES = frozenset({"cad_execution", "worker", "topology_validation"})
 ACTIVE_WORKFLOW_STATUSES = frozenset({"pending", "queued", "running"})
@@ -20,6 +22,7 @@ class ProjectOutcome:
     final_outcome: str
     worker_reached: bool
     valid_geometry_produced: bool
+    outcome_state: str
 
 
 OUTCOME_LABELS = {
@@ -59,6 +62,7 @@ def resolve_project_outcome(
     events: Sequence[Any],
     revisions: Sequence[Any],
     revision_outputs: Sequence[Any],
+    validation_findings: Sequence[Any] = (),
 ) -> ProjectOutcome:
     """Resolve one final project outcome for every debug-batch consumer.
 
@@ -69,21 +73,91 @@ def resolve_project_outcome(
 
     lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, revisions)
     worker_reached = any(getattr(event, "stage", None) in WORKER_STAGES for event in events)
-    valid_revision_ids = {
-        getattr(revision, "id", None)
-        for revision in revisions
-        if getattr(revision, "status", None) == "succeeded"
-        and any(
-            getattr(output, "revision_id", None) == getattr(revision, "id", None)
-            for output in revision_outputs
+    latest_revision = revisions[-1] if revisions else None
+    latest_revision_id = getattr(latest_revision, "id", None)
+    latest_outputs = [
+        output
+        for output in revision_outputs
+        if getattr(output, "revision_id", None) == latest_revision_id
+    ]
+    worker_events = [
+        event
+        for event in events
+        if getattr(event, "stage", None) in {"cad_execution", "worker"}
+        and str(getattr(event, "event_type", "")) in {"worker.completed", "worker.failed"}
+    ]
+    worker_status = None
+    if worker_events:
+        latest_worker = worker_events[-1]
+        worker_status = (
+            "succeeded"
+            if str(getattr(latest_worker, "event_type", "")).endswith("completed")
+            else "failed"
         )
-        and all(
-            _output_is_valid(output)
-            for output in revision_outputs
-            if getattr(output, "revision_id", None) == getattr(revision, "id", None)
+    elif worker_reached:
+        worker_status = "succeeded"
+    latest_findings = [
+        finding
+        for finding in validation_findings
+        if getattr(finding, "revision_id", latest_revision_id) == latest_revision_id
+    ]
+    verification_findings = [
+        finding
+        for finding in latest_findings
+        if str(getattr(finding, "rule_id", "")).startswith("functional.")
+    ]
+    verification_findings.extend(
+        event
+        for event in events
+        if getattr(event, "blocking", False)
+        and (
+            str(getattr(event, "event_type", "")).startswith("functional.")
+            or str(getattr(event, "rule_id", "")).startswith("functional.")
         )
-    }
-    valid_geometry_produced = bool(valid_revision_ids)
+    )
+    artifact_findings = [
+        finding
+        for finding in latest_findings
+        if getattr(finding, "category", "") == "design_artifact_consistency"
+        or str(getattr(finding, "rule_id", "")).startswith("integrity.")
+    ]
+    artifact_findings.extend(
+        event
+        for event in events
+        if getattr(event, "blocking", False)
+        and getattr(event, "stage", None) == "artifact_consistency"
+    )
+    candidate_findings = [
+        finding
+        for finding in latest_findings
+        if finding not in verification_findings and finding not in artifact_findings
+    ]
+    candidate_findings.extend(
+        event
+        for event in events
+        if getattr(event, "blocking", False)
+        and getattr(event, "stage", None) == "candidate_classification"
+    )
+    source_valid = not any(
+        getattr(event, "blocking", False)
+        and getattr(event, "stage", None) in {"source_extraction", "source_generation", "planning"}
+        for event in events
+    )
+    canonical = resolve_output_outcome(
+        expected_outputs=latest_outputs,
+        worker_status=worker_status,
+        registered_artifacts=latest_outputs,
+        artifact_readiness_findings=artifact_findings,
+        verification_findings=verification_findings,
+        candidate_findings=candidate_findings,
+        source_valid=source_valid,
+        source_blocked=not worker_reached and not latest_outputs and any(
+            getattr(event, "blocking", False) for event in events
+        ),
+        parent_current_revision_id=getattr(project, "active_revision_id", None),
+        revision_id=latest_revision_id,
+    )
+    valid_geometry_produced = canonical.has_valid_geometry
 
     if lifecycle_state == "working_version_created":
         active_revision = next(
@@ -100,30 +174,19 @@ def resolve_project_outcome(
     elif lifecycle_state == "interrupted":
         category = "interrupted"
     elif worker_reached:
-        category = None
-        for event in events:
-            if not getattr(event, "blocking", False):
-                continue
-            stage = getattr(event, "stage", None)
-            event_type = str(getattr(event, "event_type", ""))
-            rule_id = str(getattr(event, "rule_id", "") or "")
-            if stage in {"cad_execution", "worker"}:
-                category = "worker_runtime_failure"
-                break
-            if stage == "topology_validation" and not (
-                event_type.startswith("functional.") or rule_id.startswith("functional.")
-            ):
-                category = "post_worker_topology_block"
-                break
-            if (
-                stage in {"candidate_classification", "verification", "artifact_consistency"}
-                or event_type.startswith("functional.")
-                or rule_id.startswith("functional.")
-            ):
-                category = "post_worker_verification_block"
-                break
-        if category is None:
-            category = "candidate_created" if valid_geometry_produced else "worker_completed_without_valid_geometry"
+        category = {
+            "worker_failed": "worker_runtime_failure",
+            "missing_required_output": "post_worker_verification_block",
+            "incomplete_artifacts": "post_worker_verification_block",
+            "invalid_topology": "post_worker_topology_block",
+            "verification_blocked": "post_worker_verification_block",
+            "artifact_readiness_blocked": "post_worker_verification_block",
+            "candidate_blocked": "post_worker_verification_block",
+            "valid_geometry_unverified": "candidate_created",
+            "candidate_ready": "candidate_created",
+            "candidate_ready_with_warnings": "candidate_created",
+            "interrupted": "interrupted",
+        }.get(canonical.state, "worker_completed_without_valid_geometry")
     else:
         if any(getattr(attempt, "status", None) in FAILED_ATTEMPT_STATUSES for attempt in attempts):
             category = "provider_content_failure" if any(
@@ -144,6 +207,7 @@ def resolve_project_outcome(
         final_outcome=OUTCOME_LABELS.get(category, "Integrity failure"),
         worker_reached=worker_reached,
         valid_geometry_produced=valid_geometry_produced,
+        outcome_state=canonical.state,
     )
 
 
@@ -156,6 +220,7 @@ def resolve_project_outcome_from_db(db: Any, project_id: str) -> ProjectOutcome 
     from app.models.project import Project
     from app.models.revision import Revision
     from app.models.revision_output import RevisionOutput
+    from app.models.validation_finding import ValidationFinding
     from app.models.workflow import WorkflowEvent, WorkflowRun
 
     project = db.get(Project, project_id)
@@ -197,7 +262,23 @@ def resolve_project_outcome_from_db(db: Any, project_id: str) -> ProjectOutcome 
             .order_by(RevisionOutput.created_at.asc(), RevisionOutput.id.asc())
         )
     )
-    return resolve_project_outcome(project, workflows, attempts, events, revisions, revision_outputs)
+    validation_findings = list(
+        db.scalars(
+            select(ValidationFinding)
+            .join(Revision, ValidationFinding.revision_id == Revision.id)
+            .where(Revision.project_id == project.id)
+            .order_by(ValidationFinding.created_at.asc(), ValidationFinding.id.asc())
+        )
+    )
+    return resolve_project_outcome(
+        project,
+        workflows,
+        attempts,
+        events,
+        revisions,
+        revision_outputs,
+        validation_findings,
+    )
 
 
 def classify_project_lifecycle(

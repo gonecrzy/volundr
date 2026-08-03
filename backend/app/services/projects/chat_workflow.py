@@ -638,7 +638,8 @@ class ChatWorkflowService:
         if revision.is_accepted:
             self.service._complete_workflow_lineage(workflow_run, status="completed")
             return self._response(workflow_run, action, "working_version", False, "Your current working version is ready.", current_revision_id=revision.id, revision_id=revision.id, **ids)
-        if revision.status == "succeeded" and revision.review_state in {"ready", "ready_with_warnings"}:
+        outcome = self.service._revision_output_outcome(revision.id)
+        if revision.status == "succeeded" and outcome.is_candidate_eligible:
             current = self.db.get(Project, revision.project_id)
             if current is not None and current.active_revision_id == base_revision_id:
                 accepted = self.service.accept_candidate(revision.id)

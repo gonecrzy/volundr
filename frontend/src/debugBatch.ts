@@ -34,6 +34,7 @@ export type DebugBatchMembership = {
   workflow_stage_attempt_count: number;
   user_operation_count: number;
   outcome_category: string;
+  outcome_state?: string;
   final_outcome: string;
 };
 

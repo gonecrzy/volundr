@@ -14,6 +14,7 @@ from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
+from app.models.validation_finding import ValidationFinding
 from app.models.workflow import WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchRead, DebugBatchStart
 from app.services.debug_batches.identity import capture_batch_identity
@@ -252,6 +253,14 @@ class DebugBatchService:
                 .order_by(RevisionOutput.created_at.asc(), RevisionOutput.id.asc())
             )
         )
+        validation_findings = list(
+            self.db.scalars(
+                select(ValidationFinding)
+                .join(Revision, ValidationFinding.revision_id == Revision.id)
+                .where(Revision.project_id == project.id)
+                .order_by(ValidationFinding.created_at.asc(), ValidationFinding.id.asc())
+            )
+        )
         outcome = resolve_project_outcome(
             project,
             workflows,
@@ -259,6 +268,7 @@ class DebugBatchService:
             events,
             revisions,
             revision_outputs,
+            validation_findings,
         )
         lifecycle_state = outcome.lifecycle_state
         worker_reached = outcome.worker_reached
@@ -287,5 +297,6 @@ class DebugBatchService:
             "workflow_stage_attempt_count": workflow_stage_attempt_count,
             "user_operation_count": sum(message.role == "user" for message in messages),
             "outcome_category": outcome.category,
+            "outcome_state": outcome.outcome_state,
             "final_outcome": phase,
         }
