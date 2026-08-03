@@ -185,7 +185,7 @@ from app.services.planning.context import PromptContextPackBuilder, normalize_ge
 from app.services.planning.depth import PlanningDepth, PlanningDepthRouter, PlanningRouteDecision
 from app.services.workflow.observability import WorkflowRecorder
 from app.services.workflow.repair_convergence import compare_repair_responses
-from app.services.workflow.provider_response import analyze_provider_response
+from app.services.workflow.provider_response import analyze_provider_response, compare_focused_repair
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -6033,6 +6033,46 @@ class ProjectService:
         attempt.provider_response_manifest_json = json.dumps(manifest, sort_keys=True)
         self.db.flush()
 
+    def _record_provider_repair_outcome(
+        self,
+        attempt: GenerationAttempt,
+        *,
+        original: Any,
+        repaired: Any,
+        findings_before: list[str] | tuple[str, ...],
+        findings_after: list[str] | tuple[str, ...],
+        affected_paths: list[str] | tuple[str, ...],
+        protected_paths: list[str] | tuple[str, ...] = (),
+    ) -> None:
+        comparison = compare_focused_repair(
+            original,
+            repaired,
+            findings_before=findings_before,
+            findings_after=findings_after,
+            affected_paths=affected_paths,
+            protected_paths=protected_paths,
+        )
+        attempt.provider_response_classification = comparison.classification.value
+        attempt.provider_response_repaired_hash = comparison.repaired_hash
+        attempt.provider_response_findings_after_repair_json = json.dumps(
+            list(findings_after), sort_keys=True
+        )
+        manifest = json.loads(attempt.provider_response_manifest_json or "{}")
+        manifest.update(
+            {
+                "repair_outcome": comparison.outcome.value,
+                "repair_original_hash": comparison.original_hash,
+                "repair_repaired_hash": comparison.repaired_hash,
+                "changed_fields": list(comparison.changed_paths),
+                "identities_changed": comparison.identities_changed,
+                "provenance_changed": comparison.provenance_changed,
+                "findings_resolved": list(comparison.resolved_findings),
+                "findings_introduced": list(comparison.introduced_findings),
+            }
+        )
+        attempt.provider_response_manifest_json = json.dumps(manifest, sort_keys=True)
+        self.db.flush()
+
     def _finish_provider_cancelled_attempt(self, attempt: GenerationAttempt) -> None:
         self._finish_generation_attempt(
             attempt,
@@ -6283,6 +6323,29 @@ class ProjectService:
                     else ()
                 ),
             )
+            if request.schema_repair_of_raw_output is not None:
+                rejected_payload = self._safe_provider_json_object(request.schema_repair_of_raw_output)
+                repaired_payload = self._safe_provider_json_object(planning_result.raw_output)
+                if rejected_payload is not None and repaired_payload is not None:
+                    findings_before = [
+                        str(item.get("rule_id"))
+                        for item in (request.plan_repair_context or {}).get("findings", [])
+                        if isinstance(item, dict) and item.get("rule_id")
+                    ] or ["planning.design_plan_invalid"]
+                    findings_after = (
+                        [str(item.get("rule_id")) for item in exc.findings if isinstance(item, dict) and item.get("rule_id")]
+                        if isinstance(exc, PlanNormalizationError)
+                        else ["planning.design_plan_invalid"]
+                    )
+                    self._record_provider_repair_outcome(
+                        attempt,
+                        original=rejected_payload,
+                        repaired=repaired_payload,
+                        findings_before=findings_before,
+                        findings_after=findings_after,
+                        affected_paths=("features", "feature_layouts", "patterns", "relationships"),
+                        protected_paths=("components", "printable_outputs", "exposed_controls"),
+                    )
             if isinstance(exc, PlanNormalizationError) and planning_result is not None:
                 self._persist_plan_normalization_evidence(
                     workflow_run=workflow_run,
@@ -6353,6 +6416,11 @@ class ProjectService:
                     "identities_removed": [],
                 }
             else:
+                findings_before = [
+                    str(item.get("rule_id"))
+                    for item in request.plan_repair_context.get("findings", [])
+                    if isinstance(item, dict) and item.get("rule_id")
+                ]
                 try:
                     comparison = validate_plan_repair_preservation(
                         rejected_payload,
@@ -6372,6 +6440,15 @@ class ProjectService:
                         if isinstance(item, dict) and item.get("rule_id")
                     ]
                     comparison["repair_error"] = str(exc)
+                    self._record_provider_repair_outcome(
+                        attempt,
+                        original=rejected_payload,
+                        repaired=repaired_payload,
+                        findings_before=findings_before,
+                        findings_after=["repair.regressed"],
+                        affected_paths=("features", "feature_layouts", "patterns", "relationships"),
+                        protected_paths=("components", "printable_outputs", "exposed_controls"),
+                    )
                     self._persist_plan_repair_comparison(
                         workflow_run=workflow_run,
                         attempt=attempt,
@@ -6389,6 +6466,15 @@ class ProjectService:
                     for item in request.plan_repair_context.get("findings", [])
                     if isinstance(item, dict) and item.get("rule_id")
                 ]
+                self._record_provider_repair_outcome(
+                    attempt,
+                    original=rejected_payload,
+                    repaired=repaired_payload,
+                    findings_before=findings_before,
+                    findings_after=[],
+                    affected_paths=("features", "feature_layouts", "patterns", "relationships"),
+                    protected_paths=("components", "printable_outputs", "exposed_controls"),
+                )
             self._persist_plan_repair_comparison(
                 workflow_run=workflow_run,
                 attempt=attempt,

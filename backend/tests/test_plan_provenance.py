@@ -3,10 +3,54 @@ from __future__ import annotations
 from copy import deepcopy
 
 from app.services.projects.plan_provenance import (
+    AUTHORITATIVE_PROVENANCE_SOURCES,
     FASTENER_LOOKUP_TABLES,
+    normalize_authoritative_provenance,
     normalize_plan_provenance,
     validate_plan_provenance,
 )
+
+
+def test_authoritative_provenance_sources_are_canonicalized_without_changing_value() -> None:
+    assert "initial_user" in AUTHORITATIVE_PROVENANCE_SOURCES
+    normalized = normalize_authoritative_provenance(
+        {
+            "id": "bottle_diameter",
+            "value": 81,
+            "unit": "mm",
+            "provenance": {"source": "user"},
+        },
+        {"bottle_diameter": {"value": 81, "unit": "mm", "source": "initial_user"}},
+    )
+    assert normalized.value["value"] == 81
+    assert normalized.value["provenance"]["source"] == "initial_user"
+    assert normalized.findings == ("provenance.source_canonicalized",)
+
+
+def test_authoritative_provenance_conflict_is_not_rewritten() -> None:
+    normalized = normalize_authoritative_provenance(
+        {
+            "id": "bottle_diameter",
+            "value": 81,
+            "unit": "mm",
+            "provenance": {"source": "volundr_proposal"},
+        },
+        {"bottle_diameter": {"value": 81, "unit": "mm", "source": "initial_user"}},
+    )
+    assert normalized.value["provenance"]["source"] == "volundr_proposal"
+    assert normalized.findings == ("provenance.proposal_misclassified",)
+
+
+def test_authoritative_provenance_ambiguous_source_remains_blocking() -> None:
+    normalized = normalize_authoritative_provenance(
+        {"id": "diameter", "value": 81, "unit": "mm", "provenance": {}},
+        {
+            "initial": {"value": 81, "unit": "mm", "source": "initial_user"},
+            "clarification": {"value": 81, "unit": "mm", "source": "clarification_user"},
+        },
+    )
+    assert normalized.value["provenance"] == {}
+    assert normalized.findings == ("provenance.source_conflict",)
 from app.services.requirements.trace import build_explicit_requirement_inventory
 
 

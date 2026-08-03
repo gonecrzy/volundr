@@ -7,6 +7,8 @@ import operator
 from copy import deepcopy
 from typing import Any
 
+from app.services.workflow.provider_response import ProvenanceCompletion
+
 PROVENANCE_VERSION = "design-plan-provenance-v1"
 PROVENANCE_RELATIONSHIPS = {
     "direct",
@@ -18,6 +20,82 @@ PROVENANCE_RELATIONSHIPS = {
     "ai_proposal",
     "user_override",
 }
+
+AUTHORITATIVE_PROVENANCE_SOURCES = frozenset(
+    {
+        "initial_user",
+        "clarification_user",
+        "revision_user",
+        "physical_feedback_user",
+        "volundr_proposal",
+        "derived_calculation",
+        "standard_lookup",
+        "exposed_control",
+        "deterministic_default",
+    }
+)
+
+_PROVENANCE_SOURCE_ALIASES = {
+    "user": "initial_user",
+    "initial": "initial_user",
+    "clarification": "clarification_user",
+    "revision": "revision_user",
+    "physical_feedback": "physical_feedback_user",
+    "ai_proposal": "volundr_proposal",
+    "calculated": "derived_calculation",
+    "product_default": "deterministic_default",
+    "printer_default": "deterministic_default",
+}
+
+
+def normalize_authoritative_provenance(
+    record: dict[str, Any],
+    authoritative_sources: dict[str, dict[str, Any]],
+) -> ProvenanceCompletion:
+    """Normalize a source label only when its authority is unambiguous."""
+
+    normalized = deepcopy(record)
+    provenance = normalized.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+        normalized["provenance"] = provenance
+    findings: list[str] = []
+    raw_source = provenance.get("source")
+    canonical_source = _PROVENANCE_SOURCE_ALIASES.get(str(raw_source), str(raw_source)) if raw_source else None
+    if canonical_source and canonical_source not in AUTHORITATIVE_PROVENANCE_SOURCES:
+        return ProvenanceCompletion(normalized, ("provenance.source_invalid",))
+
+    record_id = str(normalized.get("source_requirement_id") or normalized.get("id") or "")
+    candidates = [
+        (source_id, source)
+        for source_id, source in authoritative_sources.items()
+        if _values_match(normalized.get("value"), source.get("value"))
+        and _units_match(normalized.get("unit"), source.get("unit"))
+    ]
+    if record_id in authoritative_sources:
+        candidates = [(record_id, authoritative_sources[record_id])]
+
+    if canonical_source:
+        if raw_source != canonical_source:
+            provenance["source"] = canonical_source
+            findings.append("provenance.source_canonicalized")
+        if len(candidates) == 1 and candidates[0][1].get("source") != canonical_source:
+            findings.append(
+                "provenance.proposal_misclassified"
+                if canonical_source == "volundr_proposal"
+                else "provenance.user_input_misclassified"
+            )
+        return ProvenanceCompletion(normalized, tuple(findings), bool(findings))
+
+    if len(candidates) != 1:
+        return ProvenanceCompletion(
+            normalized,
+            ("provenance.source_conflict",) if len(candidates) > 1 else ("provenance.derived_source_missing",),
+        )
+    source_id, source = candidates[0]
+    provenance["source"] = source["source"]
+    provenance["source_id"] = source_id
+    return ProvenanceCompletion(normalized, ("provenance.source_completed",), True)
 
 FASTENER_LOOKUP_TABLES: dict[str, dict[str, dict[str, dict[str, Any]]]] = {
     "fastener-clearance-v1": {
@@ -62,10 +140,30 @@ def normalize_plan_provenance(
 
     normalized = deepcopy(plan)
     requirements = _requirements(specification)
+    authoritative_sources = {
+        requirement_id: {
+            "value": requirement.get("value"),
+            "unit": requirement.get("unit"),
+            "source": _requirement_provenance_source(requirement),
+        }
+        for requirement_id, requirement in requirements.items()
+    }
     normalization_findings = normalized.setdefault("normalization_findings", [])
     for parameter in normalized.get("parameters", []) or []:
         if not isinstance(parameter, dict):
             continue
+        provenance_completion = normalize_authoritative_provenance(parameter, authoritative_sources)
+        parameter.clear()
+        parameter.update(provenance_completion.value)
+        normalization_findings.extend(
+            {
+                "rule_id": finding,
+                "severity": "warning" if finding in {"provenance.source_completed", "provenance.source_canonicalized"} else "critical",
+                "blocking": finding not in {"provenance.source_completed", "provenance.source_canonicalized"},
+                "parameter_id": parameter.get("id"),
+            }
+            for finding in provenance_completion.findings
+        )
         provenance = parameter.get("provenance")
         if not isinstance(provenance, dict) or not provenance.get("relationship"):
             provenance = _infer_provenance(parameter)
@@ -202,6 +300,25 @@ def validate_plan_provenance(
         if relationship not in PROVENANCE_RELATIONSHIPS:
             findings.append(_finding("design_plan.provenance_relationship_invalid", f"Parameter {parameter_id} has unsupported provenance relationship {relationship!r}."))
             continue
+        source = str(provenance.get("source") or "")
+        canonical_source = _PROVENANCE_SOURCE_ALIASES.get(source, source) if source else ""
+        if canonical_source and canonical_source not in AUTHORITATIVE_PROVENANCE_SOURCES:
+            findings.append(_finding("provenance.source_invalid", f"Parameter {parameter_id} has unsupported provenance source {source!r}."))
+        if canonical_source and canonical_source != source:
+            findings.append(_finding("provenance.source_noncanonical", f"Parameter {parameter_id} uses legacy provenance source {source!r}."))
+        source_ids_for_authority = _string_list(provenance.get("source_requirement_ids"))
+        if source_ids_for_authority:
+            source_requirement = requirements.get(source_ids_for_authority[0])
+            expected_source = _requirement_provenance_source(source_requirement) if source_requirement else None
+            if expected_source and canonical_source and expected_source != canonical_source:
+                findings.append(
+                    _finding(
+                        "provenance.proposal_misclassified"
+                        if canonical_source == "volundr_proposal"
+                        else "provenance.user_input_misclassified",
+                        f"Parameter {parameter_id} labels authoritative requirement {source_ids_for_authority[0]} as {canonical_source!r}.",
+                    )
+                )
         source_ids = _string_list(provenance.get("source_requirement_ids"))
         source_parameter_ids = _string_list(provenance.get("source_parameter_ids"))
         if relationship == "direct":
@@ -428,6 +545,13 @@ def _infer_provenance(parameter: dict[str, Any]) -> dict[str, Any]:
     if parameter.get("source_requirement_id"):
         result["source_requirement_ids"] = [parameter["source_requirement_id"]]
     return result
+
+
+def _requirement_provenance_source(requirement: dict[str, Any]) -> str:
+    provenance = requirement.get("provenance")
+    provenance_source = provenance.get("source") if isinstance(provenance, dict) else None
+    source = str(requirement.get("source") or provenance_source or "")
+    return _PROVENANCE_SOURCE_ALIASES.get(source, source or "initial_user")
 
 
 def _requirements(specification: dict[str, Any] | None) -> dict[str, dict[str, Any]]:

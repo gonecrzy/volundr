@@ -203,7 +203,7 @@ def analyze_provider_response(
     changed = normalized_text != raw.strip() or normalized != parsed
     classification = (
         ProviderResponseOutcome.SCHEMA_INVALID
-        if all_findings
+        if supplied_findings
         else ProviderResponseOutcome.VALID_AFTER_NORMALIZATION
         if changed
         else ProviderResponseOutcome.VALID
@@ -220,9 +220,9 @@ def analyze_provider_response(
         normalized_hash=_hash(normalized),
         findings_before_normalization=supplied_findings,
         findings_after_normalization=all_findings,
-        final=normalized if not all_findings else None,
-        final_hash=_hash(normalized) if not all_findings else None,
-        final_stage=stage if not all_findings else None,
+        final=normalized if not supplied_findings else None,
+        final_hash=_hash(normalized) if not supplied_findings else None,
+        final_stage=stage if not supplied_findings else None,
     )
 
 
@@ -357,4 +357,3 @@ def compare_focused_repair(
         provenance_changed=provenance_changed,
         blocked=outcome is not RepairOutcome.VALID_AFTER_REPAIR,
     )
-
