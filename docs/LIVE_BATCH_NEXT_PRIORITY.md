@@ -3,28 +3,22 @@
 Planning only. This document does not authorize product-family CAD changes or
 another live run.
 
-## Primary family
+## Result of the controlled convergence pair
 
-Generic provider/schema/provenance convergence before worker submission is the
-next correction family. In the qualifying post-correction batch, three of five
-projects stopped before the worker and two required bounded content repair
-handling. The remaining post-worker failures are recorded separately and are
-not a reason to change organizer, tray/holder, screw-thread, or monitor code.
+The generic provider/schema/provenance convergence pair is complete and
+controlled. The sole deferred next priority is integrity/misleading-state
+reconciliation in batch reporting: Batch 2 called the screw-lid project
+`Not started` even though preserved generation attempts show source-generation
+activity and a non-terminal final attempt.
 
 ## Expected repair scope
 
-1. Preserve the original provider response, normalized response, provenance,
-   validation rule, and attempt identity for requirements, Plan, geometry-body,
-   and source-contract boundaries.
-2. Make schema, semantic-normalization, provenance, and source-contract
-   failures distinct in API, report, and frontend outcome fields.
-3. Bound one focused repair per applicable stage and reject unchanged or
-   semantically non-convergent responses without losing the first diagnostic.
-4. Add frozen replays from the three post-correction pre-worker classes and
-   assert no provider or worker call during report generation.
-5. Run a new controlled pair only after deterministic fixtures pass and all
-   Git, migration, provider/model, prompt, policy, configuration, and
-   component build identities match.
+1. Reconcile report outcomes with the complete workflow and attempt chain.
+2. Preserve non-terminal attempt evidence as an integrity finding rather than
+   converting it to `Not started`.
+3. Make all report/frontend/self-review surfaces use the same lifecycle status.
+4. Add deterministic coverage proving regeneration is read-only and stable.
+5. Only then decide whether a new controlled pair is warranted.
 
 ## Explicit non-goals
 
