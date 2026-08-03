@@ -19,6 +19,7 @@ class FeatureRepairContext:
     prohibited_changes: list[str]
     protected_hashes: dict[str, str] = field(default_factory=dict)
     max_provider_calls: int = 1
+    output_id: str | None = None
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -73,6 +74,20 @@ def build_feature_repair_context(
             if value
         },
         max_provider_calls=1,
+        output_id=(str(record.get("output_id")) if record.get("output_id") else None),
+    )
+
+
+def is_feature_repair_request(reason: str, findings: Iterable[dict[str, Any]]) -> bool:
+    """Recognize the frontend geometric-finding path without broadening repairs."""
+
+    if reason == "feature_repair":
+        return True
+    candidates = [item for item in findings if isinstance(item, dict) and _feature_id(item)]
+    return (
+        reason == "geometric_finding"
+        and len(candidates) == 1
+        and str(candidates[0].get("category") or "") == "geometry_feature"
     )
 
 
@@ -96,6 +111,26 @@ def validate_feature_repair_result(
             return {"accepted": False, "reason": "repair_changed_unaffected_feature", "key": key}
     if after.get("detected_solid_count") not in {None, 1}:
         return {"accepted": False, "reason": "repair_disconnected_output"}
+    evidence = after.get("feature_evidence")
+    if not isinstance(evidence, dict):
+        return {"accepted": False, "reason": "repair_feature_evidence_missing"}
+    if evidence.get("feature_id") not in {None, context.feature_id}:
+        return {"accepted": False, "reason": "repair_feature_evidence_mismatch"}
+    if evidence.get("requirement_outcome") not in {"satisfied", "satisfied_with_warning"}:
+        return {"accepted": False, "reason": "repair_feature_not_satisfied"}
+    if evidence.get("measurement_status") != "measured":
+        return {"accepted": False, "reason": "repair_feature_not_measured"}
+    measurements = evidence.get("measurements")
+    if isinstance(measurements, dict):
+        if measurements.get("connected_to_primary_body") is False:
+            return {"accepted": False, "reason": "repair_feature_disconnected"}
+        overlap = measurements.get("material_overlap_volume_estimate_mm3")
+        if overlap is not None:
+            try:
+                if float(overlap) <= 0:
+                    return {"accepted": False, "reason": "repair_material_overlap_missing"}
+            except (TypeError, ValueError):
+                return {"accepted": False, "reason": "repair_material_overlap_unverifiable"}
     return {
         "accepted": True,
         "reason": "localized_feature_repair",

@@ -359,6 +359,7 @@ def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
         },
         output_manifest={"outputs": [{"output_id": "lid", "filename": "lid.stl"}]},
         source_metadata={"parameter_names": ["lid_thickness"], "component_ids": ["lid"]},
+        geometric_measurements=[{"feature_id": "handle", "requirement_ids": ["req_handle"]}],
     )
 
     prompt = provider.build_revision_plan_prompt(request)
@@ -370,6 +371,8 @@ def test_revision_plan_prompt_is_json_only_and_dependency_aware() -> None:
     assert "protected_outputs" in prompt
     assert "success_criteria" in prompt
     assert "Make the lid 4 mm thick." in prompt
+    assert "Feature repair measurement context" in prompt
+    assert "req_handle" in prompt
 
 
 def test_cadquery_revision_prompt_is_bounded_by_approved_revision_plan() -> None:

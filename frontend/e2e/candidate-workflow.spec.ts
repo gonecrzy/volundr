@@ -759,6 +759,287 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByText("R2 active")).toBeVisible();
 });
 
+test("feature finding repair stays bounded and requires connected final evidence", async ({ page }) => {
+  const project = {
+    id: "project-1",
+    name: "Portable Holder Repair",
+    original_intent: "Create a portable holder with a connected carrying handle.",
+    status: "active",
+    active_revision_id: "rev-active",
+  };
+  const activeRevision = revision({
+    id: "rev-active",
+    revision_number: 1,
+    source_type: "ai_initial",
+    is_accepted: true,
+    review_state: "accepted",
+    design_specification_id: "spec-1",
+    design_plan_id: "plan-1",
+    output_manifest_path: "projects/project-1/revisions/rev-active/output-manifest.json",
+    expected_output_count: 1,
+    required_output_count: 1,
+    successful_output_count: 1,
+  });
+  const brokenCandidate = revision({
+    id: "rev-broken",
+    parent_revision_id: "rev-active",
+    revision_number: 2,
+    source_type: "ai_revision",
+    is_accepted: false,
+    review_state: "ready_with_warnings",
+    design_specification_id: "spec-1",
+    design_plan_id: "plan-1",
+    output_manifest_path: "projects/project-1/revisions/rev-broken/output-manifest.json",
+    expected_output_count: 1,
+    required_output_count: 1,
+    successful_output_count: 1,
+    validation_summary: { blocking_count: 0, advisory_count: 1, dismissed_count: 0 },
+  });
+  const repairedCandidate = revision({
+    id: "rev-repaired",
+    parent_revision_id: "rev-broken",
+    revision_number: 3,
+    source_type: "ai_revision",
+    is_accepted: false,
+    review_state: "ready_with_warnings",
+    design_specification_id: "spec-1",
+    design_plan_id: "plan-1",
+    output_manifest_path: "projects/project-1/revisions/rev-repaired/output-manifest.json",
+    expected_output_count: 1,
+    required_output_count: 1,
+    successful_output_count: 1,
+  });
+  let revisions = [activeRevision, brokenCandidate];
+  const outputsByRevision = new Map<string, ReturnType<typeof revisionOutput>[]>([
+    ["rev-active", [revisionOutput({ id: "active-body", revision_id: "rev-active" })]],
+    ["rev-broken", [revisionOutput({ id: "broken-body", revision_id: "rev-broken" })]],
+    ["rev-repaired", [revisionOutput({ id: "repaired-body", revision_id: "rev-repaired" })]],
+  ]);
+  let currentRevisionPlan: ReturnType<typeof revisionPlan> | null = null;
+  let repairCalls = 0;
+
+  const initialAnalysis = {
+    id: "analysis-rev-broken",
+    revision_id: "rev-broken",
+    design_specification_id: "spec-1",
+    analysis_version: "geometric-invariants-v1",
+    tolerance_profile_version: "geometry-tolerance-v1",
+    mesh_hash: "mesh-broken",
+    source_hash: "source-broken",
+    analysis_ms: 7.5,
+    created_at: "2026-07-30T17:00:00Z",
+    findings: [
+      {
+        rule_id: "feature.evidence.handle.req_handle",
+        requirement_id: "req_handle",
+        feature_id: "handle",
+        title: "Carrying handle is not connected",
+        explanation: "The handle is present but disconnected from the primary body.",
+        suggested_correction: "Reconnect the handle to the primary body with a positive overlap.",
+        verification_state: "violated",
+        expected_value: "connected",
+        detected_value: "disconnected",
+        unit: null,
+        tolerance: null,
+        confidence: 1,
+        severity: "critical",
+        validation_finding_id: "finding-handle",
+      },
+    ],
+    feature_evidence: [
+      {
+        requirement_id: "req_handle",
+        feature_id: "handle",
+        output_id: "body",
+        source_function_id: "_ai_feature_handle",
+        source_executed: true,
+        geometry_presence: "present",
+        measurement_status: "measured",
+        measurements: { connected_to_primary_body: false, material_overlap_volume_estimate_mm3: 0 },
+        requirement_outcome: "not_satisfied",
+        evidence_method: "brep_topology_measurement",
+      },
+    ],
+  };
+  const repairedAnalysis = {
+    ...initialAnalysis,
+    id: "analysis-rev-repaired",
+    revision_id: "rev-repaired",
+    mesh_hash: "mesh-repaired",
+    source_hash: "source-repaired",
+    created_at: "2026-07-30T17:02:00Z",
+    findings: [],
+    feature_evidence: [
+      {
+        ...initialAnalysis.feature_evidence[0],
+        measurements: { connected_to_primary_body: true, material_overlap_volume_estimate_mm3: 4 },
+        requirement_outcome: "satisfied_with_warning",
+      },
+    ],
+  };
+
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname.replace(/^\/api/, "");
+
+    if (request.method() === "GET" && path === "/projects") {
+      return route.fulfill({ json: [project] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1") {
+      return route.fulfill({ json: project });
+    }
+    if (request.method() === "GET" && path === "/printability-profiles") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/messages") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-specification") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/design-plan") {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revision-plan") {
+      if (!currentRevisionPlan) {
+        return route.fulfill({ status: 404, json: { detail: "not found" } });
+      }
+      return route.fulfill({ json: currentRevisionPlan });
+    }
+    if (request.method() === "GET" && path === "/projects/project-1/revisions") {
+      return route.fulfill({ json: revisions });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/outputs$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({ json: outputsByRevision.get(revisionId) ?? [] });
+    }
+    if (request.method() === "GET" && /^\/revisions\/[^/]+\/output-manifest$/.test(path)) {
+      const revisionId = path.split("/")[2];
+      return route.fulfill({
+        json: {
+          schema_version: "output-manifest-v1",
+          project_id: "project-1",
+          revision_id: revisionId,
+          design_plan_id: "plan-1",
+          source: { filename: "source.py", sha256: `source-${revisionId}` },
+          outputs: outputsByRevision.get(revisionId) ?? [],
+        },
+      });
+    }
+    if (request.method() === "GET" && path.endsWith("/source")) {
+      return route.fulfill({ body: source, contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/compile-log")) {
+      return route.fulfill({ body: "CadQuery execution completed", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path.endsWith("/diff")) {
+      return route.fulfill({ status: 404, json: { detail: "not found" } });
+    }
+    if (request.method() === "GET" && path.endsWith("/stl")) {
+      return route.fulfill({ body: "solid holder\nendsolid holder\n", contentType: "model/stl" });
+    }
+    if (request.method() === "GET" && path.endsWith("/step")) {
+      return route.fulfill({ body: "ISO-10303-21;", contentType: "model/step" });
+    }
+    if (request.method() === "GET" && /^\/revision-outputs\/[^/]+\/compile-log$/.test(path)) {
+      return route.fulfill({ body: "Output compilation finished", contentType: "text/plain" });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-broken/findings") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-broken/geometric-analysis") {
+      return route.fulfill({ json: initialAnalysis });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-repaired/findings") {
+      return route.fulfill({ json: [] });
+    }
+    if (request.method() === "GET" && path === "/candidates/rev-repaired/geometric-analysis") {
+      return route.fulfill({ json: repairedAnalysis });
+    }
+    if (request.method() === "POST" && path === "/projects/project-1/revision-plans") {
+      const body = await request.postDataJSON();
+      expect(body.reason).toBe("geometric_finding");
+      expect(body.targeted_finding_ids).toEqual(["finding-handle"]);
+      currentRevisionPlan = revisionPlan({
+        id: "revision-plan-repair",
+        base_revision_id: "rev-broken",
+        user_instruction: body.user_instruction,
+        reason: "geometric_finding",
+        revision_plan: {
+          ...revisionPlanPayload(),
+          summary: "Reconnect the carrying handle with a bounded feature repair",
+          targeted_components: ["body"],
+          targeted_features: ["handle"],
+          targeted_outputs: ["body"],
+          targeted_findings: ["finding-handle"],
+          allowed_parameter_changes: [],
+          protected_features: ["body_shell"],
+          protected_outputs: ["body"],
+          success_criteria: [
+            { type: "feature_evidence", target_id: "handle", expected_value: "satisfied" },
+          ],
+        },
+      });
+      return route.fulfill({ status: 201, json: currentRevisionPlan });
+    }
+    if (request.method() === "POST" && path === "/revision-plans/revision-plan-repair/approve") {
+      currentRevisionPlan = { ...currentRevisionPlan!, review_state: "approved", approved_at: "2026-07-30T17:01:00Z" };
+      return route.fulfill({ json: currentRevisionPlan });
+    }
+    if (request.method() === "POST" && path === "/revision-plans/revision-plan-repair/generate") {
+      repairCalls += 1;
+      expect(repairCalls).toBe(1);
+      revisions = [...revisions, repairedCandidate];
+      currentRevisionPlan = { ...currentRevisionPlan!, generated_revision_id: "rev-repaired" };
+      return route.fulfill({ status: 201, json: repairedCandidate });
+    }
+    if (request.method() === "GET" && path === "/revision-plans/revision-plan-repair") {
+      return route.fulfill({ json: currentRevisionPlan });
+    }
+    if (request.method() === "GET" && path === "/revision-plans/revision-plan-repair/compliance-result") {
+      return route.fulfill({ json: { passed: true, findings: [] } });
+    }
+    if (request.method() === "GET" && path === "/revision-plans/revision-plan-repair/success-results") {
+      return route.fulfill({ json: [successResult()] });
+    }
+
+    return route.fulfill({ status: 404, json: { detail: `unhandled ${request.method()} ${path}` } });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Projects" }).click();
+  await page.getByRole("button", { name: "Portable Holder Repair" }).click();
+  await expect(page.getByText("Current design - R1 - Current design")).toBeVisible();
+
+  await page.getByRole("button", { name: /R2/ }).click();
+  await expect(page.getByText("New version - R2 - Ready with warnings")).toBeVisible();
+  const initialEvidence = page.getByRole("region", { name: "Final feature evidence" });
+  await expect(initialEvidence).toContainText("handle");
+  await expect(initialEvidence).toContainText("not satisfied");
+  await expect(page.getByText("The handle is present but disconnected from the primary body.")).toBeVisible();
+  await expect(page.getByText("Revise from finding")).toBeVisible();
+
+  await page.getByText("Revise from finding").click();
+  await expect(page.getByLabel("AI chat message")).toHaveValue(/feature\.evidence\.handle/);
+  await page.getByRole("button", { name: "Change the design" }).click();
+  await expect(page.getByLabel("Planned changes").getByText("Ready for your review")).toBeVisible();
+  await expect(page.getByLabel("Planned changes")).toContainText("bounded feature repair");
+  await page.getByRole("button", { name: "Review planned changes" }).click();
+
+  await expect(page.getByText("Revision candidate ready")).toBeVisible();
+  await expect(page.getByText("New version - R3 - Ready with warnings")).toBeVisible();
+  const repairedEvidence = page.getByRole("region", { name: "Final feature evidence" });
+  await expect(repairedEvidence).toContainText("satisfied with warning");
+  await expect(repairedEvidence).toContainText("source executed");
+  await expect(repairedEvidence).toContainText("geometry present");
+  await expect(repairedEvidence).toContainText("measured");
+  await expect(repairedEvidence).not.toContainText("disconnected");
+  await expect(page.getByText("R1 active")).toBeVisible();
+  await expect(page.getByRole("button", { name: /R3/ })).toBeVisible();
+  await page.screenshot({ path: "../data/debug-sessions/feature-verification-deterministic/portable-holder-repair-1440x900.png", fullPage: true });
+});
+
 test("deterministic configuration generates a CadQuery candidate without replacing the active revision", async ({ page }) => {
   const project = {
     id: "project-1",

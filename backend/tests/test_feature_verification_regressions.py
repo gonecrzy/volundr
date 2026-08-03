@@ -167,7 +167,20 @@ def test_feature_repair_preserves_slots_and_candidate_consumes_final_evidence() 
     result = validate_feature_repair_result(
         context,
         before={"output_ids": ["part"], "hashes": {"slot_2": "h"}},
-        after={"output_ids": ["part"], "hashes": {"slot_2": "h"}, "detected_solid_count": 1, "handle": "connected"},
+        after={
+            "output_ids": ["part"],
+            "hashes": {"slot_2": "h"},
+            "detected_solid_count": 1,
+            "feature_evidence": {
+                "feature_id": "handle",
+                "requirement_outcome": "satisfied",
+                "measurement_status": "measured",
+                "measurements": {
+                    "connected_to_primary_body": True,
+                    "material_overlap_volume_estimate_mm3": 2,
+                },
+            },
+        },
         provider_calls=1,
     )
     assert result["accepted"]

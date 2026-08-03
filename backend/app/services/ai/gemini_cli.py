@@ -1276,6 +1276,8 @@ class GeminiCliProvider:
                 "",
                 "Selected findings:",
                 json.dumps(request.selected_findings, indent=2, sort_keys=True),
+                "Feature repair measurement context:",
+                json.dumps(request.geometric_measurements, indent=2, sort_keys=True),
                 "",
                 "Clarification answers:",
                 json.dumps(request.clarification_answers, indent=2, sort_keys=True),

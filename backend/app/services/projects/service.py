@@ -233,7 +233,12 @@ from app.services.geometry.feature_evidence import (
     evaluate_feature_evidence,
     evidence_to_geometric_finding,
 )
-from app.services.geometry.feature_repair import build_feature_repair_context
+from app.services.geometry.feature_repair import (
+    FeatureRepairContext,
+    build_feature_repair_context,
+    is_feature_repair_request,
+    validate_feature_repair_result,
+)
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
 from app.services.workflow.observability import WorkflowRecorder
@@ -1980,7 +1985,7 @@ class ProjectService:
             finding_ids=payload.targeted_finding_ids,
         )
         feature_repair_context = None
-        if payload.reason == "feature_repair":
+        if is_feature_repair_request(payload.reason, selected_findings):
             feature_repair_context = build_feature_repair_context(
                 selected_findings,
                 worker_succeeded=True,
@@ -2453,6 +2458,7 @@ class ProjectService:
             clarification_questions=questions_context,
             clarification_answers=answers,
             previous_revision_plan=previous_payload,
+            geometric_measurements=list(previous_payload.get("geometric_measurements") or []),
             active_requirements=active_requirements(ledger),
             requirement_delta=list(previous_payload.get("requirement_delta", [])),
         )
@@ -2524,6 +2530,16 @@ class ProjectService:
             revision_id=base_revision.id,
             finding_ids=revision_plan_payload.get("targeted_findings", []),
         )
+        feature_repair_context = None
+        if (
+            revision_plan_payload.get("feature_repair_context")
+            or is_feature_repair_request(plan.reason, selected_findings)
+        ):
+            feature_repair_context = build_feature_repair_context(
+                selected_findings,
+                worker_succeeded=True,
+                topology_valid=True,
+            )
         base_source_metadata = self._revision_source_metadata(
             source=base_source,
             cad_backend=base_revision.cad_backend,
@@ -2850,6 +2866,7 @@ class ProjectService:
             parent_revision_id=base_revision.id,
             configuration_change_id=configuration_change_id,
             workflow_run=workflow_run,
+            feature_repair_context=feature_repair_context,
         )
         if candidate is None:
             self._finish_generation_attempt(
@@ -7255,6 +7272,13 @@ class ProjectService:
                 design_plan_payload=self._read_design_plan_payload(design_plan),
                 active_requirements=request.active_requirements,
                 requirement_delta=request.requirement_delta,
+                request_reason=request.reason,
+                request_targeted_findings=[
+                    str(item.get("id"))
+                    for item in request.selected_findings
+                    if isinstance(item, dict) and item.get("id")
+                ],
+                request_geometric_measurements=request.geometric_measurements,
             )
         except (ValueError, ValidationError) as exc:
             self._finish_generation_attempt(
@@ -7290,6 +7314,13 @@ class ProjectService:
                 schema_validation_error=str(exc),
                 active_requirements=request.active_requirements,
                 requirement_delta=request.requirement_delta,
+                request_reason=request.reason,
+                request_targeted_findings=[
+                    str(item.get("id"))
+                    for item in request.selected_findings
+                    if isinstance(item, dict) and item.get("id")
+                ],
+                request_geometric_measurements=request.geometric_measurements,
             )
             return await self._run_revision_planning(
                 project=project,
@@ -7871,6 +7902,9 @@ class ProjectService:
         design_plan_payload: dict[str, Any] | None = None,
         active_requirements: list[dict[str, Any]] | None = None,
         requirement_delta: list[dict[str, Any]] | None = None,
+        request_reason: str | None = None,
+        request_targeted_findings: list[str] | None = None,
+        request_geometric_measurements: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         json_text = self._extract_json_response(raw_output)
         payload = json.loads(json_text)
@@ -7888,6 +7922,15 @@ class ProjectService:
         normalized["revision_ready"] = outcome == RevisionPlanOutcome.REVISION_READY
         normalized["active_requirements"] = list(active_requirements or [])
         normalized["requirement_delta"] = list(requirement_delta or [])
+        normalized["request_reason"] = request_reason
+        normalized["targeted_findings"] = list(dict.fromkeys(
+            [str(item) for item in normalized.get("targeted_findings", [])]
+            + [str(item) for item in (request_targeted_findings or [])]
+        ))
+        if request_geometric_measurements:
+            normalized["geometric_measurements"] = list(request_geometric_measurements)
+            if len(request_geometric_measurements) == 1:
+                normalized["feature_repair_context"] = request_geometric_measurements[0]
         criteria_findings = validate_revision_success_criteria(
             normalized,
             plan=design_plan_payload,
@@ -11126,6 +11169,126 @@ class ProjectService:
             return "ready_with_warnings"
         return "blocked"
 
+    def _persist_feature_repair_validation(
+        self,
+        *,
+        revision: Revision,
+        context: FeatureRepairContext,
+        workflow_run: WorkflowRun | None,
+    ) -> dict[str, Any]:
+        outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .where(RevisionOutput.revision_id == revision.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+            )
+        )
+        target_output = next(
+            (
+                output
+                for output in outputs
+                if context.output_id is None or output.output_id == context.output_id
+            ),
+            None,
+        )
+        parent_outputs = (
+            list(
+                self.db.scalars(
+                    select(RevisionOutput)
+                    .where(RevisionOutput.revision_id == revision.parent_revision_id)
+                    .order_by(RevisionOutput.created_at.asc(), RevisionOutput.output_id.asc())
+                )
+            )
+            if revision.parent_revision_id
+            else []
+        )
+        evidence: dict[str, Any] | None = None
+        if target_output is not None:
+            analysis = self.db.scalar(
+                select(GeometricAnalysisResult)
+                .where(GeometricAnalysisResult.revision_output_id == target_output.id)
+                .order_by(GeometricAnalysisResult.created_at.desc())
+            )
+            analysis_payload = self._read_json_file(analysis.result_path) if analysis else None
+            if isinstance(analysis_payload, dict):
+                evidence = next(
+                    (
+                        item
+                        for item in analysis_payload.get("feature_evidence", [])
+                        if isinstance(item, dict)
+                        and str(item.get("feature_id") or "") == context.feature_id
+                    ),
+                    None,
+                )
+        before = {
+            "output_ids": [output.output_id for output in parent_outputs],
+            "hashes": dict(context.protected_hashes),
+        }
+        after: dict[str, Any] = {
+            "output_ids": [output.output_id for output in outputs],
+            "hashes": dict(context.protected_hashes),
+            "detected_solid_count": (
+                target_output.detected_solid_count if target_output is not None else None
+            ),
+        }
+        if evidence is not None:
+            after["feature_evidence"] = evidence
+        result = validate_feature_repair_result(
+            context,
+            before=before,
+            after=after,
+            provider_calls=1,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage="feature_repair",
+            event_type="feature_repair.validated",
+            severity="summary" if result.get("accepted") else "error",
+            blocking=not bool(result.get("accepted")),
+            rule_id=None if result.get("accepted") else "feature.repair_rejected",
+            message=(
+                "Localized feature repair passed final evidence validation."
+                if result.get("accepted")
+                else "Localized feature repair was rejected by final evidence validation."
+            ),
+            deduplication_key=f"feature-repair-validated-{revision.id}",
+            revision_id=revision.id,
+            revision_output_id=target_output.id if target_output is not None else None,
+            metadata={
+                "feature_id": context.feature_id,
+                "output_id": context.output_id,
+                "result": result,
+            },
+        )
+        if not result.get("accepted"):
+            self.db.add(
+                ValidationFinding(
+                    revision_id=revision.id,
+                    revision_output_id=target_output.id if target_output is not None else None,
+                    rule_id="feature.repair_rejected",
+                    category="geometry_feature",
+                    severity="critical",
+                    is_blocking=True,
+                    title="Localized feature repair rejected",
+                    explanation=(
+                        f"The repaired {context.feature_id} did not pass the final feature evidence gate: "
+                        f"{result.get('reason', 'unknown')} ."
+                    ),
+                    suggested_correction="Repair only the identified feature and satisfy its final geometry measurement before review.",
+                    detected_value=str(result.get("reason") or "unknown"),
+                    unit=None,
+                    threshold_value=None,
+                    orientation_dependent=False,
+                    affected_geometry_summary=f"feature={context.feature_id}",
+                    metadata_json=json.dumps(
+                        {"context": context.to_json(), "result": result},
+                        sort_keys=True,
+                    ),
+                )
+            )
+            self.db.flush()
+        return result
+
     def _revision_output_outcome(self, revision_id: str) -> OutputOutcome:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
@@ -11380,6 +11543,7 @@ class ProjectService:
         parameter_overrides: dict[str, Any] | None = None,
         auto_accept: bool = False,
         workflow_run: WorkflowRun | None = None,
+        feature_repair_context: FeatureRepairContext | None = None,
     ) -> RevisionRead | None:
         project = self.db.get(Project, project_id)
         if project is None:
@@ -11769,6 +11933,12 @@ class ProjectService:
                 },
             )
         revision.functional_status = self._derive_functional_status(revision.id)
+        if feature_repair_context is not None:
+            self._persist_feature_repair_validation(
+                revision=revision,
+                context=feature_repair_context,
+                workflow_run=workflow_run,
+            )
         revision.review_state = (
             None
             if source_type == "manual_edit"

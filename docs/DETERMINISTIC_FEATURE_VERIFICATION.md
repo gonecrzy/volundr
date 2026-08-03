@@ -95,3 +95,21 @@ The live result is recorded in `FEATURE_VERIFICATION_LIVE_EVALUATION.md`.
 Missing trace remains an explicit unverifiable condition in the evidence
 evaluator, while ordinary legacy workflows without a new trace remain
 unchanged.
+
+## Bounded repair gate
+
+The staged candidate-review flow now treats a single `geometry_feature`
+finding as a bounded repair request only when the request targets exactly one
+feature. The repair context carries the source trace, failed measurements,
+protected hashes, output identity, and a one-provider-call limit into the
+revision plan. The generated candidate is not accepted as a successful repair
+unless its authoritative final analysis contains matching, measured feature
+evidence with a satisfied or warning-qualified outcome, connected geometry,
+and positive material overlap when that measurement is available. Missing
+final feature evidence is a blocking integrity result. The active revision is
+unchanged until the candidate is separately accepted.
+
+The deterministic browser proof is the staged Playwright scenario
+`feature finding repair stays bounded and requires connected final evidence`.
+Its screenshot is kept with the local evidence artifacts at
+`data/debug-sessions/feature-verification-deterministic/portable-holder-repair-1440x900.png`.
