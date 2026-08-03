@@ -1,0 +1,14 @@
+{
+  "schema_version": "volundr-geometry-slots-v1",
+  "slots": [
+    {
+      "slot_id": 1,
+      "statements": [
+        "def function_1(params=None):",
+        "    pass",
+        "body = body"
+      ],
+      "result_symbol": "body"
+    }
+  ]
+}

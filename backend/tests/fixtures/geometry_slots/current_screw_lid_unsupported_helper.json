@@ -1,0 +1,10 @@
+{
+  "schema_version": "volundr-geometry-slots-v1",
+  "slots": [
+    {
+      "slot_id": 0,
+      "statements": ["body = circular_pattern_points(24)"],
+      "result_symbol": "body"
+    }
+  ]
+}

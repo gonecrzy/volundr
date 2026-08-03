@@ -1,0 +1,20 @@
+{
+  "schema_version": "volundr-geometry-slots-v1",
+  "slots": [
+    {
+      "slot_id": 2,
+      "statements": ["body = body"],
+      "result_symbol": "body"
+    },
+    {
+      "slot_id": 0,
+      "statements": ["body = cq.Workplane(\"XY\").box(params[\"width\"], 10, 3)"],
+      "result_symbol": "body"
+    },
+    {
+      "slot_id": 1,
+      "statements": ["body = body.faces(\">Z\").workplane().rect(20, 20).cutBlind(-1)"],
+      "result_symbol": "body"
+    }
+  ]
+}
