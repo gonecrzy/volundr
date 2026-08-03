@@ -1,0 +1,124 @@
+[
+  {
+    "fixture_id": "post-correction-monitor-invalid-json",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "9a83da2f-3a9b-4ec4-8a02-739989c6296f",
+      "attempt_id": "53fe1c2d-84f4-46c0-bacb-fad2e1656309",
+      "stage": "requirements"
+    },
+    "raw_provider_response": "{\"assumptions\":[{\"id\":\"assumption_wall_mount_orientation\",\"label\":\"Wall mount orientation\",\"source\":\"product_default\", type\":\"orientation\"}]}",
+    "expected": {
+      "classification": "invalid_json",
+      "syntax_status": "syntax_repair_failed",
+      "schema_findings": [],
+      "provenance_findings": [],
+      "repair_eligible": true,
+      "final_blocking": true
+    }
+  },
+  {
+    "fixture_id": "post-correction-monitor-schema-invalid",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "9a83da2f-3a9b-4ec4-8a02-739989c6296f",
+      "attempt_id": "885ced70-6764-45e0-bcbd-1e96dba710b3",
+      "stage": "requirements"
+    },
+    "raw_provider_response": "```json\n{\"assumptions\":[{\"id\":\"assumption_wall_mount_orientation\",\"label\":\"Wall mount orientation\",\"source\":\"product_default\"}]}\n```",
+    "expected": {
+      "classification": "valid_after_normalization",
+      "pre_normalization_classification": "schema_invalid",
+      "syntax_status": "syntax_repair_succeeded",
+      "schema_findings": ["schema.assumptions.description_missing"],
+      "provenance_findings": [],
+      "normalization": "label_to_description",
+      "repair_eligible": true,
+      "final_blocking": false
+    }
+  },
+  {
+    "fixture_id": "post-correction-organizer-identity-ambiguity",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "66df4c96-c202-49b7-9ee5-fc6586eac148",
+      "attempt_id": "d191c06d-48b9-4526-816f-5b89db8ade9a",
+      "stage": "geometry_body"
+    },
+    "raw_provider_response": "```json\n{\"schema_version\":\"cadquery-geometry-bodies-v2\",\"functions\":[{\"function_id\":\"organizer_body\",\"feature_ids\":[\"accessory_compartments_division\",\"accessory_compartments_division\"]}]}\n```",
+    "expected": {
+      "classification": "semantic_contradiction",
+      "syntax_status": "syntax_repair_succeeded",
+      "schema_findings": [],
+      "provenance_findings": ["geometry.feature_identity_ambiguous"],
+      "repair_eligible": false,
+      "final_blocking": true
+    }
+  },
+  {
+    "fixture_id": "post-correction-screw-lid-missing-provenance",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "f96daa7b-e265-4c1a-a799-ba814b00e8fe",
+      "attempt_id": "7b5398a1-db06-46a4-96a7-52c30c8a3951",
+      "stage": "compact_plan"
+    },
+    "raw_provider_response": "```json\n{\"parameters\":[{\"id\":\"lid_grip_ribs\",\"value\":\"integral\"}],\"feature_layouts\":[{\"id\":\"lid_grip_ribs\",\"feature_id\":\"lid_grip_ribs\"}]}\n```",
+    "expected": {
+      "classification": "provenance_invalid",
+      "syntax_status": "syntax_repair_succeeded",
+      "schema_findings": [],
+      "provenance_findings": ["provenance.derived_source_missing"],
+      "repair_eligible": true,
+      "final_blocking": true
+    }
+  },
+  {
+    "fixture_id": "focused-repair-unchanged",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "f96daa7b-e265-4c1a-a799-ba814b00e8fe",
+      "attempt_id": "bc7135e5-7d8d-4f47-8f44-58f68fd733a9",
+      "stage": "compact_plan"
+    },
+    "original_record": {"id": "lid_grip_ribs", "count": null},
+    "repaired_record": {"id": "lid_grip_ribs", "count": null},
+    "expected": {
+      "repair_outcome": "unchanged_repair",
+      "final_blocking": true
+    }
+  },
+  {
+    "fixture_id": "focused-repair-regressive-identity",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "66df4c96-c202-49b7-9ee5-fc6586eac148",
+      "attempt_id": "d191c06d-48b9-4526-816f-5b89db8ade9a",
+      "stage": "geometry_body"
+    },
+    "original_record": {"id": "accessory_compartments_division", "owner": "organizer_body", "width": 55},
+    "repaired_record": {"id": "invented_feature", "owner": "organizer_body", "width": 55},
+    "expected": {
+      "repair_outcome": "regressive_repair",
+      "final_blocking": true
+    }
+  },
+  {
+    "fixture_id": "normalized-fenced-trailing-comma",
+    "source": {
+      "batch_id": "0ba9c31b-5d0e-440e-b34b-7b766afa1d39",
+      "project_id": "9a83da2f-3a9b-4ec4-8a02-739989c6296f",
+      "attempt_id": "885ced70-6764-45e0-bcbd-1e96dba710b3",
+      "stage": "requirements"
+    },
+    "raw_provider_response": "```json\n{\"object_type\":\"monitor_mount\",}\n```",
+    "expected": {
+      "classification": "valid_after_normalization",
+      "syntax_status": "syntax_repair_succeeded",
+      "schema_findings": [],
+      "provenance_findings": [],
+      "repair_eligible": false,
+      "final_blocking": false
+    }
+  }
+]
