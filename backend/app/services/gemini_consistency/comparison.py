@@ -79,6 +79,38 @@ def failure_signature(evidence: dict[str, Any]) -> str | None:
         integrity = workspace.get("artifact_integrity")
         if isinstance(integrity, dict) and integrity.get("missing_count", 0):
             return "missing_artifacts"
+
+    authoritative_failure_values: list[str] = []
+    attempts = evidence.get("generation_attempts")
+    if isinstance(attempts, list):
+        for attempt in attempts:
+            if isinstance(attempt, dict):
+                for key in ("failure_class", "error_category", "status"):
+                    value = attempt.get(key)
+                    if value:
+                        authoritative_failure_values.append(str(value).casefold())
+    responses = evidence.get("chat_responses")
+    if isinstance(responses, list):
+        for item in responses:
+            if not isinstance(item, dict):
+                continue
+            response = item.get("response")
+            if not isinstance(response, dict):
+                continue
+            blocked_attempt = response.get("blocked_attempt")
+            if isinstance(blocked_attempt, dict):
+                for key in ("failure_class", "error_category", "status"):
+                    value = blocked_attempt.get(key)
+                    if value:
+                        authoritative_failure_values.append(str(value).casefold())
+    for value in authoritative_failure_values:
+        if "provider" in value:
+            return "provider_failure"
+        if "schema" in value:
+            return "provider_schema_error"
+        if "worker" in value:
+            return "worker_failure"
+
     category = str(evidence.get("outcome_category") or evidence.get("failure_class") or "").casefold()
     message = str(evidence.get("error") or evidence.get("final_outcome") or "").casefold()
     combined = f"{category} {message}"

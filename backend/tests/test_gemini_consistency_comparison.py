@@ -51,6 +51,28 @@ def test_failure_signature_is_normalized_without_raw_secret_material() -> None:
     assert "secret-value" not in signature
 
 
+def test_failure_signature_reports_provider_failure_from_authoritative_attempts() -> None:
+    signature = failure_signature(
+        {
+            "outcome_category": "completed",
+            "chat_responses": [
+                {
+                    "response": {
+                        "blocked_attempt": {
+                            "failure_class": "provider_failure",
+                        }
+                    }
+                }
+            ],
+            "generation_attempts": [
+                {"status": "failed", "failure_class": "provider_failure"}
+            ],
+        }
+    )
+
+    assert signature == "provider_failure"
+
+
 def test_controlled_comparison_reports_every_identity_mismatch() -> None:
     first = {
         "git_head": "abc",
