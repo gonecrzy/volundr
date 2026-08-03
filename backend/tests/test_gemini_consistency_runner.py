@@ -146,6 +146,62 @@ def test_redaction_preserves_nonsecret_token_metrics_and_limits(tmp_path) -> Non
     assert "34" in rendered
 
 
+def test_metrics_records_rate_limit_events_without_persisting_provider_error_text() -> None:
+    metrics = GeminiConsistencyRunner._metrics(
+        {
+            "generation_attempts": [
+                {"estimated_prompt_tokens": 10, "estimated_output_tokens": 5}
+            ],
+            "chat_responses": [
+                {
+                    "response": {
+                        "blocked_attempt": {
+                            "error_message": "Quota exceeded; please retry in 60 seconds.",
+                            "failure_class": "provider_failure",
+                        }
+                    }
+                }
+            ],
+            "workflow_events": {},
+            "workspace": {},
+        },
+        clarification_rounds=0,
+        retry_count=0,
+        workflow_run_ids=[],
+    )
+
+    assert metrics["rate_limit_events"] == 1
+    assert "error_message" not in metrics
+
+
+def test_runner_applies_recorded_rate_limit_backoff_between_cases(tmp_path, monkeypatch) -> None:
+    fake = _FakeBenchmarkClient()
+    runner = GeminiConsistencyRunner(
+        BenchmarkRunnerConfig(
+            corpus_path=CORPUS_PATH,
+            models=("model-a", "model-b"),
+            pilot=True,
+            full=False,
+            case_filter=("case-001",),
+            rate_limit_backoff_seconds=17.0,
+            output_root=tmp_path / "data" / "debug-sessions" / "gemini-consistency",
+        ),
+        client=fake,
+    )
+    sleeps: list[float] = []
+    monkeypatch.setattr("app.services.gemini_consistency.runner.time.sleep", sleeps.append)
+    monkeypatch.setattr(
+        runner,
+        "_run_case",
+        lambda *args, **kwargs: {"state": "completed", "rate_limit_events": 1},
+    )
+
+    result = runner.run()
+
+    assert len(result["results"]) == 4
+    assert sleeps == [17.0, 17.0, 17.0, 17.0]
+
+
 class _FakeBenchmarkClient:
     def __init__(self) -> None:
         self.history = []

@@ -68,6 +68,7 @@ class BenchmarkRunnerConfig:
     dry_run: bool = False
     resume: bool = False
     max_concurrency: int = 1
+    rate_limit_backoff_seconds: float = 65.0
     base_url: str = "http://127.0.0.1:8000"
     timeout_seconds: float = 60.0
     output_root: Path = Path("data/debug-sessions/gemini-consistency")
@@ -562,7 +563,10 @@ class GeminiConsistencyRunner:
                 for position, case in enumerate(selected_cases):
                     if self.stop_requested:
                         break
-                    result["results"].append(self._run_case(experiment_id, model, run, case, position, corpus))
+                    case_result = self._run_case(experiment_id, model, run, case, position, corpus)
+                    result["results"].append(case_result)
+                    if case_result.get("rate_limit_events", 0) and self.config.rate_limit_backoff_seconds > 0:
+                        time.sleep(self.config.rate_limit_backoff_seconds)
                 client.finish_run(experiment_id, str(run["id"]), "cancelled" if self.stop_requested else "completed")
                 if self.stop_requested:
                     break
@@ -586,7 +590,10 @@ class GeminiConsistencyRunner:
                 "mode": "pilot" if selection.pilot else "full",
                 "models": list(selection.models),
                 "runs": selection.runs,
-                "model_settings": {"max_concurrency": self.config.max_concurrency},
+                "model_settings": {
+                    "max_concurrency": self.config.max_concurrency,
+                    "rate_limit_backoff_seconds": self.config.rate_limit_backoff_seconds,
+                },
                 "frontend_build_identity": self.config.frontend_build_identity,
             }
         )
@@ -707,7 +714,14 @@ class GeminiConsistencyRunner:
                 "evidence_path": evidence_path,
             }
             completed = client.complete_case(experiment_id, run_id, case.case_id, payload)
-            return {"case_id": case.case_id, "model": model, "run_index": run["run_index"], "state": completed.get("state"), "membership": completed}
+            return {
+                "case_id": case.case_id,
+                "model": model,
+                "run_index": run["run_index"],
+                "state": completed.get("state"),
+                "rate_limit_events": metrics.get("rate_limit_events", 0),
+                "membership": completed,
+            }
         except (Exception, KeyboardInterrupt) as exc:
             if isinstance(exc, KeyboardInterrupt):
                 self.request_stop()
@@ -795,6 +809,17 @@ class GeminiConsistencyRunner:
         stages = {str(event.get("stage")) for event in event_values}
         workspace = evidence.get("workspace") if isinstance(evidence.get("workspace"), dict) else {}
         revisions = evidence.get("revisions") if isinstance(evidence.get("revisions"), list) else []
+        rate_limit_events = 0
+        responses = evidence.get("chat_responses")
+        if isinstance(responses, list):
+            for item in responses:
+                response = item.get("response") if isinstance(item, dict) else None
+                blocked_attempt = response.get("blocked_attempt") if isinstance(response, dict) else None
+                error_message = blocked_attempt.get("error_message") if isinstance(blocked_attempt, dict) else None
+                if isinstance(error_message, str) and any(
+                    marker in error_message.casefold() for marker in ("quota", "rate limit", "429")
+                ):
+                    rate_limit_events += 1
         return {
             "clarification_rounds": clarification_rounds,
             "retry_count": retry_count,
@@ -807,6 +832,7 @@ class GeminiConsistencyRunner:
             "topology_observed": "topology_validation" in stages,
             "verification_observed": any("verification" in stage for stage in stages),
             "candidate_outcome": workspace.get("current_working_revision_id") is not None or bool(revisions),
+            "rate_limit_events": rate_limit_events,
             "integrity_findings": cls._integrity_findings(evidence),
         }
 
@@ -823,6 +849,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--experiment-id")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--max-concurrency", type=int, default=1)
+    parser.add_argument("--rate-limit-backoff", type=float, default=65.0)
     parser.add_argument("--case-filter", nargs="*", default=[])
     parser.add_argument("--family-filter", nargs="*", default=[])
     parser.add_argument("--specificity-filter", nargs="*", default=[])
@@ -847,6 +874,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         dry_run=args.dry_run,
         resume=args.resume,
         max_concurrency=args.max_concurrency,
+        rate_limit_backoff_seconds=args.rate_limit_backoff,
         base_url=args.base_url,
         timeout_seconds=args.timeout,
         output_root=args.output_root,
