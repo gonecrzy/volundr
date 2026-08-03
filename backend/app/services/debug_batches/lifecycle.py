@@ -59,7 +59,9 @@ def classify_project_lifecycle(
 
 def lifecycle_label(state: str) -> str:
     return {
-        "no_activity": "No activity",
+        # Keep the existing API/report wording while exposing the canonical
+        # lifecycle_state separately.
+        "no_activity": "Not started",
         "in_progress": "In progress",
         "interrupted": "Interrupted",
         "blocked_before_worker": "Blocked before worker",

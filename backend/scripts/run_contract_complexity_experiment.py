@@ -116,6 +116,54 @@ def _write_redacted_json(
     path.write_text(json.dumps(redacted, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
 
 
+def _write_redacted_text(
+    path: Path,
+    value: str,
+    *,
+    redactor: RedactionService,
+    evidence_root: Path,
+) -> list[dict[str, Any]]:
+    normalized, findings = redactor.normalize_evidence_text(
+        value,
+        data_root=evidence_root / "runtime-data",
+        evidence_root=evidence_root,
+    )
+    redactor.assert_text_redacted(normalized)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(normalized, encoding="utf-8")
+    return findings
+
+
+def _redact_runtime_data(
+    runtime_data: Path,
+    *,
+    redactor: RedactionService,
+    evidence_root: Path,
+) -> dict[str, int]:
+    """Redact textual worker inputs/results while leaving binary artifacts intact."""
+
+    files = 0
+    findings = 0
+    for path in sorted(runtime_data.rglob("*")):
+        if not path.is_file():
+            continue
+        try:
+            value = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        normalized, path_findings = redactor.normalize_evidence_text(
+            value,
+            data_root=runtime_data,
+            evidence_root=evidence_root,
+        )
+        redactor.assert_text_redacted(normalized)
+        if normalized != value:
+            path.write_text(normalized, encoding="utf-8")
+        files += 1
+        findings += len(path_findings)
+    return {"files_scanned": files, "normalization_findings": findings}
+
+
 def _git_value(*args: str) -> str:
     try:
         result = subprocess.run(
@@ -375,6 +423,18 @@ def main() -> int:
                 redactor=redactor,
             )
         )
+        worker_log.flush()
+        worker_runtime_scan = _redact_runtime_data(
+            runtime_data,
+            redactor=redactor,
+            evidence_root=evidence_root,
+        )
+        worker_redaction_findings = _write_redacted_text(
+            evidence_root / "cad-worker-redacted.log",
+            worker_log_path.read_text(encoding="utf-8", errors="replace"),
+            redactor=redactor,
+            evidence_root=evidence_root,
+        )
         experiment = {
             "schema_version": "contract-complexity-experiment-v1",
             "status": "complete",
@@ -402,11 +462,16 @@ def main() -> int:
                 "rendered_prompts": "scanned",
                 "provider_responses": "scanned",
                 "assembled_source": "worker/source-contract scanned",
-                "worker_output": "local worker evidence and logs scanned at write time",
+                "worker_output": {
+                    "status": "scanned",
+                    "redacted_log": "cad-worker-redacted.log",
+                    "files_scanned": worker_runtime_scan["files_scanned"],
+                    "normalization_findings": worker_runtime_scan["normalization_findings"] + len(worker_redaction_findings),
+                },
                 "screenshots_metadata": "not_applicable",
                 "frontend_network_evidence": "not_applicable",
             },
-            "worker_log": str(worker_log_path.relative_to(evidence_root)),
+            "worker_log": "cad-worker-redacted.log",
         }
         _write_redacted_json(evidence_root / "experiment.json", experiment, redactor=redactor, evidence_root=evidence_root)
         _write_redacted_json(
