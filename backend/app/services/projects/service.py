@@ -185,6 +185,7 @@ from app.services.planning.context import PromptContextPackBuilder, normalize_ge
 from app.services.planning.depth import PlanningDepth, PlanningDepthRouter, PlanningRouteDecision
 from app.services.workflow.observability import WorkflowRecorder
 from app.services.workflow.repair_convergence import compare_repair_responses
+from app.services.workflow.provider_response import analyze_provider_response
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -5793,6 +5794,16 @@ class ProjectService:
         comparison = compare_repair_responses(original, repaired)
         if not comparison["unchanged"]:
             return False
+        attempt.provider_response_classification = "unchanged_repair"
+        manifest = json.loads(attempt.provider_response_manifest_json or "{}")
+        manifest.update(
+            {
+                "repair_outcome": "unchanged_repair",
+                "repair_original_hash": comparison["original_hash"],
+                "repair_repaired_hash": comparison["repaired_hash"],
+            }
+        )
+        attempt.provider_response_manifest_json = json.dumps(manifest, sort_keys=True)
         self._finish_generation_attempt(
             attempt,
             status="failed",
@@ -5838,6 +5849,7 @@ class ProjectService:
             prompt_path="",
             status="started",
             failure_class=FailureClass.NONE.value,
+            provider_response_stage=self._provider_response_stage_for_request(request),
         )
         attempt.cad_backend = "cadquery"
         attempt.source_language = "python"
@@ -5873,10 +5885,66 @@ class ProjectService:
         self.db.refresh(attempt)
         return attempt
 
+    def _provider_response_stage_for_request(self, request: Any) -> str:
+        if getattr(request, "geometry_body_diagnostics", None):
+            return "geometry_body"
+        if getattr(request, "contract_diagnostics", None):
+            return "source_contract"
+        if getattr(request, "compiler_diagnostics", None):
+            return "worker_diagnostic"
+        if getattr(request, "scope_diagnostics", None):
+            return "source_scope_repair"
+        return "source_generation"
+
     def _record_generation_result(self, attempt: GenerationAttempt, generation_result) -> None:
         run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
         raw_output_path = run_dir / "raw-output.txt"
         raw_output_path.write_text(generation_result.raw_output, encoding="utf-8")
+        response_stage = attempt.provider_response_stage or "provider_response"
+        response = analyze_provider_response(
+            generation_result.raw_output,
+            stage=response_stage,
+        )
+        attempt.provider_response_stage = response.stage
+        attempt.provider_response_classification = response.classification.value
+        attempt.provider_response_original_path = self._relative(raw_output_path)
+        attempt.provider_response_original_hash = response.raw_hash
+        attempt.provider_response_normalized_hash = response.normalized_hash
+        attempt.provider_response_final_hash = response.final_hash
+        attempt.provider_response_final_stage = response.final_stage
+        attempt.provider_response_findings_before_json = json.dumps(
+            list(response.findings_before_normalization), sort_keys=True
+        )
+        attempt.provider_response_findings_after_normalization_json = json.dumps(
+            list(response.findings_after_normalization), sort_keys=True
+        )
+        manifest: dict[str, Any] = {
+            "contract_version": "provider-response-lifecycle-v1",
+            "stage": response.stage,
+            "provider_authored": {"raw": True, "normalized": False, "repaired": attempt.content_repair_count > 0},
+            "deterministically_normalized": response.classification.value == "valid_after_normalization",
+            "syntax_status": response.syntax_status,
+            "changed_fields": [],
+            "identities_changed": [],
+            "provenance_changed": [],
+            "findings_before_normalization": list(response.findings_before_normalization),
+            "findings_after_normalization": list(response.findings_after_normalization),
+        }
+        if response.parsed is not None:
+            parsed_path = run_dir / "provider-parsed.json"
+            self._write_json(parsed_path, response.parsed)
+            attempt.provider_response_parsed_path = self._relative(parsed_path)
+            attempt.provider_response_parsed_hash = self._sha256(parsed_path.read_text(encoding="utf-8"))
+        if response.normalized is not None:
+            normalized_path = run_dir / "provider-normalized.json"
+            self._write_json(normalized_path, response.normalized)
+            attempt.provider_response_normalized_path = self._relative(normalized_path)
+            if attempt.content_repair_count > 0:
+                repaired_path = run_dir / "provider-repaired.json"
+                self._write_json(repaired_path, response.normalized)
+                attempt.provider_response_repaired_path = self._relative(repaired_path)
+                attempt.provider_response_repaired_hash = response.normalized_hash
+        attempt.provider_response_manifest_json = json.dumps(manifest, sort_keys=True)
         attempt.provider_id = generation_result.provider
         attempt.model_id = generation_result.provider_model
         usage_metadata = getattr(generation_result, "usage_metadata", None)
@@ -5935,8 +6003,35 @@ class ProjectService:
         attempt.error_message = error_message
         attempt.resulting_revision_id = resulting_revision_id
         attempt.completed_at = project_utcnow()
+        if status == "succeeded" and failure_class is FailureClass.NONE:
+            final_path = attempt.source_path or attempt.design_plan_path or attempt.design_spec_path
+            if final_path is None:
+                final_path = attempt.provider_response_normalized_path
+            attempt.provider_response_final_path = final_path
+            if attempt.provider_response_final_hash is None:
+                attempt.provider_response_final_hash = attempt.provider_response_normalized_hash
+            attempt.provider_response_final_stage = "accepted"
         self._update_attempt_chain(attempt, status=status, error_message=error_message)
         self.db.commit()
+
+    def _record_provider_response_validation_failure(
+        self,
+        attempt: GenerationAttempt,
+        *,
+        error_message: str,
+        classification: str,
+        findings: list[str] | tuple[str, ...] = (),
+    ) -> None:
+        normalized_findings = [str(item) for item in findings] or [error_message]
+        attempt.provider_response_classification = classification
+        attempt.provider_response_findings_after_normalization_json = json.dumps(
+            normalized_findings, sort_keys=True
+        )
+        manifest = json.loads(attempt.provider_response_manifest_json or "{}")
+        manifest["findings_after_normalization"] = normalized_findings
+        manifest["final_classification"] = classification
+        attempt.provider_response_manifest_json = json.dumps(manifest, sort_keys=True)
+        self.db.flush()
 
     def _finish_provider_cancelled_attempt(self, attempt: GenerationAttempt) -> None:
         self._finish_generation_attempt(
@@ -6008,6 +6103,11 @@ class ProjectService:
                 generation_attempt_id=attempt.id,
             )
         except (ValueError, ValidationError) as exc:
+            self._record_provider_response_validation_failure(
+                attempt,
+                error_message=str(exc),
+                classification="schema_invalid" if isinstance(exc, ValidationError) else "semantic_incomplete",
+            )
             self._finish_generation_attempt(
                 attempt,
                 status="failed",
@@ -6167,6 +6267,22 @@ class ProjectService:
                 strict_parameter_trace=strict_parameter_trace,
             )
         except (ValueError, ValidationError) as exc:
+            self._record_provider_response_validation_failure(
+                attempt,
+                error_message=str(exc),
+                classification=(
+                    "provenance_invalid"
+                    if "provenance" in str(exc).lower()
+                    else "schema_invalid"
+                    if isinstance(exc, ValidationError)
+                    else "semantic_incomplete"
+                ),
+                findings=(
+                    [str(item.get("rule_id")) for item in exc.findings if isinstance(item, dict) and item.get("rule_id")]
+                    if isinstance(exc, PlanNormalizationError)
+                    else ()
+                ),
+            )
             if isinstance(exc, PlanNormalizationError) and planning_result is not None:
                 self._persist_plan_normalization_evidence(
                     workflow_run=workflow_run,
@@ -6491,6 +6607,7 @@ class ProjectService:
             prompt_path="",
             status="started",
             failure_class=FailureClass.NONE.value,
+            provider_response_stage="revision_plan",
         )
         self.db.add(attempt)
         self.db.flush()
@@ -6542,6 +6659,11 @@ class ProjectService:
             prompt_path="",
             status="started",
             failure_class=FailureClass.NONE.value,
+            provider_response_stage=(
+                "compact_plan"
+                if request.planning_depth == PlanningDepth.COMPACT_PLAN.value
+                else "detailed_plan"
+            ),
         )
         self.db.add(attempt)
         self.db.flush()
@@ -6589,6 +6711,7 @@ class ProjectService:
             prompt_path="",
             status="started",
             failure_class=FailureClass.NONE.value,
+            provider_response_stage="requirements",
         )
         self.db.add(attempt)
         self.db.flush()
@@ -6700,13 +6823,14 @@ class ProjectService:
                 normalized.get("description")
                 or normalized.get("assumption")
                 or normalized.get("text")
+                or normalized.get("label")
                 or ""
             )
             if description:
                 normalized["description"] = description
         else:
             return item
-        description = str(normalized.get("description") or f"Assumption {index + 1}")
+        description = str(normalized.get("description") or "")
         normalized.setdefault("id", self._safe_identifier(description, fallback=f"assumption_{index + 1}"))
         if normalized.get("source") not in {
             RequirementSource.PRODUCT_DEFAULT.value,
@@ -7296,12 +7420,25 @@ class ProjectService:
             "error_message": error_message,
             "stages": [
                 {
-                    "stage": "cadquery_generation",
+                    "stage": attempt.provider_response_stage or "cadquery_generation",
                     "prompt_version": attempt.prompt_version,
                     "ruleset_version": attempt.ruleset_version,
                     "request_payload_path": attempt.request_payload_path,
                     "prompt_path": attempt.prompt_path,
                     "raw_output_path": attempt.raw_output_path,
+                    "provider_response": {
+                        "classification": attempt.provider_response_classification,
+                        "original_path": attempt.provider_response_original_path,
+                        "parsed_path": attempt.provider_response_parsed_path,
+                        "normalized_path": attempt.provider_response_normalized_path,
+                        "repaired_path": attempt.provider_response_repaired_path,
+                        "final_path": attempt.provider_response_final_path,
+                        "original_hash": attempt.provider_response_original_hash,
+                        "normalized_hash": attempt.provider_response_normalized_hash,
+                        "repaired_hash": attempt.provider_response_repaired_hash,
+                        "final_hash": attempt.provider_response_final_hash,
+                        "final_stage": attempt.provider_response_final_stage,
+                    },
                     "source_path": attempt.source_path,
                     "design_spec_path": attempt.design_spec_path,
                     "design_plan_path": attempt.design_plan_path,
