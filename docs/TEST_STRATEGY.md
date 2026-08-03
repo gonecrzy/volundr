@@ -487,3 +487,13 @@ conversion, non-coplanar rejection, source list-comprehension consumers, and
 worker diagnostic localization. Chat coverage includes client-ID idempotency,
 legacy workflow-message hiding, one visible clarification answer, and
 clarification provenance persistence.
+
+Geometry-slot coverage freezes redacted direct/compact responses and verifies
+Volundr-owned slot order, response-order independence, duplicate/unknown
+records, imports/declarations, unsafe symbols, authorized parameters, invalid
+results, partial completion, unchanged completed-slot rejection, localized
+worker repair, fallback metadata, and byte/hash stability. Service tests assert
+that focused completion and reporting do not add duplicate chat outcomes.
+Playwright at 1440x900 verifies direct and compact technical telemetry while
+keeping slot terminology out of normal chat. Detailed plans remain on the
+legacy contract path.

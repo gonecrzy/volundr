@@ -1,5 +1,10 @@
 # Simplified execution brief experiment
 
+This experiment is historical evidence, not the current provider contract.
+Direct and compact generation now use the Volundr-owned
+`volundr-geometry-slots-v1` slot boundary; detailed generation remains on the
+legacy geometry-body path.
+
 ## Evidence and test boundary
 
 The authoritative machine record is the local redacted file

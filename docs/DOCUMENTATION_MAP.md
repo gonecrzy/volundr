@@ -57,6 +57,9 @@ used to infer current CAD, planning, or user-facing behavior.
   `COMPACT_PLAN_CONTRACT.md`, `GEOMETRY_EXECUTION_CONTEXT.md`.
 - CAD/source: `CADQUERY_BACKEND.md`, `GEOMETRY_BODY_SYMBOL_CONTRACT.md`,
   `PLAN_SOURCE_IDENTITY_BOUNDARY.md`, `CAD_EXECUTION_SECURITY.md`.
+- Geometry rollout: `GEOMETRY_SLOT_CONTRACT.md`,
+  `GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md`, and
+  `GEOMETRY_SLOTS_LIVE_EVALUATION.md`.
 - Persistence/export: `PROJECT_PERSISTENCE.md`, `EXPORTS.md`,
   `WORKFLOW_OBSERVABILITY.md`, `DEPLOYMENT.md`.
 - Developer evaluation: `LIVE_DEBUG_BATCH_IMPLEMENTATION.md`,
@@ -114,6 +117,9 @@ Do not load the entire documentation tree by default.
 | `docs/PLANNING_DEPTH_LIVE_EVALUATION.md` | Actual evidence and separation for direct, compact, and detailed live cases. |
 | `docs/DERIVED_DEPENDENCY_CLASSIFICATION.md` | Execution-relevance classification for malformed derived metadata, blocking policy, persisted evidence, and non-goals. |
 | `docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md` | Scaffold-owned geometry function signatures, lexical symbol binding, definite assignment, findings, runtime classification, and bounded repair. |
+| `docs/GEOMETRY_SLOT_CONTRACT.md` | Volundr-owned direct/compact slot manifest, reduced provider response, validation, focused completion, fallback, and localized repair. |
+| `docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md` | Deterministic and live rollout gates, evidence boundary, safety boundary, and planning-only correction boundary for geometry slots. |
+| `docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md` | Frozen five-project live validation record, deterministic gate, per-project results, self-review classifications, and one next priority. |
 | `docs/LIVE_DESIGN_MATRIX_EVALUATION.md` | Exact real-provider direct, compact, and detailed design matrix evidence. |
 | `docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md` | Stage-specific diagnosis of compact and detailed live pipeline failures. |
 | `docs/COMPACT_PLAN_CONTRACT.md` | Compact-plan component/feature boundary, normalization, repeated-layout semantics, and non-goals. |

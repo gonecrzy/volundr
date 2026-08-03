@@ -510,6 +510,14 @@ strict. The next live evidence item is the preserved tackle-holder worker
 failure or an honest requirements clarification, not another source-style
 gate.
 
+The direct/compact geometry-slot production slice is now implemented. The
+backend owns slot structure and scaffold assembly, allows one focused
+completion and one diagnosed localized worker repair, and records a pre-worker
+legacy fallback. Detailed generation remains on the legacy contract. The next
+gate is the unchanged five-project live validation in
+`GEOMETRY_SLOTS_LIVE_EVALUATION.md`, followed by a planning-only selection of
+exactly one next CAD priority.
+
 Pattern coordinate-space validation and chat-message identity correction are
 implemented. The tackle-tray project remains a valid blocked live-quality
 case: the latest attempt was stopped before worker execution because the

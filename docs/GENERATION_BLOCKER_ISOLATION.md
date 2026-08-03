@@ -1,5 +1,9 @@
 # Generation blocker isolation
 
+The historical comparison below remains evidence about the prior geometry
+contracts. The current direct/compact production path uses the Volundr-owned
+`volundr-geometry-slots-v1` contract; detailed plans retain the legacy path.
+
 ## Evidence and test boundary
 
 The authoritative machine record is the local redacted file

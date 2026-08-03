@@ -81,3 +81,7 @@ geometry; they do not require a reusable Plan parameter. Exposed controls and
 required printable identities still require source traces. Integral features
 may trace to their owning component function without a separate output. See
 [`REQUIREMENT_TRACE_CONTRACT.md`](REQUIREMENT_TRACE_CONTRACT.md).
+
+Compact geometry generation uses `volundr-geometry-slots-v1`: Volundr derives
+the ordered executable slot manifest from this plan, while the provider returns
+only validated slot statements and result symbols.

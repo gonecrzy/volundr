@@ -405,3 +405,10 @@ Pattern-related events retain the pattern ID, owner, coordinate space/frame,
 original and transformed points, consuming workplane, coplanarity result, and
 repair eligibility. Chat events retain client/project message identity and
 clarification provenance so replay cannot create a second visible submission.
+
+Geometry-slot attempts add safe routing metadata for the selected contract,
+slot count, focused completion, and pre-worker legacy fallback. The raw slot
+response, canonical slot records, preserved hashes, and scaffold manifest are
+ordinary generation-attempt/workflow artifacts; they do not create a parallel
+event stream. Frontend technical details may show only the selected contract
+and bounded completion/fallback summaries.

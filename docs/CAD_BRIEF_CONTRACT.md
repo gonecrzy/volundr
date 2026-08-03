@@ -43,3 +43,8 @@ functional, consistency, and promotion gates.
 
 The brief does not prescribe exact CadQuery source style, generalized patterns,
 future controls, provider responses, or a new lifecycle engine.
+
+For direct generation, this brief feeds the Volundr-owned
+`volundr-geometry-slots-v1` contract. The provider receives a reduced slot
+brief rather than function declarations or scaffold code; detailed plans keep
+the legacy geometry-body response boundary.

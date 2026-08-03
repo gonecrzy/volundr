@@ -471,6 +471,12 @@ reusable parameters. Safely identified runtime name failures may use the
 existing bounded repair lifecycle, with immutable original and repaired body
 evidence.
 
+Direct and compact routes additionally use `volundr-geometry-slots-v1`: the
+backend owns the ordered slot manifest and CadQuery scaffold while the
+provider supplies only validated statement bodies and result symbols. Detailed
+plans retain the legacy geometry-body boundary, and an explicit pre-worker
+legacy fallback is recorded when a slot response cannot be completed.
+
 Planning depth is implemented inside this existing lifecycle. The backend
 persists route decisions, direct/compact/detailed plan artifacts, normalized
 GeometryExecutionContexts, and per-attempt prompt context packs through the

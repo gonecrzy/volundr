@@ -1,5 +1,10 @@
 # Contract complexity and model capability comparison
 
+This historical comparison does not authorize a new model comparison. The
+current production slice uses `volundr-geometry-slots-v1` for direct and
+compact generation, with provider structure constrained by Volundr and the
+detailed route left on the legacy contract.
+
 ## Evidence and test boundary
 
 The authoritative machine record is the local redacted file

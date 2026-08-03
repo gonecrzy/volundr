@@ -1,6 +1,8 @@
 # Geometry-body symbol contract
 
-Status: Implemented 2026-08-02.
+Status: Implemented 2026-08-02; the `volundr-geometry-slots-v1` direct/compact
+route uses this validator inside Volundr-owned slot assembly. Detailed plans
+retain the legacy geometry-body response boundary.
 
 ## 1. Purpose
 
