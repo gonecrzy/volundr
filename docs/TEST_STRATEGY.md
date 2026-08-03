@@ -42,6 +42,16 @@ ownership evidence, focused Plan and geometry repair preservation, localized
 worker-diagnostic repair, hash-based loop prevention, and accurate blocked
 outcomes. See `docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md`.
 
+Developer-assisted live-batch coverage additionally requires backend capability
+rejection tests, transactional active-batch/membership tests, idempotent
+finish and frozen-membership tests, read-only report-call tests, durable
+redaction scans across prompts/provider responses/source/worker output/
+screenshot metadata/frontend evidence, missing-artifact integrity findings,
+identity-incomplete comparison tests, separate provider/workflow metrics,
+generic unchanged-repair fixtures, deterministic browser controls, and a
+Playwright screenshot gate. This evidence is distinct from observed frontend
+usability testing and never replaces it.
+
 Compact and detailed Plan regression coverage additionally checks provider
 pattern aliases (`feature_id`, cardinal `direction`, `spacing_mm`, and numeric
 fixed `count`), typed normalization findings, fixed-layout acceptance without

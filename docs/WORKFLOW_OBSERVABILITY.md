@@ -21,6 +21,14 @@ Worker-diagnostic repair retains the original traceback, localized statement,
 source hashes, repaired source, and second worker result. These records are
 diagnostic evidence and do not bypass downstream gates.
 
+Developer live-batch reports derive separate provider-call, provider-retry,
+content-repair, generation-attempt, workflow-stage-attempt, and user-operation
+counts from these authoritative records. Candidate creation, post-worker
+blocking, provider content/transport failure, and not-started outcomes are
+reported separately; a preserved blocked attempt is never presented as a
+successful candidate. Report generation only materializes existing evidence
+and must not call a provider or worker.
+
 ## Plan-validation outcomes
 
 Provider transport and Plan validation are separate facts. A received provider

@@ -62,7 +62,10 @@ used to infer current CAD, planning, or user-facing behavior.
 - Developer evaluation: `LIVE_DEBUG_BATCH_IMPLEMENTATION.md`,
   `LIVE_DEBUG_BATCH_PLAYWRIGHT_EVALUATION.md`, and the dated mixed-CAD batch
   reports when present. These documents describe developer-assisted evaluation
-  only; they do not redefine normal usability testing.
+  only; they do not redefine normal usability testing. The correction round is
+  recorded in `LIVE_BATCH_CORRECTION_ROUND_1.md`,
+  `MIXED_CAD_LIVE_POST_CORRECTION_01.md`, and
+  `LIVE_BATCH_POST_CORRECTION_COMPARISON.md`.
 - Testing/deployment: `TEST_STRATEGY.md`, `DEPLOYMENT.md`,
   `ENVIRONMENT_VARIABLES.md`, and the relevant current evaluation report.
 
@@ -96,6 +99,9 @@ Do not load the entire documentation tree by default.
 | `docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md` | Backend-authorized live debug batches, narrow persistence, evidence/redaction boundary, read-only reporting, and developer deployment setting. |
 | `docs/LIVE_DEBUG_BATCH_PLAYWRIGHT_EVALUATION.md` | Deterministic browser controls, screenshot locations, and proof that the browser cannot execute Codex or shell commands. |
 | `docs/LIVE_BATCH_CORRECTION_PLAN.md` | Planning-only post-batch correction priorities; no same-run implementation. |
+| `docs/LIVE_BATCH_CORRECTION_ROUND_1.md` | First generic evidence/identity/classification correction pass and its verification boundary. |
+| `docs/MIXED_CAD_LIVE_POST_CORRECTION_01.md` | Single qualifying five-project post-correction live batch and screenshot/evidence locations. |
+| `docs/LIVE_BATCH_POST_CORRECTION_COMPARISON.md` | Controlled status of the original frozen pair and unpaired post-correction result. |
 | `docs/FRONTEND_WORKFLOW_AUDIT.md` | Repository-grounded assessment of the user-facing workflow, terminology, state mapping, recovery, responsiveness, accessibility, and priority corrections. |
 | `docs/FRONTEND_USER_TESTING_PLAN.md` | Five observed-user scenarios, measures, correlated events, preserved diagnostic evidence, and post-task questions. |
 | `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` | Current chat-first workspace layout, conversation semantics, reconnect behavior, responsive evidence, screenshots, tests, and UX/live-track separation. |

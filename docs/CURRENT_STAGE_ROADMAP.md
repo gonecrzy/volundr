@@ -60,6 +60,16 @@ recoverable connection state, explicit export drawer, and deterministic UX
 coverage are implemented. Observed usability testing may begin with fixtures;
 live CAD-quality testing remains separately gated.
 
+The developer-assisted debug-batch correction checkpoint is complete for round
+1. Durable evidence, complete build identity, attempt/candidate
+classification, generic repair convergence, comparison labeling, deterministic
+tests, and one qualifying post-correction five-project batch are recorded in
+`LIVE_BATCH_CORRECTION_ROUND_1.md` and
+`MIXED_CAD_LIVE_POST_CORRECTION_01.md`. The next gated work is generic
+provider/schema/provenance convergence; no product-family CAD correction is
+part of the current checkpoint. Observed usability testing remains a separate
+track.
+
 ## Stage 0 — Foundation Documents
 
 Status: Complete

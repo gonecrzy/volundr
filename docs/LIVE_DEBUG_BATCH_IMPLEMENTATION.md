@@ -50,6 +50,12 @@ Raw evidence stays local and outside Git under the durable data root:
 data/debug-sessions/<batch-id>/
 ```
 
+The raw batch folder is durable local evidence and is intentionally not
+committed to Git. The repository may contain summarized dated evaluation
+documents and test fixtures, but the authoritative prompts, responses, source,
+worker output, screenshots, and rendered report files remain under the data
+root and are ignored by Git.
+
 The path is ignored by Git. Reports materialize bounded copies of authoritative
 messages, requirement/planning artifacts, prompt context, attempts, source,
 worker results, findings, snapshots, revisions, exports, and frontend network or

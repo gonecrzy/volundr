@@ -58,3 +58,22 @@ required.
 Raw evidence remains local and outside Git. Reports reuse the existing
 authoritative workflow chain, and report generation made no provider or worker
 calls. No same-run corrections were applied.
+
+## Post-correction review
+
+The qualifying `mixed-cad-live-correction-01` batch preserved the same five
+prompts and completed with identity, redaction, and evidence integrity
+confirmed. Three of five projects still stopped before the worker in generic
+provider/schema/provenance/content handling; two reached the worker but were
+blocked by verification/topology. No valid geometry, promotion, or export was
+created.
+
+The first correction pass resolved the prior integrity and misleading-state
+defects: runtime paths are normalized in durable materializations, component
+build identity is complete, provider/workflow metrics are separated, and the
+comparison result has one authoritative status. The next primary correction is
+therefore generic provider/schema/provenance convergence. Organizer, tray,
+screw-thread, and monitor behavior remain out of scope for this round.
+
+The monitor-wall-mount warning remains explicit and unchanged: geometry and
+workflow evidence never establishes load-bearing safety.

@@ -39,3 +39,16 @@ artifacts and must become fixtures or tests before any correction run.
   fixture after identities become deterministic.
 - Retain fixtures for the null-vector sweep, unchanged organizer repair,
   unsupported circular-pattern call, and monitor provenance collision.
+
+## After correction round 1
+
+The integrity, identity, metric, and comparison-label candidates are now
+covered by deterministic tests and the qualifying post-correction batch. The
+next primary family is generic provider/schema/provenance convergence before
+worker submission. Required scope: replay the three pre-worker stopping
+classes from the post-correction report, preserve original/normalized
+responses and provenance, bound repair convergence, and classify transport,
+content, and downstream candidate outcomes independently.
+
+This remains planning only. No product-family CAD correction is authorized by
+this document, and no correction is implemented in the same live run.

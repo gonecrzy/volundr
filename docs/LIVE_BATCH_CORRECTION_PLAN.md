@@ -41,3 +41,17 @@ The evidence supporting these priorities is summarized in
 `MIXED_CAD_LIVE_BATCH_COMPARISON.md`, and
 `LIVE_BATCH_REGRESSION_CANDIDATES.md`. This remains planning only: no fixes
 from the self-review were applied in the same run.
+
+## Correction round 1 result
+
+The integrity, identity, metric, classification, comparison-label, and
+generic unchanged-repair items above were implemented in the first correction
+pass. The detailed implementation record is
+`LIVE_BATCH_CORRECTION_ROUND_1.md`. Product-family CAD behavior was not
+changed.
+
+The single qualifying post-correction batch is recorded in
+`MIXED_CAD_LIVE_POST_CORRECTION_01.md`. Its three pre-worker stops establish
+the next primary family: generic provider/schema/provenance convergence. The
+next run must remain planning-only until that family has a focused contract,
+fixtures, deterministic replay, and a separately authorized controlled pair.
