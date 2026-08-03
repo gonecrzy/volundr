@@ -45,5 +45,7 @@ describe("debug batch view presentation", () => {
   it("distinguishes controlled comparisons", () => {
     expect(debugBatchComparisonLabel("controlled")).toBe("Controlled comparison");
     expect(debugBatchComparisonLabel("uncontrolled")).toBe("Uncontrolled comparison");
+    expect(debugBatchComparisonLabel("configuration_mismatch")).toContain("configuration mismatch");
+    expect(debugBatchComparisonLabel("identity_incomplete")).toContain("identity incomplete");
   });
 });

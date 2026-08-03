@@ -51,6 +51,8 @@ export type DebugBatch = {
   frontend_build_identity: string;
   backend_build_identity: string;
   worker_build_identity: string;
+  build_identities: Record<string, unknown>;
+  identity_complete: boolean;
   provider: string;
   configured_default_model: string;
   stage_model_policy: Record<string, unknown>;
