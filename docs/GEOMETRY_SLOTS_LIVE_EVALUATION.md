@@ -113,13 +113,18 @@ prior evidence, the slot route reduced the geometry prompt size substantially
 and kept the direct/compact contract boundary intact; it did not yet produce a
 valid live geometry result.
 
-Exactly one next CAD priority is selected:
+The initial post-batch planning note named deterministic feature verification,
+but the subsequent blocker review tested that counterfactual against every
+worker-reaching project and rejected it. Exactly one actual next CAD priority
+is selected:
 
-**Improve deterministic feature verification.**
+**Generic geometry/topology convergence.**
 
-The next correction plan should make topology, valid-geometry, candidate, and
-final-blocked states deterministic and mutually consistent for slot outputs,
-including explicit checks for required connected parts and artifact
-consistency. It should also make the batch manifest derive its outcome from
-the authoritative frozen report. This is a planning recommendation only; no
-implementation or follow-up live run is part of this goal.
+Both worker-reaching projects failed to become valid candidates: one failed
+worker output/topology convergence and one failed required-output readiness
+despite valid topology. The narrow manifest/report integrity correction is
+implemented separately; no selected CAD correction or follow-up live run is
+part of this review.
+
+The complete evidence review and rejection of the other priorities is in
+`docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md`.

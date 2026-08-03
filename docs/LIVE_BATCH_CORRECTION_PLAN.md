@@ -95,10 +95,10 @@ Regression-candidate list, for a later separately authorized fixture pass:
 6. Authoritative-report versus preliminary-manifest outcome disagreement.
 
 Exactly one next CAD priority was selected in
-`docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md`: improve deterministic feature
-verification. The expected correction scope is to make topology, valid
-geometry, candidate, and final-blocked states deterministic; reconcile the
-manifest from the frozen report; preserve missing-artifact integrity findings;
-and keep the monitor's physical engineering warning visible. No correction
-has been implemented here. Any implementation must add deterministic backend,
-frontend, and Playwright regressions before a separate validation run.
+`docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md`: generic geometry/topology
+convergence. Deterministic feature verification was rejected because neither
+worker-reaching result was blocked solely by unavailable feature measurements.
+The manifest/report outcome-integrity correction is implemented and covered by
+focused tests; no selected CAD correction has been implemented here. Any CAD
+implementation must add deterministic backend, frontend, and Playwright
+regressions before a separate validation run.
