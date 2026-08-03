@@ -24,8 +24,10 @@ def get_cad_runner() -> FilesystemCadWorkerRunner:
     return FilesystemCadWorkerRunner()
 
 
-def build_ai_provider(config: Settings) -> AiProvider:
+def build_ai_provider(config: Settings, *, benchmark_model: str | None = None) -> AiProvider:
     provider = config.ai_provider.strip().lower()
+    if benchmark_model and provider not in {"gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
+        raise ValueError("benchmark model override is only supported for Gemini providers")
     if provider in {"ollama", "local_ollama"}:
         return OllamaProvider(
             base_url=config.ollama_base_url,
@@ -33,22 +35,32 @@ def build_ai_provider(config: Settings) -> AiProvider:
             timeout_seconds=config.ollama_timeout_seconds,
         )
     if provider in {"gemini_api", "google_gemini_api"}:
-        model_policy = GeminiModelPolicy.from_settings(config)
+        model_policy = (
+            GeminiModelPolicy.for_benchmark(config, benchmark_model)
+            if benchmark_model
+            else GeminiModelPolicy.from_settings(config)
+        )
         return GeminiApiProvider(
             # An explicit empty value prevents the module-level default from
             # leaking into a separately constructed Settings instance.
             api_key=config.gemini_api_key if config.gemini_api_key is not None else "",
             base_url=config.gemini_api_base_url,
-            model=config.gemini_model,
+            model=benchmark_model or config.gemini_model,
             timeout_seconds=config.gemini_timeout_seconds,
             model_policy=model_policy,
         )
     if provider in {"gemini", "gemini_cli"}:
+        model_policy = (
+            GeminiModelPolicy.for_benchmark(config, benchmark_model)
+            if benchmark_model
+            else None
+        )
         return GeminiCliProvider(
             binary=config.gemini_binary,
-            model=config.gemini_model,
+            model=benchmark_model or config.gemini_model,
             timeout_seconds=config.gemini_timeout_seconds,
             policy_path=config.gemini_policy_path,
+            model_policy=model_policy,
         )
     raise ValueError(f"Unsupported AI provider: {config.ai_provider}")
 

@@ -5,12 +5,13 @@ import json
 import time
 from collections import defaultdict, deque
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from fastapi.responses import FileResponse, PlainTextResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
+from app.api.dependencies import build_ai_provider, get_ai_provider, get_cad_runner, get_data_dir, require_developer_tools
+from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.project import (
     ClarificationAnswersCreate,
@@ -312,7 +313,11 @@ async def submit_chat_message(
     data_dir: Path = Depends(get_data_dir),
     ai_provider: AiProvider = Depends(get_ai_provider),
     cad_runner: Any = Depends(get_cad_runner),
+    benchmark_model: str | None = Header(default=None, alias="X-Volundr-Benchmark-Model"),
 ) -> ChatWorkflowResponse:
+    if benchmark_model is not None:
+        require_developer_tools()
+        ai_provider = build_ai_provider(settings, benchmark_model=benchmark_model)
     service = ChatWorkflowService(
         db=db,
         data_dir=data_dir,

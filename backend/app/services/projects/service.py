@@ -387,7 +387,7 @@ class ProjectService:
         self.cad_runner = cad_runner or FilesystemCadWorkerRunner()
         self.ai_provider = ai_provider
 
-    def create_project(self, payload: ProjectCreate) -> Project:
+    def create_project(self, payload: ProjectCreate, *, commit: bool = True) -> Project:
         from app.services.debug_batches.service import DebugBatchService
 
         project = Project(
@@ -410,8 +410,9 @@ class ProjectService:
             role="system_event",
             content="Project created",
         )
-        self.db.commit()
-        self.db.refresh(project)
+        if commit:
+            self.db.commit()
+            self.db.refresh(project)
         return project
 
     def create_draft_project(self) -> Project:

@@ -3,6 +3,12 @@ from app.models.clarification_question import ClarificationQuestion
 from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
 from app.models.design_artifact_consistency import DesignArtifactConsistencyResult
 from app.models.debug_batch import DebugBatch, DebugBatchMembership
+from app.models.gemini_benchmark import (
+    GeminiBenchmarkExperiment,
+    GeminiBenchmarkMembership,
+    GeminiBenchmarkModel,
+    GeminiBenchmarkRun,
+)
 from app.models.design_specification import DesignSpecification
 from app.models.export_record import ExportRecord
 from app.models.design_plan import (
@@ -48,6 +54,10 @@ __all__ = [
     "DesignArtifactConsistencyResult",
     "DebugBatch",
     "DebugBatchMembership",
+    "GeminiBenchmarkExperiment",
+    "GeminiBenchmarkModel",
+    "GeminiBenchmarkRun",
+    "GeminiBenchmarkMembership",
     "DesignSpecification",
     "ExportRecord",
     "DesignPlan",

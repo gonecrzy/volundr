@@ -17,7 +17,8 @@ class RedactionService:
 
     _secret_patterns = (
         re.compile(r"AIza[0-9A-Za-z_\-]{10,}"),
-        re.compile(r"(?i)\b(api[_-]?key|authorization|bearer|token|cookie|set-cookie)\b\s*[:=]\s*[^,\s}\]]+"),
+        re.compile(r"(?i)\b(api[_-]?key|authorization|bearer|token|cookie|set-cookie)\b\s*[:=]\s*(?:bearer\s+)?[^,\s}\]]+"),
+        re.compile(r"(?i)\bauthorization\s*:\s*bearer\s+[^,\s}\]]+"),
         re.compile(r"(?i)\bpostgres(?:ql)?://[^,\s]+"),
         re.compile(r"(?i)\bmysql://[^,\s]+"),
         re.compile(r"(?i)\bsig(nature)?=[0-9A-Za-z%_\-]+"),
@@ -131,10 +132,16 @@ class RedactionService:
 
         def visit(current: Any, field_name: str = "") -> Any:
             if isinstance(current, Mapping):
-                return {
-                    str(key): visit(nested, str(key))
-                    for key, nested in current.items()
-                }
+                result: dict[str, Any] = {}
+                for key, nested in current.items():
+                    key_text = str(key)
+                    if self._sensitive_keys.search(key_text):
+                        result[key_text] = "[REDACTED]"
+                    elif key_text.casefold() == "headers" and isinstance(nested, Mapping):
+                        result[key_text] = self._allowed_header_subset(nested)
+                    else:
+                        result[key_text] = visit(nested, key_text)
+                return result
             if isinstance(current, list):
                 return [visit(item, field_name) for item in current]
             if isinstance(current, str):

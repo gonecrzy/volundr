@@ -86,6 +86,55 @@ class GeminiApiProvider(GeminiCliProvider):
     def provider_id(self) -> str:
         return "gemini_api"
 
+    async def list_available_models(self) -> list[dict[str, Any]]:
+        """Return safe metadata for models that support generateContent."""
+
+        if not self.api_key:
+            raise RuntimeError("Gemini API key is not configured")
+        models: list[dict[str, Any]] = []
+        page_token: str | None = None
+        async with httpx.AsyncClient(
+            base_url=self.base_url,
+            timeout=self.timeout_seconds,
+            transport=self._transport,
+        ) as client:
+            while True:
+                params: dict[str, str] = {"key": self.api_key}
+                if page_token:
+                    params["pageToken"] = page_token
+                response = await client.get("/models", params=params)
+                if response.status_code >= 400:
+                    raise RuntimeError(self._error_message(response))
+                try:
+                    payload = response.json()
+                except ValueError as exc:
+                    raise RuntimeError("Gemini model list response was not valid JSON") from exc
+                for item in payload.get("models", []) if isinstance(payload, dict) else []:
+                    if not isinstance(item, dict):
+                        continue
+                    methods = item.get("supportedGenerationMethods")
+                    if not isinstance(methods, list) or "generateContent" not in methods:
+                        continue
+                    raw_name = item.get("name")
+                    if not isinstance(raw_name, str):
+                        continue
+                    name = raw_name.removeprefix("models/")
+                    try:
+                        GeminiModelPolicy._validate_model(name)
+                    except ValueError:
+                        continue
+                    models.append(
+                        {
+                            "name": name,
+                            "display_name": str(item.get("displayName") or name),
+                            "supported_generation_methods": ["generateContent"],
+                        }
+                    )
+                page_token = payload.get("nextPageToken") if isinstance(payload, dict) else None
+                if not isinstance(page_token, str) or not page_token:
+                    break
+        return sorted(models, key=lambda item: item["name"])
+
     async def _run_prompt(
         self,
         prompt: str,

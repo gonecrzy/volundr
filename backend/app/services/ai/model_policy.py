@@ -170,6 +170,28 @@ class GeminiModelPolicy:
         return cls(**values)
 
     @classmethod
+    def for_benchmark(cls, configured: Any, model: str) -> GeminiModelPolicy:
+        """Use one explicitly selected model for every benchmark workflow stage."""
+
+        base = cls.from_settings(configured, general_model=model)
+        return cls(
+            general_model=model,
+            requirements_model=model,
+            design_plan_model=model,
+            geometry_model=model,
+            geometry_repair_model=model,
+            revision_planning_model=model,
+            component_revision_model=model,
+            temperature=base.temperature,
+            max_output_tokens=base.max_output_tokens,
+            thinking_level=base.thinking_level,
+            max_retries=base.max_retries,
+            max_retry_sleep_seconds=base.max_retry_sleep_seconds,
+            provider=base.provider,
+            policy_version=base.policy_version,
+        )
+
+    @classmethod
     def _load_policy_file(cls, policy_path: str | Path | None) -> dict[str, Any]:
         if not policy_path:
             return {}
