@@ -99,6 +99,16 @@ import {
 } from "./projectPersistence";
 import { userFacingSubmissionError } from "./chatWorkspace";
 import {
+  buildDebugBatchStartPayload,
+  safeFrontendDebugEvent,
+  type DebugBatch,
+  type DebugBatchCapabilities,
+  type DebugBatchComparison,
+  type DebugBatchReport,
+  type DebugBatchStartInput,
+} from "./debugBatch";
+import { DebugBatchView } from "./debugBatchView";
+import {
   ChatWorkspace,
   type ChatWorkspacePendingMessage,
 } from "./chatWorkspaceView";
@@ -121,11 +131,37 @@ const GEOMETRY_BODY_FAILURE_PREFIXES = [
 ];
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_CHAT_FIRST?: string;
+  VITE_BUILD_ID?: string;
 };
 const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
 const ADVANCED_WORKFLOW_ENABLED = true;
 const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
 const STAGED_WORKFLOW_ENABLED = !CHAT_FIRST_ENABLED;
+const FRONTEND_BUILD_ID = FRONTEND_ENV.VITE_BUILD_ID ?? "frontend-dev";
+let currentFrontendDebugBatchId: string | null = null;
+
+function recordDebugBatchFrontendEvent(event: Record<string, unknown>) {
+  const batchId = currentFrontendDebugBatchId;
+  if (!batchId) return;
+  const safeEvent = safeFrontendDebugEvent({
+    ...event,
+    occurred_at: new Date().toISOString(),
+  });
+  void fetch(`${API_BASE}/debug-batches/${encodeURIComponent(batchId)}/frontend-events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ events: [safeEvent] }),
+  }).catch(() => undefined);
+}
+
+function recordDebugBatchRequestFailure(path: string, status: number) {
+  recordDebugBatchFrontendEvent({
+    event_type: "frontend_request_failure",
+    safe_endpoint_path: `/api${path.split("?", 1)[0]}`,
+    http_status: status,
+    visible_error_kind: "request_failed",
+  });
+}
 
 type Project = {
   id: string;
@@ -653,6 +689,11 @@ function App() {
   const [source, setSource] = useState("");
   const [project, setProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [debugCapabilities, setDebugCapabilities] = useState<DebugBatchCapabilities | null>(null);
+  const [activeDebugBatch, setActiveDebugBatch] = useState<DebugBatch | null>(null);
+  const [frozenDebugBatches, setFrozenDebugBatches] = useState<DebugBatch[]>([]);
+  const [debugBatchReport, setDebugBatchReport] = useState<DebugBatchReport | null>(null);
+  const [debugBatchComparison, setDebugBatchComparison] = useState<DebugBatchComparison | null>(null);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [projectMessages, setProjectMessages] = useState<ProjectMessage[]>([]);
   const [activeRequirements, setActiveRequirements] = useState<Array<Record<string, unknown>>>([]);
@@ -837,6 +878,7 @@ function App() {
     } else {
       void refreshProjects();
     }
+    void refreshDebugBatchState();
     void refreshPrintabilityProfiles();
 
     const onPopState = () => {
@@ -850,6 +892,37 @@ function App() {
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  useEffect(() => {
+    if (!activeDebugBatch) {
+      currentFrontendDebugBatchId = null;
+      return;
+    }
+    currentFrontendDebugBatchId = activeDebugBatch.id;
+    const interval = window.setInterval(() => void refreshDebugBatchState(), 5000);
+    return () => window.clearInterval(interval);
+  }, [activeDebugBatch?.id]);
+
+  useEffect(() => {
+    const onError = () => {
+      recordDebugBatchFrontendEvent({
+        event_type: "frontend_error",
+        visible_error_kind: "uncaught_frontend_error",
+      });
+    };
+    const onUnhandledRejection = () => {
+      recordDebugBatchFrontendEvent({
+        event_type: "frontend_error",
+        visible_error_kind: "unhandled_promise_rejection",
+      });
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    };
   }, []);
 
   useEffect(() => {
@@ -957,6 +1030,90 @@ function App() {
     } catch {
       setProjects([]);
     }
+  }
+
+  async function refreshDebugBatchState() {
+    try {
+      const capabilities = await request<DebugBatchCapabilities>("/capabilities", { method: "GET" });
+      setDebugCapabilities(capabilities);
+      if (!capabilities.developer_tools_enabled) {
+        setActiveDebugBatch(null);
+        setFrozenDebugBatches([]);
+        setDebugBatchReport(null);
+        setDebugBatchComparison(null);
+        return;
+      }
+      const [active, frozen] = await Promise.all([
+        request<DebugBatch[]>("/debug-batches?state=active", { method: "GET" }),
+        request<DebugBatch[]>("/debug-batches?state=frozen", { method: "GET" }),
+      ]);
+      setActiveDebugBatch(active[0] ?? null);
+      setFrozenDebugBatches(frozen);
+    } catch {
+      setDebugCapabilities({ developer_tools_enabled: false });
+    }
+  }
+
+  async function startDebugBatch(input: DebugBatchStartInput & { frontendBuildIdentity: string }) {
+    const payload = buildDebugBatchStartPayload(input, input.frontendBuildIdentity);
+    const batch = await request<DebugBatch>("/debug-batches", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setActiveDebugBatch(batch);
+    setDebugBatchReport(null);
+    setDebugBatchComparison(null);
+    await refreshDebugBatchState();
+  }
+
+  async function viewDebugBatch(batchId: string) {
+    const report = await request<DebugBatchReport>(`/debug-batches/${encodeURIComponent(batchId)}/report`, {
+      method: "GET",
+    });
+    setDebugBatchReport(report);
+    if (report.batch.state === "active") {
+      setActiveDebugBatch(report.batch);
+    }
+    if (report.batch.baseline_batch_id && report.batch.state === "frozen") {
+      try {
+        setDebugBatchComparison(
+          await request<DebugBatchComparison>(`/debug-batches/${encodeURIComponent(batchId)}/comparison`, {
+            method: "GET",
+          }),
+        );
+      } catch {
+        setDebugBatchComparison(null);
+      }
+    }
+  }
+
+  async function finishDebugBatch() {
+    if (!activeDebugBatch) {
+      return;
+    }
+    const batchId = activeDebugBatch.id;
+    const finished = await request<DebugBatch>(`/debug-batches/${encodeURIComponent(batchId)}/finish`, {
+      method: "POST",
+    });
+    setActiveDebugBatch(null);
+    await viewDebugBatch(finished.id);
+    if (finished.baseline_batch_id) {
+      try {
+        setDebugBatchComparison(
+          await request<DebugBatchComparison>(`/debug-batches/${encodeURIComponent(finished.id)}/comparison`, {
+            method: "GET",
+          }),
+        );
+      } catch {
+        setDebugBatchComparison(null);
+      }
+    }
+    await refreshDebugBatchState();
+  }
+
+  function startDebugComparison(baselineBatchId: string) {
+    setDebugBatchComparison(null);
+    setMessage(`Comparison batch will use ${baselineBatchId.slice(0, 8)} as its baseline`);
   }
 
   async function refreshPrintabilityProfiles() {
@@ -2604,7 +2761,20 @@ function App() {
       </>
     );
     return (
-      <ChatWorkspace
+      <>
+        <DebugBatchView
+          enabled={debugCapabilities?.developer_tools_enabled === true}
+          activeBatch={activeDebugBatch}
+          frozenBatches={frozenDebugBatches}
+          report={debugBatchReport}
+          comparison={debugBatchComparison}
+          frontendBuildIdentity={FRONTEND_BUILD_ID}
+          onStart={startDebugBatch}
+          onFinish={finishDebugBatch}
+          onViewBatch={viewDebugBatch}
+          onStartComparison={startDebugComparison}
+        />
+        <ChatWorkspace
         project={project}
         projects={projects}
         messages={projectMessages}
@@ -2656,12 +2826,26 @@ function App() {
         onDownloadOutput={(output, format) => {
           window.location.assign(`${API_BASE}/revision-outputs/${output.id}/${format}`);
         }}
-      />
+        />
+      </>
     );
   }
 
   return (
-    <main className="workspace">
+    <>
+      <DebugBatchView
+        enabled={debugCapabilities?.developer_tools_enabled === true}
+        activeBatch={activeDebugBatch}
+        frozenBatches={frozenDebugBatches}
+        report={debugBatchReport}
+        comparison={debugBatchComparison}
+        frontendBuildIdentity={FRONTEND_BUILD_ID}
+        onStart={startDebugBatch}
+        onFinish={finishDebugBatch}
+        onViewBatch={viewDebugBatch}
+        onStartComparison={startDebugComparison}
+      />
+      <main className="workspace">
       <header className="topbar">
         <div className="topbar-left">
           <button className="icon-button" onClick={() => setIsProjectDrawerOpen(true)}>
@@ -3075,7 +3259,8 @@ function App() {
           </details>
         </section>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -5243,6 +5428,7 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   });
   updateWorkflowCorrelation(response);
   if (!response.ok) {
+    recordDebugBatchRequestFailure(path, response.status);
     throw new Error(await responseErrorMessage(response));
   }
   return response.json() as Promise<T>;
@@ -5258,6 +5444,7 @@ async function requestEmpty(path: string, init: RequestInit): Promise<void> {
   });
   updateWorkflowCorrelation(response);
   if (!response.ok) {
+    recordDebugBatchRequestFailure(path, response.status);
     throw new Error(await responseErrorMessage(response));
   }
 }
@@ -5269,6 +5456,7 @@ async function requestText(path: string, init: RequestInit): Promise<string> {
   });
   updateWorkflowCorrelation(response);
   if (!response.ok) {
+    recordDebugBatchRequestFailure(path, response.status);
     throw new Error(await response.text());
   }
   return response.text();
