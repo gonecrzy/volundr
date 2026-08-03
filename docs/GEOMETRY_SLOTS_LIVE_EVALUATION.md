@@ -23,7 +23,7 @@ and no controlled comparison.
 | Project | Canonical outcome | Worker | Geometry/artifacts | Blocking evidence |
 | --- | --- | --- | --- | --- |
 | wall carrier | `source_blocked` | no | not reached | compact-plan normalization |
-| portable holder | `candidate_blocked` | succeeded | one solid; STEP/STL/BREP present | critical handle, drainage, and strap-slot requirement findings |
+| portable holder | `verification_blocked` | succeeded | one solid; STEP/STL/BREP present | critical handle, drainage, and strap-slot requirement findings |
 | desktop organizer | `source_blocked` | no | not reached | pre-worker requirement-trace ambiguity |
 | monitor wall mount | `source_blocked` | no | not reached | geometry source extraction defect; physical engineering review remains required |
 | screw-lid container | `worker_failed` | failed | no valid output | CadQuery selector syntax failure |
