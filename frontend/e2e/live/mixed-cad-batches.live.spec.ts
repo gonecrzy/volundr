@@ -135,19 +135,15 @@ async function startBatch(page: Page, label: string, notes: string, baselineBatc
   return batch.id;
 }
 
-async function openNextProject(page: Page, first: boolean) {
-  if (first) {
-    await page.goto("/");
-    return null;
-  }
+async function openNextProject(page: Page, spec: ProjectSpec) {
   await page.goto("/");
-  await page.getByRole("button", { name: "Projects", exact: true }).click();
-  const draftResponsePromise = page.waitForResponse(
-    (response) => response.url().endsWith("/api/projects/draft") && response.request().method() === "POST",
-  );
-  await page.getByRole("button", { name: "New project", exact: true }).click();
-  const response = await draftResponsePromise;
-  return await response.json() as { id: string };
+  const response = await page.request.post("/api/projects", {
+    data: { name: `Live ${spec.name}`, original_intent: spec.prompt },
+  });
+  expect(response.ok(), "project creation").toBeTruthy();
+  const project = await response.json() as { id: string };
+  await page.goto(`/projects/${project.id}`);
+  return project;
 }
 
 async function answerClarifications(page: Page, projectId: string, spec: ProjectSpec, batchId: string, screenshotTag: string, projectNumber: number) {
@@ -202,17 +198,12 @@ async function waitForProjectRunSettled(page: Page, projectId: string) {
   }, { timeout: 300_000, intervals: [1_000, 2_000, 5_000] }).toBe("settled");
 }
 
-async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number, first: boolean) {
-  const createdProject = await openNextProject(page, first);
-  const draftResponsePromise = first
-    ? page.waitForResponse(
-        (response) => response.url().endsWith("/api/projects/draft") && response.request().method() === "POST",
-      )
-    : null;
+async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number) {
+  const createdProject = await openNextProject(page, spec);
   await page.getByLabel("AI chat message").fill(spec.prompt);
   await screenshot(page, batchId, `${screenshotTag}-project-${String(projectNumber).padStart(2, "0")}-initial.png`);
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  const draft = createdProject ?? await (await draftResponsePromise!).json() as { id: string };
+  const draft = createdProject;
 
   await waitForProjectRunSettled(page, draft.id);
   await page.reload();
@@ -270,7 +261,7 @@ test.describe.serial("mixed CAD live debug batches", () => {
     const batchOne = await startBatch(page, "mixed-cad-live-01", "First unchanged live run of five varied functional CAD projects.", undefined, "mixed-01");
     const batchOneProjects = [];
     for (let index = 0; index < PROJECTS.length; index += 1) {
-      batchOneProjects.push(await runProject(page, batchOne, "mixed-01", PROJECTS[index], index + 1, index === 0));
+      batchOneProjects.push(await runProject(page, batchOne, "mixed-01", PROJECTS[index], index + 1));
     }
     const batchOneReport = await finishBatch(page, batchOne, "mixed-01");
 
@@ -284,7 +275,7 @@ test.describe.serial("mixed CAD live debug batches", () => {
     );
     const batchTwoProjects = [];
     for (let index = 0; index < PROJECTS.length; index += 1) {
-      batchTwoProjects.push(await runProject(page, batchTwo, "mixed-02", PROJECTS[index], index + 1, index === 0));
+      batchTwoProjects.push(await runProject(page, batchTwo, "mixed-02", PROJECTS[index], index + 1));
     }
     const batchTwoReport = await finishBatch(page, batchTwo, "mixed-02");
     const comparisonResponse = await page.request.get(`/api/debug-batches/${batchTwo}/comparison`);
