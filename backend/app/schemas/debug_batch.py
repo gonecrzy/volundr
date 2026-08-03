@@ -9,7 +9,7 @@ class DebugBatchStart(BaseModel):
     target_project_count: int = Field(default=5, ge=1, le=20)
     notes: str | None = Field(default=None, max_length=12000)
     baseline_batch_id: str | None = Field(default=None, min_length=1, max_length=36)
-    frontend_build_identity: str = Field(default="frontend-dev", min_length=1, max_length=160)
+    frontend_build_identity: str = Field(default="frontend-dev", min_length=1, max_length=512)
 
     @field_validator("label")
     @classmethod

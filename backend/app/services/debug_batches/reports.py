@@ -565,9 +565,11 @@ safety from geometry success.
         path.write_text(json.dumps(redacted, sort_keys=True, indent=2, default=str) + "\n", encoding="utf-8")
 
     def _write_text(self, path: Path, value: str, redaction: dict[str, Any]) -> None:
-        redacted, replacements = self.redactor.redact_text(value)
+        # Normalize paths before secret redaction so integrity evidence records
+        # that a sensitive host path was removed without retaining its value.
+        _, replacements = self.redactor.redact_text(value)
         redacted, path_findings = self.redactor.normalize_evidence_text(
-            redacted,
+            value,
             data_root=self.data_dir,
             evidence_root=self._batch_root(path),
         )

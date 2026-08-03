@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { defineConfig, devices } from "@playwright/test";
 import { resolvePlaywrightPorts } from "./playwrightPorts";
 
@@ -16,6 +17,10 @@ if (liveEnabled && !process.env.VOLUNDR_LIVE_ENV_FILE) {
 const ports = resolvePlaywrightPorts("VOLUNDR_LIVE_API_PORT", "VOLUNDR_LIVE_WEB_PORT");
 const dataDir = process.env.VOLUNDR_LIVE_DATA_DIR ?? "/tmp/volundr-live-e2e-unconfigured";
 const repoRoot = "..";
+const buildSha = process.env.VITE_BUILD_SHA ?? execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+const buildTimestamp = process.env.VITE_BUILD_TIMESTAMP ?? execFileSync("git", ["show", "-s", "--format=%cI", "HEAD"], { encoding: "utf8" }).trim();
+const buildDirty = process.env.VITE_BUILD_DIRTY ?? (execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim() ? "true" : "false");
+const buildReleaseLabel = process.env.VITE_BUILD_RELEASE_LABEL ?? "";
 
 export default defineConfig({
   testDir: "./e2e/live",
@@ -40,7 +45,7 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
+      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VITE_BUILD_SHA=${buildSha} VITE_BUILD_TIMESTAMP=${buildTimestamp} VITE_BUILD_DIRTY=${buildDirty} VITE_BUILD_RELEASE_LABEL=${buildReleaseLabel} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
       reuseExistingServer: false,
       url: `http://${ports.host}:${ports.webPort}`,
       timeout: 120_000,

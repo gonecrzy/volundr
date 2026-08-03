@@ -60,6 +60,27 @@ def test_identity_requires_complete_build_metadata(tmp_path: Path, monkeypatch) 
     assert identity.build_identities["backend"]["git_sha"] == "unknown"
 
 
+def test_structured_frontend_identity_is_accepted(tmp_path: Path) -> None:
+    identity = json.dumps(
+        {
+            "component": "frontend",
+            "git_sha": "a" * 40,
+            "dirty": False,
+            "build_timestamp": "2026-08-03T00:00:00Z",
+            "release_label": None,
+            "identity": "frontend-dev",
+        }
+    )
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        batch = DebugBatchService(db=session, data_dir=tmp_path / "data").start(
+            DebugBatchStart(label="structured-identity", frontend_build_identity=identity)
+        )
+
+    assert len(batch.frontend_build_identity) > 160
+
+
 def test_incomplete_identity_cannot_be_controlled(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr("app.services.debug_batches.identity._git_value", lambda *_args: "unknown")
     monkeypatch.setattr("app.services.debug_batches.identity._git_dirty", lambda *_args: None)

@@ -10,7 +10,7 @@ type ProjectSpec = {
   answers: Array<{ terms: string[]; answer: string }>;
 };
 
-const PROJECTS: ProjectSpec[] = [
+export const PROJECTS: ProjectSpec[] = [
   {
     name: "five-tray-wall-carrier",
     prompt: "Create a wall-mounted carrier that holds up to five 3600-size tackle trays. Each tray is 276 mm wide, 184 mm deep, and 44 mm thick. The trays should slide in from the front and stack vertically. Add a top carrying handle, a removable front retention bar, skeletonized side walls to reduce material, and four wall-mounting holes for #10 screws.",
@@ -83,7 +83,7 @@ const PROJECTS: ProjectSpec[] = [
   },
 ];
 
-const liveDataDir = process.env.VOLUNDR_LIVE_DATA_DIR ?? "/tmp/volundr-live-e2e-unconfigured";
+export const liveDataDir = process.env.VOLUNDR_LIVE_DATA_DIR ?? "/tmp/volundr-live-e2e-unconfigured";
 
 async function ensureDir(directory: string) {
   await fs.mkdir(directory, { recursive: true });
@@ -104,7 +104,7 @@ function answerForQuestion(spec: ProjectSpec, question: string) {
   return spec.answers.find((entry) => entry.terms.some((term) => normalized.includes(term)))?.answer ?? spec.fallbackAnswer;
 }
 
-async function startBatch(page: Page, label: string, notes: string, baselineBatchId?: string, screenshotTag = label) {
+export async function startBatch(page: Page, label: string, notes: string, baselineBatchId?: string, screenshotTag = label) {
   await page.getByRole("button", { name: "Debug batch", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Start live debug batch", exact: true })).toBeVisible();
   await page.getByLabel("Batch name").fill(label);
@@ -196,7 +196,7 @@ async function waitForProjectRunSettled(page: Page, projectId: string) {
   }, { timeout: 300_000, intervals: [1_000, 2_000, 5_000] }).toBe("settled");
 }
 
-async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number) {
+export async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number) {
   const createdProject = await openNextProject(page);
   await page.getByLabel("AI chat message").fill(spec.prompt);
   await screenshot(page, batchId, `${screenshotTag}-project-${String(projectNumber).padStart(2, "0")}-initial.png`);
@@ -231,7 +231,7 @@ async function runProject(page: Page, batchId: string, screenshotTag: string, sp
   return { projectId: draft.id, outcome };
 }
 
-async function finishBatch(page: Page, batchId: string, label: string) {
+export async function finishBatch(page: Page, batchId: string, label: string) {
   await page.getByRole("button", { name: "View batch", exact: true }).click();
   await expect(page.locator(".debug-batch-drawer")).toBeVisible();
   await screenshot(page, batchId, `${label}-batch-drawer-complete.png`);
@@ -248,7 +248,7 @@ async function finishBatch(page: Page, batchId: string, label: string) {
   return report;
 }
 
-test.describe.serial("mixed CAD live debug batches", () => {
+if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true") test.describe.serial("mixed CAD live debug batches", () => {
   test.skip(!liveEnabled, "Opt-in live suite; set VOLUNDR_RUN_LIVE_E2E=true.");
 
   test("runs the unchanged five-project pair and freezes evidence", async ({ page }) => {
