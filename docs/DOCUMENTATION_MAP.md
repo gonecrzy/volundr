@@ -100,6 +100,7 @@ Do not load the entire documentation tree by default.
 | `docs/DEPLOYMENT.md` | Compose services, healthchecks, persistent mounts, credential isolation, and supported deployment boundaries. |
 | `docs/ENVIRONMENT_VARIABLES.md` | Minimal deployment configuration, typed defaults, provider policy precedence, compatibility variables, derived paths, and test-only environment inventory. |
 | `docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md` | Backend-authorized live debug batches, narrow persistence, evidence/redaction boundary, read-only reporting, and developer deployment setting. |
+| `docs/FEATURE_VERIFICATION_LIVE_EVALUATION.md` | Frozen five-project feature-verification batch results, individual outcomes, self-review classifications, screenshots, and the single planning-only next priority. |
 | `docs/LIVE_DEBUG_BATCH_PLAYWRIGHT_EVALUATION.md` | Deterministic browser controls, screenshot locations, and proof that the browser cannot execute Codex or shell commands. |
 | `docs/LIVE_BATCH_CORRECTION_PLAN.md` | Planning-only post-batch correction priorities; no same-run implementation. |
 | `docs/LIVE_BATCH_CORRECTION_ROUND_1.md` | First generic evidence/identity/classification correction pass and its verification boundary. |

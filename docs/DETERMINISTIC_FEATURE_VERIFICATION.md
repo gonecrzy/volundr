@@ -1,6 +1,6 @@
 # Deterministic feature verification
 
-Status: implementation in progress. This document records the frozen evidence
+Status: implemented and frozen live evaluation complete. This document records the frozen evidence
 audit that precedes the verifier implementation and defines the evidence
 contract used by the geometry-slot path.
 
@@ -91,3 +91,7 @@ cavity/compartment, and one-connected-output topology. Product plans supply
 feature IDs, regions, dimensions, counts, and semantic operators. No
 portable-holder or organizer verifier class is introduced.
 
+The live result is recorded in `FEATURE_VERIFICATION_LIVE_EVALUATION.md`.
+Missing trace remains an explicit unverifiable condition in the evidence
+evaluator, while ordinary legacy workflows without a new trace remain
+unchanged.

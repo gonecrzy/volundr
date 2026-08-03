@@ -331,3 +331,36 @@ if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && geometrySlotsLiveEnable
     expect(report).toBeTruthy();
   });
 });
+
+const featureVerificationLiveEnabled = process.env.VOLUNDR_RUN_FEATURE_VERIFICATION_LIVE_E2E === "true";
+
+if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && featureVerificationLiveEnabled) test.describe.serial("feature verification live evaluation", () => {
+  test.skip(!liveEnabled, "Opt-in live suite; set VOLUNDR_RUN_LIVE_E2E=true.");
+
+  test("runs the unchanged five-project feature-verification batch and freezes evidence", async ({ page }) => {
+    test.setTimeout(1_800_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+
+    const batchId = await startBatch(
+      page,
+      "feature-verification-live-01",
+      "Focused feature verification evaluation using the unchanged five-project mixed-CAD prompts.",
+      undefined,
+      "feature-verification-live-01",
+    );
+    const projects = [];
+    for (let index = 0; index < PROJECTS.length; index += 1) {
+      projects.push(await runProject(page, batchId, "feature-verification-live-01", PROJECTS[index], index + 1));
+    }
+    const report = await finishBatch(page, batchId, "feature-verification-live-01");
+    const authoritativeProjects = authoritativeBatchManifestProjects(report);
+    await fs.writeFile(
+      path.join(sessionRoot(batchId), "live-batch-manifest.json"),
+      JSON.stringify({ batch_id: batchId, label: "feature-verification-live-01", projects: authoritativeProjects, report }, null, 2),
+      "utf-8",
+    );
+    expect(authoritativeProjects).toHaveLength(5);
+    expect(report).toBeTruthy();
+  });
+});

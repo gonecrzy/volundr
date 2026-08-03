@@ -1,5 +1,15 @@
 # Workflow Observability
 
+## Feature evidence
+
+Geometry-slot worker results may include compact feature input/output traces
+and final measurement records. These are correlated through the existing
+project, workflow, attempt, revision, output, and export chain; they are not a
+second event system. Report generation reads this evidence only and makes no
+provider or worker calls. Raw prompts, responses, source, worker output,
+screenshots metadata, and frontend network evidence are redacted and retained
+locally outside Git under the batch data root.
+
 This document is the authority for Volundr workflow tracing, event schema, stage vocabulary, diagnostic bundles, and deterministic first-failure diagnosis.
 
 The normal chat workspace is a presentation of the same authoritative records,

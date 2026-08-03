@@ -201,3 +201,11 @@ The alternatives are rejected for this review:
   validation, and reached the worker.
 
 No selected CAD correction is implemented in this review.
+
+## Feature verification live follow-up
+
+The focused batch `feature-verification-live-01` is documented in
+`FEATURE_VERIFICATION_LIVE_EVALUATION.md`. It did not change the selected
+geometry-slot priority in this historical review, did not run a Batch 2, and
+does not claim controlled comparison. Its separate planning priority is
+generic final geometry verification convergence for traced features.

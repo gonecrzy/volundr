@@ -2,6 +2,16 @@
 
 This document defines the required automated coverage for CAD execution, AI-source extraction, mesh inspection, revision safety, frontend behavior, and regression fixtures.
 
+## Deterministic feature verification
+
+Feature verification tests cover source-only and missing-trace states,
+no-effect and ambiguous traces, connected integral features, through openings,
+opening counts, compartment measurements, dimension tolerances, final
+topology, bounded one-feature repair, redaction inputs, and the distinction
+between geometry review and physical safety certification. Frontend and
+Playwright suites cover truthful final feature evidence and the monitor safety
+warning. The focused live run remains distinct from observed usability testing.
+
 ## CadQuery Transition Status
 
 The required coverage is CadQuery-primary.

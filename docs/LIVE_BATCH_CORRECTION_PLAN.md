@@ -19,6 +19,21 @@ will name the authoritative evidence, affected workflow stage, regression test,
 scope risk, and whether it requires a separate controlled run. No correction is
 implemented during or between the two live batches.
 
+## Feature-verification-live-01 addendum
+
+The focused frozen batch is recorded in
+`FEATURE_VERIFICATION_LIVE_EVALUATION.md`. It ran one batch only, so no
+controlled comparison is claimed. The authoritative batch ID is
+`5532f214-7fa4-4ba3-b36a-28be39300618`; raw evidence remains local under the
+durable data root and outside Git.
+
+The single selected next priority is **generic final geometry verification
+convergence for traced features**. The planned correction must improve
+feature-to-requirement measurements and truthful candidate findings, preserve
+disconnected-output blocking, and add fixture, backend, frontend, and
+Playwright gates before any future live comparison. This section is planning
+only; no correction was applied to this batch or between batches.
+
 ## Findings from the frozen mixed-CAD run
 
 Priority 1 is integrity/state correctness: absolute temporary job paths remain

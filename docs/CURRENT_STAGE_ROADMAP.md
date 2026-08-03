@@ -2,6 +2,15 @@
 
 This document records the implementation sequence, current stage status, milestone goals, and exit criteria. Codex should update it whenever a milestone changes state.
 
+## Current feature-verification stage
+
+Deterministic source-to-result feature evidence, generic final measurements,
+bounded repair context, frontend review presentation, and frozen regression
+fixtures are implemented. The focused `feature-verification-live-01` batch is
+frozen with no controlled comparison claim. The next planning priority is
+generic final geometry verification convergence for traced features; no repair
+is authorized in the same evaluation.
+
 ## Active Transition
 
 Status: requirement-led revisions implemented; live quality remains separately

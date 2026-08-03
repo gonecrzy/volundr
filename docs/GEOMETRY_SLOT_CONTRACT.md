@@ -2,6 +2,18 @@
 
 Status: implemented for direct and compact generation.
 
+## Final feature verification
+
+The geometry-slot path may persist a compact source-to-result feature trace
+and generic final measurements. Source declaration alone never satisfies a
+feature requirement. Evidence distinguishes source execution, final geometry
+presence, measurement state, requirement outcome, and physical-review
+warnings. Missing traces are unverifiable; valid one-solid topology does not
+certify dimensions, openings, compartments, strength, or load-bearing safety.
+
+See `DETERMINISTIC_FEATURE_VERIFICATION.md` and the frozen
+`FEATURE_VERIFICATION_LIVE_EVALUATION.md`.
+
 `volundr-geometry-slots-v1` makes stable executable structure a Volundr
 responsibility. The backend derives an ordered internal slot manifest from the
 approved Design Plan and renders the existing CadQuery scaffold. The provider
