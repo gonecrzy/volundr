@@ -7,6 +7,7 @@ from app.services.ai.provider import (
     ModelGenerationRequest,
     RequirementExtractionRequest,
 )
+from app.services.ai.model_policy import PromptMode
 
 
 def _mock_transport(
@@ -67,6 +68,22 @@ def test_ollama_resource_profile_requires_context_success_and_vram_limits() -> N
         context_completed=True,
         warm_throughput_collapse=False,
     ) == "rejected"
+
+
+def test_ollama_provider_initializes_volundr_routing_policy() -> None:
+    provider = OllamaProvider(model="qwen2.5-coder:14b")
+
+    decision = provider.routing_for_request(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert decision.provider == "ollama"
+    assert decision.prompt_mode is PromptMode.REQUIREMENTS
+    assert decision.selected_model == "qwen2.5-coder:14b"
     assert classify_ollama_resource_profile(
         max_size_vram=4_000_000_000,
         model_size=4_000_000_000,

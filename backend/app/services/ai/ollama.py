@@ -6,6 +6,7 @@ import httpx
 
 from app.core.config import settings
 from app.services.ai.gemini_cli import GeminiCliProvider
+from app.services.ai.model_policy import GeminiModelPolicy
 from app.services.ai.provider import (
     DesignPlanRequest,
     DesignPlanResult,
@@ -62,9 +63,16 @@ class OllamaProvider(GeminiCliProvider):
         keep_alive: str | int | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
+        resolved_model = model or settings.ollama_model
+        resolved_timeout = timeout_seconds or settings.ollama_timeout_seconds
+        super().__init__(
+            model=resolved_model,
+            timeout_seconds=resolved_timeout,
+            model_policy=GeminiModelPolicy.for_benchmark(settings, resolved_model),
+        )
         self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
-        self.model = model or settings.ollama_model
-        self.timeout_seconds = timeout_seconds or settings.ollama_timeout_seconds
+        self.model = resolved_model
+        self.timeout_seconds = resolved_timeout
         self.think = self._normalize_think(settings.ollama_think if think is None else think)
         self.api_key = api_key if api_key is not None else settings.ollama_api_key
         self.context_length = context_length if context_length is not None else settings.ollama_context_length
@@ -78,6 +86,10 @@ class OllamaProvider(GeminiCliProvider):
         self._last_usage_metadata: dict[str, Any] | None = None
         self._last_provider_latency_ms: int | None = None
         self._last_actual_model: str = self.model
+
+    @property
+    def provider_id(self) -> str:
+        return "ollama"
 
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         return await self.generate_cadquery_model(request)
