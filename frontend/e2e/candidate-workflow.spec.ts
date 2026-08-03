@@ -289,17 +289,40 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
           findings: [],
           feature_evidence: [
             {
-              requirement_id: "req_mounting_plate",
-              feature_id: "mounting_plate",
+              requirement_id: "req_right_handle",
+              feature_id: "feat_carrying_handle",
               output_id: "bracket",
-              source_function_id: "_ai_feature_mounting_plate",
+              source_function_id: "_ai_feature_feat_carrying_handle",
               source_executed: true,
               geometry_presence: "present",
               measurement_status: "measured",
-              measurements: { connected_to_primary_body: true, solid_count: 1 },
+              measurements: { connected_to_primary_body: true, material_overlap_volume_estimate_mm3: 12 },
               requirement_outcome: "satisfied",
               evidence_method: "brep_topology_measurement",
-              physical_review_warning: "This geometry review is not a safety certification.",
+            },
+            {
+              requirement_id: "req_drainage",
+              feature_id: "feat_drainage_openings",
+              output_id: "bracket",
+              source_function_id: "_ai_feature_feat_drainage_openings",
+              source_executed: true,
+              geometry_presence: "present",
+              measurement_status: "measured",
+              measurements: { count: 4, opening_length_mm: 3 },
+              requirement_outcome: "satisfied",
+              evidence_method: "final_mesh_opening_probe",
+            },
+            {
+              requirement_id: "req_strap_slots",
+              feature_id: "feat_strap_slots",
+              output_id: "bracket",
+              source_function_id: "_ai_feature_feat_strap_slots",
+              source_executed: true,
+              geometry_presence: "present",
+              measurement_status: "measured",
+              measurements: { count: 2, usable_external_strap_openings: 2 },
+              requirement_outcome: "satisfied",
+              evidence_method: "final_mesh_opening_probe",
             },
           ],
         },
@@ -344,12 +367,16 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await expect(page.getByLabel("Candidate review").getByText("Solids 1/1")).toBeVisible();
   await expect(page.getByText("Geometric checks")).toBeVisible();
   await expect(page.getByText("0 verified, 0 violated, 0 unable to verify")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("mounting_plate");
+  const featureEvidence = page.getByRole("region", { name: "Final feature evidence" });
+  await expect(featureEvidence.locator("article")).toHaveCount(3);
+  await expect(featureEvidence).toContainText("feat_carrying_handle");
+  await expect(featureEvidence).toContainText("feat_drainage_openings");
+  await expect(featureEvidence).toContainText("feat_strap_slots");
   await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("source executed");
   await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("geometry present");
   await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("measured");
   await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("not a safety certification");
-  await page.screenshot({ path: "output/playwright/feature-evidence-candidate-review.png", fullPage: true });
+  await page.screenshot({ path: "../data/debug-sessions/feature-verification-deterministic/portable-holder-1440x900.png", fullPage: true });
   await page.getByText("Technical details").click();
   await expect(page.getByText(/^Workflow run:/)).toBeVisible();
   await expect(page.getByText("workflow-run-1", { exact: true })).toBeVisible();
@@ -605,6 +632,68 @@ test("structured revision planning preserves active revision until scoped candid
           analysis_ms: 12.5,
           created_at: "2026-07-25T13:00:00Z",
           findings: [],
+          feature_evidence: [
+            {
+              requirement_id: "req_one_piece",
+              feature_id: "main_body",
+              output_id: "body",
+              source_function_id: "_ai_feature_main_body",
+              source_executed: true,
+              geometry_presence: "present",
+              measurement_status: "measured",
+              measurements: { detected_connected_components: 1 },
+              requirement_outcome: "satisfied",
+              evidence_method: "authoritative_topology_and_final_mesh",
+            },
+            {
+              requirement_id: "req_phone_slot",
+              feature_id: "phone_slot",
+              output_id: "body",
+              source_function_id: "_ai_feature_phone_slot",
+              source_executed: true,
+              geometry_presence: "absent",
+              measurement_status: "measured",
+              measurements: { requested_mm: 180, measured_mm: 0 },
+              requirement_outcome: "not_satisfied",
+              evidence_method: "final_mesh_opening_probe",
+            },
+            {
+              requirement_id: "req_pen_compartment",
+              feature_id: "pen_compartment",
+              output_id: "body",
+              source_function_id: "_ai_feature_pen_compartment",
+              source_executed: true,
+              geometry_presence: "absent",
+              measurement_status: "measured",
+              measurements: { expected_count: 1, count: 0 },
+              requirement_outcome: "not_satisfied",
+              evidence_method: "final_mesh_compartment_samples",
+            },
+            {
+              requirement_id: "req_accessory_compartments",
+              feature_id: "accessory_compartments",
+              output_id: "body",
+              source_function_id: "_ai_feature_accessory_compartments",
+              source_executed: true,
+              geometry_presence: "absent",
+              measurement_status: "measured",
+              measurements: { expected_count: 2, count: 1 },
+              requirement_outcome: "not_satisfied",
+              evidence_method: "final_mesh_compartment_samples",
+            },
+            {
+              requirement_id: "req_cable_notch",
+              feature_id: "cable_notch",
+              output_id: "body",
+              source_function_id: "_ai_feature_cable_notch",
+              source_executed: true,
+              geometry_presence: "absent",
+              measurement_status: "measured",
+              measurements: { requested_mm: 12, measured_mm: 0 },
+              requirement_outcome: "not_satisfied",
+              evidence_method: "final_mesh_opening_probe",
+            },
+          ],
         },
       });
     }
@@ -645,6 +734,15 @@ test("structured revision planning preserves active revision until scoped candid
   await expect(page.getByText("Printable parts - 2")).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Body/ })).toBeVisible();
   await expect(page.getByLabel("Candidate review").getByRole("button", { name: /Lid/ })).toBeVisible();
+  const organizerEvidence = page.getByRole("region", { name: "Final feature evidence" });
+  await expect(organizerEvidence.locator("article")).toHaveCount(5);
+  await expect(organizerEvidence).toContainText("main_body");
+  await expect(organizerEvidence).toContainText("phone_slot");
+  await expect(organizerEvidence).toContainText("pen_compartment");
+  await expect(organizerEvidence).toContainText("accessory_compartments");
+  await expect(organizerEvidence).toContainText("cable_notch");
+  await expect(organizerEvidence).toContainText("not satisfied");
+  await page.screenshot({ path: "../data/debug-sessions/feature-verification-deterministic/desktop-organizer-1440x900.png", fullPage: true });
   await expect(page.getByText("R1 active")).toBeVisible();
 
   await page.getByRole("button", { name: "Accept new version", exact: true }).click();

@@ -42,7 +42,9 @@ async def test_execution_manifest_records_compact_source_to_result_feature_trace
     result = await runner.compile(SOURCE, "feature-trace-test")
 
     assert result.success is True
+    assert result.outputs[0].feature_trace_available is True
     payload = json.loads(result.execution_manifest_path.read_text(encoding="utf-8"))
+    assert payload["feature_trace_supported"] is True
     traces = payload["feature_trace"]
     trace = next(item for item in traces if item["source_function_id"] == "_ai_feature_slot")
     assert trace["source_executed"] is True

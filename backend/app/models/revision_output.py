@@ -60,6 +60,7 @@ class RevisionOutput(Base):
     execution_command_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     topology_metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     feature_trace_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    feature_trace_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     mesh_metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     validation_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")

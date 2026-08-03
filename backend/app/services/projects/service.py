@@ -1293,6 +1293,9 @@ class ProjectService:
             list(getattr(output_result, "feature_trace", []) or []),
             sort_keys=True,
         )
+        output.feature_trace_available = bool(
+            getattr(output_result, "feature_trace_available", False)
+        )
         if output_result.metadata is not None:
             metadata_path = metadata_dir / f"{self._safe_stem(output.output_id)}.metadata.json"
             metadata_path.write_text(
@@ -10765,7 +10768,10 @@ class ProjectService:
                 feature_trace = [item for item in parsed_feature_trace if isinstance(item, dict)]
         if (
             revision_output is not None
-            and feature_trace
+            and (
+                feature_trace
+                or bool(getattr(revision_output, "feature_trace_available", False))
+            )
             and isinstance(design_plan_payload.get("features"), list)
         ):
             feature_evaluation = evaluate_feature_evidence(
@@ -10863,6 +10869,10 @@ class ProjectService:
                     self.db.add(blocker)
                     self.db.flush()
                     ids.append(blocker.id)
+                evidence_finding.metadata_json = json.dumps(
+                    {**record.to_json(), "finding_ids": ids},
+                    sort_keys=True,
+                )
             for trace_finding in feature_evaluation.trace_findings:
                 self.db.add(
                     ValidationFinding(
@@ -11612,6 +11622,9 @@ class ProjectService:
                     else [],
                     sort_keys=True,
                 )
+                output_record.feature_trace_available = bool(
+                    getattr(output_result, "feature_trace_available", False)
+                )
                 output_record.compile_error = (
                     output_result.compile_error
                     if output_result is not None
@@ -12281,6 +12294,9 @@ class ProjectService:
                 if output_result is not None
                 else [],
                 sort_keys=True,
+            )
+            output.feature_trace_available = bool(
+                getattr(output_result, "feature_trace_available", False)
             )
             output.compile_error = (
                 output_result.compile_error
@@ -13145,6 +13161,7 @@ class ProjectService:
             feature_trace=json.loads(output.feature_trace_json)
             if output.feature_trace_json
             else [],
+            feature_trace_available=output.feature_trace_available,
             mesh_metadata=MeshMetadataRead(**json.loads(output.mesh_metadata_json))
             if output.mesh_metadata_json
             else None,

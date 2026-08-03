@@ -1020,6 +1020,7 @@ class RevisionOutputRead(BaseModel):
     execution_command: list[str] = Field(default_factory=list)
     topology_metadata: dict[str, Any] | None = None
     feature_trace: list[dict[str, Any]] = Field(default_factory=list)
+    feature_trace_available: bool = False
     mesh_metadata: MeshMetadataRead | None = None
     metadata: MeshMetadataRead | None = None
     validation_summary: ValidationSummaryRead = Field(default_factory=ValidationSummaryRead)

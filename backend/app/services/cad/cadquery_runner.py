@@ -35,6 +35,7 @@ class CadQueryOutputResult:
     metadata: MeshMetadata | None
     topology_metadata: dict | None
     feature_trace: list[dict] = field(default_factory=list)
+    feature_trace_available: bool = False
     compile_error: str | None = None
 
 
@@ -437,6 +438,7 @@ class CadQueryCliRunner:
                         item for item in raw_output.get("feature_trace", [])
                         if isinstance(item, dict)
                     ],
+                    feature_trace_available=bool(execution_payload.get("feature_trace_supported", False)),
                     compile_error=str(compile_error) if compile_error else None,
                 )
             )
@@ -808,6 +810,7 @@ def main() -> int:
                     "outputs": _TIMING["outputs"],
                 },
                 "feature_trace": _FEATURE_TRACE,
+                "feature_trace_supported": True,
                 "outputs": outputs,
                 "worker_version": "cadquery-cli-runner-v1",
             },

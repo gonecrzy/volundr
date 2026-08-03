@@ -80,3 +80,23 @@ def test_final_mesh_dimension_is_measured_not_inferred_from_source_name() -> Non
     assert record.measurement_status == "measured"
     assert record.requirement_outcome == "satisfied"
     assert record.evidence_method == "final_mesh_bounds"
+
+
+def test_singular_requirement_ids_and_output_scoped_traces_are_linked() -> None:
+    evaluation = evaluate_feature_evidence(
+        mesh=trimesh.creation.box(extents=(10, 10, 10)),
+        output_id="body",
+        requirement_trace={
+            "features": [{"feature_id": "handle", "requirement_id": "req_handle"}],
+            "validation_targets": [{"feature_id": "handle", "requirement_id": "req_handle", "probe_points": [[0, -20, 0]], "axis": "y"}],
+        },
+        feature_trace=[
+            _trace(feature_id="handle") | {"output_id": "other-output"},
+            _trace(feature_id="handle") | {"output_id": "body"},
+        ],
+    )
+
+    assert len(evaluation.records) == 1
+    assert evaluation.records[0].requirement_id == "req_handle"
+    assert evaluation.records[0].source_executed is True
+    assert evaluation.records[0].evidence_method == "final_mesh_opening_probe"

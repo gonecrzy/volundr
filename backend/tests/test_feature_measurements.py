@@ -5,6 +5,7 @@ from app.services.geometry.feature_measurements import (
     compare_dimension,
     measure_compartments,
     measure_opening_count,
+    measure_slots,
     verify_integral_feature,
     verify_one_connected_output,
     verify_through_opening,
@@ -53,6 +54,8 @@ def test_slots_count_actual_opening_probes_and_compare_width_uses_semantic_toler
 
     measured = measure_opening_count(slot_frame, axis="y", points=probes)
     assert measured.count == 2
+    assert measure_opening_count(slot_frame, axis="y", points=probes, expected_count=2).satisfied
+    assert not measure_opening_count(slot_frame, axis="y", points=probes, expected_count=3).satisfied
     assert compare_dimension(55.0, 56.0, operator="approximate", tolerance=2.0).passed
     assert not compare_dimension(55.0, 58.0, operator="approximate", tolerance=2.0).passed
 
@@ -63,11 +66,32 @@ def test_compartment_count_requires_open_top_samples_and_expected_dimensions() -
         {"x": 70.0, "y": 0.0, "open_top": True, "width": 65.0, "depth": 45.0},
     ]
 
-    result = measure_compartments(samples, expected_count=2, expected_width=55.0, tolerance=2.0)
+    result = measure_compartments(samples, expected_count=2, expected_width=55.0, expected_depth=45.0, tolerance=2.0)
 
     assert result.count == 2
     assert result.open_top is True
     assert result.satisfied is True
+
+
+def test_slot_measurement_requires_count_dimensions_through_state_and_region() -> None:
+    result = measure_slots(
+        [
+            {"width": 180.4, "depth": 18.1, "through": True, "region": "rear"},
+            {"width": 55.0, "depth": 12.0, "through": True, "region": "rear"},
+        ],
+        expected_count=2,
+        expected_width=180.0,
+        expected_depth=18.0,
+        tolerance=1.0,
+        required_region="rear",
+    )
+    assert result.satisfied is True
+    assert not measure_slots(
+        [{"width": 180.0, "depth": 18.0, "through": False, "region": "rear"}],
+        expected_count=1,
+        expected_width=180.0,
+        expected_depth=18.0,
+    ).satisfied
 
 
 def test_one_connected_output_reuses_topology_and_cable_wall_probe_not_base_probe() -> None:
@@ -81,3 +105,11 @@ def test_one_connected_output_reuses_topology_and_cable_wall_probe_not_base_prob
     base_probe = {"axis": "z", "point": (0, 0, -20), "surface": "base"}
     assert wall_probe["surface"] == "rear_wall"
     assert base_probe["surface"] != wall_probe["surface"]
+
+
+def test_opening_probe_outside_geometry_cannot_count_as_a_through_opening() -> None:
+    mesh = _box((10, 2, 10))
+    result = verify_through_opening(mesh, axis="y", point=(100, -20, 0))
+
+    assert result.satisfied is False
+    assert result.reason == "probe_outside_geometry"

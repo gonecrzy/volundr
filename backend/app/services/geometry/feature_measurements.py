@@ -137,6 +137,24 @@ def verify_through_opening(
     axis_index = _axis_index(axis)
     point_array = np.asarray(tuple(point), dtype=float)
     bounds_min, bounds_max = _bounds(mesh)
+    orthogonal_axes = [index for index in range(3) if index != axis_index]
+    if any(
+        point_array[index] < bounds_min[index] - minimum_opening_mm
+        or point_array[index] > bounds_max[index] + minimum_opening_mm
+        for index in orthogonal_axes
+    ):
+        return MeasurementResult(
+            satisfied=False,
+            status="feature_absent",
+            reason="probe_outside_geometry",
+            measurements={
+                "axis": axis,
+                "point": [round(float(value), 4) for value in point_array],
+                "intersection_count": 0,
+                "opening_length_mm": 0.0,
+            },
+            tolerances={"minimum_opening_mm": minimum_opening_mm},
+        )
     direction = np.zeros(3, dtype=float)
     direction[axis_index] = 1.0
     margin = max(float(np.ptp(mesh.bounds[:, axis_index])), 1.0) + 10.0
@@ -167,6 +185,7 @@ def measure_opening_count(
     points: Iterable[Iterable[float]],
     maximum_intersections: int = 0,
     minimum_opening_mm: float = 0.1,
+    expected_count: int | None = None,
 ) -> MeasurementResult:
     results = [
         verify_through_opening(
@@ -179,15 +198,63 @@ def measure_opening_count(
         for point in points
     ]
     passed_count = sum(1 for result in results if result.satisfied)
+    satisfied = passed_count == expected_count if expected_count is not None else passed_count > 0
     return MeasurementResult(
-        satisfied=passed_count > 0,
-        status="measured" if passed_count else "feature_absent",
-        reason="openings_detected" if passed_count else "no_openings_detected",
+        satisfied=satisfied,
+        status="measured" if satisfied else "feature_absent",
+        reason=(
+            "opening_count_verified"
+            if satisfied and expected_count is not None
+            else "openings_detected"
+            if satisfied
+            else "opening_count_mismatch"
+            if expected_count is not None
+            else "no_openings_detected"
+        ),
         measurements={
             "count": passed_count,
             "probed_count": len(results),
+            "expected_count": expected_count,
             "probes": [result.measurements for result in results],
         },
+    )
+
+
+def measure_slots(
+    samples: Iterable[dict[str, Any]],
+    *,
+    expected_count: int,
+    expected_width: float | None = None,
+    expected_depth: float | None = None,
+    tolerance: float = 0.2,
+    required_region: str | None = None,
+) -> MeasurementResult:
+    """Measure slot count, dimensions, through state, and optional region."""
+
+    sample_list = [sample for sample in samples if isinstance(sample, dict)]
+    valid = [
+        sample for sample in sample_list
+        if bool(sample.get("through", sample.get("open", False)))
+        and (required_region is None or str(sample.get("region")) == required_region)
+    ]
+    widths = [float(sample["width"]) for sample in valid if _number(sample.get("width")) is not None]
+    depths = [float(sample["depth"]) for sample in valid if _number(sample.get("depth")) is not None]
+    width_ok = expected_width is None or any(abs(value - expected_width) <= tolerance for value in widths)
+    depth_ok = expected_depth is None or any(abs(value - expected_depth) <= tolerance for value in depths)
+    passed = len(valid) == expected_count and width_ok and depth_ok
+    return MeasurementResult(
+        satisfied=passed,
+        status="measured" if passed else "not_satisfied",
+        reason="slots_verified" if passed else "slot_count_dimension_or_access_failed",
+        measurements={
+            "count": len(valid),
+            "expected_count": expected_count,
+            "widths_mm": widths,
+            "depths_mm": depths,
+            "regions": sorted({str(sample.get("region")) for sample in valid if sample.get("region") is not None}),
+            "through_count": len(valid),
+        },
+        tolerances={"dimension_mm": tolerance},
     )
 
 
@@ -196,19 +263,31 @@ def measure_compartments(
     *,
     expected_count: int,
     expected_width: float | None = None,
+    expected_depth: float | None = None,
     tolerance: float = 0.2,
+    access_direction: str = "top",
 ) -> MeasurementResult:
     """Evaluate open-top compartment samples supplied by a generic sampler."""
 
     sample_list = [sample for sample in samples if isinstance(sample, dict)]
     open_samples = [sample for sample in sample_list if bool(sample.get("open_top"))]
     widths = [float(sample["width"]) for sample in open_samples if _number(sample.get("width")) is not None]
+    depths = [float(sample["depth"]) for sample in open_samples if _number(sample.get("depth")) is not None]
     width_result = (
         any(abs(width - expected_width) <= tolerance for width in widths)
         if expected_width is not None and widths
         else expected_width is None
     )
-    passed = len(open_samples) == expected_count and bool(open_samples) and width_result
+    depth_result = (
+        any(abs(depth - expected_depth) <= tolerance for depth in depths)
+        if expected_depth is not None and depths
+        else expected_depth is None
+    )
+    access_result = all(
+        str(sample.get("access_direction") or "top") == access_direction
+        for sample in open_samples
+    )
+    passed = len(open_samples) == expected_count and bool(open_samples) and width_result and depth_result and access_result
     return MeasurementResult(
         satisfied=passed,
         status="measured" if passed else "not_satisfied",
@@ -218,8 +297,10 @@ def measure_compartments(
             "expected_count": expected_count,
             "open_top": len(open_samples) == len(sample_list) and bool(open_samples),
             "widths_mm": widths,
+            "depths_mm": depths,
+            "access_direction": access_direction,
         },
-        tolerances={"width_mm": tolerance},
+        tolerances={"width_mm": tolerance, "depth_mm": tolerance},
     )
 
 

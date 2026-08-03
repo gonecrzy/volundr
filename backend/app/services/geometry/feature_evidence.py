@@ -13,6 +13,7 @@ from app.services.geometry.feature_measurements import (
     compare_dimension,
     measure_compartments,
     measure_opening_count,
+    measure_slots,
     verify_one_connected_output,
 )
 from app.services.geometry.invariants import GeometricFinding
@@ -114,11 +115,16 @@ def evaluate_feature_evidence(
     target_by_requirement = {
         str(requirement_id): target
         for target in targets
-        for requirement_id in target.get("requirement_ids", []) or []
+        for requirement_id in (
+            target.get("requirement_ids", [])
+            or ([target.get("requirement_id")] if target.get("requirement_id") else [])
+        )
     }
     traces_by_feature: dict[str, list[dict[str, Any]]] = {}
     for trace in feature_trace:
         if not isinstance(trace, dict):
+            continue
+        if trace.get("output_id") and str(trace.get("output_id")) != output_id:
             continue
         source_id = str(trace.get("source_function_id") or "")
         feature_id = str(trace.get("feature_id") or "")
@@ -135,7 +141,12 @@ def evaluate_feature_evidence(
             continue
         source_function_id = _source_function_id(feature_id, feature_trace)
         matches = traces_by_feature.get(feature_id, [])
-        feature_requirement_ids = [str(item) for item in feature.get("requirement_ids", []) or []]
+        feature_requirement_ids = [
+            str(item) for item in (
+                feature.get("requirement_ids", [])
+                or ([feature.get("requirement_id")] if feature.get("requirement_id") else [])
+            )
+        ]
         if not feature_requirement_ids:
             feature_requirement_ids = [feature_id]
         for requirement_id in feature_requirement_ids:
@@ -294,14 +305,20 @@ def _measure_final_geometry(
     if measurement in {"width", "depth", "height"} and object_type in {"desktop organizer", "body", "base", "walls"}:
         axis = {"width": 0, "depth": 1, "height": 2}[measurement]
         measured = float(mesh.bounds[1][axis] - mesh.bounds[0][axis])
-        comparison = compare_dimension(requested, measured, operator="exact", tolerance=0.2)
+        operator = str(target.get("operator") or "exact")
+        tolerance = _number(target.get("tolerance_mm") or target.get("tolerance"))
+        if tolerance is None:
+            tolerance = 0.2
+        comparison = compare_dimension(requested, measured, operator=operator, tolerance=tolerance)
         return _result_payload(
             comparison.passed,
             "measured",
             "overall_dimension" if comparison.passed else "dimension_mismatch",
             {"measurement": measurement, "requested_mm": requested, "measured_mm": round(measured, 3)},
             "final_mesh_bounds",
-            {"requested_mm": requested, "operator": "exact", "applied_tolerance_mm": 0.2},
+            {"requested_mm": requested, "operator": operator, "applied_tolerance_mm": tolerance},
+            measurement_inputs={"target_id": target.get("target_id") or target.get("id"), "axis": axis},
+            geometry_presence="present",
         )
     if feature_id == "main_body":
         topology = verify_one_connected_output(mesh, expected_count=int((topology_metadata or {}).get("expected_solid_count") or 1))
@@ -312,18 +329,31 @@ def _measure_final_geometry(
             topology.measurements,
             "authoritative_topology_and_final_mesh",
             {},
+            measurement_inputs={"expected_solid_count": (topology_metadata or {}).get("expected_solid_count") or 1},
+            geometry_presence="present" if topology.measurements.get("face_count", 0) else "absent",
         )
     probe_points = target.get("probe_points") or feature.get("probe_points")
     if isinstance(probe_points, list) and probe_points:
         axis = str(target.get("axis") or feature.get("opening_axis") or "z")
-        opening = measure_opening_count(mesh, axis=axis, points=probe_points)
+        opening = measure_opening_count(
+            mesh,
+            axis=axis,
+            points=probe_points,
+            expected_count=_integer(target.get("expected_count") or feature.get("expected_count")),
+        )
         return _result_payload(
             opening.satisfied,
             "measured",
             opening.reason,
             opening.measurements,
             "final_mesh_opening_probe",
-            {"axis": axis, "minimum_opening_mm": 0.1},
+            {"axis": axis, "minimum_opening_mm": 0.1, "expected_count": opening.measurements.get("expected_count")},
+            measurement_inputs={
+                "target_id": target.get("target_id") or target.get("id"),
+                "axis": axis,
+                "probe_points": probe_points,
+            },
+            geometry_presence="present" if opening.measurements.get("count", 0) else "absent",
         )
     samples = target.get("compartment_samples") or feature.get("compartment_samples")
     if isinstance(samples, list):
@@ -331,7 +361,9 @@ def _measure_final_geometry(
             samples,
             expected_count=int(target.get("expected_count") or feature.get("expected_count") or 1),
             expected_width=_number(target.get("center_width") or feature.get("center_width")),
+            expected_depth=_number(target.get("depth") or feature.get("depth")),
             tolerance=float(target.get("tolerance_mm") or 0.2),
+            access_direction=str(target.get("access_direction") or feature.get("access_direction") or "top"),
         )
         return _result_payload(
             compartments.satisfied,
@@ -340,6 +372,32 @@ def _measure_final_geometry(
             compartments.measurements,
             "final_mesh_compartment_samples",
             compartments.tolerances,
+            measurement_inputs={
+                "target_id": target.get("target_id") or target.get("id"),
+                "expected_count": target.get("expected_count") or feature.get("expected_count") or 1,
+                "compartment_samples": samples,
+            },
+            geometry_presence="present" if compartments.measurements.get("count", 0) else "absent",
+        )
+    slot_samples = target.get("slot_samples") or feature.get("slot_samples")
+    if isinstance(slot_samples, list):
+        slots = measure_slots(
+            slot_samples,
+            expected_count=int(target.get("expected_count") or feature.get("expected_count") or 1),
+            expected_width=_number(target.get("width") or feature.get("width")),
+            expected_depth=_number(target.get("depth") or feature.get("depth")),
+            tolerance=float(target.get("tolerance_mm") or 0.2),
+            required_region=(str(target.get("region")) if target.get("region") else None),
+        )
+        return _result_payload(
+            slots.satisfied,
+            "measured",
+            slots.reason,
+            slots.measurements,
+            "final_mesh_slot_samples",
+            slots.tolerances,
+            measurement_inputs={"slot_samples": slot_samples},
+            geometry_presence="present" if slots.measurements.get("count", 0) else "absent",
         )
     return _result_payload(
         False,
@@ -349,6 +407,8 @@ def _measure_final_geometry(
         "final_mesh_feature_probe" if target else "final_mesh_without_feature_target",
         {},
         outcome="measurement_failed" if target else "unverifiable",
+        measurement_inputs={"target_id": target.get("target_id") or target.get("id") if target else None},
+        geometry_presence="unknown",
     )
 
 
@@ -361,14 +421,16 @@ def _result_payload(
     tolerances: dict[str, Any],
     *,
     outcome: str | None = None,
+    measurement_inputs: dict[str, Any] | None = None,
+    geometry_presence: str | None = None,
 ) -> dict[str, Any]:
     return {
-        "geometry_presence": "present" if passed else "absent",
+        "geometry_presence": geometry_presence or ("present" if passed else "absent"),
         "measurement_status": measurement_status,
         "measurements": measurements,
         "requirement_outcome": outcome or ("satisfied" if passed else "not_satisfied"),
         "evidence_method": method,
-        "measurement_inputs": {"reason": reason},
+        "measurement_inputs": {"reason": reason, **(measurement_inputs or {})},
         "tolerances": tolerances,
     }
 
@@ -391,6 +453,11 @@ def _number(value: Any) -> float | None:
         return None if value is None else float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _integer(value: Any) -> int | None:
+    number = _number(value)
+    return int(number) if number is not None else None
 
 
 def requirement_id_from_feature(feature: dict[str, Any]) -> str:

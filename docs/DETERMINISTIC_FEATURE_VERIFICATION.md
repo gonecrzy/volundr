@@ -20,16 +20,16 @@ per-feature input/output shape trace or a final-geometry measurement record.
 Therefore source labels and the valid-solid result are intentionally not
 treated as feature verification.
 
-| Project | Requirement | Source function | Executed | Geometry evidence | Measurement | Current finding |
-|---|---|---|---:|---|---|---|
-| Portable holder | `req_right_handle` | `_ai_feature_feat_carrying_handle` | unknown in frozen manifest; build path calls the slot | final output is one solid; no feature-local body/overlap evidence | not recorded | `feature_trace_missing`; the earlier disconnected-handle run is repair evidence, not proof of the current final handle |
-| Portable holder | `req_drainage` | `_ai_feature_feat_drainage_openings` | unknown in frozen manifest; build path calls the slot | final output is one solid; no through-opening or support evidence | not recorded | `feature_present_but_unmeasured` |
-| Portable holder | `req_retention_strap_slots` | `_ai_feature_feat_strap_slots` | unknown in frozen manifest; build path calls the slot | final output is one solid; no count, wall-through, or usability evidence | not recorded | `feature_present_but_unmeasured` |
-| Desktop organizer | `req_one_piece` | `_ai_feature_main_body` plus component builder | source function declared and build path calls it; per-function execution absent | authoritative topology reports one solid, but base/wall/divider ownership is not measured | one-solid topology only | `feature_present_but_unmeasured` |
-| Desktop organizer | `req_phone_slot` | `_ai_feature_phone_slot` | unknown in frozen manifest; build path calls the slot | valid final solid/artifacts; no open-top rear-region evidence | not recorded | `feature_present_but_unmeasured` |
-| Desktop organizer | `pen_compartment` | `_ai_feature_pen_compartment` | unknown in frozen manifest; build path calls the slot | valid final solid/artifacts; no front-left bounded-region evidence | not recorded | `feature_present_but_unmeasured` |
-| Desktop organizer | `accessory_compartments` | `_ai_feature_accessory_compartments` | unknown in frozen manifest; build path calls the slot | valid final solid/artifacts; no two-compartment/divider evidence | not recorded | `feature_present_but_unmeasured` |
-| Desktop organizer | `cable_notch_width` | `_ai_feature_cable_notch` | unknown in frozen manifest; build path calls the slot | valid final solid/artifacts; no rear-wall-through versus base-through evidence | not recorded | `feature_present_but_unmeasured` |
+| Project | Requirement | Source function | Executed | Shape before feature | Shape after feature | Final output shape | Existing target/evidence | Measurement | Current finding |
+|---|---|---|---:|---|---|---|---|---|---|
+| Portable holder | `req_right_handle` | `_ai_feature_feat_carrying_handle` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no feature-local handle summary | source declaration and output topology only | not recorded | `feature_trace_missing` (the earlier disconnected-handle run is separate repair evidence) |
+| Portable holder | `req_drainage` | `_ai_feature_feat_drainage_openings` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no through-opening evidence | source declaration and output topology only | not recorded | `feature_present_but_unmeasured` |
+| Portable holder | `req_strap_slots` | `_ai_feature_feat_strap_slots` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no slot count or wall-through evidence | source declaration and output topology only | not recorded | `feature_present_but_unmeasured` |
+| Desktop organizer | `req_one_piece` | `_ai_feature_main_body` plus component builder | source declared/build path known; per-function execution absent | not recorded | not recorded | one valid connected solid | one-solid topology only; base/wall/divider ownership target absent | one-solid topology only | `feature_present_but_unmeasured` |
+| Desktop organizer | `req_phone_slot` | `_ai_feature_phone_slot` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no rear-region opening evidence | source declaration and output topology only | not recorded | `feature_present_but_unmeasured` |
+| Desktop organizer | `req_pen_compartment` | `_ai_feature_pen_compartment` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no front-left bounded-region evidence | source declaration and output topology only | not recorded | `feature_present_but_unmeasured` |
+| Desktop organizer | `req_accessory_compartments` | `_ai_feature_accessory_compartments` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no two-compartment/divider evidence | source declaration and output topology only | not recorded | `feature_present_but_unmeasured` |
+| Desktop organizer | `req_cable_notch` | `_ai_feature_cable_notch` | unknown; no runtime trace | not recorded | not recorded | one valid connected solid; no rear-wall-versus-base-through evidence | source declaration and output topology only | not recorded | `feature_present_but_unmeasured` |
 
 The earlier preserved portable failure also remains a regression fixture:
 `_ai_feature_feat_open_side_walls` produced an additive handle whose tangent

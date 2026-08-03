@@ -119,6 +119,7 @@ Do not load the entire documentation tree by default.
 | `docs/DERIVED_DEPENDENCY_CLASSIFICATION.md` | Execution-relevance classification for malformed derived metadata, blocking policy, persisted evidence, and non-goals. |
 | `docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md` | Scaffold-owned geometry function signatures, lexical symbol binding, definite assignment, findings, runtime classification, and bounded repair. |
 | `docs/GEOMETRY_SLOT_CONTRACT.md` | Volundr-owned direct/compact slot manifest, reduced provider response, validation, focused completion, fallback, and localized repair. |
+| `docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md` | Current boundary between worker/topology success and deterministic feature/requirement evidence. |
 | `docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md` | Deterministic and live rollout gates, evidence boundary, safety boundary, and planning-only correction boundary for geometry slots. |
 | `docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md` | Frozen five-project live validation record, deterministic gate, per-project results, self-review classifications, and one next priority. |
 | `docs/LIVE_DESIGN_MATRIX_EVALUATION.md` | Exact real-provider direct, compact, and detailed design matrix evidence. |
