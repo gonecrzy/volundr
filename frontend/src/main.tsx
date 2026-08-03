@@ -49,7 +49,7 @@ import {
   provenanceRelationshipLabel,
   reviewStepLabel,
 } from "./terminology";
-import { candidateStatusSummary, generationProgress, recoveryPresentation } from "./workflowPresentation";
+import { candidateStatusSummary, generationProgress, geometryContractTelemetry, recoveryPresentation } from "./workflowPresentation";
 import { describeProviderResponse, type ProviderResponseTechnical } from "./providerResponsePresentation";
 import {
   canGenerateConfiguration,
@@ -221,6 +221,10 @@ type GenerationAttemptEvidence = {
     actual_model?: string;
     routing_reason?: string;
     fallback_chain?: string[];
+    geometry_contract?: string;
+    geometry_slot_count?: number;
+    geometry_slot_completion_call?: boolean;
+    geometry_slot_fallback?: boolean;
   };
   provider_latency_ms: number | null;
   resulting_revision_id: string | null;
@@ -2715,10 +2719,19 @@ function App() {
   }
 
   if (CHAT_FIRST_ENABLED) {
+    const geometryTelemetry = geometryContractTelemetry(generationAttempts);
     const chatTechnicalDetails = (
       <>
         <p>Technical diagnostics remain available here for support and review.</p>
         {chatWorkflow?.planning_depth ? <p>Planning route: <code>{chatWorkflow.planning_depth}</code></p> : null}
+        {geometryTelemetry.selectedContract ? (
+          <p>
+            Geometry contract: <code>{geometryTelemetry.selectedContract}</code>
+            {geometryTelemetry.completionCalls
+              ? ` · ${geometryTelemetry.completionCalls} focused completion call${geometryTelemetry.completionCalls === 1 ? "" : "s"}`
+              : ""}
+          </p>
+        ) : null}
         {workflowCorrelation.workflowRunId ? (
           <p>Workflow run: <code>{workflowCorrelation.workflowRunId}</code></p>
         ) : null}
@@ -2734,6 +2747,7 @@ function App() {
                 return (
                   <li key={attempt.attempt_id}>
                     {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
+                    {routing.geometry_contract ? ` · ${routing.geometry_contract}` : ""}
                     {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
                     {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
                     {lifecycle ? <small className="provider-response-lifecycle">{lifecycle.received} · {lifecycle.normalization} · {lifecycle.repair} · {lifecycle.final}</small> : null}
@@ -3259,6 +3273,7 @@ function App() {
                       return (
                         <li key={attempt.attempt_id}>
                           {routing.prompt_mode ?? attempt.prompt_version}: {attempt.provider} / {routing.actual_model ?? attempt.model ?? "unknown model"}
+                          {routing.geometry_contract ? ` · ${routing.geometry_contract}` : ""}
                           {attempt.provider_latency_ms !== null ? ` · ${attempt.provider_latency_ms} ms` : ""}
                           {totalTokens !== undefined ? ` · ${String(totalTokens)} tokens` : ""}
                           {routing.routing_reason === "operational_fallback" ? " · operational fallback" : ""}

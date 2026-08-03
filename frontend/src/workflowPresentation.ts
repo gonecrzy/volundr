@@ -113,6 +113,30 @@ export function generationProgress(stage: string | null | undefined): Generation
   return generationStages[stage ?? ""] ?? { label: "Preparing your design", complete: false };
 }
 
+export type GeometryContractTelemetry = {
+  selectedContract: string | null;
+  completionCalls: number;
+  legacyFallbacks: number;
+};
+
+export function geometryContractTelemetry(
+  attempts: Array<{ routing_metadata?: Record<string, unknown> | null }>,
+): GeometryContractTelemetry {
+  const values = attempts
+    .map((attempt) => attempt.routing_metadata?.geometry_contract)
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+  return {
+    selectedContract: values.at(-1) ?? null,
+    completionCalls: attempts.filter(
+      (attempt) => attempt.routing_metadata?.geometry_slot_completion_call === true,
+    ).length,
+    legacyFallbacks: attempts.filter(
+      (attempt) => attempt.routing_metadata?.geometry_contract === "legacy_contract" &&
+        attempt.routing_metadata?.geometry_slot_fallback === true,
+    ).length,
+  };
+}
+
 export function candidateStatusSummary(input: {
   total: number;
   blockedRequired: number;

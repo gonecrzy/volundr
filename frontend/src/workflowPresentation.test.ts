@@ -2,11 +2,29 @@ import { describe, expect, it } from "vitest";
 import {
   candidateStatusSummary,
   generationProgress,
+  geometryContractTelemetry,
   recoveryPresentation,
   userWorkflowPhase,
 } from "./workflowPresentation";
 
 describe("workflow presentation", () => {
+  it("summarizes geometry contract telemetry for technical details only", () => {
+    expect(
+      geometryContractTelemetry([
+        { routing_metadata: { geometry_contract: "volundr-geometry-slots-v1" } },
+        {
+          routing_metadata: {
+            geometry_contract: "volundr-geometry-slots-v1",
+            geometry_slot_completion_call: true,
+          },
+        },
+      ]),
+    ).toEqual({
+      selectedContract: "volundr-geometry-slots-v1",
+      completionCalls: 1,
+      legacyFallbacks: 0,
+    });
+  });
   it("maps internal stages to meaningful generation progress", () => {
     expect(generationProgress("requirement_extraction")).toEqual({
       label: "Understanding requirements",
