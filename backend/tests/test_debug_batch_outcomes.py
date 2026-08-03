@@ -244,3 +244,17 @@ def test_canonical_output_resolver_distinguishes_artifact_and_topology_blocks() 
 
     assert incomplete.state == "incomplete_artifacts"
     assert invalid.state == "invalid_topology"
+
+
+def test_canonical_output_resolver_consumes_final_feature_evidence_blocker() -> None:
+    outcome = resolve_output_outcome(
+        expected_outputs=[_valid_output()],
+        worker_status="succeeded",
+        registered_artifacts=[_registered_output()],
+        verification_findings=[
+            {"rule_id": "feature.verification_blocked", "is_blocking": True}
+        ],
+    )
+
+    assert outcome.state == "verification_blocked"
+    assert outcome.verification_status == "blocked"

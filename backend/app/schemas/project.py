@@ -1093,3 +1093,4 @@ class GeometricAnalysisRead(BaseModel):
     analysis_ms: float
     created_at: datetime
     findings: list[GeometricFindingRead]
+    feature_evidence: list[dict[str, Any]] = Field(default_factory=list)

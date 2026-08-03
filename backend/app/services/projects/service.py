@@ -227,6 +227,12 @@ from app.services.geometry.functional import (
     FunctionalGeometryVerifierRegistry,
 )
 from app.services.geometry.requirement_compliance import evaluate_requirement_compliance
+from app.services.geometry.feature_evidence import (
+    FeatureEvidenceEvaluation,
+    FeatureEvidenceRecord,
+    evaluate_feature_evidence,
+    evidence_to_geometric_finding,
+)
 from app.services.mesh.inspect import MeshMetadata, _as_mesh
 from app.services.printability.inspector import inspect_printability
 from app.services.workflow.observability import WorkflowRecorder
@@ -938,6 +944,7 @@ class ProjectService:
                 GeometricFindingRead.model_validate(finding)
                 for finding in payload.get("findings", [])
             ],
+            feature_evidence=payload.get("feature_evidence", []),
         )
 
     def get_revision_output_geometric_analysis(
@@ -970,6 +977,7 @@ class ProjectService:
                 GeometricFindingRead.model_validate(finding)
                 for finding in payload.get("findings", [])
             ],
+            feature_evidence=payload.get("feature_evidence", []),
         )
 
     def accept_candidate(self, revision_id: str) -> RevisionRead | None:
@@ -10733,6 +10741,24 @@ class ProjectService:
                     metadata={"metadata_source": "cadquery_source_and_design_plan"},
                 )
             )
+        feature_evaluation: FeatureEvidenceEvaluation | None = None
+        if revision_output is not None and isinstance(design_plan_payload.get("features"), list):
+            try:
+                feature_trace = json.loads(revision_output.feature_trace_json or "[]")
+            except json.JSONDecodeError:
+                feature_trace = []
+            feature_evaluation = evaluate_feature_evidence(
+                mesh=mesh,
+                output_id=revision_output.output_id,
+                requirement_trace=design_plan_payload,
+                feature_trace=feature_trace if isinstance(feature_trace, list) else [],
+                topology_metadata=self._output_topology_metadata(revision_output),
+            )
+            feature_findings = [
+                evidence_to_geometric_finding(record)
+                for record in feature_evaluation.records
+            ]
+            result.findings.extend(feature_findings)
         requirement_ledger = RequirementLedgerStore(self.db).load(revision.project_id)
         active_requirement_items = active_requirements(requirement_ledger)
         if active_requirement_items:
@@ -10751,6 +10777,11 @@ class ProjectService:
         )
         result_path.parent.mkdir(parents=True, exist_ok=True)
         result_payload = result.to_json()
+        if feature_evaluation is not None:
+            result_payload["feature_evidence"] = [
+                record.to_json() for record in feature_evaluation.records
+            ]
+            result_payload["feature_trace_findings"] = feature_evaluation.trace_findings
 
         persisted = GeometricAnalysisResult(
             revision_id=revision.id,
@@ -10783,7 +10814,121 @@ class ProjectService:
                 result_payload["findings"][index]["validation_finding_id"] = validation_finding.id
             else:
                 result_payload["findings"][index]["validation_finding_id"] = None
+        if feature_evaluation is not None:
+            persisted_feature_finding_ids: dict[tuple[str, str], list[str]] = {}
+            for record in feature_evaluation.records:
+                evidence_finding = self._feature_evidence_validation_finding(
+                    record,
+                    revision_id=revision.id,
+                    revision_output_id=revision_output.id if revision_output is not None else None,
+                    design_specification_id=design_specification_id,
+                )
+                self.db.add(evidence_finding)
+                self.db.flush()
+                ids = persisted_feature_finding_ids.setdefault(
+                    (record.feature_id, record.requirement_id), []
+                )
+                ids.append(evidence_finding.id)
+                if record.requirement_outcome in {
+                    "unverifiable",
+                    "measurement_failed",
+                }:
+                    blocker = self._feature_evidence_blocker_finding(
+                        record,
+                        revision_id=revision.id,
+                        revision_output_id=revision_output.id if revision_output is not None else None,
+                        design_specification_id=design_specification_id,
+                    )
+                    self.db.add(blocker)
+                    self.db.flush()
+                    ids.append(blocker.id)
+            for trace_finding in feature_evaluation.trace_findings:
+                self.db.add(
+                    ValidationFinding(
+                        revision_id=revision.id,
+                        revision_output_id=revision_output.id if revision_output is not None else None,
+                        design_specification_id=design_specification_id,
+                        rule_id=str(trace_finding.get("rule_id") or "feature.trace_ambiguous"),
+                        category="geometry_feature",
+                        severity="critical" if trace_finding.get("is_blocking") else "warning",
+                        is_blocking=bool(trace_finding.get("is_blocking")),
+                        title="Feature source-to-result trace",
+                        explanation=str(trace_finding.get("message") or "Feature trace evidence was recorded."),
+                        suggested_correction="Inspect the final feature evidence before accepting the candidate.",
+                        detected_value=str(trace_finding.get("feature_id") or ""),
+                        unit=None,
+                        threshold_value=None,
+                        orientation_dependent=False,
+                        affected_geometry_summary=(
+                            f"feature={trace_finding.get('feature_id')}"
+                            if trace_finding.get("feature_id") else None
+                        ),
+                        metadata_json=json.dumps(trace_finding, sort_keys=True),
+                    )
+                )
+            self.db.flush()
+            for evidence in result_payload["feature_evidence"]:
+                key = (str(evidence.get("feature_id")), str(evidence.get("requirement_id")))
+                evidence["finding_ids"] = persisted_feature_finding_ids.get(key, [])
         self._write_json(result_path, result_payload)
+
+    def _feature_evidence_validation_finding(
+        self,
+        record: FeatureEvidenceRecord,
+        *,
+        revision_id: str,
+        revision_output_id: str | None,
+        design_specification_id: str | None,
+    ) -> ValidationFinding:
+        blocking = record.requirement_outcome in {"not_satisfied", "feature_absent"}
+        severity = "critical" if blocking else "warning"
+        return ValidationFinding(
+            revision_id=revision_id,
+            revision_output_id=revision_output_id,
+            design_specification_id=design_specification_id,
+            rule_id=f"feature.evidence.{record.feature_id}.{record.requirement_id}",
+            category="geometry_feature",
+            severity=severity,
+            is_blocking=blocking,
+            title=f"Feature evidence: {record.feature_id}",
+            explanation=f"Final geometry evidence outcome: {record.requirement_outcome}.",
+            suggested_correction="Review or repair only the identified feature, then remeasure the final output.",
+            detected_value=json.dumps(record.measurements, sort_keys=True),
+            unit="mm" if any(str(key).endswith("_mm") for key in record.measurements) else None,
+            threshold_value=json.dumps(record.tolerances, sort_keys=True),
+            orientation_dependent=False,
+            affected_geometry_summary=f"feature={record.feature_id}",
+            metadata_json=json.dumps(record.to_json(), sort_keys=True),
+        )
+
+    def _feature_evidence_blocker_finding(
+        self,
+        record: FeatureEvidenceRecord,
+        *,
+        revision_id: str,
+        revision_output_id: str | None,
+        design_specification_id: str | None,
+    ) -> ValidationFinding:
+        return ValidationFinding(
+            revision_id=revision_id,
+            revision_output_id=revision_output_id,
+            design_specification_id=design_specification_id,
+            rule_id="feature.verification_blocked",
+            category="geometry_feature",
+            severity="critical",
+            is_blocking=True,
+            title=f"Feature verification unavailable: {record.feature_id}",
+            explanation=(
+                f"The {record.feature_id} requirement is {record.requirement_outcome}; source and worker evidence do not prove final geometry satisfaction."
+            ),
+            suggested_correction="Provide a deterministic feature measurement or run the bounded feature repair.",
+            detected_value=record.requirement_outcome,
+            unit=None,
+            threshold_value=None,
+            orientation_dependent=False,
+            affected_geometry_summary=f"feature={record.feature_id}",
+            metadata_json=json.dumps(record.to_json(), sort_keys=True),
+        )
 
     def _validation_finding_from_geometric_result(
         self,
@@ -11003,7 +11148,7 @@ class ProjectService:
         verification_findings = [
             finding
             for finding in findings
-            if finding.rule_id.startswith(("functional.", "requirement."))
+            if finding.rule_id.startswith(("functional.", "requirement.", "feature."))
         ]
         candidate_findings = [
             finding
