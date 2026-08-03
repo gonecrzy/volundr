@@ -135,11 +135,9 @@ async function startBatch(page: Page, label: string, notes: string, baselineBatc
   return batch.id;
 }
 
-async function openNextProject(page: Page, spec: ProjectSpec) {
+async function openNextProject(page: Page) {
   await page.goto("/");
-  const response = await page.request.post("/api/projects", {
-    data: { name: `Live ${spec.name}`, original_intent: spec.prompt },
-  });
+  const response = await page.request.post("/api/projects/draft");
   expect(response.ok(), "project creation").toBeTruthy();
   const project = await response.json() as { id: string };
   await page.goto(`/projects/${project.id}`);
@@ -199,7 +197,7 @@ async function waitForProjectRunSettled(page: Page, projectId: string) {
 }
 
 async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number) {
-  const createdProject = await openNextProject(page, spec);
+  const createdProject = await openNextProject(page);
   await page.getByLabel("AI chat message").fill(spec.prompt);
   await screenshot(page, batchId, `${screenshotTag}-project-${String(projectNumber).padStart(2, "0")}-initial.png`);
   await page.getByRole("button", { name: "Send", exact: true }).click();
