@@ -208,7 +208,7 @@ def render(experiment: dict[str, Any], *, evidence_root: Path) -> dict[str, str]
             f"| {package['family'].replace('_', ' ')} | `{package['source_project_id']}` | `{package['source_batch_id']}` | `{package['package_hash']}` |"
         )
     experiment_hash = hashlib.sha256(
-        json.dumps(experiment, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        (evidence_root / "experiment.json").read_bytes()
     ).hexdigest()
     shared = f"""## Evidence and test boundary
 

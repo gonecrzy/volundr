@@ -4,7 +4,7 @@
 
 The authoritative machine record is the local redacted file
 `data/debug-sessions/contract-complexity-20260803/experiment.json` (SHA-256
-`60beabd601e59be790813aef4c8a4bbe5a84610b4c1533c0ab0c2e669e75f585`). Raw prompts, provider responses, assembled source, worker
+`365deb92b3c902559fd823b627e4e30597bfd17e7f9eeeef248f4672f0cefc3a`). Raw prompts, provider responses, assembled source, worker
 jobs, and logs remain under that ignored local evidence root and outside Git.
 The diagnostic does not create projects, workflow runs, attempts, revisions,
 exports, or Current working versions.
