@@ -215,6 +215,7 @@ def validate_run_selection(
     case_filter: Sequence[str] = (),
     family_filter: Sequence[str] = (),
     specificity_filter: Sequence[str] = (),
+    benchmark_kind: str = "gemini-consistency",
 ) -> list[ConsistencyCase]:
     if len(selection.models) < 2:
         raise ValueError("benchmark selection requires at least two models")
@@ -237,6 +238,8 @@ def validate_run_selection(
         selected = [case for case in selected if case.case_id in pilot]
     if not selected:
         raise ValueError("case filters selected no benchmark cases")
+    if benchmark_kind == "ollama-five-case" and len(selected) != 5:
+        raise ValueError("ollama-five-case selection must contain exactly five cases")
     if selection.full and not case_filter and not family_filter and not specificity_filter and len(selected) != len(corpus.cases):
         raise ValueError("full selection must include the complete corpus")
     return selected

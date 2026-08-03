@@ -8,6 +8,7 @@ from typing import Any
 
 
 PILOT_CASE_IDS = tuple(f"case-{index:03d}" for index in range(1, 11))
+OLLAMA_CASE_IDS = tuple(f"ollama-case-{index:03d}" for index in range(1, 6))
 SPECIFICITY_LEVELS = {"vague", "moderate", "high", "constrained"}
 REQUIRED_CASE_FIELDS = {
     "case_id",
@@ -84,7 +85,12 @@ def _content_hash(document: dict[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def validate_consistency_corpus(document: dict[str, Any]) -> None:
+def validate_consistency_corpus(
+    document: dict[str, Any],
+    *,
+    id_prefix: str = "case",
+    exact_count: int | None = None,
+) -> None:
     if not isinstance(document, dict):
         raise ValueError("corpus document must be an object")
     version = document.get("version")
@@ -93,10 +99,12 @@ def validate_consistency_corpus(document: dict[str, Any]) -> None:
     cases = document.get("cases")
     if not isinstance(cases, list) or not cases:
         raise ValueError("corpus cases are required")
-    expected_ids = [f"case-{index:03d}" for index in range(1, len(cases) + 1)]
+    if exact_count is not None and len(cases) != exact_count:
+        raise ValueError(f"corpus must contain exactly {exact_count} cases")
+    expected_ids = [f"{id_prefix}-{index:03d}" for index in range(1, len(cases) + 1)]
     actual_ids = [case.get("case_id") if isinstance(case, dict) else None for case in cases]
     if actual_ids != expected_ids or len(set(actual_ids)) != len(actual_ids):
-        raise ValueError("stable case IDs must be case-001 through case-N with no duplicates")
+        raise ValueError(f"stable case IDs must be {expected_ids[0]} through {expected_ids[-1]} with no duplicates")
     for case in cases:
         if not isinstance(case, dict):
             raise ValueError("each corpus case must be an object")
@@ -125,6 +133,20 @@ def validate_consistency_corpus(document: dict[str, Any]) -> None:
 def load_consistency_corpus(path: Path) -> ConsistencyCorpus:
     document = json.loads(path.read_text(encoding="utf-8"))
     validate_consistency_corpus(document)
+    return _load_corpus(document)
+
+
+def validate_ollama_consistency_corpus(document: dict[str, Any]) -> None:
+    validate_consistency_corpus(document, id_prefix="ollama-case", exact_count=5)
+
+
+def load_ollama_consistency_corpus(path: Path) -> ConsistencyCorpus:
+    document = json.loads(path.read_text(encoding="utf-8"))
+    validate_ollama_consistency_corpus(document)
+    return _load_corpus(document)
+
+
+def _load_corpus(document: dict[str, Any]) -> ConsistencyCorpus:
     cases = tuple(
         ConsistencyCase(
             case_id=case["case_id"],
