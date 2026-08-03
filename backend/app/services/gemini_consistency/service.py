@@ -30,7 +30,6 @@ from app.schemas.gemini_benchmark import (
     GeminiBenchmarkReportRead,
     GeminiBenchmarkRunRead,
 )
-from app.schemas.project import ProjectCreate
 from app.services.debug_batches.identity import capture_batch_identity
 from app.services.gemini_consistency.reporting import GeminiConsistencyReportingService
 from app.services.projects.service import ProjectService
@@ -204,10 +203,7 @@ class GeminiConsistencyService:
         stable_project_key = f"{run.stable_run_key}:{case_id}"
         project_service = ProjectService(db=self.db, data_dir=self.data_dir)
         try:
-            project = project_service.create_project(
-                ProjectCreate(name=payload.title, original_intent=payload.original_intent),
-                commit=False,
-            )
+            project = project_service.create_draft_project(commit=False)
             membership = GeminiBenchmarkMembership(
                 run_id=run.id,
                 corpus_case_id=case_id,

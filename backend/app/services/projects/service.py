@@ -415,7 +415,7 @@ class ProjectService:
             self.db.refresh(project)
         return project
 
-    def create_draft_project(self) -> Project:
+    def create_draft_project(self, *, commit: bool = True) -> Project:
         from app.services.debug_batches.service import DebugBatchService
 
         self.cleanup_expired_drafts()
@@ -435,8 +435,9 @@ class ProjectService:
             role="system_event",
             content="Draft workspace created",
         )
-        self.db.commit()
-        self.db.refresh(project)
+        if commit:
+            self.db.commit()
+            self.db.refresh(project)
         return project
 
     def save_project(self, project_id: str, payload: ProjectSave) -> Project | None:

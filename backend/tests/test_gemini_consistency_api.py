@@ -12,6 +12,7 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.gemini_benchmark import GeminiBenchmarkMembership
+from app.models.project_message import ProjectMessage
 
 
 def _client(tmp_path: Path) -> tuple[TestClient, sessionmaker[Session]]:
@@ -111,6 +112,10 @@ def test_claim_is_atomic_and_duplicate_safe(tmp_path, monkeypatch) -> None:
     with session_local() as session:
         memberships = session.scalars(select(GeminiBenchmarkMembership)).all()
         assert len(memberships) == 1
+        messages = session.scalars(
+            select(ProjectMessage).where(ProjectMessage.project_id == first.json()["project_id"])
+        ).all()
+        assert [message.role for message in messages] == ["system_event"]
 
 
 def test_completion_is_idempotent_and_report_endpoint_is_read_only(tmp_path, monkeypatch) -> None:
