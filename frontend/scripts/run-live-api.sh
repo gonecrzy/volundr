@@ -8,6 +8,7 @@ set -euo pipefail
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../backend" && pwd)"
 . "$VOLUNDR_LIVE_ENV_FILE"
 export VOLUNDR_AI_PROVIDER=gemini_api
+export VOLUNDR_DEVELOPER_TOOLS_ENABLED=true
 export VOLUNDR_DATA_DIR="$VOLUNDR_LIVE_DATA_DIR/data"
 export VOLUNDR_CAD_WORKSPACE_DIR="$VOLUNDR_LIVE_DATA_DIR/data/jobs"
 export PYTHONPATH=.
@@ -15,6 +16,7 @@ export PYTHONPATH=.
 
 exec env \
   VOLUNDR_AI_PROVIDER=gemini_api \
+  VOLUNDR_DEVELOPER_TOOLS_ENABLED=true \
   VOLUNDR_DATA_DIR="$VOLUNDR_LIVE_DATA_DIR/data" \
   VOLUNDR_CAD_WORKSPACE_DIR="$VOLUNDR_LIVE_DATA_DIR/data/jobs" \
   PYTHONPATH=. \

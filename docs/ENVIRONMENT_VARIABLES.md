@@ -74,6 +74,7 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_CORS_ORIGINS` | API | localhost Vite origins | advanced operational override | yes | no | Set only for a separately hosted frontend. |
 | `VOLUNDR_MAX_SOURCE_BYTES` | API | `512000` | advanced operational override | yes | no | Typed source safety limit. |
 | `VOLUNDR_MAX_STL_BYTES` | API | `104857600` | advanced operational override | yes | no | Typed artifact safety limit. |
+| `VOLUNDR_DEVELOPER_TOOLS_ENABLED` | API and Compose | `false` | advanced developer deployment setting | yes | no | Backend-authoritative switch for live debug batches; never expose credentials or rely on frontend hiding. |
 | `VOLUNDR_AI_PROVIDER` | API | `gemini_api` | common deployment setting | yes | yes | Provider-aware startup and request validation. |
 | `GEMINI_API_KEY` | API | unset | required secret | yes | yes | Required only when live Gemini API requests are made. |
 | `VOLUNDR_GEMINI_API_KEY` | API | unset | deprecated compatibility variable | yes | no | Alias for `GEMINI_API_KEY`; migrate to the unprefixed secret. |
@@ -152,6 +153,13 @@ compatibility, and test-only inventory above. In normal deployment prefer the
 typed defaults. Add only an override needed for a proxy, provider choice,
 resource limit, snapshot operation, separate frontend origin, or an isolated
 test run.
+
+`VOLUNDR_DEVELOPER_TOOLS_ENABLED` is an advanced developer deployment setting,
+not part of the minimal `.env.example`. It defaults to `false`. Set it only on
+an intentionally isolated evaluation deployment when live debug-batch APIs and
+the matching developer controls are required. The backend rejects every debug
+batch operation while it is disabled; frontend visibility is not an
+authorization boundary.
 
 Removed rollout flags are intentionally not accepted as application settings.
 Unknown `VOLUNDR_*` values are ignored by Pydantic settings for deployment

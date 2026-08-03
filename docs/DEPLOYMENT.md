@@ -68,3 +68,10 @@ credential-free Gemini policy file are documented in
 `docs/ENVIRONMENT_VARIABLES.md`. Prefer typed defaults and add overrides only
 for a proxy, separate origin, resource limit, provider choice, or isolated
 test run.
+
+For an isolated developer-assisted live evaluation, an operator may enable
+`VOLUNDR_DEVELOPER_TOOLS_ENABLED=true`. This is disabled by default and is not
+part of the minimal `.env.example`. It enables only the backend-authorized
+debug-batch surface; it does not expose provider credentials to the browser or
+permit browser execution of Codex or arbitrary shell commands. See
+`docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md` for the evidence boundary.
