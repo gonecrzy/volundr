@@ -13,6 +13,8 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
+from app.api.capabilities import router as capabilities_router
+from app.api.debug_batches import router as debug_batches_router
 from app.api.projects import router as projects_router
 from app.db.base import Base
 from app.db.session import get_db
@@ -932,6 +934,8 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(projects_router)
+    app.include_router(capabilities_router)
+    app.include_router(debug_batches_router)
 
     def override_db() -> Generator[Session, None, None]:
         with session_local() as session:

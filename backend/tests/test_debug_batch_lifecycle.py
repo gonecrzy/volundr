@@ -46,6 +46,36 @@ def test_project_creation_and_membership_are_transactional(tmp_path) -> None:
         )
         assert membership is not None
         assert membership.position == 0
+        read = DebugBatchService(db=session, data_dir=tmp_path).read(
+            session.get(DebugBatch, membership.batch_id)
+        )
+        assert read.memberships[0].project_name == "New project"
+        assert read.memberships[0].workflow_phase == "Not started"
+        assert read.memberships[0].worker_reached is False
+        assert read.memberships[0].attempt_count == 0
+        assert read.memberships[0].retry_count == 0
+
+
+def test_multiple_project_creations_receive_ordered_memberships(tmp_path) -> None:
+    with _session() as session:
+        DebugBatchService(db=session, data_dir=tmp_path).start(
+            DebugBatchStart(label="live-01", target_project_count=5)
+        )
+
+        first = ProjectService(db=session, data_dir=tmp_path).create_project(
+            ProjectCreate(name="First project", original_intent="First")
+        )
+        second = ProjectService(db=session, data_dir=tmp_path).create_project(
+            ProjectCreate(name="Second project", original_intent="Second")
+        )
+
+        memberships = list(
+            session.scalars(
+                select(DebugBatchMembership).order_by(DebugBatchMembership.position.asc())
+            )
+        )
+        assert [membership.project_id for membership in memberships] == [first.id, second.id]
+        assert [membership.position for membership in memberships] == [0, 1]
 
 
 def test_existing_project_does_not_join_a_later_batch(tmp_path) -> None:

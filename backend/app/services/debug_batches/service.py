@@ -9,7 +9,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.debug_batch import DebugBatch, DebugBatchMembership
+from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
+from app.models.workflow import WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchRead, DebugBatchStart
 from app.services.debug_batches.identity import capture_batch_identity
 
@@ -87,12 +89,10 @@ class DebugBatchService:
         )
         if existing is not None:
             return existing
-        position = int(
-            self.db.scalar(
-                select(func.max(DebugBatchMembership.position)).where(DebugBatchMembership.batch_id == batch.id)
-            )
-            or -1
-        ) + 1
+        max_position = self.db.scalar(
+            select(func.max(DebugBatchMembership.position)).where(DebugBatchMembership.batch_id == batch.id)
+        )
+        position = int(max_position if max_position is not None else -1) + 1
         membership = DebugBatchMembership(batch_id=batch.id, project_id=project.id, position=position)
         self.db.add(membership)
         self.db.flush()
@@ -136,12 +136,14 @@ class DebugBatchService:
         memberships = []
         for membership in sorted(batch.memberships, key=lambda item: item.position):
             project = self.db.get(Project, membership.project_id)
+            status = self._project_status(project)
             memberships.append(
                 {
                     "project_id": membership.project_id,
                     "position": membership.position,
                     "project_name": project.name if project else None,
                     "missing": project is None,
+                    **status,
                 }
             )
         return DebugBatchRead(
@@ -174,3 +176,58 @@ class DebugBatchService:
             integrity_status=batch.integrity_status,
             memberships=memberships,
         )
+
+    def _project_status(self, project: Project | None) -> dict[str, object]:
+        if project is None:
+            return {
+                "workflow_phase": "Infrastructure failure",
+                "worker_reached": False,
+                "current_working_revision_id": None,
+                "attempt_count": 0,
+                "retry_count": 0,
+                "final_outcome": "Infrastructure failure",
+            }
+        workflows = list(
+            self.db.scalars(
+                select(WorkflowRun)
+                .where(WorkflowRun.project_id == project.id)
+                .order_by(WorkflowRun.updated_at.asc(), WorkflowRun.id.asc())
+            )
+        )
+        events = list(
+            self.db.scalars(
+                select(WorkflowEvent)
+                .where(WorkflowEvent.project_id == project.id)
+                .order_by(WorkflowEvent.recorded_at.asc(), WorkflowEvent.id.asc())
+            )
+        )
+        attempts = list(
+            self.db.scalars(
+                select(GenerationAttempt)
+                .where(GenerationAttempt.project_id == project.id)
+                .order_by(GenerationAttempt.attempt_number.asc())
+            )
+        )
+        worker_reached = any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events)
+        active = any(workflow.status == "running" for workflow in workflows)
+        blocked = any(event.blocking for event in events) or any(
+            attempt.status in {"failed", "blocked"} for attempt in attempts
+        )
+        if active:
+            phase = "Waiting for clarification" if any(
+                "clarif" in event.stage or "clarif" in event.event_type for event in events[-2:]
+            ) else "In progress"
+        elif project.active_revision_id:
+            phase = "Working version created"
+        elif blocked:
+            phase = "Blocked after worker" if worker_reached else "Blocked before worker"
+        else:
+            phase = "Not started"
+        return {
+            "workflow_phase": phase,
+            "worker_reached": worker_reached,
+            "current_working_revision_id": project.active_revision_id,
+            "attempt_count": len(attempts),
+            "retry_count": max(0, len(attempts) - 1),
+            "final_outcome": phase,
+        }

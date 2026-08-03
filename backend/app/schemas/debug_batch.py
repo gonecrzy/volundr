@@ -33,6 +33,12 @@ class DebugBatchMembershipRead(BaseModel):
     position: int
     project_name: str | None = None
     missing: bool = False
+    workflow_phase: str = "Not started"
+    worker_reached: bool = False
+    current_working_revision_id: str | None = None
+    attempt_count: int = 0
+    retry_count: int = 0
+    final_outcome: str = "Not started"
 
 
 class DebugBatchRead(BaseModel):
