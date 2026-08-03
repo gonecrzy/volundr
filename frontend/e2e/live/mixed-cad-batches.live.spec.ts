@@ -248,7 +248,9 @@ export async function finishBatch(page: Page, batchId: string, label: string) {
   return report;
 }
 
-if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true") test.describe.serial("mixed CAD live debug batches", () => {
+const geometrySlotsLiveEnabled = process.env.VOLUNDR_RUN_GEOMETRY_SLOTS_LIVE_E2E === "true";
+
+if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && !geometrySlotsLiveEnabled) test.describe.serial("mixed CAD live debug batches", () => {
   test.skip(!liveEnabled, "Opt-in live suite; set VOLUNDR_RUN_LIVE_E2E=true.");
 
   test("runs the unchanged five-project pair and freezes evidence", async ({ page }) => {
@@ -293,5 +295,35 @@ if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true") test.describe.serial("mix
     );
     expect(comparison.status).toBe("controlled");
     expect(comparison.identity_match).toBe(true);
+  });
+});
+
+if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && geometrySlotsLiveEnabled) test.describe.serial("geometry slot live validation", () => {
+  test.skip(!liveEnabled, "Opt-in live suite; set VOLUNDR_RUN_LIVE_E2E=true.");
+
+  test("runs one unchanged five-project geometry-slot batch and freezes evidence", async ({ page }) => {
+    test.setTimeout(1_800_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+
+    const batchId = await startBatch(
+      page,
+      "geometry-slots-live-01",
+      "One unchanged live validation batch for the Volundr-owned direct/compact geometry slot contract.",
+      undefined,
+      "geometry-slots-live-01",
+    );
+    const projects = [];
+    for (let index = 0; index < PROJECTS.length; index += 1) {
+      projects.push(await runProject(page, batchId, "geometry-slots-live-01", PROJECTS[index], index + 1));
+    }
+    const report = await finishBatch(page, batchId, "geometry-slots-live-01");
+    await fs.writeFile(
+      path.join(sessionRoot(batchId), "live-batch-manifest.json"),
+      JSON.stringify({ batch_id: batchId, label: "geometry-slots-live-01", projects, report }, null, 2),
+      "utf-8",
+    );
+    expect(projects).toHaveLength(5);
+    expect(report).toBeTruthy();
   });
 });
