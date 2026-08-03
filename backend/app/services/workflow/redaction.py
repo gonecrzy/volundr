@@ -25,7 +25,7 @@ class RedactionService:
         re.compile(r"(?i)(/home/|/users/|/root/)[^,\s}\]]+"),
     )
     _sensitive_keys = re.compile(
-        r"(?i)(api[_-]?key|authorization|cookie|set-cookie|token|secret|password|credential|gemini)"
+        r"(?i)(api[_-]?key|authorization|cookie|set-cookie|token|secret|password|credential)"
     )
     _safe_metric_keys = {
         "max_output_tokens",

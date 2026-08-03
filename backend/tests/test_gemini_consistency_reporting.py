@@ -63,3 +63,27 @@ def test_report_promotes_nested_metrics_integrity_findings(tmp_path) -> None:
     )
 
     assert any(item["kind"] == "endpoint_unavailable" for item in result["integrity_findings"])
+
+
+def test_report_preserves_safe_gemini_model_identity_in_controlled_comparison(tmp_path) -> None:
+    identity = {
+        "git_head": "abc",
+        "migration_head": "0035",
+        "provider": "gemini_api",
+        "model_policy": {"temperature": 0.2},
+        "prompt_versions": {"requirements": "v1"},
+        "configuration_hash": "config-a",
+        "build_identities": {"backend": {"git_sha": "abc"}},
+    }
+
+    build_experiment_reports(
+        {"id": "experiment-4", "mode": "pilot", **identity},
+        [
+            {"case_id": "case-001", "model": "gemini-3.5-flash", "run_index": 1, "identity": identity, "evidence": {}},
+            {"case_id": "case-001", "model": "gemini-3.5-flash", "run_index": 2, "identity": identity, "evidence": {}},
+        ],
+        tmp_path,
+    )
+
+    report = json.loads((tmp_path / "comparison.json").read_text())
+    assert report["controlled_comparisons"]["gemini-3.5-flash"]["controlled"] is True
