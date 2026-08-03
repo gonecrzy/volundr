@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,6 +15,7 @@ from app.schemas.gemini_benchmark import (
     GeminiBenchmarkMembershipRead,
     GeminiBenchmarkModelAvailabilityCreate,
     GeminiBenchmarkReportRead,
+    OllamaPreflightCreate,
 )
 from app.services.gemini_consistency.service import GeminiConsistencyService
 
@@ -49,6 +51,32 @@ async def discover_models(
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
+@router.get("/ollama/models")
+async def discover_ollama_models(
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> list[dict]:
+    try:
+        return await GeminiConsistencyService(db=db, data_dir=data_dir).discover_ollama_models()
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@router.post("/ollama/preflight")
+async def preflight_ollama_model(
+    payload: OllamaPreflightCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    try:
+        return await GeminiConsistencyService(db=db, data_dir=data_dir).preflight_ollama_model(
+            payload.prompt,
+            model=payload.model,
+        )
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
 @router.get("/experiments/{experiment_id}", response_model=GeminiBenchmarkExperimentRead)
 def get_experiment(
     experiment_id: str,
@@ -75,9 +103,13 @@ def record_model_availability(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {
         "id": model.id,
+        "provider": model.provider,
         "requested_model": model.requested_model,
         "actual_model": model.actual_model,
+        "actual_digest": model.actual_digest,
         "availability_state": model.availability_state,
+        "model_metadata": json.loads(model.model_metadata_json),
+        "resource_profile": json.loads(model.resource_profile_json),
     }
 
 

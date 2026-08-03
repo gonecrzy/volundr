@@ -33,6 +33,17 @@ class Settings(BaseSettings):
     ollama_model: str = Field(default="qwen2.5-coder:14b")
     ollama_timeout_seconds: int = Field(default=300)
     ollama_think: str | None = Field(default=None)
+    ollama_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OLLAMA_API_KEY", "VOLUNDR_OLLAMA_API_KEY"),
+    )
+    ollama_context_length: int = Field(default=8192, ge=256, le=131072)
+    ollama_temperature: float = Field(default=0.2, ge=0, le=2)
+    ollama_top_p: float = Field(default=0.95, ge=0, le=1)
+    ollama_top_k: int = Field(default=40, ge=0, le=1000)
+    ollama_seed: int | None = Field(default=None, ge=0)
+    ollama_max_output_tokens: int = Field(default=8192, ge=1, le=131072)
+    ollama_keep_alive: str | int = Field(default="5m")
     gemini_binary: str = Field(default="gemini")
     gemini_model: str = Field(default="gemini-3.5-flash-lite")
     gemini_requirements_model: str | None = Field(default=None)
@@ -70,6 +81,11 @@ class Settings(BaseSettings):
     # for direct/compact plans and retains the legacy boundary for detailed
     # plans. This is intentionally absent from the minimal .env.example.
     geometry_contract_mode: str = Field(default="auto")
+
+    @field_validator("build_dirty", "worker_build_dirty", mode="before")
+    @classmethod
+    def normalize_empty_build_boolean(cls, value: object) -> object:
+        return None if isinstance(value, str) and not value.strip() else value
 
     @field_validator("geometry_contract_mode")
     @classmethod

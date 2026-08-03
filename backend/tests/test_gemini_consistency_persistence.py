@@ -51,10 +51,14 @@ def test_benchmark_tables_store_experiment_matrix_and_ordered_membership() -> No
         experiment = _experiment()
         model = GeminiBenchmarkModel(
             experiment_id=experiment.id,
+            provider="ollama",
             requested_model="gemini-2.5-flash",
             actual_model="gemini-2.5-flash-001",
+            actual_digest="sha256:abc",
             availability_state="available",
             settings_json='{"temperature":0.2}',
+            model_metadata_json='{"quantization":"Q4_K_M"}',
+            resource_profile_json='{"classification":"preferred_gpu_resident"}',
             position=0,
         )
         session.add(experiment)
@@ -107,6 +111,9 @@ def test_benchmark_tables_store_experiment_matrix_and_ordered_membership() -> No
         assert stored.corpus_hash == "corpus-hash"
         assert [run.run_index for run in stored.runs] == [1, 2]
         assert stored.models[0].actual_model == "gemini-2.5-flash-001"
+        assert stored.models[0].provider == "ollama"
+        assert stored.models[0].actual_digest == "sha256:abc"
+        assert stored.models[0].resource_profile_json == '{"classification":"preferred_gpu_resident"}'
 
 
 def test_benchmark_membership_and_run_keys_are_unique() -> None:
@@ -117,6 +124,7 @@ def test_benchmark_membership_and_run_keys_are_unique() -> None:
         experiment = _experiment()
         model = GeminiBenchmarkModel(
             experiment_id=experiment.id,
+            provider="gemini_api",
             requested_model="gemini-2.5-flash",
             availability_state="available",
             settings_json="{}",

@@ -313,11 +313,18 @@ async def submit_chat_message(
     data_dir: Path = Depends(get_data_dir),
     ai_provider: AiProvider = Depends(get_ai_provider),
     cad_runner: Any = Depends(get_cad_runner),
+    benchmark_provider: str | None = Header(default=None, alias="X-Volundr-Benchmark-Provider"),
     benchmark_model: str | None = Header(default=None, alias="X-Volundr-Benchmark-Model"),
+    benchmark_seed: int | None = Header(default=None, alias="X-Volundr-Benchmark-Seed"),
 ) -> ChatWorkflowResponse:
-    if benchmark_model is not None:
+    if benchmark_provider is not None or benchmark_model is not None or benchmark_seed is not None:
         require_developer_tools()
-        ai_provider = build_ai_provider(settings, benchmark_model=benchmark_model)
+        ai_provider = build_ai_provider(
+            settings,
+            benchmark_provider=benchmark_provider,
+            benchmark_model=benchmark_model,
+            benchmark_seed=benchmark_seed,
+        )
     service = ChatWorkflowService(
         db=db,
         data_dir=data_dir,

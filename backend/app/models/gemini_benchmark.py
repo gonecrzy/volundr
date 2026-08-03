@@ -47,10 +47,14 @@ class GeminiBenchmarkModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
     experiment_id: Mapped[str] = mapped_column(String(36), ForeignKey("gemini_benchmark_experiments.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(80), nullable=False, default="gemini_api")
     requested_model: Mapped[str] = mapped_column(String(160), nullable=False)
     actual_model: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    actual_digest: Mapped[str | None] = mapped_column(String(200), nullable=True)
     availability_state: Mapped[str] = mapped_column(String(32), nullable=False, default="unverified")
     settings_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    model_metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    resource_profile_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 

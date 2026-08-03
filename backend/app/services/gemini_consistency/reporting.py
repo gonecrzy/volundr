@@ -54,16 +54,20 @@ def build_experiment_reports(
     experiment: dict[str, Any], records: list[dict[str, Any]], output_root: Path
 ) -> dict[str, Any]:
     output_root.mkdir(parents=True, exist_ok=True)
+    evidence_label = "historical_noncontrolled_reference" if experiment.get("mode") != "five_case" else "formal_five_case_candidate"
     grouped: dict[tuple[str, str], dict[int, dict[str, Any]]] = defaultdict(dict)
     integrity_findings: list[dict[str, Any]] = []
+    resource_profiles: dict[str, list[dict[str, Any]]] = defaultdict(list)
     identity = _identity(experiment)
     for record in records:
         model = str(record.get("model") or "unknown")
+        provider = record.get("provider")
+        model_label = f"{provider}/{model}" if provider else model
         case_id = str(record.get("case_id") or "unknown")
         run_index = int(record.get("run_index") or 0)
         evidence = record.get("evidence")
         if not isinstance(evidence, dict):
-            integrity_findings.append({"kind": "missing_evidence", "model": model, "case_id": case_id, "run_index": run_index})
+            integrity_findings.append({"kind": "missing_evidence", "model": model_label, "case_id": case_id, "run_index": run_index})
             evidence = {"integrity_finding": "missing_evidence", "outcome_category": "missing_artifacts"}
         nested_metrics = evidence.get("metrics") if isinstance(evidence, dict) else None
         if isinstance(nested_metrics, dict):
@@ -71,11 +75,14 @@ def build_experiment_reports(
                 if isinstance(finding, dict):
                     integrity_findings.append({
                         **finding,
-                        "model": model,
+                        "model": model_label,
                         "case_id": case_id,
                         "run_index": run_index,
                     })
-        grouped[(model, case_id)][run_index] = {**record, "evidence": evidence}
+        grouped[(model_label, case_id)][run_index] = {**record, "model": model_label, "evidence": evidence}
+        resource_profile = record.get("resource_profile")
+        if isinstance(resource_profile, dict):
+            resource_profiles[model_label].append(resource_profile)
 
     pair_comparisons: list[dict[str, Any]] = []
     by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -106,7 +113,40 @@ def build_experiment_reports(
             if signature:
                 signatures[signature] += 1
 
-    _write_safe(output_root / "comparison.json", {"pairs": pair_comparisons, "controlled_comparisons": controlled})
+    model_summaries = {
+        model: {
+            "paired_case_count": len(items),
+            "mean_consistency_score": round(
+                sum(float(item["comparison"]["overall_score"]) for item in items) / len(items),
+                4,
+            ) if items else 0.0,
+            "failure_signature_count": sum(
+                1 for item in items if any(item["comparison"]["failure_signatures"].values())
+            ),
+            "resource_profiles": resource_profiles.get(model, []),
+        }
+        for model, items in sorted(by_model.items())
+    }
+
+    _write_safe(output_root / "comparison.json", {
+        "evidence_label": evidence_label,
+        "pairs": pair_comparisons,
+        "controlled_comparisons": controlled,
+    })
+    _write_safe(output_root / "cross-model-comparison.json", {
+        "basis": [
+            "verified_requirement_satisfaction",
+            "valid_geometry",
+            "topology",
+            "paired_consistency",
+            "source_contract_compliance",
+            "artifact_completeness",
+            "repair_success",
+            "candidate_outcome",
+        ],
+        "models": model_summaries,
+    })
+    _write_safe(output_root / "resource-profile.json", {"models": resource_profiles})
     _write_safe(output_root / "integrity-report.json", {"schema_version": "gemini-consistency-integrity-v1", "findings": integrity_findings})
     _write_safe(output_root / "failure-signatures.json", dict(signatures))
     _write_text_safe(
@@ -116,6 +156,7 @@ def build_experiment_reports(
             [
                 ("Experiment", str(experiment.get("id"))),
                 ("Mode", str(experiment.get("mode"))),
+                ("Evidence label", evidence_label),
                 ("Paired cases", str(len(pair_comparisons))),
                 ("Integrity findings", str(len(integrity_findings))),
             ]
@@ -125,7 +166,7 @@ def build_experiment_reports(
     _write_text_safe(
         output_root / "model-comparison.md",
         "# Model comparison\n\n" + "\n".join(
-            f"- `{model}`: {len(items)} paired case comparisons"
+            f"- `{model}`: {len(items)} paired case comparisons; mean consistency {model_summaries[model]['mean_consistency_score']:.3f}"
             for model, items in sorted(by_model.items())
         ) + "\n",
     )
@@ -149,10 +190,12 @@ def build_experiment_reports(
     )
     return {
         "experiment_id": experiment.get("id"),
+        "evidence_label": evidence_label,
         "pair_count": len(pair_comparisons),
         "controlled_comparisons": controlled,
         "integrity_findings": integrity_findings,
         "failure_signatures": dict(signatures),
+        "model_summaries": model_summaries,
         "report_root": str(output_root),
     }
 
@@ -198,7 +241,9 @@ class GeminiConsistencyReportingService:
                         evidence = None
             records.append({
                 "case_id": membership.corpus_case_id,
+                "provider": model.provider if model else None,
                 "model": model.requested_model if model else "unknown",
+                "resource_profile": json.loads(model.resource_profile_json) if model and model.resource_profile_json else {},
                 "run_index": run.run_index if run else 0,
                 "identity": json.loads(run.identity_json) if run and run.identity_json else None,
                 "evidence": evidence,

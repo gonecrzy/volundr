@@ -92,3 +92,10 @@ def test_empty_optional_gemini_policy_path_is_unset(tmp_path) -> None:
     configured = Settings(_env_file=env_file)
 
     assert configured.gemini_policy_path is None
+
+
+def test_empty_optional_build_boolean_values_are_treated_as_unset() -> None:
+    settings = Settings(_env_file=None, build_dirty="", worker_build_dirty="")
+
+    assert settings.build_dirty is None
+    assert settings.worker_build_dirty is None

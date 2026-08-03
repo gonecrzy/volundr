@@ -180,3 +180,18 @@ def test_model_availability_is_recorded_without_exposing_credentials(tmp_path, m
     assert response.status_code == 200
     assert response.json()["availability_state"] == "available"
     assert "api_key" not in response.json()
+
+
+def test_ollama_model_discovery_is_developer_gated_and_returns_safe_metadata(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "developer_tools_enabled", True)
+    client, _ = _client(tmp_path)
+
+    async def fake_discovery(self):
+        return [{"name": "procad:Q4_K_M", "digest": "sha256:abc", "size": 123}]
+
+    monkeypatch.setattr("app.services.ai.ollama.OllamaProvider.list_available_models", fake_discovery)
+
+    response = client.get("/api/gemini-consistency/ollama/models")
+
+    assert response.status_code == 200
+    assert response.json() == [{"name": "procad:Q4_K_M", "digest": "sha256:abc", "size": 123}]

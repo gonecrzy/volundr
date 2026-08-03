@@ -25,12 +25,14 @@ from app.schemas.gemini_benchmark import (
     GeminiBenchmarkFinishCreate,
     GeminiBenchmarkExperimentRead,
     GeminiBenchmarkMembershipRead,
+    GeminiBenchmarkModelSpec,
     GeminiBenchmarkModelAvailabilityCreate,
     GeminiBenchmarkModelRead,
     GeminiBenchmarkReportRead,
     GeminiBenchmarkRunRead,
 )
 from app.services.debug_batches.identity import capture_batch_identity
+from app.services.ai.ollama import OllamaProvider
 from app.services.gemini_consistency.reporting import GeminiConsistencyReportingService
 from app.services.projects.service import ProjectService
 
@@ -87,12 +89,19 @@ class GeminiConsistencyService:
             "configuration_hash": identity.configuration_hash,
             "build_identities": identity.build_identities,
         }
-        for position, requested_model in enumerate(payload.models):
+        model_specs = payload.model_specs or [
+            GeminiBenchmarkModelSpec(provider=identity.provider, model=requested_model, settings=payload.model_settings)
+            for requested_model in payload.models
+        ]
+        experiment.provider = "mixed" if len({item.provider for item in model_specs}) > 1 else model_specs[0].provider
+        for position, spec in enumerate(model_specs):
+            requested_model = spec.model
             model_config = GeminiBenchmarkModel(
                 experiment_id=experiment.id,
+                provider=spec.provider,
                 requested_model=requested_model,
                 availability_state="unverified",
-                settings_json=json.dumps(payload.model_settings, sort_keys=True),
+                settings_json=json.dumps(spec.settings or payload.model_settings, sort_keys=True),
                 position=position,
             )
             self.db.add(model_config)
@@ -103,10 +112,16 @@ class GeminiConsistencyService:
                         experiment_id=experiment.id,
                         model_config_id=model_config.id,
                         run_index=run_index,
-                        stable_run_key=f"{experiment.id}:{requested_model}:{run_index}",
+                        stable_run_key=f"{experiment.id}:{spec.provider}:{requested_model}:{run_index}",
                         state="created",
                         identity_json=json.dumps(
-                            {**run_identity, "requested_model": requested_model, "run_index": run_index},
+                            {
+                                **run_identity,
+                                "provider": spec.provider,
+                                "requested_model": requested_model,
+                                "run_index": run_index,
+                                "model_settings": spec.settings or payload.model_settings,
+                            },
                             sort_keys=True,
                         ),
                     )
@@ -121,15 +136,21 @@ class GeminiConsistencyService:
     def record_model_availability(
         self, experiment_id: str, payload: GeminiBenchmarkModelAvailabilityCreate
     ) -> GeminiBenchmarkModel:
-        model = self.db.scalar(
+        query = (
             select(GeminiBenchmarkModel)
             .where(GeminiBenchmarkModel.experiment_id == experiment_id)
             .where(GeminiBenchmarkModel.requested_model == payload.requested_model)
         )
+        if payload.provider:
+            query = query.where(GeminiBenchmarkModel.provider == payload.provider)
+        model = self.db.scalar(query)
         if model is None:
             raise LookupError("benchmark model not found")
         model.actual_model = payload.actual_model
+        model.actual_digest = payload.actual_digest
         model.availability_state = payload.availability_state
+        model.model_metadata_json = json.dumps(payload.model_metadata, sort_keys=True)
+        model.resource_profile_json = json.dumps(payload.resource_profile, sort_keys=True)
         self.db.commit()
         self.db.refresh(model)
         return model
@@ -156,10 +177,14 @@ class GeminiConsistencyService:
             models=[
                 GeminiBenchmarkModelRead(
                     id=model.id,
+                    provider=model.provider,
                     requested_model=model.requested_model,
                     actual_model=model.actual_model,
+                    actual_digest=model.actual_digest,
                     availability_state=model.availability_state,
                     settings=json.loads(model.settings_json),
+                    model_metadata=json.loads(model.model_metadata_json),
+                    resource_profile=json.loads(model.resource_profile_json),
                     position=model.position,
                 )
                 for model in experiment.models
@@ -338,3 +363,9 @@ class GeminiConsistencyService:
         if not hasattr(provider, "list_available_models"):
             raise ValueError("configured provider does not support Gemini model discovery")
         return await provider.list_available_models()
+
+    async def discover_ollama_models(self) -> list[dict[str, Any]]:
+        return await OllamaProvider().list_available_models()
+
+    async def preflight_ollama_model(self, prompt: str, *, model: str) -> dict[str, Any]:
+        return await OllamaProvider(model=model).preflight(prompt)

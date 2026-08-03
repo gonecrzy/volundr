@@ -23,6 +23,32 @@ def test_build_ai_provider_selects_ollama() -> None:
     assert provider.model == "qwen3.5:9b"
 
 
+def test_build_ai_provider_accepts_developer_ollama_provider_and_model_override() -> None:
+    configured = Settings(
+        ai_provider="gemini_api",
+        gemini_api_key="secret-key",
+        ollama_base_url="http://ollama.remote:11434",
+        ollama_model="configured-model",
+    )
+
+    provider = build_ai_provider(
+        configured,
+        benchmark_provider="ollama",
+        benchmark_model="procad:Q4_K_M",
+        benchmark_seed=202,
+    )
+
+    assert isinstance(provider, OllamaProvider)
+    assert provider.model == "procad:Q4_K_M"
+    assert provider.base_url == "http://ollama.remote:11434"
+    assert provider.seed == 202
+
+
+def test_build_ai_provider_rejects_benchmark_model_without_supported_provider() -> None:
+    with pytest.raises(ValueError, match="benchmark provider"):
+        build_ai_provider(Settings(ai_provider="unknown"), benchmark_model="model")
+
+
 def test_build_ai_provider_selects_gemini_cli() -> None:
     settings = Settings(
         ai_provider="gemini_cli",

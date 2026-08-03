@@ -87,3 +87,31 @@ def test_report_preserves_safe_gemini_model_identity_in_controlled_comparison(tm
 
     report = json.loads((tmp_path / "comparison.json").read_text())
     assert report["controlled_comparisons"]["gemini-3.5-flash"]["controlled"] is True
+
+
+def test_report_separates_provider_model_pairs_and_writes_resource_comparison(tmp_path) -> None:
+    identity = {
+        "git_head": "abc",
+        "migration_head": "0036",
+        "provider": "ollama",
+        "model_policy": {"context_length": 8192, "temperature": 0.2},
+        "prompt_versions": {"requirements": "v1"},
+        "configuration_hash": "config-a",
+        "build_identities": {"backend": {"git_sha": "abc"}},
+    }
+    build_experiment_reports(
+        {"id": "experiment-5", "mode": "five_case", **identity},
+        [
+            {"case_id": "ollama-case-001", "provider": "gemini_api", "model": "gemini-3.5-flash-lite", "run_index": 1, "identity": {**identity, "provider": "gemini_api"}, "evidence": {"outcome_state": "working_version"}},
+            {"case_id": "ollama-case-001", "provider": "gemini_api", "model": "gemini-3.5-flash-lite", "run_index": 2, "identity": {**identity, "provider": "gemini_api"}, "evidence": {"outcome_state": "working_version"}},
+            {"case_id": "ollama-case-001", "provider": "ollama", "model": "procad:Q4_K_M", "run_index": 1, "identity": identity, "evidence": {"outcome_state": "failed", "metrics": {"provider_latency_ms": 20}}},
+            {"case_id": "ollama-case-001", "provider": "ollama", "model": "procad:Q4_K_M", "run_index": 2, "identity": identity, "evidence": {"outcome_state": "failed", "metrics": {"provider_latency_ms": 30}}},
+        ],
+        tmp_path,
+    )
+
+    report = json.loads((tmp_path / "comparison.json").read_text())
+    assert "gemini_api/gemini-3.5-flash-lite" in report["controlled_comparisons"]
+    assert "ollama/procad:Q4_K_M" in report["controlled_comparisons"]
+    assert (tmp_path / "cross-model-comparison.json").is_file()
+    assert (tmp_path / "resource-profile.json").is_file()

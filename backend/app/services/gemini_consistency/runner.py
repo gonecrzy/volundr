@@ -22,6 +22,17 @@ from app.services.gemini_consistency.corpus import (
     ConsistencyCase,
     ConsistencyCorpus,
     load_consistency_corpus,
+    load_ollama_consistency_corpus,
+)
+from app.services.ai.ollama import classify_ollama_resource_profile
+
+
+OLLAMA_CANDIDATE_PATTERNS = (
+    "procad",
+    "cad-coder",
+    "qwen2.5-coder",
+    "deepseek-coder",
+    "gpt-oss",
 )
 from app.services.workflow.redaction import RedactionService
 
@@ -58,12 +69,21 @@ class BenchmarkRunSelection:
 
 
 @dataclass(frozen=True)
+class BenchmarkModelSpec:
+    provider: str
+    model: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+    resource_profile: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class BenchmarkRunnerConfig:
     corpus_path: Path
     models: tuple[str, ...]
     runs: int = 2
     pilot: bool = False
     full: bool = True
+    five_case: bool = False
     experiment_id: str | None = None
     dry_run: bool = False
     resume: bool = False
@@ -77,6 +97,8 @@ class BenchmarkRunnerConfig:
     specificity_filter: tuple[str, ...] = ()
     frontend_build_identity: str = "benchmark-runner"
     label: str | None = None
+    gemini_model: str = "gemini-3.5-flash-lite"
+    ollama_model_filter: tuple[str, ...] = ()
 
 
 class BenchmarkApiError(RuntimeError):
@@ -179,9 +201,16 @@ def clarification_answer_for(question: str, fact_sheet: dict[str, Any]) -> Clari
     return ClarificationDecision(category=category, answer=PROPOSAL_ANSWER, essential=False)
 
 
-def stable_project_key(experiment_id: str, model: str, run_index: int, case_id: str) -> str:
+def stable_project_key(
+    experiment_id: str,
+    model: str,
+    run_index: int,
+    case_id: str,
+    provider: str = "gemini_api",
+) -> str:
     model_digest = hashlib.sha256(model.encode("utf-8")).hexdigest()[:16]
-    return f"gemini-consistency:{experiment_id}:run-{run_index}:{_normalized(case_id)}:model-{model_digest}"
+    provider_digest = hashlib.sha256(provider.encode("utf-8")).hexdigest()[:10]
+    return f"gemini-consistency:{experiment_id}:run-{run_index}:{_normalized(case_id)}:provider-{provider_digest}:model-{model_digest}"
 
 
 def stable_client_message_id(project_key: str, phase: str) -> str:
@@ -223,7 +252,7 @@ def validate_run_selection(
         raise ValueError("benchmark models must be unique")
     if selection.runs != 2:
         raise ValueError("benchmark selection requires exactly two runs")
-    if selection.pilot == selection.full:
+    if benchmark_kind != "ollama-five-case" and selection.pilot == selection.full:
         raise ValueError("select exactly one of pilot or full")
     if any(not model.strip() for model in selection.models):
         raise ValueError("benchmark models cannot be blank")
@@ -304,10 +333,17 @@ class BenchmarkApiClient:
     def capabilities(self) -> Any:
         return self.get("/api/capabilities")
 
-    def discover_models(self) -> list[dict[str, Any]]:
-        result = self.get("/api/gemini-consistency/models")
+    def discover_models(self, provider: str = "gemini") -> list[dict[str, Any]]:
+        path = "/api/gemini-consistency/ollama/models" if provider == "ollama" else "/api/gemini-consistency/models"
+        result = self.get(path)
         if not isinstance(result, list):
-            raise BenchmarkApiError(502, "model discovery returned an invalid response", path="/api/gemini-consistency/models")
+            raise BenchmarkApiError(502, "model discovery returned an invalid response", path=path)
+        return result
+
+    def ollama_preflight(self, model: str, prompt: str) -> dict[str, Any]:
+        result = self.post("/api/gemini-consistency/ollama/preflight", {"model": model, "prompt": prompt})
+        if not isinstance(result, dict):
+            raise BenchmarkApiError(502, "Ollama preflight returned an invalid response", path="/api/gemini-consistency/ollama/preflight")
         return result
 
     def create_experiment(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -338,22 +374,43 @@ class BenchmarkApiClient:
         return self.post(f"/api/gemini-consistency/experiments/{experiment_id}/report", {})
 
     def record_model_availability(
-        self, experiment_id: str, requested_model: str, actual_model: str | None, availability_state: str
+        self, experiment_id: str, requested_model: str, actual_model: str | None, availability_state: str,
+        *, provider: str | None = None, actual_digest: str | None = None,
+        model_metadata: dict[str, Any] | None = None, resource_profile: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return self.post(
             f"/api/gemini-consistency/experiments/{experiment_id}/model-availability",
             {
                 "requested_model": requested_model,
                 "actual_model": actual_model,
+                "actual_digest": actual_digest,
                 "availability_state": availability_state,
+                "model_metadata": model_metadata or {},
+                "resource_profile": resource_profile or {},
+                **({"provider": provider} if provider else {}),
             },
         )
 
-    def send_chat(self, project_id: str, model: str, message: str, client_message_id: str) -> dict[str, Any]:
+    def send_chat(
+        self,
+        project_id: str,
+        model: str,
+        message: str,
+        client_message_id: str,
+        *,
+        provider: str = "gemini_api",
+        seed: int | None = None,
+    ) -> dict[str, Any]:
+        headers = {
+            "X-Volundr-Benchmark-Provider": provider,
+            "X-Volundr-Benchmark-Model": model,
+        }
+        if seed is not None:
+            headers["X-Volundr-Benchmark-Seed"] = str(seed)
         return self._request(
             "POST",
             f"/api/projects/{project_id}/chat",
-            headers={"X-Volundr-Benchmark-Model": model},
+            headers=headers,
             json={"message": message, "client_message_id": client_message_id},
         )
 
@@ -468,7 +525,23 @@ class GeminiConsistencyRunner:
             case_filter=self.config.case_filter,
             family_filter=self.config.family_filter,
             specificity_filter=self.config.specificity_filter,
+            benchmark_kind="ollama-five-case" if self.config.five_case else "gemini-consistency",
         )
+        if self.config.five_case:
+            return {
+                "dry_run": True,
+                "corpus_version": corpus.version,
+                "corpus_hash": corpus.content_hash,
+                "models": list(self.config.models),
+                "runs": self.config.runs,
+                "mode": "five_case",
+                "case_count": len(selected),
+                "case_ids": [case.case_id for case in selected],
+                "max_concurrency": 1,
+                "network_calls": 0,
+                "provider_calls": 0,
+                "worker_calls": 0,
+            }
         return {
             "dry_run": True,
             "corpus_version": corpus.version,
@@ -484,9 +557,11 @@ class GeminiConsistencyRunner:
         }
 
     def run(self) -> dict[str, Any]:
-        corpus = load_consistency_corpus(self.config.corpus_path)
+        corpus = load_ollama_consistency_corpus(self.config.corpus_path) if self.config.five_case else load_consistency_corpus(self.config.corpus_path)
         if self.config.dry_run:
             return self.dry_run_manifest(corpus)
+        if self.config.five_case:
+            return self._run_five_case(corpus)
         if self.config.max_concurrency < 1 or self.config.max_concurrency > 2:
             raise ValueError("max concurrency must be between 1 and 2")
         if self.client is None:
@@ -584,6 +659,189 @@ class GeminiConsistencyRunner:
         root_writer.finalize()
         return result
 
+    def _run_five_case(self, corpus: ConsistencyCorpus) -> dict[str, Any]:
+        assert self.client is not None
+        client = self.client
+        readiness = client.ready()
+        health = client.health()
+        capabilities = client.capabilities()
+        if not capabilities.get("developer_tools_enabled", False):
+            raise ValueError("developer tools capability is disabled")
+        selected_cases = validate_run_selection(
+            corpus,
+            BenchmarkRunSelection(
+                models=self.config.models,
+                runs=self.config.runs,
+                pilot=False,
+                full=False,
+            ),
+            case_filter=self.config.case_filter,
+            family_filter=self.config.family_filter,
+            specificity_filter=self.config.specificity_filter,
+            benchmark_kind="ollama-five-case",
+        )
+        gemini_discovered = client.discover_models("gemini")
+        gemini_by_name = {
+            str(item.get("name", "")).removeprefix("models/"): item
+            for item in gemini_discovered
+            if isinstance(item, dict) and item.get("name")
+        }
+        gemini_actual = gemini_by_name.get(self.config.gemini_model)
+        ollama_discovered = client.discover_models("ollama")
+        requested_ollama = set(self.config.ollama_model_filter)
+        if not requested_ollama and self.config.models:
+            requested_ollama = {
+                model
+                for model in self.config.models
+                if model not in {self.config.gemini_model, "ollama-discovery"}
+            }
+        ollama_candidates = [
+            item
+            for item in ollama_discovered
+            if isinstance(item, dict)
+            and item.get("name")
+            and (
+                str(item["name"]) in requested_ollama
+                if requested_ollama
+                else any(pattern in str(item["name"]).casefold() for pattern in OLLAMA_CANDIDATE_PATTERNS)
+            )
+        ]
+        largest_prompt = max((case.initial_prompt for case in selected_cases), key=len)
+        specs = [BenchmarkModelSpec(provider="gemini_api", model=self.config.gemini_model)]
+        preflights: dict[str, dict[str, Any]] = {}
+        for item in ollama_candidates:
+            model = str(item["name"])
+            preflight = client.ollama_preflight(model, largest_prompt)
+            model_size = item.get("size") if isinstance(item.get("size"), (int, float)) else None
+            classification = classify_ollama_resource_profile(
+                max_size_vram=preflight.get("max_size_vram"),
+                model_size=int(model_size) if model_size is not None else None,
+                context_completed=bool(preflight.get("context_completed")),
+                warm_throughput_collapse=bool(preflight.get("warm_throughput_collapse")),
+            )
+            preflight = {**preflight, "classification": classification}
+            preflights[model] = preflight
+            specs.append(
+                BenchmarkModelSpec(
+                    provider="ollama",
+                    model=model,
+                    metadata={**item, "preflight": preflight},
+                    resource_profile=preflight,
+                )
+            )
+        if gemini_actual is None:
+            raise ValueError(f"Gemini anchor model is unavailable: {self.config.gemini_model}")
+        if not ollama_candidates:
+            raise ValueError("no exact remote Ollama models were discovered")
+        experiment = self._get_or_create_five_case_experiment(client, corpus, specs)
+        experiment_id = str(experiment["id"])
+        for spec in specs:
+            if spec.provider == "gemini_api":
+                model_info = gemini_actual
+                state = "available"
+                metadata = model_info
+                resource_profile = {"classification": "not_applicable", "reason": "Gemini anchor"}
+            else:
+                model_info = next(item for item in ollama_candidates if item.get("name") == spec.model)
+                metadata = spec.metadata
+                resource_profile = spec.resource_profile
+                state = "available" if resource_profile.get("classification") != "rejected" else "unavailable"
+            client.record_model_availability(
+                experiment_id,
+                spec.model,
+                str(model_info.get("name") or spec.model),
+                state,
+                provider=spec.provider,
+                actual_digest=str(model_info.get("digest")) if model_info.get("digest") else None,
+                model_metadata=metadata,
+                resource_profile=resource_profile,
+            )
+        experiment = client.experiment(experiment_id)
+        experiment_root = self.config.output_root / experiment_id
+        root_writer = EvidenceWriter(experiment_root, data_root=self.config.output_root)
+        root_writer.write_json("experiment.json", {"experiment": experiment, "readiness": readiness, "health": health, "developer_tools_enabled": True})
+        root_writer.write_json("corpus.json", corpus.raw)
+        root_writer.write_json("models/discovered-gemini.json", gemini_discovered)
+        root_writer.write_json("models/discovered-ollama.json", ollama_discovered)
+        root_writer.write_json("models/preflights.json", preflights)
+        admitted = [
+            spec for spec in specs
+            if spec.provider == "gemini_api" or spec.resource_profile.get("classification") != "rejected"
+        ]
+        result: dict[str, Any] = {
+            "experiment_id": experiment_id,
+            "mode": "five_case",
+            "case_count": len(selected_cases),
+            "models": [spec.model for spec in admitted],
+            "excluded_models": [spec.model for spec in specs if spec not in admitted],
+            "runs": self.config.runs,
+            "results": [],
+            "readiness": readiness,
+        }
+        for spec in admitted:
+            for run_index in range(1, self.config.runs + 1):
+                run = self._find_run(experiment, spec.model, run_index, spec.provider)
+                if run is None:
+                    raise ValueError(f"experiment is missing run {spec.provider}/{spec.model}/{run_index}")
+                seed = (101, 202)[run_index - 1] if spec.provider == "ollama" else None
+                for position, case in enumerate(selected_cases):
+                    if self.stop_requested:
+                        break
+                    case_result = self._run_case(
+                        experiment_id,
+                        spec.model,
+                        run,
+                        case,
+                        position,
+                        corpus,
+                        provider=spec.provider,
+                        seed=seed,
+                        provider_header=True,
+                    )
+                    result["results"].append(case_result)
+                client.finish_run(experiment_id, str(run["id"]), "cancelled" if self.stop_requested else "completed")
+                if self.stop_requested:
+                    break
+            if self.stop_requested:
+                break
+        client.finish_experiment(experiment_id, "cancelled" if self.stop_requested else "completed")
+        result["report"] = client.generate_report(experiment_id)
+        root_writer.finalize()
+        return result
+
+    def _get_or_create_five_case_experiment(
+        self,
+        client: BenchmarkApiClient,
+        corpus: ConsistencyCorpus,
+        specs: list[BenchmarkModelSpec],
+    ) -> dict[str, Any]:
+        if self.config.experiment_id:
+            return client.experiment(self.config.experiment_id)
+        return client.create_experiment(
+            {
+                "label": self.config.label or f"Gemini Flash Lite and Ollama five-case {corpus.version}",
+                "corpus_version": corpus.version,
+                "corpus_hash": corpus.content_hash,
+                "mode": "five_case",
+                "models": [spec.model for spec in specs],
+                "model_specs": [
+                    {
+                        "provider": spec.provider,
+                        "model": spec.model,
+                        "settings": {
+                            "seed_run_a": 101 if spec.provider == "ollama" else None,
+                            "seed_run_b": 202 if spec.provider == "ollama" else None,
+                            "context_length": 8192 if spec.provider == "ollama" else None,
+                        },
+                    }
+                    for spec in specs
+                ],
+                "runs": self.config.runs,
+                "model_settings": {"max_concurrency": 1, "benchmark_kind": "ollama-five-case"},
+                "frontend_build_identity": self.config.frontend_build_identity,
+            }
+        )
+
     def _get_or_create_experiment(
         self, client: BenchmarkApiClient, corpus: ConsistencyCorpus, selection: BenchmarkRunSelection
     ) -> dict[str, Any]:
@@ -606,10 +864,20 @@ class GeminiConsistencyRunner:
         )
 
     @staticmethod
-    def _find_run(experiment: dict[str, Any], model: str, run_index: int) -> dict[str, Any] | None:
+    def _find_run(
+        experiment: dict[str, Any],
+        model: str,
+        run_index: int,
+        provider: str | None = None,
+    ) -> dict[str, Any] | None:
         model_configs = {item.get("id"): item for item in experiment.get("models", []) if isinstance(item, dict)}
         model_id = next(
-            (item_id for item_id, item in model_configs.items() if item.get("requested_model", "").removeprefix("models/") == model),
+            (
+                item_id
+                for item_id, item in model_configs.items()
+                if item.get("requested_model", "").removeprefix("models/") == model
+                and (provider is None or item.get("provider") == provider)
+            ),
             None,
         )
         for run in experiment.get("runs", []):
@@ -625,11 +893,15 @@ class GeminiConsistencyRunner:
         case: ConsistencyCase,
         position: int,
         corpus: ConsistencyCorpus,
+        *,
+        provider: str = "gemini_api",
+        seed: int | None = None,
+        provider_header: bool = False,
     ) -> dict[str, Any]:
         assert self.client is not None
         client = self.client
         run_id = str(run["id"])
-        project_key = stable_project_key(experiment_id, model, int(run["run_index"]), case.case_id)
+        project_key = stable_project_key(experiment_id, model, int(run["run_index"]), case.case_id, provider)
         membership = client.claim_case(experiment_id, run_id, case, position)
         if membership.get("state") in TERMINAL_MEMBERSHIP_STATES:
             if self.config.resume:
@@ -655,7 +927,17 @@ class GeminiConsistencyRunner:
             current_message = case.initial_prompt
             while True:
                 try:
-                    response = client.send_chat(project_id, model, current_message, stable_client_message_id(project_key, phase))
+                    if provider_header:
+                        response = client.send_chat(
+                            project_id,
+                            model,
+                            current_message,
+                            stable_client_message_id(project_key, phase),
+                            provider=provider,
+                            seed=seed,
+                        )
+                    else:
+                        response = client.send_chat(project_id, model, current_message, stable_client_message_id(project_key, phase))
                     responses.append({"phase": phase, "response": response})
                 except BenchmarkApiError as exc:
                     responses.append({"phase": phase, "error": {"status_code": exc.status_code, "path": exc.path}})
@@ -701,6 +983,8 @@ class GeminiConsistencyRunner:
             evidence["network_history"] = client.history
             evidence["project_key"] = project_key
             evidence["model"] = model
+            evidence["provider"] = provider
+            evidence["seed"] = seed
             metrics = self._metrics(evidence, clarification_rounds, retry_count, workflow_run_ids)
             evidence["outcome_category"] = outcome_category
             evidence["outcome_state"] = outcome_state
@@ -845,13 +1129,14 @@ class GeminiConsistencyRunner:
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the API-only Gemini consistency benchmark")
+    parser = argparse.ArgumentParser(description="Run the API-only paired model consistency benchmark")
     parser.add_argument("--corpus", type=Path, required=True)
-    parser.add_argument("--models", nargs="+", required=True)
+    parser.add_argument("--models", nargs="*", default=[])
     parser.add_argument("--runs", type=int, default=2)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--pilot", action="store_true")
     mode.add_argument("--full", action="store_true")
+    mode.add_argument("--five-case", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--experiment-id")
     parser.add_argument("--dry-run", action="store_true")
@@ -860,23 +1145,29 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--case-filter", nargs="*", default=[])
     parser.add_argument("--family-filter", nargs="*", default=[])
     parser.add_argument("--specificity-filter", nargs="*", default=[])
-    parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-consistency"))
+    parser.add_argument("--output-root", type=Path)
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--frontend-build-identity", default="benchmark-runner")
     parser.add_argument("--label")
+    parser.add_argument("--gemini-model", default="gemini-3.5-flash-lite")
+    parser.add_argument("--ollama-model-filter", nargs="*", default=[])
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
     split_values = lambda values: tuple(item for value in values for item in value.split(",") if item.strip())
+    models = split_values(args.models)
+    if not models and not args.five_case:
+        raise SystemExit("--models is required unless --five-case is selected")
     config = BenchmarkRunnerConfig(
         corpus_path=args.corpus,
-        models=split_values(args.models),
+        models=models or (args.gemini_model, "ollama-discovery"),
         runs=args.runs,
         pilot=args.pilot,
         full=args.full,
+        five_case=args.five_case,
         experiment_id=args.experiment_id,
         dry_run=args.dry_run,
         resume=args.resume,
@@ -884,12 +1175,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         rate_limit_backoff_seconds=args.rate_limit_backoff,
         base_url=args.base_url,
         timeout_seconds=args.timeout,
-        output_root=args.output_root,
+        output_root=args.output_root or Path("data/debug-sessions/model-consistency" if args.five_case else "data/debug-sessions/gemini-consistency"),
         case_filter=split_values(args.case_filter),
         family_filter=split_values(args.family_filter),
         specificity_filter=split_values(args.specificity_filter),
         frontend_build_identity=args.frontend_build_identity,
         label=args.label,
+        gemini_model=args.gemini_model,
+        ollama_model_filter=split_values(args.ollama_model_filter),
     )
     runner = GeminiConsistencyRunner(config)
     try:

@@ -24,15 +24,22 @@ def get_cad_runner() -> FilesystemCadWorkerRunner:
     return FilesystemCadWorkerRunner()
 
 
-def build_ai_provider(config: Settings, *, benchmark_model: str | None = None) -> AiProvider:
-    provider = config.ai_provider.strip().lower()
-    if benchmark_model and provider not in {"gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
-        raise ValueError("benchmark model override is only supported for Gemini providers")
+def build_ai_provider(
+    config: Settings,
+    *,
+    benchmark_provider: str | None = None,
+    benchmark_model: str | None = None,
+    benchmark_seed: int | None = None,
+) -> AiProvider:
+    provider = (benchmark_provider or config.ai_provider).strip().lower()
+    if benchmark_model and provider not in {"ollama", "local_ollama", "gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
+        raise ValueError("benchmark provider is unsupported for model override")
     if provider in {"ollama", "local_ollama"}:
         return OllamaProvider(
             base_url=config.ollama_base_url,
-            model=config.ollama_model,
+            model=benchmark_model or config.ollama_model,
             timeout_seconds=config.ollama_timeout_seconds,
+            seed=benchmark_seed,
         )
     if provider in {"gemini_api", "google_gemini_api"}:
         model_policy = (

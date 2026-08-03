@@ -4,12 +4,27 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 
+class GeminiBenchmarkModelSpec(BaseModel):
+    provider: str = Field(min_length=1, max_length=80)
+    model: str = Field(min_length=1, max_length=160)
+    settings: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("provider", "model")
+    @classmethod
+    def trim_model_spec_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("model specification values cannot be blank")
+        return value
+
+
 class GeminiBenchmarkExperimentCreate(BaseModel):
     label: str = Field(min_length=1, max_length=200)
     corpus_version: str = Field(min_length=1, max_length=120)
     corpus_hash: str = Field(min_length=1, max_length=64)
-    mode: str = Field(default="full", pattern="^(pilot|full)$")
-    models: list[str] = Field(min_length=2, max_length=8)
+    mode: str = Field(default="full", pattern="^(pilot|full|five_case)$")
+    models: list[str] = Field(min_length=2, max_length=32)
+    model_specs: list[GeminiBenchmarkModelSpec] | None = Field(default=None, min_length=2, max_length=32)
     runs: int = Field(default=2, ge=2, le=2)
     model_settings: dict[str, Any] = Field(default_factory=dict)
     frontend_build_identity: str = Field(default="benchmark-runner", min_length=1, max_length=512)
@@ -32,13 +47,27 @@ class GeminiBenchmarkExperimentCreate(BaseModel):
             raise ValueError("model identifiers must be unique")
         return normalized
 
+    @field_validator("model_specs")
+    @classmethod
+    def validate_model_specs(cls, values: list[GeminiBenchmarkModelSpec] | None) -> list[GeminiBenchmarkModelSpec] | None:
+        if values is None:
+            return values
+        keys = [(item.provider.casefold(), item.model) for item in values]
+        if len(set(keys)) != len(keys):
+            raise ValueError("provider/model specifications must be unique")
+        return values
+
 
 class GeminiBenchmarkModelRead(BaseModel):
     id: str
+    provider: str
     requested_model: str
     actual_model: str | None
+    actual_digest: str | None
     availability_state: str
     settings: dict[str, Any]
+    model_metadata: dict[str, Any]
+    resource_profile: dict[str, Any]
     position: int
 
 
@@ -117,9 +146,13 @@ class GeminiBenchmarkFinishCreate(BaseModel):
 
 
 class GeminiBenchmarkModelAvailabilityCreate(BaseModel):
+    provider: str | None = Field(default=None, max_length=80)
     requested_model: str = Field(min_length=1, max_length=160)
     actual_model: str | None = Field(default=None, max_length=160)
+    actual_digest: str | None = Field(default=None, max_length=200)
     availability_state: str = Field(pattern="^(available|unavailable|unverified)$")
+    model_metadata: dict[str, Any] = Field(default_factory=dict)
+    resource_profile: dict[str, Any] = Field(default_factory=dict)
 
 
 class GeminiBenchmarkReportRead(BaseModel):
@@ -128,3 +161,8 @@ class GeminiBenchmarkReportRead(BaseModel):
     membership_count: int
     completed_count: int
     report_paths: list[str] = Field(default_factory=list)
+
+
+class OllamaPreflightCreate(BaseModel):
+    model: str = Field(min_length=1, max_length=160)
+    prompt: str = Field(min_length=1, max_length=120000)

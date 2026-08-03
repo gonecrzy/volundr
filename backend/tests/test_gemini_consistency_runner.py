@@ -112,6 +112,27 @@ def test_dry_run_selection_is_pure_and_does_not_require_http_client() -> None:
     assert selected[0].case_id == "case-001"
 
 
+def test_five_case_dry_run_is_limited_to_the_ollama_corpus(tmp_path) -> None:
+    runner = GeminiConsistencyRunner(
+        BenchmarkRunnerConfig(
+            corpus_path=Path(__file__).parents[2] / "benchmarks" / "ollama-consistency-v1.json",
+            models=("gemini-3.5-flash-lite", "procad:Q4_K_M"),
+            five_case=True,
+            pilot=False,
+            full=False,
+            dry_run=True,
+            output_root=tmp_path / "data" / "debug-sessions" / "model-consistency",
+        )
+    )
+
+    manifest = runner.run()
+
+    assert manifest["mode"] == "five_case"
+    assert manifest["case_count"] == 5
+    assert manifest["case_ids"] == [f"ollama-case-{index:03d}" for index in range(1, 6)]
+    assert manifest["provider_calls"] == 0
+
+
 def test_evidence_writer_redacts_prompts_responses_source_worker_screenshot_and_network_metadata(tmp_path) -> None:
     writer = EvidenceWriter(tmp_path / "evidence")
     writer.write_json(
