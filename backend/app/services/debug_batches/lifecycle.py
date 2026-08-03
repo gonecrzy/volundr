@@ -104,7 +104,7 @@ def resolve_project_outcome(
     verification_findings = [
         finding
         for finding in latest_findings
-        if str(getattr(finding, "rule_id", "")).startswith("functional.")
+        if str(getattr(finding, "rule_id", "")).startswith(("functional.", "requirement."))
     ]
     verification_findings.extend(
         event

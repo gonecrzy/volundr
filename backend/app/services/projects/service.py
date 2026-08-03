@@ -10994,7 +10994,9 @@ class ProjectService:
             or finding.rule_id.startswith("integrity.")
         ]
         verification_findings = [
-            finding for finding in findings if finding.rule_id.startswith("functional.")
+            finding
+            for finding in findings
+            if finding.rule_id.startswith(("functional.", "requirement."))
         ]
         candidate_findings = [
             finding

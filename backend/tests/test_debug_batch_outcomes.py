@@ -138,6 +138,52 @@ def test_pre_worker_blocking_artifact_finding_is_source_blocked() -> None:
     assert outcome.final_outcome == "Blocked before worker"
 
 
+def test_requirement_verification_block_is_not_classified_as_candidate_block() -> None:
+    output = SimpleNamespace(
+        revision_id="revision",
+        output_id="part",
+        required=True,
+        execution_state="succeeded",
+        stl_path="model.stl",
+        step_path="model.step",
+        brep_path="model.brep",
+        stl_hash="stl-hash",
+        step_hash="step-hash",
+        brep_hash="brep-hash",
+        expected_solid_count=1,
+        detected_solid_count=1,
+        topology_metadata_json='{"valid": true, "detected_solid_count": 1}',
+    )
+    outcome = resolve_project_outcome(
+        _project(),
+        [_workflow()],
+        [_attempt()],
+        [
+            _event(stage="worker", event_type="worker.completed", sequence_number=1),
+            _event(
+                stage="candidate_classification",
+                event_type="candidate.classified",
+                blocking=True,
+                sequence_number=2,
+                rule_id="candidate.blocked",
+            ),
+        ],
+        [_revision(status="succeeded")],
+        [output],
+        [
+            SimpleNamespace(
+                revision_id="revision",
+                category="requirement",
+                rule_id="requirement.req_one_piece",
+                is_blocking=True,
+            )
+        ],
+    )
+
+    assert outcome.outcome_state == "verification_blocked"
+    assert outcome.category == "post_worker_verification_block"
+
+
 def _valid_output(output_id: str = "part") -> dict:
     return {
         "output_id": output_id,

@@ -27,7 +27,7 @@ reported as unavailable rather than inferred from shell count.
 | --- | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | --- | --- |
 | wall carrier | compact plan | slot route not reached | — | — | no | no | not reached | none | not reached | not reached | `plan.validation.blocked` / compact-plan normalization |
 | portable holder | compact plan | `volundr-geometry-slots-v1` | 1/6 | 6/6 | yes | yes | exit 0, `execution_failed`, output shape invalid | none; all hashes/paths null | invalid: 1 expected, 2 detected, 2 shells | not reached as a terminal gate | `worker_runtime_failure` |
-| desktop organizer | compact plan | `volundr-geometry-slots-v1` | 1/6 | 6/6 | yes | yes | exit 0, successful | STEP/STL/BREP present | valid: 1 expected, 1 detected, 1 shell | deferred measurements were warnings, not the blocker | `artifact_readiness_failed`: required output not ready |
+| desktop organizer | compact plan | `volundr-geometry-slots-v1` | 1/6 | 6/6 | yes | yes | exit 0, successful | STEP/STL/BREP present | valid: 1 expected, 1 detected, 1 shell | five critical `requirement.*` findings blocked verification | `verification_blocked`; stale required-output state recorded as integrity |
 | monitor wall mount | detailed plan | `legacy_contract` | — | 0 | yes | no | not reached | none | not reached | not reached | `design_artifact_inconsistent` before worker |
 | screw-lid container | compact plan | `volundr-geometry-slots-v1` | 0/9 | 9/9 | yes | no | not reached | none | not reached | not reached | `design_artifact_inconsistent` before worker |
 
@@ -84,17 +84,20 @@ failure.
   Topology was `valid: true`. The bounds were 220 × 140 × 65 mm and volume
   was 249,379.235 mm³. Connected-component count was unavailable in the
   persisted manifest.
-- The output state was nevertheless `blocked`. The exact blocking finding
-  was `design_artifact.manifest_required_output_not_ready`: required output
-  `desktop_organizer_output` had detected state `blocked`.
-- The design-consistency evidence contained geometry-verification-deferred
-  warnings for dimensions/features, but those findings were nonblocking.
-  The candidate event was a root blocking event with one blocked output and
-  one successful output. `review_state=blocked` prohibited promotion.
+- The materialized output state was nevertheless `blocked`, producing the
+  stale `design_artifact.manifest_required_output_not_ready` finding even
+  though registered STEP/STL/BREP artifacts and topology passed. The resolver
+  now preserves that original finding and records it as a nonblocking
+  integrity warning.
+- Five requirement findings were independently blocking:
+  `requirement.req_one_piece`, `requirement.req_phone_slot`,
+  `requirement.req_pen_compartment`, `requirement.req_accessory_compartments`,
+  and `requirement.req_cable_notch`. Those findings, not the stale manifest,
+  kept promotion blocked.
 
-Classification: **`artifact_readiness_failed`**. This is not
-`valid_geometry_missing_feature_measurement`: artifacts and topology passed,
-but the required output was not ready in the authoritative manifest.
+Classification: **`verification_blocked`**. This is not
+`artifact_readiness_blocked`: artifacts and topology passed, while applicable
+requirement verification remained blocked.
 
 ## Feature-verification counterfactual
 
@@ -103,9 +106,9 @@ worker-reaching final outcome.
 
 - Portable holder: **no**. The worker failed, artifacts were absent, and
   topology was invalid before a feature-measurement-only decision could help.
-- Desktop organizer: **no**. The worker and topology gates passed, but the
-  blocking finding was required-output artifact readiness. Feature measurement
-  findings were deferred warnings and were not the sole blocker.
+- Desktop organizer: **no**. The worker and topology gates passed, the stale
+  manifest state was reconciled, and the candidate remained blocked only by
+  the independent requirement-verification findings.
 
 This directly rejects deterministic feature verification as the next
 generation blocker for this batch.
