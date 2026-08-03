@@ -1,0 +1,14 @@
+{
+  "families": [
+    "desktop_organizer",
+    "five_tray_wall_carrier",
+    "screw_lid_container"
+  ],
+  "package_hashes": {
+    "desktop_organizer": "b1e1310e3f4adedaab60cd5c6cd724ce3cb176295784cce3f36f02f277bafb20",
+    "five_tray_wall_carrier": "a563cdaa0ab0bf0a884a4a75e060c00f15e2f1e7289e4bc569552a0187ef5437",
+    "screw_lid_container": "18912e963a0fd30357e760e3947154f2da1b6e18232e21b3a405f0c7403d625f"
+  },
+  "package_version": "diagnostic-input-manifest-v1",
+  "source_batch_id": "c3179a89-62e2-4d61-b3dc-a36f4b9956b6"
+}
