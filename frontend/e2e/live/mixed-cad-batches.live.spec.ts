@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { liveEnabled, waitForWorkflowOutcome } from "./liveEnvironment";
+import { liveEnabled } from "./liveEnvironment";
 
 type ProjectSpec = {
   name: string;
@@ -217,7 +217,12 @@ async function runProject(page: Page, batchId: string, screenshotTag: string, sp
   await waitForProjectRunSettled(page, draft.id);
   await page.reload();
   await answerClarifications(page, draft.id, spec, batchId, screenshotTag, projectNumber);
-  const outcome = await waitForWorkflowOutcome(page);
+  const revisionsResponse = await page.request.get(`/api/projects/${draft.id}/revisions`);
+  expect(revisionsResponse.ok(), "revision listing").toBeTruthy();
+  const revisions = await revisionsResponse.json() as Array<{ status: string }>;
+  const outcome: "candidate" | "failure" = revisions.some((revision) => revision.status === "succeeded")
+    ? "candidate"
+    : "failure";
   const accept = page.getByRole("button", { name: "Accept new version", exact: true });
   if (outcome === "candidate" && await accept.count() && await accept.isEnabled()) {
     await accept.click();
