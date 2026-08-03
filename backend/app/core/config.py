@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     gemini_api_max_retries: int = Field(default=2)
     gemini_api_max_retry_sleep_seconds: float = Field(default=60.0)
     snapshots_enabled: bool = Field(default=True)
+    # Advanced deployment switch. It is intentionally absent from the minimal
+    # .env.example and is exposed to the browser only as a safe boolean.
+    developer_tools_enabled: bool = Field(default=False)
     snapshot_image_width: int = Field(default=768, ge=128, le=2048)
     snapshot_image_height: int = Field(default=768, ge=128, le=2048)
     snapshot_timeout_seconds: int = Field(default=30, ge=1, le=300)

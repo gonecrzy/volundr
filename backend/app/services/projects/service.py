@@ -356,6 +356,8 @@ class ProjectService:
         self.ai_provider = ai_provider
 
     def create_project(self, payload: ProjectCreate) -> Project:
+        from app.services.debug_batches.service import DebugBatchService
+
         project = Project(
             name=payload.name.strip(),
             slug=self._unique_slug(payload.name),
@@ -363,6 +365,7 @@ class ProjectService:
         )
         self.db.add(project)
         self.db.flush()
+        DebugBatchService(db=self.db, data_dir=self.data_dir).attach_new_project(project)
         self._record_message(
             project_id=project.id,
             revision_id=None,
@@ -380,6 +383,8 @@ class ProjectService:
         return project
 
     def create_draft_project(self) -> Project:
+        from app.services.debug_batches.service import DebugBatchService
+
         self.cleanup_expired_drafts()
         draft_id = self._next_draft_id()
         project = Project(
@@ -390,6 +395,7 @@ class ProjectService:
         )
         self.db.add(project)
         self.db.flush()
+        DebugBatchService(db=self.db, data_dir=self.data_dir).attach_new_project(project)
         self._record_message(
             project_id=project.id,
             revision_id=None,

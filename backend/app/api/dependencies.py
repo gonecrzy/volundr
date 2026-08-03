@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from fastapi import HTTPException
+
 from app.core.config import Settings, settings
 from app.services.ai.provider import AiProvider
 from app.services.ai.gemini_api import GeminiApiProvider
@@ -11,6 +13,11 @@ from app.services.cad.worker_client import FilesystemCadWorkerRunner
 
 def get_data_dir() -> Path:
     return settings.data_dir
+
+
+def require_developer_tools() -> None:
+    if not settings.developer_tools_enabled:
+        raise HTTPException(status_code=403, detail="developer tools are disabled")
 
 
 def get_cad_runner() -> FilesystemCadWorkerRunner:

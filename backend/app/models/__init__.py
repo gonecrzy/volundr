@@ -2,6 +2,7 @@ from app.models.clarification_answer import ClarificationAnswer
 from app.models.clarification_question import ClarificationQuestion
 from app.models.configuration_change import ConfigurationChange, ConfigurationPreset
 from app.models.design_artifact_consistency import DesignArtifactConsistencyResult
+from app.models.debug_batch import DebugBatch, DebugBatchMembership
 from app.models.design_specification import DesignSpecification
 from app.models.export_record import ExportRecord
 from app.models.design_plan import (
@@ -45,6 +46,8 @@ __all__ = [
     "ConfigurationChange",
     "ConfigurationPreset",
     "DesignArtifactConsistencyResult",
+    "DebugBatch",
+    "DebugBatchMembership",
     "DesignSpecification",
     "ExportRecord",
     "DesignPlan",

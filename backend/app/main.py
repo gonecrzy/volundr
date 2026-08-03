@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api.projects import router as projects_router
+from app.api.capabilities import router as capabilities_router
+from app.api.debug_batches import router as debug_batches_router
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.services.workflow.observability import WorkflowRecorder
@@ -32,6 +34,8 @@ app.add_middleware(
 )
 
 app.include_router(projects_router)
+app.include_router(capabilities_router)
+app.include_router(debug_batches_router)
 
 
 @app.get("/health")

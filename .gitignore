@@ -1,4 +1,6 @@
 data/
+# Raw live debug-batch evidence stays local and outside Git.
+data/debug-sessions/
 .env
 .env.*
 !.env.example
