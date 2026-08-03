@@ -102,6 +102,7 @@ Do not load the entire documentation tree by default.
 | `docs/LIVE_BATCH_CORRECTION_ROUND_1.md` | First generic evidence/identity/classification correction pass and its verification boundary. |
 | `docs/MIXED_CAD_LIVE_POST_CORRECTION_01.md` | Single qualifying five-project post-correction live batch and screenshot/evidence locations. |
 | `docs/LIVE_BATCH_POST_CORRECTION_COMPARISON.md` | Controlled status of the original frozen pair and unpaired post-correction result. |
+| `docs/LIVE_BATCH_NEXT_PRIORITY.md` | Planning-only next generic provider/schema/provenance correction family and expected repair scope. |
 | `docs/FRONTEND_WORKFLOW_AUDIT.md` | Repository-grounded assessment of the user-facing workflow, terminology, state mapping, recovery, responsiveness, accessibility, and priority corrections. |
 | `docs/FRONTEND_USER_TESTING_PLAN.md` | Five observed-user scenarios, measures, correlated events, preserved diagnostic evidence, and post-task questions. |
 | `docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md` | Current chat-first workspace layout, conversation semantics, reconnect behavior, responsive evidence, screenshots, tests, and UX/live-track separation. |

@@ -6129,11 +6129,17 @@ class ProjectService:
                 planning_result.raw_output,
             )
             if repair_comparison["unchanged"]:
+                original_diagnostic = request.schema_validation_error or "Design Plan validation failed"
+                error_message = (
+                    f"{original_diagnostic}; plan repair returned no semantic change"
+                    if original_diagnostic
+                    else "Plan repair returned no semantic change"
+                )
                 self._finish_generation_attempt(
                     attempt,
                     status="failed",
                     failure_class=FailureClass.DESIGN_PLAN_INVALID,
-                    error_message="Plan repair returned no semantic change.",
+                    error_message=error_message,
                 )
                 self._record_workflow_event(
                     workflow_run,
@@ -6142,12 +6148,12 @@ class ProjectService:
                     severity="error",
                     blocking=True,
                     rule_id="repair.no_effect",
-                    message="Plan repair returned an unchanged response; repair stopped.",
+                    message=error_message,
                     deduplication_key=f"plan-repair-no-effect-{attempt.id}",
                     generation_attempt_id=attempt.id,
                     metadata=repair_comparison,
                 )
-                raise RuntimeError("plan repair returned no semantic change")
+                raise RuntimeError(error_message)
         try:
             parsed_payload = self._parse_design_plan_payload(
                 planning_result.raw_output,

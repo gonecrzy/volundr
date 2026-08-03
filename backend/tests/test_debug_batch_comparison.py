@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
+from app.core.config import settings
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.comparison import DebugBatchComparisonService
 from app.services.debug_batches.service import DebugBatchService
@@ -20,7 +21,18 @@ COMPLETE_FRONTEND_IDENTITY = json.dumps(
 )
 
 
-def test_matching_frozen_batches_are_controlled(tmp_path) -> None:
+def _set_complete_backend_identities(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "build_git_sha", "backend-test-sha")
+    monkeypatch.setattr(settings, "build_branch", "main")
+    monkeypatch.setattr(settings, "build_timestamp", "2026-08-03T00:00:00Z")
+    monkeypatch.setattr(settings, "build_dirty", False)
+    monkeypatch.setattr(settings, "worker_build_git_sha", "worker-test-sha")
+    monkeypatch.setattr(settings, "worker_build_timestamp", "2026-08-03T00:00:00Z")
+    monkeypatch.setattr(settings, "worker_build_dirty", False)
+
+
+def test_matching_frozen_batches_are_controlled(tmp_path, monkeypatch) -> None:
+    _set_complete_backend_identities(monkeypatch)
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     with Session(engine) as session:
@@ -39,7 +51,8 @@ def test_matching_frozen_batches_are_controlled(tmp_path) -> None:
         assert comparison["mismatches"] == {}
 
 
-def test_identity_mismatch_is_uncontrolled(tmp_path) -> None:
+def test_identity_mismatch_is_uncontrolled(tmp_path, monkeypatch) -> None:
+    _set_complete_backend_identities(monkeypatch)
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     with Session(engine) as session:
