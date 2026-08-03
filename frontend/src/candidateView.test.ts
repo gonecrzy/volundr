@@ -18,6 +18,10 @@ import {
   outputStateLabel,
   outputTopologyLabel,
   canRetryOutput,
+  featureEvidenceStateLabel,
+  featureEvidenceOutcomeLabel,
+  featureRepairOperationLabel,
+  physicalReviewWarningLabel,
   type GeometricFinding,
   type CandidateFinding,
   type CandidateRevision,
@@ -128,6 +132,39 @@ function revisionOutput(overrides: Partial<RevisionOutput>): RevisionOutput {
 }
 
 describe("candidate view helpers", () => {
+  it("distinguishes source execution, geometry presence, measurement, and outcome", () => {
+    const evidence = {
+      requirement_id: "req_handle",
+      feature_id: "handle",
+      output_id: "body",
+      source_function_id: "_ai_feature_handle",
+      source_executed: true,
+      geometry_presence: "present" as const,
+      measurement_status: "measured" as const,
+      measurements: { connected_to_primary_body: true },
+      requirement_outcome: "satisfied" as const,
+      evidence_method: "brep_topology_measurement",
+    };
+    expect(featureEvidenceStateLabel(evidence)).toContain("source executed");
+    expect(featureEvidenceStateLabel(evidence)).toContain("geometry present");
+    expect(featureEvidenceStateLabel(evidence)).toContain("measured");
+    expect(featureEvidenceOutcomeLabel(evidence.requirement_outcome)).toBe("satisfied");
+  });
+
+  it("keeps absent and unverifiable feature states distinct", () => {
+    const absent = featureEvidenceOutcomeLabel("feature_absent");
+    const unavailable = featureEvidenceOutcomeLabel("unverifiable");
+    expect(absent).toBe("feature absent");
+    expect(unavailable).toBe("unverifiable");
+    expect(absent).not.toBe(unavailable);
+  });
+
+  it("keeps one repair operation and physical review warning explicit", () => {
+    expect(featureRepairOperationLabel(1)).toBe("One localized feature repair");
+    expect(featureRepairOperationLabel(2)).toContain("2 feature repairs");
+    expect(physicalReviewWarningLabel()).toContain("not a safety certification");
+  });
+
   it("labels active, candidate, and historical revisions distinctly", () => {
     expect(revisionViewerLabel(revision({ id: "active-revision", is_accepted: true }), project)).toBe(
       "Current design",

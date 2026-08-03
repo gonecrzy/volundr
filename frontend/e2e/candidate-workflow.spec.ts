@@ -287,6 +287,21 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
           analysis_ms: 8.1,
           created_at: "2026-07-30T16:36:00Z",
           findings: [],
+          feature_evidence: [
+            {
+              requirement_id: "req_mounting_plate",
+              feature_id: "mounting_plate",
+              output_id: "bracket",
+              source_function_id: "_ai_feature_mounting_plate",
+              source_executed: true,
+              geometry_presence: "present",
+              measurement_status: "measured",
+              measurements: { connected_to_primary_body: true, solid_count: 1 },
+              requirement_outcome: "satisfied",
+              evidence_method: "brep_topology_measurement",
+              physical_review_warning: "This geometry review is not a safety certification.",
+            },
+          ],
         },
       });
     }
@@ -329,6 +344,12 @@ test("requirements clarification flows into Design Plan approval and CadQuery ca
   await expect(page.getByLabel("Candidate review").getByText("Solids 1/1")).toBeVisible();
   await expect(page.getByText("Geometric checks")).toBeVisible();
   await expect(page.getByText("0 verified, 0 violated, 0 unable to verify")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("mounting_plate");
+  await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("source executed");
+  await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("geometry present");
+  await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("measured");
+  await expect(page.getByRole("region", { name: "Final feature evidence" })).toContainText("not a safety certification");
+  await page.screenshot({ path: "output/playwright/feature-evidence-candidate-review.png", fullPage: true });
   await page.getByText("Technical details").click();
   await expect(page.getByText(/^Workflow run:/)).toBeVisible();
   await expect(page.getByText("workflow-run-1", { exact: true })).toBeVisible();

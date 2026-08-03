@@ -161,7 +161,43 @@ export type GeometricAnalysis = {
   analysis_ms: number;
   created_at: string;
   findings: GeometricFinding[];
+  feature_evidence?: FeatureEvidence[];
 };
+
+export type FeatureEvidence = {
+  requirement_id: string;
+  feature_id: string;
+  output_id: string;
+  source_function_id: string | null;
+  source_executed: boolean | null;
+  geometry_presence: "present" | "absent" | "unknown";
+  measurement_status: "measured" | "failed" | "unavailable";
+  measurements: Record<string, unknown>;
+  requirement_outcome: "satisfied" | "satisfied_with_warning" | "not_satisfied" | "unverifiable" | "feature_absent" | "measurement_failed";
+  evidence_method: string;
+  finding_ids?: string[];
+};
+
+export function featureEvidenceStateLabel(evidence: FeatureEvidence): string {
+  const executed = evidence.source_executed === true
+    ? "source executed"
+    : evidence.source_executed === false
+      ? "source did not execute"
+      : "source execution unknown";
+  return `${executed}; geometry ${evidence.geometry_presence}; ${evidence.measurement_status}; requirement ${evidence.requirement_outcome}`;
+}
+
+export function featureEvidenceOutcomeLabel(outcome: FeatureEvidence["requirement_outcome"]): string {
+  return outcome.replaceAll("_", " ");
+}
+
+export function featureRepairOperationLabel(providerCalls: number): string {
+  return providerCalls === 1 ? "One localized feature repair" : `${providerCalls} feature repairs requested`;
+}
+
+export function physicalReviewWarningLabel(): string {
+  return "Physical engineering and test review remain required; geometry evidence is not a safety certification.";
+}
 
 export function revisionViewerLabel(
   revision: CandidateRevision | null,

@@ -10,6 +10,9 @@ import {
   candidateFindingBuckets,
   candidateFindingRecoveryActions,
   geometricFindingBuckets,
+  featureEvidenceOutcomeLabel,
+  featureEvidenceStateLabel,
+  physicalReviewWarningLabel,
   revisionViewerLabel,
   revisionWorkflowLabel,
   revisionPromptFromCandidateFinding,
@@ -4399,6 +4402,22 @@ function GeometricCheckSummary({
       <p className="empty">
         {`${buckets.verified.length} verified, ${buckets.violated.length} violated, ${buckets.unverifiable.length} unable to verify`}
       </p>
+      {(analysis.feature_evidence ?? []).length > 0 ? (
+        <section className="feature-evidence" aria-label="Final feature evidence">
+          <h4>Final feature evidence</h4>
+          {(analysis.feature_evidence ?? []).map((evidence) => (
+            <article className="candidate-finding" key={`${evidence.feature_id}-${evidence.requirement_id}`}>
+              <div className="result-row">
+                <span className="rule-id">{evidence.feature_id}</span>
+                <span className="severity warning">{featureEvidenceOutcomeLabel(evidence.requirement_outcome)}</span>
+              </div>
+              <p>{featureEvidenceStateLabel(evidence)}</p>
+              <small>Method: {evidence.evidence_method} · Output: {evidence.output_id}</small>
+            </article>
+          ))}
+          <p className="physical-review-warning">{physicalReviewWarningLabel()}</p>
+        </section>
+      ) : null}
       <GeometricFindingGroup
         findings={buckets.verified}
         title="Verified"
