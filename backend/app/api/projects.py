@@ -1344,6 +1344,9 @@ def list_generation_attempt_evidence(
             GenerationAttemptEvidenceRead(
                 attempt_id=attempt.id,
                 attempt_number=attempt.attempt_number,
+                provider_call_count=attempt.provider_call_count,
+                provider_retry_count=attempt.provider_retry_count,
+                content_repair_count=attempt.content_repair_count,
                 provider=attempt.provider_id,
                 model=attempt.model_id,
                 status=attempt.status,

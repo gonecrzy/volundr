@@ -33,6 +33,9 @@ class GenerationAttempt(Base):
         nullable=True,
     )
     attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider_call_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    provider_retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    content_repair_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     provider_id: Mapped[str] = mapped_column(String(80), nullable=False)
     model_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
     provider_settings_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")

@@ -184,6 +184,8 @@ class GeminiCliProvider:
         started = time.perf_counter()
         actual_model = decision.selected_model
         routing_reason = decision.routing_reason
+        provider_call_count = 1
+        provider_retry_count = 0
         try:
             response = await self._run_prompt(prompt, model=decision.selected_model)
         except RuntimeError as exc:
@@ -193,6 +195,7 @@ class GeminiCliProvider:
             ):
                 raise
             response = await self._run_prompt(prompt, model=self.model_policy.general_model)
+            provider_call_count = 2
             actual_model = self.model_policy.general_model
             routing_reason = "operational_fallback"
         latency_ms = max(0, round((time.perf_counter() - started) * 1000))
@@ -203,6 +206,8 @@ class GeminiCliProvider:
         routing = decision.as_dict()
         routing["routing_reason"] = routing_reason
         routing["actual_model"] = actual_model
+        routing["provider_call_count"] = int(getattr(self, "_last_provider_call_count", provider_call_count))
+        routing["provider_retry_count"] = int(getattr(self, "_last_provider_retry_count", provider_retry_count))
         return (
             raw_output,
             routing,

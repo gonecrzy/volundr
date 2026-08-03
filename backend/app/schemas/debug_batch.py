@@ -38,6 +38,13 @@ class DebugBatchMembershipRead(BaseModel):
     current_working_revision_id: str | None = None
     attempt_count: int = 0
     retry_count: int = 0
+    provider_call_count: int = 0
+    provider_retry_count: int = 0
+    content_repair_count: int = 0
+    generation_attempt_count: int = 0
+    workflow_stage_attempt_count: int = 0
+    user_operation_count: int = 0
+    outcome_category: str = "not_started"
     final_outcome: str = "Not started"
 
 
@@ -55,6 +62,8 @@ class DebugBatchRead(BaseModel):
     frontend_build_identity: str
     backend_build_identity: str
     worker_build_identity: str
+    build_identities: dict[str, Any] = Field(default_factory=dict)
+    identity_complete: bool = False
     provider: str
     configured_default_model: str
     stage_model_policy: dict[str, Any]
@@ -104,4 +113,5 @@ class DebugBatchComparisonRead(BaseModel):
     status: str
     identity_match: bool
     mismatches: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    identity_evidence: dict[str, Any] = Field(default_factory=dict)
     project_comparisons: list[dict[str, Any]] = Field(default_factory=list)

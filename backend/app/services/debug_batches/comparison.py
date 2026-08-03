@@ -22,6 +22,8 @@ IDENTITY_FIELDS = (
     "backend_build_identity",
     "frontend_build_identity",
     "worker_build_identity",
+    "build_identities_json",
+    "identity_complete",
 )
 
 
@@ -54,7 +56,17 @@ class DebugBatchComparisonService:
                     "baseline": baseline_value,
                     "candidate": candidate_value,
                 }
-        status = "controlled" if not mismatches else "uncontrolled"
+        if not baseline.identity_complete or not candidate.identity_complete:
+            mismatches.setdefault(
+                "identity_completeness",
+                {
+                    "baseline": baseline.identity_complete,
+                    "candidate": candidate.identity_complete,
+                },
+            )
+            status = "identity_incomplete"
+        else:
+            status = "controlled" if not mismatches else "configuration_mismatch"
         project_comparisons = self._project_comparisons(baseline, candidate)
         result = {
             "batch_id": candidate.id,
@@ -62,6 +74,13 @@ class DebugBatchComparisonService:
             "status": status,
             "identity_match": not mismatches,
             "mismatches": mismatches,
+            "identity_evidence": {
+                field.removesuffix("_json"): getattr(candidate, field)
+                if not field.endswith("_json")
+                else json.loads(getattr(candidate, field))
+                for field in IDENTITY_FIELDS
+                if field not in {"identity_complete", "build_identities_json"}
+            },
             "project_comparisons": project_comparisons,
         }
         comparison_path = self.data_dir / "debug-sessions" / candidate.id / "comparison" / "comparison.json"

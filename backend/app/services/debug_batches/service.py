@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.models.debug_batch import DebugBatch, DebugBatchMembership
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
+from app.models.project_message import ProjectMessage
 from app.models.workflow import WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchRead, DebugBatchStart
 from app.services.debug_batches.identity import capture_batch_identity
@@ -55,6 +56,8 @@ class DebugBatchService:
             frontend_build_identity=identity.frontend_build_identity,
             backend_build_identity=identity.backend_build_identity,
             worker_build_identity=identity.worker_build_identity,
+            build_identities_json=json.dumps(identity.build_identities, sort_keys=True),
+            identity_complete=identity.identity_complete,
             provider=identity.provider,
             configured_default_model=identity.configured_default_model,
             stage_model_policy_json=json.dumps(identity.stage_model_policy, sort_keys=True),
@@ -62,7 +65,13 @@ class DebugBatchService:
             prompt_versions_json=json.dumps(identity.prompt_versions, sort_keys=True),
             configuration_hash=identity.configuration_hash,
             evidence_contract_version="debug-batch-v1",
-            comparison_status="pending" if baseline else "not_applicable",
+            comparison_status=(
+                "pending_identity"
+                if baseline and not (baseline.identity_complete and identity.identity_complete)
+                else "pending"
+                if baseline
+                else "not_applicable"
+            ),
             redaction_status="pending",
             integrity_status="pending",
         )
@@ -174,6 +183,8 @@ class DebugBatchService:
             comparison_status=batch.comparison_status,
             redaction_status=batch.redaction_status,
             integrity_status=batch.integrity_status,
+            build_identities=json.loads(batch.build_identities_json),
+            identity_complete=batch.identity_complete,
             memberships=memberships,
         )
 
@@ -185,6 +196,13 @@ class DebugBatchService:
                 "current_working_revision_id": None,
                 "attempt_count": 0,
                 "retry_count": 0,
+                "provider_call_count": 0,
+                "provider_retry_count": 0,
+                "content_repair_count": 0,
+                "generation_attempt_count": 0,
+                "workflow_stage_attempt_count": 0,
+                "user_operation_count": 0,
+                "outcome_category": "infrastructure_failure",
                 "final_outcome": "Infrastructure failure",
             }
         workflows = list(
@@ -208,6 +226,13 @@ class DebugBatchService:
                 .order_by(GenerationAttempt.attempt_number.asc())
             )
         )
+        messages = list(
+            self.db.scalars(
+                select(ProjectMessage)
+                .where(ProjectMessage.project_id == project.id)
+                .order_by(ProjectMessage.created_at.asc(), ProjectMessage.id.asc())
+            )
+        )
         worker_reached = any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events)
         active = any(workflow.status == "running" for workflow in workflows)
         blocked = any(event.blocking for event in events) or any(
@@ -223,11 +248,34 @@ class DebugBatchService:
             phase = "Blocked after worker" if worker_reached else "Blocked before worker"
         else:
             phase = "Not started"
+        provider_call_count = sum(attempt.provider_call_count for attempt in attempts)
+        provider_retry_count = sum(attempt.provider_retry_count for attempt in attempts)
+        content_repair_count = sum(attempt.content_repair_count for attempt in attempts)
+        workflow_stage_attempt_count = len({(event.stage, event.generation_attempt_id) for event in events})
+        if active:
+            outcome_category = "in_progress"
+        elif project.active_revision_id:
+            outcome_category = "accepted"
+        elif worker_reached:
+            outcome_category = "worker_runtime_failure" if blocked else "worker_completed_without_valid_geometry"
+        elif any(attempt.status in {"failed", "blocked"} for attempt in attempts):
+            outcome_category = "provider_content_failure" if any(attempt.raw_output_path for attempt in attempts) else "provider_transport_failure"
+        elif blocked:
+            outcome_category = "blocked_before_provider"
+        else:
+            outcome_category = "not_started"
         return {
             "workflow_phase": phase,
             "worker_reached": worker_reached,
             "current_working_revision_id": project.active_revision_id,
             "attempt_count": len(attempts),
-            "retry_count": max(0, len(attempts) - 1),
+            "retry_count": provider_retry_count,
+            "provider_call_count": provider_call_count,
+            "provider_retry_count": provider_retry_count,
+            "content_repair_count": content_repair_count,
+            "generation_attempt_count": len(attempts),
+            "workflow_stage_attempt_count": workflow_stage_attempt_count,
+            "user_operation_count": sum(message.role == "user" for message in messages),
+            "outcome_category": outcome_category,
             "final_outcome": phase,
         }

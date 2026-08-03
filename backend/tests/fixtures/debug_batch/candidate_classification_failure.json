@@ -1,0 +1,23 @@
+{
+  "fixture_id": "batch1-candidate-classification",
+  "source": {
+    "batch_id": "e1eb77dd-c6a3-4d62-9a49-72b49aa32c5d",
+    "project_position": 0,
+    "attempt": 3,
+    "stage": "candidate_classification"
+  },
+  "minimal_context": {
+    "worker_reached": true,
+    "worker_completed": false,
+    "valid_geometry": false
+  },
+  "raw_provider_response": "{\"candidate\":{\"status\":\"classified\"}}",
+  "expected": {
+    "parse_result": "json_object",
+    "normalization": "none",
+    "finding": "candidate_classification",
+    "blocking": true,
+    "repair_eligible": false,
+    "final_classification": "post_worker_verification_block"
+  }
+}

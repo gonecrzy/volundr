@@ -17,6 +17,8 @@ const batch: DebugBatch = {
   frontend_build_identity: "front",
   backend_build_identity: "back",
   worker_build_identity: "worker",
+  build_identities: {},
+  identity_complete: false,
   provider: "gemini_api",
   configured_default_model: "gemini-3.5-flash-lite",
   stage_model_policy: {},

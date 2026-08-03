@@ -184,6 +184,7 @@ from app.services.planning.brief import DirectCadBriefBuilder
 from app.services.planning.context import PromptContextPackBuilder, normalize_geometry_execution_context
 from app.services.planning.depth import PlanningDepth, PlanningDepthRouter, PlanningRouteDecision
 from app.services.workflow.observability import WorkflowRecorder
+from app.services.workflow.repair_convergence import compare_repair_responses
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
@@ -1559,6 +1560,7 @@ class ProjectService:
         result = await self._run_requirement_extraction(
             project=project,
             request=request,
+            workflow_run=workflow_run,
             superseded_specification_id=previous_specification.id if previous_specification else None,
         )
         self._record_workflow_artifact(
@@ -3478,6 +3480,15 @@ class ProjectService:
             try:
                 result = await self.ai_provider.create_design_plan(request)
                 self._record_generation_result(attempt, result)
+                if self._reject_unchanged_repair(
+                    attempt=attempt,
+                    workflow_run=workflow_run,
+                    stage="planning",
+                    original=rejected_raw_output,
+                    repaired=result.raw_output,
+                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                ):
+                    raise ProviderContractError("Plan repair returned no semantic change")
                 payload = self._parse_compact_plan_payload(
                     result.raw_output,
                     project=project,
@@ -4362,6 +4373,7 @@ class ProjectService:
         result = await self._run_requirement_extraction(
             project=project,
             request=request,
+            workflow_run=workflow_run,
             superseded_specification_id=specification.id,
         )
         self._record_workflow_artifact(
@@ -5032,6 +5044,18 @@ class ProjectService:
             raise
 
         self._record_generation_result(repair_attempt, repair_result)
+        if self._reject_unchanged_repair(
+            attempt=repair_attempt,
+            workflow_run=repair_workflow_run or workflow_run,
+            stage="contract_repair",
+            original=generation_result.raw_output,
+            repaired=repair_result.raw_output,
+            failure_class=FailureClass.SOURCE_CONTRACT_HARD_REJECTION,
+            error_message=f"{contract_diagnostics}; contract repair returned no semantic change",
+        ):
+            if repair_workflow_run is not None:
+                self._workflow_recorder().complete_run(repair_workflow_run, status="failed")
+            raise ValueError(f"{contract_diagnostics}; contract repair returned no semantic change")
         self._record_workflow_artifact(
             repair_workflow_run or workflow_run,
             stage="provider_response",
@@ -5640,11 +5664,27 @@ class ProjectService:
             redacted=False,
         )
         try:
-            if self._sha256(failed_response.raw_output) == self._sha256(repair_result.raw_output):
+            repair_comparison = compare_repair_responses(
+                failed_response.raw_output,
+                repair_result.raw_output,
+            )
+            if repair_comparison["unchanged"]:
+                self._record_workflow_event(
+                    repair_workflow_run or workflow_run,
+                    stage="contract_repair",
+                    event_type="repair.no_effect",
+                    severity="error",
+                    blocking=True,
+                    rule_id="repair.no_effect",
+                    message="Geometry-body repair returned an unchanged response; repair stopped.",
+                    deduplication_key=f"repair-no-effect-geometry-body-{repair_attempt.id}",
+                    generation_attempt_id=repair_attempt.id,
+                    metadata=repair_comparison,
+                )
                 raise GeometryBodyError(
                     "geometry_body.repair_unchanged",
                     "Geometry-body repair returned an identical rejected response; retry stopped.",
-                    details={"failed_response_hash": self._sha256(failed_response.raw_output)},
+                    details=repair_comparison,
                 )
             affected_function_id = diagnostics.details.get("affected_function_id")
             if isinstance(affected_function_id, str) and affected_function_id:
@@ -5727,6 +5767,52 @@ class ProjectService:
             "fallback_chain": [model] if model else [],
         }
 
+    def _content_repair_count(self, request: Any) -> int:
+        repair_fields = (
+            "schema_repair_of_raw_output",
+            "plan_repair_context",
+            "geometry_body_diagnostics",
+            "contract_diagnostics",
+            "compiler_diagnostics",
+        )
+        return int(any(getattr(request, field, None) not in (None, "", {}, []) for field in repair_fields))
+
+    def _reject_unchanged_repair(
+        self,
+        *,
+        attempt: GenerationAttempt,
+        workflow_run: WorkflowRun | None,
+        stage: str,
+        original: str | None,
+        repaired: str,
+        failure_class: FailureClass,
+        error_message: str = "Repair returned no semantic change.",
+    ) -> bool:
+        if original is None:
+            return False
+        comparison = compare_repair_responses(original, repaired)
+        if not comparison["unchanged"]:
+            return False
+        self._finish_generation_attempt(
+            attempt,
+            status="failed",
+            failure_class=failure_class,
+            error_message=error_message,
+        )
+        self._record_workflow_event(
+            workflow_run,
+            stage=stage,
+            event_type="repair.no_effect",
+            severity="error",
+            blocking=True,
+            rule_id="repair.no_effect",
+            message="Repair returned an unchanged response; repair stopped.",
+            deduplication_key=f"repair-no-effect-{stage}-{attempt.id}",
+            generation_attempt_id=attempt.id,
+            metadata=comparison,
+        )
+        return True
+
     def _start_generation_attempt(
         self,
         *,
@@ -5741,6 +5827,7 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
+            content_repair_count=self._content_repair_count(request),
             provider_id=self._provider_name(),
             model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
@@ -5800,6 +5887,16 @@ class ProjectService:
             stored_routing = json.loads(attempt.routing_metadata_json or "{}")
             stored_routing.update(result_routing)
             attempt.routing_metadata_json = json.dumps(stored_routing, sort_keys=True)
+            attempt.provider_call_count = max(
+                1,
+                int(result_routing.get("provider_call_count", 1) or 1),
+            )
+            attempt.provider_retry_count = max(
+                0,
+                int(result_routing.get("provider_retry_count", 0) or 0),
+            )
+        else:
+            attempt.provider_call_count = max(1, attempt.provider_call_count)
         attempt.provider_latency_ms = getattr(generation_result, "provider_latency_ms", None)
         attempt.raw_output_path = self._relative(raw_output_path)
         attempt.output_hash = self._sha256(generation_result.raw_output)
@@ -5859,6 +5956,7 @@ class ProjectService:
         *,
         project: Project,
         request: RequirementExtractionRequest,
+        workflow_run: WorkflowRun | None = None,
         superseded_specification_id: str | None = None,
     ) -> DesignSpecificationRead:
         attempt = self._start_requirement_attempt(project=project, request=request)
@@ -5878,6 +5976,31 @@ class ProjectService:
             raise
 
         self._record_generation_result(attempt, extraction_result)
+        if request.schema_repair_of_raw_output is not None:
+            repair_comparison = compare_repair_responses(
+                request.schema_repair_of_raw_output,
+                extraction_result.raw_output,
+            )
+            if repair_comparison["unchanged"]:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=FailureClass.DESIGN_SPEC_INVALID,
+                    error_message="Requirement repair returned no semantic change.",
+                )
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="requirements",
+                    event_type="repair.no_effect",
+                    severity="error",
+                    blocking=True,
+                    rule_id="repair.no_effect",
+                    message="Requirement repair returned an unchanged response; repair stopped.",
+                    deduplication_key=f"requirement-repair-no-effect-{attempt.id}",
+                    generation_attempt_id=attempt.id,
+                    metadata=repair_comparison,
+                )
+                raise RuntimeError("requirement repair returned no semantic change")
         try:
             parsed_payload = self._parse_design_specification_payload(
                 extraction_result.raw_output,
@@ -5907,6 +6030,7 @@ class ProjectService:
             return await self._run_requirement_extraction(
                 project=project,
                 request=repair_request,
+                workflow_run=workflow_run,
                 superseded_specification_id=superseded_specification_id,
             )
         inventory = build_explicit_requirement_inventory(request.user_instruction)
@@ -5999,6 +6123,31 @@ class ProjectService:
             raise
 
         self._record_generation_result(attempt, planning_result)
+        if request.schema_repair_of_raw_output is not None:
+            repair_comparison = compare_repair_responses(
+                request.schema_repair_of_raw_output,
+                planning_result.raw_output,
+            )
+            if repair_comparison["unchanged"]:
+                self._finish_generation_attempt(
+                    attempt,
+                    status="failed",
+                    failure_class=FailureClass.DESIGN_PLAN_INVALID,
+                    error_message="Plan repair returned no semantic change.",
+                )
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="planning",
+                    event_type="repair.no_effect",
+                    severity="error",
+                    blocking=True,
+                    rule_id="repair.no_effect",
+                    message="Plan repair returned an unchanged response; repair stopped.",
+                    deduplication_key=f"plan-repair-no-effect-{attempt.id}",
+                    generation_attempt_id=attempt.id,
+                    metadata=repair_comparison,
+                )
+                raise RuntimeError("plan repair returned no semantic change")
         try:
             parsed_payload = self._parse_design_plan_payload(
                 planning_result.raw_output,
@@ -6201,6 +6350,15 @@ class ProjectService:
             raise
 
         self._record_generation_result(attempt, planning_result)
+        if self._reject_unchanged_repair(
+            attempt=attempt,
+            workflow_run=workflow_run,
+            stage="revision_planning",
+            original=request.schema_repair_of_raw_output,
+            repaired=planning_result.raw_output,
+            failure_class=FailureClass.REVISION_REGRESSION,
+        ):
+            raise RuntimeError("Revision Plan repair returned no semantic change")
         self._record_workflow_artifact(
             workflow_run,
             stage="revision_planning",
@@ -6316,6 +6474,7 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=base_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
+            content_repair_count=self._content_repair_count(request),
             provider_id=self._provider_name(),
             model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
@@ -6366,6 +6525,7 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
+            content_repair_count=self._content_repair_count(request),
             provider_id=self._provider_name(),
             model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),
@@ -6412,6 +6572,7 @@ class ProjectService:
             project_id=project.id,
             base_revision_id=project.active_revision_id,
             attempt_number=self._next_generation_attempt_number(project.id),
+            content_repair_count=self._content_repair_count(request),
             provider_id=self._provider_name(),
             model_id=routing.get("selected_model") or self._provider_model(),
             provider_settings_json=json.dumps(self._provider_settings(), sort_keys=True),

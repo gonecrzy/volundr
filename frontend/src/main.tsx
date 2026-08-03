@@ -132,12 +132,24 @@ const GEOMETRY_BODY_FAILURE_PREFIXES = [
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_CHAT_FIRST?: string;
   VITE_BUILD_ID?: string;
+  VITE_BUILD_SHA?: string;
+  VITE_BUILD_TIMESTAMP?: string;
+  VITE_BUILD_DIRTY?: string;
+  VITE_BUILD_RELEASE_LABEL?: string;
 };
 const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
 const ADVANCED_WORKFLOW_ENABLED = true;
 const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
 const STAGED_WORKFLOW_ENABLED = !CHAT_FIRST_ENABLED;
 const FRONTEND_BUILD_ID = FRONTEND_ENV.VITE_BUILD_ID ?? "frontend-dev";
+const FRONTEND_BUILD_IDENTITY = JSON.stringify({
+  component: "frontend",
+  git_sha: FRONTEND_ENV.VITE_BUILD_SHA ?? (FRONTEND_BUILD_ID === "frontend-dev" ? "unknown" : FRONTEND_BUILD_ID),
+  dirty: FRONTEND_ENV.VITE_BUILD_DIRTY === undefined ? null : FRONTEND_ENV.VITE_BUILD_DIRTY === "true",
+  build_timestamp: FRONTEND_ENV.VITE_BUILD_TIMESTAMP ?? null,
+  release_label: FRONTEND_ENV.VITE_BUILD_RELEASE_LABEL ?? null,
+  identity: FRONTEND_BUILD_ID,
+});
 let currentFrontendDebugBatchId: string | null = null;
 
 function recordDebugBatchFrontendEvent(event: Record<string, unknown>) {
@@ -2768,7 +2780,7 @@ function App() {
           frozenBatches={frozenDebugBatches}
           report={debugBatchReport}
           comparison={debugBatchComparison}
-          frontendBuildIdentity={FRONTEND_BUILD_ID}
+          frontendBuildIdentity={FRONTEND_BUILD_IDENTITY}
           onStart={startDebugBatch}
           onFinish={finishDebugBatch}
           onViewBatch={viewDebugBatch}
@@ -2839,7 +2851,7 @@ function App() {
         frozenBatches={frozenDebugBatches}
         report={debugBatchReport}
         comparison={debugBatchComparison}
-        frontendBuildIdentity={FRONTEND_BUILD_ID}
+        frontendBuildIdentity={FRONTEND_BUILD_IDENTITY}
         onStart={startDebugBatch}
         onFinish={finishDebugBatch}
         onViewBatch={viewDebugBatch}

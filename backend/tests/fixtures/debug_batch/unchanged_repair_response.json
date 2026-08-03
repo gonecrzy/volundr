@@ -1,0 +1,23 @@
+{
+  "fixture_id": "batch2-organizer-unchanged-repair",
+  "source": {
+    "batch_id": "1ec92524-0401-40a2-a0e1-077cb8c52f57",
+    "project_position": 2,
+    "attempt": 5,
+    "stage": "contract_repair"
+  },
+  "minimal_context": {
+    "repair_rule": "repair.no_effect",
+    "original_response_hash": "fixture-derived"
+  },
+  "raw_provider_response": "{\"source\":\"return _ai_feature_base_body(body, params)\"}",
+  "repaired_provider_response": "{\"source\":\"return _ai_feature_base_body(body, params)\"}",
+  "expected": {
+    "parse_result": "json_object",
+    "normalization": "reject_unchanged_repair",
+    "finding": "repair.no_effect",
+    "blocking": true,
+    "repair_eligible": false,
+    "final_classification": "provider_content_failure"
+  }
+}

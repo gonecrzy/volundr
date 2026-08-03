@@ -97,6 +97,8 @@ class GeminiApiProvider(GeminiCliProvider):
 
         self._last_usage_metadata = None
         self._last_provider_request_id = None
+        self._last_provider_call_count = 0
+        self._last_provider_retry_count = 0
 
         generation_config: dict[str, Any] = {
             "temperature": self.temperature,
@@ -122,6 +124,9 @@ class GeminiApiProvider(GeminiCliProvider):
             transport=self._transport,
         ) as client:
             for attempt in range(max(0, self.max_retries) + 1):
+                self._last_provider_call_count += 1
+                if attempt > 0:
+                    self._last_provider_retry_count += 1
                 try:
                     response = await asyncio.wait_for(
                         client.post(

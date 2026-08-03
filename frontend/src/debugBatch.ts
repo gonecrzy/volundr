@@ -27,6 +27,13 @@ export type DebugBatchMembership = {
   current_working_revision_id: string | null;
   attempt_count: number;
   retry_count: number;
+  provider_call_count: number;
+  provider_retry_count: number;
+  content_repair_count: number;
+  generation_attempt_count: number;
+  workflow_stage_attempt_count: number;
+  user_operation_count: number;
+  outcome_category: string;
   final_outcome: string;
 };
 
@@ -74,6 +81,7 @@ export type DebugBatchComparison = {
   status: string;
   identity_match: boolean;
   mismatches: Record<string, Record<string, unknown>>;
+  identity_evidence: Record<string, unknown>;
   project_comparisons: Array<Record<string, unknown>>;
 };
 
@@ -115,6 +123,9 @@ const OUTCOME_LABELS: Record<string, string> = {
   in_progress: "In progress",
   waiting_for_clarification: "Waiting for clarification",
   working_version_created: "Working version created",
+  accepted: "Accepted",
+  accepted_with_warnings: "Accepted with warnings",
+  candidate_created: "Candidate created",
   blocked_before_worker: "Blocked before worker",
   blocked_after_worker: "Blocked after worker",
   interrupted: "Interrupted",

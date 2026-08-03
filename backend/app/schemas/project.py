@@ -128,6 +128,9 @@ class GenerationAttemptEvidenceRead(BaseModel):
 
     attempt_id: str
     attempt_number: int
+    provider_call_count: int
+    provider_retry_count: int
+    content_repair_count: int
     provider: str
     model: str | None
     status: str

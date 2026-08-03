@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -37,6 +37,8 @@ class DebugBatch(Base):
     frontend_build_identity: Mapped[str] = mapped_column(String(160), nullable=False)
     backend_build_identity: Mapped[str] = mapped_column(String(160), nullable=False)
     worker_build_identity: Mapped[str] = mapped_column(String(160), nullable=False)
+    build_identities_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    identity_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     provider: Mapped[str] = mapped_column(String(80), nullable=False)
     configured_default_model: Mapped[str] = mapped_column(String(160), nullable=False)
     stage_model_policy_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")

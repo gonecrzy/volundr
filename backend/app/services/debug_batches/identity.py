@@ -23,6 +23,8 @@ class BatchIdentity:
     frontend_build_identity: str
     backend_build_identity: str
     worker_build_identity: str
+    build_identities: dict[str, dict[str, Any]]
+    identity_complete: bool
     provider: str
     configured_default_model: str
     stage_model_policy: dict[str, Any]
@@ -31,19 +33,41 @@ class BatchIdentity:
     configuration_hash: str
 
 
-def _git_value(data_dir: Path, *args: str) -> str:
-    configured_name = "application_commit" if args == ("rev-parse", "HEAD") else "application_branch"
-    configured = getattr(settings, configured_name, None)
-    if configured:
-        return str(configured)
+def _git_command(data_dir: Path, *args: str) -> str | None:
     cwd = data_dir.parent if data_dir.name == "data" else Path.cwd()
     try:
         result = subprocess.run(
             ["git", *args], cwd=cwd, check=False, capture_output=True, text=True, timeout=1
         )
     except (OSError, subprocess.SubprocessError):
-        return "unknown"
-    return result.stdout.strip() or "unknown"
+        return None
+    value = result.stdout.strip()
+    return value or None
+
+
+def _git_value(data_dir: Path, *args: str) -> str:
+    if args == ("rev-parse", "HEAD"):
+        configured = getattr(settings, "build_git_sha", None)
+    else:
+        configured = getattr(settings, "build_branch", None)
+    return str(configured or _git_command(data_dir, *args) or "unknown")
+
+
+def _git_dirty(data_dir: Path) -> bool | None:
+    configured = getattr(settings, "build_dirty", None)
+    if configured is not None:
+        return bool(configured)
+    status = _git_command(data_dir, "status", "--porcelain")
+    if status is None:
+        return None
+    return bool(status)
+
+
+def _git_timestamp(data_dir: Path) -> str | None:
+    configured = getattr(settings, "build_timestamp", None)
+    if configured:
+        return str(configured)
+    return _git_command(data_dir, "show", "-s", "--format=%cI", "HEAD")
 
 
 def _migration_head(db: Session) -> str:
@@ -59,6 +83,59 @@ def _application_version() -> str:
         return version("volundr-backend")
     except PackageNotFoundError:
         return "volundr-backend-0.1.0"
+
+
+def _frontend_identity(value: str, *, default_timestamp: str | None, default_dirty: bool | None) -> dict[str, Any]:
+    try:
+        parsed = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        parsed = {}
+    if not isinstance(parsed, dict):
+        parsed = {}
+    git_sha = str(parsed.get("git_sha") or "unknown")
+    if git_sha == "unknown" and value and value not in {"frontend-dev", "unknown"}:
+        candidate = value.strip()
+        if len(candidate) >= 7 and all(character in "0123456789abcdefABCDEF" for character in candidate):
+            git_sha = candidate
+    identity_label = parsed.get("identity")
+    if not isinstance(identity_label, str) or not identity_label.isprintable() or len(identity_label) > 160:
+        identity_label = "provided"
+    return {
+        "component": "frontend",
+        "git_sha": git_sha,
+        "dirty": parsed.get("dirty", default_dirty),
+        "build_timestamp": parsed.get("build_timestamp") or default_timestamp,
+        "release_label": parsed.get("release_label"),
+        "identity": identity_label,
+    }
+
+
+def _component_identity(
+    component: str,
+    *,
+    git_sha: str,
+    dirty: bool | None,
+    build_timestamp: str | None,
+    branch: str,
+    application_version: str,
+) -> dict[str, Any]:
+    return {
+        "component": component,
+        "git_sha": git_sha,
+        "dirty": dirty,
+        "build_timestamp": build_timestamp,
+        "branch": branch,
+        "application_version": application_version,
+        "release_label": getattr(settings, "build_release_label", None),
+    }
+
+
+def _identity_is_complete(identity: dict[str, Any]) -> bool:
+    return (
+        identity.get("git_sha") not in {None, "", "unknown"}
+        and identity.get("dirty") is not None
+        and identity.get("build_timestamp") not in {None, "", "unknown"}
+    )
 
 
 def capture_batch_identity(
@@ -105,15 +182,47 @@ def capture_batch_identity(
     configuration_hash = hashlib.sha256(
         json.dumps(safe_configuration, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
+
     git_head = _git_value(data_dir, "rev-parse", "HEAD")
+    branch = _git_value(data_dir, "branch", "--show-current")
+    dirty = _git_dirty(data_dir)
+    build_timestamp = _git_timestamp(data_dir)
+    application_version = _application_version()
+    backend = _component_identity(
+        "backend",
+        git_sha=git_head,
+        dirty=dirty,
+        build_timestamp=build_timestamp,
+        branch=branch,
+        application_version=application_version,
+    )
+    frontend = _frontend_identity(
+        frontend_build_identity,
+        default_timestamp=build_timestamp,
+        default_dirty=dirty,
+    )
+    worker = _component_identity(
+        "worker",
+        git_sha=str(getattr(settings, "worker_build_git_sha", None) or git_head),
+        dirty=getattr(settings, "worker_build_dirty", None) if getattr(settings, "worker_build_dirty", None) is not None else dirty,
+        build_timestamp=str(getattr(settings, "worker_build_timestamp", None) or build_timestamp or "") or None,
+        branch=branch,
+        application_version="cad-worker-v1",
+    )
+    build_identities = {"backend": backend, "frontend": frontend, "worker": worker}
+    identity_complete = all(_identity_is_complete(identity) for identity in build_identities.values())
+
+    safe_frontend_identity = json.dumps(frontend, sort_keys=True)
     return BatchIdentity(
         git_head=git_head,
-        branch=_git_value(data_dir, "branch", "--show-current"),
+        branch=branch,
         migration_head=_migration_head(db),
-        application_version=_application_version(),
-        frontend_build_identity=frontend_build_identity,
-        backend_build_identity=getattr(settings, "application_commit", None) or git_head,
-        worker_build_identity="cad-worker-v1",
+        application_version=application_version,
+        frontend_build_identity=safe_frontend_identity,
+        backend_build_identity=json.dumps(backend, sort_keys=True),
+        worker_build_identity=json.dumps(worker, sort_keys=True),
+        build_identities=build_identities,
+        identity_complete=identity_complete,
         provider=settings.ai_provider,
         configured_default_model=policy.general_model,
         stage_model_policy=stage_model_policy,

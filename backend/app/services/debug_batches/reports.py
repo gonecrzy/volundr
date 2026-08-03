@@ -17,6 +17,7 @@ from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
 from app.models.project_message import ProjectMessage
 from app.models.revision import Revision
+from app.models.revision_output import RevisionOutput
 from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.workflow.redaction import RedactionService
 
@@ -66,6 +67,7 @@ class DebugBatchReportService:
             "schema_version": "debug-batch-redaction-v1",
             "redaction_version": self.redactor.version,
             "fields_replaced": [],
+            "normalization_findings": [],
             "status": "confirmed",
         }
         project_summaries: list[dict[str, Any]] = []
@@ -95,6 +97,7 @@ class DebugBatchReportService:
             "membership_count": len(memberships),
         }
         self._write_json(root / "session.json", session_payload, redaction)
+        integrity["findings"].extend(redaction.get("normalization_findings", []))
 
         outcomes = Counter(summary["final_outcome"] for summary in project_summaries)
         report = {
@@ -123,14 +126,14 @@ class DebugBatchReportService:
         self._write_json(root / "redaction-report.json", redaction, redaction)
         self._write_json(root / "integrity-report.json", integrity, redaction)
 
-        batch.report_path = str(root / "report.md")
+        batch.report_path = str(root.relative_to(self.data_dir) / "report.md")
         batch.report_generation_state = "generated"
         batch.redaction_status = "confirmed"
         batch.integrity_status = "findings" if integrity["findings"] else "confirmed"
         self.db.commit()
         return {
             "root_path": str(root),
-            "report_path": str(root / "report.md"),
+            "report_path": str((root / "report.md").relative_to(self.data_dir)),
             "report": report,
             "integrity": integrity,
             "redaction": redaction,
@@ -223,6 +226,14 @@ class DebugBatchReportService:
                 .order_by(Revision.revision_number.asc(), Revision.id.asc())
             )
         )
+        revision_outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .join(Revision, RevisionOutput.revision_id == Revision.id)
+                .where(Revision.project_id == project.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.id.asc())
+            )
+        )
         exports = list(
             self.db.scalars(
                 select(ExportRecord)
@@ -250,7 +261,40 @@ class DebugBatchReportService:
             )
 
         active_workflow = next((workflow for workflow in reversed(workflows) if workflow.status == "running"), None)
-        final_outcome = self._outcome(project, workflows, events, attempts)
+        outcome_category = self._outcome_category(
+            project,
+            workflows,
+            events,
+            attempts,
+            revisions,
+            revision_outputs,
+        )
+        final_outcome = self._outcome_label(outcome_category)
+        provider_call_count = sum(attempt.provider_call_count for attempt in attempts)
+        provider_retry_count = sum(attempt.provider_retry_count for attempt in attempts)
+        content_repair_count = sum(attempt.content_repair_count for attempt in attempts)
+        workflow_stage_attempt_count = len(
+            {(event.stage, event.generation_attempt_id) for event in events}
+        )
+        user_operation_count = sum(message.role == "user" for message in messages)
+        planning_completed = any(
+            event.stage in {"planning", "revision_planning"}
+            and not event.blocking
+            and ("completed" in event.event_type or "succeeded" in event.event_type or "generated" in event.event_type)
+            for event in events
+        )
+        source_contract_passed = any(
+            event.event_type == "source_contract.passed" and not event.blocking for event in events
+        )
+        geometry_generated = bool(revision_outputs)
+        valid_revision_ids = {
+            revision.id
+            for revision in revisions
+            if revision.status == "succeeded"
+            and (outputs := [output for output in revision_outputs if output.revision_id == revision.id])
+            and all(self._output_is_valid(output) for output in outputs)
+        }
+        valid_geometry_produced = bool(valid_revision_ids)
         summary = {
             "project_id": project.id,
             "project_name": project.name,
@@ -262,8 +306,23 @@ class DebugBatchReportService:
             "route": self._route(events),
             "worker_reached": any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events),
             "attempt_count": len(attempts),
-            "retry_count": max(0, len(attempts) - 1),
+            "retry_count": provider_retry_count,
+            "provider_call_count": provider_call_count,
+            "provider_retry_count": provider_retry_count,
+            "content_repair_count": content_repair_count,
+            "generation_attempt_count": len(attempts),
+            "workflow_stage_attempt_count": workflow_stage_attempt_count,
+            "user_operation_count": user_operation_count,
+            "outcome_category": outcome_category,
             "final_outcome": final_outcome,
+            "planning_completed": planning_completed,
+            "geometry_generated": geometry_generated,
+            "source_contract_passed": source_contract_passed,
+            "valid_geometry_produced": valid_geometry_produced,
+            "clarifications_requested": any("clarif" in event.stage or "clarif" in event.event_type for event in events),
+            "snapshot_count": sum("snapshot" in artifact.artifact_type.lower() for artifact in artifacts),
+            "export_count": len(exports),
+            "current_working_version_promoted": bool(project.active_revision_id),
             "findings": [
                 {"category": event.stage, "event_type": event.event_type, "message": event.message}
                 for event in events
@@ -304,7 +363,19 @@ class DebugBatchReportService:
         destination.parent.mkdir(parents=True, exist_ok=True)
         if source.suffix.lower() in TEXT_SUFFIXES:
             text = source.read_text(encoding="utf-8", errors="replace")
-            redacted_text, replacements = self.redactor.redact_text(text)
+            if "source" in artifact.artifact_type.lower() and "worker" not in artifact.artifact_type.lower():
+                redacted_text, replacements = self.redactor.redact_text(text)
+            else:
+                redacted_text, path_findings = self.redactor.normalize_evidence_text(
+                    text,
+                    data_root=self.data_dir,
+                    evidence_root=project_root.parent.parent,
+                    registered_paths={
+                        str(source): {"artifact_id": artifact.id, "relative_path": source.name}
+                    },
+                )
+                replacements = []
+                self._record_normalization_findings(redaction, path_findings)
             if replacements:
                 redaction["fields_replaced"].append(
                     {"artifact_id": artifact.id, "artifact_type": artifact.artifact_type, "patterns": replacements}
@@ -325,22 +396,72 @@ class DebugBatchReportService:
             return "planning"
         return "findings"
 
-    def _outcome(
+    def _outcome_category(
         self,
         project: Project,
         workflows: list[WorkflowRun],
         events: list[WorkflowEvent],
         attempts: list[GenerationAttempt],
+        revisions: list[Revision],
+        revision_outputs: list[RevisionOutput],
     ) -> str:
         if any(workflow.status == "running" for workflow in workflows):
-            return "In progress"
-        if project.active_revision_id:
-            return "Working version created"
+            return "in_progress"
+        accepted = next((revision for revision in revisions if revision.id == project.active_revision_id), None)
+        if accepted is not None and accepted.is_accepted:
+            return "accepted"
+        valid_revision_ids: set[str] = set()
+        for revision in revisions:
+            outputs = [output for output in revision_outputs if output.revision_id == revision.id]
+            if revision.status != "succeeded" or not outputs:
+                continue
+            if all(self._output_is_valid(output) for output in outputs):
+                valid_revision_ids.add(revision.id)
+        if valid_revision_ids:
+            return "accepted_with_warnings" if any(event.blocking for event in events) else "candidate_created"
+        worker_reached = any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events)
+        if worker_reached:
+            if any(event.blocking and event.stage == "topology_validation" for event in events):
+                return "post_worker_topology_block"
+            if any(event.blocking and event.stage in {"candidate_classification", "verification"} for event in events):
+                return "post_worker_verification_block"
+            if any(event.blocking and event.stage in {"cad_execution", "worker"} for event in events):
+                return "worker_runtime_failure"
+            return "worker_completed_without_valid_geometry"
+        if any(attempt.status in {"failed", "blocked"} for attempt in attempts):
+            if any(attempt.raw_output_path for attempt in attempts):
+                return "provider_content_failure"
+            return "provider_transport_failure"
         if any(event.blocking and event.stage in {"requirements", "clarification"} for event in events):
-            return "Blocked before worker"
-        if any(event.blocking for event in events) or any(attempt.status in {"failed", "blocked"} for attempt in attempts):
-            return "Blocked after worker" if any(event.stage in {"cad_execution", "worker"} for event in events) else "Blocked before worker"
-        return "Not started"
+            return "blocked_before_provider"
+        return "not_started"
+
+    def _output_is_valid(self, output: RevisionOutput) -> bool:
+        if output.execution_state != "succeeded" or not output.stl_path:
+            return False
+        if not output.topology_metadata_json:
+            return True
+        try:
+            topology = json.loads(output.topology_metadata_json)
+        except json.JSONDecodeError:
+            return False
+        return topology.get("valid", True) is not False
+
+    def _outcome_label(self, category: str) -> str:
+        return {
+            "in_progress": "In progress",
+            "accepted": "Accepted",
+            "accepted_with_warnings": "Accepted with warnings",
+            "candidate_created": "Candidate created",
+            "post_worker_topology_block": "Blocked after worker",
+            "post_worker_verification_block": "Blocked after worker",
+            "worker_runtime_failure": "Blocked after worker",
+            "worker_completed_without_valid_geometry": "Blocked after worker",
+            "provider_content_failure": "Blocked before worker",
+            "provider_transport_failure": "Blocked before worker",
+            "blocked_before_provider": "Blocked before provider",
+            "not_started": "Not started",
+        }.get(category, "Integrity failure")
 
     def _route(self, events: list[WorkflowEvent]) -> str | None:
         for event in events:
@@ -354,19 +475,28 @@ class DebugBatchReportService:
         return {
             "projects_created": len(summaries),
             "requirements_completed": sum(bool(item.get("workflow_ids")) for item in summaries),
-            "clarifications_requested": 0,
-            "planning_completed": sum(bool(item.get("current_working_revision_id")) for item in summaries),
-            "geometry_generated": sum(bool(item.get("current_working_revision_id")) for item in summaries),
-            "source_contract_passed": 0,
+            "clarifications_requested": sum(bool(item.get("clarifications_requested")) for item in summaries),
+            "planning_completed": sum(bool(item.get("planning_completed")) for item in summaries),
+            "geometry_generated": sum(bool(item.get("geometry_generated")) for item in summaries),
+            "source_contract_passed": sum(bool(item.get("source_contract_passed")) for item in summaries),
             "worker_reached": sum(bool(item.get("worker_reached")) for item in summaries),
-            "valid_geometry_produced": sum(item.get("final_outcome") == "Working version created" for item in summaries),
-            "snapshots_produced": 0,
-            "current_working_version_promoted": sum(bool(item.get("current_working_revision_id")) for item in summaries),
-            "exports_created": 0,
+            "valid_geometry_produced": sum(bool(item.get("valid_geometry_produced")) for item in summaries),
+            "snapshots_produced": sum(item.get("snapshot_count", 0) > 0 for item in summaries),
+            "current_working_version_promoted": sum(bool(item.get("current_working_version_promoted")) for item in summaries),
+            "exports_created": sum(item.get("export_count", 0) > 0 for item in summaries),
         }
 
     def _provider_behavior(self, summaries: list[dict[str, Any]]) -> dict[str, Any]:
-        return {"project_count": len(summaries), "calls_by_stage": {}, "retries": sum(item.get("retry_count", 0) for item in summaries)}
+        return {
+            "project_count": len(summaries),
+            "calls_by_stage": {},
+            "provider_calls": sum(item.get("provider_call_count", 0) for item in summaries),
+            "provider_retries": sum(item.get("provider_retry_count", 0) for item in summaries),
+            "content_repairs": sum(item.get("content_repair_count", 0) for item in summaries),
+            "generation_attempts": sum(item.get("generation_attempt_count", 0) for item in summaries),
+            "workflow_stage_attempts": sum(item.get("workflow_stage_attempt_count", 0) for item in summaries),
+            "user_operations": sum(item.get("user_operation_count", 0) for item in summaries),
+        }
 
     def _user_facing_behavior(self, summaries: list[dict[str, Any]]) -> dict[str, Any]:
         return {"duplicate_messages": 0, "missing_assistant_outcomes": 0, "frontend_errors": 0}
@@ -424,15 +554,41 @@ safety from geometry success.
 """
 
     def _write_json(self, path: Path, payload: Any, redaction: dict[str, Any]) -> None:
-        redacted = self.redactor._redact_value(payload)
+        redacted, path_findings = self.redactor.redact_evidence_value(
+            payload,
+            data_root=self.data_dir,
+            evidence_root=self._batch_root(path),
+        )
+        self._record_normalization_findings(redaction, path_findings)
         self.redactor.assert_json_redacted(redacted)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(redacted, sort_keys=True, indent=2, default=str) + "\n", encoding="utf-8")
 
     def _write_text(self, path: Path, value: str, redaction: dict[str, Any]) -> None:
         redacted, replacements = self.redactor.redact_text(value)
+        redacted, path_findings = self.redactor.normalize_evidence_text(
+            redacted,
+            data_root=self.data_dir,
+            evidence_root=self._batch_root(path),
+        )
+        self._record_normalization_findings(redaction, path_findings)
         if replacements:
             redaction["fields_replaced"].append({"path": str(path.name), "patterns": replacements})
         self.redactor.assert_text_redacted(redacted)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(redacted, encoding="utf-8")
+
+    def _record_normalization_findings(
+        self,
+        redaction: dict[str, Any],
+        findings: list[dict[str, Any]],
+    ) -> None:
+        for finding in findings:
+            redaction.setdefault("normalization_findings", []).append(dict(finding))
+
+    def _batch_root(self, path: Path) -> Path:
+        for parent in path.parents:
+            if parent.name == "debug-sessions":
+                relative = path.relative_to(parent)
+                return parent / relative.parts[0]
+        return path.parent

@@ -14,7 +14,15 @@ export function debugBatchBannerText(batch: DebugBatch): string {
 }
 
 export function debugBatchComparisonLabel(status: string | null | undefined): string {
-  return status === "controlled" ? "Controlled comparison" : "Uncontrolled comparison";
+  return {
+    controlled: "Controlled comparison",
+    uncontrolled: "Uncontrolled comparison",
+    configuration_mismatch: "Uncontrolled comparison · configuration mismatch",
+    identity_incomplete: "Uncontrolled comparison · identity incomplete",
+    pending_identity: "Comparison pending identity",
+    pending: "Comparison pending",
+    not_applicable: "No comparison",
+  }[status ?? "uncontrolled"] ?? "Uncontrolled comparison";
 }
 
 type Props = {
@@ -52,6 +60,7 @@ export function DebugBatchView({
   const [error, setError] = useState<string | null>(null);
   const displayedBatch = report?.batch ?? activeBatch;
   const isComplete = displayedBatch?.state === "frozen";
+  const authoritativeComparisonStatus = comparison?.status ?? displayedBatch?.comparison_status;
 
   const resetStartForm = (baseline?: string) => {
     setLabel(baseline ? "" : "");
@@ -144,7 +153,7 @@ export function DebugBatchView({
         <div className="drawer-backdrop debug-batch-overlay" role="presentation" onClick={() => setDialog(null)}>
           <aside className="project-drawer debug-batch-drawer" aria-label="Debug batch" onClick={(event) => event.stopPropagation()}>
             <div className="drawer-heading"><div><h2>{displayedBatch.label}</h2><p>{displayedBatch.notes || "Live debug batch"}</p></div><button className="text-action" type="button" onClick={() => setDialog(null)}>Close</button></div>
-            <dl className="review-facts compact"><dt>Provider / model</dt><dd>{displayedBatch.provider} / {displayedBatch.configured_default_model}</dd><dt>Git</dt><dd>{displayedBatch.git_head.slice(0, 8)}</dd><dt>Projects</dt><dd>{debugBatchProjectCount(displayedBatch)} of {displayedBatch.target_project_count}</dd>{displayedBatch.baseline_batch_id ? <><dt>Baseline</dt><dd>{displayedBatch.baseline_batch_id}</dd><dt>Comparison</dt><dd>{debugBatchComparisonLabel(displayedBatch.comparison_status)}</dd></> : null}</dl>
+            <dl className="review-facts compact"><dt>Provider / model</dt><dd>{displayedBatch.provider} / {displayedBatch.configured_default_model}</dd><dt>Git</dt><dd>{displayedBatch.git_head.slice(0, 8)}</dd><dt>Projects</dt><dd>{debugBatchProjectCount(displayedBatch)} of {displayedBatch.target_project_count}</dd>{displayedBatch.baseline_batch_id ? <><dt>Baseline</dt><dd>{displayedBatch.baseline_batch_id}</dd><dt>Comparison</dt><dd>{debugBatchComparisonLabel(authoritativeComparisonStatus)}</dd></> : null}</dl>
             <ol className="debug-batch-project-list">{displayedBatch.memberships.map((member) => <li key={member.project_id} className="debug-batch-project"><div><strong>{member.project_name || "Missing project"}</strong><small>{member.project_id.slice(0, 8)} · {debugBatchOutcomeLabel(member.final_outcome || member.workflow_phase)}</small></div><div className="debug-batch-project-meta"><span>Worker: {member.worker_reached ? "yes" : "no"}</span><span>Attempts: {member.attempt_count} · retries: {member.retry_count}</span><span>Current: {member.current_working_revision_id ? "created" : "none"}</span></div></li>)}</ol>
             {isComplete ? <div className="actions"><a className="download compact-action" href={`${"/api"}/debug-batches/${displayedBatch.id}/evidence.zip`}>Download redacted report</a><button className="secondary compact" type="button" onClick={startComparison}>Start comparison batch</button></div> : <button className="secondary full-width" type="button" onClick={() => setDialog("finish")}>Finish batch</button>}
           </aside>
@@ -167,10 +176,10 @@ export function DebugBatchView({
         <div className="drawer-backdrop debug-batch-overlay" role="presentation" onClick={() => setDialog(null)}>
           <section className="workspace-dialog debug-batch-result" role="dialog" aria-modal="true" aria-labelledby="debug-batch-result-title" onClick={(event) => event.stopPropagation()}>
             <h2 id="debug-batch-result-title">Debug batch complete</h2>
-            <p><strong>{report.batch.label}</strong> · {report.batch.memberships.length} projects · {debugBatchComparisonLabel(report.batch.comparison_status)}</p>
+            <p><strong>{report.batch.label}</strong> · {report.batch.memberships.length} projects · {debugBatchComparisonLabel(authoritativeComparisonStatus)}</p>
             <p>Redaction: {report.batch.redaction_status}. Integrity: {report.batch.integrity_status}.</p>
             <div className="actions"><button className="secondary" type="button" onClick={() => void openBatch()}>View summary</button><button className="secondary" type="button" onClick={() => navigator.clipboard?.writeText(report.batch.report_path || "data/debug-sessions/")}>Copy batch folder path</button><button className="secondary" type="button" onClick={() => navigator.clipboard?.writeText(report.codex_review_instruction || "Review the local redacted debug batch evidence.")}>Copy Codex review instruction</button><a className="download compact-action" href={`${"/api"}/debug-batches/${report.batch.id}/evidence.zip`}>Download redacted report</a><button className="primary" type="button" onClick={startComparison}>Start comparison batch</button></div>
-            {comparison ? <p role="status">{debugBatchComparisonLabel(comparison.status)} · {Object.keys(comparison.mismatches).length} identity mismatches.</p> : null}
+            {comparison ? <p role="status">{comparison.status === "controlled" ? `Matched identities: ${Object.keys(comparison.identity_evidence).length}.` : `Mismatches: ${Object.keys(comparison.mismatches).length}.`}</p> : null}
           </section>
         </div>
       ) : null}

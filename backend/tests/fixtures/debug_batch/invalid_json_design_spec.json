@@ -1,0 +1,22 @@
+{
+  "fixture_id": "batch2-carrier-design-spec-invalid",
+  "source": {
+    "batch_id": "1ec92524-0401-40a2-a0e1-077cb8c52f57",
+    "project_position": 0,
+    "attempt": 1,
+    "stage": "requirements"
+  },
+  "minimal_context": {
+    "schema": "design-specification-v1",
+    "response_shape": "object"
+  },
+  "raw_provider_response": "{\"assumptions\":[{\"description\":\"",
+  "expected": {
+    "parse_result": "invalid_json",
+    "normalization": "none",
+    "finding": "design_spec_invalid",
+    "blocking": true,
+    "repair_eligible": true,
+    "final_classification": "provider_content_failure"
+  }
+}

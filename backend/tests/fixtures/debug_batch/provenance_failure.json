@@ -1,0 +1,22 @@
+{
+  "fixture_id": "batch2-monitor-plan-provenance",
+  "source": {
+    "batch_id": "1ec92524-0401-40a2-a0e1-077cb8c52f57",
+    "project_position": 3,
+    "attempt": 3,
+    "stage": "planning"
+  },
+  "minimal_context": {
+    "protected_requirement_id": "req_vesa_pattern",
+    "provenance_rule": "known-authoritative-source-only"
+  },
+  "raw_provider_response": "{\"parameters\":[{\"id\":\"vesa_pattern\",\"provenance\":\"provider_guess\"}]}",
+  "expected": {
+    "parse_result": "json_object",
+    "normalization": "reject_ambiguous_provenance",
+    "finding": "plan_provenance_mismatch",
+    "blocking": true,
+    "repair_eligible": true,
+    "final_classification": "provider_content_failure"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "fixture_id": "batch2-screw-lid-source-contract",
+  "source": {
+    "batch_id": "1ec92524-0401-40a2-a0e1-077cb8c52f57",
+    "project_position": 4,
+    "attempt": 4,
+    "stage": "source_contract_validation"
+  },
+  "minimal_context": {
+    "protected_function": "build_component_body",
+    "contract_version": "cadquery-v1"
+  },
+  "raw_provider_response": "def build_component_body(params):\n    return circular_pattern_points(params)\n",
+  "expected": {
+    "parse_result": "python_source",
+    "normalization": "none",
+    "finding": "source_contract_hard_rejection",
+    "blocking": true,
+    "repair_eligible": true,
+    "final_classification": "provider_content_failure"
+  }
+}
