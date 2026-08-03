@@ -294,7 +294,7 @@ independent feature measurement.
 
 Primary observed blocker: the provider-to-contract boundary remains the
 dominant failure surface—15 responses failed before source assembly, and only
-4 of 24 initial cells reached the worker. However, the configured model showed
+8 of 24 initial cells reached the worker. However, the configured model showed
 clear benefit from the simplified brief while the stronger model did not
 produce usable simplified responses and did not dominate under the current
 contract. That is not enough evidence to claim a contract architecture winner
@@ -319,7 +319,7 @@ collection decision, not an implementation decision in this run.
 
 {_error_summary(attempts)}
 
-- The two successful configured simplified organizer cells and three total
+- The two successful configured simplified organizer cells and four total
   worker-successful simplified/current cells are evidence of reachability, not
   product acceptance; no normal revision was promoted.
 - The stronger model’s invalid ordered-function responses are a model/contract

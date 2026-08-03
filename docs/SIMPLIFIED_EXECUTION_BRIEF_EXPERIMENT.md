@@ -126,7 +126,7 @@ independent feature measurement.
 
 Primary observed blocker: the provider-to-contract boundary remains the
 dominant failure surface—15 responses failed before source assembly, and only
-4 of 24 initial cells reached the worker. However, the configured model showed
+8 of 24 initial cells reached the worker. However, the configured model showed
 clear benefit from the simplified brief while the stronger model did not
 produce usable simplified responses and did not dominate under the current
 contract. That is not enough evidence to claim a contract architecture winner
