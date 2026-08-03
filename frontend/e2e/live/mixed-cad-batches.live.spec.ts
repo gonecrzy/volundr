@@ -138,11 +138,16 @@ async function startBatch(page: Page, label: string, notes: string, baselineBatc
 async function openNextProject(page: Page, first: boolean) {
   if (first) {
     await page.goto("/");
-    return;
+    return null;
   }
   await page.goto("/");
   await page.getByRole("button", { name: "Projects", exact: true }).click();
+  const draftResponsePromise = page.waitForResponse(
+    (response) => response.url().endsWith("/api/projects/draft") && response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "New project", exact: true }).click();
+  const response = await draftResponsePromise;
+  return await response.json() as { id: string };
 }
 
 async function answerClarifications(page: Page, spec: ProjectSpec, batchId: string, screenshotTag: string, projectNumber: number) {
@@ -184,14 +189,16 @@ async function answerClarifications(page: Page, spec: ProjectSpec, batchId: stri
 }
 
 async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number, first: boolean) {
-  await openNextProject(page, first);
-  const draftResponsePromise = page.waitForResponse(
-    (response) => response.url().endsWith("/api/projects/draft") && response.request().method() === "POST",
-  );
+  const createdProject = await openNextProject(page, first);
+  const draftResponsePromise = first
+    ? page.waitForResponse(
+        (response) => response.url().endsWith("/api/projects/draft") && response.request().method() === "POST",
+      )
+    : null;
   await page.getByLabel("AI chat message").fill(spec.prompt);
   await screenshot(page, batchId, `${screenshotTag}-project-${String(projectNumber).padStart(2, "0")}-initial.png`);
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  const draft = await (await draftResponsePromise).json() as { id: string };
+  const draft = createdProject ?? await (await draftResponsePromise!).json() as { id: string };
 
   await answerClarifications(page, spec, batchId, screenshotTag, projectNumber);
   const outcome = await waitForWorkflowOutcome(page);
