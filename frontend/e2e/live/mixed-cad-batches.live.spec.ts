@@ -150,7 +150,7 @@ async function openNextProject(page: Page, first: boolean) {
   return await response.json() as { id: string };
 }
 
-async function answerClarifications(page: Page, spec: ProjectSpec, batchId: string, screenshotTag: string, projectNumber: number) {
+async function answerClarifications(page: Page, projectId: string, spec: ProjectSpec, batchId: string, screenshotTag: string, projectNumber: number) {
   for (let round = 0; round < 2; round += 1) {
     await expect.poll(async () => {
       const requirements = page.locator('[aria-label="Design requirements"]');
@@ -171,6 +171,8 @@ async function answerClarifications(page: Page, spec: ProjectSpec, batchId: stri
       await requirements.getByRole("button", { name: "Continue", exact: true }).click();
       await page.waitForTimeout(750);
       await screenshot(page, batchId, `${screenshotTag}-project-${String(projectNumber).padStart(2, "0")}-answer-${round + 1}.png`);
+      await waitForProjectRunSettled(page, projectId);
+      await page.reload();
       continue;
     }
 
@@ -182,10 +184,22 @@ async function answerClarifications(page: Page, spec: ProjectSpec, batchId: stri
       await answerButton.click();
       await page.waitForTimeout(750);
       await screenshot(page, batchId, `${screenshotTag}-project-${String(projectNumber).padStart(2, "0")}-answer-${round + 1}.png`);
+      await waitForProjectRunSettled(page, projectId);
+      await page.reload();
       continue;
     }
     break;
   }
+}
+
+async function waitForProjectRunSettled(page: Page, projectId: string) {
+  await expect.poll(async () => {
+    const response = await page.request.get(`/api/projects/${projectId}/workflow-runs`);
+    if (!response.ok()) return "waiting";
+    const runs = await response.json() as Array<{ status: string }>;
+    if (runs.length === 0 || runs.some((run) => ["running", "pending"].includes(run.status))) return "running";
+    return "settled";
+  }, { timeout: 300_000, intervals: [1_000, 2_000, 5_000] }).toBe("settled");
 }
 
 async function runProject(page: Page, batchId: string, screenshotTag: string, spec: ProjectSpec, projectNumber: number, first: boolean) {
@@ -200,7 +214,9 @@ async function runProject(page: Page, batchId: string, screenshotTag: string, sp
   await page.getByRole("button", { name: "Send", exact: true }).click();
   const draft = createdProject ?? await (await draftResponsePromise!).json() as { id: string };
 
-  await answerClarifications(page, spec, batchId, screenshotTag, projectNumber);
+  await waitForProjectRunSettled(page, draft.id);
+  await page.reload();
+  await answerClarifications(page, draft.id, spec, batchId, screenshotTag, projectNumber);
   const outcome = await waitForWorkflowOutcome(page);
   const accept = page.getByRole("button", { name: "Accept new version", exact: true });
   if (outcome === "candidate" && await accept.count() && await accept.isEnabled()) {
