@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  authoritativeBatchManifestProjects,
   debugBatchOutcomeLabel,
   normalizeDebugBatchStart,
   safeFrontendDebugEvent,
   type DebugBatchCapabilities,
 } from "./debugBatch";
-
 
 describe("debug batch contracts", () => {
   it("trims and validates start modal values", () => {
@@ -60,5 +60,21 @@ describe("debug batch contracts", () => {
       http_status: 502,
       project_id: "p-1",
     });
+  });
+
+  it("uses frozen report outcomes instead of preliminary revision heuristics", () => {
+    expect(
+      authoritativeBatchManifestProjects({
+        summary: {
+          projects: [
+            { project_id: "desktop", final_outcome: "Blocked after worker" },
+            { project_id: "holder", final_outcome: "Blocked before worker" },
+          ],
+        },
+      }),
+    ).toEqual([
+      { projectId: "desktop", outcome: "Blocked after worker" },
+      { projectId: "holder", outcome: "Blocked before worker" },
+    ]);
   });
 });

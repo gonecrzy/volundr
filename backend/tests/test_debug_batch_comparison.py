@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import Base
 from app.core.config import settings
+from app.models.project import Project
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.comparison import DebugBatchComparisonService
 from app.services.debug_batches.service import DebugBatchService
@@ -71,3 +72,31 @@ def test_identity_mismatch_is_uncontrolled(tmp_path, monkeypatch) -> None:
         assert comparison["status"] == "configuration_mismatch"
         assert comparison["identity_match"] is False
         assert comparison["mismatches"]["configuration_hash"]["candidate"] == "different"
+
+
+def test_comparison_materializes_authoritative_project_outcomes(tmp_path, monkeypatch) -> None:
+    _set_complete_backend_identities(monkeypatch)
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        service = DebugBatchService(db=session, data_dir=tmp_path)
+        baseline = service.start(DebugBatchStart(label="live-01", frontend_build_identity=COMPLETE_FRONTEND_IDENTITY))
+        baseline_project = Project(name="Baseline", slug="baseline", original_intent="Baseline")
+        session.add(baseline_project)
+        session.flush()
+        service.attach_new_project(baseline_project)
+        service.finish(baseline.id)
+
+        candidate = service.start(
+            DebugBatchStart(label="live-02", baseline_batch_id=baseline.id, frontend_build_identity=COMPLETE_FRONTEND_IDENTITY)
+        )
+        candidate_project = Project(name="Candidate", slug="candidate", original_intent="Candidate")
+        session.add(candidate_project)
+        session.flush()
+        service.attach_new_project(candidate_project)
+        service.finish(candidate.id)
+
+        comparison = DebugBatchComparisonService(db=session, data_dir=tmp_path).compare(candidate.id)
+
+        assert comparison["project_comparisons"][0]["baseline_final_outcome"] == "Not started"
+        assert comparison["project_comparisons"][0]["candidate_final_outcome"] == "Not started"

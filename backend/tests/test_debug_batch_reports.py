@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from app.db.base import Base
 from app.models.project import Project
 from app.models.generation_attempt import GenerationAttempt
-from app.models.workflow import WorkflowArtifact, WorkflowRun
+from app.models.revision import Revision
+from app.models.revision_output import RevisionOutput
+from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.reports import DebugBatchReportService
 from app.services.debug_batches.service import DebugBatchService
@@ -155,3 +157,74 @@ def test_report_does_not_call_terminal_workflow_with_started_attempt_no_activity
         summary = report["projects"][0]
         assert summary["lifecycle_state"] == "interrupted"
         assert summary["final_outcome"] == "Interrupted"
+
+
+def test_report_and_batch_drawer_use_the_same_blocked_outcome(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    with _session() as session:
+        service = DebugBatchService(db=session, data_dir=data_dir)
+        batch = service.start(DebugBatchStart(label="integrity", target_project_count=1))
+        project = Project(name="Blocked", slug="blocked", original_intent="Build a blocked fixture")
+        session.add(project)
+        session.flush()
+        service.attach_new_project(project)
+        run = WorkflowRun(
+            project_id=project.id,
+            workflow_type="initial_generation",
+            correlation_id="blocked-correlation",
+            status="failed",
+        )
+        session.add(run)
+        session.flush()
+        session.add_all(
+            [
+                WorkflowEvent(
+                    workflow_run_id=run.id,
+                    project_id=project.id,
+                    correlation_id=run.correlation_id,
+                    sequence_number=1,
+                    stage="worker",
+                    event_type="worker.completed",
+                    message="worker completed",
+                ),
+                WorkflowEvent(
+                    workflow_run_id=run.id,
+                    project_id=project.id,
+                    correlation_id=run.correlation_id,
+                    sequence_number=2,
+                    stage="candidate_classification",
+                    event_type="candidate.classified",
+                    blocking=True,
+                    message="candidate blocked",
+                ),
+            ]
+        )
+        revision = Revision(
+            project_id=project.id,
+            revision_number=1,
+            source_type="ai_initial",
+            source_path="projects/blocked/source.py",
+            status="succeeded",
+            review_state="blocked",
+        )
+        session.add(revision)
+        session.flush()
+        session.add(
+            RevisionOutput(
+                revision_id=revision.id,
+                output_id="blocked_output",
+                label="Blocked output",
+                filename="blocked.stl",
+                entrypoint="blocked_output",
+                execution_state="blocked",
+                stl_path="projects/blocked/blocked.stl",
+                topology_metadata_json='{"valid": true}',
+            )
+        )
+        session.commit()
+
+        report = DebugBatchReportService(db=session, data_dir=data_dir).generate(batch.id)["report"]
+        drawer = service.read(batch)
+
+        assert report["projects"][0]["final_outcome"] == "Blocked after worker"
+        assert drawer.memberships[0].final_outcome == report["projects"][0]["final_outcome"]

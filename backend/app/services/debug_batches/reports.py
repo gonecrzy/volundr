@@ -20,7 +20,7 @@ from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
 from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.workflow.redaction import RedactionService
-from app.services.debug_batches.lifecycle import classify_project_lifecycle, lifecycle_label
+from app.services.debug_batches.lifecycle import resolve_project_outcome
 
 
 TEXT_SUFFIXES = {".json", ".txt", ".log", ".md", ".py", ".ndjson", ".toml", ".yaml", ".yml"}
@@ -123,7 +123,7 @@ class DebugBatchReportService:
         }
         self._write_json(root / "report.json", report, redaction)
         self._write_text(root / "report.md", self._markdown_report(batch, report), redaction)
-        self._write_text(root / "codex-review.md", self._codex_review_instruction(batch), redaction)
+        self._write_text(root / "codex-review.md", self._codex_review_instruction(batch, project_summaries), redaction)
         self._write_json(root / "redaction-report.json", redaction, redaction)
         self._write_json(root / "integrity-report.json", integrity, redaction)
 
@@ -261,17 +261,18 @@ class DebugBatchReportService:
                 redaction=redaction,
             )
 
-        lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, revisions)
-        active_workflow = next((workflow for workflow in reversed(workflows) if workflow.status == "running"), None)
-        outcome_category = self._outcome_category(
+        outcome = resolve_project_outcome(
             project,
             workflows,
-            events,
             attempts,
+            events,
             revisions,
             revision_outputs,
         )
-        final_outcome = self._outcome_label(outcome_category)
+        lifecycle_state = outcome.lifecycle_state
+        active_workflow = next((workflow for workflow in reversed(workflows) if workflow.status == "running"), None)
+        outcome_category = outcome.category
+        final_outcome = outcome.final_outcome
         provider_call_count = sum(attempt.provider_call_count for attempt in attempts)
         provider_retry_count = sum(attempt.provider_retry_count for attempt in attempts)
         content_repair_count = sum(attempt.content_repair_count for attempt in attempts)
@@ -289,14 +290,7 @@ class DebugBatchReportService:
             event.event_type == "source_contract.passed" and not event.blocking for event in events
         )
         geometry_generated = bool(revision_outputs)
-        valid_revision_ids = {
-            revision.id
-            for revision in revisions
-            if revision.status == "succeeded"
-            and (outputs := [output for output in revision_outputs if output.revision_id == revision.id])
-            and all(self._output_is_valid(output) for output in outputs)
-        }
-        valid_geometry_produced = bool(valid_revision_ids)
+        valid_geometry_produced = outcome.valid_geometry_produced
         summary = {
             "project_id": project.id,
             "project_name": project.name,
@@ -307,7 +301,7 @@ class DebugBatchReportService:
             "active_workflow_status": active_workflow.status if active_workflow else None,
             "lifecycle_state": lifecycle_state,
             "route": self._route(events),
-            "worker_reached": any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events),
+            "worker_reached": outcome.worker_reached,
             "attempt_count": len(attempts),
             "retry_count": provider_retry_count,
             "provider_call_count": provider_call_count,
@@ -399,79 +393,6 @@ class DebugBatchReportService:
             return "planning"
         return "findings"
 
-    def _outcome_category(
-        self,
-        project: Project,
-        workflows: list[WorkflowRun],
-        events: list[WorkflowEvent],
-        attempts: list[GenerationAttempt],
-        revisions: list[Revision],
-        revision_outputs: list[RevisionOutput],
-    ) -> str:
-        lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, revisions)
-        if lifecycle_state == "working_version_created":
-            accepted = next((revision for revision in revisions if revision.id == project.active_revision_id), None)
-            if accepted is not None and accepted.is_accepted:
-                return "accepted"
-            return "candidate_created"
-        if lifecycle_state == "in_progress":
-            return "in_progress"
-        if lifecycle_state == "interrupted":
-            return "interrupted"
-        valid_revision_ids: set[str] = set()
-        for revision in revisions:
-            outputs = [output for output in revision_outputs if output.revision_id == revision.id]
-            if revision.status != "succeeded" or not outputs:
-                continue
-            if all(self._output_is_valid(output) for output in outputs):
-                valid_revision_ids.add(revision.id)
-        if valid_revision_ids:
-            return "accepted_with_warnings" if any(event.blocking for event in events) else "candidate_created"
-        worker_reached = any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events)
-        if worker_reached:
-            if any(event.blocking and event.stage == "topology_validation" for event in events):
-                return "post_worker_topology_block"
-            if any(event.blocking and event.stage in {"candidate_classification", "verification"} for event in events):
-                return "post_worker_verification_block"
-            if any(event.blocking and event.stage in {"cad_execution", "worker"} for event in events):
-                return "worker_runtime_failure"
-            return "worker_completed_without_valid_geometry"
-        if any(attempt.status in {"failed", "blocked"} for attempt in attempts):
-            if any(attempt.raw_output_path for attempt in attempts):
-                return "provider_content_failure"
-            return "provider_transport_failure"
-        if any(event.blocking and event.stage in {"requirements", "clarification"} for event in events):
-            return "blocked_before_provider"
-        return "not_started"
-
-    def _output_is_valid(self, output: RevisionOutput) -> bool:
-        if output.execution_state != "succeeded" or not output.stl_path:
-            return False
-        if not output.topology_metadata_json:
-            return True
-        try:
-            topology = json.loads(output.topology_metadata_json)
-        except json.JSONDecodeError:
-            return False
-        return topology.get("valid", True) is not False
-
-    def _outcome_label(self, category: str) -> str:
-        return {
-            "in_progress": "In progress",
-            "interrupted": "Interrupted",
-            "accepted": "Accepted",
-            "accepted_with_warnings": "Accepted with warnings",
-            "candidate_created": "Candidate created",
-            "post_worker_topology_block": "Blocked after worker",
-            "post_worker_verification_block": "Blocked after worker",
-            "worker_runtime_failure": "Blocked after worker",
-            "worker_completed_without_valid_geometry": "Blocked after worker",
-            "provider_content_failure": "Blocked before worker",
-            "provider_transport_failure": "Blocked before worker",
-            "blocked_before_provider": "Blocked before provider",
-            "not_started": "Not started",
-        }.get(category, "Integrity failure")
-
     def _route(self, events: list[WorkflowEvent]) -> str | None:
         for event in events:
             metadata = json.loads(event.metadata_json) if event.metadata_json else {}
@@ -537,7 +458,15 @@ class DebugBatchReportService:
             f"Worker reached: {'yes' if summary.get('worker_reached') else 'no'}\n"
         )
 
-    def _codex_review_instruction(self, batch: DebugBatch) -> str:
+    def _codex_review_instruction(
+        self,
+        batch: DebugBatch,
+        project_summaries: list[dict[str, Any]],
+    ) -> str:
+        outcome_lines = [
+            f"- **{summary.get('project_name') or summary['project_id']}** — {summary['final_outcome']}"
+            for summary in project_summaries
+        ]
         return f"""# Codex review instruction: {batch.label}
 
 Review only the local redacted evidence for this batch. Confirm Git, migration,
@@ -560,6 +489,13 @@ fixtures. Make no implementation changes during review.
 The monitor-wall-mount (monitor mount) project is geometry/workflow evaluation only; retain its
 physical engineering and test-review warning and never imply load-bearing
 safety from geometry success.
+
+## Authoritative final outcomes
+
+These labels come from the frozen report resolver and must be treated as the
+source of truth for review and any derived manifest:
+
+{chr(10).join(outcome_lines)}
 """
 
     def _write_json(self, path: Path, payload: Any, redaction: dict[str, Any]) -> None:

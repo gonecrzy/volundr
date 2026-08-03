@@ -12,10 +12,12 @@ from app.models.debug_batch import DebugBatch, DebugBatchMembership
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
 from app.models.project_message import ProjectMessage
+from app.models.revision import Revision
+from app.models.revision_output import RevisionOutput
 from app.models.workflow import WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchRead, DebugBatchStart
 from app.services.debug_batches.identity import capture_batch_identity
-from app.services.debug_batches.lifecycle import classify_project_lifecycle, lifecycle_label
+from app.services.debug_batches.lifecycle import resolve_project_outcome
 
 
 def utcnow() -> datetime:
@@ -235,32 +237,42 @@ class DebugBatchService:
                 .order_by(ProjectMessage.created_at.asc(), ProjectMessage.id.asc())
             )
         )
-        lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, [])
-        worker_reached = any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events)
+        revisions = list(
+            self.db.scalars(
+                select(Revision)
+                .where(Revision.project_id == project.id)
+                .order_by(Revision.revision_number.asc(), Revision.id.asc())
+            )
+        )
+        revision_outputs = list(
+            self.db.scalars(
+                select(RevisionOutput)
+                .join(Revision, RevisionOutput.revision_id == Revision.id)
+                .where(Revision.project_id == project.id)
+                .order_by(RevisionOutput.created_at.asc(), RevisionOutput.id.asc())
+            )
+        )
+        outcome = resolve_project_outcome(
+            project,
+            workflows,
+            attempts,
+            events,
+            revisions,
+            revision_outputs,
+        )
+        lifecycle_state = outcome.lifecycle_state
+        worker_reached = outcome.worker_reached
         active = lifecycle_state == "in_progress"
-        blocked = lifecycle_state in {"blocked_before_worker", "blocked_after_worker"}
         if active:
             phase = "Waiting for clarification" if any(
                 "clarif" in event.stage or "clarif" in event.event_type for event in events[-2:]
-            ) else lifecycle_label(lifecycle_state)
+            ) else outcome.final_outcome
         else:
-            phase = lifecycle_label(lifecycle_state)
+            phase = outcome.final_outcome
         provider_call_count = sum(attempt.provider_call_count for attempt in attempts)
         provider_retry_count = sum(attempt.provider_retry_count for attempt in attempts)
         content_repair_count = sum(attempt.content_repair_count for attempt in attempts)
         workflow_stage_attempt_count = len({(event.stage, event.generation_attempt_id) for event in events})
-        if lifecycle_state == "working_version_created":
-            outcome_category = "accepted"
-        elif lifecycle_state == "in_progress":
-            outcome_category = "in_progress"
-        elif lifecycle_state == "blocked_after_worker":
-            outcome_category = "worker_runtime_failure"
-        elif lifecycle_state == "blocked_before_worker":
-            outcome_category = "provider_content_failure" if any(attempt.raw_output_path for attempt in attempts) else "provider_transport_failure"
-        elif lifecycle_state == "interrupted":
-            outcome_category = "interrupted"
-        else:
-            outcome_category = "not_started"
         return {
             "lifecycle_state": lifecycle_state,
             "workflow_phase": phase,
@@ -274,6 +286,6 @@ class DebugBatchService:
             "generation_attempt_count": len(attempts),
             "workflow_stage_attempt_count": workflow_stage_attempt_count,
             "user_operation_count": sum(message.role == "user" for message in messages),
-            "outcome_category": outcome_category,
+            "outcome_category": outcome.category,
             "final_outcome": phase,
         }

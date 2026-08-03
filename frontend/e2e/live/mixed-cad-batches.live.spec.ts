@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { authoritativeBatchManifestProjects } from "../../src/debugBatch";
 import { liveEnabled } from "./liveEnvironment";
 
 type ProjectSpec = {
@@ -264,6 +265,7 @@ if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && !geometrySlotsLiveEnabl
       batchOneProjects.push(await runProject(page, batchOne, "mixed-01", PROJECTS[index], index + 1));
     }
     const batchOneReport = await finishBatch(page, batchOne, "mixed-01");
+    const batchOneManifestProjects = authoritativeBatchManifestProjects(batchOneReport);
 
     await page.goto("/");
     const batchTwo = await startBatch(
@@ -278,6 +280,7 @@ if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && !geometrySlotsLiveEnabl
       batchTwoProjects.push(await runProject(page, batchTwo, "mixed-02", PROJECTS[index], index + 1));
     }
     const batchTwoReport = await finishBatch(page, batchTwo, "mixed-02");
+    const batchTwoManifestProjects = authoritativeBatchManifestProjects(batchTwoReport);
     const comparisonResponse = await page.request.get(`/api/debug-batches/${batchTwo}/comparison`);
     expect(comparisonResponse.ok(), "controlled comparison endpoint").toBeTruthy();
     const comparison = await comparisonResponse.json();
@@ -285,12 +288,12 @@ if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && !geometrySlotsLiveEnabl
 
     await fs.writeFile(
       path.join(sessionRoot(batchOne), "live-batch-manifest.json"),
-      JSON.stringify({ batch_id: batchOne, projects: batchOneProjects, report: batchOneReport }, null, 2),
+      JSON.stringify({ batch_id: batchOne, projects: batchOneManifestProjects, report: batchOneReport }, null, 2),
       "utf-8",
     );
     await fs.writeFile(
       path.join(sessionRoot(batchTwo), "live-batch-manifest.json"),
-      JSON.stringify({ batch_id: batchTwo, projects: batchTwoProjects, report: batchTwoReport, comparison }, null, 2),
+      JSON.stringify({ batch_id: batchTwo, projects: batchTwoManifestProjects, report: batchTwoReport, comparison }, null, 2),
       "utf-8",
     );
     expect(comparison.status).toBe("controlled");
@@ -318,12 +321,13 @@ if (process.env.VOLUNDR_RUN_CORRECTION_E2E !== "true" && geometrySlotsLiveEnable
       projects.push(await runProject(page, batchId, "geometry-slots-live-01", PROJECTS[index], index + 1));
     }
     const report = await finishBatch(page, batchId, "geometry-slots-live-01");
+    const authoritativeProjects = authoritativeBatchManifestProjects(report);
     await fs.writeFile(
       path.join(sessionRoot(batchId), "live-batch-manifest.json"),
-      JSON.stringify({ batch_id: batchId, label: "geometry-slots-live-01", projects, report }, null, 2),
+      JSON.stringify({ batch_id: batchId, label: "geometry-slots-live-01", projects: authoritativeProjects, report }, null, 2),
       "utf-8",
     );
-    expect(projects).toHaveLength(5);
+    expect(authoritativeProjects).toHaveLength(5);
     expect(report).toBeTruthy();
   });
 });

@@ -72,10 +72,35 @@ export type DebugBatch = {
 
 export type DebugBatchReport = {
   batch: DebugBatch;
-  summary: Record<string, unknown>;
+  summary: Record<string, unknown> & {
+    projects?: DebugBatchReportProject[];
+  };
   report_path: string | null;
   codex_review_instruction: string | null;
 };
+
+export type DebugBatchReportProject = {
+  project_id: string;
+  final_outcome: string;
+};
+
+export type DebugBatchManifestProject = {
+  projectId: string;
+  outcome: string;
+};
+
+export function authoritativeBatchManifestProjects(
+  report: Pick<DebugBatchReport, "summary">,
+): DebugBatchManifestProject[] {
+  const projects = report.summary.projects;
+  if (!Array.isArray(projects)) {
+    throw new Error("frozen debug batch report has no project outcomes");
+  }
+  return projects.map((project) => ({
+    projectId: project.project_id,
+    outcome: project.final_outcome,
+  }));
+}
 
 export type DebugBatchComparison = {
   batch_id: string;

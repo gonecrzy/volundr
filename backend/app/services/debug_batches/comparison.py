@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.debug_batch import DebugBatch, DebugBatchMembership
-from app.services.debug_batches.reports import DebugBatchReportService
+from app.services.debug_batches.lifecycle import resolve_project_outcome_from_db
 
 
 IDENTITY_FIELDS = (
@@ -109,12 +109,18 @@ class DebugBatchComparisonService:
         for position in range(max(len(baseline_members), len(candidate_members))):
             left = baseline_members[position] if position < len(baseline_members) else None
             right = candidate_members[position] if position < len(candidate_members) else None
+            left_outcome = resolve_project_outcome_from_db(self.db, left.project_id) if left else None
+            right_outcome = resolve_project_outcome_from_db(self.db, right.project_id) if right else None
             result.append(
                 {
                     "position": position,
                     "baseline_project_id": left.project_id if left else None,
                     "candidate_project_id": right.project_id if right else None,
                     "membership_match": left is not None and right is not None,
+                    "baseline_final_outcome": left_outcome.final_outcome if left_outcome else None,
+                    "candidate_final_outcome": right_outcome.final_outcome if right_outcome else None,
+                    "baseline_outcome_category": left_outcome.category if left_outcome else None,
+                    "candidate_outcome_category": right_outcome.category if right_outcome else None,
                 }
             )
         return result
