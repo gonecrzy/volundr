@@ -10755,16 +10755,24 @@ class ProjectService:
                 )
             )
         feature_evaluation: FeatureEvidenceEvaluation | None = None
-        if revision_output is not None and isinstance(design_plan_payload.get("features"), list):
+        feature_trace: list[dict[str, Any]] = []
+        if revision_output is not None:
             try:
-                feature_trace = json.loads(revision_output.feature_trace_json or "[]")
+                parsed_feature_trace = json.loads(revision_output.feature_trace_json or "[]")
             except json.JSONDecodeError:
-                feature_trace = []
+                parsed_feature_trace = []
+            if isinstance(parsed_feature_trace, list):
+                feature_trace = [item for item in parsed_feature_trace if isinstance(item, dict)]
+        if (
+            revision_output is not None
+            and feature_trace
+            and isinstance(design_plan_payload.get("features"), list)
+        ):
             feature_evaluation = evaluate_feature_evidence(
                 mesh=mesh,
                 output_id=revision_output.output_id,
                 requirement_trace=design_plan_payload,
-                feature_trace=feature_trace if isinstance(feature_trace, list) else [],
+                feature_trace=feature_trace,
                 topology_metadata=self._output_topology_metadata(revision_output),
             )
             feature_findings = [
