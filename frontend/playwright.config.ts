@@ -16,6 +16,7 @@ const buildBranch = process.env.VOLUNDR_BUILD_BRANCH ?? execFileSync("git", ["br
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: ["**/live/**"],
   workers: 1,
   timeout: 30_000,
   use: {
