@@ -48,3 +48,18 @@ def test_report_materializes_missing_artifacts_as_findings_without_crashing(tmp_
     assert result["integrity_findings"][0]["kind"] == "missing_evidence"
     report = json.loads((tmp_path / "integrity-report.json").read_text())
     assert report["findings"]
+
+
+def test_report_promotes_nested_metrics_integrity_findings(tmp_path) -> None:
+    result = build_experiment_reports(
+        {"id": "experiment-3", "mode": "pilot"},
+        [{
+            "case_id": "case-001",
+            "model": "flash",
+            "run_index": 1,
+            "evidence": {"metrics": {"integrity_findings": [{"kind": "endpoint_unavailable"}]}},
+        }],
+        tmp_path,
+    )
+
+    assert any(item["kind"] == "endpoint_unavailable" for item in result["integrity_findings"])

@@ -65,6 +65,16 @@ def build_experiment_reports(
         if not isinstance(evidence, dict):
             integrity_findings.append({"kind": "missing_evidence", "model": model, "case_id": case_id, "run_index": run_index})
             evidence = {"integrity_finding": "missing_evidence", "outcome_category": "missing_artifacts"}
+        nested_metrics = evidence.get("metrics") if isinstance(evidence, dict) else None
+        if isinstance(nested_metrics, dict):
+            for finding in nested_metrics.get("integrity_findings", []):
+                if isinstance(finding, dict):
+                    integrity_findings.append({
+                        **finding,
+                        "model": model,
+                        "case_id": case_id,
+                        "run_index": run_index,
+                    })
         grouped[(model, case_id)][run_index] = {**record, "evidence": evidence}
 
     pair_comparisons: list[dict[str, Any]] = []

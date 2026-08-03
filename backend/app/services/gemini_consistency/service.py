@@ -277,6 +277,18 @@ class GeminiConsistencyService:
         self.db.refresh(experiment)
         return experiment
 
+    def finish_run(self, experiment_id: str, run_id: str, payload: GeminiBenchmarkFinishCreate) -> GeminiBenchmarkRun:
+        run = self.db.get(GeminiBenchmarkRun, run_id)
+        if run is None or run.experiment_id != experiment_id:
+            raise LookupError("benchmark run not found")
+        if run.state in {"completed", "failed", "cancelled"}:
+            return run
+        run.state = payload.state
+        run.finished_at = utcnow()
+        self.db.commit()
+        self.db.refresh(run)
+        return run
+
     def membership_read(self, membership: GeminiBenchmarkMembership) -> GeminiBenchmarkMembershipRead:
         return GeminiBenchmarkMembershipRead(
             id=membership.id,

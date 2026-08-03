@@ -27,6 +27,22 @@ class RedactionService:
     _sensitive_keys = re.compile(
         r"(?i)(api[_-]?key|authorization|cookie|set-cookie|token|secret|password|credential|gemini)"
     )
+    _safe_metric_keys = {
+        "max_output_tokens",
+        "prompt_tokens",
+        "output_tokens",
+        "estimated_prompt_tokens",
+        "estimated_output_tokens",
+        "total_tokens",
+        "token_count",
+        "retry_count",
+        "provider_retry_count",
+        "content_repair_count",
+        "timeout_seconds",
+        "duration_ms",
+        "provider_latency_ms",
+        "status_code",
+    }
     _absolute_path_pattern = re.compile(
         r"(?<![A-Za-z0-9_])(?P<path>(?:/(?:tmp|var/tmp|home|root|Users|private/tmp|workspace|workspaces|app/data|opt|srv|mnt|run|data)(?:/[^\s\"'`,}\]]+)+|[A-Za-z]:[\\/][^\s\"'`,}\]]+))"
     )
@@ -135,7 +151,7 @@ class RedactionService:
                 result: dict[str, Any] = {}
                 for key, nested in current.items():
                     key_text = str(key)
-                    if self._sensitive_keys.search(key_text):
+                    if self._is_sensitive_key(key_text):
                         result[key_text] = "[REDACTED]"
                     elif key_text.casefold() == "headers" and isinstance(nested, Mapping):
                         result[key_text] = self._allowed_header_subset(nested)
@@ -175,7 +191,7 @@ class RedactionService:
         for key, value in payload.items():
             normalized_key = str(key).lower()
             if normalized_key not in self._request_metadata_allowlist:
-                if self._sensitive_keys.search(str(key)):
+                if self._is_sensitive_key(str(key)):
                     redacted[str(key)] = "[REDACTED]"
                 continue
             if normalized_key == "url" and isinstance(value, str):
@@ -194,6 +210,9 @@ class RedactionService:
                 result[normalized] = str(value)
         return result
 
+    def _is_sensitive_key(self, key: str) -> bool:
+        return bool(self._sensitive_keys.search(key)) and key.casefold() not in self._safe_metric_keys
+
     def _strip_query(self, url: str) -> str:
         parts = urlsplit(url)
         return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
@@ -202,7 +221,7 @@ class RedactionService:
         if isinstance(value, Mapping):
             result: dict[str, Any] = {}
             for key, nested in value.items():
-                if self._sensitive_keys.search(str(key)):
+                if self._is_sensitive_key(str(key)):
                     result[str(key)] = "[REDACTED]"
                 elif str(key).lower() == "url" and isinstance(nested, str):
                     result[str(key)] = self._strip_query(nested)

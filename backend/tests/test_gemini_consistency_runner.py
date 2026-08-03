@@ -136,6 +136,16 @@ def test_evidence_writer_redacts_prompts_responses_source_worker_screenshot_and_
     assert "Bearer another-secret" not in rendered
 
 
+def test_redaction_preserves_nonsecret_token_metrics_and_limits(tmp_path) -> None:
+    writer = EvidenceWriter(tmp_path / "evidence")
+    writer.write_json("metrics.json", {"max_output_tokens": 8192, "prompt_tokens": 12, "output_tokens": 34})
+
+    rendered = (tmp_path / "evidence" / "metrics.json").read_text()
+    assert "8192" in rendered
+    assert "12" in rendered
+    assert "34" in rendered
+
+
 class _FakeBenchmarkClient:
     def __init__(self) -> None:
         self.history = []
@@ -155,6 +165,9 @@ class _FakeBenchmarkClient:
         return [{"name": "model-a"}, {"name": "model-b"}]
 
     def create_experiment(self, payload):
+        return self._experiment()
+
+    def experiment(self, experiment_id):
         return self._experiment()
 
     def _experiment(self):
@@ -195,6 +208,12 @@ class _FakeBenchmarkClient:
 
     def finish_experiment(self, experiment_id, state="completed"):
         return {"state": state}
+
+    def finish_run(self, experiment_id, run_id, state="completed"):
+        return {"id": run_id, "state": state}
+
+    def generate_report(self, experiment_id):
+        return {"experiment_id": experiment_id, "membership_count": 4}
 
     def record_model_availability(self, experiment_id, requested_model, actual_model, availability_state):
         return {"requested_model": requested_model, "actual_model": actual_model, "availability_state": availability_state}

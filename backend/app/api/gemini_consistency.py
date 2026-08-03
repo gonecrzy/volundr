@@ -81,6 +81,21 @@ def record_model_availability(
     }
 
 
+@router.post("/experiments/{experiment_id}/runs/{run_id}/finish", response_model=dict)
+def finish_run(
+    experiment_id: str,
+    run_id: str,
+    payload: GeminiBenchmarkFinishCreate,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    try:
+        run = GeminiConsistencyService(db=db, data_dir=data_dir).finish_run(experiment_id, run_id, payload)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"id": run.id, "state": run.state, "finished_at": run.finished_at}
+
+
 @router.post(
     "/experiments/{experiment_id}/runs/{run_id}/cases/{case_id}/claim",
     response_model=GeminiBenchmarkMembershipRead,

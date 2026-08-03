@@ -327,6 +327,12 @@ class BenchmarkApiClient:
     def finish_experiment(self, experiment_id: str, state: str = "completed") -> dict[str, Any]:
         return self.post(f"/api/gemini-consistency/experiments/{experiment_id}/finish", {"state": state})
 
+    def finish_run(self, experiment_id: str, run_id: str, state: str = "completed") -> dict[str, Any]:
+        return self.post(f"/api/gemini-consistency/experiments/{experiment_id}/runs/{run_id}/finish", {"state": state})
+
+    def generate_report(self, experiment_id: str) -> dict[str, Any]:
+        return self.post(f"/api/gemini-consistency/experiments/{experiment_id}/report", {})
+
     def record_model_availability(
         self, experiment_id: str, requested_model: str, actual_model: str | None, availability_state: str
     ) -> dict[str, Any]:
@@ -514,6 +520,16 @@ class GeminiConsistencyRunner:
         }
         experiment = self._get_or_create_experiment(client, corpus, selection)
         experiment_id = str(experiment["id"])
+        for model in selection.models:
+            client.record_model_availability(
+                experiment_id,
+                model,
+                model_names.get(model),
+                "available" if model in available else "unavailable",
+            )
+        if unavailable:
+            raise ValueError(f"requested Gemini models are unavailable: {', '.join(unavailable)}")
+        experiment = client.experiment(experiment_id)
         experiment_root = self.config.output_root / experiment_id
         root_writer = EvidenceWriter(experiment_root, data_root=self.config.output_root)
         root_writer.write_json("experiment.json", {
@@ -529,15 +545,6 @@ class GeminiConsistencyRunner:
             "models": list(selection.models),
             "runs": selection.runs,
         })
-        for model in selection.models:
-            client.record_model_availability(
-                experiment_id,
-                model,
-                model_names.get(model),
-                "available" if model in available else "unavailable",
-            )
-        if unavailable:
-            raise ValueError(f"requested Gemini models are unavailable: {', '.join(unavailable)}")
         result: dict[str, Any] = {
             "experiment_id": experiment_id,
             "mode": "pilot" if selection.pilot else "full",
@@ -556,12 +563,14 @@ class GeminiConsistencyRunner:
                     if self.stop_requested:
                         break
                     result["results"].append(self._run_case(experiment_id, model, run, case, position, corpus))
+                client.finish_run(experiment_id, str(run["id"]), "cancelled" if self.stop_requested else "completed")
                 if self.stop_requested:
                     break
             if self.stop_requested:
                 break
         if not self.stop_requested:
             client.finish_experiment(experiment_id, "completed")
+            result["report"] = client.generate_report(experiment_id)
         root_writer.finalize()
         return result
 
@@ -679,8 +688,12 @@ class GeminiConsistencyRunner:
             evidence["network_history"] = client.history
             evidence["project_key"] = project_key
             evidence["model"] = model
-            writer.write_json("evidence.json", evidence)
             metrics = self._metrics(evidence, clarification_rounds, retry_count, workflow_run_ids)
+            evidence["outcome_category"] = outcome_category
+            evidence["outcome_state"] = outcome_state
+            evidence["final_outcome"] = final_outcome
+            evidence["metrics"] = metrics
+            writer.write_json("evidence.json", evidence)
             writer.write_json("metrics.json", metrics)
             writer.finalize()
             evidence_path = str((writer.root / "evidence.json").relative_to(self.config.output_root.parent.parent))
