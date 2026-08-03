@@ -132,6 +132,7 @@ from app.services.cad.geometry_slots import (
     GEOMETRY_SLOTS_SCHEMA_VERSION,
     GeometrySlotError,
     build_geometry_slot_brief,
+    build_focused_slot_repair,
     build_geometry_slot_manifest,
     merge_geometry_slots,
     parse_geometry_slots,
@@ -5911,6 +5912,7 @@ class ProjectService:
             geometry_slot_brief=None,
             geometry_slot_completion=None,
             preserved_slot_hashes={},
+            geometry_slot_fallback_reason=reason,
             generation_contract_version=self._provider_generation_contract_version(),
         )
         fallback_attempt = self._start_generation_attempt(
@@ -6106,6 +6108,43 @@ class ProjectService:
                 sort_keys=True,
             ),
         )
+        slot_repair_context: dict[str, Any] | None = None
+        if repair_request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
+            affected_function_id = diagnostics.details.get("affected_function_id")
+            if not isinstance(affected_function_id, str) or not affected_function_id:
+                return None
+            try:
+                base_slot_response = parse_geometry_slots(
+                    failed_response.raw_output,
+                    repair_request.geometry_slot_manifest or {},
+                )
+                slot_repair_context = build_focused_slot_repair(
+                    base_slot_response,
+                    repair_request.geometry_slot_manifest or {},
+                    function_id=affected_function_id,
+                    worker_diagnostics=str(diagnostics),
+                )
+            except GeometrySlotError:
+                return None
+            focused_brief = dict(repair_request.geometry_slot_brief or {})
+            focused_brief["slots"] = [
+                {
+                    "slot_id": item.get("slot_id"),
+                    "required_inputs": list(item.get("required_inputs", []) or []),
+                    "authorized_parameter_ids": list(item.get("authorized_parameter_ids", []) or []),
+                    "approved_helpers": list(item.get("approved_helpers", []) or []),
+                    "required_result": item.get("required_result"),
+                }
+                for item in slot_repair_context["slot_manifest"].get("slots", [])
+                if isinstance(item, dict)
+            ]
+            repair_request = replace(
+                repair_request,
+                geometry_slot_manifest=slot_repair_context["slot_manifest"],
+                geometry_slot_brief=focused_brief,
+                geometry_slot_completion=slot_repair_context,
+                preserved_slot_hashes=slot_repair_context["preserved_slot_hashes"],
+            )
         repair_attempt = self._start_generation_attempt(
             project=project,
             request=repair_request,
@@ -6190,7 +6229,9 @@ class ProjectService:
                     details=repair_comparison,
                 )
             affected_function_id = diagnostics.details.get("affected_function_id")
-            if isinstance(affected_function_id, str) and affected_function_id:
+            if slot_repair_context is not None:
+                repair_scope = None
+            elif isinstance(affected_function_id, str) and affected_function_id:
                 repair_scope = validate_geometry_body_repair_scope(
                     original_raw_output=failed_response.raw_output,
                     repaired_raw_output=repair_result.raw_output,
@@ -6198,17 +6239,73 @@ class ProjectService:
                 )
             else:
                 repair_scope = None
+            repair_raw_output = repair_result.raw_output
+            repair_slot_manifest = repair_request.geometry_slot_manifest
+            if slot_repair_context is not None:
+                # The focused request manifest contains one slot; the failed
+                # response is parsed against the original manifest stored in
+                # the request's reduced brief before it was narrowed.
+                original_manifest = build_geometry_slot_manifest(
+                    design_plan_payload or {},
+                    planning_depth=self._planning_depth_for_plan(design_plan_payload),
+                )
+                repair_slot_manifest = original_manifest
+                base_slot_response = parse_geometry_slots(
+                    failed_response.raw_output,
+                    original_manifest,
+                )
+                focused_response = parse_geometry_slots(
+                    repair_result.raw_output,
+                    slot_repair_context["slot_manifest"],
+                )
+                merged_response = merge_geometry_slots(
+                    base_slot_response,
+                    focused_response,
+                    original_manifest,
+                    replace_slot_ids=set(slot_repair_context["requested_slot_ids"]),
+                )
+                if not merged_response.is_complete:
+                    raise GeometrySlotError(
+                        "geometry_slot.repair_incomplete",
+                        "Focused worker repair did not produce a complete slot response.",
+                        details={
+                            "missing_slot_ids": merged_response.missing_slot_ids,
+                            "invalid_slots": merged_response.invalid_slots,
+                        },
+                    )
+                repair_raw_output = json.dumps(
+                    {
+                        "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
+                        "slots": [
+                            {
+                                "slot_id": slot_id,
+                                "statements": merged_response.original_statements[slot_id],
+                                "result_symbol": merged_response.result_symbols[slot_id],
+                            }
+                            for slot_id in merged_response.completed_slot_ids
+                        ],
+                    },
+                    sort_keys=True,
+                )
+                repair_scope = {
+                    "affected_slot_ids": list(slot_repair_context["requested_slot_ids"]),
+                    "preserved_slot_hashes": slot_repair_context["preserved_slot_hashes"],
+                    "repaired_slot_hashes": {
+                        str(slot_id): merged_response.slot_body_hashes[slot_id]
+                        for slot_id in slot_repair_context["requested_slot_ids"]
+                    },
+                }
             repaired_source = self._prepare_generated_source(
-                raw_output=repair_result.raw_output,
+                raw_output=repair_raw_output,
                 design_plan_payload=design_plan_payload,
                 generation_contract_version=repair_request.generation_contract_version,
                 attempt=repair_attempt,
                 workflow_run=repair_workflow_run or workflow_run,
                 role="geometry_body_repair",
                 geometry_contract=repair_request.geometry_contract,
-                geometry_slot_manifest=repair_request.geometry_slot_manifest,
+                geometry_slot_manifest=repair_slot_manifest,
             )
-        except GeometryBodyError as exc:
+        except (GeometryBodyError, GeometrySlotError) as exc:
             self._finish_generation_attempt(
                 repair_attempt,
                 status="failed",
@@ -6344,6 +6441,13 @@ class ProjectService:
         routing["geometry_slot_completion_call"] = bool(
             getattr(request, "geometry_slot_completion", None)
         )
+        routing["geometry_slot_fallback"] = bool(
+            getattr(request, "geometry_slot_fallback_reason", None)
+        )
+        if getattr(request, "geometry_slot_fallback_reason", None):
+            routing["geometry_slot_fallback_reason"] = str(
+                request.geometry_slot_fallback_reason
+            )
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=base_revision_id,

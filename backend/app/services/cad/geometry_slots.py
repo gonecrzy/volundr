@@ -318,11 +318,16 @@ def merge_geometry_slots(
     initial: GeometrySlotResponse,
     completion: GeometrySlotResponse,
     manifest: dict[str, Any],
+    *,
+    replace_slot_ids: set[int] | None = None,
 ) -> GeometrySlotResponse:
     """Merge one focused response without allowing completed-slot mutation."""
 
     completed_initial = set(initial.completed_slot_ids)
-    changed_completed = sorted(completed_initial & set(completion.records_by_slot))
+    replaceable = set(replace_slot_ids or set())
+    changed_completed = sorted(
+        (completed_initial & set(completion.records_by_slot)) - replaceable
+    )
     if changed_completed:
         raise GeometrySlotError(
             "geometry_slot.completed_slot_changed",
@@ -403,6 +408,40 @@ def build_focused_slot_completion(
             str(slot_id): response.slot_body_hashes[slot_id]
             for slot_id in response.completed_slot_ids
             if slot_id in response.slot_body_hashes
+        },
+    }
+
+
+def build_focused_slot_repair(
+    response: GeometrySlotResponse,
+    manifest: dict[str, Any],
+    *,
+    function_id: str,
+    worker_diagnostics: str,
+) -> dict[str, Any]:
+    """Build a one-slot worker-informed repair scope."""
+
+    specs = _manifest_specs(manifest)
+    matches = [slot_id for slot_id, spec in specs.items() if spec.get("function_id") == function_id]
+    if len(matches) != 1:
+        raise GeometrySlotError(
+            "geometry_slot.repair_scope_unknown",
+            f"Worker repair function `{function_id}` is not mapped to exactly one slot.",
+        )
+    slot_id = matches[0]
+    return {
+        "requested_slot_ids": [slot_id],
+        "slot_manifest": {
+            "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
+            "planning_depth": manifest.get("planning_depth"),
+            "slots": [specs[slot_id]],
+        },
+        "failed_function_id": function_id,
+        "worker_diagnostics": worker_diagnostics,
+        "preserved_slot_hashes": {
+            str(other_id): body_hash
+            for other_id, body_hash in response.slot_body_hashes.items()
+            if other_id != slot_id
         },
     }
 

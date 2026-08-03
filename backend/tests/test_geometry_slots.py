@@ -12,6 +12,7 @@ from app.services.cad.geometry_slots import (
     GeometrySlotError,
     build_geometry_slot_brief,
     build_focused_slot_completion,
+    build_focused_slot_repair,
     merge_geometry_slots,
     parse_geometry_slots,
     select_geometry_contract,
@@ -161,6 +162,44 @@ def test_completion_cannot_change_completed_slot() -> None:
     )
     with pytest.raises(GeometrySlotError, match="completed slot"):
         merge_geometry_slots(initial, changed, MANIFEST)
+
+
+def test_worker_repair_context_scopes_one_slot_and_preserves_other_hashes() -> None:
+    initial = parse_geometry_slots(
+        _response(
+            {"slot_id": 0, "statements": ["body = cq.Workplane('XY')"], "result_symbol": "body"},
+            {"slot_id": 1, "statements": ["modified = body"], "result_symbol": "modified"},
+        ),
+        MANIFEST,
+    )
+    context = build_focused_slot_repair(
+        initial,
+        MANIFEST,
+        function_id="_ai_feature_mounting_holes",
+        worker_diagnostics="CadQuery traceback",
+    )
+    repair = parse_geometry_slots(
+        _response(
+            {
+                "slot_id": 1,
+                "statements": ["modified = body.translate((1, 0, 0))"],
+                "result_symbol": "modified",
+            }
+        ),
+        context["slot_manifest"],
+    )
+
+    merged = merge_geometry_slots(
+        initial,
+        repair,
+        MANIFEST,
+        replace_slot_ids={1},
+    )
+
+    assert context["requested_slot_ids"] == [1]
+    assert context["worker_diagnostics"] == "CadQuery traceback"
+    assert merged.slot_body_hashes[0] == initial.slot_body_hashes[0]
+    assert merged.slot_body_hashes[1] != initial.slot_body_hashes[1]
 
 
 def test_focused_completion_context_contains_only_unfinished_slots_and_preserved_hashes() -> None:
