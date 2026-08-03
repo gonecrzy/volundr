@@ -1,0 +1,29 @@
+{
+  "fixture_id": "desktop-organizer-frozen-v1",
+  "project": "desktop_organizer",
+  "output_id": "desktop_organizer_output",
+  "source_contract_passed": true,
+  "worker_succeeded": true,
+  "artifacts": ["stl", "step", "brep"],
+  "topology": {
+    "expected_solid_count": 1,
+    "detected_solid_count": 1,
+    "valid": true
+  },
+  "declared_features": [
+    {"feature_id": "main_body", "object_type": "desktop organizer", "requirement_id": "req_one_piece"},
+    {"feature_id": "phone_slot", "object_type": "slot", "requirement_id": "req_phone_slot"},
+    {"feature_id": "pen_compartment", "object_type": "pen compartment", "requirement_id": "req_pen_compartment"},
+    {"feature_id": "accessory_compartments", "object_type": "accessory compartments", "requirement_id": "req_accessory_compartments"},
+    {"feature_id": "cable_notch", "object_type": "cable notch", "requirement_id": "req_cable_notch"}
+  ],
+  "feature_trace": [],
+  "expected_initial_outcome": "verification_blocked",
+  "expected_unresolved_requirements": [
+    "req_one_piece",
+    "req_phone_slot",
+    "req_pen_compartment",
+    "req_accessory_compartments",
+    "req_cable_notch"
+  ]
+}

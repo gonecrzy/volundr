@@ -1,0 +1,25 @@
+{
+  "fixture_id": "portable-holder-frozen-v1",
+  "project": "portable_holder",
+  "output_id": "output_tackle_tray_holder",
+  "source_contract_passed": true,
+  "worker_succeeded": true,
+  "artifacts": ["stl", "step", "brep"],
+  "topology": {
+    "expected_solid_count": 1,
+    "detected_solid_count": 1,
+    "valid": true
+  },
+  "declared_features": [
+    {"feature_id": "feat_carrying_handle", "object_type": "handle", "requirement_id": "req_right_handle"},
+    {"feature_id": "feat_drainage_openings", "object_type": "drainage_opening", "requirement_id": "req_drainage"},
+    {"feature_id": "feat_strap_slots", "object_type": "strap_slot", "requirement_id": "req_strap_slots"}
+  ],
+  "feature_trace": [],
+  "expected_initial_outcome": "verification_blocked",
+  "expected_classifications": {
+    "req_right_handle": "feature_trace_missing",
+    "req_drainage": "feature_present_but_unmeasured",
+    "req_strap_slots": "feature_present_but_unmeasured"
+  }
+}
