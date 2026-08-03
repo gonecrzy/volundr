@@ -105,6 +105,9 @@ def test_claim_is_atomic_and_duplicate_safe(tmp_path, monkeypatch) -> None:
     assert first.status_code == 200, first.text
     assert second.status_code == 200, second.text
     assert second.json()["project_id"] == first.json()["project_id"]
+    experiment_after_claim = client.get(f"/api/gemini-consistency/experiments/{experiment['id']}")
+    started_runs = [run for run in experiment_after_claim.json()["runs"] if run["id"] == run_id]
+    assert started_runs[0]["started_at"] is not None
     with session_local() as session:
         memberships = session.scalars(select(GeminiBenchmarkMembership)).all()
         assert len(memberships) == 1

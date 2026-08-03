@@ -219,6 +219,8 @@ class GeminiConsistencyService:
             )
             self.db.add(membership)
             run.state = "running"
+            if run.started_at is None:
+                run.started_at = utcnow()
             self.db.commit()
             self.db.refresh(membership)
             return membership

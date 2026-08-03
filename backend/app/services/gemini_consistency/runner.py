@@ -568,9 +568,8 @@ class GeminiConsistencyRunner:
                     break
             if self.stop_requested:
                 break
-        if not self.stop_requested:
-            client.finish_experiment(experiment_id, "completed")
-            result["report"] = client.generate_report(experiment_id)
+        client.finish_experiment(experiment_id, "cancelled" if self.stop_requested else "completed")
+        result["report"] = client.generate_report(experiment_id)
         root_writer.finalize()
         return result
 
