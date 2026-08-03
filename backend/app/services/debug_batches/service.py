@@ -15,6 +15,7 @@ from app.models.project_message import ProjectMessage
 from app.models.workflow import WorkflowEvent, WorkflowRun
 from app.schemas.debug_batch import DebugBatchRead, DebugBatchStart
 from app.services.debug_batches.identity import capture_batch_identity
+from app.services.debug_batches.lifecycle import classify_project_lifecycle, lifecycle_label
 
 
 def utcnow() -> datetime:
@@ -191,6 +192,7 @@ class DebugBatchService:
     def _project_status(self, project: Project | None) -> dict[str, object]:
         if project is None:
             return {
+                "lifecycle_state": "interrupted",
                 "workflow_phase": "Infrastructure failure",
                 "worker_reached": False,
                 "current_working_revision_id": None,
@@ -233,38 +235,34 @@ class DebugBatchService:
                 .order_by(ProjectMessage.created_at.asc(), ProjectMessage.id.asc())
             )
         )
+        lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, [])
         worker_reached = any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events)
-        active = any(workflow.status == "running" for workflow in workflows)
-        blocked = any(event.blocking for event in events) or any(
-            attempt.status in {"failed", "blocked"} for attempt in attempts
-        )
+        active = lifecycle_state == "in_progress"
+        blocked = lifecycle_state in {"blocked_before_worker", "blocked_after_worker"}
         if active:
             phase = "Waiting for clarification" if any(
                 "clarif" in event.stage or "clarif" in event.event_type for event in events[-2:]
-            ) else "In progress"
-        elif project.active_revision_id:
-            phase = "Working version created"
-        elif blocked:
-            phase = "Blocked after worker" if worker_reached else "Blocked before worker"
+            ) else lifecycle_label(lifecycle_state)
         else:
-            phase = "Not started"
+            phase = lifecycle_label(lifecycle_state)
         provider_call_count = sum(attempt.provider_call_count for attempt in attempts)
         provider_retry_count = sum(attempt.provider_retry_count for attempt in attempts)
         content_repair_count = sum(attempt.content_repair_count for attempt in attempts)
         workflow_stage_attempt_count = len({(event.stage, event.generation_attempt_id) for event in events})
-        if active:
-            outcome_category = "in_progress"
-        elif project.active_revision_id:
+        if lifecycle_state == "working_version_created":
             outcome_category = "accepted"
-        elif worker_reached:
-            outcome_category = "worker_runtime_failure" if blocked else "worker_completed_without_valid_geometry"
-        elif any(attempt.status in {"failed", "blocked"} for attempt in attempts):
+        elif lifecycle_state == "in_progress":
+            outcome_category = "in_progress"
+        elif lifecycle_state == "blocked_after_worker":
+            outcome_category = "worker_runtime_failure"
+        elif lifecycle_state == "blocked_before_worker":
             outcome_category = "provider_content_failure" if any(attempt.raw_output_path for attempt in attempts) else "provider_transport_failure"
-        elif blocked:
-            outcome_category = "blocked_before_provider"
+        elif lifecycle_state == "interrupted":
+            outcome_category = "interrupted"
         else:
             outcome_category = "not_started"
         return {
+            "lifecycle_state": lifecycle_state,
             "workflow_phase": phase,
             "worker_reached": worker_reached,
             "current_working_revision_id": project.active_revision_id,

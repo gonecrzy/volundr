@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import Base
 from app.models.project import Project
+from app.models.generation_attempt import GenerationAttempt
 from app.models.workflow import WorkflowArtifact, WorkflowRun
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.reports import DebugBatchReportService
@@ -113,3 +114,44 @@ def test_report_generation_has_no_provider_or_worker_inputs(tmp_path: Path) -> N
         service = DebugBatchReportService(db=session, data_dir=tmp_path)
 
         assert set(service.__dict__) == {"db", "data_dir", "redactor"}
+
+
+def test_report_does_not_call_terminal_workflow_with_started_attempt_no_activity(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    with _session() as session:
+        batch = DebugBatchService(db=session, data_dir=data_dir).start(
+            DebugBatchStart(label="interrupted", target_project_count=1)
+        )
+        project = Project(name="Fixture", slug="fixture", original_intent="Build a fixture")
+        session.add(project)
+        session.flush()
+        DebugBatchService(db=session, data_dir=data_dir).attach_new_project(project)
+        session.add(
+            WorkflowRun(
+                project_id=project.id,
+                workflow_type="initial_generation",
+                correlation_id="corr-interrupted",
+                status="failed",
+            )
+        )
+        session.add(
+            GenerationAttempt(
+                project_id=project.id,
+                attempt_number=1,
+                provider_id="gemini_api",
+                provider_settings_json="{}",
+                prompt_version="test",
+                ruleset_version="test",
+                request_payload_path="request.json",
+                prompt_path="prompt.txt",
+                status="started",
+            )
+        )
+        session.commit()
+
+        report = DebugBatchReportService(db=session, data_dir=data_dir).generate(batch.id)["report"]
+
+        summary = report["projects"][0]
+        assert summary["lifecycle_state"] == "interrupted"
+        assert summary["final_outcome"] == "Interrupted"

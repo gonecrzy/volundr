@@ -33,6 +33,7 @@ class DebugBatchMembershipRead(BaseModel):
     position: int
     project_name: str | None = None
     missing: bool = False
+    lifecycle_state: str = "no_activity"
     workflow_phase: str = "Not started"
     worker_reached: bool = False
     current_working_revision_id: str | None = None

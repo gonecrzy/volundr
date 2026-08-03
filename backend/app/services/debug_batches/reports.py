@@ -20,6 +20,7 @@ from app.models.revision import Revision
 from app.models.revision_output import RevisionOutput
 from app.models.workflow import WorkflowArtifact, WorkflowEvent, WorkflowRun
 from app.services.workflow.redaction import RedactionService
+from app.services.debug_batches.lifecycle import classify_project_lifecycle, lifecycle_label
 
 
 TEXT_SUFFIXES = {".json", ".txt", ".log", ".md", ".py", ".ndjson", ".toml", ".yaml", ".yml"}
@@ -260,6 +261,7 @@ class DebugBatchReportService:
                 redaction=redaction,
             )
 
+        lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, revisions)
         active_workflow = next((workflow for workflow in reversed(workflows) if workflow.status == "running"), None)
         outcome_category = self._outcome_category(
             project,
@@ -303,6 +305,7 @@ class DebugBatchReportService:
             "current_working_revision_id": project.active_revision_id,
             "workflow_ids": workflow_ids,
             "active_workflow_status": active_workflow.status if active_workflow else None,
+            "lifecycle_state": lifecycle_state,
             "route": self._route(events),
             "worker_reached": any(event.stage in {"cad_execution", "worker", "topology_validation"} for event in events),
             "attempt_count": len(attempts),
@@ -405,11 +408,16 @@ class DebugBatchReportService:
         revisions: list[Revision],
         revision_outputs: list[RevisionOutput],
     ) -> str:
-        if any(workflow.status == "running" for workflow in workflows):
+        lifecycle_state = classify_project_lifecycle(project, workflows, attempts, events, revisions)
+        if lifecycle_state == "working_version_created":
+            accepted = next((revision for revision in revisions if revision.id == project.active_revision_id), None)
+            if accepted is not None and accepted.is_accepted:
+                return "accepted"
+            return "candidate_created"
+        if lifecycle_state == "in_progress":
             return "in_progress"
-        accepted = next((revision for revision in revisions if revision.id == project.active_revision_id), None)
-        if accepted is not None and accepted.is_accepted:
-            return "accepted"
+        if lifecycle_state == "interrupted":
+            return "interrupted"
         valid_revision_ids: set[str] = set()
         for revision in revisions:
             outputs = [output for output in revision_outputs if output.revision_id == revision.id]
@@ -450,6 +458,7 @@ class DebugBatchReportService:
     def _outcome_label(self, category: str) -> str:
         return {
             "in_progress": "In progress",
+            "interrupted": "Interrupted",
             "accepted": "Accepted",
             "accepted_with_warnings": "Accepted with warnings",
             "candidate_created": "Candidate created",
