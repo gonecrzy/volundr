@@ -66,6 +66,21 @@ class Settings(BaseSettings):
     snapshot_max_components: int = Field(default=24, ge=1, le=100)
     snapshot_section_enabled: bool = Field(default=True)
     snapshot_background: str = Field(default="neutral_light")
+    # Advanced geometry rollout policy. `auto` uses the Volundr-owned slots
+    # for direct/compact plans and retains the legacy boundary for detailed
+    # plans. This is intentionally absent from the minimal .env.example.
+    geometry_contract_mode: str = Field(default="auto")
+
+    @field_validator("geometry_contract_mode")
+    @classmethod
+    def validate_geometry_contract_mode(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        allowed = {"auto", "legacy_contract", "geometry_slots_v1"}
+        if normalized not in allowed:
+            raise ValueError(
+                "geometry_contract_mode must be auto, legacy_contract, or geometry_slots_v1"
+            )
+        return normalized
 
     @field_validator("gemini_policy_path", mode="before")
     @classmethod

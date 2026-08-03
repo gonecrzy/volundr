@@ -414,6 +414,7 @@ def _canonicalize_function(
     signature: str,
     allowed_parameters: set[str],
     scaffold_owned_identifiers: set[str],
+    approved_helpers: set[str] | None = None,
 ) -> tuple[list[str], str, list[dict[str, Any]]]:
     if not isinstance(result_symbol, str) or not result_symbol.strip():
         raise GeometryBodyError(
@@ -505,6 +506,7 @@ def _canonicalize_function(
         node,
         function_id=function_id,
         parameter_ids=allowed_parameters,
+        approved_helpers=approved_helpers,
         scaffold_owned_identifiers=scaffold_owned_identifiers,
         source_text=f"def {function_id}{signature}:\n{textwrap.indent(normalized, '    ')}\n",
     )

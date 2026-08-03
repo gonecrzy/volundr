@@ -28,6 +28,11 @@ class ModelGenerationRequest:
     geometry_execution_context: dict[str, Any] | None = None
     prompt_context_pack: dict[str, Any] | None = None
     provider_contract_manifest: dict[str, Any] | None = None
+    geometry_contract: str = "legacy_contract"
+    geometry_slot_manifest: dict[str, Any] | None = None
+    geometry_slot_brief: dict[str, Any] | None = None
+    geometry_slot_completion: dict[str, Any] | None = None
+    preserved_slot_hashes: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

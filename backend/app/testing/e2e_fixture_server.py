@@ -38,6 +38,7 @@ from app.services.ai.provider import (
 )
 from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
 from app.services.cad.geometry_bodies import GEOMETRY_BODIES_SCHEMA_VERSION
+from app.services.cad.geometry_slots import GEOMETRY_SLOTS_SCHEMA_VERSION
 from app.services.cad.source_scaffold import SCAFFOLD_VERSION, _component_geometry_name, _feature_geometry_name
 from app.services.mesh.inspect import MeshMetadata
 from app.schemas.project import ProjectCreate, RequirementExtractionCreate
@@ -423,6 +424,36 @@ def _structured_geometry_response(plan: dict[str, Any], source: str) -> dict[str
     }
 
 
+def _structured_geometry_slot_response(
+    plan: dict[str, Any],
+    source: str,
+    manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """Adapt the deterministic fixture to Volundr's slot-only response."""
+
+    body_response = _structured_geometry_response(plan, source)
+    by_function = {
+        str(item.get("function_id")): item
+        for item in body_response.get("functions", [])
+        if isinstance(item, dict) and item.get("function_id")
+    }
+    slots: list[dict[str, Any]] = []
+    for spec in manifest.get("slots", []) or []:
+        if not isinstance(spec, dict):
+            continue
+        function = by_function.get(str(spec.get("function_id")))
+        if function is None:
+            continue
+        slots.append(
+            {
+                "slot_id": spec.get("slot_id"),
+                "statements": function.get("statements", []),
+                "result_symbol": function.get("result_symbol", "body"),
+            }
+        )
+    return {"schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION, "slots": slots}
+
+
 class FixtureProvider:
     """A deterministic provider used only by browser integration tests."""
 
@@ -621,8 +652,17 @@ class FixtureProvider:
                 else ORGANIZER_PLAN if "organizer" in _request.user_instruction.lower() else PLATE_PLAN
             )
             source = ORGANIZER_SOURCE if "organizer" in _request.user_instruction.lower() else PLATE_SOURCE
+        raw_payload = (
+            _structured_geometry_slot_response(
+                plan,
+                source,
+                _request.geometry_slot_manifest or {},
+            )
+            if _request.geometry_contract == GEOMETRY_SLOTS_SCHEMA_VERSION
+            else _structured_geometry_response(plan, source)
+        )
         return ModelGenerationResult(
-            raw_output=json.dumps(_structured_geometry_response(plan, source)),
+            raw_output=json.dumps(raw_payload),
             provider="fixture",
             provider_model="fixture-model",
         )

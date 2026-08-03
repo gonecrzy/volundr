@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import time
 import zipfile
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -126,6 +126,16 @@ from app.services.cad.geometry_bodies import (
     assemble_geometry_bodies,
     build_geometry_function_inventory,
     validate_geometry_body_repair_scope,
+)
+from app.services.cad.geometry_slots import (
+    GEOMETRY_SLOTS_CONTRACT_VERSION,
+    GEOMETRY_SLOTS_SCHEMA_VERSION,
+    GeometrySlotError,
+    build_geometry_slot_brief,
+    build_geometry_slot_manifest,
+    merge_geometry_slots,
+    parse_geometry_slots,
+    select_geometry_contract,
 )
 from app.services.cad.patterns import exposed_control_ids, normalize_pattern_specs, validate_pattern_specs
 from app.services.cad.runtime_diagnostics import (
@@ -251,6 +261,7 @@ COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v3"
 CADQUERY_GENERATION_PROMPT_VERSION = "cadquery-generation-v1"
 CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v10"
 CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v10"
+CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION = "cadquery-geometry-slots-v1"
 DESIGN_PLAN_SCHEMA_VERSION = "1.0"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
 
@@ -2584,6 +2595,8 @@ class ProjectService:
                 attempt=generation_attempt,
                 workflow_run=workflow_run,
                 role="component_revision_geometry",
+                geometry_contract=generation_request.geometry_contract,
+                geometry_slot_manifest=generation_request.geometry_slot_manifest,
             )
         except (SourceExtractionError, ScaffoldSourceError) as exc:
             if isinstance(exc, GeometryBodyError):
@@ -3002,6 +3015,8 @@ class ProjectService:
                 attempt=correction_attempt,
                 workflow_run=workflow_run,
                 role="scope_correction_geometry",
+                geometry_contract=correction_request.geometry_contract,
+                geometry_slot_manifest=correction_request.geometry_slot_manifest,
             )
         except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
@@ -4580,6 +4595,9 @@ class ProjectService:
                     design_plan=design_plan,
                     design_plan_payload=design_plan_payload,
                     generation_contract_version=generation_request.generation_contract_version,
+                    geometry_contract=generation_request.geometry_contract,
+                    geometry_slot_manifest=generation_request.geometry_slot_manifest,
+                    geometry_request=generation_request,
                     workflow_run=workflow_run,
                 )
             )
@@ -4850,6 +4868,9 @@ class ProjectService:
         design_plan: DesignPlan | None = None,
         design_plan_payload: dict[str, Any] | None = None,
         generation_contract_version: str = "v1",
+        geometry_contract: str = "legacy_contract",
+        geometry_slot_manifest: dict[str, Any] | None = None,
+        geometry_request: ModelGenerationRequest | None = None,
         workflow_run: WorkflowRun | None = None,
     ) -> tuple[str, str, GenerationAttempt, SourceValidationResult]:
         self._record_generation_result(generation_attempt, generation_result)
@@ -4862,14 +4883,58 @@ class ProjectService:
             redacted=False,
         )
         active_role = "initial_generated_source"
+        active_raw_output = generation_result.raw_output
+        active_generation_attempt = generation_attempt
+        active_geometry_contract = geometry_contract
+        active_geometry_slot_manifest = geometry_slot_manifest
+        if geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION and geometry_request is not None:
+            try:
+                (
+                    active_raw_output,
+                    generation_result,
+                    active_generation_attempt,
+                ) = await self._complete_geometry_slots_once(
+                    project=project,
+                    payload=payload,
+                    generation_request=geometry_request,
+                    generation_attempt=generation_attempt,
+                    generation_result=generation_result,
+                    design_specification_payload=design_specification_payload,
+                    design_plan_payload=design_plan_payload,
+                    workflow_run=workflow_run,
+                )
+            except GeometrySlotError as exc:
+                try:
+                    (
+                        active_raw_output,
+                        generation_result,
+                        active_generation_attempt,
+                    ) = await self._fallback_geometry_slots_to_legacy(
+                        project=project,
+                        payload=payload,
+                        generation_request=geometry_request,
+                        design_specification_payload=design_specification_payload,
+                        design_plan_payload=design_plan_payload,
+                        workflow_run=workflow_run,
+                        reason=str(exc),
+                    )
+                    active_geometry_contract = "legacy_contract"
+                    active_geometry_slot_manifest = None
+                    generation_contract_version = self._provider_generation_contract_version()
+                    active_role = "legacy_fallback_source"
+                except Exception:
+                    raise exc
+        generation_attempt = active_generation_attempt
         try:
             source = self._prepare_generated_source(
-                raw_output=generation_result.raw_output,
+                raw_output=active_raw_output,
                 design_plan_payload=design_plan_payload,
                 generation_contract_version=generation_contract_version,
-                attempt=generation_attempt,
+                attempt=active_generation_attempt,
                 workflow_run=workflow_run,
-                role="initial_geometry",
+                role=active_role,
+                geometry_contract=active_geometry_contract,
+                geometry_slot_manifest=active_geometry_slot_manifest,
             )
         except GeometryBodyError as exc:
             self._record_workflow_event(
@@ -5073,6 +5138,8 @@ class ProjectService:
                 attempt=repair_attempt,
                 workflow_run=repair_workflow_run or workflow_run,
                 role="contract_repair_geometry",
+                geometry_contract=repair_request.geometry_contract,
+                geometry_slot_manifest=repair_request.geometry_slot_manifest,
             )
         except (SourceExtractionError, ScaffoldSourceError) as exc:
             self._finish_generation_attempt(
@@ -5198,6 +5265,33 @@ class ProjectService:
             if requirement_delta is not None
             else requirement_delta_for_message(payload.user_instruction)[0]
         )
+        geometry_contract = select_geometry_contract(
+            planning_depth,
+            getattr(settings, "geometry_contract_mode", "auto"),
+        )
+        geometry_slot_manifest = None
+        geometry_slot_brief = None
+        if geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION and design_plan:
+            geometry_slot_manifest = build_geometry_slot_manifest(
+                design_plan,
+                planning_depth=planning_depth,
+            )
+            geometry_slot_brief = build_geometry_slot_brief(
+                planning_depth=planning_depth,
+                active_requirements=active_items,
+                requirement_delta=delta_items,
+                preserved_requirements=(geometry_execution_context or {}).get(
+                    "preserve_requirements", []
+                ),
+                proposals=list(
+                    design_plan.get("proposals", [])
+                    or design_plan.get("proposed_decisions", [])
+                    or []
+                ),
+                design_plan=design_plan,
+                slot_manifest=geometry_slot_manifest,
+                exposed_controls=list(design_plan.get("exposed_controls", []) or []),
+            )
         if prompt_context_pack is None and geometry_execution_context is not None:
             prompt_context_pack = PromptContextPackBuilder().build(
                 project_id=project.id,
@@ -5222,6 +5316,7 @@ class ProjectService:
                 relevant_findings=selected_findings or [],
                 scaffold_contract={
                     "generation_contract_version": self._provider_generation_contract_version(),
+                    "geometry_contract": geometry_contract,
                     "source_authority": source_authority,
                 },
                 exposed_controls=(design_plan or {}).get("exposed_controls", []) or [],
@@ -5232,6 +5327,7 @@ class ProjectService:
                         original_intent=project.original_intent,
                         user_instruction=payload.user_instruction,
                         generation_contract_version=self._provider_generation_contract_version(),
+                        geometry_contract=geometry_contract,
                         geometry_body_diagnostics=geometry_body_diagnostics,
                         planning_depth=planning_depth,
                     )
@@ -5262,6 +5358,9 @@ class ProjectService:
             geometry_execution_context=geometry_execution_context,
             prompt_context_pack=prompt_context_pack,
             provider_contract_manifest=provider_contract_manifest,
+            geometry_contract=geometry_contract,
+            geometry_slot_manifest=geometry_slot_manifest,
+            geometry_slot_brief=geometry_slot_brief,
         )
 
     def _planning_depth_for_plan(self, plan: dict[str, Any] | None) -> str:
@@ -5352,7 +5451,18 @@ class ProjectService:
         attempt: GenerationAttempt,
         workflow_run: WorkflowRun | None,
         role: str,
+        geometry_contract: str = "legacy_contract",
+        geometry_slot_manifest: dict[str, Any] | None = None,
     ) -> str:
+        if geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
+            return self._prepare_geometry_slot_source(
+                raw_output=raw_output,
+                design_plan_payload=design_plan_payload,
+                attempt=attempt,
+                workflow_run=workflow_run,
+                role=role,
+                geometry_slot_manifest=geometry_slot_manifest,
+            )
         if generation_contract_version != SCAFFOLD_VERSION:
             return self._extract_generated_source(raw_output)
         if not design_plan_payload:
@@ -5459,6 +5569,398 @@ class ProjectService:
             redacted=False,
         )
         return rendered.source
+
+    def _prepare_geometry_slot_source(
+        self,
+        *,
+        raw_output: str,
+        design_plan_payload: dict[str, Any] | None,
+        attempt: GenerationAttempt,
+        workflow_run: WorkflowRun | None,
+        role: str,
+        geometry_slot_manifest: dict[str, Any] | None,
+    ) -> str:
+        if not design_plan_payload:
+            raise ScaffoldSourceError("geometry slots require an approved Design Plan")
+        manifest = geometry_slot_manifest or build_geometry_slot_manifest(
+            design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+        )
+        response = parse_geometry_slots(raw_output, manifest)
+        if not response.is_complete:
+            raise GeometrySlotError(
+                "geometry_slot.incomplete",
+                "Geometry slot response is incomplete and needs focused completion.",
+                details={
+                    "completed_slot_ids": response.completed_slot_ids,
+                    "missing_slot_ids": response.missing_slot_ids,
+                    "invalid_slots": response.invalid_slots,
+                    "slot_body_hashes": response.slot_body_hashes,
+                },
+            )
+        rendered = render_cadquery_scaffold(design_plan_payload, response.functions)
+        run_dir = self._generation_attempt_dir(attempt.project_id, attempt.id)
+        parsed_path = run_dir / "geometry-slots.json"
+        original_path = run_dir / "geometry-slots-original.json"
+        geometry_path = run_dir / "geometry-slots.py"
+        self._write_json(parsed_path, response.payload)
+        self._write_json(
+            original_path,
+            {
+                "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
+                "slots": [
+                    {
+                        "slot_id": slot_id,
+                        "statements": response.original_statements[slot_id],
+                        "result_symbol": response.result_symbols[slot_id],
+                    }
+                    for slot_id in response.completed_slot_ids
+                ],
+            },
+        )
+        geometry_path.write_text(
+            "\n\n".join(
+                response.functions[name] for name in rendered.expected_geometry_functions
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        scaffold_manifest_path = run_dir / "scaffold-manifest.json"
+        provider_contract_manifest = build_provider_contract_manifest(
+            design_plan_payload,
+            planning_depth=self._planning_depth_for_plan(design_plan_payload),
+            geometry_inventory=build_geometry_function_inventory(design_plan_payload),
+        )
+        self._write_json(
+            scaffold_manifest_path,
+            {
+                "schema_version": SCAFFOLD_VERSION,
+                "geometry_contract": GEOMETRY_SLOTS_CONTRACT_VERSION,
+                "geometry_slot_schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
+                "slot_manifest": manifest,
+                "scaffold_hash": rendered.scaffold_hash,
+                "expected_geometry_functions": list(rendered.expected_geometry_functions),
+                "slot_body_hashes": {str(key): value for key, value in response.slot_body_hashes.items()},
+                "function_body_hashes": {
+                    str(slot_id): response.slot_body_hashes[slot_id]
+                    for slot_id in response.completed_slot_ids
+                },
+                "derived_parameter_manifest": rendered.derived_parameter_manifest,
+                "pattern_manifest": rendered.pattern_manifest,
+                "parameter_effect_manifest": rendered.parameter_effect_manifest,
+                "provider_contract_manifest": provider_contract_manifest,
+                "assembled_source_hash": self._sha256(rendered.source),
+                "role": role,
+            },
+        )
+        stage = "source_extraction" if role == "initial_geometry" else "contract_repair"
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_slots_json",
+            role=f"{role}_parsed_geometry_slots",
+            relative_path=self._relative(parsed_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_slots_original",
+            role=f"{role}_original_slot_statements",
+            relative_path=self._relative(original_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_geometry_bodies",
+            role=role,
+            relative_path=self._relative(geometry_path),
+            redacted=False,
+        )
+        self._record_workflow_artifact(
+            workflow_run,
+            stage=stage,
+            artifact_type="cadquery_scaffold_manifest",
+            role=f"{role}_scaffold_manifest",
+            relative_path=self._relative(scaffold_manifest_path),
+            redacted=False,
+        )
+        return rendered.source
+
+    async def _complete_geometry_slots_once(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        generation_request: ModelGenerationRequest,
+        generation_attempt: GenerationAttempt,
+        generation_result: Any,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any] | None,
+        workflow_run: WorkflowRun | None,
+    ) -> tuple[str, Any, GenerationAttempt]:
+        """Complete missing/invalid slots with one focused provider call."""
+
+        manifest = generation_request.geometry_slot_manifest
+        if not manifest:
+            raise GeometrySlotError(
+                "geometry_slot.missing_manifest",
+                "Geometry slot generation requires an authoritative slot manifest.",
+            )
+        initial = parse_geometry_slots(generation_result.raw_output, manifest)
+        if initial.is_complete:
+            return generation_result.raw_output, generation_result, generation_attempt
+        from app.services.cad.geometry_slots import build_focused_slot_completion
+
+        completion_context = build_focused_slot_completion(initial, manifest)
+        if not completion_context["requested_slot_ids"]:
+            raise GeometrySlotError(
+                "geometry_slot.completion_no_scope",
+                "Geometry slot response has no valid scope for focused completion.",
+                details={"invalid_slots": initial.invalid_slots},
+            )
+        self._record_provider_response_validation_failure(
+            generation_attempt,
+            error_message="Initial geometry slot response was partial or invalid.",
+            classification="partial_geometry_slots",
+            findings=[
+                json.dumps(
+                    {
+                        "completed_slot_ids": initial.completed_slot_ids,
+                        "missing_slot_ids": initial.missing_slot_ids,
+                        "invalid_slots": initial.invalid_slots,
+                    },
+                    sort_keys=True,
+                )
+            ],
+        )
+        self._finish_generation_attempt(
+            generation_attempt,
+            status="failed",
+            failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+            error_message="Initial geometry slot response was partial or invalid; focused completion requested.",
+        )
+        if workflow_run is not None:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_slots.partial",
+                severity="warning",
+                blocking=False,
+                rule_id="geometry_slot.partial_response",
+                message="Geometry slot response was retained and a focused completion was requested.",
+                deduplication_key=f"geometry-slots-partial-{generation_attempt.id}",
+                generation_attempt_id=generation_attempt.id,
+                metadata=completion_context,
+            )
+
+        focused_brief = dict(generation_request.geometry_slot_brief or {})
+        focused_slots = completion_context["slot_manifest"].get("slots", [])
+        focused_brief["slots"] = [
+            {
+                "slot_id": item.get("slot_id"),
+                "required_inputs": list(item.get("required_inputs", []) or []),
+                "authorized_parameter_ids": list(item.get("authorized_parameter_ids", []) or []),
+                "approved_helpers": list(item.get("approved_helpers", []) or []),
+                "required_result": item.get("required_result"),
+            }
+            for item in focused_slots
+            if isinstance(item, dict)
+        ]
+        completion_request = replace(
+            generation_request,
+            current_source=None,
+            geometry_slot_manifest=completion_context["slot_manifest"],
+            geometry_slot_brief=focused_brief,
+            geometry_slot_completion=completion_context,
+            preserved_slot_hashes=completion_context["preserved_slot_hashes"],
+        )
+        completion_attempt = self._start_generation_attempt(
+            project=project,
+            request=completion_request,
+            base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        self._persist_prompt_context_pack_for_attempt(
+            workflow_run=workflow_run,
+            attempt=completion_attempt,
+            pack=completion_request.prompt_context_pack,
+            provider_contract_manifest=completion_request.provider_contract_manifest,
+        ) if workflow_run is not None else None
+        if workflow_run is not None:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_slots.completion_started",
+                severity="summary",
+                message="Focused geometry slot completion started.",
+                deduplication_key=f"geometry-slots-completion-started-{completion_attempt.id}",
+                generation_attempt_id=completion_attempt.id,
+                metadata=completion_context,
+            )
+        try:
+            completion_result = await self._generate_source_model(completion_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(completion_attempt)
+            raise
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                completion_attempt,
+                status="failed",
+                failure_class=self._provider_failure_class(str(exc)),
+                error_message=str(exc),
+            )
+            raise
+        self._record_generation_result(completion_attempt, completion_result)
+        try:
+            completed_response = parse_geometry_slots(
+                completion_result.raw_output,
+                completion_context["slot_manifest"],
+            )
+            merged = merge_geometry_slots(initial, completed_response, manifest)
+        except GeometrySlotError as exc:
+            self._finish_generation_attempt(
+                completion_attempt,
+                status="failed",
+                failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+                error_message=str(exc),
+            )
+            if workflow_run is not None:
+                self._record_workflow_event(
+                    workflow_run,
+                    stage="source_extraction",
+                    event_type="geometry_slots.completion_failed",
+                    severity="error",
+                    blocking=True,
+                    rule_id=exc.rule_id,
+                    message=str(exc),
+                    deduplication_key=f"geometry-slots-completion-failed-{completion_attempt.id}",
+                    generation_attempt_id=completion_attempt.id,
+                    metadata=exc.details,
+                )
+            raise
+        if len(merged.completed_slot_ids) <= len(initial.completed_slot_ids) or not merged.is_complete:
+            error = GeometrySlotError(
+                "geometry_slot.completion_no_progress",
+                "Focused geometry slot completion did not produce a complete, changed result.",
+                details={
+                    "initial_completed_slot_ids": initial.completed_slot_ids,
+                    "completed_slot_ids": merged.completed_slot_ids,
+                    "missing_slot_ids": merged.missing_slot_ids,
+                    "invalid_slots": merged.invalid_slots,
+                },
+            )
+            self._finish_generation_attempt(
+                completion_attempt,
+                status="failed",
+                failure_class=FailureClass.GEOMETRY_BODY_FAILURE,
+                error_message=str(error),
+            )
+            raise error
+        merged_raw = json.dumps(
+            {
+                "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
+                "slots": [
+                    {
+                        "slot_id": slot_id,
+                        "statements": merged.original_statements[slot_id],
+                        "result_symbol": merged.result_symbols[slot_id],
+                    }
+                    for slot_id in merged.completed_slot_ids
+                ],
+            },
+            sort_keys=True,
+        )
+        if workflow_run is not None:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_slots.completion_succeeded",
+                severity="summary",
+                message="Focused geometry slot completion produced a complete response.",
+                deduplication_key=f"geometry-slots-completion-succeeded-{completion_attempt.id}",
+                generation_attempt_id=completion_attempt.id,
+                metadata={
+                    "completed_slot_ids": merged.completed_slot_ids,
+                    "slot_body_hashes": merged.slot_body_hashes,
+                    "focused_slot_ids": completion_context["requested_slot_ids"],
+                },
+            )
+        return merged_raw, completion_result, completion_attempt
+
+    async def _fallback_geometry_slots_to_legacy(
+        self,
+        *,
+        project: Project,
+        payload: GenerationCreate,
+        generation_request: ModelGenerationRequest,
+        design_specification_payload: dict[str, Any] | None,
+        design_plan_payload: dict[str, Any] | None,
+        workflow_run: WorkflowRun | None,
+        reason: str,
+    ) -> tuple[str, Any, GenerationAttempt]:
+        """Use one explicitly recorded legacy request before worker submission."""
+
+        fallback_request = replace(
+            generation_request,
+            current_source=None,
+            geometry_contract="legacy_contract",
+            geometry_slot_manifest=None,
+            geometry_slot_brief=None,
+            geometry_slot_completion=None,
+            preserved_slot_hashes={},
+            generation_contract_version=self._provider_generation_contract_version(),
+        )
+        fallback_attempt = self._start_generation_attempt(
+            project=project,
+            request=fallback_request,
+            base_revision_id=project.active_revision_id,
+            design_specification_payload=design_specification_payload,
+            design_plan_payload=design_plan_payload,
+        )
+        if workflow_run is not None:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_slots.legacy_fallback_started",
+                severity="warning",
+                blocking=False,
+                rule_id="geometry_slot.legacy_fallback",
+                message="Geometry slot generation fell back to the legacy contract before worker submission.",
+                deduplication_key=f"geometry-slots-legacy-fallback-{fallback_attempt.id}",
+                generation_attempt_id=fallback_attempt.id,
+                metadata={"reason": reason, "fallback": True},
+            )
+        try:
+            fallback_result = await self._generate_source_model(fallback_request)
+        except asyncio.CancelledError:
+            self._finish_provider_cancelled_attempt(fallback_attempt)
+            raise
+        except RuntimeError as exc:
+            self._finish_generation_attempt(
+                fallback_attempt,
+                status="failed",
+                failure_class=self._provider_failure_class(str(exc)),
+                error_message=str(exc),
+            )
+            raise
+        self._record_generation_result(fallback_attempt, fallback_result)
+        if workflow_run is not None:
+            self._record_workflow_event(
+                workflow_run,
+                stage="source_extraction",
+                event_type="geometry_slots.legacy_fallback_completed",
+                severity="summary",
+                blocking=False,
+                rule_id="geometry_slot.legacy_fallback",
+                message="Legacy geometry fallback response was collected.",
+                deduplication_key=f"geometry-slots-legacy-fallback-completed-{fallback_attempt.id}",
+                generation_attempt_id=fallback_attempt.id,
+                metadata={"reason": reason, "fallback": True},
+            )
+        return fallback_result.raw_output, fallback_result, fallback_attempt
 
     def _extract_generated_source(self, raw_output: str) -> str:
         return extract_python_source(raw_output)
@@ -5703,6 +6205,8 @@ class ProjectService:
                 attempt=repair_attempt,
                 workflow_run=repair_workflow_run or workflow_run,
                 role="geometry_body_repair",
+                geometry_contract=repair_request.geometry_contract,
+                geometry_slot_manifest=repair_request.geometry_slot_manifest,
             )
         except GeometryBodyError as exc:
             self._finish_generation_attempt(
@@ -5834,6 +6338,12 @@ class ProjectService:
         design_plan_payload: dict[str, Any] | None = None,
     ) -> GenerationAttempt:
         routing = self._routing_for_request(request)
+        routing["geometry_contract"] = getattr(request, "geometry_contract", "legacy_contract")
+        slot_manifest = getattr(request, "geometry_slot_manifest", None)
+        routing["geometry_slot_count"] = len((slot_manifest or {}).get("slots", []) or [])
+        routing["geometry_slot_completion_call"] = bool(
+            getattr(request, "geometry_slot_completion", None)
+        )
         attempt = GenerationAttempt(
             project_id=project.id,
             base_revision_id=base_revision_id,
@@ -7585,6 +8095,8 @@ class ProjectService:
         return ""
 
     def _prompt_template_version(self, request: ModelGenerationRequest) -> str:
+        if request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
+            return CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION
         if request.geometry_body_diagnostics:
             return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
         if request.generation_contract_version == SCAFFOLD_VERSION:

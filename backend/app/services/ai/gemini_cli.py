@@ -28,6 +28,10 @@ from app.services.cad.geometry_bodies import (
     GEOMETRY_BODIES_SCHEMA_VERSION,
     build_geometry_function_inventory,
 )
+from app.services.cad.geometry_slots import (
+    GEOMETRY_SLOTS_CONTRACT_VERSION,
+    GEOMETRY_SLOTS_SCHEMA_VERSION,
+)
 from app.services.cad.source_scaffold import SCAFFOLD_VERSION
 from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
 
@@ -41,6 +45,8 @@ CONTRACT_REPAIR_PROMPT_VERSION = "cadquery-contract-repair-v3"
 CADQUERY_SOURCE_PROMPT_VERSION = "cadquery-generation-v6"
 CADQUERY_GEOMETRY_BODY_PROMPT_VERSION = "cadquery-geometry-body-v10"
 CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION = "cadquery-geometry-body-repair-v10"
+CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION = "cadquery-geometry-slots-v1"
+CADQUERY_GEOMETRY_SLOTS_COMPLETION_PROMPT_VERSION = "cadquery-geometry-slots-completion-v1"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
 
@@ -315,6 +321,10 @@ class GeminiCliProvider:
         return self.gemini_ruleset_version
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
+            if request.geometry_slot_completion:
+                return CADQUERY_GEOMETRY_SLOTS_COMPLETION_PROMPT_VERSION
+            return CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION
         if request.geometry_body_diagnostics:
             return CADQUERY_GEOMETRY_BODY_REPAIR_PROMPT_VERSION
         if request.generation_contract_version == SCAFFOLD_VERSION:
@@ -364,6 +374,8 @@ class GeminiCliProvider:
         return self.build_cadquery_prompt(request)
 
     def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        if request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
+            return self.build_geometry_slots_prompt(request)
         if request.generation_contract_version == SCAFFOLD_VERSION or request.geometry_body_diagnostics:
             return self.build_scaffold_geometry_prompt(request)
         parts = [
@@ -663,6 +675,40 @@ class GeminiCliProvider:
             ]
         )
         return "\n".join(parts)
+
+    def build_geometry_slots_prompt(self, request: ModelGenerationRequest) -> str:
+        """Render the reduced provider-facing slot contract."""
+
+        brief = request.geometry_slot_brief or {}
+        lines = [
+            "You supply geometry statements for Volundr-owned CadQuery slots.",
+            "Return JSON only, optionally inside one json code fence. Do not include prose outside JSON.",
+            f"Use schema_version exactly {GEOMETRY_SLOTS_SCHEMA_VERSION}.",
+            "Return only slots with slot_id, statements, result_symbol, and optional concise notes. Return only statements and result_symbol for each supplied slot.",
+            "Do not return Python function declarations, function arguments, imports, stable identifiers, parameter declarations, provenance, validation records, scaffold code, or entrypoint code.",
+            "Volundr owns slot count, order, signatures, imports, parameters, helpers, returns, outputs, entrypoint, source validation, worker submission, and verification.",
+            "Each statement must be valid inside the supplied Volundr-owned function slot. Do not include return statements.",
+            "Use only params access, ordinary local calculations, CadQuery as cq, and the approved helpers listed for that slot.",
+            "Assign the requested result_symbol on every path. Volundr inserts the return statement.",
+            "Never write files, use network or shell access, define nested functions/classes/lambdas, or mutate scaffold-owned names.",
+            "Return every requested slot exactly once unless this is focused completion; never regenerate or alter completed slots.",
+            "",
+            f"Prompt version: {self.prompt_template_version_for(request)}",
+            "Reduced geometry execution brief:",
+            json.dumps(brief, indent=2, sort_keys=True),
+        ]
+        if request.geometry_slot_completion:
+            completion = request.geometry_slot_completion
+            lines.extend(
+                [
+                    "",
+                    "Focused completion mode:",
+                    "Return only the missing or invalid slot IDs listed below.",
+                    "Completed slot hashes are immutable; do not return them or change them.",
+                    json.dumps(completion, indent=2, sort_keys=True),
+                ]
+            )
+        return "\n".join(lines)
 
     def build_scaffold_geometry_prompt(self, request: ModelGenerationRequest) -> str:
         plan = request.design_plan or {}

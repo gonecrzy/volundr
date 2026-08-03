@@ -429,6 +429,7 @@ def allowed_symbol_inventory(
     signature: str,
     parameter_ids: set[str],
     scaffold_owned_identifiers: set[str],
+    approved_helpers: set[str] | None = None,
 ) -> dict[str, Any]:
     """Return prompt-safe symbol authority for one scaffold signature."""
 
@@ -439,7 +440,7 @@ def allowed_symbol_inventory(
         "signature": signature,
         "function_arguments": arguments,
         "approved_module_aliases": sorted(APPROVED_MODULE_ALIASES),
-        "approved_helpers": sorted(APPROVED_HELPERS),
+        "approved_helpers": sorted(approved_helpers or APPROVED_HELPERS),
         "approved_builtins": sorted(APPROVED_BUILTINS),
         "parameter_access": "params[<parameter_id>] or params.get(<parameter_id>)",
         "authorized_parameter_ids": sorted(parameter_ids),
