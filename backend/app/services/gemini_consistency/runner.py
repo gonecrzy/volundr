@@ -560,12 +560,12 @@ class GeminiConsistencyRunner:
         corpus = load_ollama_consistency_corpus(self.config.corpus_path) if self.config.five_case else load_consistency_corpus(self.config.corpus_path)
         if self.config.dry_run:
             return self.dry_run_manifest(corpus)
-        if self.config.five_case:
-            return self._run_five_case(corpus)
         if self.config.max_concurrency < 1 or self.config.max_concurrency > 2:
             raise ValueError("max concurrency must be between 1 and 2")
         if self.client is None:
             self.client = BenchmarkApiClient(self.config.base_url, timeout_seconds=self.config.timeout_seconds)
+        if self.config.five_case:
+            return self._run_five_case(corpus)
         client = self.client
         readiness = client.ready()
         health = client.health()

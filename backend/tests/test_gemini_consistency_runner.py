@@ -133,6 +133,24 @@ def test_five_case_dry_run_is_limited_to_the_ollama_corpus(tmp_path) -> None:
     assert manifest["provider_calls"] == 0
 
 
+def test_five_case_run_initializes_api_client_before_execution(tmp_path, monkeypatch) -> None:
+    runner = GeminiConsistencyRunner(
+        BenchmarkRunnerConfig(
+            corpus_path=Path(__file__).parents[2] / "benchmarks" / "ollama-consistency-v1.json",
+            models=("gemini-3.5-flash-lite", "ollama-discovery"),
+            five_case=True,
+            pilot=False,
+            full=False,
+            output_root=tmp_path / "data" / "debug-sessions" / "model-consistency",
+        )
+    )
+    monkeypatch.setattr(runner, "_run_five_case", lambda corpus: {"client_initialized": runner.client is not None})
+
+    result = runner.run()
+
+    assert result == {"client_initialized": True}
+
+
 def test_evidence_writer_redacts_prompts_responses_source_worker_screenshot_and_network_metadata(tmp_path) -> None:
     writer = EvidenceWriter(tmp_path / "evidence")
     writer.write_json(
