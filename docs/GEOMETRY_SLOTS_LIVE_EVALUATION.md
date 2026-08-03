@@ -1,8 +1,41 @@
 # Geometry slots live evaluation
 
-Status: deterministic production gate complete; one unchanged real-provider
-batch completed and was frozen on 2026-08-03. No corrective implementation was
-made from this evaluation.
+Status: deterministic production gate complete; the historical diagnostic
+batch and one post-implementation focused real-provider validation batch were
+completed and frozen on 2026-08-03. Raw evidence for both batches remains
+local and outside Git.
+
+## Post-implementation focused validation
+
+The required focused batch completed successfully with Playwright test status
+`1 passed` in 2.8 minutes. Its batch ID is
+`8a81e929-9f8b-410d-9239-393bcaba9b2f`; the raw evidence is preserved at
+`/tmp/volundr-live-e2e.tUuRBW/data/debug-sessions/8a81e929-9f8b-410d-9239-393bcaba9b2f/`
+and is intentionally not committed.
+
+The batch used Git HEAD
+`476254b204c5585eb717863719d6a8816d86f6ab`, migration head
+`0032_provider_response_lifecycle`, provider `gemini_api`, configured model
+`gemini-3.5-flash-lite`, and the captured production prompt versions and build
+identities. Redaction completed with status `confirmed`. There was no Batch 2
+and no controlled comparison.
+
+| Project | Canonical outcome | Worker | Geometry/artifacts | Blocking evidence |
+| --- | --- | --- | --- | --- |
+| wall carrier | `source_blocked` | no | not reached | compact-plan normalization |
+| portable holder | `candidate_blocked` | succeeded | one solid; STEP/STL/BREP present | critical handle, drainage, and strap-slot requirement findings |
+| desktop organizer | `source_blocked` | no | not reached | pre-worker requirement-trace ambiguity |
+| monitor wall mount | `source_blocked` | no | not reached | geometry source extraction defect; physical engineering review remains required |
+| screw-lid container | `worker_failed` | failed | no valid output | CadQuery selector syntax failure |
+
+The portable result confirms the generic one-part topology obligation helped
+the generated output converge to one solid with complete artifacts; candidate
+promotion still stopped at actual requirement gates. The regenerated copied
+report also confirms that the pre-worker desktop artifact finding now resolves
+to `source_blocked`, matching its lifecycle label rather than `interrupted`.
+
+Screenshots for this batch are local under
+`/tmp/volundr-live-e2e.tUuRBW/data/debug-sessions/8a81e929-9f8b-410d-9239-393bcaba9b2f/screenshots/`.
 
 ## Required batch
 

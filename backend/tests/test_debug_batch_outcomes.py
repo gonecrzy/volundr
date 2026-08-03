@@ -115,6 +115,29 @@ def test_feature_verification_block_wins_over_valid_geometry() -> None:
     assert outcome.final_outcome == "Blocked after worker"
 
 
+def test_pre_worker_blocking_artifact_finding_is_source_blocked() -> None:
+    outcome = resolve_project_outcome(
+        _project(),
+        [_workflow()],
+        [_attempt()],
+        [],
+        [],
+        [],
+        [
+            SimpleNamespace(
+                revision_id=None,
+                category="design_artifact_consistency",
+                rule_id="design_artifact.requirement_trace_ambiguous",
+                is_blocking=True,
+            )
+        ],
+    )
+
+    assert outcome.outcome_state == "source_blocked"
+    assert outcome.category == "provider_transport_failure"
+    assert outcome.final_outcome == "Blocked before worker"
+
+
 def _valid_output(output_id: str = "part") -> dict:
     return {
         "output_id": output_id,

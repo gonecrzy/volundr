@@ -138,6 +138,14 @@ def resolve_project_outcome(
         if getattr(event, "blocking", False)
         and getattr(event, "stage", None) == "candidate_classification"
     )
+    pre_worker_blocked = (
+        not worker_reached
+        and not latest_outputs
+        and (
+            any(getattr(event, "blocking", False) for event in events)
+            or any(getattr(finding, "is_blocking", False) for finding in artifact_findings)
+        )
+    )
     source_valid = not any(
         getattr(event, "blocking", False)
         and getattr(event, "stage", None) in {"source_extraction", "source_generation", "planning"}
@@ -151,9 +159,7 @@ def resolve_project_outcome(
         verification_findings=verification_findings,
         candidate_findings=candidate_findings,
         source_valid=source_valid,
-        source_blocked=not worker_reached and not latest_outputs and any(
-            getattr(event, "blocking", False) for event in events
-        ),
+        source_blocked=pre_worker_blocked,
         parent_current_revision_id=getattr(project, "active_revision_id", None),
         revision_id=latest_revision_id,
     )
