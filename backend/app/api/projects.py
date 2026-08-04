@@ -76,6 +76,7 @@ from app.services.workflow.debug_bundle import WorkflowDebugBundleService
 from app.services.workflow.diagnosis import WorkflowDiagnosisService
 from app.services.workflow.redaction import RedactionError
 from app.services.workflow.stage_trace import WorkflowStageTraceService
+from app.services.gemini_consistency.interaction_capture import StudyContext
 from app.models.generation_attempt import GenerationAttempt
 from app.models.project import Project
 from app.models.revision import Revision
@@ -316,8 +317,32 @@ async def submit_chat_message(
     benchmark_provider: str | None = Header(default=None, alias="X-Volundr-Benchmark-Provider"),
     benchmark_model: str | None = Header(default=None, alias="X-Volundr-Benchmark-Model"),
     benchmark_seed: int | None = Header(default=None, alias="X-Volundr-Benchmark-Seed"),
+    study_id: str | None = Header(default=None, alias="X-Volundr-Study-Id"),
+    study_round: str | None = Header(default=None, alias="X-Volundr-Study-Round"),
+    study_repetition: int | None = Header(default=None, alias="X-Volundr-Study-Repetition"),
+    study_case_id: str | None = Header(default=None, alias="X-Volundr-Study-Case"),
 ) -> ChatWorkflowResponse:
-    if benchmark_provider is not None or benchmark_model is not None or benchmark_seed is not None:
+    if study_id is not None:
+        require_developer_tools()
+        if study_round not in {"baseline", "validation"} or study_repetition not in {1, 2, 3} or not study_case_id:
+            raise HTTPException(status_code=400, detail="study headers require round, repetition, and case")
+        study_context = StudyContext(
+            study_id=study_id,
+            round=study_round,
+            repetition=study_repetition,
+            case_id=study_case_id,
+            project_id=project_id,
+            user_operation_id=payload.client_message_id or "unidentified-operation",
+        )
+        ai_provider = build_ai_provider(
+            settings,
+            benchmark_provider=benchmark_provider or "gemini_api",
+            benchmark_model=benchmark_model or "gemini-3.5-flash-lite",
+            benchmark_seed=benchmark_seed,
+            study_context=study_context,
+            study_evidence_root=data_dir / "debug-sessions" / "gemini-flash-lite-study" / study_id,
+        )
+    elif benchmark_provider is not None or benchmark_model is not None or benchmark_seed is not None:
         require_developer_tools()
         ai_provider = build_ai_provider(
             settings,

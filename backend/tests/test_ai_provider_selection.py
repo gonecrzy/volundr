@@ -7,6 +7,7 @@ from app.core.config import Settings
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.ollama import OllamaProvider
+from app.services.gemini_consistency.interaction_capture import StudyContext
 
 
 def test_build_ai_provider_selects_ollama() -> None:
@@ -76,6 +77,24 @@ def test_build_ai_provider_selects_gemini_api() -> None:
     assert provider.model == "gemini-3.5-flash-lite"
     assert provider.api_key == "secret-key"
     assert provider.thinking_level == "minimal"
+
+
+def test_build_ai_provider_can_attach_study_interaction_capture(tmp_path: Path) -> None:
+    configured = Settings(
+        ai_provider="gemini_api",
+        gemini_api_key="secret-key",
+        gemini_model="gemini-3.5-flash-lite",
+    )
+
+    provider = build_ai_provider(
+        configured,
+        benchmark_model="gemini-3.5-flash-lite",
+        study_context=StudyContext("study", "baseline", 1, "case-001", "project", "operation"),
+        study_evidence_root=tmp_path,
+    )
+
+    assert isinstance(provider, GeminiApiProvider)
+    assert provider._interaction_recorder is not None
 
 
 def test_minimal_gemini_api_example_builds_without_advanced_settings() -> None:

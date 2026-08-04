@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+from typing import Any
 
 import httpx
 import pytest
@@ -40,6 +41,50 @@ def test_gemini_api_provider_settings_are_non_secret() -> None:
         "max_retries": 2,
         "max_retry_sleep_seconds": 60.0,
     }
+
+
+@pytest.mark.asyncio
+async def test_gemini_api_emits_one_capture_for_every_provider_attempt() -> None:
+    calls: list[dict[str, Any]] = []
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(429, json={"error": {"message": "quota exhausted"}})
+        return httpx.Response(
+            200,
+            json={
+                "modelVersion": "gemini-3.5-flash-lite-20260801",
+                "candidates": [{"content": {"parts": [{"text": "ok"}]}}],
+                "usageMetadata": {"totalTokenCount": 8},
+            },
+        )
+
+    provider = GeminiApiProvider(
+        api_key="secret-key",
+        model="gemini-3.5-flash-lite",
+        max_retry_sleep_seconds=0,
+        interaction_recorder=calls.append,
+        transport=_mock_transport(handler),
+    )
+
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert result.raw_output == "ok"
+    assert len(calls) == 2
+    assert calls[0]["status_code"] == 429
+    assert calls[0]["error_category"] == "provider_quota_exhausted"
+    assert calls[1]["status_code"] == 200
+    assert calls[1]["actual_model"] == "gemini-3.5-flash-lite-20260801"
+    assert calls[1]["raw_text"] == "ok"
 
 
 @pytest.mark.asyncio

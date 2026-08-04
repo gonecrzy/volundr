@@ -1,7 +1,7 @@
 import asyncio
 import os
 import re
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 
@@ -39,6 +39,7 @@ class GeminiApiProvider(GeminiCliProvider):
         max_retry_sleep_seconds: float | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
         model_policy: GeminiModelPolicy | None = None,
+        interaction_recorder: Callable[..., Any] | None = None,
     ) -> None:
         resolved_policy = model_policy or GeminiModelPolicy.from_settings(
             settings,
@@ -81,6 +82,7 @@ class GeminiApiProvider(GeminiCliProvider):
             else resolved_policy.max_retry_sleep_seconds
         )
         self._transport = transport
+        self._interaction_recorder = interaction_recorder
 
     @property
     def provider_id(self) -> str:
@@ -140,6 +142,8 @@ class GeminiApiProvider(GeminiCliProvider):
         prompt: str,
         *,
         model: str | None = None,
+        stage: str = "provider",
+        prompt_mode: str = "provider",
     ) -> tuple[str, str]:
         if not self.api_key:
             raise RuntimeError("Gemini API key is not configured")
@@ -186,27 +190,114 @@ class GeminiApiProvider(GeminiCliProvider):
                         timeout=self.timeout_seconds,
                     )
                 except TimeoutError as exc:
+                    self._record_interaction(
+                        stage=stage,
+                        prompt_mode=prompt_mode,
+                        requested_model=model or self.model,
+                        actual_model=None,
+                        prompt=prompt,
+                        request_payload=payload,
+                        response_payload=None,
+                        raw_text=None,
+                        status_code=None,
+                        provider_metadata={},
+                        usage_metadata=None,
+                        latency_ms=self.timeout_seconds * 1000,
+                        transport_retries=attempt,
+                        error_category="provider_timeout",
+                    )
                     raise RuntimeError(
                         f"Gemini API request timed out after {self.timeout_seconds} seconds"
                     ) from exc
                 except httpx.TimeoutException as exc:
+                    self._record_interaction(
+                        stage=stage,
+                        prompt_mode=prompt_mode,
+                        requested_model=model or self.model,
+                        actual_model=None,
+                        prompt=prompt,
+                        request_payload=payload,
+                        response_payload=None,
+                        raw_text=None,
+                        status_code=None,
+                        provider_metadata={},
+                        usage_metadata=None,
+                        latency_ms=self.timeout_seconds * 1000,
+                        transport_retries=attempt,
+                        error_category="provider_timeout",
+                    )
                     raise RuntimeError(
                         f"Gemini API request timed out after {self.timeout_seconds} seconds"
                     ) from exc
                 except httpx.HTTPError as exc:
+                    self._record_interaction(
+                        stage=stage,
+                        prompt_mode=prompt_mode,
+                        requested_model=model or self.model,
+                        actual_model=None,
+                        prompt=prompt,
+                        request_payload=payload,
+                        response_payload=None,
+                        raw_text=None,
+                        status_code=None,
+                        provider_metadata={},
+                        usage_metadata=None,
+                        latency_ms=0,
+                        transport_retries=attempt,
+                        error_category="provider_transport_failure",
+                    )
                     raise RuntimeError(f"Gemini API request failed: {exc}") from exc
 
                 if response.status_code < 400:
+                    response_payload = self._safe_json(response)
+                    usage_metadata = response_payload.get("usageMetadata") if isinstance(response_payload, dict) else None
+                    raw_output = self._response_text(response_payload) if isinstance(response_payload, dict) else ""
+                    actual_model = response_payload.get("modelVersion") if isinstance(response_payload, dict) else None
+                    if not isinstance(actual_model, str) or not actual_model:
+                        actual_model = model or self.model or ""
+                    self._record_interaction(
+                        stage=stage,
+                        prompt_mode=prompt_mode,
+                        requested_model=model or self.model,
+                        actual_model=actual_model,
+                        prompt=prompt,
+                        request_payload=payload,
+                        response_payload=response_payload if isinstance(response_payload, dict) else None,
+                        raw_text=raw_output,
+                        status_code=response.status_code,
+                        provider_metadata={"request_id": next((response.headers.get(header) for header in ("x-goog-request-id", "x-request-id", "request-id") if response.headers.get(header)), None)},
+                        usage_metadata=usage_metadata if isinstance(usage_metadata, dict) else None,
+                        latency_ms=0,
+                        transport_retries=attempt,
+                        error_category=None if raw_output else "provider_content_failure",
+                    )
                     break
+                error_payload = self._safe_json(response)
+                error_message = self._error_message(response)
+                self._record_interaction(
+                    stage=stage,
+                    prompt_mode=prompt_mode,
+                    requested_model=model or self.model,
+                    actual_model=None,
+                    prompt=prompt,
+                    request_payload=payload,
+                    response_payload=error_payload,
+                    raw_text=None,
+                    status_code=response.status_code,
+                    provider_metadata={"request_id": next((response.headers.get(header) for header in ("x-goog-request-id", "x-request-id", "request-id") if response.headers.get(header)), None)},
+                    usage_metadata=None,
+                    latency_ms=0,
+                    transport_retries=attempt,
+                    error_category=self._provider_error_category(response.status_code, error_message),
+                )
                 retry_delay = self._retry_delay_seconds(response)
                 if retry_delay is None or attempt >= max(0, self.max_retries):
                     raise RuntimeError(self._error_message(response))
                 await asyncio.sleep(retry_delay)
 
-        try:
-            response_payload = response.json()
-        except ValueError as exc:
-            raise RuntimeError("Gemini API response was not valid JSON") from exc
+        response_payload = self._safe_json(response)
+        if not response_payload:
+            raise RuntimeError("Gemini API response was not valid JSON")
 
         raw_output = self._response_text(response_payload)
         if not raw_output:
@@ -228,6 +319,39 @@ class GeminiApiProvider(GeminiCliProvider):
         self._last_usage_metadata = usage_metadata
         self._last_provider_request_id = provider_request_id
         return raw_output, actual_model
+
+    def _record_interaction(self, **payload: Any) -> None:
+        if self._interaction_recorder is None:
+            return
+        try:
+            self._interaction_recorder(**payload)
+        except TypeError:
+            try:
+                self._interaction_recorder(payload)
+            except Exception:
+                return
+        except Exception:
+            # Evidence capture must never change ordinary provider behavior.
+            return
+
+    @staticmethod
+    def _safe_json(response: httpx.Response) -> dict[str, Any]:
+        try:
+            payload = response.json()
+        except ValueError:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
+    @staticmethod
+    def _provider_error_category(status_code: int, message: str) -> str:
+        lowered = message.casefold()
+        if status_code == 429 or "quota" in lowered or "resource_exhausted" in lowered:
+            return "provider_quota_exhausted"
+        if status_code == 408 or "timeout" in lowered:
+            return "provider_timeout"
+        if status_code in {502, 503, 504}:
+            return "provider_transport_failure"
+        return "provider_content_failure"
 
     def provider_settings(self) -> dict[str, Any]:
         return {

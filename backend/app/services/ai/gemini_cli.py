@@ -193,14 +193,24 @@ class GeminiCliProvider:
         provider_call_count = 1
         provider_retry_count = 0
         try:
-            response = await self._run_prompt(prompt, model=decision.selected_model)
+            response = await self._run_prompt(
+                prompt,
+                model=decision.selected_model,
+                stage=decision.prompt_mode.value,
+                prompt_mode=decision.prompt_mode.value,
+            )
         except RuntimeError as exc:
             if (
                 decision.selected_model == self.model_policy.general_model
                 or not GeminiModelPolicy.is_operational_failure(str(exc))
             ):
                 raise
-            response = await self._run_prompt(prompt, model=self.model_policy.general_model)
+            response = await self._run_prompt(
+                prompt,
+                model=self.model_policy.general_model,
+                stage=decision.prompt_mode.value,
+                prompt_mode=decision.prompt_mode.value,
+            )
             provider_call_count = 2
             actual_model = self.model_policy.general_model
             routing_reason = "operational_fallback"
@@ -223,7 +233,14 @@ class GeminiCliProvider:
             getattr(self, "_last_provider_request_id", None),
         )
 
-    async def _run_prompt(self, prompt: str, *, model: str | None = None) -> str:
+    async def _run_prompt(
+        self,
+        prompt: str,
+        *,
+        model: str | None = None,
+        stage: str = "provider",
+        prompt_mode: str = "provider",
+    ) -> str:
         command = self.build_command(prompt, model=model)
 
         process = await asyncio.create_subprocess_exec(

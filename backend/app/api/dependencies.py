@@ -9,6 +9,7 @@ from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.model_policy import GeminiModelPolicy
 from app.services.ai.ollama import OllamaProvider
 from app.services.cad.worker_client import FilesystemCadWorkerRunner
+from app.services.gemini_consistency.interaction_capture import ImmutableInteractionCapture, StudyContext
 
 
 def get_data_dir() -> Path:
@@ -30,6 +31,8 @@ def build_ai_provider(
     benchmark_provider: str | None = None,
     benchmark_model: str | None = None,
     benchmark_seed: int | None = None,
+    study_context: StudyContext | None = None,
+    study_evidence_root: Path | None = None,
 ) -> AiProvider:
     provider = (benchmark_provider or config.ai_provider).strip().lower()
     if benchmark_model and provider not in {"ollama", "local_ollama", "gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
@@ -52,6 +55,14 @@ def build_ai_provider(
             if benchmark_model
             else GeminiModelPolicy.from_settings(config)
         )
+        interaction_recorder = None
+        if study_context is not None and study_evidence_root is not None:
+            capture = ImmutableInteractionCapture(study_evidence_root, study_context)
+
+            def interaction_recorder(**payload):
+                rendered_prompt = str(payload.pop("prompt", ""))
+                capture.record_call(rendered_prompt=rendered_prompt, **payload)
+
         return GeminiApiProvider(
             # An explicit empty value prevents the module-level default from
             # leaking into a separately constructed Settings instance.
@@ -60,6 +71,7 @@ def build_ai_provider(
             model=benchmark_model or config.gemini_model,
             timeout_seconds=config.gemini_timeout_seconds,
             model_policy=model_policy,
+            interaction_recorder=interaction_recorder,
         )
     if provider in {"gemini", "gemini_cli"}:
         model_policy = (
