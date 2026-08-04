@@ -586,7 +586,7 @@ def write_pre_phase2_audit_snapshot(output_root: Path, repository_root: Path) ->
     provider_call_ids = [str(item.get("chain", {}).get("attempt_id")) for arm in phase2.get("arms", []) for item in arm.get("provider_interactions", [])]
     packet_hashes = {path.parent.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(output_root.glob("phase-1/packet-*/packet.json"))}
     profile_hashes = {path.stem: hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(output_root.glob("profiles/profile-*.json"))}
-    report_hashes = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(historical.iterdir()) if path.is_file() and path.suffix in {".json", ".md"}}
+    report_hashes = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(historical.iterdir()) if path.is_file() and path.name != "audit-snapshot.json" and path.suffix in {".json", ".md"}}
     snapshot = {
         "schema_version": "gemini-profile-ablation-pre-phase2-audit-snapshot-v1",
         "repository": _repository_identity(repository_root),

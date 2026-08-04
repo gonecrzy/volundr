@@ -191,3 +191,28 @@ def test_preserved_phase2_reconstruction_has_one_outcome_per_case_and_arm() -> N
     assert audit["comparison"]["arms"]["profile-b-sampling"]["project_count"] == 5
     assert audit["decision"]["provider_calls_during_audit"] == 0
     assert audit["decision"]["worker_calls_during_audit"] == 0
+
+
+def test_audited_manual_bundle_preserves_original_and_contains_all_phase2_evidence() -> None:
+    root = Path(__file__).parents[2]
+    reports = root / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/reports"
+    original = reports / "all-responses-manual-review.json"
+    audited = json.loads((reports / "all-responses-manual-review-audited.json").read_text(encoding="utf-8"))
+
+    assert original.is_file()
+    assert audited["schema_version"] == "gemini-profile-ablation-manual-review-audited-v1"
+    assert audited["historical_bundle_preserved"] == "reports/all-responses-manual-review.json"
+    assert len(audited["phase_2_audit"]["provider_calls"]) == 35
+    assert len(audited["phase_2_audit"]["reconstruction"]["projects"]) == 10
+    assert "/root/volundr" not in json.dumps(audited)
+
+
+def test_historical_manual_bundle_hash_matches_preserved_snapshot() -> None:
+    import hashlib
+
+    root = Path(__file__).parents[2]
+    historical = root / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/reports/historical/pre-phase2-audit"
+    original = historical / "all-responses-manual-review.json"
+    snapshot = json.loads((historical / "audit-snapshot.json").read_text(encoding="utf-8"))
+
+    assert hashlib.sha256(original.read_bytes()).hexdigest() == snapshot["preserved_report_hashes"]["all-responses-manual-review.json"]
