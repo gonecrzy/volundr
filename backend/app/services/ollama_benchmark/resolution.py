@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -208,6 +209,12 @@ async def resolve_existing_evidence(
     current_pass_records = []
     for item in existing_output_queue:
         record = _issue_from_dict(item)
+        record = replace(
+            record,
+            issue_id=hashlib.sha256(
+                f"current-pass:{record.issue_id}:{record.model}:{record.stage}:{record.evidence_path}".encode("utf-8")
+            ).hexdigest()[:16],
+        )
         if not record.profile_hash:
             expected_identity = next((candidate for candidate in EXPECTED_MODEL_IDENTITIES if candidate.model_name == record.model), None)
             if expected_identity is not None:

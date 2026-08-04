@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -33,7 +34,15 @@ def combine_calibration_runs(*, run_roots: Iterable[Path], output_root: Path) ->
         if queue_path.exists():
             payload = json.loads(queue_path.read_text(encoding="utf-8"))
             if isinstance(payload, list):
-                queues.extend(payload)
+                for issue in payload:
+                    if not isinstance(issue, dict):
+                        continue
+                    copied = dict(issue)
+                    copied["source_run"] = str(root)
+                    copied["issue_id"] = hashlib.sha256(
+                        f"{root}:{issue.get('issue_id')}:{issue.get('model')}:{issue.get('stage')}:{issue.get('evidence_path')}".encode("utf-8")
+                    ).hexdigest()[:16]
+                    queues.append(copied)
     records = [records_by_id[item.model_id] for item in EXPECTED_MODEL_IDENTITIES if item.model_id in records_by_id]
     admission = admission_gate(records, intended_model_ids=[item.model_id for item in EXPECTED_MODEL_IDENTITIES])
     admission_payload = {
