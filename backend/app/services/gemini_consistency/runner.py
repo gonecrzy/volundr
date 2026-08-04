@@ -377,6 +377,20 @@ class BenchmarkApiClient:
     def generate_report(self, experiment_id: str) -> dict[str, Any]:
         return self.post(f"/api/gemini-consistency/experiments/{experiment_id}/report", {})
 
+    def provider_readiness(self, *, study_id: str, round_name: str, repetition: int, model: str) -> dict[str, Any]:
+        result = self.post(
+            "/api/gemini-consistency/readiness",
+            {
+                "study_id": study_id,
+                "round": round_name,
+                "repetition": repetition,
+                "model": model,
+            },
+        )
+        if not isinstance(result, dict):
+            raise BenchmarkApiError(502, "provider readiness returned an invalid response", path="/api/gemini-consistency/readiness")
+        return result
+
     def record_model_availability(
         self, experiment_id: str, requested_model: str, actual_model: str | None, availability_state: str,
         *, provider: str | None = None, actual_digest: str | None = None,
@@ -404,6 +418,7 @@ class BenchmarkApiClient:
         *,
         provider: str = "gemini_api",
         seed: int | None = None,
+        study_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         headers = {
             "X-Volundr-Benchmark-Provider": provider,
@@ -411,6 +426,15 @@ class BenchmarkApiClient:
         }
         if seed is not None:
             headers["X-Volundr-Benchmark-Seed"] = str(seed)
+        if study_context:
+            headers.update(
+                {
+                    "X-Volundr-Study-Id": str(study_context["study_id"]),
+                    "X-Volundr-Study-Round": str(study_context["round"]),
+                    "X-Volundr-Study-Repetition": str(study_context["repetition"]),
+                    "X-Volundr-Study-Case": str(study_context["case_id"]),
+                }
+            )
         return self._request(
             "POST",
             f"/api/projects/{project_id}/chat",

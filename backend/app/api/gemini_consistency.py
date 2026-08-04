@@ -4,7 +4,8 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_data_dir, require_developer_tools
+from app.api.dependencies import build_ai_provider, get_data_dir, require_developer_tools
+from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.gemini_benchmark import (
     GeminiBenchmarkClaimCreate,
@@ -15,8 +16,11 @@ from app.schemas.gemini_benchmark import (
     GeminiBenchmarkMembershipRead,
     GeminiBenchmarkModelAvailabilityCreate,
     GeminiBenchmarkReportRead,
+    GeminiReadinessCreate,
     OllamaPreflightCreate,
 )
+from app.services.ai.provider import RequirementExtractionRequest
+from app.services.gemini_consistency.interaction_capture import StudyContext
 from app.services.gemini_consistency.service import GeminiConsistencyService
 
 
@@ -49,6 +53,50 @@ async def discover_models(
         return await GeminiConsistencyService(db=db, data_dir=data_dir).discover_models()
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@router.post("/readiness")
+async def provider_readiness(
+    payload: GeminiReadinessCreate,
+    data_dir: Path = Depends(get_data_dir),
+) -> dict:
+    if payload.model != "gemini-3.5-flash-lite":
+        raise HTTPException(status_code=409, detail="study readiness is restricted to gemini-3.5-flash-lite")
+    context = StudyContext(
+        study_id=payload.study_id,
+        round=payload.round,
+        repetition=payload.repetition,
+        case_id="readiness",
+        project_id="readiness",
+        user_operation_id=f"readiness-{payload.round}-{payload.repetition}",
+    )
+    try:
+        provider = build_ai_provider(
+            settings,
+            benchmark_provider="gemini_api",
+            benchmark_model=payload.model,
+            study_context=context,
+            study_evidence_root=data_dir / "debug-sessions" / "gemini-flash-lite-study" / payload.study_id,
+        )
+        result = await provider.extract_requirements(
+            RequirementExtractionRequest(
+                project_name="study-readiness",
+                original_intent="Return a minimal readiness response.",
+                user_instruction='Return JSON only: {"ready":true}.',
+            )
+        )
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    if result.provider_model and result.provider_model != payload.model:
+        raise HTTPException(status_code=502, detail="provider returned a different actual model")
+    return {
+        "provider": getattr(result, "provider", getattr(provider, "provider_id", "gemini_api")),
+        "requested_model": payload.model,
+        "actual_model": result.provider_model,
+        "provider_request_id": result.provider_request_id,
+        "usage_metadata": result.usage_metadata,
+        "raw_output_present": bool(result.raw_output),
+    }
 
 
 @router.get("/ollama/models")

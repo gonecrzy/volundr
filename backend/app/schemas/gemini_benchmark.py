@@ -188,3 +188,10 @@ class GeminiBenchmarkReportRead(BaseModel):
 class OllamaPreflightCreate(BaseModel):
     model: str = Field(min_length=1, max_length=160)
     prompt: str = Field(min_length=1, max_length=120000)
+
+
+class GeminiReadinessCreate(BaseModel):
+    model: str = Field(default="gemini-3.5-flash-lite", min_length=1, max_length=160)
+    study_id: str = Field(min_length=1, max_length=160)
+    round: str = Field(pattern="^(baseline|validation)$")
+    repetition: int = Field(ge=1, le=3)

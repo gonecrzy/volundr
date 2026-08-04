@@ -118,6 +118,68 @@ def test_claim_is_atomic_and_duplicate_safe(tmp_path, monkeypatch) -> None:
         assert [message.role for message in messages] == ["system_event"]
 
 
+def test_flash_lite_study_api_creates_one_model_and_three_repetitions(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "developer_tools_enabled", True)
+    client, _ = _client(tmp_path)
+
+    response = client.post(
+        "/api/gemini-consistency/experiments",
+        json={
+            "label": "Gemini Flash Lite study baseline",
+            "corpus_version": "gemini-flash-lite-study-v1",
+            "corpus_hash": "a" * 64,
+            "mode": "study",
+            "models": ["gemini-3.5-flash-lite"],
+            "runs": 3,
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    document = response.json()
+    assert document["mode"] == "study"
+    assert document["requested_runs"] == 3
+    assert len(document["models"]) == 1
+    assert len(document["runs"]) == 3
+
+
+def test_flash_lite_readiness_endpoint_performs_one_minimal_provider_probe(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "developer_tools_enabled", True)
+    client, _ = _client(tmp_path)
+    calls: list[object] = []
+
+    class FakeProvider:
+        provider_id = "gemini_api"
+
+        async def extract_requirements(self, request):
+            calls.append(request)
+            return type(
+                "Result",
+                (),
+                {
+                    "provider_model": "gemini-3.5-flash-lite",
+                    "usage_metadata": {"totalTokenCount": 3},
+                    "provider_request_id": "probe-1",
+                    "raw_output": '{"ready":true}',
+                },
+            )()
+
+    monkeypatch.setattr("app.api.gemini_consistency.build_ai_provider", lambda *args, **kwargs: FakeProvider())
+
+    response = client.post(
+        "/api/gemini-consistency/readiness",
+        json={
+            "model": "gemini-3.5-flash-lite",
+            "study_id": "gemini-flash-lite-study-01",
+            "round": "baseline",
+            "repetition": 1,
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["actual_model"] == "gemini-3.5-flash-lite"
+    assert len(calls) == 1
+
+
 def test_completion_is_idempotent_and_report_endpoint_is_read_only(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(settings, "developer_tools_enabled", True)
     client, _ = _client(tmp_path)
