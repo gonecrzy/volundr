@@ -22,6 +22,9 @@ from app.services.gemini_consistency.system_boundary_methods import (
 from scripts.run_gemini_system_boundary_methods import _answer_for_questions, _case_metrics, _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 def test_method_ids_are_frozen_and_current_processing_is_p0() -> None:
     assert METHOD_IDS == ("P0", "P1", "P2", "P3", "P4", "P5")
 
@@ -137,8 +140,8 @@ def test_rate_policy_is_serialized_and_hard_429_retry_is_disabled() -> None:
 def test_offline_replay_writes_zero_call_report(tmp_path: Path) -> None:
     result = replay_preserved_evidence(
         output_root=tmp_path / "study",
-        profile_ablation_root=Path("data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"),
-        study_root=Path("data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01"),
+        profile_ablation_root=REPO_ROOT / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
+        study_root=REPO_ROOT / "data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01",
     )
 
     assert result["provider_calls"] == 0
