@@ -19,3 +19,12 @@ the dominant terminal signatures are Volundr processing gates—provenance,
 source symbols/contracts, planning normalization, slots, and worker runtime—
 rather than provider transport. Do not select a product-specific CAD or prompt
 correction from this study.
+
+## Profile-ablation gate
+
+The next prompt/configuration ablation was attempted in
+gemini-profile-ablation-01. It stopped at 18 of 30 experimental calls on a
+hard quota failure and therefore did not establish a profile advancement
+threshold. Phase 2 was skipped. Keep production configuration unchanged and
+continue with the previously identified deterministic feature-verification
+priority; do not infer a prompt winner from the partial matrix.

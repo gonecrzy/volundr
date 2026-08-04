@@ -5,6 +5,16 @@ redacted evidence root is:
 
 `data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01/`
 
+## Follow-on profile ablation
+
+The separate gemini-profile-ablation-01 harness froze three packets and five
+experiment-only profiles. The exact model readiness probe succeeded, then
+Phase 1 stopped after 18 experimental calls at the first hard quota response.
+The partial evidence is preserved outside Git; production prompts and
+generation defaults were not changed. The final decision is
+prompt_configuration_improvement_not_established with
+evaluation_status phase_1_incomplete_quota_interruption.
+
 The run used corpus `gemini-flash-lite-study-v1`, corpus hash
 `7f4c6b4e87f24782a63d4487ebb75bf8096c96c0dfe1776f165e28ea6b806a24`, provider
 `gemini_api`, and the exact requested model `gemini-3.5-flash-lite`.

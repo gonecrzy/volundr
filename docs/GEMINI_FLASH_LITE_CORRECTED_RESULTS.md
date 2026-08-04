@@ -2,6 +2,11 @@
 
 These results are derived offline from all 60 captured project records.
 
+The subsequent profile-ablation evidence is a separate experiment and does
+not alter these corrected results. Its Phase 1 matrix was quota-interrupted
+after 18 of 30 calls; no profile was adopted and no Phase 2 project comparison
+ran. See GEMINI_PROFILE_ABLATION_RESULTS.md.
+
 | Metric | Baseline | Validation |
 | --- | ---: | ---: |
 | Projects | 30 | 30 |
@@ -49,4 +54,3 @@ case was case-002 and the least consistent was case-001. In validation, the
 most consistent was case-009 and the least consistent was case-001. These are
 descriptive rankings of repeated captured behavior, not controlled estimates
 of provider variance.
-

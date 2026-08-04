@@ -379,15 +379,18 @@ def phase1_decision(*, baseline_profile_id: str, profile_results: dict[str, dict
         if profile_id == baseline_profile_id:
             continue
         profile_reasons: list[str] = []
-        if result.get("provenance_regression") or result.get("protected_identity_regression"):
+        if int(result.get("provenance_failures", 0)) > int(baseline.get("provenance_failures", 0)) or result.get("provenance_regression"):
             profile_reasons.append("integrity_regression")
+        if int(result.get("protected_identity_failures", 0)) > int(baseline.get("protected_identity_failures", 0)) or result.get("protected_identity_regression"):
+            if "integrity_regression" not in profile_reasons:
+                profile_reasons.append("integrity_regression")
         accepted = int(result.get("accepted_runs", 0))
         if not ((baseline_accepted == 0 and accepted >= 2) or accepted >= baseline_accepted + 2):
             profile_reasons.append("contract_threshold_not_met")
         consistency = int(result.get("semantic_consistency_packets", 0))
         if not (consistency >= 2 or consistency >= baseline_consistency == 3):
             profile_reasons.append("consistency_threshold_not_met")
-        if result.get("invented_content_regression"):
+        if int(result.get("invented_runs", 0)) > int(baseline.get("invented_runs", 0)) or result.get("invented_content_regression"):
             profile_reasons.append("invented_content_regression")
         reasons[profile_id] = profile_reasons
         if not profile_reasons:
@@ -539,8 +542,19 @@ def production_snapshot(packets: list[FrozenPacket], *, repository_root: Path) -
         },
         "policy_path": str(policy_path) if policy_path else None,
         "stages": [],
-        "worker_identity": {"source": "backend/app/services/worker", "recorded": True},
-        "verification_identity": {"source": "backend/app/services/verification", "recorded": True},
+        "worker_identity": {
+            "sources": {
+                "backend/app/services/cad/worker_client.py": _safe_path_hash(repository_root / "backend/app/services/cad/worker_client.py"),
+                "backend/app/services/cad/worker_execution.py": _safe_path_hash(repository_root / "backend/app/services/cad/worker_execution.py"),
+            },
+        },
+        "verification_identity": {
+            "sources": {
+                "backend/app/services/geometry/feature_evidence.py": _safe_path_hash(repository_root / "backend/app/services/geometry/feature_evidence.py"),
+                "backend/app/services/geometry/invariants.py": _safe_path_hash(repository_root / "backend/app/services/geometry/invariants.py"),
+                "backend/app/services/geometry/functional.py": _safe_path_hash(repository_root / "backend/app/services/geometry/functional.py"),
+            },
+        },
     }
     for packet in packets:
         config = _original_generation_config(packet)
@@ -553,6 +567,7 @@ def production_snapshot(packets: list[FrozenPacket], *, repository_root: Path) -
                 "user_prompt_hash": _hash(packet.rendered_prompt),
                 "prompt_hash": _hash(packet.rendered_prompt),
                 "schema": None,
+                "response_format": "prompt_only_json_instructions",
                 "schema_hash": _hash(None),
                 "configuration_hash": _hash(config),
                 "generation_configuration": config,
@@ -730,9 +745,9 @@ def aggregate_phase1_results(records: list[dict[str, Any]]) -> dict[str, Any]:
             "slot_completeness": sum(bool(item.get("slot_completeness")) for item in items),
             "source_contract_pass": sum(bool(item.get("source_contract_pass")) for item in items),
             "semantic_consistency_packets": consistency_packets,
-            "invented_content_regression": any(bool(item.get("invented_content")) for item in items),
-            "provenance_regression": any(not bool(item.get("provenance_pass", True)) for item in items),
-            "protected_identity_regression": any(bool(item.get("protected_identity_regression")) for item in items),
+            "invented_runs": sum(bool(item.get("invented_content")) for item in items if not item.get("error_category")),
+            "provenance_failures": sum(not bool(item.get("provenance_pass", True)) for item in items if not item.get("error_category")),
+            "protected_identity_failures": sum(bool(item.get("protected_identity_regression")) for item in items if not item.get("error_category")),
             "tokens": sum(int(item.get("total_tokens") or 0) for item in items),
             "latency_ms": sum(int(item.get("latency_ms") or 0) for item in items),
         }

@@ -2,6 +2,14 @@
 
 This document defines the required automated coverage for CAD execution, AI-source extraction, mesh inspection, revision safety, frontend behavior, and regression fixtures.
 
+## Gemini profile ablation
+
+The experiment harness tests profile isolation, frozen packet hashes, immutable
+provider-call metadata, exact Phase 1 budgeting, volatile-insensitive semantic
+comparison, quota-stop behavior, and Phase 2 gating in
+tests/test_gemini_profile_ablation.py. Live evidence is redacted, write-once,
+outside Git, and must reconcile to the machine-readable Phase 1 reports.
+
 ## Deterministic feature verification
 
 Feature verification tests cover source-only and missing-trace states,

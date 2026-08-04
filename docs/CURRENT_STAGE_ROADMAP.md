@@ -2,6 +2,14 @@
 
 This document records the implementation sequence, current stage status, milestone goals, and exit criteria. Codex should update it whenever a milestone changes state.
 
+## Gemini profile-ablation status
+
+The experiment-only Gemini profile ablation is recorded in
+GEMINI_PROFILE_ABLATION_RESULTS.md. Phase 1 is quota-interrupted at 18 of 30
+calls, so no profile advances and Phase 2 remains gated. This does not change
+the production roadmap or authorize prompt, schema, provenance, source-symbol,
+or missing-slot behavior changes.
+
 ## Current feature-verification stage
 
 Deterministic source-to-result feature evidence, generic final measurements,

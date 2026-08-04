@@ -9,6 +9,7 @@ from app.services.gemini_consistency.interaction_capture import (
     ImmutableInteractionCapture,
     StudyContext,
 )
+from app.services.workflow.redaction import RedactionService
 from app.services.gemini_consistency.profile_ablation import (
     PHASE1_CALL_LIMIT,
     PHASE2_CASE_IDS,
@@ -183,3 +184,14 @@ def test_immutable_capture_records_experiment_identity(tmp_path) -> None:
     assert document["experiment"]["packet_hash"] == "hash"
     assert document["request"]["generation_settings"]["maxOutputTokens"] == 8192
     assert call_id
+
+
+def test_ablation_reports_preserve_token_metrics_during_redaction(tmp_path) -> None:
+    safe, _ = RedactionService().redact_evidence_value(
+        {"tokens": 42, "total_tokens": 42, "api_key": "secret"},
+        data_root=tmp_path,
+        evidence_root=tmp_path,
+    )
+    assert safe["tokens"] == 42
+    assert safe["total_tokens"] == 42
+    assert safe["api_key"] == "[REDACTED]"

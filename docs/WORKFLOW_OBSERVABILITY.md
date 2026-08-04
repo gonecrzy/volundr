@@ -1,5 +1,15 @@
 # Workflow Observability
 
+## Experiment-scoped provider evidence
+
+The Gemini profile ablation uses the same immutable provider-call capture and
+redaction boundary but runs outside normal project routing. Each record
+retains prompt/configuration/schema, profile and packet hashes, actual model
+identity, usage, latency, response lifecycle, and redaction findings. A quota
+failure is recorded as provider failure and stops the run; it is not converted
+into a semantic or CAD-success result. The report generator performs no new
+provider or worker calls.
+
 ## Feature evidence
 
 Geometry-slot worker results may include compact feature input/output traces

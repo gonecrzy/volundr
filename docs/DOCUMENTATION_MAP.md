@@ -32,6 +32,14 @@ contracts: `PRODUCT_VALIDATION_ROUND_1.md`,
 `COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md`, and
 `USER_TESTING_CHECKPOINT.md` when present.
 
+The Gemini profile-ablation protocol and partial results are recorded in
+`GEMINI_PROFILE_ABLATION.md`, `GEMINI_PROMPT_CONCISION_EXPERIMENT.md`,
+`GEMINI_STRUCTURED_OUTPUT_EXPERIMENT.md`,
+`GEMINI_SAMPLING_AND_SEED_EXPERIMENT.md`,
+`GEMINI_THINKING_LEVEL_EXPERIMENT.md`, and
+`GEMINI_PROFILE_ABLATION_RESULTS.md`. They are evaluation evidence only and do
+not override production contracts.
+
 ### Historical evaluation evidence
 
 Earlier benchmark and transition reports remain useful for chronology, failure
