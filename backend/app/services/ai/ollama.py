@@ -146,6 +146,34 @@ class OllamaProvider(GeminiCliProvider):
             provider_latency_ms=self._last_provider_latency_ms,
         )
 
+    async def generate_calibration_response(
+        self,
+        prompt: str,
+        *,
+        profile: Any | None = None,
+        structured: bool = False,
+        structured_schema: dict[str, Any] | None = None,
+    ) -> str:
+        """Generate one calibration response using a frozen interface profile."""
+
+        overrides: dict[str, Any] = {}
+        if profile is not None:
+            overrides = {
+                "system": getattr(profile, "system_prompt", None),
+                "stop_sequences": list(getattr(profile, "stop_sequences", ()) or ()),
+                "context_length": getattr(profile, "context_length", self.context_length),
+                "max_output_tokens": getattr(profile, "max_output_tokens", self.max_output_tokens),
+                "temperature": getattr(profile, "temperature", self.temperature),
+                "top_p": getattr(profile, "top_p", self.top_p),
+                "top_k": getattr(profile, "top_k", self.top_k),
+                "keep_alive": getattr(profile, "keep_alive", self.keep_alive),
+            }
+        return await self._run_prompt(
+            prompt,
+            structured=structured,
+            structured_schema=structured_schema,
+            generation_overrides=overrides,
+        )
     async def extract_requirements(
         self,
         request: RequirementExtractionRequest,
@@ -222,6 +250,50 @@ class OllamaProvider(GeminiCliProvider):
             )
         return result
 
+    async def inspect_model_identity(self, model_name: str | None = None) -> dict[str, Any]:
+        """Return exact `/api/tags` plus `/api/show` identity evidence."""
+
+        requested = model_name or self.model
+        tags = await self._request_json("GET", "/api/tags")
+        tag = next(
+            (item for item in tags.get("models", []) if isinstance(item, dict) and item.get("name") == requested),
+            None,
+        )
+        if tag is None:
+            raise OllamaProviderError("ollama.model_not_installed", f"model is not installed: {requested}")
+        show = await self._request_json("POST", "/api/show", payload={"name": requested})
+        details = show.get("details") if isinstance(show.get("details"), dict) else {}
+        model_info = show.get("model_info") if isinstance(show.get("model_info"), dict) else {}
+        architecture = next(
+            (str(value) for key, value in model_info.items() if str(key).endswith(".architecture")),
+            None,
+        )
+        return {
+            "name": requested,
+            "digest": tag.get("digest"),
+            "size": tag.get("size"),
+            "parameter_size": details.get("parameter_size"),
+            "quantization": details.get("quantization_level"),
+            "family": details.get("family"),
+            "architecture": architecture,
+            "template": show.get("template"),
+            "system": show.get("system"),
+            "stop_parameters": self._parse_parameters(show.get("parameters")),
+            "capabilities": show.get("capabilities", []),
+            "context_length": self._context_length(model_info),
+            "tags_record": tag,
+            "show_record": show,
+        }
+
+    async def unload_model(self) -> None:
+        """Release this model before the next serialized calibration model loads."""
+
+        await self._request_json(
+            "POST",
+            "/api/generate",
+            payload={"model": self.model, "prompt": "", "stream": False, "keep_alive": 0},
+        )
+
     async def list_running_models(self) -> list[dict[str, Any]]:
         payload = await self._request_json("GET", "/api/ps")
         models = payload.get("models", []) if isinstance(payload, dict) else []
@@ -232,8 +304,14 @@ class OllamaProvider(GeminiCliProvider):
             if isinstance(item, dict)
         ]
 
-    async def preflight(self, prompt: str, *, poll_interval_seconds: float = 0.5) -> dict[str, Any]:
-        """Run one cold and one warm request while sampling `/api/ps`."""
+    async def preflight(
+        self,
+        prompt: str,
+        *,
+        poll_interval_seconds: float = 0.5,
+        warm_runs: int = 1,
+    ) -> dict[str, Any]:
+        """Run one cold and a bounded number of warm requests while sampling `/api/ps`."""
 
         observations: list[dict[str, Any]] = []
         started = time.perf_counter()
@@ -250,9 +328,11 @@ class OllamaProvider(GeminiCliProvider):
             observations.extend(await self.list_running_models())
         cold_usage = dict(self._last_usage_metadata or {})
         cold_latency = self._last_provider_latency_ms or max(0, round((time.perf_counter() - started) * 1000))
-        await self._run_prompt(prompt)
-        warm_usage = dict(self._last_usage_metadata or {})
-        warm_latency = self._last_provider_latency_ms or 0
+        warm_records: list[tuple[dict[str, Any], int]] = []
+        for _ in range(max(1, warm_runs)):
+            await self._run_prompt(prompt)
+            warm_records.append((dict(self._last_usage_metadata or {}), self._last_provider_latency_ms or 0))
+        warm_usage, warm_latency = warm_records[-1]
         max_vram = max(
             (int(item["size_vram"]) for item in observations if isinstance(item.get("size_vram"), (int, float))),
             default=None,
@@ -277,28 +357,49 @@ class OllamaProvider(GeminiCliProvider):
             "prompt_tokens_per_second": cold_tps,
             "output_tokens_per_second": self._tokens_per_second(warm_usage.get("eval_count"), warm_usage.get("eval_duration")),
             "warm_throughput_collapse": bool(cold_tps and warm_tps and warm_tps < cold_tps * 0.5),
+            "warm_runs": [
+                {
+                    "usage": usage,
+                    "latency_ms": latency,
+                }
+                for usage, latency in warm_records
+            ],
             "observations": observations,
         }
 
-    async def _run_prompt(self, prompt: str, *, structured: bool = False) -> str:
+    async def _run_prompt(
+        self,
+        prompt: str,
+        *,
+        structured: bool = False,
+        structured_schema: dict[str, Any] | None = None,
+        generation_overrides: dict[str, Any] | None = None,
+    ) -> str:
+        overrides = generation_overrides or {}
         payload: dict[str, Any] = {
             "model": self.model,
             "prompt": prompt,
             "stream": self.stream,
-            "keep_alive": self.keep_alive,
+            "keep_alive": overrides.get("keep_alive", self.keep_alive),
             "options": {
-                "num_ctx": self.context_length,
-                "temperature": self.temperature,
-                "top_p": self.top_p,
-                "top_k": self.top_k,
-                "num_predict": self.max_output_tokens,
+                "num_ctx": overrides.get("context_length", self.context_length),
+                "temperature": overrides.get("temperature", self.temperature),
+                "top_p": overrides.get("top_p", self.top_p),
+                "top_k": overrides.get("top_k", self.top_k),
+                "num_predict": overrides.get("max_output_tokens", self.max_output_tokens),
             },
         }
+        if isinstance(overrides.get("system"), str) and overrides["system"].strip():
+            payload["system"] = overrides["system"]
+        if overrides.get("stop_sequences"):
+            payload["options"]["stop"] = list(overrides["stop_sequences"])
         if self.seed is not None:
             payload["options"]["seed"] = self.seed
         if self.think is not None:
             payload["think"] = self.think
-        if structured:
+        if structured_schema is not None:
+            payload["format"] = structured_schema
+        elif structured:
             payload["format"] = self._structured_output_schema()
         started = time.perf_counter()
         if self.stream:

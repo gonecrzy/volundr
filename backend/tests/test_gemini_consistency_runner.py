@@ -205,6 +205,10 @@ def test_ollama_only_five_case_never_discovers_gemini(tmp_path, monkeypatch) -> 
             return {}
 
     fake = OllamaOnlyClient()
+    calibration_root = tmp_path / "calibration"
+    admission_path = calibration_root / "calibration-1" / "admission.json"
+    admission_path.parent.mkdir(parents=True)
+    admission_path.write_text('{"formal_benchmark_authorized": true}', encoding="utf-8")
     runner = GeminiConsistencyRunner(
         BenchmarkRunnerConfig(
             corpus_path=Path(__file__).parents[2] / "benchmarks" / "ollama-consistency-v1.json",
@@ -214,6 +218,7 @@ def test_ollama_only_five_case_never_discovers_gemini(tmp_path, monkeypatch) -> 
             pilot=False,
             full=False,
             output_root=tmp_path / "data" / "debug-sessions" / "ollama-only",
+            calibration_evidence_root=calibration_root,
         ),
         client=fake,
     )

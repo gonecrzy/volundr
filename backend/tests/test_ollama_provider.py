@@ -3,6 +3,7 @@ import pytest
 import asyncio
 
 from app.services.ai.ollama import OllamaProvider, classify_ollama_resource_profile
+from app.services.ollama_benchmark.calibration import CalibrationProfile
 from app.services.ai.provider import (
     ModelGenerationRequest,
     RequirementExtractionRequest,
@@ -550,3 +551,39 @@ async def test_ollama_streaming_distinguishes_first_token_timeout() -> None:
                 user_instruction="Make a bracket.",
             )
         )
+
+
+@pytest.mark.asyncio
+async def test_profile_aware_calibration_request_uses_profile_generation_settings() -> None:
+    captured: dict[str, bytes] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = request.content
+        return httpx.Response(200, json={"model": "specialist", "response": "result = 1"})
+
+    provider = OllamaProvider(
+        base_url="http://ollama.local:11434",
+        model="specialist",
+        stream=False,
+        transport=_mock_transport(handler),
+    )
+    profile = CalibrationProfile(
+        profile_version="v1",
+        model_name="specialist",
+        model_digest="abc",
+        system_prompt="You are a helpful assistant.",
+        stop_sequences=("STOP",),
+        context_length=8192,
+        max_output_tokens=111,
+        temperature=0.7,
+        top_p=0.8,
+        top_k=20,
+        keep_alive="30m",
+    )
+
+    result = await provider.generate_calibration_response("calibration prompt", profile=profile)
+
+    assert result == "result = 1"
+    assert b'"system":"You are a helpful assistant."' in captured["payload"]
+    assert b'"stop":["STOP"]' in captured["payload"]
+    assert b'"num_predict":111' in captured["payload"]

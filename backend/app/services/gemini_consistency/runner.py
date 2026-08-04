@@ -25,6 +25,7 @@ from app.services.gemini_consistency.corpus import (
     load_ollama_consistency_corpus,
 )
 from app.services.ai.ollama import classify_ollama_resource_profile
+from app.services.ollama_benchmark.calibration import require_formal_benchmark_admission
 
 
 OLLAMA_CANDIDATE_PATTERNS = (
@@ -100,6 +101,7 @@ class BenchmarkRunnerConfig:
     label: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
     ollama_model_filter: tuple[str, ...] = ()
+    calibration_evidence_root: Path = Path("data/debug-sessions/ollama-calibration")
 
 
 class BenchmarkApiError(RuntimeError):
@@ -668,6 +670,7 @@ class GeminiConsistencyRunner:
     def _run_ollama_only_five_case(self, corpus: ConsistencyCorpus) -> dict[str, Any]:
         """Run the frozen five-case corpus without any Gemini discovery or calls."""
         assert self.client is not None
+        require_formal_benchmark_admission(self.config.calibration_evidence_root)
         client = self.client
         readiness = client.ready()
         health = client.health()
@@ -806,6 +809,7 @@ class GeminiConsistencyRunner:
 
     def _run_five_case(self, corpus: ConsistencyCorpus) -> dict[str, Any]:
         assert self.client is not None
+        require_formal_benchmark_admission(self.config.calibration_evidence_root)
         client = self.client
         readiness = client.ready()
         health = client.health()
@@ -1335,6 +1339,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--label")
     parser.add_argument("--gemini-model", default="gemini-3.5-flash-lite")
     parser.add_argument("--ollama-model-filter", nargs="*", default=[])
+    parser.add_argument("--calibration-evidence-root", type=Path, default=Path("data/debug-sessions/ollama-calibration"))
     return parser
 
 
@@ -1374,6 +1379,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         label=args.label,
         gemini_model=args.gemini_model,
         ollama_model_filter=split_values(args.ollama_model_filter),
+        calibration_evidence_root=args.calibration_evidence_root,
     )
     runner = GeminiConsistencyRunner(config)
     try:

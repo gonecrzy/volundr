@@ -26,12 +26,15 @@ def test_model_manifest_has_complete_candidate_records() -> None:
 
     assert manifest["version"] == "ollama-models-v1"
     assert {item["model_id"] for item in manifest["models"]} >= {
-        "qwen25-coder-7b-cadquery",
         "cad-coder",
         "procad-coder",
-        "qwen25-coder-14b-instruct",
+        "qwen25-cadquery",
+        "qwen25-coder-14b",
         "deepseek-coder-v2-lite",
+        "c3dv0",
     }
+    assert "volundr-cad-coder:q8_0" not in {item["ollama_name"] for item in manifest["models"]}
+    assert "volundr-cad-coder-chatml:q8_0" not in {item["ollama_name"] for item in manifest["models"]}
     validate_model_manifest(manifest)
     for item in manifest["models"]:
         assert item["installation_status"] in ALLOWED_INSTALLATION_STATUSES
