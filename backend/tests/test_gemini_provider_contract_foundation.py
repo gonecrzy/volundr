@@ -9,6 +9,7 @@ from scripts.run_gemini_provider_contract_foundation import (
     SECONDARY_ENV,
     SELECTION_PACKET_IDS,
     holdout_packets,
+    offline_rescore,
     prepare_study,
     selection_packets,
 )
@@ -58,6 +59,18 @@ def test_prepare_creates_preregistration_before_any_calls(tmp_path: Path) -> Non
     assert prereg["rate_policy"]["concurrency"] == 1
     assert prereg["rate_policy"]["default_requests_per_minute"] == 12
     assert prereg["rate_policy"]["hard_max_requests_per_rolling_60_seconds"] == 15
+
+
+def test_offline_rescore_accounts_for_historical_corpus_without_calls(tmp_path: Path) -> None:
+    prepare_study(tmp_path / "study", REPO_ROOT)
+    result = offline_rescore(tmp_path / "study", REPO_ROOT)
+    report = json.loads((tmp_path / "study/reports/intrinsic-quality-offline-rescore.json").read_text(encoding="utf-8"))
+
+    assert result["provider_calls"] == 0
+    assert result["worker_calls"] == 0
+    assert report["record_count"] == 109
+    assert any(item["source"] == "system-boundary-preserved-quota-stop" for item in report["records"])
+    assert all("diagnostic_current_build" in item for item in report["records"])
 
 
 def _packet(packet_id: str) -> dict:

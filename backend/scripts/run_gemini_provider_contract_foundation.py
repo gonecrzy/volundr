@@ -15,6 +15,19 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from app.services.gemini_consistency.provider_contract import (
+    QUALITY_RESULTS,
+    canonicalization_distance,
+    contract_entropy,
+    decision_signature,
+    evaluate_intrinsic,
+    geometry_strategy_signature,
+    identity_signature,
+    parse_provider_response,
+    semantic_signature,
+    structural_signature,
+)
+
 
 STUDY_ID = "gemini-provider-contract-foundation-01"
 MODEL = "gemini-3.5-flash-lite"
@@ -341,13 +354,248 @@ def prepare_study(output_root: Path, repo_root: Path) -> dict[str, Any]:
     return {"study_id": STUDY_ID, "output_root": str(output_root), "selection_packets": len(packets), "holdout_packets": len(holdouts), "historical_files": len(copied), "provider_calls": 0, "worker_calls": 0}
 
 
+def _legacy_packet(packet_id: str) -> dict[str, Any]:
+    mapping = {
+        "packet-01": "selection-requirements-fit",
+        "packet-02": "selection-plan-feature-rich",
+        "packet-03": "selection-geometry-multislot",
+    }
+    selected = next(item for item in selection_packets() if item["packet_id"] == mapping.get(packet_id, "selection-requirements-fit"))
+    return {**selected, "packet_id": packet_id}
+
+
+def _stage_from_interaction(interaction: dict[str, Any], default: str = "requirements") -> str:
+    chain = interaction.get("chain") or {}
+    stages = chain.get("stages") or []
+    stage = str(stages[0].get("stage") or "") if stages and isinstance(stages[0], dict) else ""
+    lowered = stage.casefold()
+    if "plan" in lowered:
+        return "plan"
+    if "geometry" in lowered or "source" in lowered or "cadquery" in lowered:
+        return "geometry"
+    if "repair" in lowered:
+        return "repair"
+    if "requirement" in lowered or "clarif" in lowered:
+        return "requirements"
+    request = interaction.get("request") or {}
+    request_kind = str(request.get("request_kind") or request.get("stage") or "").casefold()
+    if "plan" in request_kind:
+        return "plan"
+    if "geometry" in request_kind or "source" in request_kind:
+        return "geometry"
+    return default
+
+
+def _profile_label(profile_id: str | None, provider_profile: str | None = None) -> str:
+    if profile_id:
+        return profile_id
+    return "profile-b-sampling" if provider_profile == "profile-b-sampling" else "profile-a-current"
+
+
+def _content_record(*, source: str, source_path: str, logical_operation_id: str, attempt_id: str | None, stage: str, profile: str, prompt_profile: str, model: str | None, raw_text: str | None, parsed: Any, status_code: int | None, transport_error: str | None, token_counts: dict[str, Any] | None, latency_ms: Any, request: Any, diagnostic: dict[str, Any] | None, packet: dict[str, Any]) -> dict[str, Any]:
+    if transport_error or status_code in {408, 429, 502, 503, 504, 599}:
+        result = "quota_failure" if status_code == 429 else "transport_failure"
+        quality = {"result": result, "missing_meaning": [], "conflicting_meaning": [], "invented_critical_meaning": [], "api_findings": [], "undefined_symbol_findings": [], "structural_emptiness_findings": [], "geometry_strategy_findings": []}
+    else:
+        quality = evaluate_intrinsic(packet, parsed if parsed is not None else (raw_text or ""), diagnostic_context=diagnostic)
+    safe_parsed = parsed
+    raw_hash = hashlib.sha256((raw_text or json.dumps(parsed, sort_keys=True, default=str)).encode("utf-8")).hexdigest()
+    return {
+        "source": source,
+        "source_evidence_path": source_path,
+        "logical_operation_id": logical_operation_id,
+        "provider_attempt_id": attempt_id,
+        "stage": stage,
+        "settings_profile": profile,
+        "prompt_profile": prompt_profile,
+        "requested_model": MODEL,
+        "actual_model": model,
+        "status_code": status_code,
+        "transport_error": transport_error,
+        "raw_response": raw_text,
+        "raw_hash": raw_hash,
+        "parsed_response": safe_parsed,
+        "intrinsic_quality": quality,
+        "semantic_signature": semantic_signature(safe_parsed, packet) if safe_parsed is not None else None,
+        "structural_signature": structural_signature(safe_parsed) if safe_parsed is not None else None,
+        "identity_signature": identity_signature(safe_parsed) if safe_parsed is not None else None,
+        "decision_signature": decision_signature(safe_parsed) if safe_parsed is not None else None,
+        "geometry_strategy_signature": geometry_strategy_signature(safe_parsed) if safe_parsed is not None else None,
+        "contract_entropy_input": safe_parsed,
+        "canonicalization_distance": canonicalization_distance(raw_text or {}, safe_parsed) if safe_parsed is not None else None,
+        "token_counts": token_counts or {},
+        "latency_ms": latency_ms,
+        "request": request,
+        "diagnostic_current_build": diagnostic or {},
+    }
+
+
+def _phase1_records(profile_root: Path) -> list[dict[str, Any]]:
+    report_path = profile_root / "reports/phase-1-packet-results.json"
+    document = _json(report_path) or {}
+    records: list[dict[str, Any]] = []
+    for index, item in enumerate(document.get("records", [])):
+        raw_text = item.get("raw_response_text")
+        parsed = item.get("parsed_response") or item.get("parsed")
+        if parsed is None and isinstance(raw_text, str):
+            parsed, _ = parse_provider_response(raw_text)
+        packet = _legacy_packet(str(item.get("packet_id")))
+        records.append(_content_record(
+            source="phase1",
+            source_path=str(item.get("provider_call_path") or report_path),
+            logical_operation_id=f"phase1:{item.get('profile_id')}:{item.get('packet_id')}:{item.get('repetition', index)}",
+            attempt_id=str(item.get("provider_call_path") or "") or None,
+            stage=packet["stage"],
+            profile=_profile_label(item.get("profile_id")),
+            prompt_profile="current",
+            model=item.get("actual_model") or item.get("model_identity"),
+            raw_text=raw_text,
+            parsed=parsed,
+            status_code=item.get("status_code"),
+            transport_error=item.get("error_category"),
+            token_counts=item.get("token_counts") or {"total_tokens": item.get("total_tokens")},
+            latency_ms=item.get("latency_ms"),
+            request=item.get("rendered_request") or {},
+            diagnostic={"historical_quality_floor": item.get("quality_floor"), "historical_buildability": item.get("buildability_findings")},
+            packet=packet,
+        ))
+    return records
+
+
+def _phase2_records(profile_root: Path) -> list[dict[str, Any]]:
+    report_path = profile_root / "reports/phase-2-project-results.json"
+    document = _json(report_path) or {}
+    records: list[dict[str, Any]] = []
+    for arm in document.get("arms", []):
+        profile = _profile_label(None, arm.get("arm"))
+        for index, interaction in enumerate(arm.get("provider_interactions", [])):
+            chain = interaction.get("chain") or {}
+            raw_text = interaction.get("raw_response_text")
+            parsed = interaction.get("parsed_response") or interaction.get("normalized_response")
+            if parsed is None and isinstance(raw_text, str):
+                parsed, _ = parse_provider_response(raw_text)
+            stage = _stage_from_interaction(interaction)
+            packet = _legacy_packet({"requirements": "packet-01", "plan": "packet-02", "geometry": "packet-03"}.get(stage, "packet-01"))
+            records.append(_content_record(
+                source="phase2",
+                source_path=str(interaction.get("source_provider_call_path") or report_path),
+                logical_operation_id=f"phase2:{arm.get('arm')}:{index}",
+                attempt_id=chain.get("attempt_id"),
+                stage=stage,
+                profile=profile,
+                prompt_profile="current",
+                model=interaction.get("model_identity"),
+                raw_text=raw_text,
+                parsed=parsed,
+                status_code=None if chain.get("status") == "completed" else 502,
+                transport_error=chain.get("failure_class"),
+                token_counts={},
+                latency_ms=None,
+                request=interaction.get("request") or {},
+                diagnostic={"current_build_chain": chain},
+                packet=packet,
+            ))
+    return records
+
+
+def _system_boundary_records(system_root: Path) -> list[dict[str, Any]]:
+    report_path = system_root / "reports/provider-processing-factorial-results.json"
+    document = _json(report_path) or {}
+    records: list[dict[str, Any]] = []
+    for arm in document.get("arms", []):
+        profile = _profile_label(None, arm.get("provider_profile"))
+        for capture in arm.get("provider_captures", []):
+            response = capture.get("response") or {}
+            raw_text = response.get("raw_text")
+            parsed, _ = parse_provider_response(raw_text) if isinstance(raw_text, str) else (response.get("raw_provider_payload"), 0)
+            stage = str(capture.get("stage") or "requirements")
+            packet = _legacy_packet({"requirements": "packet-01", "plan": "packet-02", "geometry": "packet-03"}.get("plan" if "plan" in stage else "geometry" if "geometry" in stage or "source" in stage else "requirements", "packet-01"))
+            records.append(_content_record(
+                source="system-boundary-factorial",
+                source_path=str(capture.get("evidence_path") or report_path),
+                logical_operation_id=str(capture.get("user_operation_id") or capture.get("provider_call_id")),
+                attempt_id=capture.get("provider_call_id"),
+                stage="geometry" if stage not in {"requirements", "plan", "repair"} else stage,
+                profile=profile,
+                prompt_profile="current",
+                model=capture.get("actual_model"),
+                raw_text=raw_text,
+                parsed=parsed,
+                status_code=response.get("status_code"),
+                transport_error=response.get("error_category"),
+                token_counts={"prompt_tokens": response.get("prompt_tokens"), "output_tokens": response.get("output_tokens"), "total_tokens": response.get("total_tokens")},
+                latency_ms=response.get("latency_ms"),
+                request=capture.get("request") or {},
+                diagnostic={"downstream": capture.get("downstream"), "processing": capture.get("processing")},
+                packet=packet,
+            ))
+    for operation in document.get("quota_stopped_operations_preserved", []):
+        for provider_call_id in operation.get("provider_call_ids", []):
+            packet = _legacy_packet("packet-01")
+            records.append(_content_record(
+                source="system-boundary-preserved-quota-stop",
+                source_path=str(report_path),
+                logical_operation_id=str(operation.get("operation_id")),
+                attempt_id=str(provider_call_id),
+                stage="requirements",
+                profile="profile-a-current",
+                prompt_profile="current",
+                model=MODEL,
+                raw_text=None,
+                parsed=None,
+                status_code=429,
+                transport_error="provider_quota_exhausted",
+                token_counts={},
+                latency_ms=None,
+                request={},
+                diagnostic={"excluded_from_intrinsic_scoring": True, "reason": operation.get("reason")},
+                packet=packet,
+            ))
+    return records
+
+
+def offline_rescore(output_root: Path, repo_root: Path) -> dict[str, Any]:
+    output_root = output_root.resolve()
+    profile_root = repo_root.resolve() / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"
+    system_root = repo_root.resolve() / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01"
+    records = _phase1_records(profile_root) + _phase2_records(profile_root) + _system_boundary_records(system_root)
+    stage_summaries: list[dict[str, Any]] = []
+    for stage in ("requirements", "plan", "geometry", "repair"):
+        stage_records = [item for item in records if item["stage"] == stage]
+        counts = {result: sum(item["intrinsic_quality"]["result"] == result for item in stage_records) for result in QUALITY_RESULTS}
+        stage_summaries.append({"stage": stage, "record_count": len(stage_records), "quality_counts": counts, "content_scored_count": sum(item["intrinsic_quality"]["result"] in {"pass", "pass_with_benign_format_variation"} or item["intrinsic_quality"]["result"].startswith("fail_") for item in stage_records), "transport_excluded_count": sum(item["intrinsic_quality"]["result"] in {"transport_failure", "quota_failure"} for item in stage_records)})
+    offline = {"schema_version": "gemini-provider-contract-foundation-intrinsic-rescore-v1", "offline_only": True, "provider_calls": 0, "worker_calls": 0, "record_count": len(records), "records": records, "stage_summaries": stage_summaries}
+    regularity_groups: list[dict[str, Any]] = []
+    for profile in sorted({item["settings_profile"] for item in records}):
+        for stage in ("requirements", "plan", "geometry", "repair"):
+            group = [item for item in records if item["settings_profile"] == profile and item["stage"] == stage and item["parsed_response"] is not None and item["intrinsic_quality"]["result"] not in {"transport_failure", "quota_failure"}]
+            if not group:
+                continue
+            parsed = [item["parsed_response"] for item in group]
+            regularity_groups.append({"settings_profile": profile, "stage": stage, "record_count": len(group), "semantic_consistency": len({item["semantic_signature"] for item in group}) == 1, "structural_consistency": len({item["structural_signature"] for item in group}) == 1, "identity_consistency": len({item["identity_signature"] for item in group}) == 1, "decision_consistency": len({item["decision_signature"] for item in group}) == 1, "geometry_strategy_consistency": len({item["geometry_strategy_signature"] for item in group}) == 1, "byte_consistency": len({item["raw_hash"] for item in group}) == 1, "contract_entropy": contract_entropy(parsed), "canonicalization_distance_mean": round(sum(int(item.get("canonicalization_distance") or 0) for item in group) / len(group), 6)})
+    regularity = {"schema_version": "gemini-provider-contract-foundation-regularity-rescore-v1", "offline_only": True, "provider_calls": 0, "worker_calls": 0, "groups": regularity_groups, "metric_definitions": {"semantic_consistency": "same semantic signature", "byte_consistency": "same raw hash; reported separately", "contract_entropy": "mean normalized entropy across semantic, structural, identity, decision, and geometry signatures"}}
+    reports = output_root / "reports"
+    _write(reports / "intrinsic-quality-offline-rescore.json", offline)
+    _write(reports / "contract-regularity-offline-rescore.json", regularity)
+    for filename, reason in {
+        "settings-study-results.json": "live settings study is gated after offline rescore",
+        "settings-study-decision.json": "not selected before the gated live settings phase",
+        "thinking-study-results.json": "thinking study is gated on settings selection",
+        "thinking-study-decision.json": "not selected before the gated live thinking phase",
+        "prompt-study-results.json": "prompt study is gated on settings and thinking selection",
+        "prompt-study-decision.json": "not selected before the gated live prompt phase",
+    }.items():
+        _write(reports / filename, {"run": False, "reason": reason, "provider_calls": 0, "worker_calls": 0})
+    return {"record_count": len(records), "stage_summaries": stage_summaries, "regularity_groups": len(regularity_groups), "provider_calls": 0, "worker_calls": 0}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("prepare",), default="prepare")
+    parser.add_argument("--phase", choices=("prepare", "offline-rescore"), default="prepare")
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-provider-contract-foundation/gemini-provider-contract-foundation-01"))
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     args = parser.parse_args()
-    result = prepare_study(args.output_root, args.repo_root)
+    result = prepare_study(args.output_root, args.repo_root) if args.phase == "prepare" else offline_rescore(args.output_root, args.repo_root)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
