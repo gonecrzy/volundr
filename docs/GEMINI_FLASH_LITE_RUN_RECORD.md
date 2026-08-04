@@ -39,3 +39,10 @@ recorded changes were +1 candidate-ready-or-warning outcome, +1 worker-reached
 project, and unchanged valid-source and valid-topology counts. Feature
 evidence remained unmeasured in both rounds.
 
+## Frontend smoke
+
+After both rounds, the Volundr page loaded at `http://localhost:8080/` with
+title `Volundr` and zero browser console errors. The viewer `Fit` and `Iso`
+controls were exercised successfully; the page remained on the empty-project
+state without initiating a provider operation.
+
