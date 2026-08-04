@@ -523,6 +523,14 @@ separation, repair linkage, offline-required replay, three-run correlation,
 quota-safe resume, duplicate project/message prevention, baseline/validation
 separation, redaction, and truthful before/after labeling.
 
+Buildability reanalysis tests additionally cover authoritative Packet 2 and 3
+expectations, absolute quality floors, vacuous nested-object rejection,
+baseline-ceiling qualification, separate semantic/byte repeatability,
+independent buildability dimensions, zero-call rescoring, full manual-bundle
+coverage, historical preservation, and a 15-request rolling-window limiter.
+The focused live validation uses one serialized experiment proxy with a
+five-second minimum start spacing and zero retries for hard 429 responses.
+
 Analyzer audit tests cover volatile-field-insensitive semantic comparison,
 clarification wording normalization, requirement ordering and operator/value
 changes, canonical stage funnels, earliest blocker selection, worker-ready

@@ -428,6 +428,17 @@ def qualify_stable_foundation(profile_summaries: dict[str, dict[str, Any]], *, b
     return {"decision": decision, "qualifying_profiles": qualifying, "criteria": criteria, "baseline_profile_id": baseline_profile_id, "semantic_noninferiority_margin": 0.02, "consistency_improvement_threshold": 2}
 
 
+def apply_profile_b_generation_config(config: dict[str, Any]) -> dict[str, Any]:
+    """Apply Profile B's frozen sampling override to an isolated live request."""
+
+    overridden = dict(config)
+    for key in ("temperature", "topP", "topK"):
+        overridden.pop(key, None)
+    overridden["candidateCount"] = 1
+    overridden["seed"] = 1701
+    return overridden
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -568,6 +579,63 @@ def write_manual_review_bundle(output: Path, *, study: dict[str, Any], repositor
     output.write_text(json.dumps(safe, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
 
 
+def merge_phase2_manual_review(output_root: Path) -> dict[str, Any]:
+    """Merge persisted Phase 2 evidence into the one manual-review bundle."""
+
+    bundle_path = output_root / "reports" / "all-responses-manual-review.json"
+    project_path = output_root / "reports" / "phase-2-project-results.json"
+    comparison_path = output_root / "reports" / "phase-2-comparison.json"
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    project_results = json.loads(project_path.read_text(encoding="utf-8"))
+    comparison = json.loads(comparison_path.read_text(encoding="utf-8"))
+    events = [event for arm in project_results.get("arms", []) for event in arm.get("rate_limit", {}).get("events", [])]
+    starts = sorted(float(event["call_start_monotonic"]) for event in events if event.get("call_start_monotonic") is not None)
+    max_window = max((sum(start <= candidate < start + 60.0 for candidate in starts) for start in starts), default=0)
+    min_gap = min((later - earlier for earlier, later in zip(starts, starts[1:])), default=None)
+    rate_report = {
+        "schema_version": "gemini-profile-ablation-rate-limit-v1",
+        "default_requests_per_minute": DEFAULT_REQUESTS_PER_MINUTE,
+        "max_requests_per_rolling_window": MAX_ROLLING_REQUESTS,
+        "min_interval_seconds": DEFAULT_MIN_INTERVAL_SECONDS,
+        "concurrency": 1,
+        "new_provider_calls": len(events),
+        "hard_429_retry": False,
+        "observed_max_requests_per_rolling_window": max_window,
+        "observed_min_start_gap_seconds": round(min_gap, 4) if min_gap is not None else None,
+        "events": events,
+    }
+    recommendation = {
+        "recommendation": "candidate_promising_but_needs_second_validation",
+        "offline_decision": bundle.get("final_recommendation", {}).get("offline_decision"),
+        "candidate_profile": "profile-b-sampling",
+        "production_deployment": False,
+        "live_validation": "completed_descriptive_comparison",
+        "reason": "both arms completed the ten project operations, but the focused run did not establish worker-ready improvement across at least two cases",
+    }
+    bundle["phase_2"] = {
+        "run": True,
+        "reason": "offline quality-floor evidence authorized focused validation",
+        "records": project_results.get("arms", []),
+        "comparison": comparison,
+        "decision": {"recommendation": recommendation["recommendation"], "statistical_significance": False},
+    }
+    bundle["final_recommendation"] = recommendation
+    redactor = RedactionService()
+    safe, _ = redactor.redact_evidence_value(_redact_paths(bundle), data_root=output_root.parent.parent, evidence_root=bundle_path.parent)
+    redactor.assert_json_redacted(safe)
+    bundle_path.write_text(json.dumps(safe, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+    rate_path = output_root / "reports" / "gemini-rate-limit-report.json"
+    rate_safe, _ = redactor.redact_evidence_value(_redact_paths(rate_report), data_root=output_root.parent.parent, evidence_root=rate_path.parent)
+    redactor.assert_json_redacted(rate_safe)
+    rate_path.write_text(json.dumps(rate_safe, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+    final_path = output_root / "reports" / "final-buildability-decision.json"
+    final = json.loads(final_path.read_text(encoding="utf-8")) if final_path.is_file() else {}
+    final["phase_2"] = bundle["phase_2"]
+    final["final_recommendation"] = recommendation
+    final_path.write_text(json.dumps(final, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+    return recommendation
+
+
 class RollingWindowRateLimiter:
     """Single-process limiter with a hard rolling-window ceiling."""
 
@@ -612,6 +680,7 @@ __all__ = [
     "DEFAULT_MIN_INTERVAL_SECONDS",
     "DEFAULT_REQUESTS_PER_MINUTE",
     "MAX_ROLLING_REQUESTS",
+    "apply_profile_b_generation_config",
     "QUALITY_FLOOR_RESULTS",
     "RollingWindowRateLimiter",
     "authoritative_packet_expectations",
@@ -619,6 +688,7 @@ __all__ = [
     "evaluate_quality_floor",
     "preserve_historical_reports",
     "profile_comparisons",
+    "merge_phase2_manual_review",
     "qualify_stable_foundation",
     "repeatability_metrics",
     "rescore_phase1_records",

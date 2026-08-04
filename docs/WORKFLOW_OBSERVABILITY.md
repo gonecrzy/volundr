@@ -437,3 +437,9 @@ Gemini Flash Lite study mode additionally records a write-once provider-call
 envelope for every API attempt, including retries and provider failures. The
 envelope is linked by study, round, repetition, case, project, operation, and
 workflow identities; private evidence remains outside Git.
+
+The buildability reanalysis adds one denormalized redacted manual-review JSON
+that embeds Phase 1 records and focused Phase 2 arm evidence while preserving
+the normal immutable envelopes. Its experiment-local proxy records call start,
+rolling-window count, sleep, status, model endpoint, and limiter decision;
+offline report generation performs zero provider calls.

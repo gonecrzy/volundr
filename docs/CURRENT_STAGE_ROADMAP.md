@@ -543,3 +543,11 @@ Pattern coordinate-space validation and chat-message identity correction are
 implemented. The tackle-tray project remains a valid blocked live-quality
 case: the latest attempt was stopped before worker execution because the
 provider still tried to consume component-space placements as planar points.
+
+## Gemini profile buildability gate
+
+The completed profile matrix has been re-evaluated with absolute quality floors
+and buildability-first selection. Profile B is a candidate, not a production
+change. Its focused validation completed ten project operations but did not
+establish worker-ready improvement; the next step is a second validation only,
+not deployment or a broad study.

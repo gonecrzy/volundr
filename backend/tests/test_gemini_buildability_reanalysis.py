@@ -10,6 +10,7 @@ from app.services.gemini_consistency.buildability_reanalysis import (
     QUALITY_FLOOR_RESULTS,
     RollingWindowRateLimiter,
     authoritative_packet_expectations,
+    apply_profile_b_generation_config,
     buildability_scorecard,
     evaluate_quality_floor,
     preserve_historical_reports,
@@ -126,6 +127,19 @@ def test_profile_b_can_qualify_at_baseline_acceptance_ceiling() -> None:
 
     assert decision["qualifying_profiles"] == ["profile-b-sampling"]
     assert decision["criteria"]["profile-b-sampling"]["acceptance_noninferior"] is True
+
+
+def test_profile_b_live_override_changes_sampling_only() -> None:
+    config = {"temperature": 0.2, "topP": 0.95, "topK": 40, "maxOutputTokens": 8192}
+
+    overridden = apply_profile_b_generation_config(config)
+
+    assert overridden["maxOutputTokens"] == 8192
+    assert overridden["candidateCount"] == 1
+    assert overridden["seed"] == 1701
+    assert "temperature" not in overridden
+    assert "topP" not in overridden
+    assert "topK" not in overridden
 
 
 def test_semantic_noninferiority_margin_is_applied() -> None:

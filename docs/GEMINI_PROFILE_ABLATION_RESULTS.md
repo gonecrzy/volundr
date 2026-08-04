@@ -26,3 +26,17 @@ The machine-readable records are:
 Decision: prompt_configuration_improvement_not_established,
 evaluation_status: phase_1_incomplete_quota_interruption. No profile is
 eligible for production adoption and no Phase 2 project comparison ran.
+
+## Buildability reanalysis addendum
+
+The text above is the preserved historical automated report. A corrected
+offline evaluator rescored all 30 immutable records using absolute
+packet-specific quality floors. Profile B passed 6/6 floors, retained
+acceptance, and improved semantic repeatability from 0/3 to 3/3 packets.
+The corrected decision is `profile_b_stable_foundation_candidate`.
+
+The authorized focused validation completed ten project operations, five per
+arm, but did not establish worker-ready improvement across at least two cases.
+The final engineering recommendation is
+`candidate_promising_but_needs_second_validation`; production behavior remains
+unchanged. See `GEMINI_BUILDABILITY_EVALUATION.md`.

@@ -196,3 +196,12 @@ Durable project reopen and explicit exports: `PROJECT_PERSISTENCE.md`,
 For repeated geometry, read [Repeated Feature Layouts](REPEATED_FEATURE_LAYOUTS.md)
 and [Pattern Coordinate-Space Contract](PATTERN_COORDINATE_SPACE_CONTRACT.md).
 For chat persistence, read [Chat Message Identity Contract](CHAT_MESSAGE_IDENTITY_CONTRACT.md).
+
+For Gemini profile buildability evaluation, read
+`GEMINI_BUILDABILITY_EVALUATION.md`,
+`GEMINI_ABLATION_EVALUATOR_CORRECTION.md`,
+`GEMINI_ABSOLUTE_QUALITY_FLOOR.md`,
+`GEMINI_PROFILE_B_STABILITY_REVIEW.md`,
+`GEMINI_STABLE_FOUNDATION_VALIDATION.md`, and
+`GEMINI_MANUAL_REVIEW_BUNDLE.md`. These are evaluation evidence only and do
+not override production contracts.

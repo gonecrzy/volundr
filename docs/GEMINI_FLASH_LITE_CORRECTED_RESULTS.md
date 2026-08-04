@@ -54,3 +54,12 @@ case was case-002 and the least consistent was case-001. In validation, the
 most consistent was case-009 and the least consistent was case-001. These are
 descriptive rankings of repeated captured behavior, not controlled estimates
 of provider variance.
+
+## Profile buildability reanalysis addendum
+
+The profile-ablation reanalysis is a separate, preserved evidence track. Its
+corrected reports use authoritative packet expectations and reject vacuous
+structured responses. Profile B passed all six floors and was compared live in
+five frozen cases against current production. Neither arm established
+worker-ready valid source across at least two cases, so no production profile
+change follows from this evidence. See `GEMINI_BUILDABILITY_EVALUATION.md`.

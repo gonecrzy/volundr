@@ -28,3 +28,12 @@ hard quota failure and therefore did not establish a profile advancement
 threshold. Phase 2 was skipped. Keep production configuration unchanged and
 continue with the previously identified deterministic feature-verification
 priority; do not infer a prompt winner from the partial matrix.
+
+## Buildability reanalysis addendum
+
+The partial decision remains historical evidence. The completed matrix was
+rescored offline with an absolute quality floor, and Profile B qualified as a
+stable-foundation candidate. A focused five-case/two-arm validation then
+completed but was mixed at the worker boundary. Keep production configuration
+unchanged and use `candidate_promising_but_needs_second_validation` as the
+current engineering recommendation.
