@@ -16,7 +16,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     replay_preserved_evidence,
     validate_rate_events,
 )
-from scripts.run_gemini_system_boundary_methods import _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches
+from scripts.run_gemini_system_boundary_methods import _answer_for_questions, _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches
 
 
 def test_method_ids_are_frozen_and_current_processing_is_p0() -> None:
@@ -152,3 +152,15 @@ def test_final_validation_is_capped_at_two_declared_systems() -> None:
         ("current-p3", "current-production", "P3"),
         ("profile-b-p3", "profile-b-sampling", "P3"),
     )
+
+
+def test_frozen_clarification_facts_are_mapped_to_questions() -> None:
+    answer, used = _answer_for_questions(
+        ["What are the phone width and thickness with the case, and desired angle?"],
+        {"phone_width": 78, "phone_thickness_with_case": 12, "case_status": "with_case", "desired_angle": 65},
+    )
+
+    assert "78" in answer
+    assert "12" in answer
+    assert "65" in answer
+    assert set(used) == {"phone_width", "phone_thickness_with_case", "case_status", "desired_angle"}

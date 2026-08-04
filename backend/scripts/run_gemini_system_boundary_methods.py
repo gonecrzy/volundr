@@ -31,6 +31,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     replay_preserved_evidence,
 )
 from app.services.gemini_consistency.buildability_reanalysis import RollingWindowRateLimiter
+from app.services.gemini_consistency.runner import PROPOSAL_ANSWER, _questions_from_spec, clarification_answer_for
 from app.services.workflow.redaction import RedactionService
 
 
@@ -234,6 +235,24 @@ def _finalist_configurations(processing: str) -> tuple[tuple[str, str, str], ...
     )
 
 
+def _answer_for_questions(questions: list[str], fact_sheet: dict[str, Any]) -> tuple[str, list[str]]:
+    """Map frozen facts to clarification questions without inventing values."""
+    used: list[str] = []
+    broad_fit_question = any(any(token in question.casefold() for token in ("phone", "fit", "case status")) for question in questions)
+    if broad_fit_question:
+        used = [key for key in ("phone_width", "phone_thickness_with_case", "case_status", "desired_angle") if key in fact_sheet]
+        if used:
+            return "\n".join(f"{key}: {fact_sheet[key]}" for key in used), used
+    answers: list[str] = []
+    for question in questions:
+        decision = clarification_answer_for(question, fact_sheet)
+        if decision.answer is not None:
+            if decision.fact_key and decision.fact_key not in used:
+                used.append(decision.fact_key)
+            answers.append(f"{decision.category}: {decision.answer}")
+    return "\n".join(answers) or PROPOSAL_ANSWER, used
+
+
 def _write_redacted(path: Path, value: Any, root: Path) -> None:
     redactor = RedactionService()
     safe, _ = redactor.redact_evidence_value(value, data_root=root / "data", evidence_root=path.parent)
@@ -271,6 +290,79 @@ def _final_cases(study_root: Path) -> list[dict[str, Any]]:
         for case in corpus.get("cases", [])
         if case.get("case_id") in selected
     ]
+
+
+async def _fetch_json(client: httpx.AsyncClient, path: str) -> Any:
+    response = await client.get(path)
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    return response.json()
+
+
+async def _run_complete_case(client: httpx.AsyncClient, case: dict[str, Any]) -> dict[str, Any]:
+    draft = await client.post("/projects/draft")
+    draft.raise_for_status()
+    project = draft.json()
+    project_id = str(project["id"])
+    started = asyncio.get_running_loop().time()
+    responses: list[dict[str, Any]] = []
+    clarification_trace: list[dict[str, Any]] = []
+    current_message = str(case["request"])
+    clarification_rounds = 0
+    terminal_response: dict[str, Any] = {}
+    workflow_run_ids: list[str] = []
+    for phase in range(3):
+        response = await client.post(
+            f"/projects/{project_id}/chat",
+            json={"message": current_message, "client_message_id": f"boundary-study-{case['case_id']}-round-{phase}"},
+        )
+        if response.status_code >= 400:
+            terminal_response = {"http_status": response.status_code, "error": response.text}
+            responses.append({"phase": phase, "response": terminal_response})
+            break
+        terminal_response = response.json()
+        responses.append({"phase": phase, "response": terminal_response})
+        if terminal_response.get("workflow_run_id"):
+            workflow_run_ids.append(str(terminal_response["workflow_run_id"]))
+        if not terminal_response.get("input_required"):
+            break
+        if clarification_rounds >= 2:
+            break
+        specification = await _fetch_json(client, f"/projects/{project_id}/design-specification")
+        questions = _questions_from_spec(specification, str(terminal_response.get("assistant_message") or ""))
+        answer, used_facts = _answer_for_questions(questions, dict(case.get("fact_sheet") or {}))
+        clarification_rounds += 1
+        clarification_trace.append({"round": clarification_rounds, "questions": questions, "answer": answer, "used_fact_keys": used_facts, "facts_submitted": {key: case["fact_sheet"][key] for key in used_facts}})
+        current_message = answer
+    revision_id = terminal_response.get("revision_id") or terminal_response.get("current_working_revision_id")
+    evidence = {
+        "chat_responses": responses,
+        "clarification_trace": clarification_trace,
+        "project_key": project_id,
+        "workflow_run_ids": workflow_run_ids,
+    }
+    return {
+        "case_id": case["case_id"],
+        "expected_route": case.get("expected_route"),
+        "request": case["request"],
+        "chat_elapsed_ms": round((asyncio.get_running_loop().time() - started) * 1000, 2),
+        "workflow_response": terminal_response,
+        "clarification_rounds": clarification_rounds,
+        "clarification_trace": clarification_trace,
+        "project": await _fetch_json(client, f"/projects/{project_id}"),
+        "workspace": await _fetch_json(client, f"/projects/{project_id}/workspace"),
+        "requirements": await _fetch_json(client, f"/projects/{project_id}/requirements/active"),
+        "design_specification": await _fetch_json(client, f"/projects/{project_id}/design-specification"),
+        "design_plan": await _fetch_json(client, f"/projects/{project_id}/design-plan"),
+        "revisions": await _fetch_json(client, f"/projects/{project_id}/revisions") or [],
+        "revision": await _fetch_json(client, f"/revisions/{revision_id}") if revision_id else None,
+        "outputs": await _fetch_json(client, f"/revisions/{revision_id}/outputs") if revision_id else [],
+        "findings": await _fetch_json(client, f"/candidates/{revision_id}/findings") if revision_id else [],
+        "generation_attempts": await _fetch_json(client, f"/projects/{project_id}/generation-attempts") or [],
+        "workflow_runs": await _fetch_json(client, f"/projects/{project_id}/workflow-runs") or [],
+        "runner_evidence": evidence,
+    }
 
 
 def _provider_interactions(data_root: Path, output_root: Path) -> list[dict[str, Any]]:
@@ -430,6 +522,46 @@ def enrich_factorial_report(output_root: Path) -> dict[str, Any]:
     return {"factorial": report, "comparison": comparison, "residual": residual}
 
 
+def enrich_final_report(output_root: Path) -> dict[str, Any]:
+    report_path = output_root / "reports/final-system-validation-results.json"
+    report = _json(report_path) or {}
+    projects: list[dict[str, Any]] = []
+    summaries: dict[str, dict[str, Any]] = {}
+    metric_names = ("requirements_valid", "clarification_decision_correct", "clarification_answered", "plan_valid", "geometry_response_valid", "source_contract_passed", "worker_ready_valid_source", "worker_reached", "worker_completed", "worker_runtime_failed", "artifact_created", "topology_valid", "verification_completed", "candidate_ready", "candidate_ready_with_warnings")
+    for arm in report.get("arms", []):
+        data_root = output_root / "final-validation" / str(arm.get("data_root"))
+        arm["provider_captures"] = _provider_captures(data_root, output_root)
+        arm["actual_model_identities"] = sorted({str(item.get("actual_model")) for item in arm["provider_captures"] if item.get("actual_model")})
+        arm["worker_metrics"] = _worker_metrics(data_root)
+        arm["project_metrics"] = [_case_metrics(case, data_root) for case in arm.get("cases", [])]
+        projects.extend([{**metric, "arm_id": arm.get("arm_id"), "provider_profile": arm.get("provider_profile"), "processing": arm.get("processing")} for metric in arm["project_metrics"]])
+        arm["provider_capture_count"] = len(arm["provider_captures"])
+        arm["worker_calls"] = arm["worker_metrics"]["worker_job_count"]
+        summaries[str(arm.get("arm_id"))] = {"arm_id": arm.get("arm_id"), "provider_profile": arm.get("provider_profile"), "processing": arm.get("processing"), "project_count": len(arm["project_metrics"]), "provider_calls": arm.get("provider_calls", 0), **{name: sum(bool(item.get(name)) for item in arm["project_metrics"]) for name in metric_names}, "actual_model_identities": arm["actual_model_identities"], "worker": arm["worker_metrics"]}
+    report["project_metrics"] = projects
+    report["provider_capture_count"] = sum(int(arm.get("provider_capture_count") or 0) for arm in report.get("arms", []))
+    report["worker_calls"] = sum(int(arm.get("worker_calls") or 0) for arm in report.get("arms", []))
+    report["capture_complete"] = report["provider_capture_count"] == report.get("provider_calls") and len(projects) == 10
+    _write_redacted(report_path, report, output_root)
+    comparison = {
+        "schema_version": "gemini-system-boundary-methods-final-comparison-v1",
+        "run": True,
+        "descriptive_only": True,
+        "arms": summaries,
+        "ordered_gates": {
+            "intrinsic_quality": "both finalists used the same Profile B/current provider prompts and exact model; clarification decisions and semantic evidence are counted separately",
+            "processability": "P3 was selected only after zero semantic/integrity regressions in offline replay",
+            "workflow_progress": "worker reach, completion, runtime, artifact, topology, verification, and candidate counts are preserved per project",
+            "stability": "case-level clarification, plan, slot, and blocker records are preserved",
+            "efficiency": "provider calls and latency are secondary metrics",
+        },
+        "winner": None,
+        "reason": "Final winner is selected only after inspecting the corrected per-project metrics; no statistical significance is claimed.",
+    }
+    _write_redacted(output_root / "reports/final-system-comparison.json", comparison, output_root)
+    return {"report": report, "comparison": comparison}
+
+
 async def _run_factorial_arm(
     *,
     arm_id: str,
@@ -443,7 +575,6 @@ async def _run_factorial_arm(
 ) -> dict[str, Any]:
     from run_gemini_buildability_phase2 import _start_proxy
     from run_live_bottle_holder_workflow import terminate_process, wait_for_health
-    from run_live_multi_design_evaluation import run_case
 
     data_root = _factorial_data_root(output_root, arm_id, run_label)
     data_root.mkdir(parents=True, exist_ok=True)
@@ -482,7 +613,7 @@ async def _run_factorial_arm(
         async with httpx.AsyncClient(base_url=f"http://127.0.0.1:{port}/api", timeout=600, headers=headers) as client:
             for case in cases:
                 client.headers["X-Volundr-Study-Case"] = case["case_id"]
-                results.append(await run_case(client, case))
+                results.append(await _run_complete_case(client, case))
                 if proxy.quota_exhausted:
                     break
     finally:
@@ -524,8 +655,10 @@ async def run_factorial(output_root: Path, profile_root: Path, study_root: Path,
     previous_report = output_root / "reports/provider-processing-factorial-results.json"
     run_label = "run-01"
     if previous_report.is_file():
-        run_label = "run-02"
-        historical = output_root / "reports/historical/factorial-incomplete-capture-run-01.json"
+        previous = _json(previous_report) or {}
+        previous_label = str(previous.get("run_label") or "run-01")
+        run_label = f"run-{int(previous_label.rsplit('-', 1)[-1]) + 1:02d}"
+        historical = output_root / f"reports/historical/factorial-incomplete-clarification-{previous_label}.json"
         if not historical.is_file():
             historical.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(previous_report, historical)
@@ -567,11 +700,21 @@ async def run_final_validation(output_root: Path, study_root: Path) -> dict[str,
     if [case["case_id"] for case in cases] != ["case-001", "case-002", "case-003", "case-006", "case-008"]:
         raise RuntimeError("final case selection does not match preregistration")
     final_root = output_root / "final-validation"
+    previous_report = output_root / "reports/final-system-validation-results.json"
+    run_label = "run-01"
+    if previous_report.is_file():
+        previous = _json(previous_report) or {}
+        previous_label = str(previous.get("run_label") or "run-01")
+        run_label = f"run-{int(previous_label.rsplit('-', 1)[-1]) + 1:02d}"
+        historical = output_root / f"reports/historical/final-incomplete-clarification-{previous_label}.json"
+        if not historical.is_file():
+            historical.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(previous_report, historical)
     limiter = RollingWindowRateLimiter()
     backend_root = Path(__file__).resolve().parents[1]
     arms: list[dict[str, Any]] = []
     for arm_id, profile, processing in _finalist_configurations(selected_method):
-        arms.append(await _run_factorial_arm(arm_id=arm_id, provider_profile=profile, processing=processing, cases=cases, output_root=final_root, backend_root=backend_root, limiter=limiter))
+        arms.append(await _run_factorial_arm(arm_id=arm_id, provider_profile=profile, processing=processing, cases=cases, output_root=final_root, backend_root=backend_root, limiter=limiter, run_label=run_label))
         if arms[-1]["quota_exhausted"] or arms[-1]["project_operations"] < len(cases):
             break
     report = {
@@ -586,6 +729,7 @@ async def run_final_validation(output_root: Path, study_root: Path) -> dict[str,
         "worker_calls": 0,
         "rate_limit": limiter.report(),
         "capture_complete": False,
+        "run_label": run_label,
     }
     _write_redacted(output_root / "reports/final-system-validation-results.json", report, output_root)
     return report
@@ -593,7 +737,7 @@ async def run_final_validation(output_root: Path, study_root: Path) -> dict[str,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "analyze-factorial", "final-validation"), default="offline")
+    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "analyze-factorial", "final-validation", "analyze-final"), default="offline")
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01"))
     parser.add_argument("--profile-ablation-root", type=Path, default=Path("data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"))
     parser.add_argument("--study-root", type=Path, default=Path("data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01"))
@@ -610,6 +754,10 @@ def main() -> int:
     if args.phase == "final-validation":
         result = asyncio.run(run_final_validation(args.output_root.resolve(), args.study_root))
         print(json.dumps({"final_validation": {"run": result.get("run", False), "arms": [arm.get("arm_id") for arm in result.get("arms", [])], "project_operations": result.get("project_operations", 0), "provider_calls": result.get("provider_calls", 0), "worker_calls": result.get("worker_calls", 0)}}, indent=2, sort_keys=True))
+        return 0
+    if args.phase == "analyze-final":
+        result = enrich_final_report(args.output_root.resolve())
+        print(json.dumps({"capture_complete": result["report"].get("capture_complete"), "provider_calls": result["report"].get("provider_calls", 0), "provider_captures": result["report"].get("provider_capture_count", 0), "worker_calls": result["report"].get("worker_calls", 0)}, indent=2, sort_keys=True))
         return 0
     if args.phase == "factorial":
         result = asyncio.run(run_factorial(args.output_root, args.profile_ablation_root, args.study_root, args.repo_root))
