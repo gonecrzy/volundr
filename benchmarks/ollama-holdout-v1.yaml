@@ -1,0 +1,18 @@
+{
+  "version": "ollama-holdout-v1",
+  "description": "Unseen prompts used only after a candidate profile is frozen.",
+  "cases": [
+    {
+      "case_id": "holdout-001",
+      "title": "Angled phone cradle",
+      "prompt": "Create a one-piece phone cradle for a 78 mm wide and 12 mm thick phone. Hold the phone at approximately 65 degrees and include a centered charging-cable opening.",
+      "expected_broad_geometry": ["one piece", "phone support", "approximately 65 degree angle", "centered cable opening"]
+    },
+    {
+      "case_id": "holdout-002",
+      "title": "Mounting spacer",
+      "prompt": "Create a 70 mm by 50 mm by 8 mm spacer plate with four 5 mm through-holes in a 50 mm by 30 mm rectangular pattern.",
+      "expected_broad_geometry": ["one spacer plate", "four through-holes", "50 mm by 30 mm rectangular pattern"]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "version": "ollama-calibration-v1",
+  "description": "Three model-calibration cases outside the formal five-case benchmark.",
+  "cases": [
+    {
+      "case_id": "calibration-001",
+      "title": "Single solid with through-hole",
+      "prompt": "Create a 30 mm wide, 24 mm deep, and 12 mm tall rectangular block with a centered 6 mm diameter through-hole running vertically through the full height.",
+      "expected_broad_geometry": ["one solid", "rectangular bounds", "one vertical through-hole", "height approximately 12 mm"],
+      "purpose": ["imports", "primitive", "subtraction", "final result", "native extraction", "slot compatibility"]
+    },
+    {
+      "case_id": "calibration-002",
+      "title": "Open tray with divider",
+      "prompt": "Create an open-top rectangular tray with external dimensions 80 mm by 60 mm by 20 mm. Use 3 mm walls and a 3 mm base. Add one vertical divider splitting the interior into two equal compartments.",
+      "expected_broad_geometry": ["one connected solid", "open top", "cavity", "divider", "two internal regions"],
+      "purpose": ["multiple operations", "additive/subtractive reasoning", "one-part topology", "feature preservation"]
+    },
+    {
+      "case_id": "calibration-003",
+      "title": "Two mating cylindrical parts",
+      "prompt": "Create a cylindrical container body and a separate removable cap. The body must have a 40 mm internal diameter, 50 mm usable internal height, 2.5 mm walls, and a 3 mm base. The cap should overlap the body by 10 mm with 0.4 mm radial clearance. Do not add threads.",
+      "expected_broad_geometry": ["two separate printable outputs", "hollow body", "removable cap", "internal dimensions", "radial clearance", "no threads"],
+      "purpose": ["multipart output", "internal versus external dimensions", "fit relationship", "native output structure", "slot/output mapping"]
+    }
+  ]
+}
