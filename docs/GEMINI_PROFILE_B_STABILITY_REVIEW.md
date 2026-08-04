@@ -30,3 +30,10 @@ Profile B 2/5; Profile B case-006 reached the worker and failed inside
 CadQuery. The final audited decision is
 `corrected_second_validation_required`; see the Phase 2 audit and second-
 validation plan.
+
+The later system-boundary methods study qualified deterministic method P3 in
+offline replay, but its live provider × processing factorial stopped on a hard
+429 before the P3 arms ran. Its final decision is therefore
+`insufficient_evidence`, not a replacement provider decision. See
+`GEMINI_SYSTEM_BOUNDARY_METHODS.md` and
+`GEMINI_PROVIDER_PROCESSING_FACTORIAL.md`.

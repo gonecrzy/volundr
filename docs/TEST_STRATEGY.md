@@ -18,6 +18,14 @@ historical-report preservation, all-35-call/all-10-project bundle inclusion,
 redaction, and zero provider/worker calls. The audit runner is
 `backend/scripts/audit_gemini_phase2.py`.
 
+The system-boundary methods suite in
+`tests/test_gemini_system_boundary_methods.py` additionally covers the three
+independent study axes, P3 numeric and slot-order preservation, fail-closed
+ambiguity, frozen clarification equality, worker-ready source semantics,
+worker runtime versus CAD success, zero-call offline replay, immutable study
+capture headers, and the 12/minute, 15/rolling-minute, no-hard-429-retry
+policy. The live study is never required by these deterministic tests.
+
 ## Deterministic feature verification
 
 Feature verification tests cover source-only and missing-trace states,

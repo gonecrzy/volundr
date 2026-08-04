@@ -48,6 +48,14 @@ in `GEMINI_PROFILE_B_SECOND_VALIDATION_PLAN.md`. These documents are evidence
 and planning artifacts; they do not authorize deployment or change production
 provider behavior.
 
+The system-boundary methods study is documented in
+`GEMINI_SYSTEM_BOUNDARY_METHODS.md`, with the offline processing gate in
+`GEMINI_PROCESSING_METHOD_ABLATION.md`, the incomplete factorial in
+`GEMINI_PROVIDER_PROCESSING_FACTORIAL.md`, the prompt gate in
+`GEMINI_TARGETED_PROMPT_METHOD.md`, and the final selection status in
+`GEMINI_FINAL_SYSTEM_SELECTION.md`. Its evidence is experiment-scoped and
+does not override production contracts.
+
 ### Historical evaluation evidence
 
 Earlier benchmark and transition reports remain useful for chronology, failure

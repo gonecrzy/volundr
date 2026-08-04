@@ -13,6 +13,11 @@ asymmetric and worker reach was under-counted. This does not change the
 production roadmap or authorize prompt, schema, provenance, source-symbol, or
 missing-slot behavior changes.
 
+The subsequent system-boundary methods study qualified P3 only in offline
+replay. Its corrected live factorial stopped on a hard quota failure before
+the P3 arms and final comparison, so the audited decision is
+`insufficient_evidence`; no production selection or deployment changed.
+
 ## Current feature-verification stage
 
 Deterministic source-to-result feature evidence, generic final measurements,

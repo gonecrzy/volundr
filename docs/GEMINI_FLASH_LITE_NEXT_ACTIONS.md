@@ -44,3 +44,9 @@ candidate, but case-001 did not receive equivalent clarification continuation
 and the original worker-ready aggregation was wrong. Do not deploy Profile B
 or run another live validation until the corrected plan in
 `GEMINI_PROFILE_B_SECOND_VALIDATION_PLAN.md` is explicitly authorized.
+
+The system-boundary methods study subsequently qualified P3 offline and
+stopped its live factorial safely on a hard 429 before P3 was tested. The
+current action is therefore evidence preservation and quota-gated repeat
+validation, not prompt tuning, provider deployment, or production processing
+changes. See `GEMINI_FINAL_SYSTEM_SELECTION.md`.

@@ -49,6 +49,15 @@ reported separately; a preserved blocked attempt is never presented as a
 successful candidate. Report generation only materializes existing evidence
 and must not call a provider or worker.
 
+The system-boundary study adds an explicit raw-versus-processed provider
+capture for benchmark-only processing. The raw response, processed response,
+method, hashes, actions, actual model identity, source hash, job ID, worker
+traceback, topology, and verification evidence remain distinguishable. A
+processing action is not a provider-quality pass, a worker runtime failure is
+not CAD success, and a hard 429 is terminal evidence rather than a retryable
+semantic result. The evidence lives under the study root and does not alter
+normal production routing.
+
 ## Focused validation audit semantics
 
 For Gemini Phase 2 evidence, `worker_ready_valid_source` requires both a hard

@@ -28,3 +28,9 @@ compare an answered clarification continuation against an unanswered stop.
 Do not tune prompts or thresholds between calls. Production deployment remains
 disabled until the predefined stable-foundation decision is applied to the
 completed evidence.
+
+The separate system-boundary methods study added an offline P3 processing
+gate, but its corrected live factorial did not complete because of a hard
+429. Any future validation must first complete the preregistered provider ×
+processing matrix, then apply this five-case continuation policy; the partial
+factorial is not evidence for deployment.
