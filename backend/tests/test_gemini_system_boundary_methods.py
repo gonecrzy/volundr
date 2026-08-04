@@ -157,10 +157,10 @@ def test_secondary_credential_is_explicit_and_never_serialized(monkeypatch: pyte
     child_env = _credential_environment("secondary")
 
     assert metadata == {
-        "credential_source": "GEMINI_API_KEY_2",
-        "credential_slot": "secondary",
-        "credential_env_var": "GEMINI_API_KEY_2",
-        "credential_present": True,
+        "auth_source": "GEMINI_API_KEY_2",
+        "auth_slot": "secondary",
+        "auth_env_var": "GEMINI_API_KEY_2",
+        "auth_present": True,
     }
     assert child_env["GEMINI_API_KEY"] == "secondary-secret-value"
     assert "GEMINI_API_KEY_2" not in child_env
@@ -287,7 +287,7 @@ def test_resume_schedule_preserves_a_b_and_only_attempts_c_d() -> None:
 
 
 def test_existing_a_b_arm_captures_are_valid_resume_source() -> None:
-    report = json.loads((REPO_ROOT / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/reports/provider-processing-factorial-results.json").read_text(encoding="utf-8"))
+    report = json.loads((REPO_ROOT / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/reports/historical/pre-secondary-credential-resume/provider-processing-factorial-results.json").read_text(encoding="utf-8"))
 
     result = _validate_resume_source(report)
 

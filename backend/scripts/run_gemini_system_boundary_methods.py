@@ -93,18 +93,18 @@ def _credential_metadata(source: str) -> dict[str, Any]:
         env_name = "GEMINI_API_KEY"
         slot = "primary"
     return {
-        "credential_source": SECONDARY_CREDENTIAL_SOURCE if source == "secondary" else env_name,
-        "credential_slot": slot,
-        "credential_env_var": env_name,
-        "credential_present": present,
+        "auth_source": SECONDARY_CREDENTIAL_SOURCE if source == "secondary" else env_name,
+        "auth_slot": slot,
+        "auth_env_var": env_name,
+        "auth_present": present,
     }
 
 
 def _credential_environment(source: str) -> dict[str, str]:
     """Build a child environment without returning or recording any secret."""
     metadata = _credential_metadata(source)
-    if not metadata["credential_present"]:
-        raise RuntimeError(f"{metadata['credential_env_var']} is not present; no experiment call was attempted")
+    if not metadata["auth_present"]:
+        raise RuntimeError(f"{metadata['auth_env_var']} is not present; no experiment call was attempted")
     if source == "primary":
         return os.environ.copy()
     environment = os.environ.copy()
@@ -310,8 +310,8 @@ def _operation_manifest(
             "provider_call_ids": sorted(str(item.get("provider_call_id")) for item in items if item.get("provider_call_id")),
             "provider_call_count": len(items),
             "operation_status": "quota_stopped" if quota_stopped else "completed" if items else "not_started",
-            "credential_source": credential["credential_source"],
-            "credential_slot": credential["credential_slot"],
+            "auth_source": credential["auth_source"],
+            "auth_slot": credential["auth_slot"],
         })
     return operations
 
@@ -883,11 +883,11 @@ async def resume_factorial(
     if credential_source != "secondary":
         raise RuntimeError("factorial continuation requires --credential-source secondary")
     credential = _credential_metadata(credential_source)
-    if not credential["credential_present"]:
+    if not credential["auth_present"]:
         return {
             "run": False,
             "reason": "GEMINI_API_KEY_2 is not present; no experiment call was attempted",
-            "credential": credential,
+            "auth_audit": credential,
             "provider_calls": 0,
             "worker_calls": 0,
         }
@@ -944,13 +944,45 @@ async def resume_factorial(
         "completed_arm_ids_preserved": ["A-current-p0", "B-profile-b-p0"],
         "attempted_arm_ids": [arm.get("arm_id") for arm in new_arms],
         "existing_arm_fingerprints": preserved["fingerprints"],
-        "credential": credential,
+        "auth_audit": credential,
         "first_required_call": first_required_call,
         "capture_complete": True,
     }
     _write_redacted(reports / "provider-processing-factorial-results.json", report, output_root)
     _write_redacted(reports / "gemini-rate-limit-report.json", limiter.report(), output_root)
     return report
+
+
+def normalize_resume_report(output_root: Path) -> dict[str, Any]:
+    """Repair only redaction of non-secret auth labels after a stopped attempt."""
+    output_root = output_root.resolve()
+    reports = output_root / "reports"
+    report_path = reports / "provider-processing-factorial-results.json"
+    report = _json(report_path) or {}
+    if report.get("resume_mode") != "secondary-credential-c-d-only":
+        raise RuntimeError("no secondary-credential continuation report is available")
+    historical = reports / "historical/pre-secondary-credential-resume/secondary-resume-factorial-results.json"
+    if not historical.exists():
+        shutil.copy2(report_path, historical)
+    safe_auth = {
+        "auth_source": SECONDARY_CREDENTIAL_SOURCE,
+        "auth_slot": SECONDARY_CREDENTIAL_SLOT,
+        "auth_env_var": SECONDARY_CREDENTIAL_ENV,
+        "auth_present": True,
+    }
+    report.pop("credential", None)
+    report["auth_audit"] = safe_auth
+    for arm in report.get("arms", []):
+        if arm.get("arm_id") in {"C-current-p3", "D-profile-b-p3"}:
+            for key in ("credential_source", "credential_slot", "credential_env_var", "credential_present"):
+                arm.pop(key, None)
+            arm.update({"auth_source": SECONDARY_CREDENTIAL_SOURCE, "auth_slot": SECONDARY_CREDENTIAL_SLOT})
+            for operation in arm.get("operation_manifest", []):
+                for key in ("credential_source", "credential_slot"):
+                    operation.pop(key, None)
+                operation.update({"auth_source": SECONDARY_CREDENTIAL_SOURCE, "auth_slot": SECONDARY_CREDENTIAL_SLOT})
+    _write_redacted(report_path, report, output_root)
+    return {"report": str(report_path), "historical_attempt": str(historical), "auth_audit": safe_auth}
 
 
 async def run_final_validation(output_root: Path, study_root: Path, *, credential_source: str = "primary") -> dict[str, Any]:
@@ -1000,14 +1032,17 @@ async def run_final_validation(output_root: Path, study_root: Path, *, credentia
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "resume-factorial", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
+    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "resume-factorial", "normalize-resume", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
     parser.add_argument("--credential-source", choices=("primary", "secondary"), default="primary")
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01"))
     parser.add_argument("--profile-ablation-root", type=Path, default=Path("data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"))
     parser.add_argument("--study-root", type=Path, default=Path("data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01"))
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     args = parser.parse_args()
-    prepared = prepare_study(args.output_root, args.profile_ablation_root, args.study_root, args.repo_root)
+    if args.phase in {"prepare", "offline", "factorial"}:
+        prepared = prepare_study(args.output_root, args.profile_ablation_root, args.study_root, args.repo_root)
+    else:
+        prepared = {"study_id": STUDY_ID, "resumed_existing_study": True}
     if args.phase == "prepare":
         print(json.dumps(prepared, indent=2, sort_keys=True))
         return 0
@@ -1033,7 +1068,10 @@ def main() -> int:
         return 0
     if args.phase == "resume-factorial":
         result = asyncio.run(resume_factorial(args.output_root, args.study_root, args.repo_root, credential_source=args.credential_source))
-        print(json.dumps({"factorial_resume": {"run": result.get("run", False), "arms": [arm.get("arm_id") for arm in result.get("arms", [])], "provider_calls": result.get("provider_calls", 0), "worker_calls": result.get("worker_calls", 0), "credential": result.get("credential"), "first_required_call": result.get("first_required_call")}}, indent=2, sort_keys=True))
+        print(json.dumps({"factorial_resume": {"run": result.get("run", False), "arms": [arm.get("arm_id") for arm in result.get("arms", [])], "provider_calls": result.get("provider_calls", 0), "worker_calls": result.get("worker_calls", 0), "auth_audit": result.get("auth_audit"), "first_required_call": result.get("first_required_call")}}, indent=2, sort_keys=True))
+        return 0
+    if args.phase == "normalize-resume":
+        print(json.dumps(normalize_resume_report(args.output_root.resolve()), indent=2, sort_keys=True))
         return 0
     result = run_offline(args.output_root, args.profile_ablation_root, args.study_root)
     print(json.dumps({"prepared": prepared, "offline": {"phase1": result["replay"]["preserved_phase1_records"], "phase2_calls": result["replay"]["preserved_phase2_provider_calls"], "selected_method": result["decision"]["selected_method"], "provider_calls": 0, "worker_calls": 0}}, indent=2, sort_keys=True))
