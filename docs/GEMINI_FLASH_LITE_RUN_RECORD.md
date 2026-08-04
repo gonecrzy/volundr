@@ -52,3 +52,14 @@ The image-backed backend suite passed with 875 tests and 3 existing warnings.
 The repository worktree is clean after the study record commits. Live evidence
 remains outside Git under the private evidence root above.
 
+## Analyzer audit continuation
+
+The captured evidence was audited and all reports were regenerated offline.
+The corrected analyzer found that the historical topology count was inflated:
+accepted topology-valid revisions are 1 baseline and 2 validation. Worker
+reach remains 13 and 14, while worker-ready valid source is explicitly
+defined as source-contract pass plus worker submission.
+
+See [the analyzer audit](GEMINI_FLASH_LITE_ANALYZER_AUDIT.md), [corrected
+results](GEMINI_FLASH_LITE_CORRECTED_RESULTS.md), and [feature-evidence
+audit](GEMINI_FLASH_LITE_FEATURE_EVIDENCE_AUDIT.md).

@@ -514,3 +514,10 @@ Study tests cover immutable per-provider-call capture, raw/parsed/normalized
 separation, repair linkage, offline-required replay, three-run correlation,
 quota-safe resume, duplicate project/message prevention, baseline/validation
 separation, redaction, and truthful before/after labeling.
+
+Analyzer audit tests cover volatile-field-insensitive semantic comparison,
+clarification wording normalization, requirement ordering and operator/value
+changes, canonical stage funnels, earliest blocker selection, worker-ready
+source semantics, reconciled failure signatures, verification-not-run versus
+feature-absent classification, replayable feature evidence, historical report
+preservation, and zero-provider-call offline regeneration.

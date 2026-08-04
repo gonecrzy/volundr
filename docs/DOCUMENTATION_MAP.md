@@ -152,6 +152,10 @@ Do not load the entire documentation tree by default.
 | `docs/GEMINI_FLASH_LITE_VALIDATION.md` | Post-cleanup validation protocol. |
 | `docs/GEMINI_FLASH_LITE_BEFORE_AFTER.md` | Stage-level before/after metrics and interpretation. |
 | `docs/GEMINI_FLASH_LITE_NEXT_ACTIONS.md` | Exactly-one next-direction decision contract. |
+| `docs/GEMINI_FLASH_LITE_ANALYZER_AUDIT.md` | Offline analyzer defects, corrected definitions, and report provenance. |
+| `docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md` | Reconciled funnel, consistency, blocker, and before/after results. |
+| `docs/GEMINI_FLASH_LITE_FEATURE_EVIDENCE_AUDIT.md` | Feature-verification evidence status and replay limits. |
+| `docs/GEMINI_FLASH_LITE_RUN_RECORD.md` | Live run, offline replay, frontend smoke, and analyzer-audit handoff. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |
 | `docs/OLLAMA_MODEL_CALIBRATION.md` | Ollama-only calibration phase, frozen identities, profile hashes, and operational dispositions. |
 | `docs/OLLAMA_HOLDOUT_VALIDATION.md` | Untouched holdout corpus, freeze boundary, and validation status. |
