@@ -5,11 +5,14 @@ runner uses one active model and one generation at a time, preserves raw
 responses outside Git, and records normalized representations separately.
 
 Final evidence: `data/debug-sessions/ollama-calibration/calibration-final-pass/`
+Starting-point evidence: `data/debug-sessions/ollama-calibration/calibration-live-all-remaining/`
 
 The experiment recorded:
 
-- base commit `b288cc1ea3e19a587e18ac7822b21ef95cc8f7ca`;
-- `origin/main...HEAD = 0 1` (the requested local commit was preserved);
+- starting base commit `b288cc1ea3e19a587e18ac7822b21ef95cc8f7ca` and
+  `origin/main...HEAD = 0 1` are preserved in the starting-point evidence;
+- the committed-code final pass records its own post-implementation commit and
+  current divergence in `experiment.json`;
 - exact model names and full digests from `/api/tags` and `/api/show`;
 - no Gemini calls;
 - no formal five-case benchmark;
