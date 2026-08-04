@@ -9,7 +9,10 @@ gate requires:
 - frozen, hashed profiles;
 - unresolved infrastructure and adapter errors excluded from quality scores.
 
-The final record is:
+The final combined record is in
+`data/debug-sessions/ollama-calibration/calibration-admission-report/`.
+It records no admitted specialist or generic baseline after the final fair
+holdout checks:
 
 ```text
 OLLAMA BENCHMARK ADMISSION

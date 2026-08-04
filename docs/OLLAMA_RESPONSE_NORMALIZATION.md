@@ -1,14 +1,17 @@
 # Ollama response normalization
 
 Normalization is representation-only. The runner preserves `raw-response.txt`
-and writes a separate normalized response.
+and writes a separate normalized response with independent raw and normalized
+SHA-256 hashes.
 
 Allowed transformations are:
 
 - normalize line endings;
-- remove one outer Markdown fence;
+- locate exactly one fenced or unfenced Python candidate and remove both fence
+  markers;
 - remove unambiguous reasoning wrappers;
-- extract one complete JSON object from harmless prose;
+- extract one complete JSON object from harmless prose; multiple JSON
+  candidates remain rejected;
 - sort explicit slot records by slot ID;
 - map one unambiguous CadQuery assignment to `result`;
 - wrap a normalized native script in the existing worker output contract.
