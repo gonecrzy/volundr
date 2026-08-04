@@ -1,0 +1,18 @@
+# Gemini Flash Lite study run record
+
+This is the post-run handoff for `gemini-flash-lite-study-01`. The private,
+redacted evidence root is:
+
+`data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01/`
+
+The run used corpus `gemini-flash-lite-study-v1`, corpus hash
+`7f4c6b4e87f24782a63d4487ebb75bf8096c96c0dfe1776f165e28ea6b806a24`, provider
+`gemini_api`, and the exact requested model `gemini-3.5-flash-lite`.
+
+## Baseline
+
+Baseline completed 10 frozen cases × 3 repetitions (30 project operations).
+The recorded report contains 119 provider calls, 8 repair calls, 30 projects
+reaching valid source, 13 reaching the worker, 5 producing valid topology, and
+1 candidate-ready-or-warning outcome.
+
