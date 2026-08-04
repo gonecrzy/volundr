@@ -1,15 +1,19 @@
 # Ollama next actions
 
-1. Confirm the remote installation and readiness records are unchanged.
-2. Run Ollama-only Batch 1 against the five frozen cases, then freeze its raw
-   evidence and identity record.
-3. Restore and confirm every configuration identity before Batch 2; do not
-   apply fixes between batches.
-4. Run Batch 2, freeze it, and generate the controlled/uncontrolled comparison.
-5. Follow each generated `codex-review.md`, inspect every project, and write a
-   correction plan without implementing corrections in that run.
+The holdout failure-anatomy review selected exactly one direction:
 
-Observed usability testing is a separate activity. It must not be presented
-as developer-assisted live batch evaluation and must not be merged into the
-model comparison denominator.
+1. Do not run the formal five-case benchmark.
+2. Test stronger or different specialist/generic models under a separately
+   approved experiment, or stop local-model investment for now.
+3. Preserve the frozen profiles, prompts, holdouts, normalizers, worker,
+   topology gates, verification rules, raw responses, source, and artifacts as
+   the baseline. Do not use this review to implement a production correction.
 
+The review found no qualifying shared integration or evaluator defect and no
+native-output adaptation that explains the twelve failures. The persisted
+admission record remains unchanged; proposed dispositions are in
+`OLLAMA_HOLDOUT_FAILURE_ANATOMY.md` only.
+
+The previous five-case batch sequence is historical planning context and is
+not authorized by the current admission gate. Observed usability testing is a
+separate activity and must not be merged into the model comparison denominator.

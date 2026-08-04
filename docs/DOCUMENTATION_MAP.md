@@ -145,6 +145,11 @@ Do not load the entire documentation tree by default.
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, immutability, and archive/deletion rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |
+| `docs/OLLAMA_MODEL_CALIBRATION.md` | Ollama-only calibration phase, frozen identities, profile hashes, and operational dispositions. |
+| `docs/OLLAMA_HOLDOUT_VALIDATION.md` | Untouched holdout corpus, freeze boundary, and validation status. |
+| `docs/OLLAMA_HOLDOUT_FAILURE_ANATOMY.md` | Read-only twelve-pair blocker reconstruction, normalization audit, topology/geometry bands, fairness review, admission proposals, and one next direction. |
+| `docs/OLLAMA_BENCHMARK_ADMISSION.md` | Gate requiring specialist and generic admissions before the later formal benchmark. |
+| `docs/OLLAMA_NEXT_ACTIONS.md` | Current Ollama direction after calibration and holdout review. |
 
 When information conflicts:
 

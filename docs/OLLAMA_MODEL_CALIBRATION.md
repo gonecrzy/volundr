@@ -33,3 +33,14 @@ Operational success is not treated as CAD quality.
 No model satisfied specialist/generic admission after fair holdout checks. The
 later benchmark is therefore explicitly unauthorized. The queue retains the
 CAD findings, accepted slot limitations, and all original issue paths.
+
+## Holdout failure anatomy review
+
+The frozen all-model holdout review is recorded in
+`OLLAMA_HOLDOUT_FAILURE_ANATOMY.md` and in the external artifact
+`data/debug-sessions/ollama-calibration/calibration-admission-report/holdout-failure-anatomy.json`.
+It reviewed all twelve model/holdout chains without new calls or recalibration.
+The primary conclusion is D: insufficient model CAD capability. Normalization
+was representation-only and worker-wrapped source hashes verified where source
+was available; no shared Volundr integration or evaluator defect met the
+three-model threshold. Persisted admission records remain unchanged.

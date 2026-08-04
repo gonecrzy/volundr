@@ -13,3 +13,13 @@ a holdout pass; a second holdout failure remains evidence.
 Any profile change after holdout begins changes the profile hash and raises a
 holdout-freeze error. A fresh holdout case or documented calibration iteration
 is required before validation can resume.
+
+## Failure anatomy review
+
+`OLLAMA_HOLDOUT_FAILURE_ANATOMY.md` reconstructs all twelve attempts and assigns
+one earliest authoritative blocker per pair. Both holdouts are
+`fair_with_minor_evaluator_risk`: their broad requirements are derivable, but
+the frozen evaluator does not independently measure every feature named in the
+prompts. No valid geometry was found to be contradicted by the evaluator. The
+review concluded that the six failures are independent model CAD/source
+failures, not a shared holdout defect. The holdouts remain untouched.
