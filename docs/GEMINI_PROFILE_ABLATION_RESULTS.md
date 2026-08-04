@@ -40,3 +40,13 @@ arm, but did not establish worker-ready improvement across at least two cases.
 The final engineering recommendation is
 `candidate_promising_but_needs_second_validation`; production behavior remains
 unchanged. See `GEMINI_BUILDABILITY_EVALUATION.md`.
+
+## Focused validation audit addendum
+
+The preserved focused run contains 10 operations and 35 provider records, all
+using `gemini-3.5-flash-lite`. An offline audit reconstructed all workflows and
+found a clarification harness asymmetry in case-001 plus a worker-ready
+aggregation defect. The corrected final decision is
+`corrected_second_validation_required`, not a Profile B deployment decision.
+The original manual bundle and historical automated decision remain
+unchanged. See `GEMINI_PHASE2_VALIDATION_AUDIT.md`.

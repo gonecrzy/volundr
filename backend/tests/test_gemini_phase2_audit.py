@@ -6,6 +6,7 @@ from pathlib import Path
 from app.services.gemini_consistency.phase2_audit import (
     aggregate_phase2_projects,
     audit_worker_evidence,
+    audit_phase2,
     classify_clarification,
     furthest_valid_stage,
     reconcile_buildability_scores,
@@ -172,3 +173,21 @@ def test_preserved_scorecard_reconciliation_selects_reproducible_value() -> None
     assert result["conflict"] is True
     assert result["authoritative_value"] == 0.9789
     assert result["authoritative_source"] == "reports/buildability-scorecard.json"
+
+
+def test_preserved_phase2_reconstruction_has_one_outcome_per_case_and_arm() -> None:
+    root = Path(__file__).parents[2]
+    audit = audit_phase2(
+        root / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
+        root / "data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01",
+        root,
+    )
+    projects = audit["reconstruction"]["projects"]
+
+    assert len(projects) == 10
+    assert len({(item["arm"], item["case_id"]) for item in projects}) == 10
+    assert all(item["final_outcome"] for item in projects)
+    assert audit["comparison"]["arms"]["current-production"]["project_count"] == 5
+    assert audit["comparison"]["arms"]["profile-b-sampling"]["project_count"] == 5
+    assert audit["decision"]["provider_calls_during_audit"] == 0
+    assert audit["decision"]["worker_calls_during_audit"] == 0
