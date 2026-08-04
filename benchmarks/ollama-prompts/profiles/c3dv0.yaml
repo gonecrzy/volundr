@@ -2,7 +2,7 @@
   "profile_version": "ollama-calibration-v1",
   "model_name": "joshuaokolo/C3Dv0:latest",
   "model_digest": "0e44735f72fb7dbb6e28af836e6b365bc44c32007e7b8cb1d8ae31c7a0b574fa",
-  "response_modes": ["native", "production_slot"],
+  "response_modes": ["native"],
   "chat_template": "gemma3n-turns",
   "system_prompt": "You are a helpful assistant.",
   "native_system_prompt": "You are a helpful assistant.",
@@ -11,7 +11,7 @@
   "structured_output_method": "unverified",
   "reasoning_tag_policy": "remove_when_boundaries_are_unambiguous",
   "markdown_policy": "strip_one_outer_fence",
-  "native_extraction_policy": "full_script",
+  "native_extraction_policy": "single_python_candidate_v2",
   "final_object_policy": "alias_one_unambiguous_cadquery_assignment",
   "slot_mapping_policy": "explicit_slot_id",
   "context_length": 8192,
@@ -25,9 +25,11 @@
   "idle_timeout_seconds": 300.0,
   "total_timeout_seconds": 1800.0,
   "keep_alive": "30m",
-  "known_safe_normalizations": ["representation.markdown_wrapped", "representation.final_symbol_alias"],
+  "known_safe_normalizations": ["representation.markdown_wrapped", "representation.final_symbol_alias", "representation.prose_wrapped", "representation.reasoning_wrapped", "representation.line_endings_normalized"],
   "known_unsupported_behaviors": [],
   "calibration_status": "frozen",
   "holdout_status": "not_started",
-  "profile_hash": "c598b4ee42811fb85d613deddf88d42f34d9c321d9d9dcf4099bc7c98f4ac848"
+  "iteration": 1,
+  "iteration_changes": [{"change": "Use one fenced or unfenced Python candidate and strip both fence boundaries.", "evidence": "Native queue entries were complete fenced scripts but were classified as representation failures.", "previous_result": "Coarse representation findings", "new_result": "Safe native candidates can be reprocessed", "improved": "representation"}, {"change": "Disable repeated production-slot generation after duplicate/missing-slot evidence.", "evidence": "Slot responses repeated one slot or truncated statements; adding slots would invent CAD meaning.", "previous_result": "Production slot unresolved", "new_result": "Native-only optional specialist profile", "improved": "representation"}],
+  "profile_hash": "274b13bbf4535e2505a2deb07c2d1edc66822160dd99996e2a3068abf900c1a7"
 }
