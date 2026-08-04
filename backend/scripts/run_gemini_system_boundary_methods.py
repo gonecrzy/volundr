@@ -242,7 +242,10 @@ def _answer_for_questions(questions: list[str], fact_sheet: dict[str, Any]) -> t
     if broad_fit_question:
         used = [key for key in ("phone_width", "phone_thickness_with_case", "case_status", "desired_angle") if key in fact_sheet]
         if used:
-            return "\n".join(f"{key}: {fact_sheet[key]}" for key in used), used
+            lines = [f"{key}: {fact_sheet[key]}" for key in used]
+            if "case_status" not in fact_sheet and "phone_thickness_with_case" in fact_sheet:
+                lines.append("case_condition: with_case (explicitly represented by phone_thickness_with_case)")
+            return "\n".join(lines), used
     answers: list[str] = []
     for question in questions:
         decision = clarification_answer_for(question, fact_sheet)

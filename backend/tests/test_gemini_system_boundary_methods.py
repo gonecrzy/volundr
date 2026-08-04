@@ -157,10 +157,11 @@ def test_final_validation_is_capped_at_two_declared_systems() -> None:
 def test_frozen_clarification_facts_are_mapped_to_questions() -> None:
     answer, used = _answer_for_questions(
         ["What are the phone width and thickness with the case, and desired angle?"],
-        {"phone_width": 78, "phone_thickness_with_case": 12, "case_status": "with_case", "desired_angle": 65},
+        {"phone_width": 78, "phone_thickness_with_case": 12, "desired_angle": 65},
     )
 
     assert "78" in answer
     assert "12" in answer
     assert "65" in answer
-    assert set(used) == {"phone_width", "phone_thickness_with_case", "case_status", "desired_angle"}
+    assert "case_condition" in answer
+    assert set(used) == {"phone_width", "phone_thickness_with_case", "desired_angle"}
