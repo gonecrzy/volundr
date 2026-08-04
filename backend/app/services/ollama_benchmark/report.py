@@ -18,8 +18,12 @@ def combine_calibration_runs(*, run_roots: Iterable[Path], output_root: Path) ->
     records_by_id: dict[str, dict[str, Any]] = {}
     queues: list[dict[str, Any]] = []
     sources: list[str] = []
+    source_experiments: list[dict[str, Any]] = []
     for root in run_roots:
         sources.append(str(root))
+        experiment_path = root / "experiment.json"
+        if experiment_path.exists():
+            source_experiments.append(json.loads(experiment_path.read_text(encoding="utf-8")))
         models_path = root / "models.json"
         if models_path.exists():
             payload = json.loads(models_path.read_text(encoding="utf-8"))
@@ -47,13 +51,24 @@ def combine_calibration_runs(*, run_roots: Iterable[Path], output_root: Path) ->
     experiment = {
         "schema_version": "ollama-admission-report-v1",
         "source_runs": sources,
+        "source_experiments": source_experiments,
         "formal_benchmark_started": False,
         "gemini_called": False,
         "one_active_model_at_a_time": True,
         "intended_models": [item.model_id for item in EXPECTED_MODEL_IDENTITIES],
     }
+    starting_root = output_root.parent / "calibration-live-all-remaining"
+    starting_experiment_path = starting_root / "experiment.json"
+    if starting_experiment_path.exists():
+        starting = json.loads(starting_experiment_path.read_text(encoding="utf-8"))
+        experiment["starting_base_commit"] = starting.get("base_commit")
+        experiment["starting_origin_main_commit"] = starting.get("origin_main_commit")
+        experiment["starting_origin_divergence"] = starting.get("origin_divergence")
     _write(output_root / "experiment.json", experiment)
     _write(output_root / "models.json", records)
+    admission_payload["starting_base_commit"] = experiment.get("starting_base_commit")
+    admission_payload["starting_origin_main_commit"] = experiment.get("starting_origin_main_commit")
+    admission_payload["starting_origin_divergence"] = experiment.get("starting_origin_divergence")
     _write(output_root / "admission.json", admission_payload)
     _write(output_root / "resolution-queue.json", queues)
     return {"models": records, "admission": admission_payload, "queue": queues}
