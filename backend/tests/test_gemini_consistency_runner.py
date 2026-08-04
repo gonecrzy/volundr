@@ -151,6 +151,85 @@ def test_five_case_run_initializes_api_client_before_execution(tmp_path, monkeyp
     assert result == {"client_initialized": True}
 
 
+def test_ollama_only_five_case_never_discovers_gemini(tmp_path, monkeypatch) -> None:
+    class OllamaOnlyClient(_FakeBenchmarkClient):
+        def __init__(self):
+            super().__init__()
+            self.discovery_calls = []
+
+        def ready(self):
+            return {"status": "ready"}
+
+        def health(self):
+            return {"status": "ok"}
+
+        def capabilities(self):
+            return {"developer_tools_enabled": True}
+
+        def discover_models(self, provider="gemini"):
+            self.discovery_calls.append(provider)
+            if provider != "ollama":
+                raise AssertionError("Ollama-only runner attempted a Gemini discovery")
+            return [
+                {"name": "joshuaokolo/C3Dv0:latest", "size": 7_303_625_707, "digest": "sha-c3d"},
+                {"name": "qwen2.5-coder:14b", "size": 8_988_124_298, "digest": "sha-qwen"},
+            ]
+
+        def ollama_preflight(self, model, prompt):
+            return {
+                "model": model,
+                "context_completed": True,
+                "warm_throughput_collapse": False,
+                "max_size_vram": 12_000_000_000,
+            }
+
+        def create_experiment(self, payload):
+            return self._experiment()
+
+        def experiment(self, experiment_id):
+            return self._experiment()
+
+        def _experiment(self):
+            models = [
+                {"id": "m1", "requested_model": "joshuaokolo/C3Dv0:latest", "provider": "ollama"},
+                {"id": "m2", "requested_model": "qwen2.5-coder:14b", "provider": "ollama"},
+            ]
+            runs = [
+                {"id": f"{model['id']}-run-{index}", "model_config_id": model["id"], "run_index": index}
+                for model in models
+                for index in (1, 2)
+            ]
+            return {"id": "experiment-ollama", "models": models, "runs": runs}
+
+        def record_model_availability(self, *args, **kwargs):
+            return {}
+
+    fake = OllamaOnlyClient()
+    runner = GeminiConsistencyRunner(
+        BenchmarkRunnerConfig(
+            corpus_path=Path(__file__).parents[2] / "benchmarks" / "ollama-consistency-v1.json",
+            models=("joshuaokolo/C3Dv0:latest", "qwen2.5-coder:14b"),
+            five_case=True,
+            ollama_only=True,
+            pilot=False,
+            full=False,
+            output_root=tmp_path / "data" / "debug-sessions" / "ollama-only",
+        ),
+        client=fake,
+    )
+    monkeypatch.setattr(
+        runner,
+        "_run_case",
+        lambda *args, **kwargs: {"state": "completed", "case_id": args[3].case_id},
+    )
+
+    result = runner.run()
+
+    assert fake.discovery_calls == ["ollama"]
+    assert result["gemini_calls"] == 0
+    assert result["models"] == ["joshuaokolo/C3Dv0:latest", "qwen2.5-coder:14b"]
+
+
 def test_evidence_writer_redacts_prompts_responses_source_worker_screenshot_and_network_metadata(tmp_path) -> None:
     writer = EvidenceWriter(tmp_path / "evidence")
     writer.write_json(

@@ -1,0 +1,9 @@
+{
+  "model_id": "qwen25-coder-14b-instruct",
+  "slot_mode": "common-slot",
+  "native_mode": "native-cad",
+  "response_extraction": "json-or-source",
+  "reasoning_tags": "strip-if-present",
+  "structured_output": "supported-by-ollama-format",
+  "target_context": 8192
+}

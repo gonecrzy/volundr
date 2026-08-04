@@ -39,6 +39,11 @@ def build_ai_provider(
             base_url=config.ollama_base_url,
             model=benchmark_model or config.ollama_model,
             timeout_seconds=config.ollama_timeout_seconds,
+            connect_timeout_seconds=config.ollama_connect_timeout_seconds,
+            first_token_timeout_seconds=config.ollama_first_token_timeout_seconds,
+            generation_idle_timeout_seconds=config.ollama_generation_idle_timeout_seconds,
+            total_generation_timeout_seconds=config.ollama_total_generation_timeout_seconds,
+            stream=config.ollama_stream,
             seed=benchmark_seed,
         )
     if provider in {"gemini_api", "google_gemini_api"}:

@@ -1,0 +1,6 @@
+Generate one complete CadQuery script for this unchanged frozen diagnostic
+case:
+
+{{case_prompt}}
+
+The final object must be assigned to `result`.

@@ -1,0 +1,9 @@
+Generate the requested Volundr geometry slots from this unchanged frozen case
+prompt and fact sheet:
+
+{{case_prompt}}
+
+Facts:
+{{fact_sheet}}
+
+Return the exact slot JSON object only.

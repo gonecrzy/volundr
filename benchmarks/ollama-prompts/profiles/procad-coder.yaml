@@ -1,0 +1,9 @@
+{
+  "model_id": "procad-coder",
+  "slot_mode": "common-slot",
+  "native_mode": "native-cad",
+  "response_extraction": "unverified",
+  "reasoning_tags": "unverified",
+  "structured_output": "unverified",
+  "target_context": 8192
+}

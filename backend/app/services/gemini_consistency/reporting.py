@@ -50,6 +50,27 @@ def _write_text_safe(path: Path, value: str) -> None:
     path.write_text(safe, encoding="utf-8")
 
 
+def _is_usable_pair_evidence(value: Any) -> bool:
+    if not isinstance(value, dict):
+        return False
+    if value.get("integrity_finding") in {
+        "missing_evidence",
+        "provider_failure",
+        "infrastructure_failure",
+    }:
+        return False
+    if value.get("outcome_category") in {
+        "missing_artifacts",
+        "provider_failed",
+        "infrastructure_failed",
+    }:
+        return False
+    metrics = value.get("metrics")
+    if isinstance(metrics, dict) and metrics.get("provider_failure"):
+        return False
+    return True
+
+
 def build_experiment_reports(
     experiment: dict[str, Any], records: list[dict[str, Any]], output_root: Path
 ) -> dict[str, Any]:
@@ -86,6 +107,7 @@ def build_experiment_reports(
 
     pair_comparisons: list[dict[str, Any]] = []
     by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    eligible_by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
     controlled: dict[str, dict[str, Any]] = {}
     for (model, case_id), runs in sorted(grouped.items()):
         first = runs.get(1, {"evidence": None})
@@ -93,9 +115,23 @@ def build_experiment_reports(
         first_evidence = first.get("evidence") or {"outcome_category": "missing_artifacts"}
         second_evidence = second.get("evidence") or {"outcome_category": "missing_artifacts"}
         comparison = compare_evidence(first_evidence, second_evidence)
-        item = {"model": model, "case_id": case_id, "comparison": comparison}
+        pair_complete = (
+            1 in runs
+            and 2 in runs
+            and _is_usable_pair_evidence(first.get("evidence"))
+            and _is_usable_pair_evidence(second.get("evidence"))
+        )
+        item = {
+            "model": model,
+            "case_id": case_id,
+            "pair_status": "complete" if pair_complete else "incomplete",
+            "eligible_for_comparison": pair_complete,
+            "comparison": comparison,
+        }
         pair_comparisons.append(item)
         by_model[model].append(item)
+        if pair_complete:
+            eligible_by_model[model].append(item)
         first_identity = first.get("identity") or identity
         second_identity = second.get("identity") or identity
         if model not in controlled:
@@ -113,13 +149,24 @@ def build_experiment_reports(
             if signature:
                 signatures[signature] += 1
 
+    expected_case_count = 5 if experiment.get("mode") == "five_case" else None
     model_summaries = {
         model: {
             "paired_case_count": len(items),
+            "eligible_case_count": len(eligible_by_model.get(model, [])),
+            "completed_case_count": len(eligible_by_model.get(model, [])),
+            "incomplete_case_count": len(items) - len(eligible_by_model.get(model, [])),
+            "missing_count": max(0, (expected_case_count or len(items)) - len(items)),
+            "pair_status": (
+                "complete"
+                if len(eligible_by_model.get(model, [])) == (expected_case_count or len(items))
+                else "incomplete"
+            ),
             "mean_consistency_score": round(
-                sum(float(item["comparison"]["overall_score"]) for item in items) / len(items),
+                sum(float(item["comparison"]["overall_score"]) for item in eligible_by_model.get(model, []))
+                / len(eligible_by_model.get(model, [])),
                 4,
-            ) if items else 0.0,
+            ) if eligible_by_model.get(model) and len(eligible_by_model[model]) == (expected_case_count or len(items)) else None,
             "failure_signature_count": sum(
                 1 for item in items if any(item["comparison"]["failure_signatures"].values())
             ),
@@ -166,7 +213,14 @@ def build_experiment_reports(
     _write_text_safe(
         output_root / "model-comparison.md",
         "# Model comparison\n\n" + "\n".join(
-            f"- `{model}`: {len(items)} paired case comparisons; mean consistency {model_summaries[model]['mean_consistency_score']:.3f}"
+            f"- `{model}`: status `{model_summaries[model]['pair_status']}`, "
+            f"{model_summaries[model]['eligible_case_count']} eligible of "
+            f"{model_summaries[model]['paired_case_count']} observed; "
+            + (
+                f"mean consistency {model_summaries[model]['mean_consistency_score']:.3f}"
+                if model_summaries[model]["mean_consistency_score"] is not None
+                else "mean consistency unavailable"
+            )
             for model, items in sorted(by_model.items())
         ) + "\n",
     )

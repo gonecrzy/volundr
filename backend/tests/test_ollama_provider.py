@@ -10,6 +10,19 @@ from app.services.ai.provider import (
 from app.services.ai.model_policy import PromptMode
 
 
+class _DelayedNdjsonStream(httpx.AsyncByteStream):
+    def __init__(self, chunks: list[tuple[float, bytes]]) -> None:
+        self.chunks = chunks
+
+    async def __aiter__(self):
+        for delay, chunk in self.chunks:
+            await asyncio.sleep(delay)
+            yield chunk
+
+    async def aclose(self) -> None:
+        return None
+
+
 def _mock_transport(
     handler,
 ) -> httpx.MockTransport:
@@ -30,7 +43,11 @@ def test_ollama_provider_settings_are_non_secret() -> None:
         "model": "qwen3.5:9b",
         "timeout_seconds": 45,
         "endpoint": "/api/generate",
-        "stream": False,
+        "stream": True,
+        "connect_timeout_seconds": 15.0,
+        "first_token_timeout_seconds": 300.0,
+        "generation_idle_timeout_seconds": 300.0,
+        "total_generation_timeout_seconds": 45.0,
         "think": None,
         "auth_mode": "local_ollama",
         "context_length": 8192,
@@ -348,7 +365,7 @@ async def test_ollama_extract_requirements_posts_prompt_and_returns_response() -
     assert result.raw_output == "{\"outcome\":\"generation_ready\"}"
     assert captured["url"] == "http://ollama.local:11434/api/generate"
     assert b'"model":"qwen3.5:9b"' in captured["payload"]
-    assert b'"stream":false' in captured["payload"]
+    assert b'"stream":true' in captured["payload"]
     assert b"Do not use tools, web search, files, or external resources" in captured["payload"]
 
 
@@ -460,6 +477,72 @@ async def test_ollama_request_timeout_is_bounded() -> None:
     )
 
     with pytest.raises(RuntimeError, match="timed out"):
+        await provider.extract_requirements(
+            RequirementExtractionRequest(
+                project_name="Draft",
+                original_intent="Make a bracket.",
+                user_instruction="Make a bracket.",
+            )
+        )
+
+
+@pytest.mark.asyncio
+async def test_ollama_streaming_parses_chunks_and_allows_long_active_generation() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/x-ndjson"},
+            stream=_DelayedNdjsonStream(
+                [
+                    (0.0, b'{"model":"specialist","response":"first ","done":false}\n'),
+                    (0.03, b'{"response":"second","done":false}\n'),
+                    (0.03, b'{"response":"","done":true,"eval_count":2}\n'),
+                ]
+            ),
+        )
+
+    provider = OllamaProvider(
+        base_url="http://ollama.local:11434",
+        model="specialist",
+        timeout_seconds=0.1,
+        first_token_timeout_seconds=0.05,
+        generation_idle_timeout_seconds=0.05,
+        total_generation_timeout_seconds=0.2,
+        transport=httpx.MockTransport(handler),
+    )
+
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert result.raw_output == "first second"
+    assert result.provider_model == "specialist"
+
+
+@pytest.mark.asyncio
+async def test_ollama_streaming_distinguishes_first_token_timeout() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/x-ndjson"},
+            stream=_DelayedNdjsonStream([(0.05, b'{"response":"late","done":true}\n')]),
+        )
+
+    provider = OllamaProvider(
+        base_url="http://ollama.local:11434",
+        model="specialist",
+        timeout_seconds=0.2,
+        first_token_timeout_seconds=0.01,
+        generation_idle_timeout_seconds=0.2,
+        total_generation_timeout_seconds=0.2,
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(RuntimeError, match="ollama_first_token_timeout"):
         await provider.extract_requirements(
             RequirementExtractionRequest(
                 project_name="Draft",

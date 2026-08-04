@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 from typing import Any
 
@@ -19,6 +20,14 @@ from app.services.ai.provider import (
     SourceBriefRequest,
     SourceBriefResult,
 )
+
+
+class OllamaProviderError(RuntimeError):
+    """A local-provider failure with a stable evidence classification."""
+
+    def __init__(self, failure_class: str, message: str) -> None:
+        self.failure_class = failure_class
+        super().__init__(f"{failure_class}: {message}")
 
 
 def classify_ollama_resource_profile(
@@ -52,6 +61,11 @@ class OllamaProvider(GeminiCliProvider):
         base_url: str | None = None,
         model: str | None = None,
         timeout_seconds: int | None = None,
+        connect_timeout_seconds: float | None = None,
+        first_token_timeout_seconds: float | None = None,
+        generation_idle_timeout_seconds: float | None = None,
+        total_generation_timeout_seconds: float | None = None,
+        stream: bool | None = None,
         think: bool | str | None = None,
         api_key: str | None = None,
         context_length: int | None = None,
@@ -64,7 +78,7 @@ class OllamaProvider(GeminiCliProvider):
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         resolved_model = model or settings.ollama_model
-        resolved_timeout = timeout_seconds or settings.ollama_timeout_seconds
+        resolved_timeout = timeout_seconds or int(settings.ollama_total_generation_timeout_seconds)
         super().__init__(
             model=resolved_model,
             timeout_seconds=resolved_timeout,
@@ -73,6 +87,27 @@ class OllamaProvider(GeminiCliProvider):
         self.base_url = (base_url or settings.ollama_base_url).rstrip("/")
         self.model = resolved_model
         self.timeout_seconds = resolved_timeout
+        self.connect_timeout_seconds = (
+            connect_timeout_seconds
+            if connect_timeout_seconds is not None
+            else settings.ollama_connect_timeout_seconds
+        )
+        self.first_token_timeout_seconds = (
+            first_token_timeout_seconds
+            if first_token_timeout_seconds is not None
+            else settings.ollama_first_token_timeout_seconds
+        )
+        self.generation_idle_timeout_seconds = (
+            generation_idle_timeout_seconds
+            if generation_idle_timeout_seconds is not None
+            else settings.ollama_generation_idle_timeout_seconds
+        )
+        self.total_generation_timeout_seconds = (
+            total_generation_timeout_seconds
+            if total_generation_timeout_seconds is not None
+            else float(resolved_timeout)
+        )
+        self.stream = settings.ollama_stream if stream is None else stream
         self.think = self._normalize_think(settings.ollama_think if think is None else think)
         self.api_key = api_key if api_key is not None else settings.ollama_api_key
         self.context_length = context_length if context_length is not None else settings.ollama_context_length
@@ -249,7 +284,7 @@ class OllamaProvider(GeminiCliProvider):
         payload: dict[str, Any] = {
             "model": self.model,
             "prompt": prompt,
-            "stream": False,
+            "stream": self.stream,
             "keep_alive": self.keep_alive,
             "options": {
                 "num_ctx": self.context_length,
@@ -266,38 +301,123 @@ class OllamaProvider(GeminiCliProvider):
         if structured:
             payload["format"] = self._structured_output_schema()
         started = time.perf_counter()
+        if self.stream:
+            return await self._run_streaming_prompt(payload, started)
+        return await self._run_non_streaming_prompt(payload, started)
+
+    async def _run_non_streaming_prompt(self, payload: dict[str, Any], started: float) -> str:
         try:
+            timeout = httpx.Timeout(
+                self.total_generation_timeout_seconds,
+                connect=self.connect_timeout_seconds,
+            )
             async with httpx.AsyncClient(
                 base_url=self.base_url,
-                timeout=self.timeout_seconds,
+                timeout=timeout,
                 transport=self._transport,
             ) as client:
                 response = await asyncio.wait_for(
                     client.post("/api/generate", json=payload, headers=self._headers()),
-                    timeout=self.timeout_seconds,
+                    timeout=self.total_generation_timeout_seconds,
                 )
         except TimeoutError as exc:
-            raise RuntimeError(f"Ollama request timed out after {self.timeout_seconds} seconds") from exc
+            raise OllamaProviderError(
+                "ollama_total_timeout",
+                f"request timed out after {self.total_generation_timeout_seconds} seconds",
+            ) from exc
         except httpx.TimeoutException as exc:
-            raise RuntimeError(f"Ollama request timed out after {self.timeout_seconds} seconds") from exc
+            raise OllamaProviderError(
+                "ollama_connect_timeout" if isinstance(exc, httpx.ConnectTimeout) else "ollama_total_timeout",
+                f"request timed out after {self.total_generation_timeout_seconds} seconds",
+            ) from exc
         except httpx.HTTPError as exc:
-            raise RuntimeError(f"Ollama request failed: {exc}") from exc
+            raise OllamaProviderError("ollama_server_unreachable", f"request failed: {exc}") from exc
 
         if response.status_code >= 400:
-            raise RuntimeError(self._error_message(response))
+            raise OllamaProviderError("ollama_explicit_error", self._error_message(response))
 
         try:
             response_payload = response.json()
         except ValueError as exc:
-            raise RuntimeError("Ollama response was not valid JSON") from exc
+            raise OllamaProviderError("ollama_stream_parse_error", "response was not valid JSON") from exc
 
         raw_output = response_payload.get("response")
         if not isinstance(raw_output, str):
-            raise RuntimeError("Ollama response missing response text")
+            raise OllamaProviderError("ollama_stream_parse_error", "response missing response text")
         self._last_actual_model = str(response_payload.get("model") or self.model)
         self._last_provider_latency_ms = max(0, round((time.perf_counter() - started) * 1000))
         self._last_usage_metadata = self._usage_metadata(response_payload)
         return raw_output
+
+    async def _run_streaming_prompt(self, payload: dict[str, Any], started: float) -> str:
+        timeout = httpx.Timeout(None, connect=self.connect_timeout_seconds)
+        output: list[str] = []
+        usage: dict[str, Any] = {}
+        saw_output = False
+        iterator = None
+        try:
+            async with httpx.AsyncClient(
+                base_url=self.base_url,
+                timeout=timeout,
+                transport=self._transport,
+            ) as client:
+                async with client.stream(
+                    "POST", "/api/generate", json=payload, headers=self._headers()
+                ) as response:
+                    if response.status_code >= 400:
+                        await response.aread()
+                        raise OllamaProviderError("ollama_explicit_error", self._error_message(response))
+                    iterator = response.aiter_lines().__aiter__()
+                    while True:
+                        elapsed = time.perf_counter() - started
+                        remaining_total = self.total_generation_timeout_seconds - elapsed
+                        if remaining_total <= 0:
+                            raise OllamaProviderError("ollama_total_timeout", "generation timed out after exceeding total timeout")
+                        wait_budget = min(
+                            remaining_total,
+                            self.generation_idle_timeout_seconds if saw_output else self.first_token_timeout_seconds,
+                        )
+                        try:
+                            line = await asyncio.wait_for(anext(iterator), timeout=wait_budget)
+                        except StopAsyncIteration:
+                            break
+                        except TimeoutError as exc:
+                            failure_class = "ollama_idle_timeout" if saw_output else "ollama_first_token_timeout"
+                            raise OllamaProviderError(failure_class, f"stream made no progress for {wait_budget} seconds") from exc
+                        if not line.strip():
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                        except json.JSONDecodeError as exc:
+                            raise OllamaProviderError("ollama_stream_parse_error", "stream chunk was not JSON") from exc
+                        if not isinstance(chunk, dict):
+                            raise OllamaProviderError("ollama_stream_parse_error", "stream chunk was not an object")
+                        if isinstance(chunk.get("error"), str) and chunk["error"].strip():
+                            raise OllamaProviderError("ollama_explicit_error", chunk["error"].strip())
+                        if isinstance(chunk.get("model"), str):
+                            self._last_actual_model = chunk["model"]
+                        text = chunk.get("response")
+                        if isinstance(text, str):
+                            output.append(text)
+                            if text:
+                                saw_output = True
+                        usage.update(self._usage_metadata(chunk) or {})
+                        if chunk.get("done") is True:
+                            break
+        except OllamaProviderError:
+            raise
+        except httpx.ConnectTimeout as exc:
+            raise OllamaProviderError("ollama_connect_timeout", "connection timed out") from exc
+        except httpx.ReadTimeout as exc:
+            failure_class = "ollama_idle_timeout" if saw_output else "ollama_first_token_timeout"
+            raise OllamaProviderError(failure_class, "stream read timed out") from exc
+        except httpx.HTTPError as exc:
+            raise OllamaProviderError("ollama_proxy_disconnect", f"stream failed: {exc}") from exc
+        if not saw_output:
+            raise OllamaProviderError("ollama_stream_parse_error", "stream missing response text")
+        self._last_provider_latency_ms = max(0, round((time.perf_counter() - started) * 1000))
+        self._last_usage_metadata = usage or None
+        return "".join(output)
 
     def provider_settings(self) -> dict[str, Any]:
         return {
@@ -305,7 +425,11 @@ class OllamaProvider(GeminiCliProvider):
             "model": self.model,
             "timeout_seconds": self.timeout_seconds,
             "endpoint": "/api/generate",
-            "stream": False,
+            "stream": self.stream,
+            "connect_timeout_seconds": self.connect_timeout_seconds,
+            "first_token_timeout_seconds": self.first_token_timeout_seconds,
+            "generation_idle_timeout_seconds": self.generation_idle_timeout_seconds,
+            "total_generation_timeout_seconds": self.total_generation_timeout_seconds,
             "think": self.think,
             "auth_mode": "bearer" if self.api_key else "local_ollama",
             "context_length": self.context_length,

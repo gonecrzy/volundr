@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     ollama_base_url: str = Field(default="http://127.0.0.1:11434")
     ollama_model: str = Field(default="qwen2.5-coder:14b")
     ollama_timeout_seconds: int = Field(default=300)
+    ollama_connect_timeout_seconds: float = Field(default=15.0, gt=0)
+    ollama_first_token_timeout_seconds: float = Field(default=300.0, gt=0)
+    ollama_generation_idle_timeout_seconds: float = Field(default=300.0, gt=0)
+    ollama_total_generation_timeout_seconds: float = Field(default=1800.0, gt=0)
+    ollama_stream: bool = Field(default=True)
     ollama_think: str | None = Field(default=None)
     ollama_api_key: str | None = Field(
         default=None,

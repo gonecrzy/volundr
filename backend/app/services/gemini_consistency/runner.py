@@ -84,6 +84,7 @@ class BenchmarkRunnerConfig:
     pilot: bool = False
     full: bool = True
     five_case: bool = False
+    ollama_only: bool = False
     experiment_id: str | None = None
     dry_run: bool = False
     resume: bool = False
@@ -210,7 +211,8 @@ def stable_project_key(
 ) -> str:
     model_digest = hashlib.sha256(model.encode("utf-8")).hexdigest()[:16]
     provider_digest = hashlib.sha256(provider.encode("utf-8")).hexdigest()[:10]
-    return f"gemini-consistency:{experiment_id}:run-{run_index}:{_normalized(case_id)}:provider-{provider_digest}:model-{model_digest}"
+    prefix = "ollama-only" if provider == "ollama" else "gemini-consistency"
+    return f"{prefix}:{experiment_id}:run-{run_index}:{_normalized(case_id)}:provider-{provider_digest}:model-{model_digest}"
 
 
 def stable_client_message_id(project_key: str, phase: str) -> str:
@@ -564,6 +566,10 @@ class GeminiConsistencyRunner:
             raise ValueError("max concurrency must be between 1 and 2")
         if self.client is None:
             self.client = BenchmarkApiClient(self.config.base_url, timeout_seconds=self.config.timeout_seconds)
+        if self.config.ollama_only:
+            if not self.config.five_case:
+                raise ValueError("Ollama-only mode requires --five-case")
+            return self._run_ollama_only_five_case(corpus)
         if self.config.five_case:
             return self._run_five_case(corpus)
         client = self.client
@@ -649,6 +655,145 @@ class GeminiConsistencyRunner:
                         except KeyboardInterrupt:
                             self.request_stop()
                             break
+                client.finish_run(experiment_id, str(run["id"]), "cancelled" if self.stop_requested else "completed")
+                if self.stop_requested:
+                    break
+            if self.stop_requested:
+                break
+        client.finish_experiment(experiment_id, "cancelled" if self.stop_requested else "completed")
+        result["report"] = client.generate_report(experiment_id)
+        root_writer.finalize()
+        return result
+
+    def _run_ollama_only_five_case(self, corpus: ConsistencyCorpus) -> dict[str, Any]:
+        """Run the frozen five-case corpus without any Gemini discovery or calls."""
+        assert self.client is not None
+        client = self.client
+        readiness = client.ready()
+        health = client.health()
+        capabilities = client.capabilities()
+        if not capabilities.get("developer_tools_enabled", False):
+            raise ValueError("developer tools capability is disabled")
+        selected_cases = validate_run_selection(
+            corpus,
+            BenchmarkRunSelection(
+                models=self.config.models,
+                runs=self.config.runs,
+                pilot=False,
+                full=False,
+            ),
+            case_filter=self.config.case_filter,
+            family_filter=self.config.family_filter,
+            specificity_filter=self.config.specificity_filter,
+            benchmark_kind="ollama-five-case",
+        )
+        ollama_discovered = client.discover_models("ollama")
+        discovered_by_name = {
+            str(item.get("name", "")).removeprefix("models/"): item
+            for item in ollama_discovered
+            if isinstance(item, dict) and item.get("name")
+        }
+        requested = tuple(
+            model.removeprefix("models/")
+            for model in (self.config.ollama_model_filter or self.config.models)
+        )
+        if len(requested) < 2:
+            raise ValueError("Ollama-only benchmark requires at least two explicit installed models")
+        missing = [model for model in requested if model not in discovered_by_name]
+        if missing:
+            raise ValueError(f"requested Ollama models are unavailable: {', '.join(missing)}")
+
+        largest_prompt = max((case.initial_prompt for case in selected_cases), key=len)
+        specs: list[BenchmarkModelSpec] = []
+        preflights: dict[str, dict[str, Any]] = {}
+        for model in requested:
+            item = discovered_by_name[model]
+            preflight = client.ollama_preflight(model, largest_prompt)
+            model_size = item.get("size") if isinstance(item.get("size"), (int, float)) else None
+            classification = classify_ollama_resource_profile(
+                max_size_vram=preflight.get("max_size_vram"),
+                model_size=int(model_size) if model_size is not None else None,
+                context_completed=bool(preflight.get("context_completed")),
+                warm_throughput_collapse=bool(preflight.get("warm_throughput_collapse")),
+            )
+            preflight = {**preflight, "classification": classification}
+            preflights[model] = preflight
+            specs.append(
+                BenchmarkModelSpec(
+                    provider="ollama",
+                    model=model,
+                    metadata=item,
+                    resource_profile=preflight,
+                )
+            )
+        admitted = [spec for spec in specs if spec.resource_profile.get("classification") != "rejected"]
+        if len(admitted) < 2:
+            raise ValueError("fewer than two Ollama models passed the resource readiness gate")
+
+        experiment = self._get_or_create_ollama_only_five_case_experiment(client, corpus, admitted)
+        experiment_id = str(experiment["id"])
+        for spec in specs:
+            item = discovered_by_name[spec.model]
+            client.record_model_availability(
+                experiment_id,
+                spec.model,
+                str(item.get("name") or spec.model),
+                "available" if spec in admitted else "unavailable",
+                provider="ollama",
+                actual_digest=str(item.get("digest")) if item.get("digest") else None,
+                model_metadata=spec.metadata,
+                resource_profile=spec.resource_profile,
+            )
+        experiment = client.experiment(experiment_id)
+        experiment_root = self.config.output_root / experiment_id
+        root_writer = EvidenceWriter(experiment_root, data_root=self.config.output_root)
+        root_writer.write_json(
+            "experiment.json",
+            {
+                "experiment": experiment,
+                "readiness": readiness,
+                "health": health,
+                "developer_tools_enabled": True,
+                "provider_scope": "ollama_only",
+                "gemini_calls": 0,
+            },
+        )
+        root_writer.write_json("corpus.json", corpus.raw)
+        root_writer.write_json("models/discovered-ollama.json", ollama_discovered)
+        root_writer.write_json("models/preflights.json", preflights)
+        result: dict[str, Any] = {
+            "experiment_id": experiment_id,
+            "mode": "ollama_only_five_case",
+            "case_count": len(selected_cases),
+            "models": [spec.model for spec in admitted],
+            "excluded_models": [spec.model for spec in specs if spec not in admitted],
+            "runs": self.config.runs,
+            "results": [],
+            "readiness": readiness,
+            "gemini_calls": 0,
+        }
+        for spec in admitted:
+            for run_index in range(1, self.config.runs + 1):
+                run = self._find_run(experiment, spec.model, run_index, "ollama")
+                if run is None:
+                    raise ValueError(f"experiment is missing run ollama/{spec.model}/{run_index}")
+                seed = (101, 202)[run_index - 1]
+                for position, case in enumerate(selected_cases):
+                    if self.stop_requested:
+                        break
+                    result["results"].append(
+                        self._run_case(
+                            experiment_id,
+                            spec.model,
+                            run,
+                            case,
+                            position,
+                            corpus,
+                            provider="ollama",
+                            seed=seed,
+                            provider_header=True,
+                        )
+                    )
                 client.finish_run(experiment_id, str(run["id"]), "cancelled" if self.stop_requested else "completed")
                 if self.stop_requested:
                     break
@@ -838,6 +983,43 @@ class GeminiConsistencyRunner:
                 ],
                 "runs": self.config.runs,
                 "model_settings": {"max_concurrency": 1, "benchmark_kind": "ollama-five-case"},
+                "frontend_build_identity": self.config.frontend_build_identity,
+            }
+        )
+
+    def _get_or_create_ollama_only_five_case_experiment(
+        self,
+        client: BenchmarkApiClient,
+        corpus: ConsistencyCorpus,
+        specs: list[BenchmarkModelSpec],
+    ) -> dict[str, Any]:
+        if self.config.experiment_id:
+            return client.experiment(self.config.experiment_id)
+        return client.create_experiment(
+            {
+                "label": self.config.label or f"Ollama-only five-case {corpus.version}",
+                "corpus_version": corpus.version,
+                "corpus_hash": corpus.content_hash,
+                "mode": "five_case",
+                "models": [spec.model for spec in specs],
+                "model_specs": [
+                    {
+                        "provider": "ollama",
+                        "model": spec.model,
+                        "settings": {
+                            "seed_run_a": 101,
+                            "seed_run_b": 202,
+                            "context_length": 8192,
+                        },
+                    }
+                    for spec in specs
+                ],
+                "runs": self.config.runs,
+                "model_settings": {
+                    "max_concurrency": 1,
+                    "benchmark_kind": "ollama-only-five-case",
+                    "provider_scope": "ollama_only",
+                },
                 "frontend_build_identity": self.config.frontend_build_identity,
             }
         )
@@ -1137,6 +1319,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     mode.add_argument("--pilot", action="store_true")
     mode.add_argument("--full", action="store_true")
     mode.add_argument("--five-case", action="store_true")
+    parser.add_argument("--ollama-only", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--experiment-id")
     parser.add_argument("--dry-run", action="store_true")
@@ -1159,6 +1342,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
     split_values = lambda values: tuple(item for value in values for item in value.split(",") if item.strip())
     models = split_values(args.models)
+    if args.ollama_only and not args.five_case:
+        raise SystemExit("--ollama-only requires --five-case")
+    if args.ollama_only and len(models or split_values(args.ollama_model_filter)) < 2:
+        raise SystemExit("--ollama-only requires at least two --models or --ollama-model-filter values")
     if not models and not args.five_case:
         raise SystemExit("--models is required unless --five-case is selected")
     config = BenchmarkRunnerConfig(
@@ -1168,6 +1355,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         pilot=args.pilot,
         full=args.full,
         five_case=args.five_case,
+        ollama_only=args.ollama_only,
         experiment_id=args.experiment_id,
         dry_run=args.dry_run,
         resume=args.resume,
@@ -1175,7 +1363,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         rate_limit_backoff_seconds=args.rate_limit_backoff,
         base_url=args.base_url,
         timeout_seconds=args.timeout,
-        output_root=args.output_root or Path("data/debug-sessions/model-consistency" if args.five_case else "data/debug-sessions/gemini-consistency"),
+        output_root=args.output_root or Path(
+            "data/debug-sessions/ollama-only" if args.ollama_only else
+            ("data/debug-sessions/model-consistency" if args.five_case else "data/debug-sessions/gemini-consistency")
+        ),
         case_filter=split_values(args.case_filter),
         family_filter=split_values(args.family_filter),
         specificity_filter=split_values(args.specificity_filter),

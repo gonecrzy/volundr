@@ -98,6 +98,11 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_OLLAMA_BASE_URL` | Ollama provider | `http://127.0.0.1:11434` | provider-specific setting | yes | commented | Used only when `VOLUNDR_AI_PROVIDER=ollama`; set an explicit host URL for a separate Ollama service. |
 | `VOLUNDR_OLLAMA_MODEL` | Ollama provider | `qwen2.5-coder:14b` | provider-specific setting | yes | commented | Used only in Ollama mode. |
 | `VOLUNDR_OLLAMA_TIMEOUT_SECONDS` | Ollama provider | `300` | provider-specific setting | yes | no | Used only in Ollama mode. |
+| `VOLUNDR_OLLAMA_CONNECT_TIMEOUT_SECONDS` | Ollama provider | `15` | advanced Ollama readiness setting | yes | no | Connection budget; failures are classified separately from generation timeouts. |
+| `VOLUNDR_OLLAMA_FIRST_TOKEN_TIMEOUT_SECONDS` | Ollama provider | `300` | advanced Ollama readiness setting | yes | no | Maximum wait for the first streamed token. |
+| `VOLUNDR_OLLAMA_GENERATION_IDLE_TIMEOUT_SECONDS` | Ollama provider | `300` | advanced Ollama readiness setting | yes | no | Maximum idle gap between streamed tokens. |
+| `VOLUNDR_OLLAMA_TOTAL_GENERATION_TIMEOUT_SECONDS` | Ollama provider | `1800` | advanced Ollama readiness setting | yes | no | Hard total generation budget. |
+| `VOLUNDR_OLLAMA_STREAM` | Ollama provider | `true` | advanced Ollama readiness setting | yes | no | Enables incremental NDJSON handling and bounded timeout taxonomy. |
 | `VOLUNDR_OLLAMA_THINK` | Ollama provider | unset | provider-specific setting | yes | commented | Used only in Ollama mode. |
 | `VOLUNDR_SNAPSHOTS_ENABLED` | API snapshot service | `true` | advanced operational override | yes | commented | Main snapshot switch. |
 | `VOLUNDR_SNAPSHOT_IMAGE_WIDTH` | API snapshot service | `768` | advanced operational override | yes | no | Typed range-checked default. |

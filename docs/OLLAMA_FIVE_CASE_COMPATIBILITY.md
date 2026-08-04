@@ -1,6 +1,7 @@
-# Ollama five-case compatibility
+# Historical mixed-provider five-case compatibility (excluded)
 
-Status: completed as a compatibility probe; not a clean quality comparison.
+Status: `excluded_infrastructure_evaluation`; completed as a compatibility
+probe, not a clean quality comparison and not a model-quality result.
 
 The revised benchmark used exactly five frozen cases from
 `benchmarks/ollama-consistency-v1.json`:

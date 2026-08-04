@@ -71,6 +71,34 @@ def test_chat_generation_failure_returns_structured_blocked_outcome(monkeypatch)
             assert all(run["status"] != "running" for run in runs)
 
 
+def test_failed_ai_revision_attaches_to_authoritative_user_message_without_crashing(monkeypatch) -> None:
+    async def fail_generation(self, project, workflow_run, intent, message):
+        self.service._create_failed_ai_revision(
+            project=project,
+            user_instruction=message,
+            user_message_id=self._active_user_message_id,
+            source_type="ai_initial",
+            raw_ai_output="not valid geometry",
+            error_message="geometry body invalid",
+        )
+        raise ValueError("geometry body invalid")
+
+    monkeypatch.setattr(ChatWorkflowService, "_dispatch", fail_generation)
+    with TemporaryDirectory() as directory:
+        with TestClient(create_e2e_fixture_app(Path(directory))) as client:
+            project = client.post("/api/projects/draft").json()
+            result = client.post(
+                f"/api/projects/{project['id']}/chat",
+                json={"message": "Create a failed bracket.", "client_message_id": "failed-revision"},
+            )
+
+            assert result.status_code == 200
+            messages = client.get(f"/api/projects/{project['id']}/messages").json()
+            visible = [message for message in messages if message["role"] != "system_event"]
+            assert [message["role"] for message in visible] == ["user", "assistant_blocked"]
+            assert visible[0]["content"] == "Create a failed bracket."
+
+
 def test_chat_generation_failure_preserves_existing_current_version(monkeypatch) -> None:
     with TemporaryDirectory() as directory:
         with TestClient(create_e2e_fixture_app(Path(directory))) as client:

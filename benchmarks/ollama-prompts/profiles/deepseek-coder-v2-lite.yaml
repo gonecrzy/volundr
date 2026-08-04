@@ -1,0 +1,9 @@
+{
+  "model_id": "deepseek-coder-v2-lite",
+  "slot_mode": "common-slot",
+  "native_mode": "native-cad",
+  "response_extraction": "json-or-source",
+  "reasoning_tags": "strip-if-present",
+  "structured_output": "model-dependent",
+  "target_context": 8192
+}

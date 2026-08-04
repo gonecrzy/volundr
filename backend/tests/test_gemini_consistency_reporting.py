@@ -115,3 +115,44 @@ def test_report_separates_provider_model_pairs_and_writes_resource_comparison(tm
     assert "ollama/procad:Q4_K_M" in report["controlled_comparisons"]
     assert (tmp_path / "cross-model-comparison.json").is_file()
     assert (tmp_path / "resource-profile.json").is_file()
+
+
+def test_incomplete_pairs_are_excluded_from_consistency_means(tmp_path) -> None:
+    identity = {
+        "git_head": "abc",
+        "migration_head": "0036",
+        "provider": "ollama",
+        "model_policy": {"context_length": 8192},
+        "prompt_versions": {"requirements": "v1"},
+        "configuration_hash": "config-a",
+        "build_identities": {"backend": {"git_sha": "abc"}},
+    }
+
+    result = build_experiment_reports(
+        {"id": "experiment-incomplete", "mode": "five_case", **identity},
+        [
+            {
+                "case_id": "ollama-case-001",
+                "provider": "ollama",
+                "model": "specialist",
+                "run_index": 1,
+                "identity": identity,
+                "evidence": {"outcome_state": "working_version"},
+            },
+            {
+                "case_id": "ollama-case-001",
+                "provider": "ollama",
+                "model": "specialist",
+                "run_index": 2,
+                "identity": identity,
+                "evidence": None,
+            },
+        ],
+        tmp_path,
+    )
+
+    summary = result["model_summaries"]["ollama/specialist"]
+    assert summary["pair_status"] == "incomplete"
+    assert summary["eligible_case_count"] == 0
+    assert summary["mean_consistency_score"] is None
+    assert summary["incomplete_case_count"] == 1

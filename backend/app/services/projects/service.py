@@ -4859,6 +4859,7 @@ class ProjectService:
             failed_repair = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
+                user_message_id=payload.user_message_id,
                 source_type="ai_repair",
                 raw_ai_output=repair_result.raw_output,
                 error_message=str(exc),
@@ -5045,6 +5046,7 @@ class ProjectService:
                 failed_revision = self._create_failed_ai_revision(
                     project=project,
                     user_instruction=payload.user_instruction,
+                    user_message_id=payload.user_message_id,
                     source_type=source_type,
                     raw_ai_output=generation_result.raw_output,
                     error_message=str(exc),
@@ -5058,6 +5060,7 @@ class ProjectService:
             failed_revision = self._create_failed_ai_revision(
                 project=project,
                 user_instruction=payload.user_instruction,
+                user_message_id=payload.user_message_id,
                 source_type=source_type,
                 raw_ai_output=generation_result.raw_output,
                 error_message=str(exc),
@@ -11482,6 +11485,7 @@ class ProjectService:
         *,
         project: Project,
         user_instruction: str,
+        user_message_id: str | None = None,
         source_type: str,
         raw_ai_output: str,
         error_message: str,

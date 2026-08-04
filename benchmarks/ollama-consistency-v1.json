@@ -1,6 +1,6 @@
 {
   "version": "ollama-consistency-v1",
-  "description": "Frozen five-case corpus for the Gemini Flash Lite and remote Ollama paired benchmark.",
+  "description": "Frozen five-case corpus for the Ollama-only two-run consistency benchmark. Historical mixed-provider runs are excluded infrastructure evaluations.",
   "cases": [
     {
       "case_id": "ollama-case-001",

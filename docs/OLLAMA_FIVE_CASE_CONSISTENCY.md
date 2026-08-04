@@ -1,4 +1,7 @@
-# Ollama five-case consistency
+# Historical mixed-provider five-case consistency (excluded)
+
+Status: `excluded_infrastructure_evaluation`. This artifact is retained for
+failure-preservation history only and is not model-quality evidence.
 
 The formal candidate run was:
 
@@ -19,7 +22,8 @@ specification) and the raw failure records contain the transport details.
 The configuration identities matched for the candidate run, so the comparison
 is controlled at the configuration level. It is not sufficient for a
 controlled quality claim because provider coverage is incomplete. A follow-up
-run is required after the repairs in `docs/LOCAL_MODEL_NEXT_ACTIONS.md`.
+Ollama-only run is required after the provider repairs. Use
+`docs/OLLAMA_FIVE_CASE_RESULTS.md` for the fresh result.
 
 Raw evidence is local and outside Git at:
 

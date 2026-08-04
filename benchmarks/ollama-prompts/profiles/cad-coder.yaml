@@ -1,0 +1,9 @@
+{
+  "model_id": "cad-coder",
+  "slot_mode": "native-only-diagnostic",
+  "native_mode": "native-cad",
+  "response_extraction": "source-only",
+  "reasoning_tags": "preserve-until-source-extraction",
+  "structured_output": "unsupported-until-verified",
+  "target_context": 8192
+}
