@@ -143,7 +143,7 @@ def _round_report(root: Path, round_name: str) -> dict[str, Any]:
     return report
 
 
-def build_study_reports(study_root: Path) -> dict[str, Any]:
+def build_legacy_study_reports(study_root: Path) -> dict[str, Any]:
     rounds = {round_name: _round_report(study_root, round_name) for round_name in ("baseline", "validation") if (study_root / round_name).is_dir()}
     result: dict[str, Any] = {"study_kind": STUDY_KIND, "rounds": rounds}
     if "baseline" in rounds:
@@ -168,4 +168,16 @@ def build_study_reports(study_root: Path) -> dict[str, Any]:
         _write_json(study_root, "comparisons/before-after.json", before_after)
         result["before_after"] = before_after
     _write_json(study_root, "reports/study-summary.json", result)
+    return result
+
+
+def build_study_reports(study_root: Path) -> dict[str, Any]:
+    """Build the corrected offline reports while preserving pre-audit output."""
+
+    from app.services.gemini_consistency.study_analyzer import build_corrected_study_reports
+
+    result = build_corrected_study_reports(study_root)
+    result["study_kind"] = STUDY_KIND
+    for report in result.get("rounds", {}).values():
+        report.setdefault("primary_metrics", {})["candidate_readiness"] = report["primary_metrics"].get("projects_candidate_ready_or_warning", 0)
     return result
