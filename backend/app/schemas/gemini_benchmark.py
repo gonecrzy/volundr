@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class GeminiBenchmarkModelSpec(BaseModel):
@@ -22,10 +22,10 @@ class GeminiBenchmarkExperimentCreate(BaseModel):
     label: str = Field(min_length=1, max_length=200)
     corpus_version: str = Field(min_length=1, max_length=120)
     corpus_hash: str = Field(min_length=1, max_length=64)
-    mode: str = Field(default="full", pattern="^(pilot|full|five_case)$")
-    models: list[str] = Field(min_length=2, max_length=32)
-    model_specs: list[GeminiBenchmarkModelSpec] | None = Field(default=None, min_length=2, max_length=32)
-    runs: int = Field(default=2, ge=2, le=2)
+    mode: str = Field(default="full", pattern="^(pilot|full|five_case|study)$")
+    models: list[str] = Field(min_length=1, max_length=32)
+    model_specs: list[GeminiBenchmarkModelSpec] | None = Field(default=None, min_length=1, max_length=32)
+    runs: int = Field(default=2, ge=2, le=3)
     model_settings: dict[str, Any] = Field(default_factory=dict)
     frontend_build_identity: str = Field(default="benchmark-runner", min_length=1, max_length=512)
 
@@ -56,6 +56,28 @@ class GeminiBenchmarkExperimentCreate(BaseModel):
         if len(set(keys)) != len(keys):
             raise ValueError("provider/model specifications must be unique")
         return values
+
+    @model_validator(mode="after")
+    def validate_study_matrix(self) -> "GeminiBenchmarkExperimentCreate":
+        if self.mode == "study":
+            if self.runs != 3:
+                raise ValueError("study mode requires exactly three repetitions")
+            if len(self.models) != 1 or self.models[0] != "gemini-3.5-flash-lite":
+                raise ValueError("study mode requires exactly gemini-3.5-flash-lite")
+            if self.model_specs is not None and (
+                len(self.model_specs) != 1
+                or self.model_specs[0].provider != "gemini_api"
+                or self.model_specs[0].model != "gemini-3.5-flash-lite"
+            ):
+                raise ValueError("study mode model_specs must contain only gemini_api/gemini-3.5-flash-lite")
+            return self
+        if self.runs != 2:
+            raise ValueError("non-study benchmark modes require exactly two runs")
+        if len(self.models) < 2:
+            raise ValueError("non-study benchmark modes require at least two models")
+        if self.model_specs is not None and len(self.model_specs) < 2:
+            raise ValueError("non-study benchmark modes require at least two model specifications")
+        return self
 
 
 class GeminiBenchmarkModelRead(BaseModel):

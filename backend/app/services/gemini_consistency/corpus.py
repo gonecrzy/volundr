@@ -8,6 +8,8 @@ from typing import Any
 
 
 PILOT_CASE_IDS = tuple(f"case-{index:03d}" for index in range(1, 11))
+FLASH_LITE_STUDY_CASE_IDS = PILOT_CASE_IDS
+FLASH_LITE_STUDY_VERSION = "gemini-flash-lite-study-v1"
 OLLAMA_CASE_IDS = tuple(f"ollama-case-{index:03d}" for index in range(1, 6))
 SPECIFICITY_LEVELS = {"vague", "moderate", "high", "constrained"}
 REQUIRED_CASE_FIELDS = {
@@ -133,6 +135,28 @@ def validate_consistency_corpus(
 def load_consistency_corpus(path: Path) -> ConsistencyCorpus:
     document = json.loads(path.read_text(encoding="utf-8"))
     validate_consistency_corpus(document)
+    return _load_corpus(document)
+
+
+def validate_flash_lite_study_corpus(document: dict[str, Any]) -> None:
+    """Validate the immutable ten-case corpus used by the Flash Lite study."""
+
+    validate_consistency_corpus(document, exact_count=10)
+    if document.get("version") != FLASH_LITE_STUDY_VERSION:
+        raise ValueError(f"Flash Lite study corpus version must be {FLASH_LITE_STUDY_VERSION}")
+    if document.get("study_kind") != "before-and-after product correction study":
+        raise ValueError("Flash Lite study corpus must declare the before-and-after study kind")
+    policy = document.get("clarification_policy")
+    if not isinstance(policy, dict) or policy.get("max_rounds") != 2:
+        raise ValueError("Flash Lite study corpus must freeze the two-round clarification policy")
+    actual_ids = tuple(case.get("case_id") for case in document["cases"])
+    if actual_ids != FLASH_LITE_STUDY_CASE_IDS:
+        raise ValueError("Flash Lite study corpus must use case-001 through case-010 in order")
+
+
+def load_flash_lite_study_corpus(path: Path) -> ConsistencyCorpus:
+    document = json.loads(path.read_text(encoding="utf-8"))
+    validate_flash_lite_study_corpus(document)
     return _load_corpus(document)
 
 
