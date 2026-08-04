@@ -23,3 +23,11 @@ eligible recurring signature was `provider_failure`, which did not justify a
 generic product change. The single raw-response replay processed 124 captured
 records with `offline_required: true` and recorded `provider_calls: 0`.
 
+## Validation
+
+Validation completed the same 10 frozen cases × 3 repetitions (30 new project
+operations) in a separate evidence tree. The report contains 117 provider
+calls, 10 repair calls, 30 projects reaching valid source, 14 reaching the
+worker, 5 producing valid topology, and 2 candidate-ready-or-warning
+outcomes.
+
