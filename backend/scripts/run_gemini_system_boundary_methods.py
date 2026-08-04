@@ -693,6 +693,7 @@ def finalize_study(output_root: Path) -> dict[str, Any]:
         "processing_methods": _json(reports / "processing-method-scorecard.json") or {},
         "offline_replay": _json(reports / "offline-processing-replay.json") or {},
         "factorial_live_study": {"run": bool(factorial.get("run")), "current_attempt": factorial, "historical_attempts": [_json(path) for path in sorted((reports / "historical").glob("factorial-incomplete-*.json"))]},
+        "secondary_resume_history": [_json(path) for path in sorted((reports / "historical/pre-secondary-credential-resume").glob("*factorial-results.json"))],
         "residual_defects": _json(reports / "residual-model-defects.json") or {},
         "prompt_ablation": {"run": False, "results": _json(reports / "targeted-prompt-ablation-results.json") or {}, "decision": _json(reports / "targeted-prompt-decision.json") or {}},
         "final_validation": {"run": False, "results": final_results, "historical_attempts": [_json(path) for path in sorted((reports / "historical").glob("final-incomplete-*.json"))], "comparison": final_comparison, "decision": decision},
@@ -844,8 +845,8 @@ async def run_factorial(output_root: Path, profile_root: Path, study_root: Path,
 def _validate_resume_source(previous: dict[str, Any]) -> dict[str, Any]:
     arms = {str(arm.get("arm_id")): arm for arm in previous.get("arms", []) if isinstance(arm, dict)}
     expected = {arm_id: (profile, processing) for arm_id, profile, processing in EXPECTED_FACTORIAL_ARMS}
-    if set(arms) != {"A-current-p0", "B-profile-b-p0"}:
-        raise RuntimeError("resume requires exactly the preserved A/B P0 arms; refusing to rerun or infer completion")
+    if not {"A-current-p0", "B-profile-b-p0"}.issubset(arms) or "D-profile-b-p3" in arms:
+        raise RuntimeError("resume requires preserved A/B and no completed D arm; refusing to rerun or infer completion")
     fingerprints: dict[str, Any] = {}
     for arm_id in ("A-current-p0", "B-profile-b-p0"):
         arm = arms[arm_id]
@@ -863,7 +864,22 @@ def _validate_resume_source(previous: dict[str, Any]) -> dict[str, Any]:
             "case_ids": case_ids,
             "provider_call_ids": sorted(str(item.get("provider_call_id")) for item in captures if item.get("provider_call_id")),
         }
-    return {"arms": arms, "fingerprints": fingerprints}
+    quota_stopped_operations: list[dict[str, Any]] = []
+    partial_c = arms.get("C-current-p3")
+    if partial_c is not None:
+        if partial_c.get("processing") != "P3" or not partial_c.get("quota_exhausted") or len(partial_c.get("cases", [])) != 1:
+            raise RuntimeError("unfinished C arm is not a single quota-stopped operation; refusing to rerun it")
+        partial_case = partial_c["cases"][0]
+        if partial_case.get("case_id") != "case-001":
+            raise RuntimeError("the preserved unfinished C operation is not case-001; refusing to infer replacement scope")
+        quota_stopped_operations.append({
+            "operation_id": "C-current-p3:case-001",
+            "arm_id": "C-current-p3",
+            "case_id": "case-001",
+            "provider_call_ids": sorted(str(item.get("provider_call_id")) for item in partial_c.get("provider_captures", []) if item.get("provider_call_id")),
+            "reason": "historical hard 429; excluded from model-quality scoring",
+        })
+    return {"arms": arms, "fingerprints": fingerprints, "quota_stopped_operations": quota_stopped_operations}
 
 
 async def resume_factorial(
@@ -900,7 +916,7 @@ async def resume_factorial(
     _seed_limiter(limiter, prior_events)
     backend_root = Path(__file__).resolve().parents[1]
     previous_label = str(previous.get("run_label") or "run-04")
-    run_label = f"{previous_label}-secondary-resume"
+    run_label = f"{previous_label}-secondary-replacement-01" if preserved["quota_stopped_operations"] else f"{previous_label}-secondary-resume"
     arms: list[dict[str, Any]] = [preserved["arms"]["A-current-p0"], preserved["arms"]["B-profile-b-p0"]]
     new_arms: list[dict[str, Any]] = []
     for arm_id, profile, processing in EXPECTED_FACTORIAL_ARMS[2:]:
@@ -916,7 +932,10 @@ async def resume_factorial(
             credential_source=credential_source,
         )
         arm["resume_mode"] = "secondary-credential-c-d-only"
-        arm["replaces_quota_stopped_operation_id"] = None
+        arm["replaces_quota_stopped_operation_id"] = "C-current-p3:case-001" if arm_id == "C-current-p3" and preserved["quota_stopped_operations"] else None
+        for operation in arm.get("operation_manifest", []):
+            if operation.get("operation_id") == "C-current-p3:case-001" and preserved["quota_stopped_operations"]:
+                operation["replaces_quota_stopped_operation_id"] = "C-current-p3:case-001"
         new_arms.append(arm)
         if arm["quota_exhausted"] or arm["project_operations"] < len(cases):
             break
@@ -944,6 +963,7 @@ async def resume_factorial(
         "completed_arm_ids_preserved": ["A-current-p0", "B-profile-b-p0"],
         "attempted_arm_ids": [arm.get("arm_id") for arm in new_arms],
         "existing_arm_fingerprints": preserved["fingerprints"],
+        "quota_stopped_operations_preserved": preserved["quota_stopped_operations"],
         "auth_audit": credential,
         "first_required_call": first_required_call,
         "capture_complete": True,

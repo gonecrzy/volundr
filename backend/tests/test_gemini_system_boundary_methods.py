@@ -295,6 +295,19 @@ def test_existing_a_b_arm_captures_are_valid_resume_source() -> None:
     assert all(item["provider_call_count"] > 0 for item in result["fingerprints"].values())
 
 
+def test_quota_stopped_c_operation_is_replaced_without_reusing_its_call() -> None:
+    report = json.loads((REPO_ROOT / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/reports/provider-processing-factorial-results.json").read_text(encoding="utf-8"))
+
+    result = _validate_resume_source(report)
+
+    assert len(result["quota_stopped_operations"]) == 1
+    assert result["quota_stopped_operations"][0]["operation_id"] == "C-current-p3:case-001"
+    assert result["quota_stopped_operations"][0]["arm_id"] == "C-current-p3"
+    assert result["quota_stopped_operations"][0]["case_id"] == "case-001"
+    assert len(result["quota_stopped_operations"][0]["provider_call_ids"]) == 1
+    assert result["quota_stopped_operations"][0]["reason"] == "historical hard 429; excluded from model-quality scoring"
+
+
 def test_final_validation_is_capped_at_two_declared_systems() -> None:
     finalists = _finalist_configurations("P3")
 
