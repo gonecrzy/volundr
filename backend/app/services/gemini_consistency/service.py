@@ -216,8 +216,6 @@ class GeminiConsistencyService:
         run = self.db.get(GeminiBenchmarkRun, run_id)
         if run is None or run.experiment_id != experiment_id:
             raise LookupError("benchmark run not found")
-        if run.state in {"cancelled", "completed"}:
-            raise ValueError("benchmark run is not accepting new cases")
         existing = self.db.scalar(
             select(GeminiBenchmarkMembership)
             .where(GeminiBenchmarkMembership.run_id == run_id)
@@ -225,6 +223,8 @@ class GeminiConsistencyService:
         )
         if existing is not None:
             return existing
+        if run.state in {"cancelled", "completed"}:
+            raise ValueError("benchmark run is not accepting new cases")
         stable_project_key = f"{run.stable_run_key}:{case_id}"
         project_service = ProjectService(db=self.db, data_dir=self.data_dir)
         try:

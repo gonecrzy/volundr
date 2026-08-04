@@ -507,3 +507,10 @@ that focused completion and reporting do not add duplicate chat outcomes.
 Playwright at 1440x900 verifies direct and compact technical telemetry while
 keeping slot terminology out of normal chat. Detailed plans remain on the
 legacy contract path.
+
+## Gemini Flash Lite study gates
+
+Study tests cover immutable per-provider-call capture, raw/parsed/normalized
+separation, repair linkage, offline-required replay, three-run correlation,
+quota-safe resume, duplicate project/message prevention, baseline/validation
+separation, redaction, and truthful before/after labeling.

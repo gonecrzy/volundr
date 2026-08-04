@@ -144,6 +144,14 @@ Do not load the entire documentation tree by default.
 | `docs/MULTI_DESIGN_LIVE_EVALUATION.md` | Small real-provider multi-design diagnostic set and accurate upstream/worker outcomes. |
 | `docs/DATA_MODEL.md` | Persistent entities, fields, relationships, immutability, and archive/deletion rules. |
 | `docs/CURRENT_STAGE_ROADMAP.md` | Ordered milestones, status, goals, and exit criteria. |
+| `docs/GEMINI_FLASH_LITE_STUDY.md` | Ten-case Gemini Flash Lite study protocol and execution order. |
+| `docs/GEMINI_FLASH_LITE_BASELINE.md` | Controlled baseline repetition and quota rules. |
+| `docs/GEMINI_FLASH_LITE_RESPONSE_CORPUS.md` | Immutable response evidence and committed fixture boundary. |
+| `docs/GEMINI_FLASH_LITE_CLEANUP.md` | Bounded generic cleanup and offline replay rules. |
+| `docs/GEMINI_FLASH_LITE_OFFLINE_REPLAY.md` | Provider-free replay starting points and provenance. |
+| `docs/GEMINI_FLASH_LITE_VALIDATION.md` | Post-cleanup validation protocol. |
+| `docs/GEMINI_FLASH_LITE_BEFORE_AFTER.md` | Stage-level before/after metrics and interpretation. |
+| `docs/GEMINI_FLASH_LITE_NEXT_ACTIONS.md` | Exactly-one next-direction decision contract. |
 | `docs/TEST_STRATEGY.md` | Unit, integration, end-to-end, fixture, and regression expectations. |
 | `docs/OLLAMA_MODEL_CALIBRATION.md` | Ollama-only calibration phase, frozen identities, profile hashes, and operational dispositions. |
 | `docs/OLLAMA_HOLDOUT_VALIDATION.md` | Untouched holdout corpus, freeze boundary, and validation status. |

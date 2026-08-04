@@ -1,0 +1,16 @@
+{
+  "fixture_id": "flash-lite-malformed-json-001",
+  "originating_study": "synthetic-contract-fixture",
+  "round": "baseline",
+  "repetition": 1,
+  "case_id": "case-002",
+  "stage": "compact_plan",
+  "minimal_authoritative_input": {"initial_prompt": "Create a one-piece desktop organizer."},
+  "response": {"raw_text": "{\"route\": \"compact\", \"outputs\": [}"},
+  "expected_parse_classification": "invalid_json",
+  "expected_normalization": null,
+  "expected_findings": ["invalid_json"],
+  "expected_repair_eligibility": true,
+  "expected_downstream_classification": "blocked_before_source",
+  "reason_selected": "Representative malformed response that must remain rejected until bounded repair policy is applied."
+}

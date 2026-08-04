@@ -422,3 +422,8 @@ response, canonical slot records, preserved hashes, and scaffold manifest are
 ordinary generation-attempt/workflow artifacts; they do not create a parallel
 event stream. Frontend technical details may show only the selected contract
 and bounded completion/fallback summaries.
+
+Gemini Flash Lite study mode additionally records a write-once provider-call
+envelope for every API attempt, including retries and provider failures. The
+envelope is linked by study, round, repetition, case, project, operation, and
+workflow identities; private evidence remains outside Git.

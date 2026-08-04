@@ -1,0 +1,21 @@
+{
+  "fixture_id": "flash-lite-valid-alternate-requirements-001",
+  "originating_study": "synthetic-contract-fixture",
+  "round": "baseline",
+  "repetition": 1,
+  "case_id": "case-001",
+  "stage": "requirements",
+  "minimal_authoritative_input": {
+    "initial_prompt": "Create a compact desktop phone stand.",
+    "fact_sheet": {"units": "millimeters", "phone_width": "78 mm"}
+  },
+  "response": {
+    "raw_text": "```json\n{\"requirements\":[{\"value\":\"78\",\"unit\":\"mm\",\"source\":\"user\"}]}\n```"
+  },
+  "expected_parse_classification": "valid_after_normalization",
+  "expected_normalization": {"requirements": [{"value": "78", "unit": "mm", "source": "user"}]},
+  "expected_findings": [],
+  "expected_repair_eligibility": false,
+  "expected_downstream_classification": "requirements_preserved",
+  "reason_selected": "Provider returned a valid alternate JSON envelope without changing user provenance."
+}

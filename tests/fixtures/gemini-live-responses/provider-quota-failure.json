@@ -1,0 +1,21 @@
+{
+  "fixture_id": "flash-lite-provider-quota-001",
+  "originating_study": "synthetic-contract-fixture",
+  "round": "baseline",
+  "repetition": 1,
+  "case_id": "case-003",
+  "stage": "geometry_slots",
+  "minimal_authoritative_input": {"requested_model": "gemini-3.5-flash-lite"},
+  "response": {
+    "raw_text": "",
+    "status_code": 429,
+    "error_category": "provider_quota_exhausted",
+    "provider_metadata": {"retry_after_seconds": 60}
+  },
+  "expected_parse_classification": "provider_quota_exhausted",
+  "expected_normalization": null,
+  "expected_findings": ["provider_quota_exhausted"],
+  "expected_repair_eligibility": false,
+  "expected_downstream_classification": "not_counted_as_cad_quality",
+  "reason_selected": "Quota exhaustion must stop safely and remain distinct from CAD quality."
+}

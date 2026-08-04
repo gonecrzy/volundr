@@ -180,6 +180,38 @@ def test_flash_lite_readiness_endpoint_performs_one_minimal_provider_probe(tmp_p
     assert len(calls) == 1
 
 
+def test_resume_reclaims_terminal_case_after_run_was_completed(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "developer_tools_enabled", True)
+    client, _ = _client(tmp_path)
+    experiment = client.post(
+        "/api/gemini-consistency/experiments",
+        json={
+            "label": "resume-study",
+            "corpus_version": "gemini-flash-lite-study-v1",
+            "corpus_hash": "a" * 64,
+            "mode": "study",
+            "models": ["gemini-3.5-flash-lite"],
+            "runs": 3,
+        },
+    ).json()
+    run = experiment["runs"][0]
+    claim_path = f"/api/gemini-consistency/experiments/{experiment['id']}/runs/{run['id']}/cases/case-001/claim"
+    complete_path = f"/api/gemini-consistency/experiments/{experiment['id']}/runs/{run['id']}/cases/case-001/complete"
+    payload = {"position": 0, "title": "Vague phone stand", "original_intent": "Make a phone stand."}
+    first = client.post(claim_path, json=payload).json()
+    client.post(
+        complete_path,
+        json={"state": "completed", "outcome_category": "completed", "outcome_state": "completed"},
+    )
+    client.post(f"/api/gemini-consistency/experiments/{experiment['id']}/runs/{run['id']}/finish", json={"state": "completed"})
+
+    resumed = client.post(claim_path, json=payload)
+
+    assert resumed.status_code == 200, resumed.text
+    assert resumed.json()["project_id"] == first["project_id"]
+    assert resumed.json()["state"] == "completed"
+
+
 def test_completion_is_idempotent_and_report_endpoint_is_read_only(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(settings, "developer_tools_enabled", True)
     client, _ = _client(tmp_path)

@@ -329,6 +329,10 @@ values such as repeated count, capacity, spacing, wall thickness, or clearance.
 These suggestions are advisory only: they do not interrupt first generation,
 create controls automatically, or activate strict parameter-effect validation.
 
+For the quota-efficient Gemini Flash Lite behavior study, see
+[`docs/GEMINI_FLASH_LITE_STUDY.md`](docs/GEMINI_FLASH_LITE_STUDY.md). The
+formal runner is API-only and stores raw live evidence outside Git.
+
 Successful or blocked worker attempts also retain deterministic multi-view
 snapshot packets and revision comparisons as secondary evidence. See
 `docs/MULTI_VIEW_SNAPSHOT_CONTRACT.md`, `docs/REVISION_EVIDENCE_MODEL.md`, and

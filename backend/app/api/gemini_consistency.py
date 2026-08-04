@@ -21,6 +21,7 @@ from app.schemas.gemini_benchmark import (
 )
 from app.services.ai.provider import RequirementExtractionRequest
 from app.services.gemini_consistency.interaction_capture import StudyContext
+from app.services.gemini_consistency.study import model_identity_matches
 from app.services.gemini_consistency.service import GeminiConsistencyService
 
 
@@ -87,7 +88,7 @@ async def provider_readiness(
         )
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    if result.provider_model and result.provider_model != payload.model:
+    if result.provider_model and not model_identity_matches(payload.model, result.provider_model):
         raise HTTPException(status_code=502, detail="provider returned a different actual model")
     return {
         "provider": getattr(result, "provider", getattr(provider, "provider_id", "gemini_api")),

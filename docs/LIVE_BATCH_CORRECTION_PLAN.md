@@ -117,3 +117,7 @@ The manifest/report outcome-integrity correction is implemented and covered by
 focused tests; no selected CAD correction has been implemented here. Any CAD
 implementation must add deterministic backend, frontend, and Playwright
 regressions before a separate validation run.
+
+The Gemini Flash Lite ten-case study is a separate generic behavior study. Its
+cleanup is limited to evidence-backed recurring pipeline signatures and must
+use offline replay before validation.

@@ -527,6 +527,10 @@ gate is the unchanged five-project live validation in
 `GEOMETRY_SLOTS_LIVE_EVALUATION.md`, followed by a planning-only selection of
 exactly one next CAD priority.
 
+The Gemini Flash Lite study runner and replay contract are implemented. The
+remaining study gate is execution of the frozen baseline, offline cleanup, and
+validation rounds when the provider readiness/quota gate permits.
+
 Pattern coordinate-space validation and chat-message identity correction are
 implemented. The tackle-tray project remains a valid blocked live-quality
 case: the latest attempt was stopped before worker execution because the

@@ -10,6 +10,7 @@ from typing import Any
 from uuid import uuid4
 
 from app.services.workflow.redaction import RedactionService
+from app.services.workflow.provider_response import analyze_provider_response
 
 
 FIXTURE_VERSION = "gemini-live-response-v1"
@@ -114,7 +115,18 @@ class ImmutableInteractionCapture:
         )
         findings = [*request_findings, *prompt_findings, *response_findings, *raw_findings]
         generation_config = safe_request.get("generationConfig", {}) if isinstance(safe_request, dict) else {}
-        accepted = status_code is not None and status_code < 400 and bool(safe_raw)
+        json_stage = prompt_mode in {
+            "requirements",
+            "design_plan",
+            "compact_plan",
+            "geometry_slots",
+            "revision_planning",
+            "clarification",
+        }
+        analysis = analyze_provider_response(safe_raw, stage=stage) if json_stage and not error_category else None
+        accepted = status_code is not None and status_code < 400 and bool(safe_raw) and (
+            analysis.final is not None if analysis is not None else True
+        )
         record = {
             "fixture_version": FIXTURE_VERSION,
             **asdict(self.context),
@@ -141,6 +153,7 @@ class ImmutableInteractionCapture:
             },
             "response": {
                 "raw_text": safe_raw,
+                "raw_hash": hashlib.sha256(safe_raw.encode("utf-8")).hexdigest(),
                 "raw_provider_payload": safe_response,
                 "finish_reason": finish_reason,
                 "provider_metadata": provider_metadata or {},
@@ -154,12 +167,13 @@ class ImmutableInteractionCapture:
                 "error_category": error_category,
             },
             "processing": {
-                "parse_classification": "provider_failure" if error_category else "captured_raw_response",
+                "parse_classification": error_category or (analysis.classification.value if analysis else "captured_raw_response"),
                 "syntax_repair": None,
-                "normalized_response": None,
+                "parsed_response": analysis.parsed if analysis else None,
+                "normalized_response": analysis.normalized if analysis else None,
                 "normalization_rules": [],
-                "findings_before_normalization": [],
-                "findings_after_normalization": [],
+                "findings_before_normalization": list(analysis.findings_before_normalization) if analysis else [],
+                "findings_after_normalization": list(analysis.findings_after_normalization) if analysis else [],
                 "repair_eligibility": False,
                 "accepted": accepted,
             },

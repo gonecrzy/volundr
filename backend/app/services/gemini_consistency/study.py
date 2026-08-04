@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import copy
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -27,6 +28,8 @@ from app.services.gemini_consistency.runner import (
     clarification_answer_for,
     stable_client_message_id,
 )
+from app.services.gemini_consistency.replay import OfflineReplayEngine, ReplayConfig
+from app.services.gemini_consistency.study_reporting import build_study_reports
 
 
 FLASH_LITE_MODEL = "gemini-3.5-flash-lite"
@@ -34,6 +37,12 @@ STUDY_ID = "gemini-flash-lite-study-01"
 STUDY_ROUNDS = ("baseline", "validation")
 REPETITIONS = 3
 QUOTA_STATUS_CODES = {408, 429, 502, 503, 504, 599}
+
+
+def model_identity_matches(requested: str, actual: str | None) -> bool:
+    """Accept provider version suffixes while rejecting model substitution."""
+
+    return bool(actual) and (actual == requested or actual.startswith(f"{requested}-"))
 
 
 @dataclass(frozen=True)
@@ -130,8 +139,17 @@ class FlashLiteStudyRunner:
         corpus = validate_flash_lite_study_config(self.config)
         if self.config.dry_run:
             return self.dry_run_manifest(corpus)
+        if len(self.config.rounds) != 1:
+            raise ValueError("live study execution requires one round at a time; run baseline, cleanup, then validation")
         self.client = self.client or BenchmarkApiClient(self.config.base_url, timeout_seconds=self.config.timeout_seconds)
         root = self.config.output_root / self.config.study_id
+        if self.config.rounds == ("validation",) and not self.config.resume:
+            required_cleanup = (
+                root / "cleanup" / "analysis.json",
+                root / "cleanup" / "replay-results" / "raw_provider_response.json",
+            )
+            if not all(path.is_file() for path in required_cleanup):
+                raise ValueError("validation requires frozen cleanup analysis and complete offline replay")
         writer = EvidenceWriter(root, data_root=self.config.output_root)
         study_document = {
             "fixture_version": "gemini-flash-lite-study-v1",
@@ -168,6 +186,7 @@ class FlashLiteStudyRunner:
                         break
                 if not self.stop_requested:
                     self.client.finish_experiment(experiment_id, "completed")
+            build_study_reports(root)
         finally:
             writer.write_json("identities.json", identities)
             writer.finalize()
@@ -230,13 +249,18 @@ class FlashLiteStudyRunner:
                 model=self.config.model,
             )
             repetition_writer.write_json("readiness.json", readiness)
-            if readiness.get("actual_model") and readiness["actual_model"] != self.config.model:
+            if readiness.get("actual_model") and not model_identity_matches(self.config.model, str(readiness["actual_model"])):
                 raise ValueError("provider readiness returned a different actual model")
         except BenchmarkApiError as exc:
             repetition_writer.write_json(
                 "readiness-failure.json",
                 {"category": classify_provider_failure(exc), "status_code": exc.status_code, "message": str(exc)},
             )
+            repetition_writer.finalize()
+            self.stop_requested = True
+            return
+        except ValueError as exc:
+            repetition_writer.write_json("readiness-failure.json", {"category": "provider_content_failure", "message": str(exc)})
             repetition_writer.finalize()
             self.stop_requested = True
             return
@@ -342,7 +366,7 @@ class FlashLiteStudyRunner:
                 for item in evidence.get("generation_attempts", [])
                 if isinstance(item, dict) and item.get("model")
             }
-            if observed_models and observed_models != {self.config.model}:
+            if observed_models and any(not model_identity_matches(self.config.model, model) for model in observed_models):
                 outcome_category = "provider_model_mismatch"
                 outcome_state = "failed"
                 final_outcome = f"Provider returned model identity {sorted(observed_models)!r}; expected {self.config.model}."
@@ -350,6 +374,7 @@ class FlashLiteStudyRunner:
             evidence.update({"study_id": self.config.study_id, "round": round_name, "repetition": repetition, "case_id": case.case_id, "project_id": project_id, "chat_responses": responses, "project_key": project_key, "model": self.config.model, "provider": "gemini_api", "outcome_category": outcome_category, "outcome_state": outcome_state, "final_outcome": final_outcome})
             writer.write_json("conversation.json", {"chat_responses": responses, "workflow_ids": workflow_ids})
             writer.write_json("evidence.json", evidence)
+            self._write_canonical_provider_calls(writer, evidence, workflow_ids)
             writer.write_json("summary.json", {"outcome_category": outcome_category, "outcome_state": outcome_state, "final_outcome": final_outcome, "provider_call_count": sum(int(item.get("provider_call_count") or 0) for item in evidence.get("generation_attempts", []) if isinstance(item, dict))})
             writer.finalize()
             client.complete_case(experiment_id, str(run["id"]), case.case_id, {"state": "incomplete" if outcome_state == "incomplete" else ("failed" if outcome_state == "failed" else "completed"), "clarification_rounds": clarification_rounds, "retry_count": retry_count, "outcome_category": outcome_category, "outcome_state": outcome_state, "final_outcome": str(final_outcome) if final_outcome is not None else None, "metrics": {"provider_call_count": sum(int(item.get("provider_call_count") or 0) for item in evidence.get("generation_attempts", []) if isinstance(item, dict)), "provider_failure": outcome_category.startswith("provider_")}, "evidence_path": str((writer.root / "evidence.json").relative_to(self.config.output_root.parent.parent))})
@@ -361,6 +386,31 @@ class FlashLiteStudyRunner:
             if isinstance(exc, BenchmarkApiError) and exc.status_code in QUOTA_STATUS_CODES:
                 self.stop_requested = True
             return {"case_id": case.case_id, "error": str(exc)}
+
+    @staticmethod
+    def _write_canonical_provider_calls(writer: EvidenceWriter, evidence: dict[str, Any], workflow_ids: list[str]) -> None:
+        calls_root = writer.root / "provider-calls"
+        for path in sorted(calls_root.glob("*.json")):
+            try:
+                record = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if not isinstance(record, dict):
+                continue
+            canonical = copy.deepcopy(record)
+            canonical["workflow_id"] = workflow_ids[0] if len(workflow_ids) == 1 else None
+            attempts = evidence.get("generation_attempts") if isinstance(evidence.get("generation_attempts"), list) else []
+            canonical["downstream"] = {
+                "source_assembled": bool(attempts),
+                "source_valid": any(str(item.get("status")) == "succeeded" for item in attempts if isinstance(item, dict)),
+                "worker_reached": bool(evidence.get("worker_reached")) or any("worker" in str(item.get("stage", "")) for item in evidence.get("workflow_events", {}).values() if isinstance(item, dict)),
+                "worker_result": evidence.get("worker_result"),
+                "topology_result": evidence.get("topology"),
+                "verification_result": evidence.get("verification") or evidence.get("feature_measurements"),
+                "candidate_state": evidence.get("outcome_state"),
+                "final_blocker": evidence.get("outcome_category") if str(evidence.get("outcome_state")) in {"failed", "incomplete"} else None,
+            }
+            writer.write_json(f"provider-calls/canonical/{path.stem}.json", canonical)
 
     @staticmethod
     def _poll(client: BenchmarkApiClient, workflow_id: str) -> None:
@@ -381,11 +431,28 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-flash-lite-study"))
+    parser.add_argument("--replay", metavar="STUDY_ID")
+    parser.add_argument("--from", dest="start_from", choices=("raw_provider_response", "parsed_response", "normalized_response", "assembled_source", "worker_result"), default="raw_provider_response")
+    parser.add_argument("--stage")
+    parser.add_argument("--case", dest="case_id")
+    parser.add_argument("--offline-required", action="store_true")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
+    if args.replay:
+        result = OfflineReplayEngine(
+            ReplayConfig(
+                study_root=args.output_root / args.replay,
+                start_from=args.start_from,
+                stage=args.stage,
+                case_id=args.case_id,
+                offline_required=args.offline_required,
+            )
+        ).run()
+        print(json.dumps(result, indent=2, sort_keys=True, default=str))
+        return 0
     config = FlashLiteStudyConfig(
         corpus_path=args.corpus,
         study_id=args.study_id,
