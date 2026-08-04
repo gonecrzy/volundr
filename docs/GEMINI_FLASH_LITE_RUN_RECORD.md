@@ -46,3 +46,9 @@ title `Volundr` and zero browser console errors. The viewer `Fit` and `Iso`
 controls were exercised successfully; the page remained on the empty-project
 state without initiating a provider operation.
 
+## Final verification
+
+The image-backed backend suite passed with 875 tests and 3 existing warnings.
+The repository worktree is clean after the study record commits. Live evidence
+remains outside Git under the private evidence root above.
+
