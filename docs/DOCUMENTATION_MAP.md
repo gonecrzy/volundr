@@ -40,6 +40,14 @@ The Gemini profile-ablation protocol and partial results are recorded in
 `GEMINI_PROFILE_ABLATION_RESULTS.md`. They are evaluation evidence only and do
 not override production contracts.
 
+The focused Phase 2 audit is recorded in `GEMINI_PHASE2_VALIDATION_AUDIT.md`,
+with clarification semantics in `GEMINI_PHASE2_CLARIFICATION_AUDIT.md`,
+worker semantics in `GEMINI_PHASE2_WORKER_REACH_AUDIT.md`, score provenance in
+`GEMINI_BUILDABILITY_SCORE_RECONCILIATION.md`, and the design-only follow-up
+in `GEMINI_PROFILE_B_SECOND_VALIDATION_PLAN.md`. These documents are evidence
+and planning artifacts; they do not authorize deployment or change production
+provider behavior.
+
 ### Historical evaluation evidence
 
 Earlier benchmark and transition reports remain useful for chronology, failure

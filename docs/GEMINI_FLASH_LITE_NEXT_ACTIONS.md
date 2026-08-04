@@ -37,3 +37,10 @@ stable-foundation candidate. A focused five-case/two-arm validation then
 completed but was mixed at the worker boundary. Keep production configuration
 unchanged and use `candidate_promising_but_needs_second_validation` as the
 current engineering recommendation.
+
+The subsequent offline audit makes the decision machine-readable as
+`corrected_second_validation_required`: Profile B remains the Phase 1
+candidate, but case-001 did not receive equivalent clarification continuation
+and the original worker-ready aggregation was wrong. Do not deploy Profile B
+or run another live validation until the corrected plan in
+`GEMINI_PROFILE_B_SECOND_VALIDATION_PLAN.md` is explicitly authorized.

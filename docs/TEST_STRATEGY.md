@@ -10,6 +10,14 @@ comparison, quota-stop behavior, and Phase 2 gating in
 tests/test_gemini_profile_ablation.py. Live evidence is redacted, write-once,
 outside Git, and must reconcile to the machine-readable Phase 1 reports.
 
+The offline Phase 2 audit additionally tests clarification asymmetry,
+worker-ready/source-contract semantics, worker runtime versus CAD success,
+deterministic earliest-blocker and furthest-stage selection, five-project arm
+aggregation, shared-blocker attribution, score-conflict reconciliation,
+historical-report preservation, all-35-call/all-10-project bundle inclusion,
+redaction, and zero provider/worker calls. The audit runner is
+`backend/scripts/audit_gemini_phase2.py`.
+
 ## Deterministic feature verification
 
 Feature verification tests cover source-only and missing-trace states,

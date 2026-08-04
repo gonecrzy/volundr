@@ -6,9 +6,12 @@ This document records the implementation sequence, current stage status, milesto
 
 The experiment-only Gemini profile ablation is recorded in
 GEMINI_PROFILE_ABLATION_RESULTS.md. Phase 1 is quota-interrupted at 18 of 30
-calls, so no profile advances and Phase 2 remains gated. This does not change
-the production roadmap or authorize prompt, schema, provenance, source-symbol,
-or missing-slot behavior changes.
+calls, so no profile advances automatically. The preserved Phase 2 evidence
+has been audited offline; its decision is
+`corrected_second_validation_required` because clarification continuation was
+asymmetric and worker reach was under-counted. This does not change the
+production roadmap or authorize prompt, schema, provenance, source-symbol, or
+missing-slot behavior changes.
 
 ## Current feature-verification stage
 

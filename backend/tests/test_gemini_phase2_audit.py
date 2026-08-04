@@ -216,3 +216,17 @@ def test_historical_manual_bundle_hash_matches_preserved_snapshot() -> None:
     snapshot = json.loads((historical / "audit-snapshot.json").read_text(encoding="utf-8"))
 
     assert hashlib.sha256(original.read_bytes()).hexdigest() == snapshot["preserved_report_hashes"]["all-responses-manual-review.json"]
+
+
+def test_preserved_calls_and_future_rate_policy_are_explicit() -> None:
+    root = Path(__file__).parents[2]
+    bundle = json.loads((root / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/reports/all-responses-manual-review-audited.json").read_text(encoding="utf-8"))
+    rate = bundle["rate_limit_policy"]
+    calls = bundle["phase_2_audit"]["provider_calls"]
+
+    assert len(calls) == 35
+    assert {call["response_identity"] for call in calls} == {"gemini-3.5-flash-lite"}
+    assert rate["default_requests_per_minute"] == 12
+    assert rate["hard_max_requests_per_rolling_window"] == 15
+    assert rate["concurrency"] == 1
+    assert rate["min_interval_seconds"] >= 5

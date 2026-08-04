@@ -622,6 +622,8 @@ def write_phase2_audit_reports(output_root: Path, study_root: Path, repository_r
     audited["phase_2_audit"] = {key: value for key, value in audit.items() if key not in {"reconstruction"}}
     audited["phase_2_audit"]["reconstruction"] = audit["reconstruction"]
     audited["phase_2_audit"]["provider_calls"] = audit["reconstruction"]["provider_calls"]
+    audited["rate_limit_policy"] = dict(audited.get("rate_limit_policy") or {})
+    audited["rate_limit_policy"]["hard_max_requests_per_rolling_window"] = audited["rate_limit_policy"].get("max_requests_per_rolling_window", 15)
     audited["final_audited_decision"] = audit["decision"]
     audited["redaction"] = {"api_keys": "removed", "authorization_headers": "removed", "cookies": "removed", "private_absolute_paths": "removed", "audit_mode": "offline_only"}
     _write_json(reports / "all-responses-manual-review-audited.json", _redact(audited))
