@@ -2,7 +2,7 @@
   "profile_version": "ollama-calibration-v1",
   "model_name": "volundr-procad-coder-native:q8_0",
   "model_digest": "92d3a018374f3603e6c2a4cc72a8a987c525b0398bea29b7382a19e9ff0a3120",
-  "response_modes": ["native", "production_slot"],
+  "response_modes": ["native"],
   "chat_template": "qwen2-chatml",
   "system_prompt": "You are a helpful assistant.",
   "native_system_prompt": "You are a helpful assistant.",
@@ -11,7 +11,7 @@
   "structured_output_method": "unverified",
   "reasoning_tag_policy": "remove_when_boundaries_are_unambiguous",
   "markdown_policy": "strip_one_outer_fence",
-  "native_extraction_policy": "full_script",
+  "native_extraction_policy": "single_python_candidate_v2",
   "final_object_policy": "alias_one_unambiguous_cadquery_assignment",
   "slot_mapping_policy": "explicit_slot_id",
   "context_length": 8192,
@@ -25,9 +25,11 @@
   "idle_timeout_seconds": 300.0,
   "total_timeout_seconds": 1800.0,
   "keep_alive": "30m",
-  "known_safe_normalizations": ["representation.markdown_wrapped", "representation.final_symbol_alias"],
+  "known_safe_normalizations": ["representation.markdown_wrapped", "representation.final_symbol_alias", "representation.prose_wrapped", "representation.reasoning_wrapped", "representation.line_endings_normalized"],
   "known_unsupported_behaviors": [],
   "calibration_status": "frozen",
   "holdout_status": "not_started",
-  "profile_hash": "abb398f5dc53e33ee7836317738d1b1ff83db4829b294f6d547116f2ddabef3f"
+  "iteration": 1,
+  "iteration_changes": [{"change": "Use one fenced or unfenced Python candidate and strip both fence boundaries.", "evidence": "Native responses included malformed and repeated output; safe extraction must reject incomplete AST.", "previous_result": "Coarse representation findings", "new_result": "Precise AST/truncation classification", "improved": "representation"}, {"change": "Disable repeated production-slot generation after native/slot contract evidence.", "evidence": "Slot output used unbound helper DSL; no missing CAD meaning may be added.", "previous_result": "Production slot unresolved", "new_result": "Native-only diagnostic profile", "improved": "representation"}],
+  "profile_hash": "6edd575bbd0c72336e2f2dc2d17aa0064874004c67d642ba70513cc685569a5b"
 }
