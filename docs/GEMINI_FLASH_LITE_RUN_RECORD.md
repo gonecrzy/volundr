@@ -31,3 +31,11 @@ calls, 10 repair calls, 30 projects reaching valid source, 14 reaching the
 worker, 5 producing valid topology, and 2 candidate-ready-or-warning
 outcomes.
 
+## Before-and-after interpretation
+
+The generated comparison is explicitly labeled `before-and-after product
+correction study` and is not a controlled provider-variability pair. The
+recorded changes were +1 candidate-ready-or-warning outcome, +1 worker-reached
+project, and unchanged valid-source and valid-topology counts. Feature
+evidence remained unmeasured in both rounds.
+
