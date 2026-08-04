@@ -704,6 +704,7 @@ def _round_report(root: Path, round_name: str, records: list[dict[str, Any]]) ->
     }
     return {
         "schema_version": "gemini-flash-lite-corrected-report-v1",
+        "study_kind": "before-and-after product correction study",
         "round": round_name,
         "offline_required": True,
         "provider_calls": 0,
@@ -781,7 +782,7 @@ def build_corrected_study_reports(study_root: Path, *, preserve_history: bool = 
         delta = {key: validation_metrics.get(key, 0) - baseline_metrics.get(key, 0) for key in set(baseline_metrics) | set(validation_metrics) if isinstance(validation_metrics.get(key, 0), (int, float)) and isinstance(baseline_metrics.get(key, 0), (int, float))}
         before_after = {"schema_version": "gemini-flash-lite-corrected-before-after-v1", "study_kind": "before-and-after product correction study", "controlled_pair": False, "label": "before-and-after product correction study", "offline_required": True, "provider_calls": 0, "baseline": baseline_metrics, "validation": validation_metrics, "metric_deltas": delta}
         _write_json(study_root / "comparisons" / "before-after.json", before_after)
-    result = {"schema_version": "gemini-flash-lite-corrected-study-summary-v1", "offline_required": True, "provider_calls": 0, "rounds": reports, "consistency": consistency, "historical_reports_preserved": preserve_history}
+    result = {"schema_version": "gemini-flash-lite-corrected-study-summary-v1", "study_kind": "before-and-after product correction study", "offline_required": True, "provider_calls": 0, "rounds": reports, "consistency": consistency, "historical_reports_preserved": preserve_history}
     _write_json(study_root / "reports" / "study-summary.json", result)
     _write_json(study_root / "reports" / "corrected" / "study-summary.json", result)
     return result
