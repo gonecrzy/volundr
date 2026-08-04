@@ -2,7 +2,7 @@
   "profile_version": "ollama-calibration-v1",
   "model_name": "deepseek-coder-v2:16b-lite-instruct-q4_K_M",
   "model_digest": "dac6ff6589c90902a8e5b11583492d17e87b6f3ddb25e558c593110a23a547aa",
-  "response_modes": ["production_slot", "native"],
+  "response_modes": ["native"],
   "chat_template": "deepseek-user-assistant",
   "system_prompt": "You are a helpful assistant.",
   "native_system_prompt": "You are a helpful assistant.",
@@ -11,7 +11,7 @@
   "structured_output_method": "unverified",
   "reasoning_tag_policy": "remove_when_boundaries_are_unambiguous",
   "markdown_policy": "strip_one_outer_fence",
-  "native_extraction_policy": "full_script",
+  "native_extraction_policy": "single_python_candidate_v2",
   "final_object_policy": "alias_one_unambiguous_cadquery_assignment",
   "slot_mapping_policy": "explicit_slot_id",
   "context_length": 8192,
@@ -25,9 +25,11 @@
   "idle_timeout_seconds": 300.0,
   "total_timeout_seconds": 1800.0,
   "keep_alive": "30m",
-  "known_safe_normalizations": ["representation.prose_wrapped", "representation.markdown_wrapped", "representation.slot_order_variant", "representation.final_symbol_alias", "representation.reasoning_wrapped"],
+  "known_safe_normalizations": ["representation.prose_wrapped", "representation.markdown_wrapped", "representation.slot_order_variant", "representation.final_symbol_alias", "representation.reasoning_wrapped", "representation.line_endings_normalized"],
   "known_unsupported_behaviors": [],
   "calibration_status": "frozen",
   "holdout_status": "not_started",
-  "profile_hash": "7baa561a929cec407bfc4a31b4e853647a3332f28f9e57454e41d4b6759e1d31"
+  "iteration": 1,
+  "iteration_changes": [{"change": "Use one fenced or unfenced Python candidate and strip reasoning/prose wrappers only at exact boundaries.", "evidence": "Native responses were fenced with leading whitespace; prior classification was too coarse.", "previous_result": "Representation findings", "new_result": "Safe native extraction with AST gate", "improved": "representation"}, {"change": "Disable repeated production-slot generation after imports/helper evidence.", "evidence": "Slot responses contained imports and unsupported helper DSL; no slot CAD meaning may be invented.", "previous_result": "Production slot unresolved", "new_result": "Native-only diagnostic profile", "improved": "representation"}],
+  "profile_hash": "e73b6cc45b570e031bfb3bd626e6eae781dd8f5946000a174694876716e5d750"
 }
