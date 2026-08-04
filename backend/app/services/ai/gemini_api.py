@@ -40,6 +40,7 @@ class GeminiApiProvider(GeminiCliProvider):
         transport: httpx.AsyncBaseTransport | None = None,
         model_policy: GeminiModelPolicy | None = None,
         interaction_recorder: Callable[..., Any] | None = None,
+        response_processor: Callable[..., tuple[str, dict[str, Any]]] | None = None,
     ) -> None:
         resolved_policy = model_policy or GeminiModelPolicy.from_settings(
             settings,
@@ -83,6 +84,8 @@ class GeminiApiProvider(GeminiCliProvider):
         )
         self._transport = transport
         self._interaction_recorder = interaction_recorder
+        self._response_processor = response_processor
+        self._last_processing_metadata: dict[str, Any] = {}
 
     @property
     def provider_id(self) -> str:
@@ -144,6 +147,7 @@ class GeminiApiProvider(GeminiCliProvider):
         model: str | None = None,
         stage: str = "provider",
         prompt_mode: str = "provider",
+        processing_context: dict[str, Any] | None = None,
     ) -> tuple[str, str]:
         if not self.api_key:
             raise RuntimeError("Gemini API key is not configured")
@@ -152,6 +156,7 @@ class GeminiApiProvider(GeminiCliProvider):
         self._last_provider_request_id = None
         self._last_provider_call_count = 0
         self._last_provider_retry_count = 0
+        self._last_processing_metadata = {}
 
         generation_config: dict[str, Any] = {
             "temperature": self.temperature,
@@ -318,7 +323,42 @@ class GeminiApiProvider(GeminiCliProvider):
             actual_model = model or self.model or ""
         self._last_usage_metadata = usage_metadata
         self._last_provider_request_id = provider_request_id
+        if self._response_processor is not None:
+            processed_output, metadata = self._response_processor(
+                raw_output,
+                stage=stage,
+                context=processing_context or self._processing_context(prompt_mode),
+            )
+            if not isinstance(processed_output, str) or not processed_output.strip():
+                raise RuntimeError("benchmark response processor returned an empty response")
+            raw_output = processed_output
+            self._last_processing_metadata = dict(metadata or {})
         return raw_output, actual_model
+
+    @staticmethod
+    def _processing_context(prompt_mode: str) -> dict[str, Any]:
+        return {"request_kind": prompt_mode}
+
+    @staticmethod
+    def _processing_context_for_request(request: Any) -> dict[str, Any]:
+        request_name = type(request).__name__
+        request_kind = {
+            "RequirementExtractionRequest": "requirements",
+            "DesignPlanRequest": "design_plan",
+            "ModelGenerationRequest": "geometry",
+            "RevisionPlanRequest": "revision_planning",
+        }.get(request_name, request_name.removesuffix("Request").casefold())
+        context = {
+            "request_kind": request_kind,
+        }
+        manifest = getattr(request, "geometry_slot_manifest", None)
+        if isinstance(manifest, dict):
+            context["slot_function_ids"] = {
+                str(slot.get("slot_id")): slot.get("function_id")
+                for slot in manifest.get("slots", [])
+                if isinstance(slot, dict) and slot.get("slot_id") is not None
+            }
+        return context
 
     def _record_interaction(self, **payload: Any) -> None:
         if self._interaction_recorder is None:

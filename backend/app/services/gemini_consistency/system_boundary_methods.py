@@ -215,13 +215,41 @@ def process_response(method: str, raw: str | Any, *, stage: str, context: dict[s
         processed = _normalize_keys(processed, actions)
     if method in {"P2", "P4", "P5"}:
         processed = _reconcile_authority(processed, dict(context or {}), actions)
-    if method in {"P3", "P4", "P5"} and stage in {"geometry", "geometry_slot", "source_generation"}:
+    if method in {"P3", "P4", "P5"} and (stage in {"geometry", "geometry_slot", "source_generation"} or stage.startswith("cadquery_geometry")):
         processed = _geometry_adapter(processed, dict(context or {}), actions)
     if method in {"P4", "P5"}:
         evidence = (context or {}).get("preserved_evidence")
         if evidence is not None:
             actions.append({"rule": "preserved_trace_reconciliation", "original": None, "normalized": "evidence_carried", "confidence": "high"})
     return ProcessingResult(method=method, original=original, processed=processed, actions=actions)
+
+
+def process_provider_text(method: str, raw_text: str, *, stage: str, context: dict[str, Any] | None = None) -> tuple[str, dict[str, Any]]:
+    """Apply an explicitly selected method at the live provider boundary."""
+    if method == "P0":
+        if not raw_text.strip():
+            raise ProcessingBlocked("semantically empty response")
+        return raw_text, {
+            "method": method,
+            "original_text": raw_text,
+            "processed_text": raw_text,
+            "original_hash": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+            "processed_hash": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+            "actions": [],
+        }
+    result = process_response(method, raw_text, stage=stage, context=context)
+    processed_text = json.dumps(result.processed, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+    return processed_text, {
+        "method": method,
+        "original_text": raw_text,
+        "processed_text": processed_text,
+        "original_hash": hashlib.sha256(raw_text.encode("utf-8")).hexdigest(),
+        "processed_hash": hashlib.sha256(processed_text.encode("utf-8")).hexdigest(),
+        "semantic_hash_before": result.semantic_hash_before,
+        "semantic_hash_after": result.semantic_hash_after,
+        "actions": result.actions,
+        "blocked": result.blocked,
+    }
 
 
 def validate_rate_events(events: Iterable[dict[str, Any]], *, hard_max: int = HARD_MAX_REQUESTS_PER_WINDOW, window_seconds: float = 60.0) -> bool:
@@ -318,6 +346,7 @@ __all__ = [
     "ProcessingResult",
     "canonical_hash",
     "process_response",
+    "process_provider_text",
     "replay_preserved_evidence",
     "semantic_hash",
     "validate_rate_events",

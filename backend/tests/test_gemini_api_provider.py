@@ -160,6 +160,46 @@ async def test_gemini_api_extract_requirements_posts_prompt_and_returns_text() -
 
 
 @pytest.mark.asyncio
+async def test_explicit_benchmark_processing_changes_only_processed_provider_text() -> None:
+    calls: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "modelVersion": "gemini-3.5-flash-lite",
+                "candidates": [{"content": {"parts": [{"text": "```json\\n{\\\"outcome\\\":\\\"ready_for_generation\\\"}\\n```"}]}}],
+            },
+        )
+
+    def processor(raw: str, *, stage: str, context: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        assert stage == "requirements"
+        assert context["request_kind"] == "requirements"
+        return '{"outcome":"generation_ready"}', {"method": "P1", "actions": [{"rule": "test"}]}
+
+    provider = GeminiApiProvider(
+        api_key="secret-key",
+        model="gemini-3.5-flash-lite",
+        transport=_mock_transport(handler),
+        response_processor=processor,
+        interaction_recorder=calls.append,
+    )
+
+    result = await provider.extract_requirements(
+        RequirementExtractionRequest(
+            project_name="Draft",
+            original_intent="Make a bracket.",
+            user_instruction="Make a bracket.",
+        )
+    )
+
+    assert result.raw_output == '{"outcome":"generation_ready"}'
+    assert result.routing_metadata["processing_method"] == "P1"
+    assert result.routing_metadata["processing_actions"] == [{"rule": "test"}]
+    assert calls[0]["raw_text"].startswith("```json")
+
+
+@pytest.mark.asyncio
 async def test_gemini_api_routes_requirements_and_geometry_to_stage_models() -> None:
     urls: list[str] = []
 

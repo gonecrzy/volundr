@@ -11,6 +11,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     METHOD_IDS,
     ProcessingBlocked,
     canonical_hash,
+    process_provider_text,
     process_response,
     replay_preserved_evidence,
     validate_rate_events,
@@ -69,6 +70,28 @@ def test_proven_prior_shape_alias_normalizes_to_body() -> None:
     assert result.processed["statements"] == ["body = body.union(feature)"]
     assert result.processed["result_symbol"] == "body"
     assert result.semantic_hash_before == result.semantic_hash_after
+
+
+def test_provider_boundary_processing_preserves_raw_for_capture_and_returns_processed_text() -> None:
+    raw = '{"slots":[{"slot_id":1,"result_symbol":"modified_shape","statements":["modified_shape = component_shape.union(feature)"]}]}'
+    processed_text, metadata = process_provider_text(
+        "P3",
+        raw,
+        stage="source_generation",
+        context={"slot_function_ids": {"1": "_ai_feature_body"}},
+    )
+
+    assert json.loads(processed_text)["slots"][0]["result_symbol"] == "body"
+    assert metadata["original_text"] == raw
+    assert metadata["actions"]
+
+
+def test_p0_provider_boundary_is_byte_preserving() -> None:
+    raw = "  ```json\n{\"x\":1}\n```  "
+    processed_text, metadata = process_provider_text("P0", raw, stage="requirements")
+
+    assert processed_text == raw
+    assert metadata["actions"] == []
 
 
 def test_rate_events_never_exceed_hard_cap() -> None:

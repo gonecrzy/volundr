@@ -10,6 +10,7 @@ from app.services.ai.model_policy import GeminiModelPolicy
 from app.services.ai.ollama import OllamaProvider
 from app.services.cad.worker_client import FilesystemCadWorkerRunner
 from app.services.gemini_consistency.interaction_capture import ImmutableInteractionCapture, StudyContext
+from app.services.gemini_consistency.system_boundary_methods import METHOD_IDS, process_provider_text
 
 
 def get_data_dir() -> Path:
@@ -33,6 +34,7 @@ def build_ai_provider(
     benchmark_seed: int | None = None,
     study_context: StudyContext | None = None,
     study_evidence_root: Path | None = None,
+    benchmark_processing: str | None = None,
 ) -> AiProvider:
     provider = (benchmark_provider or config.ai_provider).strip().lower()
     if benchmark_model and provider not in {"ollama", "local_ollama", "gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
@@ -50,6 +52,8 @@ def build_ai_provider(
             seed=benchmark_seed,
         )
     if provider in {"gemini_api", "google_gemini_api"}:
+        if benchmark_processing is not None and benchmark_processing not in METHOD_IDS:
+            raise ValueError("benchmark processing method is unsupported")
         model_policy = (
             GeminiModelPolicy.for_benchmark(config, benchmark_model)
             if benchmark_model
@@ -72,6 +76,14 @@ def build_ai_provider(
             timeout_seconds=config.gemini_timeout_seconds,
             model_policy=model_policy,
             interaction_recorder=interaction_recorder,
+            response_processor=(
+                lambda raw, *, stage, context: process_provider_text(
+                    benchmark_processing,
+                    raw,
+                    stage=stage,
+                    context=context,
+                )
+            ) if benchmark_processing is not None else None,
         )
     if provider in {"gemini", "gemini_cli"}:
         model_policy = (

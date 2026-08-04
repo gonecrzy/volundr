@@ -321,6 +321,7 @@ async def submit_chat_message(
     study_round: str | None = Header(default=None, alias="X-Volundr-Study-Round"),
     study_repetition: int | None = Header(default=None, alias="X-Volundr-Study-Repetition"),
     study_case_id: str | None = Header(default=None, alias="X-Volundr-Study-Case"),
+    benchmark_processing: str | None = Header(default=None, alias="X-Volundr-Benchmark-Processing"),
 ) -> ChatWorkflowResponse:
     if study_id is not None:
         require_developer_tools()
@@ -341,14 +342,16 @@ async def submit_chat_message(
             benchmark_seed=benchmark_seed,
             study_context=study_context,
             study_evidence_root=data_dir / "debug-sessions" / "gemini-flash-lite-study" / study_id,
+            benchmark_processing=benchmark_processing,
         )
-    elif benchmark_provider is not None or benchmark_model is not None or benchmark_seed is not None:
+    elif benchmark_provider is not None or benchmark_model is not None or benchmark_seed is not None or benchmark_processing is not None:
         require_developer_tools()
         ai_provider = build_ai_provider(
             settings,
             benchmark_provider=benchmark_provider,
             benchmark_model=benchmark_model,
             benchmark_seed=benchmark_seed,
+            benchmark_processing=benchmark_processing,
         )
     service = ChatWorkflowService(
         db=db,

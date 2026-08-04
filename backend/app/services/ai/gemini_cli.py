@@ -192,25 +192,31 @@ class GeminiCliProvider:
         routing_reason = decision.routing_reason
         provider_call_count = 1
         provider_retry_count = 0
+        processing_context_builder = getattr(self, "_processing_context_for_request", None)
+        processing_context = processing_context_builder(request) if callable(processing_context_builder) else None
         try:
-            response = await self._run_prompt(
-                prompt,
-                model=decision.selected_model,
-                stage=decision.prompt_mode.value,
-                prompt_mode=decision.prompt_mode.value,
-            )
+            prompt_kwargs = {
+                "model": decision.selected_model,
+                "stage": decision.prompt_mode.value,
+                "prompt_mode": decision.prompt_mode.value,
+            }
+            if processing_context is not None:
+                prompt_kwargs["processing_context"] = processing_context
+            response = await self._run_prompt(prompt, **prompt_kwargs)
         except RuntimeError as exc:
             if (
                 decision.selected_model == self.model_policy.general_model
                 or not GeminiModelPolicy.is_operational_failure(str(exc))
             ):
                 raise
-            response = await self._run_prompt(
-                prompt,
-                model=self.model_policy.general_model,
-                stage=decision.prompt_mode.value,
-                prompt_mode=decision.prompt_mode.value,
-            )
+            prompt_kwargs = {
+                "model": self.model_policy.general_model,
+                "stage": decision.prompt_mode.value,
+                "prompt_mode": decision.prompt_mode.value,
+            }
+            if processing_context is not None:
+                prompt_kwargs["processing_context"] = processing_context
+            response = await self._run_prompt(prompt, **prompt_kwargs)
             provider_call_count = 2
             actual_model = self.model_policy.general_model
             routing_reason = "operational_fallback"
@@ -224,6 +230,14 @@ class GeminiCliProvider:
         routing["actual_model"] = actual_model
         routing["provider_call_count"] = int(getattr(self, "_last_provider_call_count", provider_call_count))
         routing["provider_retry_count"] = int(getattr(self, "_last_provider_retry_count", provider_retry_count))
+        processing_metadata = getattr(self, "_last_processing_metadata", None)
+        if isinstance(processing_metadata, dict) and processing_metadata:
+            routing["processing_method"] = processing_metadata.get("method")
+            routing["processing_actions"] = list(processing_metadata.get("actions") or [])
+            routing["processing_original_hash"] = processing_metadata.get("original_hash")
+            routing["processing_processed_hash"] = processing_metadata.get("processed_hash")
+            routing["processing_semantic_hash_before"] = processing_metadata.get("semantic_hash_before")
+            routing["processing_semantic_hash_after"] = processing_metadata.get("semantic_hash_after")
         return (
             raw_output,
             routing,
