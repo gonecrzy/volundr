@@ -29,6 +29,10 @@ class RedactionService:
     )
     _safe_metric_keys = {
         "max_output_tokens",
+        "maxoutputtokens",
+        "prompttokencount",
+        "candidatestokencount",
+        "totaltokencount",
         "prompt_tokens",
         "output_tokens",
         "estimated_prompt_tokens",

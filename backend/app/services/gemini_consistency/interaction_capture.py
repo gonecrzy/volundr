@@ -91,6 +91,7 @@ class ImmutableInteractionCapture:
         error_category: str | None = None,
         prompt_version: str = "unknown",
         configuration_hash: str = "unknown",
+        experiment_metadata: dict[str, Any] | None = None,
     ) -> tuple[str, Path]:
         provider_call_id = str(uuid4())
         safe_request, request_findings = self.redactor.redact_evidence_value(
@@ -193,6 +194,8 @@ class ImmutableInteractionCapture:
                 "finding_count": len(findings),
             },
         }
+        if experiment_metadata:
+            record["experiment"] = dict(experiment_metadata)
         safe_record, record_findings = self.redactor.redact_evidence_value(
             record,
             data_root=self.root,
