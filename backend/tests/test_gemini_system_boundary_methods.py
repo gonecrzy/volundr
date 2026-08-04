@@ -16,7 +16,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     replay_preserved_evidence,
     validate_rate_events,
 )
-from scripts.run_gemini_system_boundary_methods import _preregistration, _preregistration_matches
+from scripts.run_gemini_system_boundary_methods import _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches
 
 
 def test_method_ids_are_frozen_and_current_processing_is_p0() -> None:
@@ -129,3 +129,26 @@ def test_existing_preregistration_is_resumable_after_repository_commit() -> None
     assert _preregistration_matches(first, later) is True
     later["rate_policy"]["provider_concurrency"] = 2
     assert _preregistration_matches(first, later) is False
+
+
+def test_factorial_data_root_is_absolute_for_backend_subprocesses(tmp_path: Path) -> None:
+    assert _factorial_data_root(tmp_path, "A-current-p0").is_absolute()
+
+
+def test_factorial_enables_immutable_study_capture_for_each_case() -> None:
+    headers = _factorial_headers("P3", "case-006")
+
+    assert headers["X-Volundr-Study-Id"] == "gemini-system-boundary-methods-01"
+    assert headers["X-Volundr-Study-Round"] == "validation"
+    assert headers["X-Volundr-Study-Repetition"] == "1"
+    assert headers["X-Volundr-Study-Case"] == "case-006"
+    assert headers["X-Volundr-Benchmark-Processing"] == "P3"
+
+
+def test_final_validation_is_capped_at_two_declared_systems() -> None:
+    finalists = _finalist_configurations("P3")
+
+    assert finalists == (
+        ("current-p3", "current-production", "P3"),
+        ("profile-b-p3", "profile-b-sampling", "P3"),
+    )
