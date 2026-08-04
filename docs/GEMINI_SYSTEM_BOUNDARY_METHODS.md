@@ -25,6 +25,9 @@ manual-review bundle is `reports/all-methods-manual-review.json` under the new
 root and contains the source reports, offline replay, all preserved live
 attempts, rate evidence, and the final decision.
 
-Current final decision: `insufficient_evidence`. The corrected factorial
-received a hard 429 before all four arms were run, so no final two-system
-comparison was authorized and no prompt ablation or deployment followed.
+Current final decision: `insufficient_evidence`. The secondary credential was
+explicitly tried: the first unfinished C/P3 attempt received a hard 429 and
+stopped before D; a later replacement completed C and D. Two replacement
+captures were transport timeouts, leaving only current/P0 as a clean finalist.
+The final two-system comparison was therefore not authorized, and no prompt
+ablation or deployment followed.

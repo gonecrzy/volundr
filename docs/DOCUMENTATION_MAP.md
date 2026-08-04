@@ -56,6 +56,10 @@ The system-boundary methods study is documented in
 `GEMINI_FINAL_SYSTEM_SELECTION.md`. Its evidence is experiment-scoped and
 does not override production contracts.
 
+The secondary-credential continuation and quota stop are documented in
+`GEMINI_SECONDARY_CREDENTIAL_RESUME.md`; the credential value itself is never
+part of the evidence.
+
 ### Historical evaluation evidence
 
 Earlier benchmark and transition reports remain useful for chronology, failure
