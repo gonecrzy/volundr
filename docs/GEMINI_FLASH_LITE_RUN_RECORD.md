@@ -16,3 +16,10 @@ The recorded report contains 119 provider calls, 8 repair calls, 30 projects
 reaching valid source, 13 reaching the worker, 5 producing valid topology, and
 1 candidate-ready-or-warning outcome.
 
+## Offline cleanup and replay
+
+The bounded cleanup analysis selected no production correction: the only
+eligible recurring signature was `provider_failure`, which did not justify a
+generic product change. The single raw-response replay processed 124 captured
+records with `offline_required: true` and recorded `provider_calls: 0`.
+
