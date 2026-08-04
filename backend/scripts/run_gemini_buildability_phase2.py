@@ -86,7 +86,15 @@ class GeminiProxyHandler(BaseHTTPRequestHandler):
             self.server.events.append({**limiter_event, "method": self.command, "path": self.path.split("?", 1)[0], "status_code": response.status_code, "arm": self.server.arm})
         except httpx.HTTPError as exc:
             self.send_error(502, str(exc))
-            self.server.events.append({**limiter_event, "method": self.command, "path": self.path.split("?", 1)[0], "status_code": 502, "error": "proxy_transport_failure", "arm": self.server.arm})
+            self.server.events.append({
+                **limiter_event,
+                "method": self.command,
+                "path": self.path.split("?", 1)[0],
+                "status_code": 502,
+                "error": "proxy_transport_failure",
+                "arm": self.server.arm,
+                "event_source": "proxy_transport_exception",
+            })
 
 
 def _free_port() -> int:

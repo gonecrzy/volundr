@@ -21,7 +21,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     semantic_hash,
     validate_rate_events,
 )
-from scripts.run_gemini_system_boundary_methods import EXPECTED_FACTORIAL_ARMS, _answer_for_questions, _case_metrics, _credential_environment, _credential_metadata, _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches, _seed_limiter, _validate_resume_source
+from scripts.run_gemini_system_boundary_methods import EXPECTED_FACTORIAL_ARMS, _answer_for_questions, _case_metrics, _credential_environment, _credential_metadata, _factorial_finalist_qualification, _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches, _seed_limiter, _validate_resume_source
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -296,7 +296,7 @@ def test_existing_a_b_arm_captures_are_valid_resume_source() -> None:
 
 
 def test_quota_stopped_c_operation_is_replaced_without_reusing_its_call() -> None:
-    report = json.loads((REPO_ROOT / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/reports/provider-processing-factorial-results.json").read_text(encoding="utf-8"))
+    report = json.loads((REPO_ROOT / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/reports/historical/pre-secondary-credential-resume/secondary-resume-factorial-results.json").read_text(encoding="utf-8"))
 
     result = _validate_resume_source(report)
 
@@ -315,6 +315,39 @@ def test_final_validation_is_capped_at_two_declared_systems() -> None:
         ("current-p3", "current-production", "P3"),
         ("profile-b-p3", "profile-b-sampling", "P3"),
     )
+
+
+def test_final_validation_gate_requires_two_clean_qualified_finalists() -> None:
+    metrics = [
+        {
+            "requirements_valid": True,
+            "plan_valid": True,
+            "source_contract_passed": True,
+            "worker_reached": True,
+        }
+        for _ in range(3)
+    ]
+    report = {
+        "arms": [
+            {
+                "arm_id": "A-current-p0",
+                "project_operations": 3,
+                "capture_complete": True,
+                "provider_capture_count": 3,
+                "provider_calls": 3,
+                "quota_exhausted": False,
+                "actual_model_identities": ["gemini-3.5-flash-lite"],
+                "provider_captures": [],
+                "project_metrics": metrics,
+            },
+        ],
+    }
+
+    qualification = _factorial_finalist_qualification(report)
+
+    assert qualification["authorized"] is False
+    assert qualification["qualified_count"] == 1
+    assert qualification["minimum_qualified_count"] == 2
 
 
 def test_frozen_clarification_facts_are_mapped_to_questions() -> None:

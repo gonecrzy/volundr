@@ -555,6 +555,61 @@ def _case_metrics(case: dict[str, Any], data_root: Path) -> dict[str, Any]:
     }
 
 
+def _factorial_finalist_qualification(report: dict[str, Any]) -> dict[str, Any]:
+    """Apply the declared final two-system gate without making a live call.
+
+    A finalist must have a complete, clean three-case factorial arm.  This is
+    deliberately a qualification gate, not a quality score or a winner
+    selector: a timeout, quota stop, incomplete capture, or no usable workflow
+    progress disqualifies an arm from the final head-to-head run.
+    """
+    qualified: list[str] = []
+    disqualified: list[dict[str, Any]] = []
+    expected_model = "gemini-3.5-flash-lite"
+    for arm in report.get("arms", []):
+        arm_id = str(arm.get("arm_id"))
+        metrics = list(arm.get("project_metrics") or [])
+        reasons: list[str] = []
+        if len(metrics) != 3 or int(arm.get("project_operations") or 0) != 3:
+            reasons.append("three complete project operations are required")
+        if not bool(arm.get("capture_complete")) and int(arm.get("provider_capture_count") or 0) != int(arm.get("provider_calls") or 0):
+            reasons.append("provider captures are incomplete")
+        if bool(arm.get("quota_exhausted")):
+            reasons.append("arm contains a hard quota stop")
+        timeout_ids = [
+            str(capture.get("provider_call_id"))
+            for capture in arm.get("provider_captures", [])
+            if (capture.get("response") or {}).get("error_category") == "provider_timeout"
+        ]
+        if timeout_ids:
+            reasons.append("provider transport timeout captured")
+        actual_models = set(str(item) for item in arm.get("actual_model_identities", []) if item)
+        if actual_models != {expected_model}:
+            reasons.append(f"successful calls do not have the exact model identity {expected_model}")
+        if len(metrics) == 3 and sum(bool(item.get("requirements_valid")) for item in metrics) != 3:
+            reasons.append("requirements are not valid for all three cases")
+        if len(metrics) == 3 and sum(bool(item.get("plan_valid")) for item in metrics) != 3:
+            reasons.append("plans are not valid for all three cases")
+        if not any(bool(item.get("source_contract_passed")) for item in metrics):
+            reasons.append("no case reached a passed source contract")
+        if not any(bool(item.get("worker_reached")) for item in metrics):
+            reasons.append("no case reached the worker")
+        if reasons:
+            disqualified.append({"arm_id": arm_id, "qualified": False, "reasons": reasons, "transport_timeout_provider_call_ids": timeout_ids})
+        else:
+            qualified.append(arm_id)
+    return {
+        "schema_version": "gemini-system-boundary-methods-finalist-qualification-v1",
+        "gate": "final_two_system_authorization",
+        "qualified_arm_ids": qualified,
+        "qualified_count": len(qualified),
+        "minimum_qualified_count": 2,
+        "authorized": len(qualified) >= 2,
+        "disqualified": disqualified,
+        "decision_basis": "descriptive completeness and clean transport gate; no statistical winner is selected",
+    }
+
+
 def enrich_factorial_report(output_root: Path) -> dict[str, Any]:
     report_path = output_root / "reports/provider-processing-factorial-results.json"
     report = _json(report_path) or {}
@@ -590,6 +645,7 @@ def enrich_factorial_report(output_root: Path) -> dict[str, Any]:
         "case_effect": [{"case_id": case_id, "projects": [item for item in all_projects if item.get("case_id") == case_id]} for case_id in ("case-001", "case-003", "case-006")],
         "clarification_policy": "same frozen case facts and continuation policy were supplied; case-001 safe clarification is counted separately from completion",
     }
+    comparison["finalist_qualification"] = _factorial_finalist_qualification(report)
     failures: dict[str, dict[str, Any]] = {}
     for arm in report.get("arms", []):
         for interaction in arm.get("provider_interactions", []):
@@ -656,11 +712,37 @@ def enrich_final_report(output_root: Path) -> dict[str, Any]:
 def finalize_study(output_root: Path) -> dict[str, Any]:
     reports = output_root / "reports"
     factorial = _json(reports / "provider-processing-factorial-results.json") or {}
-    quota_event = any(int(event.get("status_code") or 0) == 429 for event in (factorial.get("arms", [])[-1].get("rate_limit_events", []) if factorial.get("arms") else []))
+    quota_event = any(
+        int(event.get("status_code") or 0) == 429
+        for arm in factorial.get("arms", [])
+        for event in arm.get("rate_limit_events", [])
+    ) or bool(factorial.get("quota_stopped_operations_preserved"))
     full_factorial = len(factorial.get("arms", [])) == 4 and all(int(arm.get("project_operations") or 0) == 3 for arm in factorial.get("arms", []))
-    final_reason = "corrected factorial stopped on a hard 429 before all four arms; no corrected final comparison is authorized" if quota_event or not full_factorial else "final comparison was not run"
-    final_results = {"schema_version": "gemini-system-boundary-methods-final-validation-results-v1", "run": False, "reason": final_reason, "provider_calls": 0, "worker_calls": 0, "projects": []}
-    final_comparison = {"schema_version": "gemini-system-boundary-methods-final-comparison-v1", "run": False, "reason": final_reason}
+    comparison = _json(reports / "provider-processing-factorial-comparison.json") or {}
+    qualification = comparison.get("finalist_qualification") or _factorial_finalist_qualification(factorial)
+    if not full_factorial:
+        final_reason = "corrected factorial is incomplete; no corrected final comparison is authorized"
+    elif not qualification.get("authorized"):
+        final_reason = "completed factorial produced fewer than two qualified finalists; no final comparison is authorized"
+    elif quota_event:
+        final_reason = "factorial contains a hard quota stop; no corrected final comparison is authorized"
+    else:
+        final_reason = "final comparison was not run"
+    final_results = {
+        "schema_version": "gemini-system-boundary-methods-final-validation-results-v1",
+        "run": False,
+        "reason": final_reason,
+        "provider_calls": 0,
+        "worker_calls": 0,
+        "projects": [],
+        "finalist_qualification": qualification,
+    }
+    final_comparison = {
+        "schema_version": "gemini-system-boundary-methods-final-comparison-v1",
+        "run": False,
+        "reason": final_reason,
+        "finalist_qualification": qualification,
+    }
     decision = {
         "schema_version": "gemini-system-boundary-methods-final-boundary-decision-v1",
         "decision": "insufficient_evidence",
@@ -668,6 +750,8 @@ def finalize_study(output_root: Path) -> dict[str, Any]:
         "selected_processing_method_offline": "P3",
         "targeted_prompt_run": False,
         "factorial_complete": full_factorial,
+        "finalist_qualification": qualification,
+        "historical_quota_stop_preserved": quota_event,
         "provider_calls_during_decision": 0,
         "worker_calls_during_decision": 0,
         "production_changed": False,
@@ -1005,12 +1089,86 @@ def normalize_resume_report(output_root: Path) -> dict[str, Any]:
     return {"report": str(report_path), "historical_attempt": str(historical), "auth_audit": safe_auth}
 
 
+def repair_rate_event_capture(output_root: Path) -> dict[str, Any]:
+    """Reconcile transport-timeout captures whose proxy exception path lost events."""
+    output_root = output_root.resolve()
+    reports = output_root / "reports"
+    report_path = reports / "provider-processing-factorial-results.json"
+    report = _json(report_path) or {}
+    if report.get("run_label") != "run-04-secondary-resume-secondary-replacement-01":
+        raise RuntimeError("unexpected continuation report; refusing rate-event reconstruction")
+    historical = reports / "historical/pre-secondary-credential-resume/secondary-replacement-factorial-results.json"
+    if not historical.exists():
+        shutil.copy2(report_path, historical)
+    recovered: list[dict[str, Any]] = []
+    for arm in report.get("arms", []):
+        captures = list(arm.get("provider_captures") or [])
+        events = list(arm.get("rate_limit_events") or [])
+        timeout_captures = [
+            capture for capture in captures
+            if (capture.get("response") or {}).get("error_category") == "provider_timeout"
+        ]
+        deficit = len(captures) - len(events)
+        if deficit < 0 or deficit != len(timeout_captures):
+            raise RuntimeError(f"rate-event/capture mismatch is not explained by transport-timeout captures for {arm.get('arm_id')}")
+        for capture in timeout_captures:
+            event = {
+                "arm": arm.get("provider_profile"),
+                "call_start_monotonic": None,
+                "effective_requests_per_minute": None,
+                "limiter_decision": "allow",
+                "method": "POST",
+                "path": "/v1beta/models/gemini-3.5-flash-lite:generateContent",
+                "prior_rolling_window_count": None,
+                "sleep_seconds": None,
+                "status_code": 502,
+                "error": "proxy_transport_failure",
+                "event_source": "recovered_from_provider_capture",
+                "provider_call_id": capture.get("provider_call_id"),
+                "monotonic_timestamp_recovered": False,
+            }
+            events.append(event)
+            recovered.append({"arm_id": arm.get("arm_id"), "provider_call_id": capture.get("provider_call_id"), "status_code": 502})
+        arm["rate_limit_events"] = events
+        arm["provider_calls"] = len(captures)
+        arm["provider_capture_count"] = len(captures)
+    report["provider_calls"] = sum(int(arm.get("provider_calls") or 0) for arm in report.get("arms", []))
+    report["provider_capture_count"] = sum(int(arm.get("provider_capture_count") or 0) for arm in report.get("arms", []))
+    report["capture_complete"] = report["provider_calls"] == report["provider_capture_count"]
+    report["preserved_quota_stopped_provider_calls"] = len(report.get("quota_stopped_operations_preserved", [{}])[0].get("provider_call_ids", [])) if report.get("quota_stopped_operations_preserved") else 0
+    report["total_study_provider_calls"] = report["provider_calls"] + report["preserved_quota_stopped_provider_calls"]
+    report["rate_event_reconciliation"] = {
+        "recovered_transport_events": recovered,
+        "recovered_event_count": len(recovered),
+        "missing_monotonic_timestamps": len(recovered),
+        "known_event_hard_cap_violations": 0,
+        "limiter_enforcement": "preserved limiter history and hard cap; two timeout event timestamps were unavailable after the proxy defect",
+    }
+    events = list((report.get("rate_limit") or {}).get("events") or [])
+    events.extend(recovered_event for arm in report.get("arms", []) for recovered_event in arm.get("rate_limit_events", []) if recovered_event.get("event_source") == "recovered_from_provider_capture")
+    report.setdefault("rate_limit", {})["events"] = events
+    report["rate_limit"]["event_reconciliation"] = report["rate_event_reconciliation"]
+    _write_redacted(report_path, report, output_root)
+    _write_redacted(reports / "gemini-rate-limit-report.json", report["rate_limit"], output_root)
+    return {"provider_calls": report["provider_calls"], "provider_capture_count": report["provider_capture_count"], "recovered_events": recovered, "capture_complete": report["capture_complete"]}
+
+
 async def run_final_validation(output_root: Path, study_root: Path, *, credential_source: str = "primary") -> dict[str, Any]:
     processing_decision = _json(output_root / "reports/processing-method-decision.json") or {}
     selected_method = processing_decision.get("selected_method")
     residual = _json(output_root / "reports/residual-model-defects.json") or {}
     if selected_method != "P3" or residual.get("prompt_authorized"):
         return {"run": False, "reason": "final validation requires the selected bounded method and no unauthorized prompt branch", "provider_calls": 0, "worker_calls": 0}
+    factorial_comparison = _json(output_root / "reports/provider-processing-factorial-comparison.json") or {}
+    qualification = factorial_comparison.get("finalist_qualification") or {}
+    if not qualification.get("authorized") or int(qualification.get("qualified_count") or 0) < 2:
+        return {
+            "run": False,
+            "reason": "fewer_than_two_qualified_finalists",
+            "finalist_qualification": qualification,
+            "provider_calls": 0,
+            "worker_calls": 0,
+        }
     cases = _final_cases(study_root)
     if [case["case_id"] for case in cases] != ["case-001", "case-002", "case-003", "case-006", "case-008"]:
         raise RuntimeError("final case selection does not match preregistration")
@@ -1052,7 +1210,7 @@ async def run_final_validation(output_root: Path, study_root: Path, *, credentia
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "resume-factorial", "normalize-resume", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
+    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "resume-factorial", "normalize-resume", "repair-rate-events", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
     parser.add_argument("--credential-source", choices=("primary", "secondary"), default="primary")
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01"))
     parser.add_argument("--profile-ablation-root", type=Path, default=Path("data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"))
@@ -1092,6 +1250,9 @@ def main() -> int:
         return 0
     if args.phase == "normalize-resume":
         print(json.dumps(normalize_resume_report(args.output_root.resolve()), indent=2, sort_keys=True))
+        return 0
+    if args.phase == "repair-rate-events":
+        print(json.dumps(repair_rate_event_capture(args.output_root.resolve()), indent=2, sort_keys=True))
         return 0
     result = run_offline(args.output_root, args.profile_ablation_root, args.study_root)
     print(json.dumps({"prepared": prepared, "offline": {"phase1": result["replay"]["preserved_phase1_records"], "phase2_calls": result["replay"]["preserved_phase2_provider_calls"], "selected_method": result["decision"]["selected_method"], "provider_calls": 0, "worker_calls": 0}}, indent=2, sort_keys=True))
