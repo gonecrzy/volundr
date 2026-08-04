@@ -419,6 +419,19 @@ def _reconstruct_project(arm_record: dict[str, Any], case: dict[str, Any], calls
         findings.append({"category": "verification", "stage": "verification_completed", "signature": "verification_evidence_missing", "blocking": True, "message": "No completed verification record was preserved."})
     blocker = select_earliest_blocker(findings) or {"category": "candidate_resolution", "signature": "no_candidate_resolution", "blocking": True, "message": "No candidate-resolution record was preserved."}
     project["stages"] = stages
+    stage_reached = {
+        "requirements_valid": bool(project_calls),
+        "clarification_valid": bool(spec),
+        "plan_valid": bool(plan) or any(call.get("generation_stage") in {"compact_plan", "detailed_plan"} for call in project_calls),
+        "geometry_contract_valid": bool(source_runs) or any(call.get("generation_stage") == "source_generation" for call in project_calls),
+        "geometry_response_valid": geometry_response_valid,
+        "source_contract_valid": bool(contract),
+        "worker_reached": worker["worker_reached"],
+        "artifact_created": worker["artifact_created"],
+        "topology_valid": worker["topology_valid"],
+        "verification_completed": False,
+        "candidate_ready": False,
+    }
     project["metrics"] = {**worker, "requirements_valid": requirements_valid, "plan_valid": plan_valid, "geometry_response_valid": geometry_response_valid, "source_contract_passed": source_contract_passed, "verification_completed": False, "candidate_ready": False, "candidate_ready_with_warnings": False}
     stage_names = {
         "requirements": "requirements_valid",
@@ -434,13 +447,30 @@ def _reconstruct_project(arm_record: dict[str, Any], case: dict[str, Any], calls
         "candidate": "candidate_ready",
     }
     project["stage_records"] = {
-        label: _stage("passed" if stages[key] else "not_reached_or_failed", passed=bool(stages[key]), reached=label == "requirements" or bool(stages.get(key)), provider_call_ids=project["provider_call_ids"], evidence_path=project.get("evidence_root"), blocker=None if stages[key] else blocker["category"], response_identity=project["response_identities"][0] if len(project["response_identities"]) == 1 else None)
+        label: _stage("passed" if stages[key] else ("reached_failed" if stage_reached.get(key) else "not_reached"), passed=bool(stages[key]), reached=bool(stage_reached.get(key)), provider_call_ids=project["provider_call_ids"], evidence_path=project.get("evidence_root"), blocker=None if stages[key] else blocker["category"], response_identity=project["response_identities"][0] if len(project["response_identities"]) == 1 else None)
         for label, key in stage_names.items()
     }
     project["earliest_blocker"] = blocker
     project["furthest_valid_stage"] = "clarification_valid" if clarification["harness_incomplete"] else furthest_valid_stage(stages)
     project["secondary_findings"] = [item for item in findings if item != blocker]
     project["final_outcome"] = "harness_incomplete_after_valid_clarification" if clarification["harness_incomplete"] else ("worker_runtime_failed" if worker["worker_runtime_failed"] else "candidate_not_ready")
+    project["workflow_sequence"] = [
+        {"stage": "project_creation", "status": "created", "reached": True, "evidence_path": project.get("evidence_root")},
+        {"stage": "initial_user_message", "status": "captured", "reached": True, "evidence_path": project.get("evidence_root")},
+        {"stage": "requirements_extraction", "status": "passed" if requirements_valid else "input_required", "reached": bool(project_calls), "provider_call_ids": project["provider_call_ids"]},
+        {"stage": "clarification_decision", "status": clarification["decision"], "reached": bool(spec), "provider_call_ids": project["provider_call_ids"]},
+        {"stage": "clarification_answer", "status": "not_submitted" if clarification["harness_incomplete"] else "not_required", "reached": clarification["answer_facts"] is not None},
+        {"stage": "plan_generation_and_repair", "status": "passed" if plan_valid else "blocked", "reached": stage_reached["plan_valid"], "provider_call_ids": project["provider_call_ids"]},
+        {"stage": "geometry_contract", "status": "passed" if stages["geometry_contract_valid"] else "not_reached", "reached": stage_reached["geometry_contract_valid"]},
+        {"stage": "geometry_response", "status": "passed" if geometry_response_valid else "blocked", "reached": geometry_response_valid, "provider_call_ids": project["provider_call_ids"]},
+        {"stage": "source_validation", "status": "passed" if source_contract_passed else "not_reached_or_failed", "reached": stage_reached["source_contract_valid"]},
+        {"stage": "worker_submission", "status": "submitted" if worker["worker_reached"] else "not_submitted", "reached": worker["worker_reached"]},
+        {"stage": "worker_result", "status": "runtime_failed" if worker["worker_runtime_failed"] else ("completed" if worker["worker_completed"] else "not_completed"), "reached": worker["worker_reached"]},
+        {"stage": "artifacts", "status": "created" if worker["artifact_created"] else "not_created", "reached": worker["artifact_created"]},
+        {"stage": "topology", "status": "valid" if worker["topology_valid"] else "not_validated", "reached": worker["topology_valid"]},
+        {"stage": "verification", "status": "not_preserved", "reached": False},
+        {"stage": "candidate_resolution", "status": "not_ready", "reached": False},
+    ]
     project.pop("_metadata_path", None)
     return project
 
@@ -609,7 +639,7 @@ def write_phase2_audit_reports(output_root: Path, study_root: Path, repository_r
     _write_json(reports / "phase-2-project-reconstruction.json", _redact(audit["reconstruction"]))
     _write_json(reports / "phase-2-clarification-audit.json", _redact(audit["clarification"]))
     _write_json(reports / "phase-2-worker-reach-audit.json", _redact(audit["worker"]))
-    _write_json(reports / "phase-2-case-comparison-corrected.json", _redact(audit["comparison"]["case_comparison"]))
+    _write_json(reports / "phase-2-case-comparison-corrected.json", {"schema_version": "gemini-profile-ablation-phase-2-case-comparison-corrected-v1", "comparisons": _redact(audit["comparison"]["case_comparison"])})
     _write_json(reports / "phase-2-shared-blockers.json", _redact(audit["shared"]))
     _write_json(reports / "phase-2-comparison-corrected.json", _redact(audit["comparison"]))
     _write_json(reports / "buildability-score-reconciliation.json", _redact(audit["score"]))
