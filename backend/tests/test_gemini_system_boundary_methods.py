@@ -16,6 +16,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     replay_preserved_evidence,
     validate_rate_events,
 )
+from scripts.run_gemini_system_boundary_methods import _preregistration, _preregistration_matches
 
 
 def test_method_ids_are_frozen_and_current_processing_is_p0() -> None:
@@ -119,3 +120,12 @@ def test_replay_report_is_json_and_hashable(tmp_path: Path) -> None:
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     assert len(digest) == 64
     assert canonical_hash(document) == canonical_hash(json.loads(path.read_text(encoding="utf-8")))
+
+
+def test_existing_preregistration_is_resumable_after_repository_commit() -> None:
+    first = _preregistration({"repository": {"head": "initial"}})
+    later = _preregistration({"repository": {"head": "later"}})
+
+    assert _preregistration_matches(first, later) is True
+    later["rate_policy"]["provider_concurrency"] = 2
+    assert _preregistration_matches(first, later) is False

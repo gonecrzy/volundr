@@ -32,9 +32,6 @@ from app.services.gemini_consistency.system_boundary_methods import (
 )
 from app.services.gemini_consistency.buildability_reanalysis import RollingWindowRateLimiter
 from app.services.workflow.redaction import RedactionService
-from run_gemini_buildability_phase2 import GeminiProxy, _start_proxy, get_json
-from run_live_bottle_holder_workflow import terminate_process, wait_for_health
-from run_live_multi_design_evaluation import run_case
 
 
 STUDY_ID = "gemini-system-boundary-methods-01"
@@ -150,6 +147,15 @@ def _preregistration(snapshot: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _preregistration_matches(existing: dict[str, Any], expected: dict[str, Any]) -> bool:
+    """Compare frozen study parameters while ignoring the historical snapshot."""
+    left = dict(existing)
+    right = dict(expected)
+    left.pop("snapshot", None)
+    right.pop("snapshot", None)
+    return left == right
+
+
 def prepare_study(output_root: Path, profile_root: Path, study_root: Path, repo_root: Path) -> dict[str, Any]:
     reports = output_root / "reports"
     historical = reports / "historical/source-evidence"
@@ -167,7 +173,7 @@ def prepare_study(output_root: Path, profile_root: Path, study_root: Path, repo_
     preregistration_path = reports / "study-preregistration.json"
     if preregistration_path.exists():
         existing = _json(preregistration_path)
-        if existing != _preregistration(snapshot):
+        if not isinstance(existing, dict) or not _preregistration_matches(existing, _preregistration(snapshot)):
             raise RuntimeError("study preregistration already exists and differs; refusing to overwrite it")
     else:
         _write(preregistration_path, _preregistration(snapshot))
@@ -248,6 +254,10 @@ async def _run_factorial_arm(
     backend_root: Path,
     limiter: Any,
 ) -> dict[str, Any]:
+    from run_gemini_buildability_phase2 import _start_proxy
+    from run_live_bottle_holder_workflow import terminate_process, wait_for_health
+    from run_live_multi_design_evaluation import run_case
+
     data_root = output_root / "factorial" / "live-data" / arm_id
     data_root.mkdir(parents=True, exist_ok=True)
     proxy, proxy_thread = _start_proxy(provider_profile, limiter)
