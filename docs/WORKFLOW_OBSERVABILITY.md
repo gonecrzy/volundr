@@ -49,6 +49,16 @@ reported separately; a preserved blocked attempt is never presented as a
 successful candidate. Report generation only materializes existing evidence
 and must not call a provider or worker.
 
+## Focused validation audit semantics
+
+For Gemini Phase 2 evidence, `worker_ready_valid_source` requires both a hard
+source-contract pass and actual worker submission. `worker_reached` is a
+separate event fact; a CadQuery traceback proves reach but not topology or CAD
+success. Clarification requests are classified separately from profile
+failures, and an unanswered valid request is recorded as
+`harness_incomplete_after_valid_clarification`. Audit aggregation selects one
+earliest authoritative blocker and one furthest valid stage per project.
+
 ## Plan-validation outcomes
 
 Provider transport and Plan validation are separate facts. A received provider

@@ -9,6 +9,7 @@ from app.services.gemini_consistency.phase2_audit import (
     classify_clarification,
     furthest_valid_stage,
     reconcile_buildability_scores,
+    reconstruct_phase2,
     select_earliest_blocker,
 )
 
@@ -140,3 +141,20 @@ def test_audit_record_contract_is_machine_readable(tmp_path: Path) -> None:
     output.write_text(json.dumps({"projects": [record]}), encoding="utf-8")
 
     assert json.loads(output.read_text(encoding="utf-8"))["projects"][0]["case_id"] == "case-001"
+
+
+def test_preserved_profile_b_adapter_proves_worker_reach_without_cad_success() -> None:
+    root = Path(__file__).parents[2]
+    result = reconstruct_phase2(
+        root / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
+        root / "data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01",
+    )
+    adapter = next(item for item in result["projects"] if item["arm"] == "profile-b-sampling" and item["case_id"] == "case-006")
+
+    assert adapter["worker_audit"]["source_contract_passed"] is True
+    assert adapter["worker_audit"]["worker_ready_valid_source"] is True
+    assert adapter["worker_audit"]["worker_reached"] is True
+    assert adapter["worker_audit"]["worker_runtime_failed"] is True
+    assert adapter["worker_audit"]["topology_valid"] is False
+    assert adapter["worker_audit"]["cad_success"] is False
+    assert adapter["furthest_valid_stage"] == "worker_reached"
