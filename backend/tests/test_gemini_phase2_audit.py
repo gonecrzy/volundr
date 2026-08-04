@@ -158,3 +158,17 @@ def test_preserved_profile_b_adapter_proves_worker_reach_without_cad_success() -
     assert adapter["worker_audit"]["topology_valid"] is False
     assert adapter["worker_audit"]["cad_success"] is False
     assert adapter["furthest_valid_stage"] == "worker_reached"
+
+
+def test_preserved_scorecard_reconciliation_selects_reproducible_value() -> None:
+    root = Path(__file__).parents[2]
+    scorecard = json.loads((root / "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/reports/buildability-scorecard.json").read_text(encoding="utf-8"))
+    profile_b = scorecard["profiles"]["profile-b-sampling"]
+    result = reconcile_buildability_scores([
+        {"value": 0.9123, "source_file": "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md", "formula_version": "undocumented"},
+        {"value": profile_b["buildability_score"], "source_file": "reports/buildability-scorecard.json", "formula_version": scorecard["schema_version"], "input_record_count": profile_b["runs"]},
+    ])
+
+    assert result["conflict"] is True
+    assert result["authoritative_value"] == 0.9789
+    assert result["authoritative_source"] == "reports/buildability-scorecard.json"
