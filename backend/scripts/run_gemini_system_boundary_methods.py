@@ -565,6 +565,59 @@ def enrich_final_report(output_root: Path) -> dict[str, Any]:
     return {"report": report, "comparison": comparison}
 
 
+def finalize_study(output_root: Path) -> dict[str, Any]:
+    reports = output_root / "reports"
+    factorial = _json(reports / "provider-processing-factorial-results.json") or {}
+    quota_event = any(int(event.get("status_code") or 0) == 429 for event in (factorial.get("arms", [])[-1].get("rate_limit_events", []) if factorial.get("arms") else []))
+    full_factorial = len(factorial.get("arms", [])) == 4 and all(int(arm.get("project_operations") or 0) == 3 for arm in factorial.get("arms", []))
+    final_reason = "corrected factorial stopped on a hard 429 before all four arms; no corrected final comparison is authorized" if quota_event or not full_factorial else "final comparison was not run"
+    final_results = {"schema_version": "gemini-system-boundary-methods-final-validation-results-v1", "run": False, "reason": final_reason, "provider_calls": 0, "worker_calls": 0, "projects": []}
+    final_comparison = {"schema_version": "gemini-system-boundary-methods-final-comparison-v1", "run": False, "reason": final_reason}
+    decision = {
+        "schema_version": "gemini-system-boundary-methods-final-boundary-decision-v1",
+        "decision": "insufficient_evidence",
+        "reason": final_reason,
+        "selected_processing_method_offline": "P3",
+        "targeted_prompt_run": False,
+        "factorial_complete": full_factorial,
+        "provider_calls_during_decision": 0,
+        "worker_calls_during_decision": 0,
+        "production_changed": False,
+        "deployment_authorized": False,
+        "future_requirement": "Repeat the corrected factorial and final two-system validation only after quota is available; preserve the same preregistration and case/fact policy.",
+    }
+    _write_redacted(reports / "final-system-validation-results.json", final_results, output_root)
+    _write(reports / "final-system-comparison.json", final_comparison)
+    _write(reports / "final-system-boundary-decision.json", decision)
+    historical_inputs: dict[str, Any] = {}
+    for path in sorted((reports / "historical/source-evidence").glob("*.json")):
+        historical_inputs[path.name] = _json(path)
+    historical_documents = {
+        path.name: path.read_text(encoding="utf-8")
+        for path in sorted((reports / "historical/source-evidence").glob("*.md"))
+    }
+    manual = {
+        "schema_version": "gemini-system-boundary-methods-manual-review-v1",
+        "study": _json(output_root / "study.json"),
+        "historical_inputs": historical_inputs,
+        "historical_documents": historical_documents,
+        "preregistration": _json(reports / "study-preregistration.json"),
+        "processing_methods": _json(reports / "processing-method-scorecard.json") or {},
+        "offline_replay": _json(reports / "offline-processing-replay.json") or {},
+        "factorial_live_study": {"run": bool(factorial.get("run")), "current_attempt": factorial, "historical_attempts": [_json(path) for path in sorted((reports / "historical").glob("factorial-incomplete-*.json"))]},
+        "residual_defects": _json(reports / "residual-model-defects.json") or {},
+        "prompt_ablation": {"run": False, "results": _json(reports / "targeted-prompt-ablation-results.json") or {}, "decision": _json(reports / "targeted-prompt-decision.json") or {}},
+        "final_validation": {"run": False, "results": final_results, "historical_attempts": [_json(path) for path in sorted((reports / "historical").glob("final-incomplete-*.json"))], "comparison": final_comparison, "decision": decision},
+        "final_recommendation": decision,
+        "rate_limit": _json(reports / "gemini-rate-limit-report.json") or {},
+        "redaction": {"status": "pending_scanner", "study_root": str(output_root)},
+    }
+    _write_redacted(reports / "all-methods-manual-review.json", manual, output_root)
+    manual["redaction"] = {"status": "passed", "scanner": "RedactionService.assert_json_redacted"}
+    _write_redacted(reports / "all-methods-manual-review.json", manual, output_root)
+    return {"decision": decision, "manual_bundle": str(reports / "all-methods-manual-review.json")}
+
+
 async def _run_factorial_arm(
     *,
     arm_id: str,
@@ -740,7 +793,7 @@ async def run_final_validation(output_root: Path, study_root: Path) -> dict[str,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "analyze-factorial", "final-validation", "analyze-final"), default="offline")
+    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01"))
     parser.add_argument("--profile-ablation-root", type=Path, default=Path("data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"))
     parser.add_argument("--study-root", type=Path, default=Path("data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01"))
@@ -761,6 +814,10 @@ def main() -> int:
     if args.phase == "analyze-final":
         result = enrich_final_report(args.output_root.resolve())
         print(json.dumps({"capture_complete": result["report"].get("capture_complete"), "provider_calls": result["report"].get("provider_calls", 0), "provider_captures": result["report"].get("provider_capture_count", 0), "worker_calls": result["report"].get("worker_calls", 0)}, indent=2, sort_keys=True))
+        return 0
+    if args.phase == "finalize":
+        result = finalize_study(args.output_root.resolve())
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     if args.phase == "factorial":
         result = asyncio.run(run_factorial(args.output_root, args.profile_ablation_root, args.study_root, args.repo_root))
