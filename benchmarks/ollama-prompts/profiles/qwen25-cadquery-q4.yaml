@@ -2,7 +2,7 @@
   "profile_version": "ollama-calibration-v1",
   "model_name": "hf.co/yuvit-batra/qwen2.5-coder-7b-cadquery-gguf:Q4_K_M",
   "model_digest": "692bb3cfa2f456c1170a85bfbc28f98be5f5a2df00ccf1be2365304920a06256",
-  "response_modes": ["native", "production_slot"],
+  "response_modes": ["native"],
   "chat_template": "qwen2-chatml-fim",
   "system_prompt": "You are a helpful assistant.",
   "native_system_prompt": "You are a helpful assistant.",
@@ -11,7 +11,7 @@
   "structured_output_method": "unverified",
   "reasoning_tag_policy": "remove_when_boundaries_are_unambiguous",
   "markdown_policy": "strip_one_outer_fence",
-  "native_extraction_policy": "full_script",
+  "native_extraction_policy": "single_python_candidate_v2",
   "final_object_policy": "alias_one_unambiguous_cadquery_assignment",
   "slot_mapping_policy": "explicit_slot_id",
   "context_length": 8192,
@@ -25,9 +25,11 @@
   "idle_timeout_seconds": 300.0,
   "total_timeout_seconds": 1800.0,
   "keep_alive": "30m",
-  "known_safe_normalizations": ["representation.markdown_wrapped", "representation.final_symbol_alias"],
+  "known_safe_normalizations": ["representation.markdown_wrapped", "representation.final_symbol_alias", "representation.prose_wrapped", "representation.reasoning_wrapped", "representation.line_endings_normalized"],
   "known_unsupported_behaviors": [],
   "calibration_status": "frozen",
   "holdout_status": "not_started",
-  "profile_hash": "1ec2429a3364cdcb5cabb6b085bd3ba5bc2b95cd25c87c0d30bccf71974e7a75"
+  "iteration": 1,
+  "iteration_changes": [{"change": "Use one fenced or unfenced Python candidate and reject incomplete candidates.", "evidence": "Native calibration included complete scripts plus truncated multi-step scripts; prior handling conflated them.", "previous_result": "Native invalid-structured and prose-wrapped findings", "new_result": "Safe complete scripts can be reprocessed; truncation remains rejected", "improved": "representation"}, {"change": "Disable repeated production-slot generation after unsupported helper DSL evidence.", "evidence": "Slot JSON contained unbound box/cylinder helpers; adding helpers would invent CAD meaning.", "previous_result": "Production slot unresolved", "new_result": "Native-only diagnostic profile", "improved": "representation"}],
+  "profile_hash": "6009db8978d94402f2b097832374d08783b658e6ed0c333674b383867ace74e3"
 }
