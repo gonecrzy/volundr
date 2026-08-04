@@ -15,10 +15,13 @@ from app.services.ollama_benchmark.calibration import (
     ModelIdentity,
     admission_gate,
     build_resolution_queue,
+    build_resolution_aggregates,
     classify_calibration_failure,
     freeze_profile,
     normalize_native_source,
     normalize_structured_response,
+    inspect_native_response,
+    inspect_structured_response,
     ProfileIterationLimitError,
     can_count_cad_quality,
     classify_native_and_production,
@@ -124,6 +127,72 @@ def test_native_normalization_maps_one_unambiguous_final_alias_only() -> None:
     assert "result = shape" in wrapped
 
 
+def test_native_trailing_markdown_fence_is_safe_representation_normalization() -> None:
+    raw = "```python\nimport cadquery as cq\nr = cq.Workplane('XY').box(2, 3, 4)\n```"
+    inspection = inspect_native_response(raw)
+    assert inspection.signature == "native_python_markdown_wrapped"
+    assert inspection.safe_normalization_eligible is True
+    assert "```" not in (inspection.normalized_response or "")
+
+
+def test_native_unambiguous_r_alias_is_safe_and_fence_only_is_rejected() -> None:
+    aliased = inspect_native_response("import cadquery as cq\nr = cq.Workplane('XY').box(2, 3, 4)")
+    assert aliased.signature == "native_final_symbol_alias"
+    assert "result = r" in (aliased.normalized_response or "")
+
+    fence_only = inspect_native_response("```python\n```")
+    assert fence_only.classification == "rejected"
+    assert fence_only.safe_normalization_eligible is False
+
+
+def test_native_truncation_and_invalid_ast_are_not_representation_fixes() -> None:
+    truncated = inspect_native_response("import cadquery as cq\nresult = (cq.Workplane('XY').box(2, 3, 4)")
+    assert truncated.signature == "native_response_truncated"
+    assert truncated.safe_normalization_eligible is False
+    invalid = inspect_native_response("import cadquery as cq\nresult = cq.Workplane('XY').box(")
+    assert invalid.signature in {"native_response_truncated", "native_ast_invalid"}
+    assert invalid.safe_normalization_eligible is False
+
+
+def test_structured_response_is_precisely_subclassified() -> None:
+    wrapped = inspect_structured_response(
+        "Here is the JSON:\n```json\n{\"schema_version\":\"geometry-slots-v1\",\"slots\":[{\"slot_id\":\"features\",\"statements\":[],\"result_symbol\":\"f\"},{\"slot_id\":\"base\",\"statements\":[],\"result_symbol\":\"b\"}]}\n```",
+        expected_slot_ids=("base", "features"),
+    )
+    assert wrapped.signature == "markdown_wrapped_json"
+    assert wrapped.safe_normalization_eligible is True
+    assert "representation.slot_order_variant" in wrapped.codes
+
+    native = inspect_structured_response("import cadquery as cq\nresult = cq.Workplane('XY').box(1, 1, 1)", expected_slot_ids=("base", "features"))
+    assert native.signature == "native_script_instead_of_slots"
+    missing = inspect_structured_response('{"schema_version":"geometry-slots-v1","slots":[]}', expected_slot_ids=("base", "features"))
+    assert missing.signature == "missing_slots"
+    duplicate = inspect_structured_response('{"schema_version":"geometry-slots-v1","slots":[{"slot_id":"base","statements":[],"result_symbol":"b"},{"slot_id":"base","statements":[],"result_symbol":"b2"}]}', expected_slot_ids=("base", "features"))
+    assert duplicate.signature == "duplicate_slots"
+    imports = inspect_structured_response('{"schema_version":"geometry-slots-v1","slots":[{"slot_id":"base","statements":["import cadquery as cq"],"result_symbol":"b"},{"slot_id":"features","statements":[],"result_symbol":"f"}]}', expected_slot_ids=("base", "features"))
+    assert imports.signature == "imports_in_slot"
+
+
+def test_multiple_json_candidates_remain_rejected() -> None:
+    inspection = inspect_structured_response('{"schema_version":"geometry-slots-v1"} {"schema_version":"geometry-slots-v1"}', expected_slot_ids=("base", "features"))
+    assert inspection.signature == "multiple_json_candidates"
+    assert inspection.safe_normalization_eligible is False
+
+
+def test_issue_aggregation_preserves_original_paths_and_recurrence() -> None:
+    first = classify_calibration_failure(
+        stage="native", error_code="representation.prose_wrapped", message="fence", evidence_path="a", response_mode="native", calibration_case="calibration-001", aggregate_signature="native_python_markdown_wrapped", safe_normalization_eligible=True
+    )
+    second = classify_calibration_failure(
+        stage="native", error_code="representation.prose_wrapped", message="fence", evidence_path="b", response_mode="native", calibration_case="calibration-002", aggregate_signature="native_python_markdown_wrapped", safe_normalization_eligible=True
+    )
+    queue = build_resolution_queue([first, second])
+    aggregates = build_resolution_aggregates([first, second])
+    assert {item["evidence_path"] for item in queue} == {"a", "b"}
+    assert aggregates[0]["recurrence_count"] == 2
+    assert aggregates[0]["safe_normalization_eligible"] is True
+
+
 def test_profile_hash_is_frozen_and_holdout_rejects_profile_change() -> None:
     profile = CalibrationProfile(
         profile_version="ollama-calibration-v1",
@@ -157,6 +226,12 @@ def test_admission_requires_specialist_and_generic_and_final_statuses() -> None:
     )
     assert blocked.formal_benchmark_authorized is False
     assert "deferred" in blocked.blocking_model_ids
+
+    final_low_quality = admission_gate(
+        models + [{"model_id": "low", "purpose": "CAD specialist", "admission": "operational_low_cad_quality", "state": "holdout_failed"}],
+        intended_model_ids=["specialist", "generic", "low"],
+    )
+    assert final_low_quality.formal_benchmark_authorized is True
 
 
 def test_resolution_queue_records_owner_and_evidence() -> None:
