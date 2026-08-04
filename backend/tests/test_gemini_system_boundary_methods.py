@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import pytest
 
+from app.services.gemini_consistency.buildability_reanalysis import RollingWindowRateLimiter
 from app.services.gemini_consistency.system_boundary_methods import (
     DEFAULT_MIN_INTERVAL_SECONDS,
     DEFAULT_REQUESTS_PER_MINUTE,
@@ -19,7 +21,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     semantic_hash,
     validate_rate_events,
 )
-from scripts.run_gemini_system_boundary_methods import _answer_for_questions, _case_metrics, _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches
+from scripts.run_gemini_system_boundary_methods import EXPECTED_FACTORIAL_ARMS, _answer_for_questions, _case_metrics, _credential_environment, _credential_metadata, _factorial_headers, _factorial_data_root, _finalist_configurations, _preregistration, _preregistration_matches, _seed_limiter, _validate_resume_source
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -64,6 +66,15 @@ def test_prior_shape_alias_requires_proof() -> None:
             stage="geometry",
             context={"prior_shape_symbols": ["component_shape", "body"]},
         )
+
+
+def test_p3_does_not_repair_arbitrary_cadquery_api_misuse() -> None:
+    raw = '{"statements":["body = body.rotate(rotation=90)"],"result_symbol":"body"}'
+
+    result = process_response("P3", raw, stage="geometry", context={"prior_shape_symbols": ["body"], "authoritative_prior_shape": "body"})
+
+    assert result.processed["statements"] == ["body = body.rotate(rotation=90)"]
+    assert result.actions == []
 
 
 def test_proven_prior_shape_alias_normalizes_to_body() -> None:
@@ -135,6 +146,44 @@ def test_rate_policy_is_serialized_and_hard_429_retry_is_disabled() -> None:
     assert policy["hard_max_requests_per_rolling_window"] == HARD_MAX_REQUESTS_PER_WINDOW == 15
     assert policy["provider_concurrency"] == 1
     assert policy["retry_hard_429"] is False
+
+
+def test_secondary_credential_is_explicit_and_never_serialized(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("VOLUNDR_GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY_2", "secondary-secret-value")
+
+    metadata = _credential_metadata("secondary")
+    child_env = _credential_environment("secondary")
+
+    assert metadata == {
+        "credential_source": "GEMINI_API_KEY_2",
+        "credential_slot": "secondary",
+        "credential_env_var": "GEMINI_API_KEY_2",
+        "credential_present": True,
+    }
+    assert child_env["GEMINI_API_KEY"] == "secondary-secret-value"
+    assert "GEMINI_API_KEY_2" not in child_env
+    assert "VOLUNDR_GEMINI_API_KEY" not in child_env
+    assert "secondary-secret-value" not in json.dumps(metadata)
+
+
+def test_missing_secondary_credential_stops_before_any_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY_2", raising=False)
+
+    with pytest.raises(RuntimeError, match="GEMINI_API_KEY_2"):
+        _credential_environment("secondary")
+
+
+def test_resume_limiter_preserves_prior_history_without_retrying_it() -> None:
+    limiter = RollingWindowRateLimiter(clock=lambda: 100.0, sleep=lambda _: None)
+    previous = [{"call_start_monotonic": 1.0, "status_code": 429}]
+
+    _seed_limiter(limiter, previous)
+
+    assert limiter.events == previous
+    assert limiter.last_start == 1.0
+    assert len(limiter.starts) == 1
 
 
 def test_offline_replay_writes_zero_call_report(tmp_path: Path) -> None:
@@ -224,6 +273,26 @@ def test_factorial_enables_immutable_study_capture_for_each_case() -> None:
     assert headers["X-Volundr-Study-Repetition"] == "1"
     assert headers["X-Volundr-Study-Case"] == "case-006"
     assert headers["X-Volundr-Benchmark-Processing"] == "P3"
+
+
+def test_resume_schedule_preserves_a_b_and_only_attempts_c_d() -> None:
+    assert EXPECTED_FACTORIAL_ARMS[:2] == (
+        ("A-current-p0", "current-production", "P0"),
+        ("B-profile-b-p0", "profile-b-sampling", "P0"),
+    )
+    assert EXPECTED_FACTORIAL_ARMS[2:] == (
+        ("C-current-p3", "current-production", "P3"),
+        ("D-profile-b-p3", "profile-b-sampling", "P3"),
+    )
+
+
+def test_existing_a_b_arm_captures_are_valid_resume_source() -> None:
+    report = json.loads((REPO_ROOT / "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/reports/provider-processing-factorial-results.json").read_text(encoding="utf-8"))
+
+    result = _validate_resume_source(report)
+
+    assert set(result["arms"]) == {"A-current-p0", "B-profile-b-p0"}
+    assert all(item["provider_call_count"] > 0 for item in result["fingerprints"].values())
 
 
 def test_final_validation_is_capped_at_two_declared_systems() -> None:

@@ -28,6 +28,7 @@ from app.services.gemini_consistency.system_boundary_methods import (
     DEFAULT_REQUESTS_PER_MINUTE,
     HARD_MAX_REQUESTS_PER_WINDOW,
     METHOD_IDS,
+    canonical_hash,
     replay_preserved_evidence,
 )
 from app.services.gemini_consistency.buildability_reanalysis import RollingWindowRateLimiter
@@ -36,6 +37,15 @@ from app.services.workflow.redaction import RedactionService
 
 
 STUDY_ID = "gemini-system-boundary-methods-01"
+SECONDARY_CREDENTIAL_ENV = "GEMINI_API_KEY_2"
+SECONDARY_CREDENTIAL_SOURCE = "GEMINI_API_KEY_2"
+SECONDARY_CREDENTIAL_SLOT = "secondary"
+EXPECTED_FACTORIAL_ARMS = (
+    ("A-current-p0", "current-production", "P0"),
+    ("B-profile-b-p0", "profile-b-sampling", "P0"),
+    ("C-current-p3", "current-production", "P3"),
+    ("D-profile-b-p3", "profile-b-sampling", "P3"),
+)
 SOURCE_REPORTS = (
     "corrected-phase-1-decision.json",
     "corrected-quality-floor.json",
@@ -69,6 +79,48 @@ def _json(path: Path) -> Any:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
+
+
+def _credential_metadata(source: str) -> dict[str, Any]:
+    if source not in {"primary", "secondary"}:
+        raise ValueError("credential source must be explicitly primary or secondary")
+    if source == "secondary":
+        present = bool(os.environ.get(SECONDARY_CREDENTIAL_ENV))
+        env_name = SECONDARY_CREDENTIAL_ENV
+        slot = SECONDARY_CREDENTIAL_SLOT
+    else:
+        present = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("VOLUNDR_GEMINI_API_KEY"))
+        env_name = "GEMINI_API_KEY"
+        slot = "primary"
+    return {
+        "credential_source": SECONDARY_CREDENTIAL_SOURCE if source == "secondary" else env_name,
+        "credential_slot": slot,
+        "credential_env_var": env_name,
+        "credential_present": present,
+    }
+
+
+def _credential_environment(source: str) -> dict[str, str]:
+    """Build a child environment without returning or recording any secret."""
+    metadata = _credential_metadata(source)
+    if not metadata["credential_present"]:
+        raise RuntimeError(f"{metadata['credential_env_var']} is not present; no experiment call was attempted")
+    if source == "primary":
+        return os.environ.copy()
+    environment = os.environ.copy()
+    secondary_value = environment[SECONDARY_CREDENTIAL_ENV]
+    for name in ("GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY", SECONDARY_CREDENTIAL_ENV, "VOLUNDR_GEMINI_API_KEY_2"):
+        environment.pop(name, None)
+    environment["GEMINI_API_KEY"] = secondary_value
+    return environment
+
+
+def _seed_limiter(limiter: RollingWindowRateLimiter, events: list[dict[str, Any]]) -> None:
+    """Carry prior monotonic events into a resumed process without reusing calls."""
+    starts = sorted(float(item["call_start_monotonic"]) for item in events if item.get("call_start_monotonic") is not None)
+    limiter.starts.extend(starts)
+    limiter.last_start = starts[-1] if starts else None
+    limiter.events.extend(dict(item) for item in events)
 
 
 def _write(path: Path, value: Any) -> None:
@@ -226,6 +278,42 @@ def _factorial_headers(processing: str, case_id: str) -> dict[str, str]:
         "X-Volundr-Study-Repetition": "1",
         "X-Volundr-Study-Case": case_id,
     }
+
+
+def _operation_manifest(
+    *,
+    arm_id: str,
+    provider_profile: str,
+    processing: str,
+    cases: list[dict[str, Any]],
+    captures: list[dict[str, Any]],
+    credential: dict[str, Any],
+) -> list[dict[str, Any]]:
+    by_case: dict[str, list[dict[str, Any]]] = {}
+    for capture in captures:
+        by_case.setdefault(str(capture.get("case_id") or ""), []).append(capture)
+    operations: list[dict[str, Any]] = []
+    for case in cases:
+        case_id = str(case.get("case_id"))
+        items = by_case.get(case_id, [])
+        quota_stopped = any(int(item.get("response", {}).get("status_code") or item.get("status_code") or 0) == 429 for item in items if isinstance(item, dict))
+        project_ids = sorted({str(item.get("project_id")) for item in items if item.get("project_id")})
+        user_operation_ids = sorted({str(item.get("user_operation_id")) for item in items if item.get("user_operation_id")})
+        operations.append({
+            "operation_id": f"{arm_id}:{case_id}",
+            "arm_id": arm_id,
+            "provider_profile": provider_profile,
+            "processing": processing,
+            "case_id": case_id,
+            "project_ids": project_ids,
+            "user_operation_ids": user_operation_ids,
+            "provider_call_ids": sorted(str(item.get("provider_call_id")) for item in items if item.get("provider_call_id")),
+            "provider_call_count": len(items),
+            "operation_status": "quota_stopped" if quota_stopped else "completed" if items else "not_started",
+            "credential_source": credential["credential_source"],
+            "credential_slot": credential["credential_slot"],
+        })
+    return operations
 
 
 def _finalist_configurations(processing: str) -> tuple[tuple[str, str, str], ...]:
@@ -628,14 +716,16 @@ async def _run_factorial_arm(
     backend_root: Path,
     limiter: Any,
     run_label: str = "run-01",
+    credential_source: str = "primary",
 ) -> dict[str, Any]:
     from run_gemini_buildability_phase2 import _start_proxy
     from run_live_bottle_holder_workflow import terminate_process, wait_for_health
 
     data_root = _factorial_data_root(output_root, arm_id, run_label)
     data_root.mkdir(parents=True, exist_ok=True)
+    credential = _credential_metadata(credential_source)
     proxy, proxy_thread = _start_proxy(provider_profile, limiter)
-    env = os.environ.copy()
+    env = _credential_environment(credential_source)
     env.update({
         "PYTHONPATH": str(backend_root),
         "VOLUNDR_AI_PROVIDER": "gemini_api",
@@ -680,6 +770,8 @@ async def _run_factorial_arm(
         proxy.shutdown()
         proxy.server_close()
         proxy_thread.join(timeout=5)
+    provider_interactions = _provider_interactions(data_root, output_root)
+    provider_captures = _provider_captures(data_root, output_root)
     return {
         "arm_id": arm_id,
         "provider_profile": provider_profile,
@@ -689,12 +781,15 @@ async def _run_factorial_arm(
         "provider_calls": len(proxy.events),
         "quota_exhausted": proxy.quota_exhausted,
         "rate_limit_events": proxy.events,
-        "provider_interactions": _provider_interactions(data_root, output_root),
+        "provider_interactions": provider_interactions,
+        "provider_captures": provider_captures,
+        "operation_manifest": _operation_manifest(arm_id=arm_id, provider_profile=provider_profile, processing=processing, cases=cases, captures=provider_captures, credential=credential),
+        **credential,
         "data_root": str(data_root.relative_to(output_root.resolve())),
     }
 
 
-async def run_factorial(output_root: Path, profile_root: Path, study_root: Path, repo_root: Path) -> dict[str, Any]:
+async def run_factorial(output_root: Path, profile_root: Path, study_root: Path, repo_root: Path, *, credential_source: str = "primary") -> dict[str, Any]:
     output_root = output_root.resolve()
     prereg = _json(output_root / "reports/study-preregistration.json") or {}
     decision = _json(output_root / "reports/processing-method-decision.json") or {}
@@ -725,7 +820,7 @@ async def run_factorial(output_root: Path, profile_root: Path, study_root: Path,
         ("C-current-p3", "current-production", selected_method),
         ("D-profile-b-p3", "profile-b-sampling", selected_method),
     ):
-        arms.append(await _run_factorial_arm(arm_id=arm_id, provider_profile=profile, processing=processing, cases=cases, output_root=output_root, backend_root=backend_root, limiter=limiter, run_label=run_label))
+        arms.append(await _run_factorial_arm(arm_id=arm_id, provider_profile=profile, processing=processing, cases=cases, output_root=output_root, backend_root=backend_root, limiter=limiter, run_label=run_label, credential_source=credential_source))
         if arms[-1]["quota_exhausted"] or arms[-1]["project_operations"] < len(cases):
             break
     report = {
@@ -746,7 +841,119 @@ async def run_factorial(output_root: Path, profile_root: Path, study_root: Path,
     return report
 
 
-async def run_final_validation(output_root: Path, study_root: Path) -> dict[str, Any]:
+def _validate_resume_source(previous: dict[str, Any]) -> dict[str, Any]:
+    arms = {str(arm.get("arm_id")): arm for arm in previous.get("arms", []) if isinstance(arm, dict)}
+    expected = {arm_id: (profile, processing) for arm_id, profile, processing in EXPECTED_FACTORIAL_ARMS}
+    if set(arms) != {"A-current-p0", "B-profile-b-p0"}:
+        raise RuntimeError("resume requires exactly the preserved A/B P0 arms; refusing to rerun or infer completion")
+    fingerprints: dict[str, Any] = {}
+    for arm_id in ("A-current-p0", "B-profile-b-p0"):
+        arm = arms[arm_id]
+        profile, processing = expected[arm_id]
+        case_ids = [str(item.get("case_id")) for item in arm.get("cases", [])]
+        if arm.get("provider_profile") != profile or arm.get("processing") != processing or case_ids != ["case-001", "case-003", "case-006"]:
+            raise RuntimeError(f"preserved arm {arm_id} does not match the immutable factorial schedule")
+        if int(arm.get("provider_capture_count") or 0) != int(arm.get("provider_calls") or 0):
+            raise RuntimeError(f"preserved arm {arm_id} does not have a complete immutable capture set")
+        captures = arm.get("provider_captures") or []
+        fingerprints[arm_id] = {
+            "arm_sha256": canonical_hash(arm),
+            "capture_sha256": canonical_hash(captures),
+            "provider_call_count": len(captures),
+            "case_ids": case_ids,
+            "provider_call_ids": sorted(str(item.get("provider_call_id")) for item in captures if item.get("provider_call_id")),
+        }
+    return {"arms": arms, "fingerprints": fingerprints}
+
+
+async def resume_factorial(
+    output_root: Path,
+    study_root: Path,
+    repo_root: Path,
+    *,
+    credential_source: str,
+) -> dict[str, Any]:
+    output_root = output_root.resolve()
+    reports = output_root / "reports"
+    prereg = _json(reports / "study-preregistration.json") or {}
+    decision = _json(reports / "processing-method-decision.json") or {}
+    previous = _json(reports / "provider-processing-factorial-results.json") or {}
+    if prereg.get("study_id") != STUDY_ID or decision.get("selected_method") != "P3":
+        raise RuntimeError("immutable P3 preregistration gate is missing")
+    if credential_source != "secondary":
+        raise RuntimeError("factorial continuation requires --credential-source secondary")
+    credential = _credential_metadata(credential_source)
+    if not credential["credential_present"]:
+        return {
+            "run": False,
+            "reason": "GEMINI_API_KEY_2 is not present; no experiment call was attempted",
+            "credential": credential,
+            "provider_calls": 0,
+            "worker_calls": 0,
+        }
+    preserved = _validate_resume_source(previous)
+    cases = _factorial_cases(study_root)
+    if [case["case_id"] for case in cases] != ["case-001", "case-003", "case-006"]:
+        raise RuntimeError("factorial case selection does not match immutable preregistration")
+    prior_events = list((previous.get("rate_limit") or {}).get("events") or [])
+    limiter = RollingWindowRateLimiter()
+    _seed_limiter(limiter, prior_events)
+    backend_root = Path(__file__).resolve().parents[1]
+    previous_label = str(previous.get("run_label") or "run-04")
+    run_label = f"{previous_label}-secondary-resume"
+    arms: list[dict[str, Any]] = [preserved["arms"]["A-current-p0"], preserved["arms"]["B-profile-b-p0"]]
+    new_arms: list[dict[str, Any]] = []
+    for arm_id, profile, processing in EXPECTED_FACTORIAL_ARMS[2:]:
+        arm = await _run_factorial_arm(
+            arm_id=arm_id,
+            provider_profile=profile,
+            processing=processing,
+            cases=cases,
+            output_root=output_root,
+            backend_root=backend_root,
+            limiter=limiter,
+            run_label=run_label,
+            credential_source=credential_source,
+        )
+        arm["resume_mode"] = "secondary-credential-c-d-only"
+        arm["replaces_quota_stopped_operation_id"] = None
+        new_arms.append(arm)
+        if arm["quota_exhausted"] or arm["project_operations"] < len(cases):
+            break
+    arms.extend(new_arms)
+    first_new_event = next((event for arm in new_arms for event in arm.get("rate_limit_events", [])), None)
+    first_required_call = {
+        "attempted": first_new_event is not None,
+        "status_code": first_new_event.get("status_code") if first_new_event else None,
+        "succeeded": bool(first_new_event and int(first_new_event.get("status_code") or 0) < 400),
+        "quota_outcome": "unavailable" if first_new_event and int(first_new_event.get("status_code") or 0) == 429 else "available" if first_new_event else "not_attempted",
+    }
+    report = {
+        "schema_version": "gemini-system-boundary-methods-factorial-results-v1",
+        "run": True,
+        "study_id": STUDY_ID,
+        "cases": [case["case_id"] for case in cases],
+        "arms": arms,
+        "provider_calls": sum(int(arm.get("provider_calls") or 0) for arm in arms),
+        "worker_calls": 0,
+        "rate_limit": limiter.report(),
+        "profile_root_unchanged": True,
+        "run_label": run_label,
+        "resumed_from_run_label": previous_label,
+        "resume_mode": "secondary-credential-c-d-only",
+        "completed_arm_ids_preserved": ["A-current-p0", "B-profile-b-p0"],
+        "attempted_arm_ids": [arm.get("arm_id") for arm in new_arms],
+        "existing_arm_fingerprints": preserved["fingerprints"],
+        "credential": credential,
+        "first_required_call": first_required_call,
+        "capture_complete": True,
+    }
+    _write_redacted(reports / "provider-processing-factorial-results.json", report, output_root)
+    _write_redacted(reports / "gemini-rate-limit-report.json", limiter.report(), output_root)
+    return report
+
+
+async def run_final_validation(output_root: Path, study_root: Path, *, credential_source: str = "primary") -> dict[str, Any]:
     processing_decision = _json(output_root / "reports/processing-method-decision.json") or {}
     selected_method = processing_decision.get("selected_method")
     residual = _json(output_root / "reports/residual-model-defects.json") or {}
@@ -770,7 +977,7 @@ async def run_final_validation(output_root: Path, study_root: Path) -> dict[str,
     backend_root = Path(__file__).resolve().parents[1]
     arms: list[dict[str, Any]] = []
     for arm_id, profile, processing in _finalist_configurations(selected_method):
-        arms.append(await _run_factorial_arm(arm_id=arm_id, provider_profile=profile, processing=processing, cases=cases, output_root=final_root, backend_root=backend_root, limiter=limiter, run_label=run_label))
+        arms.append(await _run_factorial_arm(arm_id=arm_id, provider_profile=profile, processing=processing, cases=cases, output_root=final_root, backend_root=backend_root, limiter=limiter, run_label=run_label, credential_source=credential_source))
         if arms[-1]["quota_exhausted"] or arms[-1]["project_operations"] < len(cases):
             break
     report = {
@@ -793,7 +1000,8 @@ async def run_final_validation(output_root: Path, study_root: Path) -> dict[str,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
+    parser.add_argument("--phase", choices=("prepare", "offline", "factorial", "resume-factorial", "analyze-factorial", "final-validation", "analyze-final", "finalize"), default="offline")
+    parser.add_argument("--credential-source", choices=("primary", "secondary"), default="primary")
     parser.add_argument("--output-root", type=Path, default=Path("data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01"))
     parser.add_argument("--profile-ablation-root", type=Path, default=Path("data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01"))
     parser.add_argument("--study-root", type=Path, default=Path("data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01"))
@@ -808,7 +1016,7 @@ def main() -> int:
         print(json.dumps({"capture_complete": result["factorial"].get("capture_complete"), "provider_calls": result["factorial"].get("provider_calls", 0), "provider_captures": result["factorial"].get("provider_capture_count", 0), "worker_calls": result["factorial"].get("worker_calls", 0), "prompt_run": result["residual"].get("prompt_authorized", False)}, indent=2, sort_keys=True))
         return 0
     if args.phase == "final-validation":
-        result = asyncio.run(run_final_validation(args.output_root.resolve(), args.study_root))
+        result = asyncio.run(run_final_validation(args.output_root.resolve(), args.study_root, credential_source=args.credential_source))
         print(json.dumps({"final_validation": {"run": result.get("run", False), "arms": [arm.get("arm_id") for arm in result.get("arms", [])], "project_operations": result.get("project_operations", 0), "provider_calls": result.get("provider_calls", 0), "worker_calls": result.get("worker_calls", 0)}}, indent=2, sort_keys=True))
         return 0
     if args.phase == "analyze-final":
@@ -820,8 +1028,12 @@ def main() -> int:
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     if args.phase == "factorial":
-        result = asyncio.run(run_factorial(args.output_root, args.profile_ablation_root, args.study_root, args.repo_root))
+        result = asyncio.run(run_factorial(args.output_root, args.profile_ablation_root, args.study_root, args.repo_root, credential_source=args.credential_source))
         print(json.dumps({"factorial": {"run": result.get("run", True), "arms": [arm.get("arm_id") for arm in result.get("arms", [])], "provider_calls": result.get("provider_calls", 0), "worker_calls": result.get("worker_calls", 0)}}, indent=2, sort_keys=True))
+        return 0
+    if args.phase == "resume-factorial":
+        result = asyncio.run(resume_factorial(args.output_root, args.study_root, args.repo_root, credential_source=args.credential_source))
+        print(json.dumps({"factorial_resume": {"run": result.get("run", False), "arms": [arm.get("arm_id") for arm in result.get("arms", [])], "provider_calls": result.get("provider_calls", 0), "worker_calls": result.get("worker_calls", 0), "credential": result.get("credential"), "first_required_call": result.get("first_required_call")}}, indent=2, sort_keys=True))
         return 0
     result = run_offline(args.output_root, args.profile_ablation_root, args.study_root)
     print(json.dumps({"prepared": prepared, "offline": {"phase1": result["replay"]["preserved_phase1_records"], "phase2_calls": result["replay"]["preserved_phase2_provider_calls"], "selected_method": result["decision"]["selected_method"], "provider_calls": 0, "worker_calls": 0}}, indent=2, sort_keys=True))
