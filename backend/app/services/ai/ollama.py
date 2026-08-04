@@ -126,6 +126,16 @@ class OllamaProvider(GeminiCliProvider):
     def provider_id(self) -> str:
         return "ollama"
 
+    @property
+    def last_generation_metadata(self) -> dict[str, Any]:
+        """Expose only response metadata needed for calibration evidence."""
+
+        return {
+            "actual_model": self._last_actual_model,
+            "usage": dict(self._last_usage_metadata or {}),
+            "latency_ms": self._last_provider_latency_ms,
+        }
+
     async def generate_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         return await self.generate_cadquery_model(request)
 
@@ -601,6 +611,8 @@ class OllamaProvider(GeminiCliProvider):
             "total_duration",
         )
         result = {field: payload[field] for field in fields if field in payload and isinstance(payload[field], (int, float))}
+        if isinstance(payload.get("done_reason"), str):
+            result["done_reason"] = payload["done_reason"]
         return result or None
 
     @staticmethod

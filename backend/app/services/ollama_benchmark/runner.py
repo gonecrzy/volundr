@@ -10,8 +10,10 @@ import argparse
 import asyncio
 import hashlib
 import json
+import re
 import subprocess
 import time
+import uuid
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,6 +27,7 @@ from app.services.ollama_benchmark.calibration import (
     CalibrationIssue,
     CalibrationProfile,
     admission_gate,
+    build_resolution_aggregates,
     build_resolution_queue,
     classify_calibration_failure,
     classify_native_and_production,
@@ -32,6 +35,8 @@ from app.services.ollama_benchmark.calibration import (
     load_calibration_profile,
     normalize_native_source,
     normalize_structured_response,
+    inspect_native_response,
+    inspect_structured_response,
     run_models_serially,
     wrap_native_source_for_worker,
     verify_model_identity,
@@ -141,6 +146,47 @@ def _safe_path(path: Path, root: Path) -> str:
         return path.name
 
 
+def _generation_metadata(provider: OllamaProvider) -> dict[str, Any]:
+    return dict(getattr(provider, "last_generation_metadata", {}) or {})
+
+
+def _broad_geometry_check(case_id: str, topology: dict[str, Any] | None, source: str = "") -> dict[str, Any]:
+    """Check only broad dimensions stated by the untouched case prompt."""
+
+    if not isinstance(topology, dict) or not isinstance(topology.get("bounding_box_mm"), dict):
+        return {"status": "not_automatable", "reason": "worker did not provide bounds"}
+    bounds = topology["bounding_box_mm"]
+    sizes = sorted(float(bounds.get(axis, 0.0)) for axis in ("size_x", "size_y", "size_z"))
+    expected: tuple[float, ...] | None = {
+        "calibration-001": (12.0, 24.0, 30.0),
+        "calibration-002": (20.0, 60.0, 80.0),
+        "holdout-001": (8.0, 12.0, 78.0),
+        "holdout-002": (8.0, 50.0, 70.0),
+    }.get(case_id)
+    feature_markers: dict[str, tuple[str, ...]] = {
+        "calibration-001": ("hole", "circle", "cut"),
+        "calibration-002": ("union", "divider", "rect", "split"),
+        "holdout-001": ("rotate",),
+        "holdout-002": ("hole", "circle"),
+    }
+    markers = feature_markers.get(case_id, ())
+    feature_check = {
+        "status": "passed" if not markers or any(marker in source.casefold() for marker in markers) else "failed",
+        "required_markers": list(markers),
+    }
+    if expected is None:
+        return {"status": "not_automatable", "reason": "case requires feature/relationship inspection beyond bounds", "feature_check": feature_check}
+    tolerance = 0.10 if case_id == "holdout-001" else 0.05
+    matched = all(any(abs(actual - target) <= max(target * tolerance, 0.5) for actual in sizes) for target in expected)
+    return {
+        "status": "passed" if matched and feature_check["status"] == "passed" else "failed",
+        "expected_sorted_bounds_mm": list(expected),
+        "actual_sorted_bounds_mm": sizes,
+        "tolerance_fraction": tolerance,
+        "feature_check": feature_check,
+    }
+
+
 class OllamaCalibrationRunner:
     def __init__(
         self,
@@ -216,6 +262,7 @@ class OllamaCalibrationRunner:
                 lambda model_id: self._calibrate_one(next(item for item in expected if item.model_id == model_id), profiles[model_id], corpus, holdout),
             )
         _write_json(self.experiment_root / "resolution-queue.json", build_resolution_queue(self.issues))
+        _write_json(self.experiment_root / "resolution-aggregates.json", build_resolution_aggregates(self.issues))
         admission = admission_gate(records, intended_model_ids=[item.model_id for item in expected])
         admission_payload = asdict(admission)
         admission_payload["blocking_model_ids"] = list(admission.blocking_model_ids)
@@ -327,7 +374,9 @@ class OllamaCalibrationRunner:
             "native_cad_capability": "not_tested",
             "admission": "deferred_for_profile_resolution",
             "profile_hash": profile.profile_hash,
-            "profile_iterations": 0,
+            "profile_iterations": profile.iteration,
+            "profile_version": profile.profile_version,
+            "profile_refinement_history": list(getattr(profile, "iteration_changes", ())),
             "structured_output": {},
             "native": [],
             "production_slot": [],
@@ -373,7 +422,7 @@ class OllamaCalibrationRunner:
             (model_root / "structured").mkdir(parents=True, exist_ok=True)
             (model_root / "structured" / "raw-response.txt").write_text(structured_raw, encoding="utf-8")
             normalized = normalize_structured_response(structured_raw)
-            _write_json(model_root / "structured" / "result.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes})
+            _write_json(model_root / "structured" / "result.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes, "raw_hash": normalized.raw_hash, "normalized_hash": normalized.normalized_hash, "generation_metadata": _generation_metadata(provider)})
             record["structured_output"] = {"classification": classify_structured_output(normalized.normalized_response), "normalization_codes": list(normalized.codes)}
         except (OllamaProviderError, ValueError) as exc:
             code = _normalized_ollama_error_code(exc) if isinstance(exc, OllamaProviderError) else "adapter.response_parse_failed"
@@ -388,8 +437,11 @@ class OllamaCalibrationRunner:
         record["native_cad_capability"] = "validated" if native_validated else "partially_validated"
 
         slot_results = []
-        for case in corpus.get("cases", [])[:2]:
-            slot_results.append(await self._run_slot_case(provider, profile, identity.model_name, model_root, case))
+        if "production_slot" in profile.response_modes:
+            for case in corpus.get("cases", [])[:2]:
+                slot_results.append(await self._run_slot_case(provider, profile, identity.model_name, model_root, case))
+        else:
+            _write_json(model_root / "production-slot" / "profile-disabled.json", {"status": "not_tested", "reason": "profile refinement disabled slot retries after native mode was validated", "profile_hash": profile.profile_hash})
         record["production_slot"] = slot_results
         production_validated = bool(slot_results) and all(item.get("worker", {}).get("topology_validated") for item in slot_results)
         production_partial = any(item.get("worker", {}).get("topology_validated") for item in slot_results)
@@ -406,11 +458,12 @@ class OllamaCalibrationRunner:
         frozen = freeze_profile(profile)
         record["profile_hash"] = frozen.profile_hash
         record["profile_iterations"] = frozen.iteration
-        if self.config.run_holdout and record["state"] == "admitted":
+        if self.config.run_holdout and record["infrastructure_status"] == "passed" and "native" in profile.response_modes:
             record["holdout"] = await self._run_holdout(provider, frozen, identity.model_name, model_root, holdout)
-            if record["holdout"].get("status") != "validated":
+            if not str(record["holdout"].get("status", "")).startswith("validated"):
                 record["state"] = "holdout_failed"
-                record["admission"] = "deferred_for_profile_resolution"
+                has_cad_finding = any(issue.model == identity.model_name and issue.owner == "cad" for issue in self.issues)
+                record["admission"] = "operational_low_cad_quality" if has_cad_finding else "deferred_for_profile_resolution"
         elif self.config.run_holdout:
             record["holdout"] = {
                 "status": "blocked",
@@ -430,22 +483,27 @@ class OllamaCalibrationRunner:
             case_root.mkdir(parents=True, exist_ok=True)
             (case_root / "raw-response.txt").write_text(raw, encoding="utf-8")
             normalized = normalize_native_source(raw)
-            _write_json(case_root / "response.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes})
-            worker = await self._execute_worker(wrap_native_source_for_worker(normalized.normalized_response), case_root, case_id)
-            self._record_worker_finding(model, case_root, worker)
+            _write_json(case_root / "response.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes, "raw_hash": normalized.raw_hash, "normalized_hash": normalized.normalized_hash, "parser_result": "ast_valid", "generation_metadata": _generation_metadata(provider)})
+            worker = await self._execute_worker(wrap_native_source_for_worker(normalized.normalized_response), case_root, case_id, case_id=case_id)
+            self._record_worker_finding(model, case_root, worker, response_mode="native", calibration_case=case_id, profile_version=profile.profile_version, profile_hash=profile.profile_hash or "", raw_hash=normalized.raw_hash, normalized_hash=normalized.normalized_hash)
             return {"case_id": case_id, "status": "completed", "normalization_codes": list(normalized.codes), "worker": worker}
         except OllamaProviderError as exc:
-            self._add_issue(model, "native", _normalized_ollama_error_code(exc), str(exc), case_root / "failure.json")
+            self._add_issue(model, "native", _normalized_ollama_error_code(exc), str(exc), case_root / "failure.json", response_mode="native", calibration_case=case_id, profile_version=profile.profile_version)
             return {"case_id": case_id, "status": "integration_failure", "worker": {"topology_validated": False}}
+        except (OSError, RuntimeError) as exc:
+            self._add_issue(model, "worker", "infrastructure.worker_runtime_failure", str(exc), case_root / "failure.json", required_next_action="Repair worker/job isolation and reprocess this case", response_mode="native", calibration_case=case_id, profile_version=profile.profile_version)
+            return {"case_id": case_id, "status": "worker_infrastructure_failure", "worker": {"topology_validated": False}}
         except ValueError as exc:
-            if "geometry-slots-v1" in raw or '"slots"' in raw:
-                code = "profile.response_mode_mismatch"
-            elif "multiple plausible" in str(exc):
-                code = "model.invalid_structured_response"
-            else:
-                code = "representation.prose_wrapped"
-            self._add_issue(model, "native", code, str(exc), case_root / "failure.json")
-            return {"case_id": case_id, "status": "profile_or_representation_failure", "error_code": code, "worker": {"topology_validated": False}}
+            inspection = inspect_native_response(raw)
+            code = "model.native_source_invalid"
+            if inspection.signature == "native_multiple_final_objects":
+                code = "model.ambiguous_native_output"
+            elif inspection.signature == "native_missing_required_operation":
+                code = "model.missing_cad_operation"
+            elif inspection.signature == "native_unsafe_source":
+                code = "adapter.unsafe_source_rejected"
+            self._add_issue(model, "native", code, str(exc), case_root / "failure.json", aggregate_signature=inspection.signature, safe_normalization_eligible=inspection.safe_normalization_eligible, required_next_action="Inspect source; do not invent CAD meaning", response_mode="native", calibration_case=case_id, profile_version=profile.profile_version, raw_hash=inspection.raw_hash, normalized_hash=inspection.normalized_hash)
+            return {"case_id": case_id, "status": "profile_or_representation_failure", "error_code": code, "signature": inspection.signature, "worker": {"topology_validated": False}}
 
     async def _run_slot_case(self, provider: OllamaProvider, profile: CalibrationProfile, model: str, root: Path, case: dict[str, Any]) -> dict[str, Any]:
         case_id = str(case.get("case_id"))
@@ -455,24 +513,37 @@ class OllamaCalibrationRunner:
             raw = await provider.generate_calibration_response(prompt, profile=profile, structured_schema=SLOT_SCHEMA)
             case_root.mkdir(parents=True, exist_ok=True)
             (case_root / "raw-response.txt").write_text(raw, encoding="utf-8")
+            inspection = inspect_structured_response(raw, expected_slot_ids=SLOT_IDS)
+            if inspection.classification == "incompatible":
+                raise ValueError(f"production slot response classified as {inspection.signature}")
             normalized = normalize_structured_response(raw, expected_slot_ids=SLOT_IDS)
-            classification = classify_production_slot_output(normalized.normalized_response, expected_slot_ids=list(SLOT_IDS))
-            if classification != "production_slot_compatible":
-                raise ValueError("production slot response is incompatible")
+            classification = "production_slot_compatible"
             payload = json.loads(normalized.normalized_response)
             statements = [statement for slot in payload["slots"] for statement in slot["statements"]]
-            source = "import cadquery as cq\n" + "\n".join(str(statement) for statement in statements)
+            result_symbol = str(payload["slots"][-1]["result_symbol"])
+            if not re.fullmatch(r"[A-Za-z_]\w*", result_symbol):
+                raise ValueError("slot result_symbol is not an unambiguous Python name")
+            source = "import cadquery as cq\n" + "\n".join(str(statement) for statement in statements) + f"\nresult = {result_symbol}\n"
             native = normalize_native_source(source)
-            _write_json(case_root / "response.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes})
-            worker = await self._execute_worker(wrap_native_source_for_worker(native.normalized_response), case_root, case_id)
-            self._record_worker_finding(model, case_root, worker)
+            _write_json(case_root / "response.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes, "raw_hash": normalized.raw_hash, "normalized_hash": normalized.normalized_hash, "parser_result": inspection.parser_result, "signature": inspection.signature, "generation_metadata": _generation_metadata(provider)})
+            worker = await self._execute_worker(wrap_native_source_for_worker(native.normalized_response), case_root, case_id, case_id=case_id)
+            self._record_worker_finding(model, case_root, worker, response_mode="production_slot", calibration_case=case_id, profile_version=profile.profile_version, profile_hash=profile.profile_hash or "", raw_hash=normalized.raw_hash, normalized_hash=normalized.normalized_hash)
             return {"case_id": case_id, "status": "completed", "classification": classification, "normalization_codes": list(normalized.codes), "worker": worker}
         except OllamaProviderError as exc:
-            self._add_issue(model, "production_slot", _normalized_ollama_error_code(exc), str(exc), case_root / "failure.json")
+            self._add_issue(model, "production_slot", _normalized_ollama_error_code(exc), str(exc), case_root / "failure.json", response_mode="production_slot", calibration_case=case_id, profile_version=profile.profile_version)
             return {"case_id": case_id, "status": "integration_failure", "worker": {"topology_validated": False}}
+        except (OSError, RuntimeError) as exc:
+            self._add_issue(model, "worker", "infrastructure.worker_runtime_failure", str(exc), case_root / "failure.json", required_next_action="Repair worker/job isolation and reprocess this case", response_mode="production_slot", calibration_case=case_id, profile_version=profile.profile_version)
+            return {"case_id": case_id, "status": "worker_infrastructure_failure", "worker": {"topology_validated": False}}
         except (ValueError, json.JSONDecodeError) as exc:
-            self._add_issue(model, "production_slot", "model.invalid_structured_response", str(exc), case_root / "failure.json")
-            return {"case_id": case_id, "status": "contract_failure", "worker": {"topology_validated": False}}
+            inspection = inspect_structured_response(raw, expected_slot_ids=SLOT_IDS)
+            code = "model.invalid_structured_response"
+            action = "Inspect slot contract; do not add missing CAD meaning"
+            if inspection.signature == "native_script_instead_of_slots":
+                code = "profile.response_mode_mismatch"
+                action = "Accept native-only capability; do not retry slot prompts"
+            self._add_issue(model, "production_slot", code, str(exc), case_root / "failure.json", aggregate_signature=inspection.signature, safe_normalization_eligible=inspection.safe_normalization_eligible, required_next_action=action, response_mode="production_slot", calibration_case=case_id, profile_version=profile.profile_version, raw_hash=inspection.raw_hash, normalized_hash=inspection.normalized_hash)
+            return {"case_id": case_id, "status": "contract_failure", "signature": inspection.signature, "worker": {"topology_validated": False}}
 
     async def _run_holdout(self, provider: OllamaProvider, profile: CalibrationProfile, model: str, root: Path, holdout: dict[str, Any]) -> dict[str, Any]:
         results = []
@@ -485,20 +556,27 @@ class OllamaCalibrationRunner:
                 case_root.mkdir(parents=True, exist_ok=True)
                 (case_root / "raw-response.txt").write_text(raw, encoding="utf-8")
                 normalized = normalize_native_source(raw)
-                worker = await self._execute_worker(wrap_native_source_for_worker(normalized.normalized_response), case_root, case_id)
-                self._record_worker_finding(model, case_root, worker)
+                _write_json(case_root / "response.json", {"raw_response": normalized.raw_response, "normalized_response": normalized.normalized_response, "codes": normalized.codes, "raw_hash": normalized.raw_hash, "normalized_hash": normalized.normalized_hash, "parser_result": "ast_valid", "generation_metadata": _generation_metadata(provider)})
+                worker = await self._execute_worker(wrap_native_source_for_worker(normalized.normalized_response), case_root, case_id, case_id=case_id)
+                self._record_worker_finding(model, case_root, worker, response_mode="native", calibration_case=case_id, profile_version=profile.profile_version, profile_hash=profile.profile_hash or "", raw_hash=normalized.raw_hash, normalized_hash=normalized.normalized_hash)
                 results.append({"case_id": case_id, "worker": worker, "normalization_codes": list(normalized.codes)})
-            except (OllamaProviderError, ValueError) as exc:
-                self._add_issue(model, "holdout", "model.invalid_structured_response", str(exc), case_root / "failure.json")
+            except (OllamaProviderError, ValueError, OSError, RuntimeError) as exc:
+                inspection = inspect_native_response(raw if raw else "")
+                code = "model.native_source_invalid" if isinstance(exc, ValueError) else ("infrastructure.worker_runtime_failure" if isinstance(exc, (OSError, RuntimeError)) else _normalized_ollama_error_code(exc))
+                self._add_issue(model, "holdout", code, str(exc), case_root / "failure.json", aggregate_signature=inspection.signature, safe_normalization_eligible=inspection.safe_normalization_eligible, required_next_action="Inspect holdout source without changing CAD meaning", response_mode="native", calibration_case=case_id, profile_version=profile.profile_version, raw_hash=inspection.raw_hash, normalized_hash=inspection.normalized_hash)
                 results.append({"case_id": case_id, "status": "failed"})
-        return {"status": "validated" if results and all(item.get("worker", {}).get("topology_validated") for item in results) else "failed", "profile_hash": profile.profile_hash, "cases": results}
+        valid_cases = [item for item in results if item.get("worker", {}).get("topology_validated") and item.get("worker", {}).get("broad_geometry_validated")]
+        status = "validated" if valid_cases else "failed"
+        if valid_cases and len(valid_cases) != len(results):
+            status = "validated_with_failures"
+        return {"status": status, "profile_hash": profile.profile_hash, "cases": results, "validated_case_ids": [item.get("case_id") for item in valid_cases]}
 
-    async def _execute_worker(self, source: str, root: Path, case_id: str) -> dict[str, Any]:
+    async def _execute_worker(self, source: str, root: Path, job_case_id: str, *, case_id: str = "") -> dict[str, Any]:
         worker = self.worker or FilesystemCadWorkerRunner()
         compile_task = asyncio.create_task(
             worker.compile(
                 source,
-                f"ollama-cal-{case_id}-{int(time.time() * 1000)}",
+                f"ollama-cal-{job_case_id}-{uuid.uuid4().hex}",
                 requested_outputs=[{"output_id": "native_result", "required": True, "expected_solid_count": 1}],
             )
         )
@@ -509,12 +587,15 @@ class OllamaCalibrationRunner:
         result = await compile_task
         outputs = [item for item in result.outputs if item.output_id == "native_result"]
         topology = outputs[0].topology_metadata if outputs else None
+        broad_geometry = _broad_geometry_check(case_id or job_case_id, topology, source)
         payload = {
             "success": result.success,
             "error": result.error_message,
             "source_hash": result.source_hash,
             "topology": topology,
             "topology_validated": bool(result.success and isinstance(topology, dict) and topology.get("valid") is True),
+            "broad_geometry": broad_geometry,
+            "broad_geometry_validated": broad_geometry.get("status") in {"passed", "not_automatable"},
             "worker_reached": result.exit_code is not None or result.execution_manifest_path is not None,
             "worker_driver": "in_process_process_next_job" if self.worker is None else type(self.worker).__name__,
             "execution_timing": result.execution_timing,
@@ -522,21 +603,56 @@ class OllamaCalibrationRunner:
         _write_json(root / "worker" / "result.json", payload)
         return payload
 
-    def _record_worker_finding(self, model: str, root: Path, worker: dict[str, Any]) -> None:
-        if worker.get("success") and worker.get("topology_validated"):
+    def _record_worker_finding(
+        self,
+        model: str,
+        root: Path,
+        worker: dict[str, Any],
+        *,
+        response_mode: str = "native",
+        calibration_case: str = "",
+        profile_version: str = "",
+        profile_hash: str = "",
+        raw_hash: str = "",
+        normalized_hash: str = "",
+    ) -> None:
+        if worker.get("success") and worker.get("topology_validated") and worker.get("broad_geometry_validated"):
             return
         error = str(worker.get("error") or "")
-        if worker.get("worker_reached") is not True:
-            code = "cad.worker_runtime_failure"
+        if worker.get("success") and worker.get("topology_validated") and not worker.get("broad_geometry_validated"):
+            code = "cad.verification_failure"
+            error = "broad expected-geometry check failed: " + json.dumps(worker.get("broad_geometry"), sort_keys=True)
+        elif worker.get("worker_reached") is not True:
+            code = "infrastructure.worker_runtime_failure"
         elif "solid_count_mismatch" in json.dumps(worker.get("topology"), sort_keys=True):
             code = "cad.topology_failure"
         elif "shape is invalid" in error.casefold() or "invalid construction" in error.casefold():
             code = "cad.invalid_construction"
         else:
             code = "cad.verification_failure"
-        self._add_issue(model, "worker", code, error or "worker validation failed", root / "worker" / "finding.json", worker_validated=True)
+        self._add_issue(model, "worker", code, error or "worker validation failed", root / "worker" / "finding.json", worker_validated=True, aggregate_signature=code.replace(".", "_"), required_next_action="Preserve CAD finding; inspect geometry only through worker/topology evidence", response_mode=response_mode, calibration_case=calibration_case, profile_version=profile_version, profile_hash=profile_hash, raw_hash=raw_hash, normalized_hash=normalized_hash)
 
-    def _add_issue(self, model: str, stage: str, error_code: str, message: str, evidence_path: Path, *, worker_validated: bool = False) -> None:
+    def _add_issue(
+        self,
+        model: str,
+        stage: str,
+        error_code: str,
+        message: str,
+        evidence_path: Path,
+        *,
+        worker_validated: bool = False,
+        aggregate_signature: str | None = None,
+        safe_normalization_eligible: bool = False,
+        required_next_action: str | None = None,
+        response_mode: str = "",
+        calibration_case: str = "",
+        profile_version: str = "",
+        profile_hash: str = "",
+        raw_hash: str = "",
+        normalized_hash: str = "",
+        status: str = "open",
+        reprocessing_result: str | None = None,
+    ) -> None:
         assert self.experiment_root is not None
         _write_json(evidence_path, {"model": model, "stage": stage, "error_code": error_code, "message": message})
         issue = classify_calibration_failure(
@@ -545,6 +661,15 @@ class OllamaCalibrationRunner:
             message=message,
             evidence_path=_safe_path(evidence_path, self.experiment_root),
             worker_validated=worker_validated,
+            aggregate_signature=aggregate_signature,
+            safe_normalization_eligible=safe_normalization_eligible,
+            required_next_action=required_next_action,
+            response_mode=response_mode,
+            calibration_case=calibration_case,
+            profile_version=profile_version,
+            profile_hash=profile_hash,
+            raw_hash=raw_hash,
+            normalized_hash=normalized_hash,
         )
         issue = replace(
             issue,
@@ -553,6 +678,12 @@ class OllamaCalibrationRunner:
                 f"{model}:{stage}:{error_code}:{_safe_path(evidence_path, self.experiment_root)}".encode("utf-8")
             ).hexdigest()[:16],
         )
+        lifecycle_status = status
+        if status == "open" and error_code.startswith("cad."):
+            lifecycle_status = "cad_quality_finding"
+        elif status == "open" and (error_code.startswith("model.") or error_code.startswith("profile.")):
+            lifecycle_status = "accepted_model_limitation"
+        issue = replace(issue, status=lifecycle_status, reprocessing_result=reprocessing_result)
         self.issues.append(
             CalibrationIssue(**asdict(issue))
         )
