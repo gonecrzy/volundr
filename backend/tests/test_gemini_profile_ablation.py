@@ -10,6 +10,7 @@ from app.services.gemini_consistency.interaction_capture import (
     StudyContext,
 )
 from app.services.workflow.redaction import RedactionService
+from scripts.run_gemini_profile_ablation import write_phase1_reports
 from app.services.gemini_consistency.profile_ablation import (
     PHASE1_CALL_LIMIT,
     PHASE2_CASE_IDS,
@@ -195,3 +196,48 @@ def test_ablation_reports_preserve_token_metrics_during_redaction(tmp_path) -> N
     assert safe["tokens"] == 42
     assert safe["total_tokens"] == 42
     assert safe["api_key"] == "[REDACTED]"
+
+
+def test_resumed_phase1_reports_use_complete_records_not_stale_run_state(tmp_path) -> None:
+    root = tmp_path / "gemini-profile-ablation-01"
+    order = balanced_execution_order()
+    for packet_id, profile_id, repetition in order:
+        path = root / "phase-1" / packet_id / profile_id / f"repetition-{repetition:02d}.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(
+                {
+                    "profile_id": profile_id,
+                    "packet_id": packet_id,
+                    "accepted": True,
+                    "semantic_fidelity": 1.0,
+                    "schema_pass": True,
+                    "provenance_pass": True,
+                    "slot_completeness": True,
+                    "source_contract_pass": True,
+                    "semantic_key": f"{packet_id}-same",
+                    "status_code": 200,
+                    "total_tokens": 1,
+                    "latency_ms": 1,
+                }
+            )
+        )
+    (root / "phase-1").mkdir(exist_ok=True)
+    (root / "phase-1" / "run-state.json").write_text(
+        json.dumps(
+            {
+                "experimental_provider_calls": 18,
+                "call_cap": 30,
+                "stopped_reason": "provider_quota_exhausted",
+                "complete": False,
+            }
+        )
+    )
+
+    write_phase1_reports(root)
+
+    final = json.loads((root / "reports" / "final-decision.json").read_text())
+    scorecard = json.loads((root / "reports" / "phase-1-scorecard.json").read_text())
+    assert final["phase_1_complete"] is True
+    assert final["quota_interrupted"] is True
+    assert scorecard["phase_1_complete"] is True

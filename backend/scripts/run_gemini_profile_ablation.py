@@ -237,8 +237,11 @@ def write_phase1_reports(output_root: Path) -> dict[str, Any]:
     scorecards = aggregate_phase1_results(records)
     decision = phase1_decision(baseline_profile_id="profile-a-current", profile_results=scorecards)
     run_state = _read(output_root / "phase-1" / "run-state.json") if (output_root / "phase-1" / "run-state.json").is_file() else {}
-    phase1_complete = bool(run_state.get("complete")) and len(records) == PHASE1_CALL_LIMIT
-    quota_interrupted = run_state.get("stopped_reason") == "provider_quota_exhausted"
+    phase1_complete = len(records) == PHASE1_CALL_LIMIT
+    quota_interrupted = (
+        run_state.get("stopped_reason") == "provider_quota_exhausted"
+        or any(record.get("error_category") == "provider_quota_exhausted" for record in records)
+    )
     if not phase1_complete:
         decision = {
             **decision,
@@ -360,7 +363,16 @@ def run_phase1(*, output_root: Path, study_root: Path, repository_root: Path, cl
         if error_category in {"provider_quota_exhausted", "provider_model_mismatch"}:
             stopped_reason = error_category
             break
-    _write_json(output_root / "phase-1" / "run-state.json", {"experimental_provider_calls": experimental_calls, "call_cap": PHASE1_CALL_LIMIT, "stopped_reason": stopped_reason, "complete": len(_result_paths(output_root)) == PHASE1_CALL_LIMIT})
+    _write_json(
+        output_root / "phase-1" / "run-state.json",
+        {
+            "experimental_provider_calls": experimental_calls,
+            "call_cap": PHASE1_CALL_LIMIT,
+            "stopped_reason": stopped_reason,
+            "complete": len(_result_paths(output_root)) == PHASE1_CALL_LIMIT,
+        },
+        overwrite=True,
+    )
     return write_phase1_reports(output_root)
 
 
