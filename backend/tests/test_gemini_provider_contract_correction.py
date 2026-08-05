@@ -13,6 +13,7 @@ from app.services.gemini_consistency.provider_contract_correction import (
     worker_reach_semantics,
 )
 from scripts.run_gemini_provider_contract_foundation import _generation_config
+from scripts.run_gemini_provider_contract_correction import _settings_selection
 
 
 def _record(profile: str, result: str, *, status_code: int = 200) -> dict:
@@ -133,3 +134,18 @@ def test_earliest_blocker_and_furthest_stage_are_deterministic() -> None:
 
     assert earliest_blocker(stages=stages) == "clarification_required"
     assert furthest_valid_stage(stages=stages) == "plan"
+
+
+def test_settings_replacement_deduplicates_the_failed_logical_operation() -> None:
+    failed_id = "old:s1:geometry:rep-1"
+    old = [{"settings_profile": "S1-profile-b", "logical_operation_id": failed_id, "success": False, "complete": False, "status_code": 504, "intrinsic_quality": {"result": "transport_failure"}}]
+    old.extend(_record("S1-profile-b", "pass") | {"logical_operation_id": f"old:s1:{index}"} for index in range(11))
+    replacement = _record("S1-profile-b", "pass") | {"logical_operation_id": "replacement:s1:geometry:rep-1", "replacement_of_logical_operation_id": failed_id, "complete": True}
+
+    decision = _settings_selection(old, replacement)
+
+    summary = decision["summaries"]["S1-profile-b"]
+    assert summary["logical_operations"] == 12
+    assert summary["complete"] is True
+    assert summary["content_bearing_responses"] == 12
+    assert decision["historical_transport_failures_excluded"]["S1-profile-b"] == 1

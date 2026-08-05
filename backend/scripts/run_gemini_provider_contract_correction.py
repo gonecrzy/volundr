@@ -12,6 +12,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import time
@@ -83,6 +84,23 @@ def _git(repo_root: Path, *args: str) -> str | None:
 
 def _old_root(repo_root: Path) -> Path:
     return repo_root / "data/debug-sessions/gemini-provider-contract-foundation/gemini-provider-contract-foundation-01"
+
+
+def _reload_secondary_dotenv(repo_root: Path) -> None:
+    """Reload only the secondary key for this isolated experiment process."""
+    dotenv = repo_root / ".env"
+    if not dotenv.is_file():
+        raise RuntimeError(".env is absent; no provider call was attempted")
+    secondary: str | None = None
+    for line in dotenv.read_text(encoding="utf-8").splitlines():
+        if line.startswith(f"{SECONDARY_ENV}="):
+            secondary = line.split("=", 1)[1].strip().strip('"').strip("'")
+            break
+    if not secondary:
+        raise RuntimeError("GEMINI_API_KEY_2 is absent from .env; no provider call was attempted")
+    for name in ("GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY_2"):
+        os.environ.pop(name, None)
+    os.environ[SECONDARY_ENV] = secondary
 
 
 def _correction_root(repo_root: Path) -> Path:
@@ -447,14 +465,18 @@ def _settings_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _settings_selection(old_records: list[dict[str, Any]], replacement: dict[str, Any] | None = None) -> dict[str, Any]:
     grouped: dict[str, list[dict[str, Any]]] = {}
+    replacement_of = replacement.get("replacement_of_logical_operation_id") if replacement else None
     for record in old_records:
         if record.get("settings_profile") in {"S0-current-explicit", "S1-profile-b"}:
+            if replacement_of and record.get("logical_operation_id") == replacement_of:
+                continue
             grouped.setdefault(str(record["settings_profile"]), []).append(record)
     if replacement is not None:
         grouped.setdefault("S1-profile-b", []).append(replacement)
     summaries = {profile: _settings_summary(records) for profile, records in grouped.items()}
     decision = select_settings_from_content(summaries)
-    return {"schema_version": "gemini-provider-contract-correction-settings-decision-v1", "run": True, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "model": MODEL, "provider_calls": 1 if replacement else 0, "worker_calls": 0, "summaries": summaries, **decision, "selection_basis": "content-bearing responses only; transport and quota are excluded and cannot disqualify a settings profile"}
+    historical_transport = {profile: sum(_transport_record(record) for record in old_records if record.get("settings_profile") == profile) for profile in ("S0-current-explicit", "S1-profile-b")}
+    return {"schema_version": "gemini-provider-contract-correction-settings-decision-v1", "run": True, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "model": MODEL, "provider_calls": 1 if replacement else 0, "worker_calls": 0, "summaries": summaries, **decision, "historical_transport_failures_excluded": historical_transport, "selection_basis": "content-bearing responses only; transport and quota are excluded and cannot disqualify a settings profile"}
 
 
 async def corrected_settings(repo_root: Path) -> dict[str, Any]:
@@ -641,8 +663,11 @@ def main() -> int:
     parser.add_argument("--phase", choices=("audit", "settings", "requirements", "repair", "select-prompts", "holdout", "all"), default="audit")
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--settings-profile", choices=("S0-current-explicit", "S1-profile-b"))
+    parser.add_argument("--reload-secondary-dotenv", action="store_true", help="Reload GEMINI_API_KEY_2 from repo .env for this process only")
     args = parser.parse_args()
     repo_root = args.repo_root.resolve()
+    if args.reload_secondary_dotenv:
+        _reload_secondary_dotenv(repo_root)
     if args.phase == "audit":
         result = methodology_audit(repo_root)
     elif args.phase == "settings":
