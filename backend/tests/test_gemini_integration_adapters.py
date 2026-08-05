@@ -110,6 +110,24 @@ def test_plan_adapter_accepts_authoritative_output_identity_and_single_output_tr
     assert result.accepted is True
 
 
+def test_plan_adapter_rejects_output_identity_aliases_against_frozen_obligations() -> None:
+    result = GeminiPlanContractAdapter().adapt(
+        {
+            "components": [{"id": "base", "name": "base"}],
+            "printable_outputs": [{"id": "base_output", "component_id": "base"}],
+        },
+        _context(
+            expected_output_count=1,
+            expected_output_ids=["base"],
+        ),
+    )
+
+    assert result.accepted is False
+    assert result.failure_class == "output_identity_failure"
+    assert result.validation_result["expected_output_ids"] == ["base"]
+    assert result.validation_result["observed_output_ids"] == ["base_output"]
+
+
 def test_plan_adapter_rejects_empty_records_and_invalid_references() -> None:
     empty = GeminiPlanContractAdapter().adapt(
         {"components": [{}], "printable_outputs": []},

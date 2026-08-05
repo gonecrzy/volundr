@@ -245,6 +245,28 @@ class GeminiPlanContractAdapter:
             return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,
                              validation={"reason": "printable output count differs from frozen obligation"},
                              failure_class="wrong_output_obligation", context=context)
+        expected_output_ids = [str(item) for item in context.get("expected_output_ids", []) or []]
+        if expected_output_ids:
+            observed_output_ids = [
+                str(item.get("id") or item.get("output_id") or "")
+                for item in outputs
+                if isinstance(item, dict)
+            ]
+            if observed_output_ids != expected_output_ids:
+                return _evidence(
+                    self.stage,
+                    raw,
+                    parsed,
+                    normalized,
+                    accepted=False,
+                    actions=actions,
+                    validation={
+                        "expected_output_ids": expected_output_ids,
+                        "observed_output_ids": observed_output_ids,
+                    },
+                    failure_class="output_identity_failure",
+                    context=context,
+                )
         component_ids = {str(item.get("id") or item.get("component_id")) for item in components}
         references: list[str] = []
         for item in [*features, *outputs, *(normalized.get("validation_targets") or [])]:

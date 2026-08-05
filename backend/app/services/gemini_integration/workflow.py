@@ -183,7 +183,16 @@ class IntegrationWorkflowRunner:
             return self._outcome(project, revision_id, earliest, furthest, None, boundary_ids, attempt_ids, worker_jobs)
         plan_evidence = self.plan_adapter.adapt(
             plan_result.text,
-            {**self._context(project, revision_id), "expected_output_count": project.expected_output_count, "required_requirement_ids": [str(item.get("id")) for item in specification.get("requirements", []) if isinstance(item, dict) and item.get("id")]},
+            {
+                **self._context(project, revision_id),
+                "expected_output_count": project.expected_output_count,
+                "expected_output_ids": list(project.expected_output_ids),
+                "required_requirement_ids": [
+                    str(item.get("id"))
+                    for item in specification.get("requirements", [])
+                    if isinstance(item, dict) and item.get("id")
+                ],
+            },
         )
         boundary_ids.append(self._capture_adapter(project, revision_id, "plan_adapter", plan_evidence))
         if not plan_evidence.accepted:

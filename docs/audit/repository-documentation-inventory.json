@@ -54,6 +54,11 @@
       "line": 365,
       "path": "backend/scripts/write_contract_complexity_reports.py",
       "text": "schema, provider contract manifest, prompt context pack, provenance records,"
+    },
+    {
+      "line": 91,
+      "path": "backend/scripts/write_wave_02_reports.py",
+      "text": "\"cause\": \"Provider used component_shape/modified_shape aliases; normalization was deterministic but records provider contract drift and did not repair semantic geometry.\","
     }
   ],
   "inventory": "repository-documentation",

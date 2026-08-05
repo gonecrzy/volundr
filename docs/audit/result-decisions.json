@@ -6794,12 +6794,345 @@
       "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
       "sha256": "be45479a03e0ca863703253b3c1b96d72ce60fb2a4150aeb2f71457695785679",
       "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/baseline-project-results.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "290dee57d8f27db7e285b81ca28b085ff3a70aa247dc8961eeee3afef0c51725",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/cadquery-dialect-diagnosis.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "6588d3629154ea99ca23bb26e1a8957e4db3d00e65df19e63b029add686213b8",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/causal-graph.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "5383de4238d7dcb023ec093b045fe77a647c924db754f8654918eb3f96f04a62",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/combined-wave-evidence.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "0056fa31d267a34d3809323350385201a9ffc444e2e1fc5f6f2abdf1c5c958af",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/correction-priorities.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "33d81f802de8f805b47470f24777f51d2021cbb5e167b3a968182813f8404222",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/corrections-applied.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/counterfactual-replays.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "f0cb549ebb0a8879f7adee65d00f079e4fdab606cb9e306214015456afe083ff",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/counterfactual-results.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "f0cb549ebb0a8879f7adee65d00f079e4fdab606cb9e306214015456afe083ff",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/cross-project-clusters.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "780df135406cd5766d6aa688161394f9c75dee013dc26fc3ba889a7803cc1473",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/cross-project-issue-clusters.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "4e743ac3ce078bb380396f137e02d4b9d4621c0cae76ec5df0882cfe8f916334",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/differential-replays.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "2a8b97ded712f393dbcec9c8a01884ab853e042336bbf7fbabb81ddbb9f88c89",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/diversity-and-coverage-matrix.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "cdbeb5dda0fac0952f0b350d4463f3a9ad1051198896418406918edfef55c33e",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/frozen-project-corpus.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "d7dd1323868216752e3a40fde125aec65eae352cd163b20f9118d3a662f897e2",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/full-wave-replay.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "10b2f0b9465fa1976eafa2c2742867e0ad4379ced32705496e25011ae60a4fe8",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/helper-policy-review.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "9cb0b7678b80bb92c9a938a7e954708cb3deb53b9b4d02cf603a2b15a952b5af",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/implemented-corrections.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "284efc3d95aca9b54fcc77e6a8c7be2a0e477f49b9e87c97247469bfe1803c57",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/issue-causal-graph.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "5450ec07b010babc06a99928c301d2672477e0efcf695d2a6a683c84191570c2",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/issue-priority-ranking.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "c19961acfbd94ac6598650107cba09667202afbca068c8bf9970507cc6fb493a",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/issue-register.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "3e095bea54c32bdf79d81fd9df6b1663e9d37dd150aebbeb54ad7cc45f45f4e6",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/live-rerun-decision.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/next-wave-recommendation.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/ownership-analysis.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "dd0eb226b418b86950d6b9f2c17fd29ddc3323d52a3b994af31f159e8362fa38",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/ownership-summary.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "9cca3012261f485797bab52a561c94f2899b451652d0e2a5d8d9e7f3bf0b32f1",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/preregistration.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "17bbf59708b7f4061553988a169ac5a928da1430db8b85906587339da111f5ab",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/project-diversity-matrix.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "cdbeb5dda0fac0952f0b350d4463f3a9ad1051198896418406918edfef55c33e",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/project-outcomes.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "a539c83ce150165fead79da6be52203d0cc15b7f9d49df8335fd48e1b34876e0",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/provider-attempts.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "738c992b6bb9f4986f2992a64f6210b4f61b196e2e746f3763e499823ec80b0b",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/provider-profile.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "c07ab60e0a795958c1701c4f8560a78286563a04088d4b89c0d9753c86c9918d",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/rate-limit-report.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "a8240dc8ac36590c6fb14a97bedaf64ca6572ddb219f75092a182162ba883be2",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/regression-replay.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "0108c6ca71a78a3ae5b4fa7355a108a2b6927addddcfcbaed64c250bd0140c0a",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/repository-snapshot.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "74ad92d2996653a63c11022aca8a7deb3e80a48cd3fb2fe7bf729fd32652debe",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/retry-report.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "bc2517ec96eb9affd192099897ee53e942ddd299f759175645a0145ad55709f2",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/unresolved-unknowns.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "4344fdfadf202f7af28ee2ae375f032ee6251395e61f7ebe6eb0c8a7f0ce1ca1",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/wave-decision.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "97557644df3fa7c54051a62244d621e972f0810a02d9c759bf092b84a7b4011c",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/wave-preregistration.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "17bbf59708b7f4061553988a169ac5a928da1430db8b85906587339da111f5ab",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/wave-state.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "35034c95c4baa2bb409d5119e068daec80ba42003bf1669cbcc89ce9441b70e7",
+      "source_capture": "same study directory; immutable raw captures remain in place"
+    },
+    {
+      "action": "retain",
+      "classification": "generated_reproducible",
+      "generation_command": "study-specific runner recorded in docs/STUDY_INDEX.md or the associated plan",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports/worker-jobs.json",
+      "reason": "Derived evidence remains discoverable until an exact hash-equivalent replacement is documented.",
+      "sha256": "f4cc6fd81c3d8844673fea21aa90dbe0f78bf7fe84369b5776c4dd55a83d1f47",
+      "source_capture": "same study directory; immutable raw captures remain in place"
     }
   ],
   "disposable_files_removed": [],
   "policy": "Raw captures, attempts, hashes, provenance, and historical decisions are immutable and retained.",
   "removed_derived_results": [],
   "schema_version": "volundr-repository-audit-v1",
-  "study_record_count": 184,
+  "study_record_count": 185,
   "unresolved_review_items": []
 }

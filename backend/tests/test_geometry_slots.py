@@ -77,6 +77,24 @@ def test_provider_response_order_does_not_change_volundr_owned_mapping() -> None
     )
 
 
+def test_safe_python_builtins_are_available_to_geometry_slots() -> None:
+    result = parse_geometry_slots(
+        _response(
+            {
+                "slot_id": 0,
+                "statements": [
+                    'body = cq.Workplane("XY").box(max(1, params["width"]), 10, 3)'
+                ],
+                "result_symbol": "body",
+            }
+        ),
+        MANIFEST,
+    )
+
+    assert result.completed_slot_ids == [0]
+    assert result.invalid_slots == []
+
+
 @pytest.mark.parametrize(
     ("record", "rule_id"),
     [

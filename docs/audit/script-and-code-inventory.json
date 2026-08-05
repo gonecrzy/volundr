@@ -322,6 +322,7 @@
         "backend/scripts/audit_gemini_phase2.py",
         "backend/scripts/audit_repository.py",
         "backend/scripts/freeze_contract_complexity_inputs.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/report_gemini_study.py",
         "backend/scripts/run_cadquery_dialect_audit.py",
         "backend/scripts/run_contract_complexity_experiment.py",
@@ -348,6 +349,8 @@
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/scripts/write_contract_complexity_reports.py",
+        "backend/scripts/write_wave_02_final_reports.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/fixtures/debug_batch/candidate_classification_failure.json",
         "backend/tests/fixtures/debug_batch/invalid_json_design_spec.json",
         "backend/tests/fixtures/debug_batch/provenance_failure.json",
@@ -369,6 +372,7 @@
         "backend/tests/test_cadquery_parameter_effects.py",
         "backend/tests/test_cadquery_source_authority.py",
         "backend/tests/test_candidate_revisions.py",
+        "backend/tests/test_capsule_slot_helper.py",
         "backend/tests/test_chat_workflow.py",
         "backend/tests/test_compact_detailed_interoperability.py",
         "backend/tests/test_config.py",
@@ -935,6 +939,7 @@
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_cadquery_dialect_audit.py",
         "backend/tests/test_gemini_consistency_api.py",
         "backend/tests/test_gemini_consistency_corpus.py",
@@ -992,7 +997,7 @@
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "421aff207fc2befed2dc88350b5fb17b346b473f63192087616734d05dd50c29"
+      "sha256": "8822d103d0b1433bf838522db27d520ad3ef7f28c0fc97992271ace78529ff21"
     },
     {
       "classification": "historical_immutable",
@@ -1072,6 +1077,7 @@
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/fixtures/diagnostic_inputs/desktop_organizer.json",
         "backend/tests/fixtures/diagnostic_inputs/five_tray_wall_carrier.json",
         "backend/tests/fixtures/diagnostic_inputs/screw_lid_container.json",
@@ -1140,6 +1146,7 @@
         "backend/app/services/gemini_integration/reports.py",
         "backend/app/services/gemini_integration/representative_waves.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_provider_contract_integration.py",
@@ -1149,6 +1156,8 @@
         "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/scripts/write_wave_02_final_reports.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_debug_batch_frozen_replays.py",
         "backend/tests/test_gemini_flash_lite_analyzer.py",
         "backend/tests/test_gemini_flash_lite_replay.py",
@@ -1359,6 +1368,7 @@
         "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/__init__.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
+        "backend/app/services/gemini_consistency/geometry_slot_canonicalizer.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_consistency/replay.py",
@@ -1385,6 +1395,7 @@
         "backend/scripts/audit_repository.py",
         "backend/scripts/combine_ollama_calibration.py",
         "backend/scripts/purge_archived_projects.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/report_gemini_study.py",
         "backend/scripts/resolve_ollama_calibration.py",
         "backend/scripts/run_cadquery_dialect_audit.py",
@@ -1427,6 +1438,7 @@
         "backend/tests/test_cadquery_source_authority.py",
         "backend/tests/test_cadquery_source_scaffold.py",
         "backend/tests/test_candidate_revisions.py",
+        "backend/tests/test_capsule_slot_helper.py",
         "backend/tests/test_chat_workflow.py",
         "backend/tests/test_compact_detailed_interoperability.py",
         "backend/tests/test_constraint_modes.py",
@@ -1616,6 +1628,7 @@
         "backend/app/services/gemini_integration/workflow.py",
         "backend/scripts/audit_gemini_phase2.py",
         "backend/scripts/audit_repository.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/report_gemini_study.py",
         "backend/scripts/run_gemini_buildability_phase2.py",
         "backend/scripts/run_gemini_buildability_reanalysis.py",
@@ -1636,6 +1649,7 @@
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/tests/test_ai_provider_selection.py",
+        "backend/tests/test_capsule_slot_helper.py",
         "backend/tests/test_documentation_audit.py",
         "backend/tests/test_gemini_buildability_reanalysis.py",
         "backend/tests/test_gemini_consistency_api.py",
@@ -1831,7 +1845,7 @@
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "e78bbe2dad434ed9d65936dd477601e2de96d6052997cfe3532a00f00b326857"
+      "sha256": "0c0ed1ece4f182c15e1075e67df6bc8055d5e62e37a35f4660a99d86a3ddfe01"
     },
     {
       "classification": "current_supporting",
@@ -1845,6 +1859,7 @@
         "backend/scripts/run_cadquery_dialect_audit.py",
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_cadquery_dialect_audit.py",
         "backend/tests/test_cadquery_dialect_diagnostics.py"
       ],
@@ -1894,6 +1909,7 @@
         "backend/app/services/gemini_integration/representative_waves.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/app/services/gemini_integration/workflow.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_contract_complexity_experiment.py",
         "backend/scripts/run_gemini_buildability_phase2.py",
         "backend/scripts/run_gemini_profile_ablation.py",
@@ -1912,6 +1928,7 @@
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_ai_provider_selection.py",
         "backend/tests/test_debug_batch_correction_round1_red.py",
         "backend/tests/test_debug_batch_lifecycle.py",
@@ -2005,6 +2022,7 @@
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_cadquery_dialect_audit.py",
         "backend/tests/test_gemini_consistency_api.py",
         "backend/tests/test_gemini_consistency_corpus.py",
@@ -2045,7 +2063,7 @@
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "f58d2aca33aa40b8ee59084bed6be8a5f24bc8b1eac285b1b6c76141a2335fe6"
+      "sha256": "2a5b401dc0f70964911b4667a6b3ca30a06e8ba169593996dc4a65ba08ace2af"
     },
     {
       "classification": "current_supporting",
@@ -2148,6 +2166,7 @@
         "backend/app/services/gemini_integration/transport.py",
         "backend/app/services/gemini_integration/workflow.py",
         "backend/scripts/audit_gemini_phase2.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/resolve_ollama_calibration.py",
         "backend/scripts/run_gemini_buildability_phase2.py",
         "backend/scripts/run_gemini_buildability_reanalysis.py",
@@ -2165,10 +2184,12 @@
         "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/write_wave_02_final_reports.py",
         "backend/tests/fixtures/generation_benchmarks/full.json",
         "backend/tests/test_cad_first_build_volume_policy.py",
         "backend/tests/test_cadquery_api_reliability.py",
         "backend/tests/test_cadquery_contract.py",
+        "backend/tests/test_capsule_slot_helper.py",
         "backend/tests/test_design_plans.py",
         "backend/tests/test_design_specifications.py",
         "backend/tests/test_documentation_audit.py",
@@ -2293,6 +2314,7 @@
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/app/services/gemini_integration/workflow.py",
         "backend/scripts/freeze_contract_complexity_inputs.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/resolve_ollama_calibration.py",
         "backend/scripts/run_contract_complexity_experiment.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
@@ -2399,6 +2421,7 @@
       "reason": "integration-only boundary or replay implementation",
       "referenced_by": [
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_gemini_provider_contract_integration.py",
         "backend/scripts/run_representative_workflow_wave.py",
         "backend/tests/test_gemini_geometry_prompt_narrow_fix.py",
@@ -2406,7 +2429,7 @@
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "a22226e7127a2698a57a72a64b05782de143a78d4826353197a9cd046393f686"
+      "sha256": "e6bbf059011c02b3d7566245fce2d88455210fce32a1d519897943873604e729"
     },
     {
       "classification": "current_supporting",
@@ -2453,6 +2476,8 @@
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/scripts/write_contract_complexity_reports.py",
+        "backend/scripts/write_wave_02_final_reports.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_cad_worker.py",
         "backend/tests/test_cadquery_contract.py",
         "backend/tests/test_debug_batch_correction_round1_red.py",
@@ -2559,13 +2584,14 @@
       "path": "backend/app/services/gemini_integration/representative_waves.py",
       "reason": "integration-only boundary or replay implementation",
       "referenced_by": [
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_representative_workflow_wave.py",
         "backend/tests/test_cadquery_dialect_diagnostics.py",
         "backend/tests/test_representative_workflow_waves.py"
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "11c9c198138fbd922d20ecdb2aa4bd8d74869ccb5836749c0473416b86b00a2a"
+      "sha256": "6253d6e4c46dfa42b973d6d6bf5b1428e063b3e8de7c43da2de332857470fa06"
     },
     {
       "classification": "current_supporting",
@@ -2610,6 +2636,7 @@
         "backend/app/services/gemini_integration/representative_waves.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/app/services/gemini_integration/workflow.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_gemini_buildability_phase2.py",
         "backend/scripts/run_gemini_profile_ablation.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
@@ -2620,6 +2647,7 @@
         "backend/scripts/run_representative_workflow_wave.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_debug_batch_outcomes.py",
         "backend/tests/test_design_specifications.py",
         "backend/tests/test_gemini_api_provider.py",
@@ -2699,6 +2727,7 @@
         "backend/app/services/gemini_integration/reports.py",
         "backend/app/services/gemini_integration/representative_waves.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_cadquery_dialect_audit.py",
         "backend/scripts/run_contract_complexity_experiment.py",
         "backend/scripts/run_gemini_buildability_phase2.py",
@@ -2720,6 +2749,8 @@
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/scripts/write_contract_complexity_reports.py",
+        "backend/scripts/write_wave_02_final_reports.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/fixtures/diagnostic_inputs/desktop_organizer.json",
         "backend/tests/fixtures/diagnostic_inputs/five_tray_wall_carrier.json",
         "backend/tests/fixtures/diagnostic_inputs/screw_lid_container.json",
@@ -2740,6 +2771,7 @@
         "backend/tests/test_gemini_consistency_runner.py",
         "backend/tests/test_gemini_flash_lite_analyzer.py",
         "backend/tests/test_gemini_flash_lite_reporting.py",
+        "backend/tests/test_gemini_integration_real_ports.py",
         "backend/tests/test_gemini_integration_workflow.py",
         "backend/tests/test_gemini_phase2_audit.py",
         "backend/tests/test_gemini_profile_ablation.py",
@@ -2883,7 +2915,7 @@
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "64c166a153d042362e8b25e6d8bb7babec3ced421e1e672985164719c4a3bd8c"
+      "sha256": "3dcc2208f4f7fe50d145ebcecb2af0c9219d6e66b6597948b725d3e82fff20b4"
     },
     {
       "classification": "current_supporting",
@@ -2962,6 +2994,17 @@
       "safe_to_archive": false,
       "safe_to_delete": false,
       "sha256": "039e9c9f032e02985b2435b6c0145c6d33977bf04e9a6ebb980c0383142020bb"
+    },
+    {
+      "classification": "current_supporting",
+      "decision": "retain",
+      "kind": "script",
+      "path": "backend/scripts/replay_wave_02_corrected.py",
+      "reason": "operator or reproducibility script; no deletion inferred from import absence",
+      "referenced_by": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false,
+      "sha256": "94dcfeb5d82d13d2878070bbf3074a0fdf24e240e52647e741b2b62cec647c15"
     },
     {
       "classification": "current_supporting",
@@ -3302,7 +3345,7 @@
       ],
       "safe_to_archive": false,
       "safe_to_delete": false,
-      "sha256": "cd85913dea8de705102e05ba3d0dd5ea2d91b595529b0461063ed8852d774218"
+      "sha256": "9c6781ad20adc8c7fc3267625f7606e2b9acfefe385b0b8a23bf6a479b9d87d8"
     },
     {
       "classification": "current_supporting",
@@ -3364,6 +3407,28 @@
       "safe_to_archive": false,
       "safe_to_delete": false,
       "sha256": "89dabc8be79ced88ac11f62a9a1faa8c267bc0c6ed054527537d874dc5fbc82c"
+    },
+    {
+      "classification": "current_supporting",
+      "decision": "retain",
+      "kind": "script",
+      "path": "backend/scripts/write_wave_02_final_reports.py",
+      "reason": "operator or reproducibility script; no deletion inferred from import absence",
+      "referenced_by": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false,
+      "sha256": "85f536170622946b6862e57f8c1fb89510ac7118e209ef3983ca1693176d9d38"
+    },
+    {
+      "classification": "current_supporting",
+      "decision": "retain",
+      "kind": "script",
+      "path": "backend/scripts/write_wave_02_reports.py",
+      "reason": "operator or reproducibility script; no deletion inferred from import absence",
+      "referenced_by": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false,
+      "sha256": "9dea95295f75f64df337f2f0800b989e90fb0cdd51a47b3f51d6a4fe5ce0ddbe"
     },
     {
       "classification": "current_supporting",
@@ -3506,9 +3571,9 @@
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
     "by_classification": {
-      "current_supporting": 60,
+      "current_supporting": 63,
       "historical_immutable": 30
     },
-    "item_count": 90
+    "item_count": 93
   }
 }

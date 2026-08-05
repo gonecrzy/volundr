@@ -26687,7 +26687,7 @@
     {
       "collection": "representative-workflow-waves",
       "depth": 1,
-      "direct_directory_count": 1,
+      "direct_directory_count": 2,
       "direct_file_count": 0,
       "path": "data/debug-sessions/representative-workflow-waves"
     },
@@ -27929,6 +27929,118 @@
       "direct_directory_count": 0,
       "direct_file_count": 0,
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 2,
+      "direct_directory_count": 9,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/artifacts"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 28,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/captures"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/counterfactuals"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/issues"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/projects"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 12,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/provider-attempts"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 1,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 2,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/captures"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 26,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/captures/boundaries"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/worker-jobs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 37,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/reports"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 1,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/worker-jobs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 1,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/worker-jobs/gemini-integration-wave-02-project-03-wave-02-project-03-revision-001"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/worker-jobs/gemini-integration-wave-02-project-03-wave-02-project-03-revision-001/input"
     }
   ],
   "inventory": "studies",
@@ -29589,6 +29701,7 @@
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/app/services/gemini_integration/transport.py",
         "backend/app/services/gemini_integration/workflow.py",
+        "backend/scripts/replay_wave_02_corrected.py",
         "backend/scripts/run_contract_complexity_experiment.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
@@ -29603,6 +29716,8 @@
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/scripts/write_contract_complexity_reports.py",
+        "backend/scripts/write_wave_02_final_reports.py",
+        "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_cadquery_dialect_audit.py",
         "backend/tests/test_contract_complexity_experiment.py",
         "backend/tests/test_debug_batch_frozen_replays.py",
@@ -32826,15 +32941,46 @@
       "study_id": "t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03",
       "superseded_by": null,
       "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 37,
+      "final_decisions": [
+        {
+          "path": "reports/wave-decision.json",
+          "values": {
+            "decision": "insufficient_evidence"
+          }
+        }
+      ],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 13,
+      "referenced_by": [
+        "backend/scripts/replay_wave_02_corrected.py",
+        "backend/scripts/write_wave_02_final_reports.py",
+        "backend/scripts/write_wave_02_reports.py",
+        "backend/tests/test_gemini_integration_real_ports.py",
+        "docs/REPRESENTATIVE_WORKFLOW_WAVES.md"
+      ],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "representative-workflow-wave-02",
+      "superseded_by": null,
+      "unique_evidence": true
     }
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
     "collection_count": 14,
-    "derived_report_count": 1413,
-    "directory_count": 3990,
-    "raw_capture_count": 1482,
-    "record_count": 184,
+    "derived_report_count": 1450,
+    "directory_count": 4006,
+    "raw_capture_count": 1495,
+    "record_count": 185,
     "records_with_sensitive_filename_signals": 0
   }
 }

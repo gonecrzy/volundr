@@ -332,7 +332,7 @@
       "markers": [],
       "path": "backend/tests/test_capsule_slot_helper.py",
       "reason": "current production behavior, safety invariant, or tooling",
-      "sha256": "bbc32c07dd29cf59d93e4b9a2853b463aac82878a753e751cc3bafcc7a75dd2b"
+      "sha256": "70eb048b077c0ba1e0718badafaa4d6ca0c13b35f0f8454511f10da402a38301"
     },
     {
       "classification": "retain_current",
@@ -788,7 +788,7 @@
       "markers": [],
       "path": "backend/tests/test_gemini_integration_adapters.py",
       "reason": "current integration boundary or replay behavior",
-      "sha256": "32cd42bb2bac0f8823b08687210fe199fe1fc728488ba61f3ddf8834a4972cee"
+      "sha256": "6527431aaa28f69a83c0fe43414b713b91633652a976de40eb6217af627066d2"
     },
     {
       "classification": "retain_current",
@@ -862,7 +862,7 @@
       "markers": [],
       "path": "backend/tests/test_gemini_integration_real_ports.py",
       "reason": "current integration boundary or replay behavior",
-      "sha256": "3a016729285ce49a54ac28cea3d87bd48ce10101cd31bfaff7f8c74e6183c5e6"
+      "sha256": "dae1310cdaed66f6b4a703f5ac97f79d7a8140d0c4d4155264c21e699be993ca"
     },
     {
       "classification": "retain_current",
@@ -1038,7 +1038,7 @@
       "markers": [],
       "path": "backend/tests/test_geometry_slots.py",
       "reason": "current production behavior, safety invariant, or tooling",
-      "sha256": "02c6d55f64f3f756283ac06d50b1131519a79abe95abed48d4099364bfd944be"
+      "sha256": "14545d95ae21dd65414bcc951d72be13af5753b9094e83064a041c503207cc04"
     },
     {
       "classification": "retain_current",
@@ -1285,7 +1285,7 @@
       "markers": [],
       "path": "backend/tests/test_representative_workflow_wave_cli.py",
       "reason": "current production behavior, safety invariant, or tooling",
-      "sha256": "a753e14003d84615762af7f5084018d914083ec491754796c5996703ba1c469f"
+      "sha256": "fc4a453d1eb4cecdc90d65a6f33055daa4e9e70b0af27ebbdbc55595ed4b2d1d"
     },
     {
       "classification": "retain_current",

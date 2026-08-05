@@ -11,6 +11,8 @@ import ast
 from copy import deepcopy
 from typing import Any
 
+from app.services.cad.python_symbols import APPROVED_BUILTINS
+
 
 class GeometrySlotContractCanonicalizer:
     """Normalize only unambiguous scaffold aliases in one geometry slot."""
@@ -20,7 +22,12 @@ class GeometrySlotContractCanonicalizer:
         slot_id = str(slot.get("slot_id"))
         required = str(slot.get("required_result_symbol") or "body")
         inputs = [str(item) for item in slot.get("authoritative_input_symbols", [])]
-        allowed = {str(item) for item in slot.get("allowed_names", [])} | set(inputs) | {required}
+        allowed = (
+            {str(item) for item in slot.get("allowed_names", [])}
+            | set(inputs)
+            | {required}
+            | set(APPROVED_BUILTINS)
+        )
         if len(inputs) != 1 or inputs[0] != required:
             return self._rejected(slot_id, original, "ambiguous_authoritative_input", ambiguity=True)
         parsed: list[ast.Module] = []
@@ -93,7 +100,13 @@ class GeometrySlotContractCanonicalizer:
                 trees.append(ast.parse(statement, mode="exec"))
             except SyntaxError:
                 return {"valid": False, "reason": "invalid_python_statement"}
-        return self._validate(trees, str(slot.get("required_result_symbol") or "body"), {str(item) for item in slot.get("allowed_names", [])} | {str(slot.get("required_result_symbol") or "body")})
+        return self._validate(
+            trees,
+            str(slot.get("required_result_symbol") or "body"),
+            {str(item) for item in slot.get("allowed_names", [])}
+            | {str(slot.get("required_result_symbol") or "body")}
+            | set(APPROVED_BUILTINS),
+        )
 
     @staticmethod
     def _validate(trees: list[ast.Module], required: str, allowed: set[str]) -> dict[str, Any]:

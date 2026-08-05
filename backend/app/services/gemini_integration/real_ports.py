@@ -10,6 +10,7 @@ from app.services.cad.capsule_slot_routing import build_capsule_slot_feature_sou
 from volundr_cad.capsule_slot import CapsuleSlotContractError
 from app.services.cad.geometry_slots import (
     GEOMETRY_SLOTS_SCHEMA_VERSION,
+    GeometrySlotError,
     build_geometry_slot_manifest,
     parse_geometry_slots,
 )
@@ -117,7 +118,37 @@ def build_real_boundary_ports(
             "schema_version": GEOMETRY_SLOTS_SCHEMA_VERSION,
             "slots": geometry.get("slots", []) if isinstance(geometry, dict) else [],
         }
-        parsed = parse_geometry_slots(json.dumps(payload), manifest)
+        try:
+            parsed = parse_geometry_slots(json.dumps(payload), manifest)
+        except GeometrySlotError as exc:
+            return {
+                "source": "",
+                "output_manifest": [],
+                "source_assembly_error": str(exc),
+                "failure_class": "source_assembly_failure",
+                "geometry_slot_validation": {
+                    "valid": False,
+                    "rule_id": exc.rule_id,
+                    "details": exc.details,
+                },
+                "helper_routing": {"routing_required": False, "helper_applied": False},
+                "provenance": provenance,
+            }
+        if not parsed.is_complete:
+            return {
+                "source": "",
+                "output_manifest": [],
+                "source_assembly_error": "geometry slot response contains invalid or incomplete slots",
+                "failure_class": "source_assembly_failure",
+                "geometry_slot_validation": {
+                    "valid": False,
+                    "completed_slot_ids": parsed.completed_slot_ids,
+                    "missing_slot_ids": parsed.missing_slot_ids,
+                    "invalid_slots": parsed.invalid_slots,
+                },
+                "helper_routing": {"routing_required": False, "helper_applied": False},
+                "provenance": provenance,
+            }
         deterministic_feature_sources = {}
         helper_routing = None
         capsule_slot = (project.frozen_facts or {}).get("capsule_slot")
