@@ -331,7 +331,7 @@ def _write_report(path: Path, value: Any) -> None:
 
 
 def write_wave_report(root: Path, name: str, value: Any) -> None:
-    if name not in REQUIRED_WAVE_REPORTS and name != "wave-state.json":
+    if name not in REQUIRED_WAVE_REPORTS and name not in {"wave-state.json", "provider-profile.json"}:
         raise ValueError(f"unknown representative-wave report: {name}")
     _write_report(Path(root) / "reports" / name, value)
 

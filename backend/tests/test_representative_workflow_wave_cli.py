@@ -37,6 +37,11 @@ def test_prepare_is_provider_free(tmp_path: Path) -> None:
 
     assert wave_cli.main(["--manifest", str(manifest), "--root", str(root), "--prepare"]) == 0
     assert (root / "reports/wave-preregistration.json").is_file()
+    profile = json.loads((root / "reports/provider-profile.json").read_text())
+    assert profile["model"] == "gemini-3.5-flash-lite"
+    assert profile["resolved_stage_prompt_versions"]["geometry"] == "T5-geometry-exact-slot-contract-v1"
+    assert profile["seed"] == "omitted"
+    assert profile["thinkingConfig"] == "omitted"
     assert not list((root / "provider-attempts").glob("*.json"))
 
 

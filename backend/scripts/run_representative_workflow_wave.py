@@ -11,6 +11,7 @@ from typing import Any
 
 from app.services.gemini_integration.forensics import CounterfactualFixture, replay_captured_evidence_offline
 from app.services.gemini_integration.profile import GeminiFlashLiteContractV1, require_integration_profile
+from app.services.gemini_integration.prompts import GEOMETRY_T5_PROMPT_VERSION
 from app.services.gemini_integration.real_ports import build_real_boundary_ports
 from app.services.gemini_integration.representative_waves import (
     WAVE_PROVENANCE_MARKER,
@@ -55,6 +56,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _resolve(path: Path, repository_root: Path) -> Path:
     return path if path.is_absolute() else repository_root / path
+
+
+def _write_provider_profile(root: Path, repository_root: Path) -> None:
+    profile = GeminiFlashLiteContractV1.from_repository(repository_root)
+    document = profile.as_dict()
+    document.update({
+        "resolved_stage_prompt_versions": {
+            "requirements": "T2-requirements-missing-fit-v1",
+            "plan": "T0-current",
+            "geometry": GEOMETRY_T5_PROMPT_VERSION,
+        },
+        "seed": "omitted",
+        "thinkingConfig": "omitted",
+        "production_routing_changed": False,
+        "deployed": False,
+    })
+    write_wave_report(root, "provider-profile.json", document)
 
 
 def _previous_plan(store: WaveEvidenceStore, project) -> dict[str, Any] | None:
@@ -382,6 +400,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest = load_wave_manifest(manifest_path)
     if manifest.provider_profile != args.profile:
         parser.error("manifest provider_profile does not match --profile")
+    _write_provider_profile(root, repository_root)
     if args.prepare or (args.baseline and not args.resume):
         initialize_wave(root, manifest, repository_root=repository_root)
     if args.prepare:
