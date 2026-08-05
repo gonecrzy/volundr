@@ -27,6 +27,8 @@ SAFE_CALL_NAMES = frozenset(
     {
         "abs",
         "bool",
+        "CapsuleSlotFrame",
+        "cut_capsule_slot_v1",
         "float",
         "int",
         "len",
@@ -48,6 +50,8 @@ RUNTIME_IMPORT_NAMES = frozenset(
         "ParameterSpec",
         "ParameterValidationError",
         "ParameterValues",
+        "CapsuleSlotFrame",
+        "cut_capsule_slot_v1",
         "PrintableOutput",
         "Product",
         "component",

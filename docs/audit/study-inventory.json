@@ -26750,7 +26750,7 @@
     {
       "collection": "representative-workflow-waves",
       "depth": 3,
-      "direct_directory_count": 5,
+      "direct_directory_count": 6,
       "direct_file_count": 26,
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports"
     },
@@ -27296,6 +27296,13 @@
     {
       "collection": "representative-workflow-waves",
       "depth": 4,
+      "direct_directory_count": 0,
+      "direct_file_count": 9,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-capsule-helper-correction-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
       "direct_directory_count": 1,
       "direct_file_count": 11,
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-final-revision-microstudy-01"
@@ -27324,7 +27331,7 @@
     {
       "collection": "representative-workflow-waves",
       "depth": 3,
-      "direct_directory_count": 5,
+      "direct_directory_count": 6,
       "direct_file_count": 2,
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs"
     },
@@ -27481,6 +27488,90 @@
       "direct_directory_count": 0,
       "direct_file_count": 0,
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/t5-corrected-review-provider-ir-validation-task-06/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 3,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/.home"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/.home/.cache"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/.home/.cache/ezdxf"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-02"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-02/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-02/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-02/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-03"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-03/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-03/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01/t5-capsule-helper-correction-task-03/outputs/mounting_bracket"
     },
     {
       "collection": "representative-workflow-waves",
@@ -31849,7 +31940,7 @@
       "chronological_position": null,
       "collection": "representative-workflow-waves",
       "commit_association": [],
-      "derived_report_count": 362,
+      "derived_report_count": 371,
       "final_decisions": [
         {
           "path": "reports/cadquery-dialect-audit-02/architecture-decision.json",
@@ -31898,12 +31989,13 @@
       ],
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01",
       "purpose": "unclassified debug-session collection",
-      "raw_capture_count": 49,
+      "raw_capture_count": 51,
       "referenced_by": [
         "backend/scripts/run_cadquery_dialect_audit.py",
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -32295,13 +32387,35 @@
       "chronological_position": null,
       "collection": "representative-workflow-waves",
       "commit_association": [],
+      "derived_report_count": 9,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-capsule-helper-correction-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 0,
+      "referenced_by": [
+        "backend/scripts/run_t5_capsule_helper_correction.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-capsule-helper-correction-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
       "derived_report_count": 14,
       "final_decisions": [],
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-final-revision-microstudy-01",
       "purpose": "unclassified debug-session collection",
       "raw_capture_count": 1,
       "referenced_by": [
-        "backend/scripts/run_t5_final_revision_microstudy.py"
+        "backend/scripts/run_t5_capsule_helper_correction.py",
+        "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/tests/test_t5_final_revision_microstudy.py"
       ],
       "reproducible": true,
       "secret_scan": "filename-only; values were not loaded into the audit report",
@@ -32458,11 +32572,33 @@
       "commit_association": [],
       "derived_report_count": 0,
       "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 2,
+      "referenced_by": [
+        "backend/scripts/run_t5_capsule_helper_correction.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-capsule-helper-correction-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01",
       "purpose": "unclassified debug-session collection",
       "raw_capture_count": 7,
       "referenced_by": [
-        "backend/scripts/run_t5_final_revision_microstudy.py"
+        "backend/scripts/run_t5_capsule_helper_correction.py",
+        "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/tests/test_t5_final_revision_microstudy.py"
       ],
       "reproducible": true,
       "secret_scan": "filename-only; values were not loaded into the audit report",
@@ -32695,10 +32831,10 @@
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
     "collection_count": 14,
-    "derived_report_count": 1395,
-    "directory_count": 3977,
-    "raw_capture_count": 1478,
-    "record_count": 182,
+    "derived_report_count": 1413,
+    "directory_count": 3990,
+    "raw_capture_count": 1482,
+    "record_count": 184,
     "records_with_sensitive_filename_signals": 0
   }
 }

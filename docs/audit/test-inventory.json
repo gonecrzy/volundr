@@ -330,6 +330,15 @@
       "historical_contract_terms": [],
       "kind": "test",
       "markers": [],
+      "path": "backend/tests/test_capsule_slot_helper.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "bbc32c07dd29cf59d93e4b9a2853b463aac82878a753e751cc3bafcc7a75dd2b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
       "path": "backend/tests/test_chat_workflow.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "8786549ac0b1bfaaa730be82ce40654d384f803bd55caafd79edb17d4c717b44"
@@ -1717,10 +1726,10 @@
   "summary": {
     "by_classification": {
       "historical_integrity_only": 10,
-      "retain_current": 169,
+      "retain_current": 170,
       "retain_regression": 8
     },
-    "item_count": 187,
+    "item_count": 188,
     "marker_counts": {
       "skip": 1,
       "warning": 1

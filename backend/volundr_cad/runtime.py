@@ -5,6 +5,11 @@ from typing import Any, Literal
 
 import cadquery as cq
 
+from volundr_cad.capsule_slot import (
+    CapsuleSlotFrame,
+    cut_capsule_slot_v1,
+)
+
 from volundr_cad.patterns import (
     circular_pattern_points,
     linear_pattern_points,

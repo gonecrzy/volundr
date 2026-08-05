@@ -18,6 +18,7 @@ from typing import Any, Iterable
 
 from app.services.ai.provider import ModelGenerationRequest
 from app.services.cad.cadquery_runner import CadQueryCliRunner
+from app.services.cad.capsule_slot_source import build_capsule_slot_helper_statement
 from app.services.gemini_integration.geometry_prompt_narrow_fix import T5GeometryValidator
 from app.services.gemini_integration.profile import (
     SECONDARY_CREDENTIAL_ENV,
@@ -599,16 +600,62 @@ def classify_t5_response(raw: str, task: ProviderStudyTask) -> dict[str, Any]:
     return evidence
 
 
-def assemble_t5_source(task: ProviderStudyTask, payload: dict[str, Any]) -> str:
+def assemble_t5_source(
+    task: ProviderStudyTask,
+    payload: dict[str, Any],
+    *,
+    deterministic_capsule_slot: bool = False,
+    preserved_statements: Iterable[str] | None = None,
+) -> str:
     slots = payload.get("slots")
     if not isinstance(slots, list) or len(slots) != 1:
         raise ValueError("research T5 assembly requires exactly one validated slot")
-    statements = slots[0].get("statements")
-    if not isinstance(statements, list) or not all(isinstance(item, str) for item in statements):
+    provider_statements = slots[0].get("statements")
+    if not isinstance(provider_statements, list) or not all(isinstance(item, str) for item in provider_statements):
         raise ValueError("research T5 assembly requires exact string statements")
+    if deterministic_capsule_slot:
+        if preserved_statements is None:
+            raise ValueError("deterministic capsule assembly requires explicit preserved_statements")
+        changes = [
+            item
+            for item in ((task.semantic_facts or {}).get("revision_delta", {}).get("changed_features", []) or [])
+            if isinstance(item, dict)
+            and (item.get("requested_feature_dimensions") or {}).get("profile_type") == "rounded_end_capsule"
+        ]
+        if len(changes) != 1:
+            raise ValueError("deterministic capsule assembly requires exactly one complete capsule change")
+        parameter_ids = {
+            str(item.get("id"))
+            for item in (task.request.design_plan or {}).get("parameters", []) or []
+            if isinstance(item, dict) and item.get("id")
+        }
+        required_parameter_ids = {
+            "slot_length_mm",
+            "slot_width_mm",
+            "slot_center_x_mm",
+            "slot_center_local_y_mm",
+            "slot_orientation_degrees",
+            "slot_depth_mm",
+        }
+        if not required_parameter_ids.issubset(parameter_ids):
+            raise ValueError("deterministic capsule assembly lacks complete parameter access")
+        statements = [*preserved_statements, build_capsule_slot_helper_statement(
+            changes[0],
+            parameter_ids={
+                "length": "slot_length_mm",
+                "width": "slot_width_mm",
+                "center_x": "slot_center_x_mm",
+                "center_y": "slot_center_local_y_mm",
+                "orientation": "slot_orientation_degrees",
+                "depth": "slot_depth_mm",
+            },
+        )]
+    else:
+        statements = provider_statements
+    helper_imports = ", CapsuleSlotFrame, cut_capsule_slot_v1" if deterministic_capsule_slot else ""
     lines = [
         "import cadquery as cq",
-        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product",
+        f"from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product{helper_imports}",
         "",
         "PARAMETERS = [",
     ]

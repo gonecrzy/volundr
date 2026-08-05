@@ -386,6 +386,7 @@
         "backend/scripts/run_live_requirement_driven_revision_sequence.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -489,6 +490,7 @@
         "backend/tests/test_requirement_ledger_persistence.py",
         "backend/tests/test_requirement_semantics_alignment.py",
         "backend/tests/test_structured_revision_planning.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "backend/tests/test_t5_parameter_revision_validation.py",
         "backend/tests/test_workflow_observability.py",
         "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
@@ -824,6 +826,7 @@
         "backend/scripts/run_live_generation_benchmarks.py",
         "backend/scripts/run_live_geometry_model_comparison.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/write_contract_complexity_reports.py",
         "backend/tests/test_debug_batch_capability.py",
         "backend/tests/test_debug_batch_comparison.py",
@@ -1104,6 +1107,7 @@
         "backend/scripts/run_gemini_provider_contract_correction.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/tests/fixtures/diagnostic_inputs/desktop_organizer.json",
         "backend/tests/fixtures/diagnostic_inputs/five_tray_wall_carrier.json",
@@ -1178,6 +1182,7 @@
         "backend/scripts/run_gemini_system_boundary_methods.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/tests/test_debug_batch_frozen_replays.py",
@@ -1300,6 +1305,7 @@
         "backend/scripts/run_live_multi_design_evaluation.py",
         "backend/scripts/run_ollama_calibration.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -1439,6 +1445,7 @@
         "backend/scripts/run_ollama_calibration.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -1551,6 +1558,7 @@
         "backend/tests/test_requirement_trace.py",
         "backend/tests/test_source_extraction.py",
         "backend/tests/test_structured_revision_planning.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "backend/tests/test_t5_parameter_revision_validation.py",
         "backend/tests/test_workflow_observability.py",
         "docs/ARCHITECTURE.md",
@@ -1658,6 +1666,7 @@
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -1687,6 +1696,7 @@
         "backend/tests/test_gemini_provider_contract_foundation.py",
         "backend/tests/test_gemini_system_boundary_methods.py",
         "backend/tests/test_provider_ir_targeted_validation.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "backend/tests/test_t5_parameter_revision_validation.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/CURRENT_TRAJECTORY.md",
@@ -1927,6 +1937,7 @@
         "backend/scripts/run_live_requirement_driven_revision_sequence.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -2178,6 +2189,7 @@
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/tests/fixtures/generation_benchmarks/full.json",
@@ -2222,6 +2234,7 @@
         "backend/tests/test_representative_workflow_waves.py",
         "backend/tests/test_requirement_trace.py",
         "backend/tests/test_structured_revision_planning.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "backend/tests/test_t5_parameter_revision_validation.py",
         "docs/CADQUERY_BACKEND.md",
         "docs/CADQUERY_LIVE_SMOKE_CORRECTION_2026-07-30.md",
@@ -2460,6 +2473,7 @@
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -2492,6 +2506,7 @@
         "backend/tests/test_provider_ir_targeted_validation.py",
         "backend/tests/test_representative_workflow_wave_cli.py",
         "backend/tests/test_representative_workflow_waves.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "backend/tests/test_t5_parameter_revision_validation.py",
         "docs/CADQUERY_LIVE_SMOKE_CORRECTION_2026-07-30.md",
         "docs/CADQUERY_OUTPUT_PLACEMENT_AND_LID_REVISION_EVALUATION.md",
@@ -2638,6 +2653,7 @@
         "backend/tests/test_gemini_provider_contract_foundation.py",
         "backend/tests/test_ollama_provider.py",
         "backend/tests/test_provider_ir_targeted_validation.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "docs/ARCHITECTURE.md",
         "docs/COMPACT_PLAN_CONTRACT.md",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
@@ -2721,6 +2737,7 @@
         "backend/scripts/run_live_requirement_driven_revision_sequence.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -3282,6 +3299,16 @@
     {
       "classification": "current_supporting",
       "kind": "script",
+      "path": "backend/scripts/run_t5_capsule_helper_correction.py",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "current_supporting",
+      "kind": "script",
       "path": "backend/scripts/run_t5_corrected_review.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
@@ -3296,7 +3323,9 @@
       "kind": "script",
       "path": "backend/scripts/run_t5_final_revision_microstudy.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/tests/test_t5_final_revision_microstudy.py"
+      ],
       "references": [],
       "safe_to_archive": false,
       "safe_to_delete": false
@@ -3496,6 +3525,7 @@
         "backend/tests/test_requirement_semantics_alignment.py",
         "backend/tests/test_requirement_trace.py",
         "backend/tests/test_structured_revision_planning.py",
+        "backend/tests/test_t5_final_revision_microstudy.py",
         "backend/tests/test_t5_parameter_revision_validation.py",
         "backend/tests/test_workflow_observability.py",
         "docs/ARCHITECTURE.md",
@@ -3774,6 +3804,7 @@
         "backend/scripts/run_gemini_system_boundary_methods.py",
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_live_geometry_model_comparison.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/write_contract_complexity_reports.py",
         "backend/tests/fixtures/generation_benchmarks/full.json",
         "backend/tests/test_gemini_consistency_reporting.py",
@@ -4115,6 +4146,16 @@
       "classification": "retain_current",
       "kind": "test",
       "path": "backend/tests/test_candidate_revisions.py",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "retain_current",
+      "kind": "test",
+      "path": "backend/tests/test_capsule_slot_helper.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [],
       "references": [],
@@ -7616,6 +7657,7 @@
         "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
         "backend/scripts/run_provider_ir_targeted_validation.py",
         "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
@@ -7829,10 +7871,24 @@
     {
       "classification": "historical_immutable",
       "kind": "study_record",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-capsule-helper-correction-01",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [
+        "backend/scripts/run_t5_capsule_helper_correction.py"
+      ],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "historical_immutable",
+      "kind": "study_record",
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-final-revision-microstudy-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
-        "backend/scripts/run_t5_final_revision_microstudy.py"
+        "backend/scripts/run_t5_capsule_helper_correction.py",
+        "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/tests/test_t5_final_revision_microstudy.py"
       ],
       "references": [],
       "safe_to_archive": false,
@@ -7919,10 +7975,24 @@
     {
       "classification": "historical_immutable",
       "kind": "study_record",
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-capsule-helper-correction-01",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [
+        "backend/scripts/run_t5_capsule_helper_correction.py"
+      ],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "historical_immutable",
+      "kind": "study_record",
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
-        "backend/scripts/run_t5_final_revision_microstudy.py"
+        "backend/scripts/run_t5_capsule_helper_correction.py",
+        "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/tests/test_t5_final_revision_microstudy.py"
       ],
       "references": [],
       "safe_to_archive": false,
@@ -11571,9 +11641,9 @@
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
-    "node_count": 684,
+    "node_count": 688,
     "safe_to_archive_nodes": 2,
     "safe_to_delete_nodes": 0,
-    "unreferenced_nodes": 236
+    "unreferenced_nodes": 237
   }
 }
