@@ -93,6 +93,28 @@ def test_bounded_repair_requires_actual_payload_and_preserves_completed_item() -
     assert result["result"] == "pass"
 
 
+def test_bounded_repair_accepts_declarations_of_rejected_changes() -> None:
+    packet = {
+        "frozen_facts": {"invalid_slot_ids": ["2"], "completed_slot_ids": ["1"], "required_result_symbol": "body"},
+        "intrinsic_expectations": {"repair_boundary": "result assignment only"},
+        "repair_source": {"slots": [{"slot_id": "1", "statements": ["body = body"], "result_symbol": "body"}, {"slot_id": "2", "statements": ["shape = body"], "result_symbol": "shape"}]},
+    }
+    response = {"repaired_items": [{"slot_id": "2", "result_symbol": "body", "statements": ["body = body"]}], "preserved_item_ids": ["1"], "rejected_changes": ["changing completed slot 1"]}
+
+    assert evaluate_bounded_repair(packet, response)["result"] == "pass"
+
+
+def test_bounded_repair_rejects_payload_that_keeps_invalid_source_symbol() -> None:
+    packet = {
+        "frozen_facts": {"invalid_slot_ids": ["2"], "completed_slot_ids": ["1"], "required_result_symbol": "body"},
+        "intrinsic_expectations": {"repair_boundary": "result assignment only"},
+        "repair_source": {"slots": [{"slot_id": "1", "statements": ["body = body"], "result_symbol": "body"}, {"slot_id": "2", "statements": ["shape = body"], "result_symbol": "shape"}]},
+    }
+    response = {"repaired_items": [{"slot_id": "2", "result_symbol": "body", "statements": ["shape = body"]}], "preserved_item_ids": ["1"], "rejected_changes": []}
+
+    assert evaluate_bounded_repair(packet, response)["result"] == "fail_conflicting"
+
+
 def test_missing_fit_defaults_are_not_accepted_as_real_dimensions() -> None:
     packet = {
         "frozen_facts": {"cable_diameter": "missing"},

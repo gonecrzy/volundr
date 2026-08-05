@@ -238,6 +238,17 @@ def evaluate_bounded_repair(packet: dict[str, Any], response: Any) -> dict[str, 
             return {"result": "fail_conflicting", "reasons": [f"repaired slot {slot_id} is outside repair boundary"]}
         if item.get("result_symbol") != facts.get("required_result_symbol", "body"):
             return {"result": "fail_conflicting", "reasons": [f"slot {slot_id} has wrong result symbol"]}
+        statements = "\n".join(str(statement) for statement in item.get("statements", []))
+        source = source_slots.get(slot_id) or {}
+        source_statements = "\n".join(str(statement) for statement in source.get("statements", []))
+        required_symbol = str(facts.get("required_result_symbol", "body"))
+        invalid_symbol = str(source.get("result_symbol") or "")
+        if invalid_symbol and invalid_symbol != required_symbol and f"{invalid_symbol} =" in statements:
+            return {"result": "fail_conflicting", "reasons": [f"slot {slot_id} still assigns invalid result symbol {invalid_symbol}"]}
+        if "prior_shape = prior_shape" in source_statements and "prior_shape = prior_shape" in statements:
+            return {"result": "fail_conflicting", "reasons": [f"slot {slot_id} still uses the undefined prior-shape alias"]}
+        if "radius_value" in source_statements and "radius_value" in statements:
+            return {"result": "fail_conflicting", "reasons": [f"slot {slot_id} still uses the invalid CadQuery keyword"]}
     if repaired_ids != invalid_ids:
         return {"result": "fail_incomplete", "reasons": ["not every invalid slot was replaced"]}
     if {str(item) for item in response.get("preserved_item_ids", [])} != completed_ids:
@@ -245,8 +256,10 @@ def evaluate_bounded_repair(packet: dict[str, Any], response: Any) -> dict[str, 
     for slot_id in completed_ids:
         if slot_id not in source_slots:
             return {"result": "fail_conflicting", "reasons": [f"completed source slot {slot_id} is missing"]}
-    if response.get("rejected_changes") not in ([], None):
-        return {"result": "fail_conflicting", "reasons": ["repair includes rejected unrelated changes"]}
+    if response.get("rejected_changes") is not None and not isinstance(response.get("rejected_changes"), list):
+        return {"result": "fail_conflicting", "reasons": ["rejected_changes is not a list"]}
+    if response.get("applied_changes"):
+        return {"result": "fail_conflicting", "reasons": ["repair includes applied unrelated changes"]}
     return {"result": "pass", "repaired_slot_ids": sorted(repaired_ids), "preserved_slot_ids": sorted(completed_ids), "semantic_change_boundary": "declared invalid slots only", "source_snapshot": deepcopy(packet["repair_source"])}
 
 
