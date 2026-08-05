@@ -1,0 +1,39 @@
+{
+  "durable_atomic_state_path": "diagnostic-state.json",
+  "per_output_statuses": [
+    "not_attempted",
+    "started",
+    "completed",
+    "invalid_shape",
+    "export_failed",
+    "not_found",
+    "execution_failed"
+  ],
+  "phases": [
+    "module_import",
+    "build_function",
+    "output_materialization",
+    "shape_validation",
+    "topology_analysis",
+    "brep_export",
+    "step_export",
+    "stl_export",
+    "metadata_generation",
+    "process_shutdown"
+  ],
+  "schema_version": "volundr-cadquery-worker-instrumentation-contract-v1",
+  "timeout_contract_fields": [
+    "timed_out",
+    "timeout_seconds",
+    "active_phase",
+    "active_output_id",
+    "active_operation",
+    "last_completed_operation",
+    "completed_output_ids",
+    "incomplete_output_ids",
+    "partial_timing_record_path",
+    "partial_stdout_path",
+    "partial_stderr_path",
+    "process_rss_kb"
+  ]
+}

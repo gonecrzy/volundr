@@ -1,0 +1,19 @@
+{
+  "bounded_shape_count_policy": "shape counts are collected only for boolean/sweep/loft/shell/finishing operations",
+  "counted_operation_names": [
+    "sweep",
+    "cut",
+    "cutBlind",
+    "cutThruAll",
+    "union",
+    "intersect",
+    "fillet",
+    "chamfer",
+    "loft",
+    "shell"
+  ],
+  "instrumentation_altered_geometry": false,
+  "project_02_total_ms": 3133.734,
+  "project_03_total_ms": 2560.736,
+  "schema_version": "volundr-cadquery-worker-instrumentation-overhead-v1"
+}

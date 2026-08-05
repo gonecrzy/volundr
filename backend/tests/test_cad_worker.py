@@ -516,6 +516,149 @@ async def test_cadquery_runner_timeout_kills_process_group(tmp_path: Path) -> No
     assert not marker.exists()
 
 
+@pytest.mark.asyncio
+async def test_cadquery_runner_timeout_preserves_durable_diagnostics(tmp_path: Path) -> None:
+    source = VALID_CADQUERY_SOURCE.replace(
+        "body = cq.Workplane(\"XY\").box(width, 1, 1)",
+        "body = cq.Workplane(\"XY\").box(width, 1, 1)\n    while True:\n        pass",
+    )
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=3,
+    ).compile(
+        source,
+        job_id="durable-timeout",
+        requested_outputs=[{"output_id": "body", "required": True}],
+    )
+
+    assert result.success is False
+    assert result.timed_out is True
+    assert result.execution_timing is not None
+    diagnostics = result.execution_diagnostics or {}
+    assert diagnostics["timed_out"] is True
+    assert diagnostics["timeout_seconds"] == 3
+    assert diagnostics["subprocess_pid"]
+    assert diagnostics["timeout_deadline_monotonic"] > diagnostics["started_at_monotonic"]
+    assert diagnostics["partial_stdout_path"] == "stdout.log"
+    assert diagnostics["partial_stderr_path"] == "stderr.log"
+    assert diagnostics["partial_diagnostic_state_path"] == "diagnostic-state.json"
+    assert diagnostics["active_phase"] in {"module_import", "build_function", "process_shutdown"}
+    assert diagnostics["completed_output_ids"] == []
+    assert diagnostics["incomplete_output_ids"] == ["body"]
+    if diagnostics["active_phase"] == "build_function":
+        assert diagnostics["active_function"] == "build"
+        assert "last_completed_operation" in diagnostics
+        assert "last_started_incomplete_operation" in diagnostics
+
+
+@pytest.mark.asyncio
+async def test_worker_timeout_result_contract_includes_partial_evidence(tmp_path: Path) -> None:
+    source = VALID_CADQUERY_SOURCE.replace(
+        "body = cq.Workplane(\"XY\").box(width, 1, 1)",
+        "body = cq.Workplane(\"XY\").box(width, 1, 1)\n    while True:\n        pass",
+    )
+    queue = FilesystemCadJobQueue(tmp_path)
+    job_dir = queue.submit_cadquery_source(
+        source=source,
+        job_id="worker-timeout-contract",
+        requested_outputs=[{"output_id": "body", "required": True}],
+        timeout_seconds=3,
+    )
+
+    result = await execute_job_directory(job_dir)
+
+    assert result["success"] is False
+    assert result["failure_class"] == "timeout"
+    diagnostics = result["diagnostics"]
+    assert diagnostics["timed_out"] is True
+    assert diagnostics["timeout_seconds"] == 3
+    assert diagnostics["active_phase"] in {"module_import", "build_function", "process_shutdown"}
+    assert diagnostics["completed_output_ids"] == []
+    assert diagnostics["incomplete_output_ids"] == ["body"]
+    assert diagnostics["partial_stdout_path"] == "work/worker-timeout-contract/stdout.log"
+    assert diagnostics["partial_stderr_path"] == "work/worker-timeout-contract/stderr.log"
+    assert diagnostics["partial_diagnostic_state_path"] == "work/worker-timeout-contract/diagnostic-state.json"
+
+
+@pytest.mark.asyncio
+async def test_required_output_failure_preserves_prior_output_results(tmp_path: Path) -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = []
+
+def build(params):
+    body = cq.Workplane("XY").box(1, 1, 1)
+    invalid = cq.Workplane("XY").box(1, 1, 1).union(cq.Workplane("XY").box(1, 1, 1).translate((5, 0, 0)))
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(output_id="body", label="Body", model=body, component_id="body", expected_solid_count=1, allow_disconnected_solids=False),
+            PrintableOutput(output_id="lid", label="Lid", model=invalid, component_id="lid", expected_solid_count=1, allow_disconnected_solids=False),
+        ],
+    )
+"""
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(source, job_id="partial-output-failure")
+
+    assert result.success is False
+    assert [output.output_id for output in result.outputs] == ["body", "lid"]
+    assert result.outputs[0].success is True
+    assert result.outputs[1].success is False
+    assert result.outputs[1].compile_error == "output shape is invalid"
+    assert result.execution_diagnostics is not None
+    per_output = result.execution_diagnostics["per_output_results"]
+    assert per_output["body"]["status"] == "completed"
+    assert per_output["lid"]["status"] == "invalid_shape"
+    assert result.execution_diagnostics["completed_output_ids"] == ["body"]
+
+
+@pytest.mark.asyncio
+async def test_operation_shape_counts_are_bounded_to_expensive_operations(tmp_path: Path) -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product
+
+PARAMETERS = []
+
+def build(params):
+    body = cq.Workplane("XY").box(1, 1, 1)
+    body = body.union(cq.Workplane("XY").box(1, 1, 1).translate((0.25, 0, 0)))
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[
+            PrintableOutput(output_id="body", label="Body", model=body, component_id="body", expected_solid_count=1, allow_disconnected_solids=True),
+        ],
+    )
+"""
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=10,
+    ).compile(source, job_id="bounded-operation-counts")
+
+    assert result.success is True
+    payload = json.loads(result.execution_manifest_path.read_text(encoding="utf-8"))
+    operations = payload["execution_timing"]["operations"]
+    box_operation = next(operation for operation in operations if operation["name"] == "box")
+    union_operation = next(operation for operation in operations if operation["name"] == "union")
+    assert box_operation["before"] is None
+    assert box_operation["after"] is None
+    assert isinstance(union_operation["before"]["solid_count"], int)
+    assert isinstance(union_operation["after"]["solid_count"], int)
+
+
+def test_production_worker_timeout_default_remains_unchanged() -> None:
+    from app.core.config import settings
+
+    assert settings.cad_timeout_seconds == 60
+
+
 def test_cad_worker_container_policy_removes_provider_access() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     compose = (repo_root / "docker-compose.yml").read_text(encoding="utf-8")

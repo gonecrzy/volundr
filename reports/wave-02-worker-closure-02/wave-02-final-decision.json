@@ -1,0 +1,14 @@
+{
+  "alternative_backend_evaluation_required": false,
+  "decision": "wave_02_foundation_validated",
+  "provider_calls": 0,
+  "provider_success_claimed": false,
+  "rationale": [
+    "Project 02 exact corrected worker input completed under the required 90-second timeout.",
+    "Project 03 exact worker input did not time out; independent outputs are preserved and only the required lid fails.",
+    "The lid failure is assigned to preserved provider geometry semantics because the exact source creates a multi-solid lid before export.",
+    "No shared Volundr worker, export, assembly, validation, or CadQuery runtime defect remains unidentified by the new instrumentation."
+  ],
+  "schema_version": "volundr-wave-02-final-decision-v1",
+  "targeted_provider_validation_required": false
+}

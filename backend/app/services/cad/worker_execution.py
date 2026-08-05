@@ -55,6 +55,9 @@ async def execute_job_directory(
     runtime_metadata = _read_runtime_metadata(compile_result.execution_manifest_path)
     if runtime_metadata:
         diagnostics.update(runtime_metadata)
+    execution_diagnostics = _worker_execution_diagnostics(job_dir, compile_result)
+    if execution_diagnostics:
+        diagnostics.update(execution_diagnostics)
     outputs = _result_outputs(job_dir, compile_result)
     output_failure = any(output["required"] and not output["success"] for output in outputs)
     failure_class = None
@@ -119,6 +122,32 @@ def _read_runtime_metadata(path: Path | None) -> dict[str, Any]:
         if isinstance(value, str) and value:
             metadata[target_key] = value
     return metadata
+
+
+def _worker_execution_diagnostics(job_dir: Path, compile_result: Any) -> dict[str, Any]:
+    raw = getattr(compile_result, "execution_diagnostics", None)
+    if not isinstance(raw, dict):
+        return {}
+    diagnostics = dict(raw)
+    source_path = getattr(compile_result, "source_path", None)
+    inner_job_dir = source_path.parent if isinstance(source_path, Path) else None
+    for key, path in (
+        ("partial_stdout_path", getattr(compile_result, "stdout_path", None)),
+        ("partial_stderr_path", getattr(compile_result, "stderr_path", None)),
+    ):
+        relative = _relative_path(job_dir, path) if isinstance(path, Path) else None
+        if relative is not None:
+            diagnostics[key] = relative
+    if inner_job_dir is not None:
+        diagnostic_state_path = inner_job_dir / "diagnostic-state.json"
+        relative_state_path = _relative_path(job_dir, diagnostic_state_path)
+        if relative_state_path is not None:
+            diagnostics["partial_diagnostic_state_path"] = relative_state_path
+            diagnostics["partial_timing_record_path"] = relative_state_path
+    source_hash = getattr(compile_result, "source_hash", None)
+    if isinstance(source_hash, str) and source_hash:
+        diagnostics["source_hash"] = source_hash
+    return {key: value for key, value in diagnostics.items() if value is not None}
 
 
 def _relative_path(job_dir: Path, path: Path | None) -> str | None:

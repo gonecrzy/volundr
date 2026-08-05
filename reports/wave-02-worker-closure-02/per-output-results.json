@@ -1,0 +1,47 @@
+{
+  "project_02": {
+    "swept_cable_guide": {
+      "compile_error": null,
+      "required": true,
+      "started_at_monotonic": 812914.028631984,
+      "status": "completed",
+      "timing": {
+        "export_ms": 436.046
+      },
+      "updated_at_monotonic": 812914.464834905
+    }
+  },
+  "project_03": {
+    "cable_clamp_output": {
+      "compile_error": null,
+      "required": true,
+      "started_at_monotonic": 812918.461220706,
+      "status": "completed",
+      "timing": {
+        "export_ms": 28.838
+      },
+      "updated_at_monotonic": 812918.490310659
+    },
+    "enclosure_base_output": {
+      "compile_error": null,
+      "required": true,
+      "started_at_monotonic": 812918.411668837,
+      "status": "completed",
+      "timing": {
+        "export_ms": 36.784
+      },
+      "updated_at_monotonic": 812918.44860554
+    },
+    "enclosure_lid_output": {
+      "compile_error": "output shape is invalid",
+      "required": true,
+      "started_at_monotonic": 812918.448885066,
+      "status": "invalid_shape",
+      "timing": {
+        "export_ms": 11.68
+      },
+      "updated_at_monotonic": 812918.460828308
+    }
+  },
+  "schema_version": "volundr-wave-02-per-output-results-v1"
+}

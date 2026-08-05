@@ -1,0 +1,10 @@
+{
+  "classification_enums_preserved_from_objective": true,
+  "preserved_inputs_only": true,
+  "production_timeout_seconds": 90,
+  "project_02_source_hash": "ded9efb5e508828021276faafafade9891e7de49ea578b2ec9c166addaaba008",
+  "project_03_source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+  "provider_calls_allowed": 0,
+  "provider_calls_made": 0,
+  "schema_version": "volundr-wave-02-worker-closure-02-preregistration-v1"
+}

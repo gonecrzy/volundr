@@ -1,0 +1,1080 @@
+{
+  "command_args": [
+    "python",
+    "_volundr_cadquery_runner.py",
+    "outputs",
+    "execution-manifest.json",
+    "parameter-values.json",
+    "requested-outputs.json"
+  ],
+  "diagnostics": {
+    "active_phase": "metadata_generation",
+    "completed_output_ids": [
+      "cable_clamp_output",
+      "enclosure_base_output"
+    ],
+    "incomplete_output_ids": [
+      "enclosure_lid_output"
+    ],
+    "last_completed_operation": {
+      "after": null,
+      "before": null,
+      "elapsed_ms": 2.143,
+      "name": "translate"
+    },
+    "last_started_incomplete_operation": {
+      "before": null,
+      "name": "translate",
+      "started_at_monotonic": 812918.468470944
+    },
+    "partial_diagnostic_state_path": "diagnostic-state.json",
+    "partial_stderr_path": "stderr.log",
+    "partial_stdout_path": "stdout.log",
+    "partial_timing_record_path": "diagnostic-state.json",
+    "per_output_results": {
+      "cable_clamp_output": {
+        "compile_error": null,
+        "required": true,
+        "started_at_monotonic": 812918.461220706,
+        "status": "completed",
+        "timing": {
+          "export_ms": 28.838
+        },
+        "updated_at_monotonic": 812918.490310659
+      },
+      "enclosure_base_output": {
+        "compile_error": null,
+        "required": true,
+        "started_at_monotonic": 812918.411668837,
+        "status": "completed",
+        "timing": {
+          "export_ms": 36.784
+        },
+        "updated_at_monotonic": 812918.44860554
+      },
+      "enclosure_lid_output": {
+        "compile_error": "output shape is invalid",
+        "required": true,
+        "started_at_monotonic": 812918.448885066,
+        "status": "invalid_shape",
+        "timing": {
+          "export_ms": 11.68
+        },
+        "updated_at_monotonic": 812918.460828308
+      }
+    },
+    "process_rss_kb": 549412,
+    "source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+    "subprocess_exit_status": 0,
+    "timed_out": false,
+    "timeout_seconds": 90
+  },
+  "error_message": "output shape is invalid",
+  "execution_timing": {
+    "functions": [
+      {
+        "elapsed_ms": 0.633,
+        "name": "_volundr_apply_patterns"
+      },
+      {
+        "elapsed_ms": 19.37,
+        "name": "_ai_component_enclosure_base"
+      },
+      {
+        "elapsed_ms": 18.836,
+        "name": "_ai_feature_base_cavity_feature"
+      },
+      {
+        "elapsed_ms": 25.481,
+        "name": "apply_feature_base_cavity_feature"
+      },
+      {
+        "elapsed_ms": 17.484,
+        "name": "_ai_feature_base_walls_feature"
+      },
+      {
+        "elapsed_ms": 23.926,
+        "name": "apply_feature_base_walls_feature"
+      },
+      {
+        "elapsed_ms": 27.943,
+        "name": "_ai_feature_connector_opening_feature"
+      },
+      {
+        "elapsed_ms": 39.185,
+        "name": "apply_feature_connector_opening_feature"
+      },
+      {
+        "elapsed_ms": 30.261,
+        "name": "_ai_feature_fastening_bosses_feature"
+      },
+      {
+        "elapsed_ms": 42.316,
+        "name": "apply_feature_fastening_bosses_feature"
+      },
+      {
+        "elapsed_ms": 156.235,
+        "name": "build_component_enclosure_base"
+      },
+      {
+        "elapsed_ms": 4.393,
+        "name": "_ai_component_enclosure_lid"
+      },
+      {
+        "elapsed_ms": 25.175,
+        "name": "_ai_feature_lid_shell_feature"
+      },
+      {
+        "elapsed_ms": 36.114,
+        "name": "apply_feature_lid_shell_feature"
+      },
+      {
+        "elapsed_ms": 23.581,
+        "name": "_ai_feature_alignment_lip_feature"
+      },
+      {
+        "elapsed_ms": 39.472,
+        "name": "apply_feature_alignment_lip_feature"
+      },
+      {
+        "elapsed_ms": 31.345,
+        "name": "_ai_feature_ventilation_slots_feature"
+      },
+      {
+        "elapsed_ms": 47.489,
+        "name": "apply_feature_ventilation_slots_feature"
+      },
+      {
+        "elapsed_ms": 134.396,
+        "name": "build_component_enclosure_lid"
+      },
+      {
+        "elapsed_ms": 4.889,
+        "name": "_ai_component_cable_clamp"
+      },
+      {
+        "elapsed_ms": 26.682,
+        "name": "_ai_feature_cable_clamp_body_feature"
+      },
+      {
+        "elapsed_ms": 32.878,
+        "name": "apply_feature_cable_clamp_body_feature"
+      },
+      {
+        "elapsed_ms": 41.173,
+        "name": "build_component_cable_clamp"
+      },
+      {
+        "elapsed_ms": 333.359,
+        "name": "build"
+      }
+    ],
+    "operations": [
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 16.707,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.575,
+        "name": "box"
+      },
+      {
+        "after": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "elapsed_ms": 13.669,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.663,
+        "name": "box"
+      },
+      {
+        "after": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "elapsed_ms": 12.439,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.658,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.043,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 24,
+          "face_count": 11,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "elapsed_ms": 19.368,
+        "name": "cut"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.051,
+        "name": "cylinder"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.923,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 24,
+          "face_count": 11,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 24,
+          "face_count": 11,
+          "solid_count": 1
+        },
+        "elapsed_ms": 21.088,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.62,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.694,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.557,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 24,
+          "face_count": 12,
+          "solid_count": 2
+        },
+        "before": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "elapsed_ms": 16.915,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.641,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.364,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 36,
+          "face_count": 18,
+          "solid_count": 3
+        },
+        "before": {
+          "edge_count": 24,
+          "face_count": 12,
+          "solid_count": 2
+        },
+        "elapsed_ms": 15.904,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 4.405,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.925,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 48,
+          "face_count": 23,
+          "solid_count": 3
+        },
+        "before": {
+          "edge_count": 36,
+          "face_count": 18,
+          "solid_count": 3
+        },
+        "elapsed_ms": 21.221,
+        "name": "cut"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.683,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.605,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.932,
+        "name": "cylinder"
+      },
+      {
+        "after": {
+          "edge_count": 15,
+          "face_count": 7,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "elapsed_ms": 15.815,
+        "name": "cut"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.872,
+        "name": "translate"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.143,
+        "name": "translate"
+      }
+    ],
+    "outputs": {
+      "cable_clamp_output": {
+        "export_ms": 28.838
+      },
+      "enclosure_base_output": {
+        "export_ms": 36.784
+      },
+      "enclosure_lid_output": {
+        "export_ms": 11.68
+      }
+    },
+    "total_ms": 2560.736
+  },
+  "exit_code": 0,
+  "export_timings": {
+    "cable_clamp_output": {
+      "brep_export_ms": 2.067,
+      "step_export_ms": 3.815,
+      "stl_export_ms": 4.864
+    },
+    "enclosure_base_output": {
+      "brep_export_ms": 1.401,
+      "step_export_ms": 6.463,
+      "stl_export_ms": 3.018
+    }
+  },
+  "feature_trace": [
+    {
+      "elapsed_ms": 23.944,
+      "error": null,
+      "feature_id": "_ai_component_enclosure_base",
+      "input": null,
+      "input_shape_hash": null,
+      "operation_category": "additive",
+      "operation_names": [
+        "box"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 0.5,
+          "xmin": -0.5,
+          "ymax": 0.5,
+          "ymin": -0.5,
+          "zmax": 0.5,
+          "zmin": -0.5
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 1.0
+      },
+      "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_component_enclosure_base"
+    },
+    {
+      "elapsed_ms": 25.19,
+      "error": null,
+      "feature_id": "base_cavity_feature",
+      "input": {
+        "bounds": {
+          "xmax": 0.5,
+          "xmin": -0.5,
+          "ymax": 0.5,
+          "ymin": -0.5,
+          "zmax": 0.5,
+          "zmin": -0.5
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 1.0
+      },
+      "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+      "operation_category": "additive",
+      "operation_names": [
+        "box",
+        "union"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 50.0,
+          "xmin": -50.0,
+          "ymax": 35.0,
+          "ymin": -35.0,
+          "zmax": 15.0,
+          "zmin": -15.0
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 210000.0
+      },
+      "output_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_base_cavity_feature"
+    },
+    {
+      "elapsed_ms": 23.743,
+      "error": null,
+      "feature_id": "base_walls_feature",
+      "input": {
+        "bounds": {
+          "xmax": 50.0,
+          "xmin": -50.0,
+          "ymax": 35.0,
+          "ymin": -35.0,
+          "zmax": 15.0,
+          "zmin": -15.0
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 210000.0
+      },
+      "input_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+      "operation_category": "additive",
+      "operation_names": [
+        "box",
+        "union"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 16.25,
+          "zmin": -16.25
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 255937.5
+      },
+      "output_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_base_walls_feature"
+    },
+    {
+      "elapsed_ms": 39.011,
+      "error": null,
+      "feature_id": "connector_opening_feature",
+      "input": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 16.25,
+          "zmin": -16.25
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 255937.5
+      },
+      "input_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+      "operation_category": "subtractive",
+      "operation_names": [
+        "box",
+        "translate",
+        "cut"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 16.25,
+          "zmin": -16.25
+        },
+        "edge_count": 24,
+        "face_count": 11,
+        "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 252337.5
+      },
+      "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_connector_opening_feature"
+    },
+    {
+      "elapsed_ms": 42.139,
+      "error": null,
+      "feature_id": "fastening_bosses_feature",
+      "input": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 16.25,
+          "zmin": -16.25
+        },
+        "edge_count": 24,
+        "face_count": 11,
+        "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 252337.5
+      },
+      "input_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+      "operation_category": "no_effect",
+      "operation_names": [
+        "cylinder",
+        "translate",
+        "union"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 16.25,
+          "zmin": -16.25
+        },
+        "edge_count": 24,
+        "face_count": 11,
+        "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 252337.5
+      },
+      "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+      "shape_changed": false,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_fastening_bosses_feature"
+    },
+    {
+      "elapsed_ms": 10.003,
+      "error": null,
+      "feature_id": "_ai_component_enclosure_lid",
+      "input": null,
+      "input_shape_hash": null,
+      "operation_category": "additive",
+      "operation_names": [
+        "box"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 0.5,
+          "xmin": -0.5,
+          "ymax": 0.5,
+          "ymin": -0.5,
+          "zmax": 0.5,
+          "zmin": -0.5
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 1.0
+      },
+      "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_component_enclosure_lid"
+    },
+    {
+      "elapsed_ms": 35.796,
+      "error": null,
+      "feature_id": "lid_shell_feature",
+      "input": {
+        "bounds": {
+          "xmax": 0.5,
+          "xmin": -0.5,
+          "ymax": 0.5,
+          "ymin": -0.5,
+          "zmax": 0.5,
+          "zmin": -0.5
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 1.0
+      },
+      "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+      "operation_category": "additive",
+      "operation_names": [
+        "box",
+        "translate",
+        "union"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 20.0,
+          "zmin": -0.5
+        },
+        "edge_count": 24,
+        "face_count": 12,
+        "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+        "solid_count": 2,
+        "valid": true,
+        "volume": 78751.0
+      },
+      "output_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_lid_shell_feature"
+    },
+    {
+      "elapsed_ms": 39.261,
+      "error": null,
+      "feature_id": "alignment_lip_feature",
+      "input": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 20.0,
+          "zmin": -0.5
+        },
+        "edge_count": 24,
+        "face_count": 12,
+        "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+        "solid_count": 2,
+        "valid": true,
+        "volume": 78751.0
+      },
+      "input_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+      "operation_category": "additive",
+      "operation_names": [
+        "box",
+        "translate",
+        "union"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 20.0,
+          "zmin": -0.5
+        },
+        "edge_count": 36,
+        "face_count": 18,
+        "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+        "solid_count": 3,
+        "valid": true,
+        "volume": 92751.0
+      },
+      "output_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_alignment_lip_feature"
+    },
+    {
+      "elapsed_ms": 47.348,
+      "error": null,
+      "feature_id": "ventilation_slots_feature",
+      "input": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 20.0,
+          "zmin": -0.5
+        },
+        "edge_count": 36,
+        "face_count": 18,
+        "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+        "solid_count": 3,
+        "valid": true,
+        "volume": 92751.0
+      },
+      "input_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+      "operation_category": "subtractive",
+      "operation_names": [
+        "box",
+        "translate",
+        "cut"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 52.5,
+          "xmin": -52.5,
+          "ymax": 37.5,
+          "ymin": -37.5,
+          "zmax": 20.0,
+          "zmin": -0.5
+        },
+        "edge_count": 48,
+        "face_count": 23,
+        "shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+        "solid_count": 3,
+        "valid": true,
+        "volume": 92551.0
+      },
+      "output_shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_ventilation_slots_feature"
+    },
+    {
+      "elapsed_ms": 7.825,
+      "error": null,
+      "feature_id": "_ai_component_cable_clamp",
+      "input": null,
+      "input_shape_hash": null,
+      "operation_category": "additive",
+      "operation_names": [
+        "box"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 0.5,
+          "xmin": -0.5,
+          "ymax": 0.5,
+          "ymin": -0.5,
+          "zmax": 0.5,
+          "zmin": -0.5
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 1.0
+      },
+      "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_component_cable_clamp"
+    },
+    {
+      "elapsed_ms": 32.69,
+      "error": null,
+      "feature_id": "cable_clamp_body_feature",
+      "input": {
+        "bounds": {
+          "xmax": 0.5,
+          "xmin": -0.5,
+          "ymax": 0.5,
+          "ymin": -0.5,
+          "zmax": 0.5,
+          "zmin": -0.5
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 1.0
+      },
+      "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+      "operation_category": "subtractive",
+      "operation_names": [
+        "box",
+        "cylinder",
+        "cut"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 7.5,
+          "xmin": -7.5,
+          "ymax": 7.5,
+          "ymin": -7.5,
+          "zmax": 7.5,
+          "zmin": -7.5
+        },
+        "edge_count": 15,
+        "face_count": 7,
+        "shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 2196.902755
+      },
+      "output_shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_cable_clamp_body_feature"
+    }
+  ],
+  "job_id": "gemini-integration-wave-02-project-03-wave-02-project-03-revision-001",
+  "label": "project-03-production",
+  "outputs": [
+    {
+      "brep_hash": "a78f5d423d415630c202abc634779d3df09384ac97c18f10ddaf75b202137139",
+      "compile_error": null,
+      "output_id": "enclosure_base_output",
+      "required": true,
+      "step_hash": "6fde745c3ccd247db449be7d15f43bf73dba07bb0bad72224eef1222c17d9ba7",
+      "stl_hash": "7f6e73f48f524aab4bcc2014f4fd73ae8cc5e7fe5e4955c86ffd99fb39e97b6d",
+      "stl_size_bytes": 1484,
+      "success": true,
+      "topology_metadata": {
+        "allow_disconnected_solids": false,
+        "bounding_box_mm": {
+          "size_x": 105.0,
+          "size_y": 75.0,
+          "size_z": 32.5,
+          "x_max": 52.5,
+          "x_min": -52.5,
+          "y_max": 37.5,
+          "y_min": -37.5,
+          "z_max": 32.5,
+          "z_min": 0.0
+        },
+        "coordinate_space": "print_space",
+        "detected_solid_count": 1,
+        "expected_solid_count": 1,
+        "model_space_bounds": {
+          "size_x": 105.0,
+          "size_y": 75.0,
+          "size_z": 32.5,
+          "x_max": 52.5,
+          "x_min": -52.5,
+          "y_max": 37.5,
+          "y_min": -37.5,
+          "z_max": 16.25,
+          "z_min": -16.25
+        },
+        "outcome": "valid",
+        "output_id": "enclosure_base_output",
+        "placement_policy": "cadquery-output-placement-v1",
+        "print_space_bounds": {
+          "size_x": 105.0,
+          "size_y": 75.0,
+          "size_z": 32.5,
+          "x_max": 52.5,
+          "x_min": -52.5,
+          "y_max": 37.5,
+          "y_min": -37.5,
+          "z_max": 32.5,
+          "z_min": 0.0
+        },
+        "print_transform": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "translation": [
+            0.0,
+            0.0,
+            16.25
+          ]
+        },
+        "shell_count": 1,
+        "valid": true,
+        "volume_mm3": 252337.5
+      }
+    },
+    {
+      "brep_hash": null,
+      "compile_error": "output shape is invalid",
+      "output_id": "enclosure_lid_output",
+      "required": true,
+      "step_hash": null,
+      "stl_hash": null,
+      "stl_size_bytes": 0,
+      "success": false,
+      "topology_metadata": {
+        "allow_disconnected_solids": false,
+        "bounding_box_mm": {
+          "size_x": 105.0,
+          "size_y": 75.0,
+          "size_z": 20.5,
+          "x_max": 52.5,
+          "x_min": -52.5,
+          "y_max": 37.5,
+          "y_min": -37.5,
+          "z_max": 20.0,
+          "z_min": -0.5
+        },
+        "detected_solid_count": 3,
+        "expected_solid_count": 1,
+        "outcome": "solid_count_mismatch",
+        "output_id": "enclosure_lid_output",
+        "shell_count": 3,
+        "valid": false,
+        "volume_mm3": 92550.99999999999
+      }
+    },
+    {
+      "brep_hash": "02a6d07d23f93168e607a4883e2638566bd79a7d8c66478e80067c12ece78f06",
+      "compile_error": null,
+      "output_id": "cable_clamp_output",
+      "required": true,
+      "step_hash": "fcebf0ea5cdb1bd5b30232239ab804f20d770710d1ef3ecbb7976889f49725ac",
+      "stl_hash": "1e4bf31e81f18c0dc027f6a762c18fac54c2e7ee590bf5b7517def9283b43871",
+      "stl_size_bytes": 26084,
+      "success": true,
+      "topology_metadata": {
+        "allow_disconnected_solids": false,
+        "bounding_box_mm": {
+          "size_x": 15.0,
+          "size_y": 15.0,
+          "size_z": 15.0,
+          "x_max": 7.5,
+          "x_min": -7.5,
+          "y_max": 7.5,
+          "y_min": -7.5,
+          "z_max": 15.0,
+          "z_min": 0.0
+        },
+        "coordinate_space": "print_space",
+        "detected_solid_count": 1,
+        "expected_solid_count": 1,
+        "model_space_bounds": {
+          "size_x": 15.0,
+          "size_y": 15.0,
+          "size_z": 15.0,
+          "x_max": 7.5,
+          "x_min": -7.5,
+          "y_max": 7.5,
+          "y_min": -7.5,
+          "z_max": 7.5,
+          "z_min": -7.5
+        },
+        "outcome": "valid",
+        "output_id": "cable_clamp_output",
+        "placement_policy": "cadquery-output-placement-v1",
+        "print_space_bounds": {
+          "size_x": 15.0,
+          "size_y": 15.0,
+          "size_z": 15.0,
+          "x_max": 7.5,
+          "x_min": -7.5,
+          "y_max": 7.5,
+          "y_min": -7.5,
+          "z_max": 15.0,
+          "z_min": 0.0
+        },
+        "print_transform": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "translation": [
+            0.0,
+            0.0,
+            7.5
+          ]
+        },
+        "shell_count": 1,
+        "valid": true,
+        "volume_mm3": 2196.9027549038283
+      }
+    }
+  ],
+  "preserved_manifest_timeout_seconds": 60,
+  "project_job_path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/worker-jobs/gemini-integration-wave-02-project-03-wave-02-project-03-revision-001/job.json",
+  "provider_calls": 0,
+  "provider_success_eligible": false,
+  "source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+  "success": false,
+  "timed_out": false,
+  "timeout_seconds": 90
+}

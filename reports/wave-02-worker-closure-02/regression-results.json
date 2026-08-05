@@ -1,0 +1,52 @@
+{
+  "commands": [
+    {
+      "command": "backend/.venv/bin/python -m pytest backend/tests/test_cad_worker.py::test_cadquery_runner_timeout_preserves_durable_diagnostics backend/tests/test_cad_worker.py::test_worker_timeout_result_contract_includes_partial_evidence backend/tests/test_cad_worker.py::test_required_output_failure_preserves_prior_output_results backend/tests/test_cad_worker.py::test_operation_shape_counts_are_bounded_to_expensive_operations backend/tests/test_cad_worker.py::test_production_worker_timeout_default_remains_unchanged -q",
+      "outcome": "passed",
+      "summary": "5 passed in 18.45s"
+    },
+    {
+      "command": "backend/.venv/bin/python -m pytest backend/tests/test_cad_worker.py -q",
+      "outcome": "passed",
+      "summary": "32 passed in 45.80s"
+    },
+    {
+      "command": "backend/.venv/bin/python -m pytest backend/tests/test_capsule_slot_helper.py -q",
+      "outcome": "passed",
+      "summary": "7 passed in 4.68s"
+    },
+    {
+      "command": "backend/.venv/bin/python -m pytest backend/tests/test_provider_ir_targeted_validation.py backend/tests/test_t5_final_revision_microstudy.py backend/tests/test_t5_parameter_revision_validation.py -q",
+      "outcome": "passed",
+      "summary": "42 passed in 21.89s"
+    },
+    {
+      "command": "backend/.venv/bin/python -m pytest backend/tests/test_cadquery_execution_timing.py backend/tests/test_export_packaging.py backend/tests/test_printability_inspector.py -q",
+      "outcome": "passed",
+      "summary": "9 passed, 1 StarletteDeprecationWarning in 10.97s"
+    },
+    {
+      "command": "backend/.venv/bin/python -m pytest backend/tests -q",
+      "outcome": "passed",
+      "summary": "1181 passed, 1 StarletteDeprecationWarning in 254.78s"
+    },
+    {
+      "command": "cd backend && .venv/bin/alembic heads",
+      "outcome": "passed",
+      "summary": "0036_benchmark_model_metadata (head)"
+    },
+    {
+      "command": "backend/.venv/bin/python backend/scripts/audit_repository.py --output /tmp/volundr-wave-02-worker-closure-02-audit",
+      "outcome": "passed",
+      "summary": "wrote 13 audit reports; provider_calls=0 worker_calls=0"
+    },
+    {
+      "command": "git diff --check",
+      "outcome": "passed",
+      "summary": "no whitespace errors"
+    }
+  ],
+  "provider_calls": 0,
+  "recorded_by": "manual verification in current worktree",
+  "schema_version": "volundr-wave-02-regression-results-v1"
+}

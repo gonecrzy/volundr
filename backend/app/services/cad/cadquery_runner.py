@@ -6,8 +6,10 @@ import re
 import shutil
 import signal
 import sys
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from app.core.config import settings
 from app.services.cad.cadquery_contract import (
@@ -59,6 +61,7 @@ class CadQueryCompileResult:
     outputs: list[CadQueryOutputResult] = field(default_factory=list)
     execution_manifest_path: Path | None = None
     execution_timing: dict | None = None
+    execution_diagnostics: dict | None = None
 
 
 class CadQueryCliRunner:
@@ -106,6 +109,7 @@ class CadQueryCliRunner:
         requested_outputs_path = job_dir / "requested-outputs.json"
         stdout_path = job_dir / "stdout.log"
         stderr_path = job_dir / "stderr.log"
+        diagnostic_state_path = job_dir / "diagnostic-state.json"
         source_path.write_text(source, encoding="utf-8")
         runner_path.write_text(_CADQUERY_RUNNER_SOURCE, encoding="utf-8")
         parameter_values_path.write_text(
@@ -125,6 +129,8 @@ class CadQueryCliRunner:
             str(parameter_values_path.name),
             str(requested_outputs_path.name),
         ]
+        started_at = time.monotonic()
+        timeout_deadline = started_at + self.timeout_seconds
         process = await asyncio.create_subprocess_exec(
             *command_args,
             cwd=job_dir,
@@ -155,6 +161,20 @@ class CadQueryCliRunner:
         stdout_path.write_bytes(stdout)
         stderr_path.write_bytes(stderr)
         exit_code = process.returncode
+        timeout_diagnostics = None
+        if timed_out:
+            timeout_diagnostics = self._timeout_diagnostics(
+                job_dir=job_dir,
+                source_hash=source_hash,
+                execution_result_path=execution_result_path,
+                diagnostic_state_path=diagnostic_state_path,
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                process_pid=process.pid,
+                exit_code=exit_code,
+                started_at=started_at,
+                timeout_deadline=timeout_deadline,
+            )
 
         if timed_out:
             return self._compile_failure(
@@ -170,6 +190,7 @@ class CadQueryCliRunner:
                 error_message=f"CadQuery timed out after {self.timeout_seconds} seconds",
                 command_args=command_args,
                 execution_manifest_path=execution_result_path if execution_result_path.exists() else None,
+                execution_diagnostics=timeout_diagnostics,
             )
 
         if exit_code != 0:
@@ -276,6 +297,19 @@ class CadQueryCliRunner:
             execution_timing=execution_payload.get("execution_timing")
             if isinstance(execution_payload.get("execution_timing"), dict)
             else None,
+            execution_diagnostics=self._execution_diagnostics_from_payload(
+                job_dir=job_dir,
+                execution_payload=execution_payload,
+                diagnostic_state_path=diagnostic_state_path,
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                timed_out=False,
+                timeout_seconds=self.timeout_seconds,
+                process_pid=process.pid,
+                exit_code=exit_code,
+                started_at=started_at,
+                timeout_deadline=timeout_deadline,
+            ),
         )
 
     def _screen_source(self, source: str, *, source_contract_version: str) -> str | None:
@@ -323,6 +357,7 @@ class CadQueryCliRunner:
             metadata=None,
             error_message=error_message,
             command_args=None,
+            execution_diagnostics=None,
         )
 
     def _compile_failure(
@@ -341,14 +376,17 @@ class CadQueryCliRunner:
         command_args: list[str],
         outputs: list[CadQueryOutputResult] | None = None,
         execution_manifest_path: Path | None = None,
+        execution_diagnostics: dict | None = None,
     ) -> CadQueryCompileResult:
         execution_timing = None
+        payload = None
         if execution_manifest_path is not None and execution_manifest_path.exists():
             try:
                 payload = json.loads(execution_manifest_path.read_text(encoding="utf-8"))
                 execution_timing = payload.get("execution_timing")
             except (OSError, json.JSONDecodeError):
                 execution_timing = None
+                payload = None
         return CadQueryCompileResult(
             job_id=job_id,
             success=False,
@@ -368,7 +406,138 @@ class CadQueryCliRunner:
             outputs=outputs or [],
             execution_manifest_path=execution_manifest_path,
             execution_timing=execution_timing if isinstance(execution_timing, dict) else None,
+            execution_diagnostics=execution_diagnostics
+            if execution_diagnostics is not None
+            else (
+                self._execution_diagnostics_from_payload(
+                    job_dir=source_path.parent,
+                    execution_payload=payload,
+                    diagnostic_state_path=source_path.parent / "diagnostic-state.json",
+                    stdout_path=stdout_path,
+                    stderr_path=stderr_path,
+                    timed_out=timed_out,
+                    timeout_seconds=self.timeout_seconds,
+                    process_pid=None,
+                    exit_code=exit_code,
+                    started_at=None,
+                    timeout_deadline=None,
+                )
+                if isinstance(payload, dict)
+                else None
+            ),
         )
+
+    def _timeout_diagnostics(
+        self,
+        *,
+        job_dir: Path,
+        source_hash: str,
+        execution_result_path: Path,
+        diagnostic_state_path: Path,
+        stdout_path: Path,
+        stderr_path: Path,
+        process_pid: int | None,
+        exit_code: int | None,
+        started_at: float,
+        timeout_deadline: float,
+    ) -> dict[str, Any]:
+        payload = self._read_json(execution_result_path)
+        return self._execution_diagnostics_from_payload(
+            job_dir=job_dir,
+            execution_payload=payload,
+            diagnostic_state_path=diagnostic_state_path,
+            stdout_path=stdout_path,
+            stderr_path=stderr_path,
+            timed_out=True,
+            timeout_seconds=self.timeout_seconds,
+            process_pid=process_pid,
+            exit_code=exit_code,
+            started_at=started_at,
+            timeout_deadline=timeout_deadline,
+            source_hash=source_hash,
+        )
+
+    def _execution_diagnostics_from_payload(
+        self,
+        *,
+        job_dir: Path,
+        execution_payload: dict | None,
+        diagnostic_state_path: Path,
+        stdout_path: Path,
+        stderr_path: Path,
+        timed_out: bool,
+        timeout_seconds: int,
+        process_pid: int | None,
+        exit_code: int | None,
+        started_at: float | None,
+        timeout_deadline: float | None,
+        source_hash: str | None = None,
+    ) -> dict[str, Any]:
+        state = self._read_json(diagnostic_state_path)
+        if not isinstance(state, dict):
+            state = {}
+        payload_state = execution_payload.get("diagnostic_state") if isinstance(execution_payload, dict) else None
+        if isinstance(payload_state, dict):
+            state = {**state, **payload_state}
+        per_output = state.get("per_output_results") if isinstance(state.get("per_output_results"), dict) else {}
+        completed_output_ids = [
+            str(output_id)
+            for output_id, result in per_output.items()
+            if isinstance(result, dict) and result.get("status") == "completed"
+        ]
+        incomplete_output_ids = [
+            str(output_id)
+            for output_id, result in per_output.items()
+            if isinstance(result, dict) and result.get("status") not in {"completed"}
+        ]
+        diagnostics = {
+            "timed_out": timed_out,
+            "timeout_seconds": timeout_seconds,
+            "subprocess_pid": process_pid,
+            "subprocess_exit_status": exit_code,
+            "started_at_monotonic": started_at,
+            "timeout_deadline_monotonic": timeout_deadline,
+            "active_phase": state.get("active_phase"),
+            "active_output_id": state.get("active_output_id"),
+            "active_function": state.get("active_function"),
+            "active_operation": state.get("active_operation"),
+            "active_export_format": state.get("active_export_format"),
+            "operation_started_at_monotonic": state.get("operation_started_at_monotonic"),
+            "operation_elapsed_seconds": (
+                round(time.monotonic() - float(state["operation_started_at_monotonic"]), 6)
+                if isinstance(state.get("operation_started_at_monotonic"), (int, float))
+                else None
+            ),
+            "last_completed_operation": state.get("last_completed_operation"),
+            "last_started_incomplete_operation": state.get("last_started_incomplete_operation"),
+            "completed_output_ids": completed_output_ids,
+            "incomplete_output_ids": incomplete_output_ids,
+            "per_output_results": per_output,
+            "partial_timing_record_path": self._relative_path(job_dir, diagnostic_state_path),
+            "partial_diagnostic_state_path": self._relative_path(job_dir, diagnostic_state_path),
+            "partial_stdout_path": self._relative_path(job_dir, stdout_path),
+            "partial_stderr_path": self._relative_path(job_dir, stderr_path),
+            "process_rss_kb": state.get("process_rss_kb"),
+            "source_hash": source_hash or state.get("source_hash"),
+        }
+        return {key: value for key, value in diagnostics.items() if value is not None}
+
+    def _read_json(self, path: Path) -> dict | None:
+        if not path.exists():
+            return None
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, dict) else None
+
+    def _relative_path(self, job_dir: Path, path: Path | None) -> str | None:
+        if path is None:
+            return None
+        try:
+            return str(path.resolve().relative_to(job_dir.resolve()))
+        except ValueError:
+            return None
 
     def _collect_output_results(
         self,
@@ -530,22 +699,159 @@ _CADQUERY_RUNNER_SOURCE = """
 import hashlib
 import importlib.util
 import json
+import resource
 import signal
 import sys
 import time
 from pathlib import Path
 
-import cadquery as cq
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
-from volundr_cad.runtime import ParameterValues, PrintableOutput, Product
 
 PLACEMENT_POLICY = "cadquery-output-placement-v1"
 PLACEMENT_TOLERANCE_MM = 1e-6
+cq = None
+ParameterValues = None
+Product = None
 _TIMING = {"functions": [], "operations": [], "outputs": {}}
 _FEATURE_TRACE = []
 _RESULT_PATH = None
+_DIAGNOSTIC_STATE_PATH = None
 _STARTED_AT = None
 _ACTIVE_OPERATION = None
+_COUNTED_OPERATION_NAMES = {"sweep", "cut", "cutBlind", "cutThruAll", "union", "intersect", "fillet", "chamfer", "loft", "shell"}
+_DIAGNOSTIC_STATE = {
+    "schema_version": "volundr-cadquery-diagnostic-state-v1",
+    "per_output_results": {},
+    "completed_output_ids": [],
+    "phase_events": [],
+}
+
+
+def _rss_kb():
+    try:
+        return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    except Exception:
+        return None
+
+
+def _write_diagnostic_state():
+    if _DIAGNOSTIC_STATE_PATH is None:
+        return
+    try:
+        if _STARTED_AT is not None:
+            _DIAGNOSTIC_STATE["elapsed_ms"] = round((time.perf_counter() - _STARTED_AT) * 1000, 3)
+        rss_kb = _rss_kb()
+        if rss_kb is not None:
+            _DIAGNOSTIC_STATE["process_rss_kb"] = rss_kb
+        tmp_path = _DIAGNOSTIC_STATE_PATH.with_name(f".{_DIAGNOSTIC_STATE_PATH.name}.tmp")
+        tmp_path.write_text(
+            json.dumps(_DIAGNOSTIC_STATE, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+        tmp_path.replace(_DIAGNOSTIC_STATE_PATH)
+    except OSError:
+        pass
+
+
+def _set_phase(phase):
+    _DIAGNOSTIC_STATE["active_phase"] = phase
+    _DIAGNOSTIC_STATE["phase_started_at_monotonic"] = time.perf_counter()
+    _DIAGNOSTIC_STATE.setdefault("phase_events", []).append({
+        "phase": phase,
+        "event": "started",
+        "at_monotonic": _DIAGNOSTIC_STATE["phase_started_at_monotonic"],
+    })
+    _write_diagnostic_state()
+
+
+def _complete_phase(phase):
+    _DIAGNOSTIC_STATE.setdefault("phase_events", []).append({
+        "phase": phase,
+        "event": "completed",
+        "at_monotonic": time.perf_counter(),
+    })
+    _write_diagnostic_state()
+
+
+def _initialize_diagnostic_state(source_path, requested_outputs):
+    _DIAGNOSTIC_STATE["source_hash"] = _file_sha256(source_path)
+    _DIAGNOSTIC_STATE["requested_output_ids"] = [
+        str(request.get("output_id") or "")
+        for request in requested_outputs
+        if isinstance(request, dict) and request.get("output_id")
+    ]
+    _DIAGNOSTIC_STATE["per_output_results"] = {
+        str(request.get("output_id") or ""): {
+            "status": "not_attempted",
+            "required": bool(request.get("required", True)),
+        }
+        for request in requested_outputs
+        if isinstance(request, dict) and request.get("output_id")
+    }
+    _DIAGNOSTIC_STATE["completed_output_ids"] = []
+    _write_diagnostic_state()
+
+
+def _initialize_output_requests(requests):
+    per_output = _DIAGNOSTIC_STATE.setdefault("per_output_results", {})
+    requested_ids = []
+    for request in requests:
+        if not isinstance(request, dict):
+            continue
+        output_id = str(request.get("output_id") or "")
+        if not output_id:
+            continue
+        requested_ids.append(output_id)
+        per_output.setdefault(output_id, {"status": "not_attempted"})
+    _DIAGNOSTIC_STATE["requested_output_ids"] = requested_ids
+    _write_diagnostic_state()
+
+
+def _set_output_status(output_id, status, **extra):
+    if not output_id:
+        return
+    per_output = _DIAGNOSTIC_STATE.setdefault("per_output_results", {})
+    current = per_output.get(output_id) if isinstance(per_output.get(output_id), dict) else {}
+    current.update({
+        "status": status,
+        "updated_at_monotonic": time.perf_counter(),
+        **extra,
+    })
+    if status == "started" and "started_at_monotonic" not in current:
+        current["started_at_monotonic"] = current["updated_at_monotonic"]
+    if status == "completed":
+        completed = _DIAGNOSTIC_STATE.setdefault("completed_output_ids", [])
+        if output_id not in completed:
+            completed.append(output_id)
+    per_output[output_id] = current
+    _DIAGNOSTIC_STATE["active_output_id"] = output_id if status == "started" else None
+    _write_diagnostic_state()
+
+
+def _output_status(result):
+    if not isinstance(result, dict):
+        return "execution_failed"
+    if result.get("success") is True:
+        return "completed"
+    message = str(result.get("compile_error") or "")
+    if message == "output shape is invalid" or message == "print-placed output shape is invalid":
+        return "invalid_shape"
+    if "export" in message.lower():
+        return "export_failed"
+    if message.startswith("requested output not found"):
+        return "not_found"
+    return "execution_failed"
+
+
+def _set_export(output_id, export_format):
+    _DIAGNOSTIC_STATE["active_output_id"] = output_id
+    _DIAGNOSTIC_STATE["active_export_format"] = export_format
+    _set_phase(f"{export_format.lower()}_export")
+
+
+def _clear_export():
+    _DIAGNOSTIC_STATE["active_export_format"] = None
+    _write_diagnostic_state()
 
 
 class _FunctionProfiler:
@@ -559,11 +865,16 @@ class _FunctionProfiler:
         key = id(frame)
         if event == "call":
             self.active[key] = (frame.f_code.co_name, time.perf_counter())
+            _DIAGNOSTIC_STATE["active_function"] = frame.f_code.co_name
+            _write_diagnostic_state()
         elif event in {"return", "exception"}:
             record = self.active.pop(key, None)
             if record is not None:
                 name, started = record
                 self.records.append({"name": name, "elapsed_ms": round((time.perf_counter() - started) * 1000, 3)})
+                if _DIAGNOSTIC_STATE.get("active_function") == name:
+                    _DIAGNOSTIC_STATE["active_function"] = None
+                _write_diagnostic_state()
         return self
 
 
@@ -687,7 +998,7 @@ def _wrap_provider_feature_functions(module):
 
 def _install_operation_timing():
     originals = {}
-    operation_names = ("box", "cylinder", "extrude", "cut", "cutBlind", "cutThruAll", "union", "intersect", "fillet", "chamfer", "loft", "shell", "hole", "mirror", "rotate", "translate")
+    operation_names = ("box", "circle", "cylinder", "extrude", "sweep", "slot2D", "spline", "cut", "cutBlind", "cutThruAll", "union", "intersect", "fillet", "chamfer", "loft", "shell", "hole", "mirror", "rotate", "translate")
     for name in operation_names:
         original = getattr(cq.Workplane, name, None)
         if not callable(original):
@@ -696,17 +1007,34 @@ def _install_operation_timing():
         def timed(self, *args, _name=name, _original=original, **kwargs):
             global _ACTIVE_OPERATION
             started = time.perf_counter()
-            before = _shape_complexity(self)
-            _ACTIVE_OPERATION = {"name": _name, "before": before}
+            before = _shape_complexity(self) if _name in _COUNTED_OPERATION_NAMES else None
+            _ACTIVE_OPERATION = {
+                "name": _name,
+                "before": before,
+                "started_at_monotonic": started,
+            }
+            _DIAGNOSTIC_STATE["active_operation"] = _ACTIVE_OPERATION
+            _DIAGNOSTIC_STATE["operation_started_at_monotonic"] = started
+            _DIAGNOSTIC_STATE["last_started_incomplete_operation"] = _ACTIVE_OPERATION
+            _write_diagnostic_state()
             try:
-                return _original(self, *args, **kwargs)
+                result = _original(self, *args, **kwargs)
+                after = _shape_complexity(result) if _name in _COUNTED_OPERATION_NAMES else None
+                return result
             finally:
-                _ACTIVE_OPERATION = None
-                _TIMING["operations"].append({
+                elapsed_ms = round((time.perf_counter() - started) * 1000, 3)
+                completed = {
                     "name": _name,
-                    "elapsed_ms": round((time.perf_counter() - started) * 1000, 3),
+                    "elapsed_ms": elapsed_ms,
                     "before": before,
-                })
+                    "after": locals().get("after"),
+                }
+                _ACTIVE_OPERATION = None
+                _DIAGNOSTIC_STATE["active_operation"] = None
+                _DIAGNOSTIC_STATE["operation_started_at_monotonic"] = None
+                _DIAGNOSTIC_STATE["last_completed_operation"] = completed
+                _TIMING["operations"].append(completed)
+                _write_diagnostic_state()
         setattr(cq.Workplane, name, timed)
     return originals
 
@@ -720,6 +1048,7 @@ def _write_partial_result(reason):
     if _RESULT_PATH is None:
         return
     try:
+        _write_diagnostic_state()
         _RESULT_PATH.write_text(json.dumps({
             "cad_backend": "cadquery",
             "cadquery_version": getattr(cq, "__version__", "unknown"),
@@ -728,11 +1057,22 @@ def _write_partial_result(reason):
             "success": False,
             "failure_class": "timeout",
             "diagnostics": {"message": reason, "operation_active": _ACTIVE_OPERATION},
+            "diagnostic_state": _DIAGNOSTIC_STATE,
             "execution_timing": {
                 **_TIMING,
                 "total_ms": round((time.perf_counter() - _STARTED_AT) * 1000, 3) if _STARTED_AT else None,
             },
-            "outputs": [],
+            "outputs": [
+                {
+                    "output_id": output_id,
+                    "entrypoint": output_id,
+                    "required": bool(record.get("required", True)) if isinstance(record, dict) else True,
+                    "success": False,
+                    "compile_error": "output did not complete before timeout",
+                }
+                for output_id, record in _DIAGNOSTIC_STATE.get("per_output_results", {}).items()
+                if isinstance(record, dict) and record.get("status") != "completed"
+            ],
             "worker_version": "cadquery-cli-runner-v1",
         }, indent=2, sort_keys=True), encoding="utf-8")
     except OSError:
@@ -745,12 +1085,13 @@ def _handle_term(_signum, _frame):
 
 
 def main() -> int:
-    global _RESULT_PATH, _STARTED_AT
+    global cq, ParameterValues, Product, _RESULT_PATH, _DIAGNOSTIC_STATE_PATH, _STARTED_AT
     started_at = time.perf_counter()
     _STARTED_AT = started_at
     output_dir = Path(sys.argv[1])
     result_path = Path(sys.argv[2])
     _RESULT_PATH = result_path
+    _DIAGNOSTIC_STATE_PATH = result_path.with_name("diagnostic-state.json")
     signal.signal(signal.SIGTERM, _handle_term)
     parameter_values_path = Path(sys.argv[3])
     requested_outputs_path = Path(sys.argv[4])
@@ -758,12 +1099,22 @@ def main() -> int:
     parameter_values = json.loads(parameter_values_path.read_text(encoding="utf-8"))
     requested_outputs = json.loads(requested_outputs_path.read_text(encoding="utf-8"))
     source_path = Path("model.py")
+    _initialize_diagnostic_state(source_path, requested_outputs)
+    _set_phase("source_validation")
     _validate_source_contract(source_path)
+    _complete_phase("source_validation")
+    _set_phase("module_import")
     spec = importlib.util.spec_from_file_location("volundr_generated_model", source_path)
     if spec is None or spec.loader is None:
         raise RuntimeError("failed to load generated model.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    _complete_phase("module_import")
+    import cadquery as cadquery_module
+    from volundr_cad.runtime import ParameterValues as parameter_values_cls, Product as product_cls
+    cq = cadquery_module
+    ParameterValues = parameter_values_cls
+    Product = product_cls
 
     if not hasattr(module, "build"):
         raise RuntimeError("generated source must define build(params)")
@@ -772,8 +1123,12 @@ def main() -> int:
     profiler = _FunctionProfiler()
     sys.setprofile(profiler)
     try:
+        _set_phase("build_function")
         product = _build_product(module, parameter_values)
+        _complete_phase("build_function")
+        _set_phase("output_materialization")
         outputs = _execute_product_outputs(product, requested_outputs, output_dir)
+        _complete_phase("output_materialization")
     finally:
         sys.setprofile(None)
         _restore_operation_timing(originals)
@@ -811,6 +1166,7 @@ def main() -> int:
                 },
                 "feature_trace": _FEATURE_TRACE,
                 "feature_trace_supported": True,
+                "diagnostic_state": _DIAGNOSTIC_STATE,
                 "outputs": outputs,
                 "worker_version": "cadquery-cli-runner-v1",
             },
@@ -842,13 +1198,15 @@ def _build_product(module, parameter_values):
 def _execute_product_outputs(product, requested_outputs, output_dir):
     by_id = {output.output_id: output for output in product.outputs}
     requests = requested_outputs or [{"output_id": output.output_id, "required": output.required} for output in product.outputs]
+    _initialize_output_requests(requests)
     results = []
     for request in requests:
         output_id = str(request.get("output_id") or "")
         required = bool(request.get("required", True))
         printable = by_id.get(output_id)
+        _set_output_status(output_id, "started", required=required)
         if printable is None:
-            results.append({
+            result = {
                 "output_id": output_id,
                 "entrypoint": output_id,
                 "required": required,
@@ -859,7 +1217,9 @@ def _execute_product_outputs(product, requested_outputs, output_dir):
                     expected_solid_count=int(request.get("expected_solid_count") or 1),
                     allow_disconnected_solids=bool(request.get("allow_disconnected_solids", False)),
                 ),
-            })
+            }
+            results.append(result)
+            _set_output_status(output_id, "not_found", required=required, compile_error=result["compile_error"])
             continue
         started = time.perf_counter()
         result = _export_printable_output(output_dir, printable, required=required)
@@ -869,6 +1229,13 @@ def _execute_product_outputs(product, requested_outputs, output_dir):
         ]
         result["timing"] = {"export_ms": round((time.perf_counter() - started) * 1000, 3)}
         results.append(result)
+        _set_output_status(
+            output_id,
+            _output_status(result),
+            required=required,
+            compile_error=result.get("compile_error"),
+            timing=result.get("timing"),
+        )
     return results
 
 
@@ -913,6 +1280,7 @@ def _export_output(
     step_path = artifact_dir / f"{safe_id}.step"
     brep_path = artifact_dir / f"{safe_id}.brep"
     try:
+        _set_phase("topology_analysis")
         model_space_topology = _topology_metadata(
             output_id=output_id,
             model=model,
@@ -946,12 +1314,27 @@ def _export_output(
                 "print-placed output shape is invalid",
                 topology_metadata=topology_metadata,
             )
+        export_timings = {}
+        _set_export(output_id, "STL")
+        started = time.perf_counter()
         cq.exporters.export(print_model, str(stl_path))
+        export_timings["stl_export_ms"] = round((time.perf_counter() - started) * 1000, 3)
+        _clear_export()
+        _set_export(output_id, "STEP")
+        started = time.perf_counter()
         cq.exporters.export(print_model, str(step_path))
+        export_timings["step_export_ms"] = round((time.perf_counter() - started) * 1000, 3)
+        _clear_export()
         try:
+            _set_export(output_id, "BREP")
+            started = time.perf_counter()
             cq.exporters.export(print_model, str(brep_path))
+            export_timings["brep_export_ms"] = round((time.perf_counter() - started) * 1000, 3)
         except Exception:
             brep_path.unlink(missing_ok=True)
+        finally:
+            _clear_export()
+        _set_phase("metadata_generation")
         return {
             "output_id": output_id,
             "entrypoint": entrypoint,
@@ -964,6 +1347,7 @@ def _export_output(
             "step_hash": _file_sha256(step_path),
             "brep_hash": _file_sha256(brep_path) if brep_path.exists() else None,
             "topology_metadata": topology_metadata,
+            "export_timings": export_timings,
         }
     except Exception as exc:
         return _failed_output(

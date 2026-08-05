@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import json
 from pathlib import Path
 import time
 from typing import Any
@@ -102,6 +103,10 @@ class FilesystemCadWorkerRunner:
                     payload=result,
                 )
             await asyncio.sleep(self.poll_interval_seconds)
+        diagnostics = self._client_timeout_diagnostics(
+            job_dir=job_dir,
+            source_hash=source_hash,
+        )
         return CadQueryCompileResult(
             job_id=job_id,
             success=False,
@@ -122,6 +127,7 @@ class FilesystemCadWorkerRunner:
             ),
             command_args=None,
             outputs=[],
+            execution_diagnostics=diagnostics,
         )
 
     def _compile_result_from_worker_payload(
@@ -132,6 +138,8 @@ class FilesystemCadWorkerRunner:
         payload: dict[str, Any],
     ) -> CadQueryCompileResult:
         diagnostics = payload.get("diagnostics") if isinstance(payload.get("diagnostics"), dict) else {}
+        stdout_path = self._job_relative_path(job_dir, diagnostics.get("partial_stdout_path"))
+        stderr_path = self._job_relative_path(job_dir, diagnostics.get("partial_stderr_path"))
         outputs = [
             self._output_result_from_worker_payload(job_dir, raw_output)
             for raw_output in payload.get("outputs", [])
@@ -147,8 +155,8 @@ class FilesystemCadWorkerRunner:
             source_path=job_dir / "input" / "model.py",
             stl_path=primary_output.stl_path if primary_output is not None else None,
             step_path=primary_output.step_path if primary_output is not None else None,
-            stdout_path=None,
-            stderr_path=None,
+            stdout_path=stdout_path if stdout_path is not None and stdout_path.exists() else None,
+            stderr_path=stderr_path if stderr_path is not None and stderr_path.exists() else None,
             metadata_path=primary_output.metadata_path if primary_output is not None else None,
             source_hash=source_hash,
             output_size_bytes=sum(output.output_size_bytes for output in successful_outputs),
@@ -159,6 +167,7 @@ class FilesystemCadWorkerRunner:
             else None,
             outputs=outputs,
             execution_manifest_path=job_dir / "result.json",
+            execution_diagnostics=diagnostics,
         )
 
     def _output_result_from_worker_payload(
@@ -213,3 +222,66 @@ class FilesystemCadWorkerRunner:
         except ValueError:
             return None
         return resolved_path
+
+    def _client_timeout_diagnostics(
+        self,
+        *,
+        job_dir: Path,
+        source_hash: str,
+    ) -> dict[str, Any]:
+        inner_job_dir = job_dir / "work" / job_dir.name
+        state_path = inner_job_dir / "diagnostic-state.json"
+        state = self._read_json(state_path)
+        if not isinstance(state, dict):
+            state = {}
+        per_output = state.get("per_output_results") if isinstance(state.get("per_output_results"), dict) else {}
+        completed_output_ids = [
+            str(output_id)
+            for output_id, result in per_output.items()
+            if isinstance(result, dict) and result.get("status") == "completed"
+        ]
+        incomplete_output_ids = [
+            str(output_id)
+            for output_id, result in per_output.items()
+            if isinstance(result, dict) and result.get("status") != "completed"
+        ]
+        diagnostics: dict[str, Any] = {
+            "timed_out": True,
+            "timeout_seconds": settings.cad_timeout_seconds,
+            "worker_result_timeout_seconds": self.result_timeout_seconds,
+            "source_hash": source_hash,
+            "active_phase": state.get("active_phase"),
+            "active_output_id": state.get("active_output_id"),
+            "active_function": state.get("active_function"),
+            "active_operation": state.get("active_operation"),
+            "active_export_format": state.get("active_export_format"),
+            "operation_started_at_monotonic": state.get("operation_started_at_monotonic"),
+            "last_completed_operation": state.get("last_completed_operation"),
+            "last_started_incomplete_operation": state.get("last_started_incomplete_operation"),
+            "completed_output_ids": completed_output_ids,
+            "incomplete_output_ids": incomplete_output_ids,
+            "per_output_results": per_output,
+            "partial_timing_record_path": self._relative_path(job_dir, state_path),
+            "partial_diagnostic_state_path": self._relative_path(job_dir, state_path),
+            "partial_stdout_path": self._relative_path(job_dir, inner_job_dir / "stdout.log"),
+            "partial_stderr_path": self._relative_path(job_dir, inner_job_dir / "stderr.log"),
+            "process_rss_kb": state.get("process_rss_kb"),
+        }
+        return {key: value for key, value in diagnostics.items() if value is not None}
+
+    def _read_json(self, path: Path) -> dict[str, Any] | None:
+        if not path.exists():
+            return None
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, dict) else None
+
+    def _relative_path(self, job_dir: Path, path: Path | None) -> str | None:
+        if path is None:
+            return None
+        try:
+            return str(path.resolve().relative_to(job_dir.resolve()))
+        except ValueError:
+            return None

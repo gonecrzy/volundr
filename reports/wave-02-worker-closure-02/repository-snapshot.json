@@ -1,0 +1,8 @@
+{
+  "branch": "wave-02-closure-01",
+  "head": "f1ea4ed",
+  "migration_head": "0036_benchmark_model_metadata (head)",
+  "production_routing_changed": false,
+  "schema_version": "volundr-wave-02-worker-closure-02-repository-snapshot-v1",
+  "status_short": "M backend/app/services/cad/cadquery_runner.py\n M backend/app/services/cad/worker_client.py\n M backend/app/services/cad/worker_execution.py\n M backend/tests/test_cad_worker.py\n?? backend/scripts/run_wave_02_worker_closure_02.py\n?? reports/wave-02-worker-closure-02/"
+}

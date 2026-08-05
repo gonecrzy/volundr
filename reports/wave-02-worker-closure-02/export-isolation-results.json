@@ -1,0 +1,35 @@
+{
+  "project_03": {
+    "cable_clamp_output": {
+      "classification": "all_formats_exported",
+      "error_message": null,
+      "export_timings": {
+        "cable_clamp_output": {
+          "brep_export_ms": 2.077,
+          "step_export_ms": 7.409,
+          "stl_export_ms": 5.375
+        }
+      },
+      "success": true
+    },
+    "enclosure_base_output": {
+      "classification": "all_formats_exported",
+      "error_message": null,
+      "export_timings": {
+        "enclosure_base_output": {
+          "brep_export_ms": 0.859,
+          "step_export_ms": 9.876,
+          "stl_export_ms": 2.766
+        }
+      },
+      "success": true
+    },
+    "enclosure_lid_output": {
+      "classification": "not_export_reached_invalid_shape",
+      "error_message": "output shape is invalid",
+      "export_timings": {},
+      "success": false
+    }
+  },
+  "schema_version": "volundr-wave-02-export-isolation-results-v1"
+}

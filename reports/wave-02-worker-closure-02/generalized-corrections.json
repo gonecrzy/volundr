@@ -1,0 +1,14 @@
+{
+  "corrections": [
+    "durable atomic worker diagnostic state",
+    "structured timeout evidence propagation",
+    "per-output failure preservation",
+    "invalid_shape/export_failed/not_found/completed output status distinction",
+    "bounded operation-specific shape counts",
+    "worker/client partial evidence path propagation"
+  ],
+  "production_routing_changed": false,
+  "project_specific_geometry_changed": false,
+  "provider_calls": 0,
+  "schema_version": "volundr-wave-02-generalized-corrections-v1"
+}

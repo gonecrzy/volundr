@@ -1,0 +1,592 @@
+{
+  "command_args": [
+    "python",
+    "_volundr_cadquery_runner.py",
+    "outputs",
+    "execution-manifest.json",
+    "parameter-values.json",
+    "requested-outputs.json"
+  ],
+  "diagnostics": {
+    "active_phase": "metadata_generation",
+    "completed_output_ids": [
+      "swept_cable_guide"
+    ],
+    "incomplete_output_ids": [],
+    "last_completed_operation": {
+      "after": null,
+      "before": null,
+      "elapsed_ms": 2.529,
+      "name": "translate"
+    },
+    "last_started_incomplete_operation": {
+      "before": null,
+      "name": "translate",
+      "started_at_monotonic": 812914.089166228
+    },
+    "partial_diagnostic_state_path": "diagnostic-state.json",
+    "partial_stderr_path": "stderr.log",
+    "partial_stdout_path": "stdout.log",
+    "partial_timing_record_path": "diagnostic-state.json",
+    "per_output_results": {
+      "swept_cable_guide": {
+        "compile_error": null,
+        "required": true,
+        "started_at_monotonic": 812914.028631984,
+        "status": "completed",
+        "timing": {
+          "export_ms": 436.046
+        },
+        "updated_at_monotonic": 812914.464834905
+      }
+    },
+    "process_rss_kb": 570576,
+    "source_hash": "ded9efb5e508828021276faafafade9891e7de49ea578b2ec9c166addaaba008",
+    "started_at_monotonic": 812910.523284599,
+    "subprocess_exit_status": 0,
+    "subprocess_pid": 1114058,
+    "timed_out": false,
+    "timeout_deadline_monotonic": 813000.523284599,
+    "timeout_seconds": 90
+  },
+  "error_message": null,
+  "execution_timing": {
+    "functions": [
+      {
+        "elapsed_ms": 15.098,
+        "name": "_ai_component_swept_cable_guide_body"
+      },
+      {
+        "elapsed_ms": 157.117,
+        "name": "_ai_feature_swept_channel_feature"
+      },
+      {
+        "elapsed_ms": 215.347,
+        "name": "apply_feature_swept_channel_feature"
+      },
+      {
+        "elapsed_ms": 227.127,
+        "name": "_ai_feature_mounting_tabs_feature"
+      },
+      {
+        "elapsed_ms": 338.767,
+        "name": "apply_feature_mounting_tabs_feature"
+      },
+      {
+        "elapsed_ms": 58.827,
+        "name": "_ai_feature_capsule_slot_feature"
+      },
+      {
+        "elapsed_ms": 170.375,
+        "name": "apply_feature_capsule_slot_feature"
+      },
+      {
+        "elapsed_ms": 745.162,
+        "name": "build_component_swept_cable_guide_body"
+      },
+      {
+        "elapsed_ms": 745.518,
+        "name": "build"
+      }
+    ],
+    "operations": [
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 11.037,
+        "name": "box"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 1.927,
+        "name": "translate"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.268,
+        "name": "spline"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.403,
+        "name": "circle"
+      },
+      {
+        "after": {
+          "edge_count": 3,
+          "face_count": 3,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 1,
+          "face_count": 0,
+          "solid_count": 0
+        },
+        "elapsed_ms": 9.401,
+        "name": "sweep"
+      },
+      {
+        "after": {
+          "edge_count": 24,
+          "face_count": 8,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 12,
+          "face_count": 6,
+          "solid_count": 1
+        },
+        "elapsed_ms": 138.597,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.172,
+        "name": "circle"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 8.865,
+        "name": "extrude"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 1.862,
+        "name": "translate"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.553,
+        "name": "circle"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.599,
+        "name": "extrude"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 1.811,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 30,
+          "face_count": 10,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 24,
+          "face_count": 8,
+          "solid_count": 1
+        },
+        "elapsed_ms": 68.162,
+        "name": "union"
+      },
+      {
+        "after": {
+          "edge_count": 33,
+          "face_count": 12,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 30,
+          "face_count": 10,
+          "solid_count": 1
+        },
+        "elapsed_ms": 19.704,
+        "name": "union"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.287,
+        "name": "circle"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.151,
+        "name": "extrude"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 1.681,
+        "name": "translate"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.145,
+        "name": "circle"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 3.527,
+        "name": "extrude"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 1.66,
+        "name": "translate"
+      },
+      {
+        "after": {
+          "edge_count": 39,
+          "face_count": 13,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 33,
+          "face_count": 12,
+          "solid_count": 1
+        },
+        "elapsed_ms": 69.274,
+        "name": "cut"
+      },
+      {
+        "after": {
+          "edge_count": 42,
+          "face_count": 14,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 39,
+          "face_count": 13,
+          "solid_count": 1
+        },
+        "elapsed_ms": 20.333,
+        "name": "cut"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.942,
+        "name": "slot2D"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 4.089,
+        "name": "extrude"
+      },
+      {
+        "after": {
+          "edge_count": 42,
+          "face_count": 14,
+          "solid_count": 1
+        },
+        "before": {
+          "edge_count": 42,
+          "face_count": 14,
+          "solid_count": 1
+        },
+        "elapsed_ms": 47.491,
+        "name": "cut"
+      },
+      {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 2.529,
+        "name": "translate"
+      }
+    ],
+    "outputs": {
+      "swept_cable_guide": {
+        "export_ms": 436.046
+      }
+    },
+    "total_ms": 3133.734
+  },
+  "exit_code": 0,
+  "export_timings": {
+    "swept_cable_guide": {
+      "brep_export_ms": 28.89,
+      "step_export_ms": 13.98,
+      "stl_export_ms": 259.922
+    }
+  },
+  "feature_trace": [
+    {
+      "elapsed_ms": 19.497,
+      "error": null,
+      "feature_id": "_ai_component_swept_cable_guide_body",
+      "input": null,
+      "input_shape_hash": null,
+      "operation_category": "additive",
+      "operation_names": [
+        "box",
+        "translate"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 70.0,
+          "xmin": 0.0,
+          "ymax": 40.0,
+          "ymin": 0.0,
+          "zmax": 4.0,
+          "zmin": 0.0
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "d8bf4bba05b65dcd6b98554b1d3e0f0dfe2fe5ffc617bf963b50f5928d758c19",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 11200.0
+      },
+      "output_shape_hash": "d8bf4bba05b65dcd6b98554b1d3e0f0dfe2fe5ffc617bf963b50f5928d758c19",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_component_swept_cable_guide_body"
+    },
+    {
+      "elapsed_ms": 215.153,
+      "error": null,
+      "feature_id": "swept_channel_feature",
+      "input": {
+        "bounds": {
+          "xmax": 70.0,
+          "xmin": 0.0,
+          "ymax": 40.0,
+          "ymin": 0.0,
+          "zmax": 4.0,
+          "zmin": 0.0
+        },
+        "edge_count": 12,
+        "face_count": 6,
+        "shape_hash": "d8bf4bba05b65dcd6b98554b1d3e0f0dfe2fe5ffc617bf963b50f5928d758c19",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 11200.0
+      },
+      "input_shape_hash": "d8bf4bba05b65dcd6b98554b1d3e0f0dfe2fe5ffc617bf963b50f5928d758c19",
+      "operation_category": "additive",
+      "operation_names": [
+        "spline",
+        "circle",
+        "sweep",
+        "union"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 79.815794,
+          "xmin": -0.0,
+          "ymax": 40.0,
+          "ymin": -17.409879,
+          "zmax": 20.688742,
+          "zmin": -10.0
+        },
+        "edge_count": 24,
+        "face_count": 8,
+        "shape_hash": "0921b913e729c5b0dd0f6412bf102a2efe6abb9e9d28687e09cb6c74af5be5e2",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 29366.520918
+      },
+      "output_shape_hash": "0921b913e729c5b0dd0f6412bf102a2efe6abb9e9d28687e09cb6c74af5be5e2",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_swept_channel_feature"
+    },
+    {
+      "elapsed_ms": 338.55,
+      "error": null,
+      "feature_id": "mounting_tabs_feature",
+      "input": {
+        "bounds": {
+          "xmax": 79.815794,
+          "xmin": -0.0,
+          "ymax": 40.0,
+          "ymin": -17.409879,
+          "zmax": 20.688742,
+          "zmin": -10.0
+        },
+        "edge_count": 24,
+        "face_count": 8,
+        "shape_hash": "0921b913e729c5b0dd0f6412bf102a2efe6abb9e9d28687e09cb6c74af5be5e2",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 29366.520918
+      },
+      "input_shape_hash": "0921b913e729c5b0dd0f6412bf102a2efe6abb9e9d28687e09cb6c74af5be5e2",
+      "operation_category": "subtractive",
+      "operation_names": [
+        "circle",
+        "extrude",
+        "translate",
+        "circle",
+        "extrude",
+        "translate",
+        "union",
+        "union",
+        "circle",
+        "extrude",
+        "translate",
+        "circle",
+        "extrude",
+        "translate",
+        "cut",
+        "cut"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 79.815794,
+          "xmin": -0.0,
+          "ymax": 40.0,
+          "ymin": -17.409879,
+          "zmax": 20.688742,
+          "zmin": -10.0
+        },
+        "edge_count": 42,
+        "face_count": 14,
+        "shape_hash": "a4a8ffa610e1d0d3e5750e5d7232f5dd1f62bdd2c4a494d4a2a3951e2586b518",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 29588.141323
+      },
+      "output_shape_hash": "a4a8ffa610e1d0d3e5750e5d7232f5dd1f62bdd2c4a494d4a2a3951e2586b518",
+      "shape_changed": true,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_mounting_tabs_feature"
+    },
+    {
+      "elapsed_ms": 170.236,
+      "error": null,
+      "feature_id": "capsule_slot_feature",
+      "input": {
+        "bounds": {
+          "xmax": 79.815794,
+          "xmin": -0.0,
+          "ymax": 40.0,
+          "ymin": -17.409879,
+          "zmax": 20.688742,
+          "zmin": -10.0
+        },
+        "edge_count": 42,
+        "face_count": 14,
+        "shape_hash": "a4a8ffa610e1d0d3e5750e5d7232f5dd1f62bdd2c4a494d4a2a3951e2586b518",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 29588.141323
+      },
+      "input_shape_hash": "a4a8ffa610e1d0d3e5750e5d7232f5dd1f62bdd2c4a494d4a2a3951e2586b518",
+      "operation_category": "no_effect",
+      "operation_names": [
+        "slot2D",
+        "extrude",
+        "cut"
+      ],
+      "output": {
+        "bounds": {
+          "xmax": 79.815794,
+          "xmin": -0.0,
+          "ymax": 40.0,
+          "ymin": -17.409879,
+          "zmax": 20.688742,
+          "zmin": -10.0
+        },
+        "edge_count": 42,
+        "face_count": 14,
+        "shape_hash": "a4a8ffa610e1d0d3e5750e5d7232f5dd1f62bdd2c4a494d4a2a3951e2586b518",
+        "solid_count": 1,
+        "valid": true,
+        "volume": 29588.141323
+      },
+      "output_shape_hash": "a4a8ffa610e1d0d3e5750e5d7232f5dd1f62bdd2c4a494d4a2a3951e2586b518",
+      "shape_changed": false,
+      "source_executed": true,
+      "source_function_id": "_ai_feature_capsule_slot_feature"
+    }
+  ],
+  "job_id": "gemini-integration-wave-02-project-02-wave-02-project-02-revision-001",
+  "label": "project-02-production",
+  "outputs": [
+    {
+      "brep_hash": "6bd1cb28bcfbd127fbeb53fd3af9bc1ca4ed6ec8831f3838983734839b40b0cf",
+      "compile_error": null,
+      "output_id": "swept_cable_guide",
+      "required": true,
+      "step_hash": "22a6dcedcd859a7f62ada4004b51472a71ab5356c36c59402247fe0c95fbaf7d",
+      "stl_hash": "470e988ab9b5a37f98c35d4b24ac6b40772019b92779c67802083bcd0ed6e8f3",
+      "stl_size_bytes": 459284,
+      "success": true,
+      "topology_metadata": {
+        "allow_disconnected_solids": false,
+        "bounding_box_mm": {
+          "size_x": 79.8157936577532,
+          "size_y": 57.40987931538065,
+          "size_z": 30.68874245019103,
+          "x_max": 79.8157935577532,
+          "x_min": -1.0000000375334881e-07,
+          "y_max": 40.0000001,
+          "y_min": -17.40987921538065,
+          "z_max": 30.688742350191003,
+          "z_min": -1.0000002524835707e-07
+        },
+        "coordinate_space": "print_space",
+        "detected_solid_count": 1,
+        "expected_solid_count": 1,
+        "model_space_bounds": {
+          "size_x": 79.8157936577532,
+          "size_y": 57.40987931538065,
+          "size_z": 30.688742450191477,
+          "x_max": 79.8157935577532,
+          "x_min": -1.0000000375334881e-07,
+          "y_max": 40.0000001,
+          "y_min": -17.40987921538065,
+          "z_max": 20.688742350191472,
+          "z_min": -10.000000100000005
+        },
+        "outcome": "valid",
+        "output_id": "swept_cable_guide",
+        "placement_policy": "cadquery-output-placement-v1",
+        "print_space_bounds": {
+          "size_x": 79.8157936577532,
+          "size_y": 57.40987931538065,
+          "size_z": 30.68874245019103,
+          "x_max": 79.8157935577532,
+          "x_min": -1.0000000375334881e-07,
+          "y_max": 40.0000001,
+          "y_min": -17.40987921538065,
+          "z_max": 30.688742350191003,
+          "z_min": -1.0000002524835707e-07
+        },
+        "print_transform": {
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "translation": [
+            0.0,
+            0.0,
+            10.0
+          ]
+        },
+        "shell_count": 1,
+        "valid": true,
+        "volume_mm3": 29588.141322916923
+      }
+    }
+  ],
+  "preserved_manifest_timeout_seconds": 60,
+  "project_job_path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/worker-jobs/gemini-integration-wave-02-project-02-wave-02-project-02-revision-001/job.json",
+  "provider_calls": 0,
+  "provider_success_eligible": false,
+  "source_hash": "ded9efb5e508828021276faafafade9891e7de49ea578b2ec9c166addaaba008",
+  "success": true,
+  "timed_out": false,
+  "timeout_seconds": 90
+}
