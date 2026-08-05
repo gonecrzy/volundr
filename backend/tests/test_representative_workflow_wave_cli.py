@@ -78,3 +78,42 @@ def test_offline_replay_does_not_reinitialize_repository_snapshot(tmp_path: Path
     monkeypatch.setattr(wave_cli, "initialize_wave", unexpected_initialization)
 
     assert wave_cli.main(["--manifest", str(manifest), "--root", str(root), "--replay"]) == 0
+
+
+def test_finalize_records_wave_decision_and_fresh_next_wave_recommendation(tmp_path: Path) -> None:
+    manifest_path = _manifest(tmp_path / "manifest.json")
+    root = tmp_path / "wave"
+    assert wave_cli.main(["--manifest", str(manifest_path), "--root", str(root), "--prepare"]) == 0
+    project_ids = [f"wave-test-project-{index:02d}" for index in range(1, 6)]
+    reports = root / "reports"
+    (reports / "wave-state.json").write_text(json.dumps({
+        "wave_id": "wave-test",
+        "manifest_hash": json.loads((reports / "wave-preregistration.json").read_text())["manifest_hash"],
+        "baseline": {
+            "completed_project_ids": project_ids,
+            "analyzed": True,
+            "issues_registered": True,
+            "clusters_complete": True,
+            "priority_complete": True,
+        },
+    }))
+    (reports / "project-outcomes.json").write_text(json.dumps([{"project_id": item} for item in project_ids]))
+    (reports / "issue-register.json").write_text(json.dumps([{
+        "issue_id": "wave-test-project-01-issue-01",
+        "project_id": "wave-test-project-01",
+        "recommended_fix_boundary": "plan_adapter",
+        "status": "open",
+    }]))
+    (reports / "differential-replays.json").write_text(json.dumps([{
+        "project_id": "wave-test-project-01",
+        "single_variable_changed": "plan_adapter",
+        "fix_confirmed": True,
+    }]))
+    (reports / "regression-replay.json").write_text(json.dumps([{"project_id": item, "provider_calls": 0, "worker_calls": 0} for item in project_ids]))
+
+    assert wave_cli.main(["--manifest", str(manifest_path), "--root", str(root), "--finalize"]) == 0
+    decision = json.loads((reports / "wave-decision.json").read_text())
+    recommendation = json.loads((reports / "next-wave-recommendation.json").read_text())
+    assert decision["decision"] == "wave_requires_generalized_narrow_fix"
+    assert len(recommendation["projects"]) == 5
+    assert json.loads((reports / "corrections-applied.json").read_text())[0]["boundary"] == "plan_adapter"

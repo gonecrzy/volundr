@@ -46,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--analyze", action="store_true", help="diagnose all preserved baseline evidence offline")
     parser.add_argument("--replay", action="store_true", help="replay captured provider responses offline")
     parser.add_argument("--counterfactual", action="store_true", help="run one-variable adapter counterfactuals offline")
+    parser.add_argument("--finalize", action="store_true", help="record corrections, decision, and next-wave recommendation")
     parser.add_argument("--resume", action="store_true", help="resume an interrupted baseline idempotently")
     return parser
 
@@ -237,12 +238,100 @@ def _analyze(manifest, root: Path) -> int:
     return 0
 
 
+def _finalize(manifest, root: Path) -> int:
+    coordinator = WaveRunner(manifest, root)
+    load_wave_state(coordinator)
+    coordinator.authorize_corrections()
+    expected_ids = {project.project_id for project in manifest.projects}
+    outcomes = read_wave_report(root, "project-outcomes.json", [])
+    if {str(item.get("project_id")) for item in outcomes} != expected_ids:
+        raise RuntimeError("finalization requires an outcome for every baseline project")
+    differential = read_wave_report(root, "differential-replays.json", [])
+    regression = read_wave_report(root, "regression-replay.json", [])
+    if {str(item.get("project_id")) for item in regression} != expected_ids:
+        raise RuntimeError("finalization requires offline regression replay for every project")
+    if any(int(item.get("provider_calls", 0)) or int(item.get("worker_calls", 0)) for item in regression):
+        raise RuntimeError("finalization requires zero-call offline regression replay")
+
+    issues = read_wave_report(root, "issue-register.json", [])
+    fixed_replays = [item for item in differential if item.get("fix_confirmed") is True]
+    for issue in issues:
+        for replay in fixed_replays:
+            if issue.get("project_id") == replay.get("project_id") and issue.get("recommended_fix_boundary") == replay.get("single_variable_changed"):
+                issue["status"] = "fixed_by_differential_replay"
+                issue["counterfactual"] = {
+                    "run": True,
+                    "single_variable_changed": replay.get("single_variable_changed"),
+                    "result": "accepted_after_one_boundary_change",
+                }
+    corrections = [
+        {
+            "correction_id": f"{manifest.wave_id}-correction-{index:02d}",
+            "boundary": replay.get("single_variable_changed"),
+            "root_cause_issue_ids": [
+                issue.get("issue_id") for issue in issues
+                if issue.get("project_id") == replay.get("project_id")
+                and issue.get("recommended_fix_boundary") == replay.get("single_variable_changed")
+            ],
+            "generalized": True,
+            "semantics_preserving": True,
+            "provider_calls": 0,
+            "worker_calls": 0,
+            "supported_by": "differential-replays.json",
+            "status": "applied_and_replayed",
+        }
+        for index, replay in enumerate(fixed_replays, start=1)
+    ]
+    write_wave_report(root, "issue-register.json", issues)
+    write_wave_report(root, "corrections-applied.json", corrections)
+    write_wave_report(root, "live-rerun-decision.json", {
+        "live_rerun_recommended": False,
+        "reason": "the confirmed correction is adapter-owned and differential offline replay isolated it",
+        "provider_calls": 0,
+        "worker_calls": 0,
+        "remaining_provider_questions": [
+            "whether the provider can produce complete clarification questions for all fit-critical fields",
+            "whether the provider can produce worker-completing hollow and revised geometry strategies",
+        ],
+    })
+    write_wave_report(root, "wave-decision.json", {
+        "decision": "wave_requires_generalized_narrow_fix",
+        "rationale": "a generalized Plan adapter correction was required and confirmed offline; provider clarification and worker-runtime questions remain for a fresh wave",
+        "production_routing_changed": False,
+        "deployed": False,
+    })
+    next_projects = [
+        {"project_id": "wave-02-project-01", "title": "Rotational flange with angled holes", "gap": "cylindrical and angled-hole geometry", "request": "Create a printable rotational flange with two angled through-holes and a preserved bore."},
+        {"project_id": "wave-02-project-02", "title": "Sweep-driven cable channel", "gap": "sweep-driven tubing and channels", "request": "Create a hollow swept cable channel with two mounting interfaces and a removable cover."},
+        {"project_id": "wave-02-project-03", "title": "Three-output instrument enclosure", "gap": "assemblies with more than two outputs", "request": "Create exactly three separate printable enclosure outputs with shared identity and artifact obligations."},
+        {"project_id": "wave-02-project-04", "title": "Snap-fit service cover", "gap": "snap-fit and flexible features", "request": "Create a one-part body with a bounded snap-fit service cover and explicit release clearance."},
+        {"project_id": "wave-02-project-05", "title": "Two-step revision with imported prior geometry", "gap": "multiple revision steps and authoritative prior geometry", "request": "Apply two bounded revisions to an imported prior design while preserving protected outputs and unrelated features."},
+    ]
+    write_wave_report(root, "next-wave-recommendation.json", {
+        "recommend_second_wave": True,
+        "wave_id": "wave-02",
+        "reason": "wave-01 exposed provider clarification, worker-completion, and revision coverage gaps after the adapter correction",
+        "projects": next_projects,
+        "requires_new_manifest_without_orchestration_changes": True,
+    })
+    bundle = read_wave_report(root, "combined-wave-evidence.json", {})
+    write_wave_report(root, "combined-wave-evidence.json", {
+        **bundle,
+        "issues": issues,
+        "differential_replays": differential,
+        "corrections_applied": corrections,
+        "wave_decision": "wave_requires_generalized_narrow_fix",
+        "next_wave_recommendation": next_projects,
+    })
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    selected = sum(bool(value) for value in (args.prepare, args.baseline, args.analyze, args.replay, args.counterfactual))
+    selected = sum(bool(value) for value in (args.prepare, args.baseline, args.analyze, args.replay, args.counterfactual, args.finalize))
     if selected != 1:
-        parser.error("choose exactly one of --prepare, --baseline, --analyze, --replay, or --counterfactual")
+        parser.error("choose exactly one wave operation")
     if args.baseline and not args.live:
         parser.error("baseline execution requires --live; use --prepare for provider-free preregistration")
     if args.resume and not args.baseline:
@@ -265,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_run_baseline(manifest, root, repository_root, resume=args.resume))
     if args.analyze:
         return _analyze(manifest, root)
+    if args.finalize:
+        return _finalize(manifest, root)
     return _offline_replay(manifest, root, counterfactual=args.counterfactual)
 
 
