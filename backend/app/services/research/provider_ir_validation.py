@@ -201,6 +201,7 @@ class ProviderStudyTask:
     body_initializer: str
     request: ModelGenerationRequest
     semantic_facts_hash: str
+    revision_authority: dict[str, Any] | None = None
 
     @property
     def t5_semantic_facts_hash(self) -> str:

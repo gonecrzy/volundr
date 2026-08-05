@@ -1,0 +1,131 @@
+{
+  "authority_id": "t5-revision-authority-v1",
+  "schema_version": "volundr-t5-revision-authority-v1",
+  "prior_output_id": "mounting_bracket",
+  "prior_source_reference": {
+    "source_id": "t5-prior-part-source-v1",
+    "source_path": "backend/app/services/research/fixtures/t5_revision_authority_v1.json",
+    "source_kind": "embedded_cadquery_source",
+    "source_sha256": "computed_from_prior_source"
+  },
+  "prior_geometry": {
+    "base_dimensions_mm": {
+      "length": 80,
+      "width": 50,
+      "height": 6
+    },
+    "upright_dimensions_mm": {
+      "length": 50,
+      "width": 45,
+      "thickness": 6
+    },
+    "plate_angle_degrees": 90,
+    "holes": [
+      {
+        "feature_id": "upright_hole_left",
+        "location_mm": [12, 13, 0],
+        "axis": [0, 1, 0],
+        "owning_face": "outer_negative_y_face",
+        "diameter_mm": 5,
+        "depth_mode": "through"
+      },
+      {
+        "feature_id": "upright_hole_right",
+        "location_mm": [34, 31, 0],
+        "axis": [0, 1, 0],
+        "owning_face": "outer_negative_y_face",
+        "diameter_mm": 5,
+        "depth_mode": "through"
+      },
+      {
+        "feature_id": "mounting_hole_front",
+        "location_mm": [15, 15, 0],
+        "axis": [0, 0, -1],
+        "owning_face": "top_z_face",
+        "diameter_mm": 6,
+        "depth_mode": "through"
+      },
+      {
+        "feature_id": "mounting_hole_rear",
+        "location_mm": [65, 35, 0],
+        "axis": [0, 0, -1],
+        "owning_face": "top_z_face",
+        "diameter_mm": 6,
+        "depth_mode": "through"
+      }
+    ]
+  },
+  "protected_parameters": [
+    {"id": "base_length_mm", "value": 80, "unit": "mm"},
+    {"id": "base_width_mm", "value": 50, "unit": "mm"},
+    {"id": "base_height_mm", "value": 6, "unit": "mm"},
+    {"id": "upright_length_mm", "value": 50, "unit": "mm"},
+    {"id": "upright_width_mm", "value": 45, "unit": "mm"},
+    {"id": "upright_thickness_mm", "value": 6, "unit": "mm"},
+    {"id": "plate_angle_degrees", "value": 90, "unit": "deg"},
+    {"id": "base_hole_diameter_mm", "value": 6, "unit": "mm"},
+    {"id": "base_hole_front_location_mm", "value": [15, 15], "unit": "mm"},
+    {"id": "base_hole_rear_location_mm", "value": [65, 35], "unit": "mm"},
+    {"id": "upright_hole_left_location_mm", "value": [12, 13], "unit": "mm"},
+    {"id": "upright_hole_right_location_mm", "value": [34, 31], "unit": "mm"},
+    {"id": "upright_hole_diameter_mm", "value": 5, "unit": "mm"},
+    {"id": "reinforcement_rib_count", "value": 1, "unit": "count"},
+    {"id": "output_id", "value": "mounting_bracket", "unit": "identity"}
+  ],
+  "protected_features": [
+    {
+      "feature_id": "mounting_hole_front",
+      "kind": "hole",
+      "location_mm": [15, 15, 0],
+      "axis": [0, 0, -1],
+      "owning_face": "top_z_face",
+      "diameter_mm": 6
+    },
+    {
+      "feature_id": "mounting_hole_rear",
+      "kind": "hole",
+      "location_mm": [65, 35, 0],
+      "axis": [0, 0, -1],
+      "owning_face": "top_z_face",
+      "diameter_mm": 6
+    },
+    {
+      "feature_id": "upright_plate",
+      "kind": "plate",
+      "dimensions_mm": {"length": 50, "width": 45, "thickness": 6},
+      "angle_degrees": 90
+    },
+    {
+      "feature_id": "upright_hole_left",
+      "kind": "hole",
+      "location_mm": [12, 13, 0],
+      "axis": [0, 1, 0],
+      "owning_face": "outer_negative_y_face",
+      "diameter_mm": 5
+    },
+    {
+      "feature_id": "upright_hole_right",
+      "kind": "hole",
+      "location_mm": [34, 31, 0],
+      "axis": [0, 1, 0],
+      "owning_face": "outer_negative_y_face",
+      "diameter_mm": 5
+    },
+    {
+      "feature_id": "rear_boss",
+      "kind": "boss",
+      "center_mm": [20, 20, 7],
+      "dimensions_mm": {"length": 10, "width": 8, "height": 2},
+      "owning_face": "top_z_face"
+    },
+    {
+      "feature_id": "reinforcement_rib",
+      "kind": "rib",
+      "count": 1,
+      "profile": "right_triangle",
+      "dimensions_mm": {"length": 10, "height": 10, "thickness": 5}
+    }
+  ],
+  "prior_source": "import cadquery as cq\n\ndef build_prior():\n    base = cq.Workplane(\"XY\").box(80, 50, 6, centered=(False, False, False))\n    upright = cq.Workplane(\"XZ\").box(50, 45, 6, centered=(False, False, False)).translate((0, 1, 6))\n    body = base.union(upright)\n    body = body.faces(\">Z\").workplane().pushPoints([(15, 15), (65, 35)]).hole(6)\n    body = body.faces(\"<Y\").workplane().pushPoints([(12, 13), (34, 31)]).hole(5)\n    boss = cq.Workplane(\"XY\").box(10, 8, 2, centered=(True, True, False)).translate((20, 20, 6))\n    rib = cq.Workplane(\"YZ\").polyline([(0, 0), (10, 0), (0, 10)]).close().extrude(5).translate((20, 0, 0))\n    return body.union(boss).union(rib)\n",
+  "prior_body_expression": "cq.Workplane(\"XY\").box(80, 50, 6, centered=(False, False, False)).union(cq.Workplane(\"XZ\").box(50, 45, 6, centered=(False, False, False)).translate((0, 1, 6))).faces(\">Z\").workplane().pushPoints([(15, 15), (65, 35)]).hole(6).faces(\"<Y\").workplane().pushPoints([(12, 13), (34, 31)]).hole(5).union(cq.Workplane(\"XY\").box(10, 8, 2, centered=(True, True, False)).translate((20, 20, 6))).union(cq.Workplane(\"YZ\").polyline([(0, 0), (10, 0), (0, 10)]).close().extrude(5).translate((20, 0, 0)))"
+}

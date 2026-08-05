@@ -18,6 +18,7 @@ class RenderedIntegrationPrompt:
 
 
 GEOMETRY_T5_PROMPT_VERSION = "T5-geometry-exact-slot-contract-v1"
+GEOMETRY_T5_PARAMETER_ACCESS_PROMPT_VERSION = "T5-geometry-exact-slot-contract-v2-parameter-map"
 
 
 _REQUIREMENTS_T2_APPENDIX = (
@@ -109,9 +110,36 @@ def render_geometry_prompt_v2(
     )
 
 
+def render_geometry_prompt_parameter_access_v1(
+    profile: GeminiFlashLiteContractV1,
+    request: Any,
+) -> RenderedIntegrationPrompt:
+    """Render the single candidate T5 revision for the params accessor only."""
+
+    base = render_geometry_prompt_v2(profile, request)
+    appendix = (
+        "\n\nPARAMETER ACCESS CLARIFICATION: T5-geometry-exact-slot-contract-v2-parameter-map\n"
+        "params is a mapping supplied to every slot.\n"
+        "For an authorized parameter ID, read its value only with the exact bracket form "
+        '`params["<authorized_parameter_id>"]`.\n'
+        "Attribute access such as `params.fact_0` is invalid and must not be emitted.\n"
+        "Do not access unauthorized parameter IDs, infer missing values, or change parameter names.\n"
+        "This clarification changes only parameter accessor syntax. Do not otherwise constrain geometry strategy."
+    )
+    prompt = base.prompt + appendix
+    return RenderedIntegrationPrompt(
+        stage="geometry",
+        prompt_version=GEOMETRY_T5_PARAMETER_ACCESS_PROMPT_VERSION,
+        prompt=prompt,
+        prompt_hash=hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+    )
+
+
 __all__ = [
     "GEOMETRY_T5_PROMPT_VERSION",
+    "GEOMETRY_T5_PARAMETER_ACCESS_PROMPT_VERSION",
     "RenderedIntegrationPrompt",
+    "render_geometry_prompt_parameter_access_v1",
     "render_geometry_prompt_v2",
     "render_integration_prompt",
 ]
