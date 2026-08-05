@@ -645,6 +645,15 @@ def corrected_provider_decision(repo_root: Path, settings: dict[str, Any], requi
     return decision
 
 
+def record_adapter_gate(repo_root: Path, provider: dict[str, Any]) -> dict[str, Any]:
+    reason = "adapter replay is authorized only after corrected provider qualification; the repair prompt gate and corrected H1 holdout gate are incomplete"
+    replay = {"schema_version": "gemini-provider-contract-correction-adapter-replay-v1", "run": False, "offline_only": True, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "model": MODEL, "provider_calls": 0, "worker_calls": 0, "decision": "adapter_replay_not_authorized", "reason": reason, "provider_decision": provider.get("decision"), "records": []}
+    decision = {"schema_version": "gemini-provider-contract-correction-adapter-decision-v1", "run": True, "offline_only": True, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "provider_calls": 0, "worker_calls": 0, "decision": "adapter_replay_not_authorized", "reason": reason, "provider_decision": provider.get("decision")}
+    _redacted_write(_correction_root(repo_root) / "corrected-adapter-replay-results.json", replay)
+    _redacted_write(_correction_root(repo_root) / "corrected-adapter-decision.json", decision)
+    return decision
+
+
 async def run_all(repo_root: Path) -> dict[str, Any]:
     """Run the authorized correction sequence, stopping at hard quota."""
     audit = methodology_audit(repo_root)
@@ -664,7 +673,8 @@ async def run_all(repo_root: Path) -> dict[str, Any]:
     if not selection.get("selected"):
         holdout = record_holdout_gate(repo_root, selection, "corrected H1 holdout requires an independently qualified repair prompt; the all-six content gate was not met")
         provider = corrected_provider_decision(repo_root, settings, requirements, repair, holdout, selection)
-        return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider, "stopped": "stage prompt selection incomplete"}
+        adapter = record_adapter_gate(repo_root, provider)
+        return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider, "adapter": adapter, "stopped": "stage prompt selection incomplete"}
     holdout = await corrected_holdout(repo_root, settings_profile, str(requirements["selected_prompt"]), str(repair["selected_prompt"]))
     provider = corrected_provider_decision(repo_root, settings, requirements, repair, holdout, selection)
     return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider}
