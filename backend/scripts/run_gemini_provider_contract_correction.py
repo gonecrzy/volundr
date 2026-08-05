@@ -558,12 +558,13 @@ async def repair_study(repo_root: Path, settings_profile: str) -> dict[str, Any]
 def stage_prompt_selection(repo_root: Path, requirements: dict[str, Any], repair: dict[str, Any]) -> dict[str, Any]:
     selected_requirements = requirements.get("selected_prompt")
     selected_repair = repair.get("selected_prompt")
+    settings_profile = requirements.get("settings_profile") or repair.get("settings_profile") or (_json(_correction_root(repo_root) / "settings-study-decision.json") or {}).get("decision")
     selection = {
         "schema_version": "gemini-provider-contract-correction-stage-prompt-selection-v1",
         "run": True,
         "provider_calls": 0,
         "worker_calls": 0,
-        "settings_profile": requirements.get("settings_profile") or repair.get("settings_profile"),
+        "settings_profile": settings_profile,
         "thinking_profile": "H1-provider-default",
         "stages": {
             "requirements": {"selected_prompt": selected_requirements, "allowed_profiles": ["T0-current", "T2-requirements-missing-fit-v1"], "decision_source": "requirements-study-decision.json"},
@@ -576,6 +577,14 @@ def stage_prompt_selection(repo_root: Path, requirements: dict[str, Any], repair
     }
     _redacted_write(_correction_root(repo_root) / "stage-prompt-selection.json", selection)
     return selection
+
+
+def record_holdout_gate(repo_root: Path, selection: dict[str, Any], reason: str) -> dict[str, Any]:
+    gate = {"schema_version": "gemini-provider-contract-correction-holdout-gate-v1", "run": False, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "model": MODEL, "provider_calls": 0, "worker_calls": 0, "selected_thinking_profile": "H1-provider-default", "selection": selection, "reason": reason, "no_provider_call_attempted": True}
+    _redacted_write(_correction_root(repo_root) / "corrected-holdout-results.json", gate)
+    _redacted_write(_correction_root(repo_root) / "corrected-holdout-decision.json", {**gate, "decision": "corrected_holdout_not_authorized_by_prompt_gate"})
+    _redacted_write(_correction_root(repo_root) / "thinking-audit.json", {"schema_version": "gemini-provider-contract-correction-thinking-audit-v1", "run": True, "offline_only": True, "provider_calls": 0, "worker_calls": 0, "selected_profile": "H1-provider-default", "holdout_authorized": False, "reason": reason})
+    return gate
 
 
 def _corrected_holdout_packets() -> list[dict[str, Any]]:
@@ -653,7 +662,9 @@ async def run_all(repo_root: Path) -> dict[str, Any]:
     _redacted_write(_correction_root(repo_root) / "repair-study-decision.json", repair)
     selection = stage_prompt_selection(repo_root, requirements, repair)
     if not selection.get("selected"):
-        return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "stopped": "stage prompt selection incomplete"}
+        holdout = record_holdout_gate(repo_root, selection, "corrected H1 holdout requires an independently qualified repair prompt; the all-six content gate was not met")
+        provider = corrected_provider_decision(repo_root, settings, requirements, repair, holdout, selection)
+        return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider, "stopped": "stage prompt selection incomplete"}
     holdout = await corrected_holdout(repo_root, settings_profile, str(requirements["selected_prompt"]), str(repair["selected_prompt"]))
     provider = corrected_provider_decision(repo_root, settings, requirements, repair, holdout, selection)
     return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider}
