@@ -151,7 +151,16 @@ class SecondaryGeminiClient:
         self.sleep = sleep
         self.attempt_recorder = attempt_recorder
 
-    async def generate(self, *, stage: str, prompt: str, operation_id: str) -> ProviderCallResult:
+    async def generate(
+        self,
+        *,
+        stage: str,
+        prompt: str,
+        operation_id: str,
+        max_attempts: int = 2,
+    ) -> ProviderCallResult:
+        if max_attempts not in {1, 2}:
+            raise ValueError("max_attempts must be one or two")
         credential = load_secondary_credential()
         configuration = self.profile.request_configuration(stage)
         payload = {
@@ -167,7 +176,7 @@ class SecondaryGeminiClient:
             timeout=self.timeout_seconds,
             transport=self.transport,
         ) as client:
-            for attempt_index in range(2):
+            for attempt_index in range(max_attempts):
                 started = await self.limiter.acquire(operation_id=operation_id)
                 attempt_id = f"{operation_id}:attempt-{attempt_index + 1}"
                 try:
