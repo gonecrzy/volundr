@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import replace
 
 import pytest
 
@@ -136,3 +137,31 @@ async def test_runner_stops_at_unsafe_adapter_blocker_without_skipping_forensic_
     assert not ports.calls
     assert store.boundaries()
     assert any(item["boundary"] == "requirements_adapter" for item in store.boundaries())
+
+
+@pytest.mark.asyncio
+async def test_runner_supports_representative_wave_provenance_and_revision_delta(tmp_path: Path, ports) -> None:
+    profile = GeminiFlashLiteContractV1.from_repository(Path(__file__).resolve().parents[2])
+    project = replace(
+        build_integration_corpus()[0],
+        project_id="wave-01-project-01",
+        revision_of="wave-01-project-00",
+        requirement_delta=({"path": "hole_diameter_mm", "old": 5, "new": 6},),
+    )
+    store = IntegrationEvidenceStore(tmp_path, study_id="representative-workflow-wave-01")
+    runner = IntegrationWorkflowRunner(
+        profile=profile,
+        study_id="representative-workflow-wave-01",
+        wave_id="wave-01",
+        provenance_marker="volundr-representative-workflow-wave",
+        evidence_store=store,
+        ports=ports,
+    )
+
+    outcome = await runner.run_project(project)
+
+    assert outcome.candidate_decision == "candidate"
+    assert all(item["provenance"]["wave_id"] == "wave-01" for item in store.boundaries())
+    plan_prompt = next(prompt for stage, prompt, _ in ports.provider.calls if stage == "plan")
+    assert "requirement delta" in plan_prompt.lower()
+    assert "hole_diameter_mm" in plan_prompt

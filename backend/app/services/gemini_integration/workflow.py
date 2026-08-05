@@ -17,12 +17,16 @@ from app.services.gemini_integration.adapters import (
 from app.services.gemini_integration.capture import IntegrationEvidenceStore
 from app.services.gemini_integration.corpus import IntegrationProject
 from app.services.gemini_integration.profile import GeminiFlashLiteContractV1, require_integration_profile
-from app.services.gemini_integration.prompts import render_integration_prompt
+from app.services.gemini_integration.prompts import render_geometry_prompt_v2, render_integration_prompt
 from app.services.gemini_integration.transport import ProviderCallResult
 
 
 ProviderCall = Callable[..., Awaitable[ProviderCallResult]]
 BoundaryCall = Callable[..., Awaitable[dict[str, Any]]]
+
+
+def _json_safe(value: Any) -> Any:
+    return json.loads(json.dumps(value, default=str))
 
 
 @dataclass
@@ -64,12 +68,21 @@ class IntegrationWorkflowOutcome:
 
 
 class IntegrationWorkflowRunner:
-    def __init__(self, *, profile: GeminiFlashLiteContractV1, study_id: str, evidence_store: IntegrationEvidenceStore, ports: IntegrationBoundaryPorts) -> None:
+    def __init__(
+        self,
+        *,
+        profile: GeminiFlashLiteContractV1,
+        study_id: str,
+        evidence_store: IntegrationEvidenceStore,
+        ports: IntegrationBoundaryPorts,
+        wave_id: str | None = None,
+        provenance_marker: str = "volundr-provider-contract-integration",
+    ) -> None:
         require_integration_profile(profile.profile_id)
-        if study_id != "gemini-provider-contract-integration-01":
-            raise ValueError("integration runner requires the preregistered integration study ID")
         self.profile = profile
         self.study_id = study_id
+        self.wave_id = wave_id
+        self.provenance_marker = provenance_marker
         self.evidence_store = evidence_store
         self.ports = ports
         self.requirements_adapter = GeminiRequirementsContractAdapter()
@@ -78,9 +91,12 @@ class IntegrationWorkflowRunner:
 
     @property
     def provenance(self) -> dict[str, Any]:
-        return {"study_id": self.study_id, "provenance_marker": "volundr-provider-contract-integration"}
+        provenance = {"study_id": self.study_id, "provenance_marker": self.provenance_marker}
+        if self.wave_id is not None:
+            provenance["wave_id"] = self.wave_id
+        return provenance
 
-    async def run_project(self, project: IntegrationProject) -> IntegrationWorkflowOutcome:
+    async def run_project(self, project: IntegrationProject, *, previous_design_plan: dict[str, Any] | None = None) -> IntegrationWorkflowOutcome:
         revision_id = f"{project.project_id}:revision-001"
         boundary_ids: list[str] = []
         attempt_ids: list[str] = []
@@ -90,7 +106,11 @@ class IntegrationWorkflowRunner:
 
         async def provider(stage: str, request: Any, operation_suffix: str) -> ProviderCallResult | None:
             nonlocal earliest, furthest
-            rendered = render_integration_prompt(self.profile, stage, request)
+            rendered = (
+                render_geometry_prompt_v2(self.profile, request)
+                if stage == "geometry"
+                else render_integration_prompt(self.profile, stage, request)
+            )
             operation_id = f"{self.study_id}:{project.project_id}:{revision_id}:{operation_suffix}"
             result = await self.ports.provider_call(stage=stage, prompt=rendered.prompt, operation_id=operation_id)
             for attempt in result.attempts:
@@ -151,7 +171,9 @@ class IntegrationWorkflowRunner:
             original_intent=project.user_request,
             user_instruction=project.user_request,
             design_specification=specification,
+            previous_design_plan=previous_design_plan,
             active_requirements=list(specification.get("requirements", [])),
+            requirement_delta=list(project.requirement_delta),
         )
         plan_result = await provider("plan", plan_request, "plan")
         if plan_result is None:
@@ -169,7 +191,7 @@ class IntegrationWorkflowRunner:
         geometry_brief = build_geometry_slot_brief(
             planning_depth="detailed_plan",
             active_requirements=list(specification.get("requirements", [])),
-            requirement_delta=[],
+            requirement_delta=list(project.requirement_delta),
             preserved_requirements=list(specification.get("requirements", [])),
             proposals=list(plan.get("proposals", []) or plan.get("proposed_decisions", []) or []),
             design_plan=plan,
@@ -184,6 +206,7 @@ class IntegrationWorkflowRunner:
             geometry_slot_manifest=manifest,
             geometry_slot_brief=geometry_brief,
             geometry_contract="volundr-geometry-slots-v1",
+            requirement_delta=list(project.requirement_delta),
         )
         geometry_result = await provider("geometry", geometry_request, "geometry")
         if geometry_result is None:
@@ -211,10 +234,25 @@ class IntegrationWorkflowRunner:
             return self._outcome(project, revision_id, "static_validator", "static_validation", None, boundary_ids, attempt_ids, worker_jobs)
         worker_result = await self.ports.worker_submit(source=source, output_manifest=source_result.get("output_manifest", []), provenance=self._provenance(project.project_id, revision_id))
         worker_jobs.append(worker_result)
+        if hasattr(self.evidence_store, "record_worker_job"):
+            worker_record = _json_safe({key: value for key, value in worker_result.items() if key != "compile_result"})
+            self.evidence_store.record_worker_job(worker_record)
         boundary_ids.append(self._capture_boundary(project, revision_id, "worker", {"source": source}, worker_result))
         if not worker_result.get("success", False):
             return self._outcome(project, revision_id, "worker_runtime", "worker", None, boundary_ids, attempt_ids, worker_jobs)
         artifacts = await self.ports.collect_artifacts(worker_result=worker_result, provenance=self._provenance(project.project_id, revision_id))
+        if hasattr(self.evidence_store, "record_artifact"):
+            for output in artifacts.get("outputs", []) or []:
+                if isinstance(output, dict):
+                    artifact_record = _json_safe({
+                        **output,
+                        "artifact_id": f"{worker_result.get('job_id', 'job')}:{output.get('output_id', 'output')}",
+                        "job_id": worker_result.get("job_id"),
+                        "project_id": project.project_id,
+                        "revision_id": revision_id,
+                        "provenance": self._provenance(project.project_id, revision_id),
+                    })
+                    self.evidence_store.record_artifact(artifact_record)
         boundary_ids.append(self._capture_boundary(project, revision_id, "artifacts", worker_result, artifacts))
         topology = await self.ports.inspect_topology(artifacts=artifacts, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "topology", artifacts, topology))
