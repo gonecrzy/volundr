@@ -446,12 +446,22 @@ def _correction_prompt(packet: dict[str, Any], prompt_profile: str) -> str:
             bounded += """
 
 T3 executable replacement contract:
-- Return exactly one repaired_items entry for every invalid slot and no completed-slot replacement.
+- Return exactly one complete replacement item for each invalid item and no completed-slot replacement.
 - Each entry must contain slot_id, result_symbol, and a nonempty ordered statements array.
-- The final assignment in each replacement must target the required result symbol exactly: body.
+- The result_symbol field and the final assignment target in statements must both equal the supplied required result symbol exactly: body.
+- When replacing an undefined prior-shape name, use the supplied authoritative prior-shape input in every read and write position.
 - The statements must be executable CadQuery-style Python, define every local name before use, and use the declared operation family.
-- Correct the declared defect itself; do not repeat an invalid result assignment, invalid keyword/API, or missing required operation.
+- Correct the declared defect itself. Do not preserve a statement containing the declared defect or repeat an invalid result assignment, invalid keyword/API, or missing required operation.
 - Preserve every protected dimension and preserve_item_ids exactly. Do not add unauthorized changes.
+- Do not return a summary instead of executable replacement content. Do not return completed protected items inside repaired_items.
+
+Before returning, verify:
+1. every repaired item is present;
+2. every repaired item has nonempty statements;
+3. every statement uses only defined names or supplied authoritative names;
+4. the final assignment target equals the required result symbol;
+5. the declared defect no longer appears;
+6. protected dimensions and completed items are unchanged.
 """
         return base + "\n\nActual source-bearing response to repair:\n" + source + bounded
     return base

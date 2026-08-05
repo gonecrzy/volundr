@@ -21,7 +21,7 @@ from pathlib import Path
 import httpx
 
 import scripts.run_gemini_provider_contract_correction as correction
-from scripts.run_gemini_provider_contract_correction import _settings_selection, stage_prompt_selection
+from scripts.run_gemini_provider_contract_correction import _correction_prompt, _settings_selection, repair_packets_v2, stage_prompt_selection
 
 
 def _record(profile: str, result: str, *, status_code: int = 200) -> dict:
@@ -283,3 +283,19 @@ def test_correction_call_retries_429_once_without_third_attempt(monkeypatch) -> 
 def test_h1_repair_generation_config_omits_thinking_config() -> None:
     config = correction._generation_config("S0-current-explicit", "H1-provider-default", "repair", "T3-repair-executable-replacement-v1")
     assert "thinkingConfig" not in config
+
+
+def test_t3_prompt_contains_the_complete_executable_replacement_contract() -> None:
+    packet = next(item for item in repair_packets_v2() if item["packet_id"] == "repair-m1-result-assignment")
+    prompt = _correction_prompt(packet, "T3-repair-executable-replacement-v1")
+    for required in (
+        "exactly one complete replacement item",
+        "result_symbol field and the final assignment target",
+        "authoritative prior-shape input",
+        "Do not preserve a statement containing the declared defect",
+        "Do not return completed protected items inside repaired_items",
+        "Do not return a summary instead of executable replacement content",
+        "1. every repaired item is present",
+        "6. protected dimensions and completed items are unchanged",
+    ):
+        assert required in prompt
