@@ -434,6 +434,7 @@ async def run_matrix(repo_root: Path, *, phase: str, packets: list[dict[str, Any
                 for repetition in range(1, repetitions + 1):
                     logical_id = f"{logical_prefix or phase}:{settings_profile}:{thinking_profile}:{prompt_profile}:{packet['packet_id']}:rep-{repetition}"
                     if logical_id in existing and existing[logical_id].get("success"):
+                        existing[logical_id] = _decorate_record(packet, existing[logical_id])
                         continue
                     prompt = (prompt_override or _phase_prompt)(packet, prompt_profile)
                     config = (config_override or (lambda item, _profile: _generation_config(settings_profile, thinking_profile, item["stage"], prompt_profile)))(packet, prompt_profile)

@@ -69,7 +69,7 @@ def evaluate_requirements_correction(packet: dict[str, Any], response: Any) -> d
     clarification = bool(response.get("clarification_required"))
     questions = json_like_text(response.get("clarification_questions", []))
     if missing_terms:
-        missing_questions = [term for term in missing_terms if term not in questions]
+        missing_questions = [term for term in missing_terms if not _term_tokens_present(term, questions)]
         if missing_questions:
             return {"result": "fail_missing_critical_meaning", "reasons": [f"missing clarification question: {term}" for term in missing_questions]}
         if not clarification or bool(response.get("generation_ready")):
@@ -84,6 +84,12 @@ def evaluate_requirements_correction(packet: dict[str, Any], response: Any) -> d
     if claimed_forbidden:
         return {"result": "fail_invented_critical_meaning", "reasons": [f"unsafe claim: {term}" for term in claimed_forbidden]}
     return {"result": "pass"}
+
+
+def _term_tokens_present(term: str, text: str) -> bool:
+    """Accept ordinary word-order variation such as ``diameter of the cable``."""
+    tokens = [token for token in term.replace("_", " ").split() if token not in {"with", "the", "of", "and"}]
+    return bool(tokens) and all(token in text for token in tokens)
 
 
 def json_like_text(value: Any) -> str:

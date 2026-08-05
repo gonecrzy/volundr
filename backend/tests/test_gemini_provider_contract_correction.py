@@ -112,6 +112,13 @@ def test_correct_missing_fit_clarification_is_not_a_profile_failure() -> None:
     assert clarification_outcome(facts=packet["frozen_facts"], response=response, answer_submitted=False, resumed=False) == "clarification_not_answered"
 
 
+def test_missing_fit_terms_allow_normal_word_order_in_questions() -> None:
+    packet = {"frozen_facts": {"cable_diameter": "missing"}, "intrinsic_expectations": {"must_request": ["cable diameter"]}}
+    response = {"clarification_required": True, "generation_ready": False, "clarification_questions": [{"question": "What is the diameter of the cable?"}]}
+
+    assert evaluate_requirements_correction(packet, response)["result"] == "pass"
+
+
 def test_worker_runtime_exception_implies_reach_but_not_cad_success() -> None:
     result = worker_reach_semantics({
         "source_contract_passed": True,
