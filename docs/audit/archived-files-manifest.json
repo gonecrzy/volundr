@@ -1,0 +1,5 @@
+{
+  "archived_files": [],
+  "reason": "No move is justified without a migration manifest and hash verification.",
+  "schema_version": "volundr-repository-audit-v1"
+}

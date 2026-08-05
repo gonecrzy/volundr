@@ -1,0 +1,22 @@
+{
+  "broken_links": [],
+  "current_authoritative_documents": [
+    "docs/CURRENT_TRAJECTORY.md",
+    "docs/INTEGRATION_TEST_LOOP.md",
+    "docs/PROVIDER_CONTRACT.md",
+    "docs/STUDY_INDEX.md"
+  ],
+  "historical_exemption": "Only explicitly classified historical paths receive exemptions; no global term ignore is used.",
+  "passed": true,
+  "rules": [
+    "obsolete-thinking-profile",
+    "obsolete-geometry-prompt",
+    "obsolete-seed",
+    "obsolete-repair-gate",
+    "obsolete-output-identity",
+    "obsolete-provider-profile",
+    "multiple-current-provider-decisions"
+  ],
+  "schema_version": "volundr-repository-audit-v1",
+  "stale_reference_findings": []
+}

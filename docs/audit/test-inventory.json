@@ -1,0 +1,1653 @@
+{
+  "inventory": "tests-and-fixtures",
+  "items": [
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/debug_batch/candidate_classification_failure.json",
+      "reason": "deterministic fixture",
+      "sha256": "7d7b4b46ea35b8c79681f3691de425cea2f3bb9e1bb97642c86457b2f592bb60"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/debug_batch/invalid_json_design_spec.json",
+      "reason": "deterministic fixture",
+      "sha256": "7839f1f867deeb7300f42f4163a5b8781922ffc1c1b8228fc1333403fa10c1e0"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/debug_batch/provenance_failure.json",
+      "reason": "deterministic fixture",
+      "sha256": "9dce2219b12cc0355502fcb5b644f235d632ce23dfaf0fa3b28f103f1ae58351"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/debug_batch/source_contract_failure.json",
+      "reason": "deterministic fixture",
+      "sha256": "047460ea4ad730f8a119221cbd62f72a118f4fc2089a5063133bebefad1e672f"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/debug_batch/unchanged_repair_response.json",
+      "reason": "deterministic fixture",
+      "sha256": "ec62c8d4945fdd1f1aca88d1bc55e2a2516dbd9ab922a2d5f0d691bcabbaff32"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/diagnostic_inputs/desktop_organizer.json",
+      "reason": "deterministic fixture",
+      "sha256": "2450c69152b1f2d254f8229407cc45d764a2daf7befc152d8f40b185582602af"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/diagnostic_inputs/five_tray_wall_carrier.json",
+      "reason": "deterministic fixture",
+      "sha256": "9f4e45232caac97e98cd2d2cb562e32e09c18862be0a9d065620412f2f68a22c"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/diagnostic_inputs/manifest.json",
+      "reason": "deterministic fixture",
+      "sha256": "e9d583e9aeab36fa98b94f9bbe8f6f0e48bac900f5742b1ab59527bc687b4044"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/diagnostic_inputs/screw_lid_container.json",
+      "reason": "deterministic fixture",
+      "sha256": "d68a4c63d0fbde93cf7f21f41366d00004c102e8e21857f6300301d7f1d64a01"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/feature_verification/desktop_organizer_frozen.json",
+      "reason": "deterministic fixture",
+      "sha256": "75d3ef3658cc77f2a30a6ff7df68b062f544c05fbcfd0ec7382ee981f38c6385"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/feature_verification/portable_holder_frozen.json",
+      "reason": "deterministic fixture",
+      "sha256": "a97eeee77bb9a87af4d924f555a9ac19962735f341621cd878dedbf1f39261d0"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/functional/bottle_holder_regression.json",
+      "reason": "deterministic fixture",
+      "sha256": "173f18f9649cf94ffcf371a8cf20931568d3c50bcb864d0062d79a9083a99ac2"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/generation_benchmarks/core.json",
+      "reason": "deterministic fixture",
+      "sha256": "c106ef8603d7e4af87b32237866b96cb152f178ca49c775c03b1c9fa103ce3b9"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/generation_benchmarks/full.json",
+      "reason": "deterministic fixture",
+      "sha256": "3a971dd0321f1c7a61a643e6f721424d8f70ee8c3c240dc992ece1f37eac22ff"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/current_organizer_undeclared_corner_radius.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "6be5e364b3340457bb8b930b7bffba62a2a44b5ebf41c48f56aa6e2358d894fb"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/current_screw_lid_unsupported_helper.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "a010e091beaa0bc788cb874bf12e07d3ac5b6f8103e572976f193bbfec024cc4"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_imports.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "bae4c5c12b800994696709363822321605cfb137a2e022f7b17f3d12ef5621da"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_unsupported_arguments.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "2e32f7002e7fa1c72cf95fc563b53c0c122c0df8db6a9cb4247f84f5362633c0"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_valid.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "07dff15daf6bbc37d5dfc772b9be8b8db568a4ec00044053ebdb5aa8b6721c46"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_wrong_count.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "7179c7d9051f4d3d4e4fbd7af88dbc3f408b2808ba6ae3a25ee62f50c1861e84"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/geometry_slots/wall_carrier_worker_repair.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "d920385dcea849af37e812f8e15659496bf1ca13675eb38a840b458853664204"
+    },
+    {
+      "classification": "retain_regression",
+      "historical_contract_terms": [],
+      "kind": "fixture",
+      "markers": [],
+      "path": "backend/tests/fixtures/provider_convergence/provider_response_replays.json",
+      "reason": "named provider or geometry fixture",
+      "sha256": "f2b97d0a753a789ead69c4a6f1d832417baa4511efae23593a7c542f05de17ab"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_ai_provider_selection.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "37f0b1b5b0d2f4fa015b32f9f2b2aeaf241dcf75fc598669515958b4bda35caf"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_blocked_candidate_fixture.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "df682520eee32e8cd62122817f8334bfd40b9ae36fec54e11606893a23f58d0d"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cad_first_build_volume_policy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "5420ef2c1e78764654416d064e4bf8e0faa6c8cf2cf7aa82dfdc0e8f8aa75c83"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cad_worker.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "08dc2d7b51a54417aaffc2d00b80f1f40371f876fe2836461ce14e164f369eda"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_api_reliability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "cafd301dcb11616618951537f4cdccb95a7f83d29bf04ae031f8004b6a866b0d"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_contract.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "298a481f3ab8916d55e0a97b01e15f19fd26f0cdd247f1c12a30bdce6373a7b2"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_execution_timing.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "5c2e775365fcc81478c7cc1fe78bfc27b964800ea2271d86a765988ab62f8b91"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_geometry_bodies.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b06c1ae05878e6ef57fda7925275f2dcc97d019b4911003d4d7c7d3097bb7bcd"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_parameter_effects.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a19c7bcc9fd0b407fd7ec6091a2c1ed82fc3f6d2bcc8af1234f99314ae528c82"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_source_authority.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "e3fbc674b0a60dc3aea3d2804b31b503d07fed5dda966edb09e642aa2b87a576"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_source_scaffold.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f73f92f5c4bdb151c583761399d2a7ad6d6691a89b0b798862674853465f47b0"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_candidate_revisions.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "441cf07ec55d453e2ea3d60a254892bad5ea18dec846ee86cf36467e32650601"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_chat_workflow.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8786549ac0b1bfaaa730be82ce40654d384f803bd55caafd79edb17d4c717b44"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_compact_detailed_interoperability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "542679cdf2b1ab22196288033f487a58ba43a3e979a8812c5ac1d51a2d473d58"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_config.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b46524248ff4301d2b79d65fe7a8e3c050f23171fc5e0914346a1ebe61b6c770"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_constraint_modes.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "28fb76618c7df33035f673f19768b3e4c40adc9c686bb2da47bff7f58599c060"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_contract_complexity_experiment.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "9106f1d8ffaf95b40521283794f8aa5d447dacbe3bd5d1b3736eb8348b38fe72"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_api.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "84d8b291da8d990fb7e5e813d50f360f543dfc11f961767e053ffd0f0bff19b6"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_capability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "653d7c5af9cfb79b828252f089cf8b7ebfb7017914cfec4284dd6ba341159da7"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_comparison.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "e191c163bb7b865e66049697e527c9b016aec3effcac880b5e9a615c0bcbbbe9"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_correction_round1_red.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "769e88cf4e88005587abe7f61e9cc530c94634372272fc249b32bb5f3f51446a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_evidence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "587946013c7e8b27b11a1198b9f12af9778a5d5f4a35f438db6124057877baa5"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_frozen_replays.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a32970490b46b0efd1a9deceb1f78a71700eb14241e3e5ae1a5d5e9220b3ec30"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_lifecycle.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b3eb789f5bcb3d9b0e28f1c29559904157ebdb1991724cef2b7d29cc91c5428e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_lifecycle_states.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "9cbd576d438cd90105ef3fb65d4981c6ef7c4c72c3d87e775575b1baeb1bb0c3"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_outcomes.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a3c84a68c758f9c9fc7553d7e6cea6d1a871c5cf8a15815d9e60324580c72b56"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_persistence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "cef5c5aa03a5710c2e0ff4f70372cfcc93853e4648004f620e4771edb38c4edc"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_debug_batch_reports.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8b6817a3dc0b30e1ae03a4cc0ee30b398491e93bdba064b23859f1abcfab406e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_design_artifact_consistency.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f351263266faee5e39351622a728a8333f5df082394ffd6d03784989e00e679b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_design_plans.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "5473e5cff3408a61701af16923971465e12b5dc2b40041098b3152ff82fceb5c"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_design_specifications.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "2585689faf63af89b9fee90cc8d40ef1b001e9b5af27d50a24f779a387da091a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_diagnostic_inputs.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8f1e247d71959eb54fe6db96b735423846147d22e9ce2a441080b7aeaa215adc"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [
+        "H0",
+        "T0-current",
+        "seed 1701"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_documentation_audit.py",
+      "reason": "audit tooling regression",
+      "sha256": "f4caee0f651a4543cdb95a5d0c920545ce77e299fd5066583807bf065a771885"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_e2e_fixture_server.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "17c94fda71e56a45b74ed21a2af43fd35d6aaf1b98454493a9fddaf6045c4752"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_environment_configuration.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "1378e8d5150daf460af7f77bfc90c3c0aed9b755c2f9bdbbcb99842c966ac276"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_export_packaging.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "9e35408a2ebbbc6624ce2657a48dfc1cb8028294025d7d44e138bb607419e1fa"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_failure_taxonomy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "4509f25b7c294ecf0100b83c096e0336be920921edde0bffb71f40bcd03057c7"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_feature_evidence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "332f4fb1f5199d1bb1c2a2767ccb1d312460ae4b070df8429e8cb0aa2c437628"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_feature_measurements.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a6421aee5514e8e8511203369450c92846bacc1fcc4da0ab32e84fb22b97a513"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_feature_repair.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "691d6ae3152e5f8276ab4b68364166a37811cf5e3c72b7386e0235228bb925fd"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_feature_trace.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "1684aab1185f94cddace50ac37d5cc1a08f115cc5169c513f449b65918c2f890"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_feature_verification_regressions.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "86d1669483db8f71a716572d935a3307bfd359f272e8a4d7b99f4ab7eb3a7486"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_functional_design.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "722af0e454f23f5408e4917713ebc58810512ed34043a85b89a100a6003a5f44"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_api_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "296d5f0357c3ebd86d5799dd531e005afc2c3452edf9234c5564d7743efdf91a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_buildability_reanalysis.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "0efe05cb646ddd3e877dc5465448dae89a848bed59fc8df5d8c4a3fad4d53a84"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_cli_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f69ae2b27be440e4688364eb0d92cf830e2055d90f7efb270de5c93df97d3b4a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_api.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "752cb7cecd80226ae0de5ea71dde934a045630ed0a200879d28c127a7e61acaf"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_comparison.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8777fc68dcd45948be5e3671deae4b11720d43221f6e759300d38064af3577ca"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_corpus.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "4ea26c46123f8521f3905ec76668364c57896b435e977bec83b5df10dca3a778"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_persistence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "72fab071552467a9c309ac8bb4b6ffc4fe14950ffa64630f3b82a326ebb3e3dd"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "0a17d74b779fab062a415db6752af33818fd01b44209087466c36242d78625a6"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_reporting.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "2cec9e5d8254145c3eacf269b08bf1467bb6b8a3d2474d9b0f60d49bcf3f36d9"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_consistency_runner.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "c83740f662e4d905036abdda43c594bcb9d1364bcb1036f51c8b07fa8b23707b"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_flash_lite_analyzer.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "b8239e6efb0f07b31db0db06a0fc0d1b74f9f1855645a8e909373aa69279a3c2"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_flash_lite_fixtures.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "dcb0e5160a816243c2bc78fef8e139e5a4ac164de61190291231257ac2e3eede"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_flash_lite_replay.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "017785b11789af2cb0bb7d9d38a4d28f8144902e71208b46845697efc002ffb4"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_flash_lite_reporting.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "4547ddd1f85f94f37158e515937afc71d2c5c76af28e91408ec3b6d9c920e47f"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_flash_lite_study_corpus.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "8a2a270ed54acfa527011cc37ceabe5a830c70c4ee4761f4ea5cdf4a26d31004"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_flash_lite_study_runner.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "d0d0a20b187033b9545fe41d57e407bdcd27a6af2f7c6651bc3d17f7faaee5aa"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_geometry_prompt_narrow_fix.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "aecf2f67d4db41369c5f84d511232f64d5e11f6417a98c5d2271ff898596050a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_adapters.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "e40222f3280f9dc2c5c7453c631cb99734ca62737e9b3aa8f05469ef0828ef74"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_capture.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "284ba17be72f51c0ef3afb62c14ae0f95bee9fe8127c3ec8e9fb467d7958d0fb"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_cli.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "c44ba606c4d670e23d81d60a1ba532a6289639a0283ebf01e0f9dbb500d88162"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_corpus.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "ea26a9efacd697a1381c467769e645225223425f83993f04209158ff682e5868"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_forensics.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "b52ced0accba255a7a395dae82a14926352abb7591b0393fe6a6d37e043f592f"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_narrow_fix.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "40649f19ad40702b1ea84449fa528aa80cd8f01ceac0df2a7f8156a21b84d58e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_profile.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "32a33b17b0fdc315de857b9803e5260fad322c074b47439b1e1e12029737255e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_prompts.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "e51d5ce9b8cae425706acc3793a4a3ce28cefe4d516fcde105a0eee4a68a92bb"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_real_ports.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "3a016729285ce49a54ac28cea3d87bd48ce10101cd31bfaff7f8c74e6183c5e6"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_reports.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "2633cdcf97517c0bf606de2099da465c83092fbd2f647719a130b8db98e23f88"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_targeted_validation.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "dded61ff15c9327e2bec5fea0e06b5c3aaa3dabe895e25083bde88699c818848"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_transport.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "9db4e639289eecc56336b9b8d0cec855cfc9ebfea63c9820d3cb6da7365b43c4"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_integration_workflow.py",
+      "reason": "current integration boundary or replay behavior",
+      "sha256": "9757a8c68022ee5e5767881333f1b228de2cce8ef75049116faf1acb527d8e6f"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_interaction_capture.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8566ebb2e21818c93d72927a7300a68c7d09390df8a5dbe0442b7ffbd6bcbad8"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [
+        "warning"
+      ],
+      "path": "backend/tests/test_gemini_model_policy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "776e25d6f546f939468645b1fe128541594eec4b59263c9645b68e3d3b434e72"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_phase2_audit.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "e45df4a904bee4ca42bb9f05b402fa2c3ccced4e71f7349348707972629a6c55"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_profile_ablation.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "81ab98e9982c00ded5b931b56ed59aafb44f44563bdee8fe805a65b4256b213b"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [
+        "H0-current-stage-specific",
+        "S1-profile-b",
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_provider_contract_correction.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "b22950a83e84c800df5a4e02dcbec9c200a7c89c33e8a4caba4de53f1a9ebbef"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [
+        "H0-current-stage-specific",
+        "H0-current-stage-specific:T0-current:selection-requirements-fit:rep-1",
+        "H0-current-stage-specific:T0-current:selection-requirements-specified:rep-1",
+        "S1-profile-b",
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_provider_contract_foundation.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "3f0427e8f56a84318e84d7850a2fdd5edc5d906a1165795b195c64925fe30446"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_gemini_system_boundary_methods.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "sha256": "f8fc770894a98786b752f5798428b57011804c29846ffb644b5812152624bc4d"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_generation_benchmarks.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "06b7a167111be35549cdb3ca50cb3a1d5b88d28a484abf9138aaadd1aa04b3ab"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometric_invariants.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "c60b1a3ec7710e72eb36478242ac6c6b3bc6c3f0f67cc4d8d4a35ad6b5e4dcc2"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometry_body_symbols.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "634b6231c18cb7ffb1660965b373f3bac3dbccdf62759d0e1dd0e74a70505a76"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometry_execution_context.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8afe6bf05813c20892f17fe0097cce73790d3253499e05a7eff413c3d12ed35c"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometry_slot_canonicalizer.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a3b933d2db9205d02b898d5915af28c863bff2f99a62b47d978ecb92604f5734"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometry_slot_fixtures.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b15d8241f5cdf9e8b4fdf2868ab300cf00977d7902f5b8facb567fbc968662c4"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometry_slots.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "02c6d55f64f3f756283ac06d50b1131519a79abe95abed48d4099364bfd944be"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_geometry_snapshots.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "ab22f61dd96b8f836ef27e8f110c37338cf50fd254e2bc8275a1070622c13932"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_health.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "5cda3f399f61233a4eb2ce4d1eef960a5903dff97d6c5eda09ab2b4fa8f1b978"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_live_generation_benchmark_cli.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "4b569efd0e68c5dadeae601153bf3f2e03757c124ad2c1dd4816f3a3dc36a49f"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_live_geometry_model_comparison.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "c547ed1c42ddec4a508077d2c1568818a7a7e1b79ec8236cf94ccfd8df795d97"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_models.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "6e64df10f2d80fdbd516533418b8c2cbec988734b94075c352bb083e0263256e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_multi_output_generation.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "5b34de72b8214f8b59ebb9f7d0c9d53b243834b73b9f177bbeac4a7a9f753e54"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_ollama_calibration.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "e43297bb01b1bf144d2b59c3ef60db49e6ca12fbbc94031cc214ec28f7277e3d"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_ollama_consistency_corpus.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "3edf2f85140eb7b366310197e548dab7eb73d1a3ac728b7647a2cbaec145d847"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [
+        "skip"
+      ],
+      "path": "backend/tests/test_ollama_holdout_anatomy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "e166cd5af407911cb4f3df7eceaf9b52bf65c1dc25c74b27ca1cede8e8ba6b2b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_ollama_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "1ea013f8cccdd1c44ab0e6e200635fc8161e0af87585b6fc8f8ec3b011750790"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_ollama_readiness.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "e09090817841bdf9b9e7a1d70a4a1422a9ea2b7c8d8b5fdb197ed8b538be2fd3"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_parameter_configuration.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "3c6b2c39390399ffc9a8350edfe3c5ab307072feb5bdb25be9bd51fa35475dd0"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_parametric_patterns.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "cbb62c320aecdf4203c84c701da454fd7293ec62c11a967116ecc9f8b863ee74"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_pattern_coordinate_space.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "4616e06d1c94628d90a8c4d67e08103cee21cc2f057f3da122672cc18f9f153c"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_plan_provenance.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "492eb04b264f0d3b59c2fa1a536db1531a93a5cb76399117e419638d52c9ebcb"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_planning_depth.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "1330745754d21a66583e737b6d35a478c6876667e93751ba024acb9658701b97"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_planning_prompts.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "602e8c96d73db5f64dd93ab07346fc0502362b48c8f7d747c702007b35e15eeb"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_printability_inspector.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "2669990f547fcf2ef22071979c61e7cd496b82d758b3db1765cd469fd3782eed"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_project_api.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "35b70f72c7de7a5d76d3239f5dd3ea25b3715e4380c270f17789fd06554badb3"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_project_persistence_contract.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "c97497a1481f27eda6c526a23bbc18ba166f5ac2df59718080ae797df30f21a3"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_prompt_context_pack.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "54d7a3eebfe9047b16f231e5d00872f74dc9750c5a86ba8ee38dd3679d939b0b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_prompt_snapshots.py",
+      "reason": "current production prompt behavior",
+      "sha256": "9b5965fe9815711f87378ba8ce823288bf885e5473ff0cf0a476f04cbb5a41b9"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_provider_convergence_fixtures.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b1b8b1a29f9e02e6314dd5295d63c7d5124f50e1011e359cc017ba061708d1cf"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_provider_interoperability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "d071d49e4dc6e953cb85ace4d6445507a602cdcc377602300870eff8c29dfd4b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_provider_response_convergence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "256974a1e50ed6cbcd130783c0d9518dc8f0d0855c0a610fc6c3b9d5fb7f4271"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_requirement_compliance.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "d4fd35975864366c4f72d30b5bc92f1361520916ebee48450b4248cad4bc58c0"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_requirement_driven_contract.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "465d472a76b9e28f53c462879480b6fa175d6143558c3a408226ae553495a20d"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_requirement_ledger_persistence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f32392d4fb45193952ebe0dac667da04572c3d763e15e7e9a89a135e3e1fba7a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_requirement_semantics_alignment.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "d95a60b9e4eb0d1c24c6ce188417984421e434a36cbedc5e497a7b73b89363db"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_requirement_trace.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "03a265d6c4dddb3d0cbcfb3630951966084d45e08cce92fb9b7acd583caa281a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_source_extraction.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "294e695f6cc1c54e78f2d137e17b961ed5a1b06c6c63380829c3d5f861fe8566"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_structured_revision_planning.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "0c59af4a693ccdafed8a1508e25f831bff93ed13c80fe52977d65378a1a03e91"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_volundr_cad_runtime.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "22d83651f055a50385a76e03b9ac636f49f9a06c44100a33a3604bad7a1368f9"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_workflow_observability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "14d32d0a4c51a0ae2f90523e2535c4876fb414bc1fb05cb791c924c1f7f1a213"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/candidate-workflow.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "ee9a58a08ce8d2aac917734000a436db0e60b68e8648a0cdc3adbf5abeaa39b5"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/chat-first-start-over.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "ce5438d7c1faa83207bc92c40fcbbe05b4cad704e54ab5356d5e1606285e715e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/configure-organizer.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "85f7746388d299c1fbe30372be84cc2c01018743512a4cf514508f44c0b9ca0a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/debug-batch.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "2b9eb86312d32cafe5c26e0febd6f7b6b0446ca6d9e78cdc3ef1fca57d53d22a"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/enclosure-revision-negative.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "c140b4b78625b119b47bfb4f222434308a04294422a783c35099030facecfeea"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/enclosure-revision.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b7614e4e4f533dd6b7652565ef478b80b73da6e738405324264709b11e81e319"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/geometry-slots.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "3018727e41afcdf0eb3ba6016e7906cdab85fbd4cf124fc3b7bc7f5339be9f77"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/bottle-holder.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a11e98b026d90d5bc9b10abefca9707f03226c480abefec13a27151c23ad5f20"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/explicit-part.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "56cbb35474600cd1aacbaff169900b6f2bda3e404ff7d3bf05ca98910c09dd97"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/intent-first.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a8463c61bfa28c9828a2869597214ddceee3cd7c1ac9d03fa78d680b569c9651"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/mixed-cad-batches.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "27abffffb3cb557c7500d314b528e54b93a1c1fc61d78a06b928081060cabd32"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/mixed-cad-convergence.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "db805dcf88b7b2478991343ce4e245e8e3d9b4389402ecae12b767f69d2428c1"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/mixed-cad-correction.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "4c31d600108db2d9bf2c0096db80bd9fbf229d1f9b037baf1075f50e212a4feb"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/multi-view-snapshot.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "443a7b09d88bfa40c2bd20d0c75c7f01437ae8b621f3c463d70f9cffa2eed0c8"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/live/planning-depth.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "ebbec93b80d3048e60af92055fca1e8b2e7f8e6d23d71f0112035ae8496d52c8"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/provider-response-convergence.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "72c32403546a7b9f1cba9d6666725e68fbfdf0bf7aafd9d08af185e530651d7d"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/recoverable-blocked-workflow.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "b2d1359cf9b63aed7d92713cb0736935357babe6460cb9ea8c9bc40aa01677e9"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/requirement-driven-revisions.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "02251416eb2c11dd2827617cda1db1850607feaa63152f14368e829df48d27a8"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/snapshot-evidence.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "050d0162ce641196565fd54f2963bcf9af42e2ace11b779fb6aefda2d2ea2954"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/e2e/workflow-gate.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "6f345669908cde0a20936a9df1fc6f79f6a23b62fc374c8cc98d6a2dfe056e5c"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/scripts/live-harness.test.mjs",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "07f6f7c6f288cd36b10b9c6f2e666271efa3ca8d0983f7f55e06b02c7910b2c3"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/candidateView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "7600cfcbd8b35e4b32b8ffd78a09f2f99e899fc13f4d3cb1d629022384904a54"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/chatWorkflow.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8ec7c75977263fff714c2f022b0f6c61554ffab02ad21eb0500827df87a01b6b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/chatWorkspace.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a00d42a48999d08cf5c493a52f28f3ec7c4bac60dc1283d22922965919fec2fc"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/configurationView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f8c420704d6670134e0c7a924cded5b01fe981269ca38db1c6837112216d50b5"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/debugBatch.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "42c221e67de24b2601af51f3f5f3e96c8f72a06f40a98be751e6d9be88c5c77b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/debugBatchView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "143e215d7a1e38363f104713d158c8e82234b2e6dcb3dd0eff8c759ae8c736dd"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/designPlanView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "dfe2fd0934d8778ab164e3787357772d7020007bccaf630e1f6f7467c2779387"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/designSpecificationView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "fc45256e5c04856c6437b835bb84ab78cc0c6776b20a70f1d8c82b6648c2734c"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/projectPersistence.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "46cda5a9a3bda2a821367772f242bb41c524298785d4eb3d49fc780d0f057f9e"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/providerResponsePresentation.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "0c7940c0e5ce9b70d7f3538aa3fe873e6601f6f7a89542a537785e8bd151441b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/revisionPlanView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a8c0742798c6f542a78d02b01dbc8b773cde534bbde59db9abf35af37a49eb74"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/snapshotView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "15684945fc87fda9ce7e21869313f13962cf215dafd6f3e488f9d19c467bbcef"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/terminology.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "3d9a94ad2644ac76cf05ebad2745012905b916e2c993f605c281b63ba38df5e6"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/workflowPresentation.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "8a670ef46d94c366979878224262b9e93c472e026fb56d1391a3dc345b78a90b"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "frontend/src/workflowTelemetry.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "1729c671f4ff9b8489326b8054f2562ec2cb188a166c8d2dd93eefde5826f5f1"
+    }
+  ],
+  "schema_version": "volundr-repository-audit-v1",
+  "summary": {
+    "by_classification": {
+      "historical_integrity_only": 10,
+      "retain_current": 161,
+      "retain_regression": 8
+    },
+    "item_count": 179,
+    "marker_counts": {
+      "skip": 1,
+      "warning": 1
+    }
+  }
+}

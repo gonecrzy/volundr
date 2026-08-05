@@ -1,0 +1,1438 @@
+{
+  "decisions": [
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/debug_batch/candidate_classification_failure.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/debug_batch/candidate_classification_failure.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/debug_batch/invalid_json_design_spec.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/debug_batch/invalid_json_design_spec.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/debug_batch/provenance_failure.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/debug_batch/provenance_failure.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/debug_batch/source_contract_failure.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/debug_batch/source_contract_failure.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/debug_batch/unchanged_repair_response.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/debug_batch/unchanged_repair_response.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/diagnostic_inputs/desktop_organizer.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/diagnostic_inputs/desktop_organizer.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/diagnostic_inputs/five_tray_wall_carrier.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/diagnostic_inputs/five_tray_wall_carrier.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/diagnostic_inputs/manifest.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/diagnostic_inputs/manifest.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/diagnostic_inputs/screw_lid_container.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/diagnostic_inputs/screw_lid_container.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/feature_verification/desktop_organizer_frozen.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/feature_verification/desktop_organizer_frozen.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/feature_verification/portable_holder_frozen.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/feature_verification/portable_holder_frozen.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/functional/bottle_holder_regression.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/functional/bottle_holder_regression.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/generation_benchmarks/core.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/generation_benchmarks/core.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/generation_benchmarks/full.json",
+      "reason": "deterministic fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/generation_benchmarks/full.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/current_organizer_undeclared_corner_radius.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/current_organizer_undeclared_corner_radius.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/current_screw_lid_unsupported_helper.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/current_screw_lid_unsupported_helper.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_imports.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/simplified_organizer_imports.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_unsupported_arguments.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/simplified_organizer_unsupported_arguments.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_valid.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/simplified_organizer_valid.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/simplified_organizer_wrong_count.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/simplified_organizer_wrong_count.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/geometry_slots/wall_carrier_worker_repair.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/geometry_slots/wall_carrier_worker_repair.json"
+    },
+    {
+      "classification": "retain_regression",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/fixtures/provider_convergence/provider_response_replays.json",
+      "reason": "named provider or geometry fixture",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/fixtures/provider_convergence/provider_response_replays.json"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_ai_provider_selection.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_ai_provider_selection.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_blocked_candidate_fixture.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_blocked_candidate_fixture.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cad_first_build_volume_policy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cad_first_build_volume_policy.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cad_worker.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cad_worker.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_api_reliability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_api_reliability.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_contract.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_contract.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_execution_timing.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_execution_timing.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_geometry_bodies.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_geometry_bodies.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_parameter_effects.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_parameter_effects.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_source_authority.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_source_authority.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_source_scaffold.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_source_scaffold.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_candidate_revisions.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_candidate_revisions.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_chat_workflow.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_chat_workflow.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_compact_detailed_interoperability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_compact_detailed_interoperability.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_config.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_config.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_constraint_modes.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_constraint_modes.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_contract_complexity_experiment.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_contract_complexity_experiment.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_api.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_api.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_capability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_capability.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_comparison.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_comparison.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_correction_round1_red.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_correction_round1_red.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_evidence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_evidence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_frozen_replays.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_frozen_replays.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_lifecycle.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_lifecycle.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_lifecycle_states.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_lifecycle_states.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_outcomes.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_outcomes.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_persistence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_persistence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_debug_batch_reports.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_debug_batch_reports.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_design_artifact_consistency.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_design_artifact_consistency.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_design_plans.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_design_plans.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_design_specifications.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_design_specifications.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_diagnostic_inputs.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_diagnostic_inputs.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_documentation_audit.py",
+      "reason": "audit tooling regression",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_documentation_audit.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_e2e_fixture_server.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_e2e_fixture_server.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_environment_configuration.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_environment_configuration.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_export_packaging.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_export_packaging.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_failure_taxonomy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_failure_taxonomy.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_feature_evidence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_feature_evidence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_feature_measurements.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_feature_measurements.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_feature_repair.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_feature_repair.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_feature_trace.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_feature_trace.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_feature_verification_regressions.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_feature_verification_regressions.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_functional_design.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_functional_design.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_api_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_api_provider.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_buildability_reanalysis.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_buildability_reanalysis.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_cli_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_cli_provider.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_api.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_api.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_comparison.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_comparison.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_corpus.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_corpus.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_persistence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_persistence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_provider.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_reporting.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_reporting.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_consistency_runner.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_consistency_runner.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_flash_lite_analyzer.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_flash_lite_analyzer.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_flash_lite_fixtures.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_flash_lite_fixtures.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_flash_lite_replay.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_flash_lite_replay.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_flash_lite_reporting.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_flash_lite_reporting.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_flash_lite_study_corpus.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_flash_lite_study_corpus.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_flash_lite_study_runner.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_flash_lite_study_runner.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_geometry_prompt_narrow_fix.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_geometry_prompt_narrow_fix.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_adapters.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_adapters.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_capture.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_capture.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_cli.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_cli.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_corpus.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_corpus.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_forensics.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_forensics.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_narrow_fix.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_narrow_fix.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_profile.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_profile.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_prompts.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_prompts.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_real_ports.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_real_ports.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_reports.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_reports.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_targeted_validation.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_targeted_validation.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_transport.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_transport.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_integration_workflow.py",
+      "reason": "current integration boundary or replay behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_integration_workflow.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_interaction_capture.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_interaction_capture.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_model_policy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_model_policy.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_phase2_audit.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_phase2_audit.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_profile_ablation.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_profile_ablation.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_provider_contract_correction.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_provider_contract_correction.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_provider_contract_foundation.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_provider_contract_foundation.py"
+    },
+    {
+      "classification": "historical_integrity_only",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_gemini_system_boundary_methods.py",
+      "reason": "preserves an immutable study protocol or historical result",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_gemini_system_boundary_methods.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_generation_benchmarks.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_generation_benchmarks.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometric_invariants.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometric_invariants.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometry_body_symbols.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometry_body_symbols.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometry_execution_context.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometry_execution_context.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometry_slot_canonicalizer.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometry_slot_canonicalizer.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometry_slot_fixtures.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometry_slot_fixtures.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometry_slots.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometry_slots.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_geometry_snapshots.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_geometry_snapshots.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_health.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_health.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_live_generation_benchmark_cli.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_live_generation_benchmark_cli.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_live_geometry_model_comparison.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_live_geometry_model_comparison.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_models.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_models.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_multi_output_generation.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_multi_output_generation.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_ollama_calibration.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_ollama_calibration.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_ollama_consistency_corpus.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_ollama_consistency_corpus.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_ollama_holdout_anatomy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_ollama_holdout_anatomy.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_ollama_provider.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_ollama_provider.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_ollama_readiness.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_ollama_readiness.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_parameter_configuration.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_parameter_configuration.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_parametric_patterns.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_parametric_patterns.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_pattern_coordinate_space.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_pattern_coordinate_space.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_plan_provenance.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_plan_provenance.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_planning_depth.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_planning_depth.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_planning_prompts.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_planning_prompts.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_printability_inspector.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_printability_inspector.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_project_api.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_project_api.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_project_persistence_contract.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_project_persistence_contract.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_prompt_context_pack.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_prompt_context_pack.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_prompt_snapshots.py",
+      "reason": "current production prompt behavior",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_prompt_snapshots.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_provider_convergence_fixtures.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_provider_convergence_fixtures.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_provider_interoperability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_provider_interoperability.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_provider_response_convergence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_provider_response_convergence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_requirement_compliance.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_requirement_compliance.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_requirement_driven_contract.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_requirement_driven_contract.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_requirement_ledger_persistence.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_requirement_ledger_persistence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_requirement_semantics_alignment.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_requirement_semantics_alignment.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_requirement_trace.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_requirement_trace.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_source_extraction.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_source_extraction.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_structured_revision_planning.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_structured_revision_planning.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_volundr_cad_runtime.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_volundr_cad_runtime.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_workflow_observability.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_workflow_observability.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/candidate-workflow.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/candidate-workflow.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/chat-first-start-over.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/chat-first-start-over.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/configure-organizer.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/configure-organizer.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/debug-batch.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/debug-batch.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/enclosure-revision-negative.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/enclosure-revision-negative.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/enclosure-revision.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/enclosure-revision.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/geometry-slots.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/geometry-slots.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/bottle-holder.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/bottle-holder.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/explicit-part.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/explicit-part.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/intent-first.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/intent-first.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/mixed-cad-batches.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/mixed-cad-batches.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/mixed-cad-convergence.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/mixed-cad-convergence.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/mixed-cad-correction.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/mixed-cad-correction.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/multi-view-snapshot.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/multi-view-snapshot.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/live/planning-depth.live.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/live/planning-depth.live.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/provider-response-convergence.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/provider-response-convergence.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/recoverable-blocked-workflow.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/recoverable-blocked-workflow.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/requirement-driven-revisions.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/requirement-driven-revisions.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/snapshot-evidence.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/snapshot-evidence.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/e2e/workflow-gate.spec.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/e2e/workflow-gate.spec.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/scripts/live-harness.test.mjs",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/scripts/live-harness.test.mjs"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/candidateView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/candidateView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/chatWorkflow.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/chatWorkflow.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/chatWorkspace.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/chatWorkspace.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/configurationView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/configurationView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/debugBatch.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/debugBatch.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/debugBatchView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/debugBatchView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/designPlanView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/designPlanView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/designSpecificationView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/designSpecificationView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/projectPersistence.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/projectPersistence.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/providerResponsePresentation.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/providerResponsePresentation.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/revisionPlanView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/revisionPlanView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/snapshotView.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/snapshotView.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/terminology.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/terminology.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/workflowPresentation.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/workflowPresentation.test.ts"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "frontend/src/workflowTelemetry.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "frontend/src/workflowTelemetry.test.ts"
+    }
+  ],
+  "schema_version": "volundr-repository-audit-v1",
+  "unresolved_review_items": []
+}

@@ -1,0 +1,3203 @@
+{
+  "embedded_documentation_sources": [
+    {
+      "line": 1118,
+      "path": "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
+      "text": "\"\"\"Explicit integration-only runner for the frozen T5 geometry study.\"\"\""
+    },
+    {
+      "line": 44,
+      "path": "backend/scripts/run_gemini_geometry_prompt_narrow_fix.py",
+      "text": "parser.error(f\"geometry narrow-fix runner requires the preserved study ID {STUDY_ID!r}\")"
+    },
+    {
+      "line": 1380,
+      "path": "backend/scripts/run_gemini_provider_contract_correction.py",
+      "text": "_redacted_write(_correction_root(repo_root) / \"final-adapter-replay-results.json\", {\"run\": False, \"offline_only\": True, \"provider_calls\": 0, \"worker_calls\": 0, \"reason\": \"provider contract did not qualify\"})"
+    },
+    {
+      "line": 1002,
+      "path": "backend/scripts/run_gemini_provider_contract_foundation.py",
+      "text": "_gated_skip(reports / \"adapter-replay-results.json\", \"provider contracts were not frozen\")"
+    },
+    {
+      "line": 1003,
+      "path": "backend/scripts/run_gemini_provider_contract_foundation.py",
+      "text": "return _gated_skip(reports / \"adapter-decision.json\", \"provider contracts were not frozen\")"
+    },
+    {
+      "line": 76,
+      "path": "backend/scripts/run_gemini_provider_contract_integration.py",
+      "text": "parser.error(f\"integration runner requires the preregistered study ID {STUDY_ID!r}\")"
+    },
+    {
+      "line": 41,
+      "path": "backend/scripts/run_gemini_provider_contract_targeted_validation.py",
+      "text": "parser.error(f\"targeted validation requires the preserved study ID {STUDY_ID!r}\")"
+    },
+    {
+      "line": 174,
+      "path": "backend/scripts/write_contract_complexity_reports.py",
+      "text": "\"direction\": \"simplify provider contract\","
+    },
+    {
+      "line": 252,
+      "path": "backend/scripts/write_contract_complexity_reports.py",
+      "text": "The existing compact Plan, GeometryExecutionContext, provider contract"
+    },
+    {
+      "line": 365,
+      "path": "backend/scripts/write_contract_complexity_reports.py",
+      "text": "schema, provider contract manifest, prompt context pack, provenance records,"
+    }
+  ],
+  "inventory": "repository-documentation",
+  "items": [
+    {
+      "bytes": 3778,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 85,
+      "path": "CODEX_KICKOFF_PROMPT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "f14db6baf64a9cd21e33943846472838b2a92ba4b47976f650637331f6655cd5",
+      "title": "Codex Kickoff Prompt \u2014 Volundr"
+    },
+    {
+      "bytes": 15475,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 365,
+      "path": "README.md",
+      "referenced_by": [
+        "backend/tests/test_multi_output_generation.py",
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/EXPORTS.md",
+        "docs/MULTI_OUTPUT_GENERATION.md",
+        "docs/PARAMETER_CONFIGURATION.md",
+        "docs/WORKFLOW_OBSERVABILITY.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [
+        "docs/CURRENT_TRAJECTORY.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_STUDY.md",
+        "docs/INTEGRATION_TEST_LOOP.md",
+        "docs/PROVIDER_CONTRACT.md",
+        "docs/STUDY_INDEX.md"
+      ],
+      "sha256": "100e2b73c71fb04d65b8237675d7e0120d75111766324702bec3d52bfcad2763",
+      "title": "Volundr"
+    },
+    {
+      "bytes": 4809,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 91,
+      "path": "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
+      ],
+      "references": [],
+      "sha256": "4ae7de1caca2c0b28d11affe0ea00373dd4fca575b2c7172a4adef70a3f4eb82",
+      "title": "AI CAD Direction Alignment"
+    },
+    {
+      "bytes": 1244,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 28,
+      "path": "docs/AI_VISUAL_REVIEW_PLAN.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/PRODUCT_DIRECTION.md"
+      ],
+      "references": [],
+      "sha256": "d1ee84c0a3e2f7d23f1fe3fa763c9f08b654302f33dd523b4aaec4316268c10d",
+      "title": "AI Visual Review Plan"
+    },
+    {
+      "bytes": 20152,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 512,
+      "path": "docs/ARCHITECTURE.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md"
+      ],
+      "references": [],
+      "sha256": "e1f518a43f9ae3d998362e902b14d5a6a7fbbc918e5dec85b013ae84b05ffe75",
+      "title": "Volundr Architecture"
+    },
+    {
+      "bytes": 8540,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 117,
+      "path": "docs/BOTTLE_HOLDER_FUNCTIONAL_LIVE_EVALUATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "a9f13abb91d6600911fa9780cff8a000cfe90c427730194c7df1287b29556bf2",
+      "title": "Bottle Holder Functional Live Evaluation"
+    },
+    {
+      "bytes": 2762,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 71,
+      "path": "docs/BOTTLE_HOLDER_GEOMETRY_RETURN_LIVE_EVALUATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "b4a45c04a051cd43aab783fdc569d32c1e4ef7674e352d045e2e016ce5603b82",
+      "title": "Bottle-holder scaffold-owned geometry returns: live evaluation"
+    },
+    {
+      "bytes": 2997,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 60,
+      "path": "docs/BOTTLE_HOLDER_PARAMETER_EFFECT_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md"
+      ],
+      "references": [],
+      "sha256": "5f548a23f0d4e671875ba08bb6b5666bb27b8965c526b682c554e0ce9bda1c96",
+      "title": "Bottle-Holder Parameter-Effect Live Evaluation"
+    },
+    {
+      "bytes": 2994,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 84,
+      "path": "docs/BOTTLE_HOLDER_PATTERN_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-01-deterministic-parametric-patterns.md"
+      ],
+      "references": [],
+      "sha256": "0aeeabba0224883c29394ce236becf2045e101b81be658501d022cce8079d722",
+      "title": "Bottle-holder parametric-pattern live evaluation"
+    },
+    {
+      "bytes": 5667,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 96,
+      "path": "docs/BOTTLE_HOLDER_PROVENANCE_LIVE_EVALUATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "d49cf2adf70a38482b1cc60dbd1ea59f4b72cf50ca9ec6f4cef16dbf5354961f",
+      "title": "Bottle Holder Provenance Live Evaluation"
+    },
+    {
+      "bytes": 9002,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 119,
+      "path": "docs/BOTTLE_HOLDER_RETENTION_LIVE_EVALUATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "6f413f1c4be0c72b9cb144ad803b5237f0df8317864cb8d5a4b89072230988e8",
+      "title": "Bottle Holder Retention Live Evaluation"
+    },
+    {
+      "bytes": 3061,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 74,
+      "path": "docs/BOTTLE_HOLDER_SCAFFOLD_LIVE_EVALUATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "3de58c5a861a184da6ce6d3bd88e62d8e04cf5f9fa4ffa289d72c71ddf16981e",
+      "title": "Bottle-Holder Scaffold Live Evaluation"
+    },
+    {
+      "bytes": 7898,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 121,
+      "path": "docs/BOTTLE_HOLDER_STRUCTURED_GEOMETRY_LIVE_EVALUATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "7fee8445fd073b75c02cf3cc15b23baf7278e6e26193fe1d0481f0dd29643c48",
+      "title": "Bottle Holder Structured Geometry Live Evaluation"
+    },
+    {
+      "bytes": 8281,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 216,
+      "path": "docs/CADQUERY_BACKEND.md",
+      "referenced_by": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/CAD_EXECUTION_SECURITY.md",
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCKER_BASELINE.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_RULESET.md",
+        "docs/GENERATION_PIPELINE_REVIEW.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/LIVE_GENERATION_EVALUATION.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/MVP_SCOPE.md",
+        "docs/PARAMETRIC_PRODUCT_MODEL.md",
+        "docs/PRODUCT_DIRECTION.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "ca3cfa8349eaf0c601aecae506d7c26830c67d5a21e3be9154b38782d8365f0a",
+      "title": "CadQuery Backend Architecture"
+    },
+    {
+      "bytes": 8422,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 164,
+      "path": "docs/CADQUERY_COMPONENT_REVISION_EVALUATION_2026-07-30.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "e16985bb7138ad9347ea55f979c6e817a683907ad0a1303324f4501ec55d83c1",
+      "title": "CadQuery Component Revision Evaluation"
+    },
+    {
+      "bytes": 5379,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 101,
+      "path": "docs/CADQUERY_COMPONENT_REVISION_READINESS_CORRECTION_2026-07-30.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "db9b956ed4cf77992e1776122c54f7a1f1bd624692206e9cda5927d7e07ae634",
+      "title": "CadQuery Component Revision Readiness Correction - 2026-07-30"
+    },
+    {
+      "bytes": 8123,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 172,
+      "path": "docs/CADQUERY_IDENTITY_CONTRACT_CORRECTION_2026-07-30.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "8e3024a7e1fbbd361083912cc1abd9c3ab4a43bcab6cb6e68708b67cbbdcd744",
+      "title": "CadQuery Identity Contract Correction - 2026-07-30"
+    },
+    {
+      "bytes": 8003,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 159,
+      "path": "docs/CADQUERY_LIVE_SMOKE_2026-07-30.md",
+      "referenced_by": [
+        "docs/CADQUERY_LIVE_SMOKE_CORRECTION_2026-07-30.md",
+        "docs/REQUIREMENT_PROPAGATION_REVIEW.md"
+      ],
+      "references": [],
+      "sha256": "3883434c0dd0eb0104012edca4bc0619d17c1d18659490f190c1bb6eec202e1e",
+      "title": "CadQuery Live Smoke Evaluation - 2026-07-30"
+    },
+    {
+      "bytes": 5991,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 123,
+      "path": "docs/CADQUERY_LIVE_SMOKE_CORRECTION_2026-07-30.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "65d57baa1a91d6222a5dc581adf21e3a61dcb58231c0b77130d96375406ab3fd",
+      "title": "CadQuery Live Smoke Correction"
+    },
+    {
+      "bytes": 8516,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 203,
+      "path": "docs/CADQUERY_OUTPUT_PLACEMENT_AND_LID_REVISION_EVALUATION.md",
+      "referenced_by": [
+        "docs/FRONTEND_WORKFLOW_AUDIT.md"
+      ],
+      "references": [],
+      "sha256": "a2ea862c10c3067435fa2e06778dad21dc993cfb19cf01c9501a84892218077c",
+      "title": "CadQuery Output Placement and Lid Revision Evaluation"
+    },
+    {
+      "bytes": 42113,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 695,
+      "path": "docs/CADQUERY_TRANSITION_EVALUATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CADQUERY_BACKEND.md",
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_PIPELINE_REVIEW.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "46e86bcbd446920baa677a8f3b359c69e42c2933290a45fc857064d1619ef74c",
+      "title": "CadQuery Transition Evaluation"
+    },
+    {
+      "bytes": 2057,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 50,
+      "path": "docs/CAD_BRIEF_CONTRACT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
+      ],
+      "references": [],
+      "sha256": "88dd21b29fd53ee1ac766ebf1305c2244158f323a81b877e7ea5413d63a8df4d",
+      "title": "CAD Brief Contract"
+    },
+    {
+      "bytes": 5692,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 186,
+      "path": "docs/CAD_EXECUTION_SECURITY.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "1732f617ab07adf7d40c28d7318ba48421e1cac8e52fc8214b78a83bbd60cba9",
+      "title": "Volundr CAD Execution Security"
+    },
+    {
+      "bytes": 4454,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 83,
+      "path": "docs/CHAT_FIRST_WORKFLOW.md",
+      "referenced_by": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/PRODUCT_DIRECTION.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md"
+      ],
+      "references": [
+        "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md"
+      ],
+      "sha256": "5abe6d38d3c8e24e02ee4d30dcdddba544a660c4281e5d6984a69d7e63cbc510",
+      "title": "Chat-First Workflow"
+    },
+    {
+      "bytes": 2041,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 45,
+      "path": "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md",
+      "referenced_by": [
+        "docs/CHAT_FIRST_WORKFLOW.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/REQUIREMENT_SEMANTICS_CONTRACT.md"
+      ],
+      "references": [],
+      "sha256": "11802ccb7882761a7f021bc253853667c3da2fdc2b5b88da077f1984587da699",
+      "title": "Chat Message Identity Contract"
+    },
+    {
+      "bytes": 8058,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 205,
+      "path": "docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CHAT_FIRST_WORKFLOW.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/FRONTEND_WORKFLOW_AUDIT.md"
+      ],
+      "references": [],
+      "sha256": "036c9f6bad16bcefb62fa17a85f4a8553e4e071bb6b748439025eb6acd083aa1",
+      "title": "Chat Workspace Frontend Evaluation"
+    },
+    {
+      "bytes": 13325,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 245,
+      "path": "docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "ca8d119b38c6bdebf11bcdbb9fa08a819ebdcefda334a1663d5adead11c8caf6",
+      "title": "Compact/Detailed Planning Hardening Live Evaluation"
+    },
+    {
+      "bytes": 4580,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 77,
+      "path": "docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/PRODUCT_VALIDATION_ROUND_1.md"
+      ],
+      "references": [],
+      "sha256": "4ff9c86ea80faecbe04f3328485d52fd1fc21f5e3450507e2c64604813713f11",
+      "title": "Compact and Detailed Pipeline Diagnosis"
+    },
+    {
+      "bytes": 4298,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 87,
+      "path": "docs/COMPACT_PLAN_CONTRACT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [
+        "docs/REPEATED_FEATURE_LAYOUTS.md",
+        "docs/REQUIREMENT_TRACE_CONTRACT.md"
+      ],
+      "sha256": "f4103cb38493adb1df26b97ec24157376db85e656987dbc812e80a7b24df67b1",
+      "title": "Compact Plan Contract"
+    },
+    {
+      "bytes": 5977,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 186,
+      "path": "docs/COMPONENT_TARGETED_REVISIONS.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DATA_MODEL.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/MULTI_OUTPUT_GENERATION.md",
+        "docs/PARAMETRIC_PRODUCT_MODEL.md",
+        "docs/STRUCTURED_REVISION_PLANNING.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "90cfefe3b880a8e80e927ff5c5818b08d2b05681decc03899b91aefd9e35b992",
+      "title": "Component-Targeted Revisions"
+    },
+    {
+      "bytes": 11272,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 170,
+      "path": "docs/CONTRACT_COMPLEXITY_MODEL_COMPARISON.md",
+      "referenced_by": [
+        "backend/scripts/write_contract_complexity_reports.py",
+        "docs/mutantpowers/plans/2026-08-03-contract-complexity-model-comparison.md"
+      ],
+      "references": [],
+      "sha256": "f07ca92760b2a821bc690a38a3b1349e60d214ac28b285fd6a0f87ee1d1ba08c",
+      "title": "Contract complexity and model capability comparison"
+    },
+    {
+      "bytes": 73933,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 1108,
+      "path": "docs/CURRENT_REPOSITORY_AUDIT.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "84f2c3d54ea02fd2193e086e768a75f39d909b33301e2774f93e7a1b8ffe7349",
+      "title": "Current Repository Audit"
+    },
+    {
+      "bytes": 29669,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 571,
+      "path": "docs/CURRENT_STAGE_ROADMAP.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [
+        "docs/REQUIREMENT_TRACE_CONTRACT.md"
+      ],
+      "sha256": "1b88fbdc64c225d2db4bbacc814ffee68f8f06c5133b36d936ff9fce4c787b14",
+      "title": "Volundr Current Stage Roadmap"
+    },
+    {
+      "bytes": 7018,
+      "classification": "current_authoritative",
+      "immutable_evidence": false,
+      "line_count": 153,
+      "path": "docs/CURRENT_TRAJECTORY.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/archive/README.md"
+      ],
+      "references": [
+        "docs/INTEGRATION_TEST_LOOP.md",
+        "docs/PROVIDER_CONTRACT.md"
+      ],
+      "sha256": "0416592a75e2a38f6777259a3a43d99f1f525fefea6ed0da19520af12036fded",
+      "title": "Current Trajectory"
+    },
+    {
+      "bytes": 25327,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 1074,
+      "path": "docs/DATA_MODEL.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROMPT_ARCHITECTURE.md",
+        "docs/GENERATION_PIPELINE_REVIEW.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "2910f42ec01c6f80cd12cfcd50055d94a4e31cd829259ea40264294e6b07f863",
+      "title": "Volundr Data Model"
+    },
+    {
+      "bytes": 3170,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 77,
+      "path": "docs/DEPLOYMENT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "00b8e9b598b0fe77e352250d31d45a9e63d8ac667cc760f34c2e7d5984f39f57",
+      "title": "Volundr deployment"
+    },
+    {
+      "bytes": 3589,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 77,
+      "path": "docs/DERIVED_DEPENDENCY_CLASSIFICATION.md",
+      "referenced_by": [
+        "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "3029fddef5f0307d17d4799cb11a1cca11caac606dc89d8487b8c4856303820a",
+      "title": "Derived Dependency Classification"
+    },
+    {
+      "bytes": 6373,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 139,
+      "path": "docs/DESIGN_ARTIFACT_CONSISTENCY_REVIEW.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "54f1b8f2dfd035e01c37bcfc3f38272076602a7d65d8d586a45c01b8e58fc7d9",
+      "title": "Design Artifact Consistency Review"
+    },
+    {
+      "bytes": 7557,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 115,
+      "path": "docs/DETERMINISTIC_FEATURE_VERIFICATION.md",
+      "referenced_by": [
+        "docs/GEOMETRY_SLOT_CONTRACT.md",
+        "docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md",
+        "docs/mutantpowers/plans/2026-08-03-deterministic-feature-verification.md"
+      ],
+      "references": [],
+      "sha256": "8ee5e3918cefdb8e58f355112e4593be228af7e92b02bf677179abe8b578dfae",
+      "title": "Deterministic feature verification"
+    },
+    {
+      "bytes": 6013,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 130,
+      "path": "docs/DETERMINISTIC_USER_WORKFLOW_GATE.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md"
+      ],
+      "references": [],
+      "sha256": "7f26add42b8e9bb6887ee4e10ff585c3dcf1ab4b4655a714ff834e618632dd8b",
+      "title": "Deterministic User Workflow Gate"
+    },
+    {
+      "bytes": 2261,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 82,
+      "path": "docs/DOCKER_BASELINE.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "6b72db5f19acf596e00d276fcf4f81c90c09ec1dedb905df2c1448d479405f5f",
+      "title": "Volundr Docker Baseline"
+    },
+    {
+      "bytes": 20927,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 256,
+      "path": "docs/DOCUMENTATION_MAP.md",
+      "referenced_by": [
+        "CODEX_KICKOFF_PROMPT.md",
+        "README.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [
+        "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md",
+        "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
+        "docs/REPEATED_FEATURE_LAYOUTS.md"
+      ],
+      "sha256": "3c8a53ca8502b357857aad7bb31e19ee222c6be0c9ee546e971196922693d79f",
+      "title": "Volundr Documentation Map"
+    },
+    {
+      "bytes": 14555,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 171,
+      "path": "docs/ENVIRONMENT_VARIABLES.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DEPLOYMENT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
+      ],
+      "references": [],
+      "sha256": "b55a4a8a6d71a4771fe4fdbaf25356e3262e24a1a98c321a8ddf9822e73c0c3c",
+      "title": "Environment variables"
+    },
+    {
+      "bytes": 2554,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 61,
+      "path": "docs/EXPORTS.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "bea2c22b7b2302354a0e77596b1819b8d12d5fd6e4fef98ef7f60c1e425499cd",
+      "title": "Volundr exports"
+    },
+    {
+      "bytes": 4023,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 83,
+      "path": "docs/FEATURE_VERIFICATION_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/DETERMINISTIC_FEATURE_VERIFICATION.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md",
+        "docs/GEOMETRY_SLOT_CONTRACT.md",
+        "docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md",
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md"
+      ],
+      "references": [],
+      "sha256": "6b4597b279ec5166a110910a15ea2bb36919b2ac4ba3ecbb0fc732d06a8d4ff7",
+      "title": "Feature verification live evaluation"
+    },
+    {
+      "bytes": 7193,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 149,
+      "path": "docs/FRONTEND_USER_TESTING_PLAN.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/TEST_STRATEGY.md",
+        "docs/WORKFLOW_OBSERVABILITY.md",
+        "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
+      ],
+      "references": [],
+      "sha256": "ffac87ffe90ef941599e435076b5140d9f0cd33baa53131a9478ea3b222c372e",
+      "title": "Frontend User-Testing Plan"
+    },
+    {
+      "bytes": 9120,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 149,
+      "path": "docs/FRONTEND_WORKFLOW_AUDIT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md"
+      ],
+      "references": [],
+      "sha256": "af11add8748733f62acbd70f7085ee9eb5b203b59ded8cd947976afcd4d7f464",
+      "title": "Frontend Workflow Audit"
+    },
+    {
+      "bytes": 1493,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 29,
+      "path": "docs/FUNCTIONAL_DESIGN_INTENT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/PARAMETRIC_PRODUCT_MODEL.md"
+      ],
+      "references": [],
+      "sha256": "7b2e3c64b7079b254253fc3e1b944f4a62c86957730a353fca0812bb6a8a2470",
+      "title": "Functional Design Intent"
+    },
+    {
+      "bytes": 1412,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 33,
+      "path": "docs/FUNCTIONAL_DESIGN_VERIFICATION_EVALUATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "04ac4f5c7a5352fe46f47c103bceec6e1903da8da3db29f1bc65593efdb92c06",
+      "title": "Functional Design Verification Evaluation"
+    },
+    {
+      "bytes": 1322,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 27,
+      "path": "docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CADQUERY_BACKEND.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "61b24dedae30a6967dd4bf2ccc73f563cf565c19b0d25017d014c8d27f8c5bcb",
+      "title": "Functional Geometry Verification"
+    },
+    {
+      "bytes": 1124,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 25,
+      "path": "docs/GEMINI_ABLATION_EVALUATOR_CORRECTION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "28aa2d5831dcb5988505394ac8f41cfcc191945f18676d33603adb8788d6c1eb",
+      "title": "Gemini ablation evaluator correction"
+    },
+    {
+      "bytes": 1109,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 21,
+      "path": "docs/GEMINI_ABSOLUTE_QUALITY_FLOOR.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "1610ee4d3fafb4082bbcd466a18aa9265be48c9990945a3d7edfda17d530f8c6",
+      "title": "Gemini absolute quality floor"
+    },
+    {
+      "bytes": 1149,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 24,
+      "path": "docs/GEMINI_BUILDABILITY_EVALUATION.md",
+      "referenced_by": [
+        "backend/app/services/gemini_consistency/phase2_audit.py",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md",
+        "docs/GEMINI_PROFILE_ABLATION_RESULTS.md"
+      ],
+      "references": [],
+      "sha256": "6c2061de3987ffa1ae0244e9d52819744a4e015543a4d6182385879ee207b132",
+      "title": "Gemini buildability evaluation"
+    },
+    {
+      "bytes": 1148,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 20,
+      "path": "docs/GEMINI_BUILDABILITY_SCORE_RECONCILIATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "42b44459450df1051913589f5a0b16d3d86880617fce2daabc2e45875977390d",
+      "title": "Gemini buildability-score reconciliation"
+    },
+    {
+      "bytes": 2147,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 42,
+      "path": "docs/GEMINI_CONSISTENCY_BENCHMARK.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-gemini-consistency-benchmark.md"
+      ],
+      "references": [],
+      "sha256": "6d3703bdde84906a9dda584dc1fd8cab209fce1531b307ae3fdcefbc2220aee4",
+      "title": "Gemini consistency benchmark"
+    },
+    {
+      "bytes": 390,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 8,
+      "path": "docs/GEMINI_CONSISTENCY_FULL_RESULTS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "6d9a3f9595bf9f1903aa570b80f2182b7b69ad73bcbdd7421572bc1416ff5f91",
+      "title": "Gemini consistency full results"
+    },
+    {
+      "bytes": 525,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 10,
+      "path": "docs/GEMINI_CONSISTENCY_NEXT_ACTIONS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "6bf61fb5a33478fd6e9220853c1ab63315184a7184fbf5eb618e09f09441ee3e",
+      "title": "Gemini consistency next actions"
+    },
+    {
+      "bytes": 547,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 11,
+      "path": "docs/GEMINI_CONSISTENCY_PILOT_RESULTS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "382964fda74e75b98f31a77ee597d3aeb9edecc73084a95cae2ec2ddbded0a04",
+      "title": "Gemini consistency pilot results"
+    },
+    {
+      "bytes": 1080,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 19,
+      "path": "docs/GEMINI_FINAL_SYSTEM_SELECTION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_NEXT_ACTIONS.md"
+      ],
+      "references": [],
+      "sha256": "863296f9f4fd211ff4a5c0adf4335c8a52072bb4a3a7e2fc55e30b48840328df",
+      "title": "Gemini final system selection"
+    },
+    {
+      "bytes": 2395,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 50,
+      "path": "docs/GEMINI_FLASH_LITE_ANALYZER_AUDIT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_RUN_RECORD.md"
+      ],
+      "references": [],
+      "sha256": "41bc54a15e3f20fcb3282aff3a2d04de451eedfee013b8dfa5ff67476e366b2f",
+      "title": "Gemini Flash Lite analyzer audit"
+    },
+    {
+      "bytes": 561,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 11,
+      "path": "docs/GEMINI_FLASH_LITE_BASELINE.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "be512ec090a3f9ecd27c68ed0ac69531490e06c5b5a56f3c30818aa67a5bc9f2",
+      "title": "Gemini Flash Lite baseline"
+    },
+    {
+      "bytes": 524,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 10,
+      "path": "docs/GEMINI_FLASH_LITE_BEFORE_AFTER.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "529658feaf12a849f38a26aaa33cae49ff14590c76ff4dd7bf1d848a6c68019a",
+      "title": "Gemini Flash Lite before/after comparison"
+    },
+    {
+      "bytes": 654,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_FLASH_LITE_CLEANUP.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "264013489ee272c565019edee620dcc37e62d60d03bfc8b0acb5d1c8f1221e32",
+      "title": "Gemini Flash Lite cleanup"
+    },
+    {
+      "bytes": 2803,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 65,
+      "path": "docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_RUN_RECORD.md"
+      ],
+      "references": [],
+      "sha256": "6e1a5d7a2dcd0bb8031f1d833ac4c2d1031998fb7f1dee0bebdc520037ecbdfb",
+      "title": "Corrected Gemini Flash Lite results"
+    },
+    {
+      "bytes": 1711,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 39,
+      "path": "docs/GEMINI_FLASH_LITE_FEATURE_EVIDENCE_AUDIT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_RUN_RECORD.md"
+      ],
+      "references": [],
+      "sha256": "271daad4d517e9a30fb7178a5716fb571d840b7d7e1139db82a94b001e3b5bd4",
+      "title": "Gemini Flash Lite feature-evidence audit"
+    },
+    {
+      "bytes": 963,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 18,
+      "path": "docs/GEMINI_FLASH_LITE_FIVE_CASE_BASELINE.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "94a73f042dcd6a6e4b621ec5dfa2af12f94fbc5fe17038003811a2d9e9aceaee",
+      "title": "Gemini Flash Lite five-case baseline"
+    },
+    {
+      "bytes": 3220,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 62,
+      "path": "docs/GEMINI_FLASH_LITE_NEXT_ACTIONS.md",
+      "referenced_by": [
+        "backend/app/services/gemini_consistency/phase2_audit.py",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "e71313c1afc7ed217ae87aa4cb94ae018fb5d0a782acda86325e89a4a20fe76a",
+      "title": "Gemini Flash Lite next actions"
+    },
+    {
+      "bytes": 443,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 9,
+      "path": "docs/GEMINI_FLASH_LITE_OFFLINE_REPLAY.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "9928a7ec051894cc67a930eb0a207eabd85c44a1e4e5cf2ab0552ffee3aa451e",
+      "title": "Gemini Flash Lite offline replay"
+    },
+    {
+      "bytes": 509,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 10,
+      "path": "docs/GEMINI_FLASH_LITE_RESPONSE_CORPUS.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "b3276fddf6642a740c81a0e283b8825f63a00026d46f0250a0af214314a524d3",
+      "title": "Gemini Flash Lite response corpus"
+    },
+    {
+      "bytes": 3369,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 75,
+      "path": "docs/GEMINI_FLASH_LITE_RUN_RECORD.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [
+        "docs/GEMINI_FLASH_LITE_ANALYZER_AUDIT.md",
+        "docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md",
+        "docs/GEMINI_FLASH_LITE_FEATURE_EVIDENCE_AUDIT.md"
+      ],
+      "sha256": "faf0bae5a660b7a8411145cff2411ccdf972db0c9a47f4d2a9ab6bf50270dc9e",
+      "title": "Gemini Flash Lite study run record"
+    },
+    {
+      "bytes": 922,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 27,
+      "path": "docs/GEMINI_FLASH_LITE_STUDY.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "7600c6c9813e194ddb009b3238fbc7cf1cc5d4553fff2f1af556e739af61f12f",
+      "title": "Gemini Flash Lite behavior study"
+    },
+    {
+      "bytes": 455,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 9,
+      "path": "docs/GEMINI_FLASH_LITE_VALIDATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "68142c28b24b172fd973b79e057407f9c7e2d0f270dee8c252f9c4388a1024b7",
+      "title": "Gemini Flash Lite validation"
+    },
+    {
+      "bytes": 9727,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 197,
+      "path": "docs/GEMINI_GEOMETRY_MODEL_EVALUATION.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-01-gemini-stage-specific-routing.md"
+      ],
+      "references": [],
+      "sha256": "17e5d51a4f777f0147c246dfd9bb7048e710da1b4424e971c69a5af6a5d9bc87",
+      "title": "Gemini Geometry Model Evaluation"
+    },
+    {
+      "bytes": 954,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 20,
+      "path": "docs/GEMINI_INTRINSIC_RESPONSE_QUALITY.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "573515a9e0b6010a80e90b49a7772db17b1d8c8847f88a7ae937fb2368196836",
+      "title": "Gemini Intrinsic Response Quality"
+    },
+    {
+      "bytes": 762,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 16,
+      "path": "docs/GEMINI_MANUAL_REVIEW_BUNDLE.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "6c9084961d36c620b533e3d0e99456f5e8762adc05d2b53bec9e3552b12ff3d2",
+      "title": "Gemini manual-review bundle"
+    },
+    {
+      "bytes": 329,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 8,
+      "path": "docs/GEMINI_MODEL_COMPARISON.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "445b05364f4fe07c37af9a3452c1536e4880e192794a1e293ea07ddecca9095c",
+      "title": "Gemini model comparison"
+    },
+    {
+      "bytes": 1865,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 40,
+      "path": "docs/GEMINI_PHASE2_CLARIFICATION_AUDIT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "283c8a076b42dc8c256aad6725f1954205bae8d296967494c411ad096d594326",
+      "title": "Gemini Phase 2 clarification audit"
+    },
+    {
+      "bytes": 2453,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 47,
+      "path": "docs/GEMINI_PHASE2_VALIDATION_AUDIT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROFILE_ABLATION_RESULTS.md"
+      ],
+      "references": [],
+      "sha256": "bcdd70c1fd9beb7ad6546ab506b7ef7d2fc1eeb2c331f014938f46e42ffdd8f4",
+      "title": "Gemini Phase 2 validation audit"
+    },
+    {
+      "bytes": 1637,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 34,
+      "path": "docs/GEMINI_PHASE2_WORKER_REACH_AUDIT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "788516b7170568c0bbe5ca776d512522096d32a0df9d1aab3118c4abb3f109e3",
+      "title": "Gemini Phase 2 worker-reach audit"
+    },
+    {
+      "bytes": 1384,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 27,
+      "path": "docs/GEMINI_PROCESSING_METHOD_ABLATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "c4888332e2404b6caafe4a17cf0f5e959bd17ab01c9ce3ee351159ac6c5bfa67",
+      "title": "Gemini deterministic processing-method ablation"
+    },
+    {
+      "bytes": 1619,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 31,
+      "path": "docs/GEMINI_PROFILE_ABLATION.md",
+      "referenced_by": [
+        "backend/app/services/gemini_consistency/phase2_audit.py",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md"
+      ],
+      "references": [],
+      "sha256": "33dd35c3fa1bf227f86efea98ada40339fd0eaf34f6938ba07faa7e0afa583e3",
+      "title": "Gemini Flash Lite profile ablation"
+    },
+    {
+      "bytes": 2707,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 52,
+      "path": "docs/GEMINI_PROFILE_ABLATION_RESULTS.md",
+      "referenced_by": [
+        "backend/app/services/gemini_consistency/phase2_audit.py",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md"
+      ],
+      "references": [],
+      "sha256": "b98a4ba4a33492cd3de58d574f696ed7cbec7d9603a23846995281942f68b1e2",
+      "title": "Gemini profile ablation results"
+    },
+    {
+      "bytes": 2114,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 36,
+      "path": "docs/GEMINI_PROFILE_B_SECOND_VALIDATION_PLAN.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_FLASH_LITE_NEXT_ACTIONS.md",
+        "docs/GEMINI_PHASE2_VALIDATION_AUDIT.md"
+      ],
+      "references": [],
+      "sha256": "aa21de6f8fc0a3be7ef4e52602672a37bc9ad194a96e974eabda8cd36739e0de",
+      "title": "Corrected Profile B second-validation plan"
+    },
+    {
+      "bytes": 2709,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 57,
+      "path": "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md",
+      "referenced_by": [
+        "backend/app/services/gemini_consistency/phase2_audit.py",
+        "backend/tests/test_gemini_phase2_audit.py",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_BUILDABILITY_SCORE_RECONCILIATION.md"
+      ],
+      "references": [],
+      "sha256": "a2537a3e67a4847c2f25d7512a25f03e2ca53a4654c29f73455d9ee0cfd5af11",
+      "title": "Gemini Profile B stability review"
+    },
+    {
+      "bytes": 23530,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 598,
+      "path": "docs/GEMINI_PROMPT_ARCHITECTURE.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "7c6b7e3affe422b286ef6003860feb915384c524a4ab1f5686f61e615e6d75ac",
+      "title": "Gemini Prompt Architecture"
+    },
+    {
+      "bytes": 752,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 15,
+      "path": "docs/GEMINI_PROMPT_CONCISION_EXPERIMENT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "e7cc755d57f859bf6c85a10c6dcff2e4bc65d906b560dc0bbaf941e8f59bb56d",
+      "title": "Gemini prompt concision experiment"
+    },
+    {
+      "bytes": 693,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 14,
+      "path": "docs/GEMINI_PROMPT_CONTRACT_SELECTION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "a4582a466d199055237117ffd338776108f6f9a6b9eba5c7bcdea61404460047",
+      "title": "Gemini Prompt Contract Selection"
+    },
+    {
+      "bytes": 936,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_PROVIDER_CONTRACTS.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "69e182080f99a6600f07629b51730dc25ce735715362ccfec4fd3e0d246c9a23",
+      "title": "Gemini Provider Contracts"
+    },
+    {
+      "bytes": 930,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_ADAPTER.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "6c2b694b5da522489e540852a20278b1a121c2cea01cb37eff65ff0c508219bc",
+      "title": "Gemini Provider Contract Adapter"
+    },
+    {
+      "bytes": 1252,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 25,
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "b8fc536c3111c4bc5fd922ebd42c6bb742cd0a95fe70640debd6c80444ec6796",
+      "title": "Gemini Provider-Contract Correction"
+    },
+    {
+      "bytes": 457,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 9,
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION_ADAPTER.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "50abbf46def0ae5ff3e588170b9bc7cf50b9c81b4352177918f500411c2ade86",
+      "title": "Gemini Provider-Contract Correction Adapter Gate"
+    },
+    {
+      "bytes": 911,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION_HOLDOUT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "87701fd8eef71555b12f5fe0d7c8952997e6ddacd9b8a8453aa75137b8ed6f1c",
+      "title": "Gemini Provider-Contract Correction Holdout"
+    },
+    {
+      "bytes": 1452,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 27,
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_FOUNDATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
+      ],
+      "references": [],
+      "sha256": "3f5de123baf8e75fe44bd180b27900055efbfebba9f518364cb9d59c010844bb",
+      "title": "Gemini Provider Contract Foundation"
+    },
+    {
+      "bytes": 935,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_HOLDOUT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "10080166255206520fd096829903e1beaa5b61ff0b199d57e88ba4efcfb2e16a",
+      "title": "Gemini Provider Contract Holdout"
+    },
+    {
+      "bytes": 2310,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 40,
+      "path": "docs/GEMINI_PROVIDER_PROCESSING_FACTORIAL.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
+      ],
+      "references": [],
+      "sha256": "f023c40d911b528a8cce72c5a66f2a404bf166cc21273881a1b49056b8cf5f33",
+      "title": "Gemini provider \u00d7 processing factorial"
+    },
+    {
+      "bytes": 444,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 10,
+      "path": "docs/GEMINI_RESPONSE_VARIABILITY.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "18c54c9ed3317a84d4cf5f20bcfc9b90748f4dcf2805ec4024935dc43ce13e08",
+      "title": "Gemini response variability"
+    },
+    {
+      "bytes": 6513,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 129,
+      "path": "docs/GEMINI_RULESET.md",
+      "referenced_by": [
+        "backend/app/services/ai/gemini_cli.py",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md"
+      ],
+      "references": [],
+      "sha256": "6fec68ed04af4a1894095ae356bd9572a8139e5e190e0bdd79d75e1710350d73",
+      "title": "Gemini Ruleset"
+    },
+    {
+      "bytes": 757,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 14,
+      "path": "docs/GEMINI_SAMPLING_AND_SEED_EXPERIMENT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "2fa10cd1683f9bfcccf3d28971b7613a9356fd2dc96f6322b2c73a799e39ab44",
+      "title": "Gemini sampling and seed experiment"
+    },
+    {
+      "bytes": 1829,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 32,
+      "path": "docs/GEMINI_SECONDARY_CREDENTIAL_RESUME.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "b8d1cb3052f691586fd70b71a95f51c58a735d49b6f6da6754161b2e4c97783e",
+      "title": "Gemini secondary-credential continuation"
+    },
+    {
+      "bytes": 872,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_SETTINGS_SELECTION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "5b3173292dc83c5403d574f80f576ff6341a106d280815e71dc2346ac7d9a1dc",
+      "title": "Gemini Settings Selection"
+    },
+    {
+      "bytes": 1576,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 30,
+      "path": "docs/GEMINI_STABLE_FOUNDATION_VALIDATION.md",
+      "referenced_by": [
+        "backend/app/services/gemini_consistency/phase2_audit.py",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "a48a9028403ac58209c234a3f37d5aa5bc2ad3ba848ed1ed8adde7f2b677dd5c",
+      "title": "Gemini stable-foundation validation"
+    },
+    {
+      "bytes": 768,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 14,
+      "path": "docs/GEMINI_STRUCTURED_OUTPUT_EXPERIMENT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "29386816243633f5fb559502c6ccbd4ed9146492b90bb78d912265a230e1582e",
+      "title": "Gemini native structured-output experiment"
+    },
+    {
+      "bytes": 2272,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 43,
+      "path": "docs/GEMINI_SYSTEM_BOUNDARY_METHODS.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
+      ],
+      "references": [],
+      "sha256": "c2dfb5d58c9c466aaf5cb7270c400f26da68d87bd39423dead089afa9f5c2cef",
+      "title": "Gemini system-boundary methods study"
+    },
+    {
+      "bytes": 611,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 12,
+      "path": "docs/GEMINI_TARGETED_PROMPT_METHOD.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "cffb20356de414e5bd7563236e1385cfeb417c120918a6e110cd4aa92728a440",
+      "title": "Targeted Gemini prompt-method gate"
+    },
+    {
+      "bytes": 752,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/GEMINI_THINKING_LEVEL_EXPERIMENT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "fbe3267d5ad7a74473134060f55ae3becf5745453227b6ccc1e08e6ab74a01ba",
+      "title": "Gemini stage-specific thinking-level experiment"
+    },
+    {
+      "bytes": 979,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 19,
+      "path": "docs/GEMINI_THINKING_SELECTION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "566d045552e4a26004e96105d36c41c76815776a6aa567b1bd8a8f5affeff6b5",
+      "title": "Gemini Thinking Selection"
+    },
+    {
+      "bytes": 26211,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 439,
+      "path": "docs/GENERATION_BENCHMARKS.md",
+      "referenced_by": [
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/TEST_STRATEGY.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "aeaa284a617752be126d18845e7f69848aaca3492cff2efd2ad37acc6694a074",
+      "title": "Generation Benchmarks"
+    },
+    {
+      "bytes": 11858,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 179,
+      "path": "docs/GENERATION_BLOCKER_ISOLATION.md",
+      "referenced_by": [
+        "backend/scripts/write_contract_complexity_reports.py",
+        "docs/mutantpowers/plans/2026-08-03-contract-complexity-model-comparison.md"
+      ],
+      "references": [],
+      "sha256": "197724d1a5a862a5de8fd5a1e2c5941790013780c77c59c8405713cfd29a5d20",
+      "title": "Generation blocker isolation"
+    },
+    {
+      "bytes": 9547,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 194,
+      "path": "docs/GENERATION_PIPELINE_REVIEW.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "298e52ae3a62555622aae7b8bad0e679a7476fe5c6d0814e9b5932fd35202b43",
+      "title": "Volundr Generation Pipeline Review"
+    },
+    {
+      "bytes": 17704,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 320,
+      "path": "docs/GENERATION_RELIABILITY_PLAN.md",
+      "referenced_by": [
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/MODEL_GENERATION_CONTRACT.md"
+      ],
+      "references": [],
+      "sha256": "459ec966d58fb4a1548ba8d1ba5e1828cb775d09dc60a0067fc6ad38de9e4c57",
+      "title": "Generation Reliability Plan"
+    },
+    {
+      "bytes": 5025,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 131,
+      "path": "docs/GEOMETRIC_INVARIANT_VALIDATION.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROMPT_ARCHITECTURE.md",
+        "docs/GENERATION_BENCHMARKS.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md"
+      ],
+      "references": [],
+      "sha256": "3b0f149bbf4e72a966f4604e64089cc7658186ee1994527715fde54b6a7c49c2",
+      "title": "Geometric Invariant Validation"
+    },
+    {
+      "bytes": 5625,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 140,
+      "path": "docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md"
+      ],
+      "references": [],
+      "sha256": "66700789949d924f0b5777461bc0eb6ef4a68272a6eec1b2ef7c79eaad7154ad",
+      "title": "Geometry-body symbol contract"
+    },
+    {
+      "bytes": 3810,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 81,
+      "path": "docs/GEOMETRY_EXECUTION_CONTEXT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
+      ],
+      "references": [
+        "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md"
+      ],
+      "sha256": "bb24c40c5f712f13adb82f8eaac85cf0e743fb200b41402630ab33394364ec82",
+      "title": "Geometry Execution Context"
+    },
+    {
+      "bytes": 11389,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 211,
+      "path": "docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md",
+      "referenced_by": [
+        "docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md",
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md"
+      ],
+      "references": [],
+      "sha256": "aac1bea91624733ab3988d91791ec43c66ddef448de1989e8efdf57e832a64a2",
+      "title": "Geometry-slots blocker review"
+    },
+    {
+      "bytes": 9375,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 163,
+      "path": "docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
+      ],
+      "references": [],
+      "sha256": "0d16eb8f5612f5de880e8f87b11a4737c723f44774e2415ca81b22bee950148b",
+      "title": "Geometry slots live evaluation"
+    },
+    {
+      "bytes": 3264,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 65,
+      "path": "docs/GEOMETRY_SLOT_CONTRACT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
+      ],
+      "references": [],
+      "sha256": "8f8fd4fb024f8ff87d7d6bdf629fbb71d0d36c077a141dc1eea95a38ec70cf8a",
+      "title": "Geometry slot contract"
+    },
+    {
+      "bytes": 2096,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 44,
+      "path": "docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
+      ],
+      "references": [],
+      "sha256": "f305fee35fe59ea2fe29d3372b480dcfb52a1d1255e1b9208ce403b209305388",
+      "title": "Geometry slot production rollout"
+    },
+    {
+      "bytes": 1597,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 27,
+      "path": "docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "2dbf2a6514bb5ff3d294677aa291d38ab753ed9b51a02eb86f5105f5c7e7fe32",
+      "title": "Geometry and topology convergence"
+    },
+    {
+      "bytes": 4636,
+      "classification": "current_authoritative",
+      "immutable_evidence": false,
+      "line_count": 110,
+      "path": "docs/INTEGRATION_TEST_LOOP.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_TRAJECTORY.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "7abb6f6dac2f8d33f29cc27ffdc2c9ab3af0d4a7d8f8428ecdbc327ac3f02060",
+      "title": "Integration Test Loop"
+    },
+    {
+      "bytes": 2485,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 50,
+      "path": "docs/LIVE_BATCH_CONVERGENCE_CORRECTION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "9404084b38b02aa0f01d00793dd60dbd75e022bb50233bdcc18cbe8d2493634a",
+      "title": "Live batch convergence correction"
+    },
+    {
+      "bytes": 2264,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 47,
+      "path": "docs/LIVE_BATCH_CONVERGENCE_CORRECTION_PLAN.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "c1d642bcc3345902f4e3fc8fbfdf1417fee08f6f2fe678c69e30f4ccefa2e055",
+      "title": "Mixed-CAD convergence correction plan"
+    },
+    {
+      "bytes": 1140,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 23,
+      "path": "docs/LIVE_BATCH_CONVERGENCE_REGRESSION_CANDIDATES.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "085651ce7502868e019a0bf7b25559159b4d3bf4e73ec5def0867eeb867249eb",
+      "title": "Mixed-CAD convergence regression candidates"
+    },
+    {
+      "bytes": 3717,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 67,
+      "path": "docs/LIVE_BATCH_CONVERGENCE_SELF_REVIEW.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "0f37e14c5bf1572aa2bc05d006de2ee42f3ca8c438a9fa1023922c9d56feb57f",
+      "title": "Mixed-CAD convergence self-review"
+    },
+    {
+      "bytes": 6354,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 123,
+      "path": "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/FEATURE_VERIFICATION_LIVE_EVALUATION.md",
+        "docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md",
+        "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [],
+      "sha256": "cc3556bd179cb507f18ba8b50c45e7989907beb777e4f93107f6c9be876b9c38",
+      "title": "Live batch correction plan"
+    },
+    {
+      "bytes": 2473,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 49,
+      "path": "docs/LIVE_BATCH_CORRECTION_ROUND_1.md",
+      "referenced_by": [
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md"
+      ],
+      "references": [],
+      "sha256": "b164fae44bc342332014f5cfa51d5f9fbd822a9b91437baf1b0831adef83437b",
+      "title": "Live batch correction round 1"
+    },
+    {
+      "bytes": 1222,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 28,
+      "path": "docs/LIVE_BATCH_NEXT_PRIORITY.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "2298f66cdf811796e529a1336ca8a56fd8cc641a0dea88d329cc75009dda76c9",
+      "title": "Next live-batch correction priority"
+    },
+    {
+      "bytes": 1722,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 36,
+      "path": "docs/LIVE_BATCH_POST_CORRECTION_COMPARISON.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md"
+      ],
+      "references": [],
+      "sha256": "469f869d60e4da829112a94956cb3ecc91478c978fdb69e591e9a4722c1f896b",
+      "title": "Live batch post-correction comparison"
+    },
+    {
+      "bytes": 2499,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 54,
+      "path": "docs/LIVE_BATCH_REGRESSION_CANDIDATES.md",
+      "referenced_by": [
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md"
+      ],
+      "references": [],
+      "sha256": "d5ecb5b20bc12538e62e41fdff0439e9ff8eeb68c23fc7f30a54d866156756ad",
+      "title": "Live batch regression candidates"
+    },
+    {
+      "bytes": 3813,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 79,
+      "path": "docs/LIVE_BATCH_SELF_REVIEW.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md"
+      ],
+      "references": [],
+      "sha256": "b8b6d11e63faab3ffb77ff55f5fd537c5a9fd121a8498a0ed68dadf031e18f30",
+      "title": "Mixed CAD live batch self-review"
+    },
+    {
+      "bytes": 4802,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 99,
+      "path": "docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md",
+      "referenced_by": [
+        "docs/DEPLOYMENT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md"
+      ],
+      "references": [],
+      "sha256": "a36f231b4ebebdd18a3ecaf1d1d1b01914e2c85bccc0955c1d3e4b75de4abc23",
+      "title": "Live debug batch implementation"
+    },
+    {
+      "bytes": 1690,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 42,
+      "path": "docs/LIVE_DEBUG_BATCH_PLAYWRIGHT_EVALUATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
+      ],
+      "references": [],
+      "sha256": "9e57bfbe416d49a0a1ab717d8b2bc8e0c63282a2f08ce31052b1669b7b452479",
+      "title": "Live debug batch Playwright evaluation"
+    },
+    {
+      "bytes": 7206,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 158,
+      "path": "docs/LIVE_DESIGN_MATRIX_EVALUATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/PRODUCT_VALIDATION_ROUND_1.md",
+        "docs/TEST_STRATEGY.md"
+      ],
+      "references": [],
+      "sha256": "ec2952aa18b7822a35793f8e505f727457062f0b6443f8566f1a824ecb4341ce",
+      "title": "Live Design Matrix Evaluation"
+    },
+    {
+      "bytes": 13787,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 304,
+      "path": "docs/LIVE_GENERATION_EVALUATION.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_BENCHMARKS.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md"
+      ],
+      "references": [],
+      "sha256": "1d08a5de6e80ef0be96a750da9e1c89a3e7199e0464b78f9927352788ba8e3a8",
+      "title": "Live Generation Evaluation"
+    },
+    {
+      "bytes": 1625,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 29,
+      "path": "docs/LOCAL_MODEL_NEXT_ACTIONS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "3eaf6dc5b663876dc1aca54bfba7c88c14e279acfd8c08929ee932c94e1fee3b",
+      "title": "Local model next actions"
+    },
+    {
+      "bytes": 2078,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 51,
+      "path": "docs/MIXED_CAD_CONVERGENCE_BATCH_01.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
+      ],
+      "references": [],
+      "sha256": "d60a4587a20005d7035f1dfe89d4a50a8687d0c2a8511d62052096de5ea54f62",
+      "title": "Mixed-CAD convergence Batch 1"
+    },
+    {
+      "bytes": 2041,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 51,
+      "path": "docs/MIXED_CAD_CONVERGENCE_BATCH_02.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
+      ],
+      "references": [],
+      "sha256": "253e6e8a64cdcce1eca9c802c8879d7e425f3333910515f43ea1caff5e30bbf4",
+      "title": "Mixed-CAD convergence Batch 2"
+    },
+    {
+      "bytes": 1456,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 30,
+      "path": "docs/MIXED_CAD_CONVERGENCE_COMPARISON.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
+      ],
+      "references": [],
+      "sha256": "e657dc84354e554c0da6a394ccf15664307f5e8acbd7ca87a9a8e456e7303a81",
+      "title": "Mixed-CAD convergence comparison"
+    },
+    {
+      "bytes": 2843,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 61,
+      "path": "docs/MIXED_CAD_LIVE_BATCH_01.md",
+      "referenced_by": [
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
+      ],
+      "references": [],
+      "sha256": "7cbd7a44069d7a5eb351f33853b3f8edeeb7ae2f0b3acf668dc1cfb82bd2d14b",
+      "title": "Mixed CAD live Batch 1"
+    },
+    {
+      "bytes": 2773,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 60,
+      "path": "docs/MIXED_CAD_LIVE_BATCH_02.md",
+      "referenced_by": [
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
+      ],
+      "references": [],
+      "sha256": "20b123db90fcbce4899436ae4c58d722d35d99828114af4ba414cb3674f9ea68",
+      "title": "Mixed CAD live Batch 2"
+    },
+    {
+      "bytes": 1914,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 53,
+      "path": "docs/MIXED_CAD_LIVE_BATCH_COMPARISON.md",
+      "referenced_by": [
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
+      ],
+      "references": [],
+      "sha256": "5ba86d8e3008646fba6f7b82965e1603feadefef0b1b5636419048cf26a5985f",
+      "title": "Mixed CAD live batch comparison"
+    },
+    {
+      "bytes": 3029,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 64,
+      "path": "docs/MIXED_CAD_LIVE_POST_CORRECTION_01.md",
+      "referenced_by": [
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md"
+      ],
+      "references": [],
+      "sha256": "55fce3e54db0cfe1b441592b1f8e06a0b3de8d322ef92bbe7fc43e7602d3fed6",
+      "title": "Mixed CAD live post-correction 01"
+    },
+    {
+      "bytes": 13885,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 258,
+      "path": "docs/MODEL_GENERATION_CONTRACT.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md"
+      ],
+      "references": [],
+      "sha256": "cc6d588c682f007a89d8cc1eed10049dfd990b83c110ec752e7814fc49436235",
+      "title": "Volundr Model Generation Contract"
+    },
+    {
+      "bytes": 3418,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 72,
+      "path": "docs/MULTI_DESIGN_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "df1722b193b6e6e2252b2cde46d452777026274609ae9849185a111deaa2943a",
+      "title": "Multi-Design Live Evaluation"
+    },
+    {
+      "bytes": 6947,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 225,
+      "path": "docs/MULTI_OUTPUT_GENERATION.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DATA_MODEL.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GENERATION_BENCHMARKS.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/PARAMETRIC_PRODUCT_MODEL.md",
+        "docs/TEST_STRATEGY.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "8940f09031b035ecb9d239f1a002d36d0cfc341b602eb5ce9d8c3c23c0629911",
+      "title": "Multi-Output Generation"
+    },
+    {
+      "bytes": 3576,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 75,
+      "path": "docs/MULTI_VIEW_SNAPSHOT_CONTRACT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "7736be2787995f0a64b0f14a6ad45b82883c76c5d74f515e383d85ed94e491dc",
+      "title": "Multi-view Snapshot Contract"
+    },
+    {
+      "bytes": 8591,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 163,
+      "path": "docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "11111fe0dff0e68a115c568bda315d19855f7ee5005b2790e4470ced0b382f31",
+      "title": "Multi-view Snapshot Live Evaluation"
+    },
+    {
+      "bytes": 8724,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 175,
+      "path": "docs/MVP_SCOPE.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md"
+      ],
+      "references": [],
+      "sha256": "ddb4a96acdd8cdcf26d51a0a33dfb2891c556edb042035c8a6f69fe0a5e933b5",
+      "title": "Volundr V1 Scope"
+    },
+    {
+      "bytes": 1467,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 84,
+      "path": "docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/FRONTEND_USER_TESTING_PLAN.md",
+        "docs/PRODUCT_VALIDATION_ROUND_1.md"
+      ],
+      "references": [],
+      "sha256": "7899bd139f215c0fcd9a5a731faa7c6976a44863abb3b8e2f923bbe502ad9548",
+      "title": "Observed Frontend Testing Results"
+    },
+    {
+      "bytes": 3480,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 92,
+      "path": "docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/FRONTEND_USER_TESTING_PLAN.md",
+        "docs/PRODUCT_VALIDATION_ROUND_1.md"
+      ],
+      "references": [],
+      "sha256": "9a1b1bb2f6aae4387a51c1ef7ca82ae81b1691321bff5dc4f938decebee9dd5f",
+      "title": "Observed Frontend Testing Script"
+    },
+    {
+      "bytes": 1235,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 31,
+      "path": "docs/OLLAMA_BENCHMARK_ADMISSION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "fbaf5cd122e4c2dffbe15c144e4aa2e2c87d9547154f555dffc032b0a0146761",
+      "title": "Ollama benchmark admission"
+    },
+    {
+      "bytes": 964,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/OLLAMA_CALIBRATION_ERRORS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "306921c6dc9eb54add8ff403ff5e333434a186119961cee42ad7c9121576e1c6",
+      "title": "Ollama calibration errors"
+    },
+    {
+      "bytes": 1190,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 24,
+      "path": "docs/OLLAMA_CALIBRATION_RESOLUTION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "a07e7e033dc5489c48196039cce44ba1d16080b19bae8aaaa62288f2b6ecb2ef",
+      "title": "Ollama calibration resolution"
+    },
+    {
+      "bytes": 1525,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 34,
+      "path": "docs/OLLAMA_FIVE_CASE_COMPATIBILITY.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "5c5f530be4909f10484032727874d17729e7ae0f2e2fe1f550835d5a4b0dd738",
+      "title": "Historical mixed-provider five-case compatibility (excluded)"
+    },
+    {
+      "bytes": 1489,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 30,
+      "path": "docs/OLLAMA_FIVE_CASE_CONSISTENCY.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "d247b839ed0e45099c355cabc5a19fb2be1bf45b397a79420d075a5aca617694",
+      "title": "Historical mixed-provider five-case consistency (excluded)"
+    },
+    {
+      "bytes": 1203,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 27,
+      "path": "docs/OLLAMA_FIVE_CASE_RESULTS.md",
+      "referenced_by": [
+        "docs/OLLAMA_FIVE_CASE_CONSISTENCY.md"
+      ],
+      "references": [],
+      "sha256": "c6f8c050bd8513169fdd1becdecaee8302b1e2fda8272ec5fa6a64111dc81fb5",
+      "title": "Ollama-only five-case results"
+    },
+    {
+      "bytes": 1389,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 32,
+      "path": "docs/OLLAMA_GEMINI_FIVE_CASE_COMPARISON.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "c371b3fea579bcdf6d0ecb1fb5db23e6ff4d17f82bf5f8a78c054f89bc4d163d",
+      "title": "Ollama / Gemini five-case comparison"
+    },
+    {
+      "bytes": 20102,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 241,
+      "path": "docs/OLLAMA_HOLDOUT_FAILURE_ANATOMY.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/OLLAMA_HOLDOUT_VALIDATION.md",
+        "docs/OLLAMA_MODEL_CALIBRATION.md",
+        "docs/OLLAMA_NEXT_ACTIONS.md"
+      ],
+      "references": [],
+      "sha256": "078f6954dfa2bb2364c2f754aa8f48b6bffbb5b9610d294fc7c05c42db15aadb",
+      "title": "Ollama holdout failure anatomy"
+    },
+    {
+      "bytes": 1313,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 25,
+      "path": "docs/OLLAMA_HOLDOUT_VALIDATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "6cf3f3698f0c298144e8c4c7a2ffd90bd4c0b8e83d2b9973b1e2d81327916bb6",
+      "title": "Ollama holdout validation"
+    },
+    {
+      "bytes": 1639,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 27,
+      "path": "docs/OLLAMA_INSTALLATION_AND_IMPORT.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "21f43923d8743aa462cea1c8e384810e18c6f246a42f860fcd3ffc922e5ef00f",
+      "title": "Ollama installation and import gate"
+    },
+    {
+      "bytes": 2594,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 46,
+      "path": "docs/OLLAMA_MODEL_CALIBRATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "77931aa393f4f2d879aa5b36f9f7612ba77abb41e23908adcf0ef2a6c605e5de",
+      "title": "Ollama model calibration and admission"
+    },
+    {
+      "bytes": 793,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 16,
+      "path": "docs/OLLAMA_MODEL_COMPARISON.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "5ecd5a16c7c4394bfc205611d9dea17061643ce7c68242440513a79ddb4c8b8d",
+      "title": "Ollama model comparison"
+    },
+    {
+      "bytes": 1898,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 18,
+      "path": "docs/OLLAMA_MODEL_PROFILES.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "5cbf40bd2c5d40e39f020c7b7ae1a06f551a7c1352283c739067c17a456a8fe6",
+      "title": "Ollama model profiles"
+    },
+    {
+      "bytes": 863,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 17,
+      "path": "docs/OLLAMA_NATIVE_CAD_CAPABILITY.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "3cdf65a258f20c262984623f1f8c3c2777cc8f77f3dae6a91caff8187e5615ac",
+      "title": "Native CAD capability"
+    },
+    {
+      "bytes": 1000,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 19,
+      "path": "docs/OLLAMA_NEXT_ACTIONS.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "ce6d4b0869eaa58ed3895976212087ea73a8f99dbd53459a5f88e908ddead9d4",
+      "title": "Ollama next actions"
+    },
+    {
+      "bytes": 927,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 18,
+      "path": "docs/OLLAMA_PROMPT_COMPATIBILITY.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "45fb749b736cd476822219daab2136a36ad0f99570cefce1bc257035988cee0f",
+      "title": "Ollama prompt compatibility"
+    },
+    {
+      "bytes": 1183,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 25,
+      "path": "docs/OLLAMA_PROVIDER_READINESS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "f033e0652da48beac86258be80df90ba4f9d68b2059683ab9c215d5b81b6c16c",
+      "title": "Ollama provider readiness"
+    },
+    {
+      "bytes": 882,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 24,
+      "path": "docs/OLLAMA_RESOURCE_PROFILE.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "40c9645c3a83466a2822122aee59821f9a495e2a16bfe7d2f6befc64c53bfb7f",
+      "title": "Ollama resource profile"
+    },
+    {
+      "bytes": 1074,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 25,
+      "path": "docs/OLLAMA_RESPONSE_NORMALIZATION.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "89e39f13e8def280b6f23b21b4a24e177f69aeaf0b11b928090e61027cdff9e6",
+      "title": "Ollama response normalization"
+    },
+    {
+      "bytes": 5835,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 165,
+      "path": "docs/PARAMETER_CONFIGURATION.md",
+      "referenced_by": [
+        "docs/ARCHITECTURE.md",
+        "docs/COMPONENT_TARGETED_REVISIONS.md",
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/PARAMETRIC_PRODUCT_MODEL.md",
+        "docs/STRUCTURED_REVISION_PLANNING.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "8aa6ca4cddf781469f09b55b5b67f87b36f45019b1943eb4d08b9137648eb85a",
+      "title": "Parameter Configuration"
+    },
+    {
+      "bytes": 1213,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 25,
+      "path": "docs/PARAMETRIC_PRODUCT_MODEL.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "98ca32351af121875606d2493e1d5d72d9724a78b17e9cc22d2987946db08f1c",
+      "title": "Parametric Product Model"
+    },
+    {
+      "bytes": 5347,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 105,
+      "path": "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEOMETRY_EXECUTION_CONTEXT.md",
+        "docs/REPEATED_FEATURE_LAYOUTS.md"
+      ],
+      "references": [],
+      "sha256": "4a8286322f0620f9525ec03149ac892693119d079babfe8ca27291f33abc8b7f",
+      "title": "Pattern Coordinate-Space Contract"
+    },
+    {
+      "bytes": 3860,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 60,
+      "path": "docs/PLANNING_DEPTH_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
+      ],
+      "references": [],
+      "sha256": "44b7bef44e441011bb2be70bf2087a00a4efd7decc9c43996f814f34f3bce7ee",
+      "title": "Planning Depth Live Evaluation"
+    },
+    {
+      "bytes": 3545,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 76,
+      "path": "docs/PLANNING_DEPTH_MODEL.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
+      ],
+      "references": [],
+      "sha256": "b0ed72730426adabc03e7faacf376edf56b30e3f362f78b13561284b552e27f7",
+      "title": "Planning Depth Model"
+    },
+    {
+      "bytes": 2110,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 51,
+      "path": "docs/PLAN_SOURCE_IDENTITY_BOUNDARY.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "fcbc5db9cdfa375bd06f1fa4efc47b204f29ff73d050109015fbf09994077c45",
+      "title": "Plan-to-Source Identity Boundary"
+    },
+    {
+      "bytes": 4278,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 138,
+      "path": "docs/PRINTABILITY_INSPECTOR.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "eb57d6cfb8837512387a44d8d42ca6c85893c1c918821164ddca8d36007f575c",
+      "title": "Printability Inspector"
+    },
+    {
+      "bytes": 7780,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 208,
+      "path": "docs/PRODUCT_DIRECTION.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md"
+      ],
+      "references": [],
+      "sha256": "c71f2826a5ae915ec4772d74e5b2950b19101e19a3a3672fd5e5fd9cb00697fe",
+      "title": "Volundr Product Direction"
+    },
+    {
+      "bytes": 1924,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 36,
+      "path": "docs/PRODUCT_REVIEW_ACTIONS.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "f5bd7dffe04d2bbf20310a9f2a177c342ce85a6bafa0ea93c09c80aab183981d",
+      "title": "Product Review Actions"
+    },
+    {
+      "bytes": 11044,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 226,
+      "path": "docs/PRODUCT_VALIDATION_ROUND_1.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "d5e49fc9b21f317e59934f91f2d6a208fb968b521fa12cbc6432a9957101d657",
+      "title": "Product Validation Round 1"
+    },
+    {
+      "bytes": 3141,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 65,
+      "path": "docs/PROJECT_PERSISTENCE.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "ff6f12e743bbbd9424edc4676eae674d27697c6aca516c61f35843387ee59622",
+      "title": "Project persistence"
+    },
+    {
+      "bytes": 1881,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 44,
+      "path": "docs/PROMPT_CONTEXT_PACK.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
+      ],
+      "references": [],
+      "sha256": "c707c38b30f0f569ef9d46a61c49837dc60a692680e138792fb7f186296da7f5",
+      "title": "Prompt Context Pack"
+    },
+    {
+      "bytes": 5916,
+      "classification": "current_authoritative",
+      "immutable_evidence": false,
+      "line_count": 83,
+      "path": "docs/PROVIDER_CONTRACT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_TRAJECTORY.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
+      ],
+      "references": [],
+      "sha256": "cb28089c562cf20f877213c8c5e913d34c2862691fe32762b1c043ada3caee1e",
+      "title": "Observable Provider and Execution Contracts"
+    },
+    {
+      "bytes": 2105,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 39,
+      "path": "docs/PROVIDER_CONVERGENCE_REGRESSION_FIXTURES.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
+      ],
+      "references": [],
+      "sha256": "08b9d2287a38274df6b55008eebb368c6b56d82ebb94bfe026f867525ea29479",
+      "title": "Provider convergence regression fixtures"
+    },
+    {
+      "bytes": 2641,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 55,
+      "path": "docs/PROVIDER_INTEROPERABILITY_CONTRACT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "854feb90b86ec7e91c6b7c13700c610f72e74473dfc3bc13948eff51a407fd9c",
+      "title": "Provider Interoperability Contract"
+    },
+    {
+      "bytes": 8927,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 159,
+      "path": "docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/TEST_STRATEGY.md"
+      ],
+      "references": [],
+      "sha256": "4b3b6a137a031dd884fcea0c876522402e9d267322e06f3a18c4ae2ada864171",
+      "title": "Provider Interoperability Live Evaluation"
+    },
+    {
+      "bytes": 3962,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 63,
+      "path": "docs/PROVIDER_RESPONSE_CONVERGENCE.md",
+      "referenced_by": [
+        "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
+      ],
+      "references": [],
+      "sha256": "e6784a0d2012c692db98808b8a30a2594820aea051ababbf332e2501f9896536",
+      "title": "Provider response convergence"
+    },
+    {
+      "bytes": 2793,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 57,
+      "path": "docs/REPEATED_FEATURE_LAYOUTS.md",
+      "referenced_by": [
+        "README.md",
+        "docs/COMPACT_PLAN_CONTRACT.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [
+        "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md"
+      ],
+      "sha256": "c1587b8f60f634653b6635b633805e181166882338c950cf743496705f540c42",
+      "title": "Repeated Feature Layouts"
+    },
+    {
+      "bytes": 8635,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 199,
+      "path": "docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "7a675b819cbf543ec4327294c3e3a5b2f62c39f523cce18ecd8294ab0ad3258a",
+      "title": "Requirement-Driven Revision Live Evaluation"
+    },
+    {
+      "bytes": 7218,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 113,
+      "path": "docs/REQUIREMENT_PIPELINE_AUDIT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "b7510ef3d9ab8ecd6513be4ff4170ab9edf8e357b1f01816ccdc7b9e8993eb82",
+      "title": "Requirement Pipeline Audit"
+    },
+    {
+      "bytes": 12829,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 133,
+      "path": "docs/REQUIREMENT_PROPAGATION_REVIEW.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "4b5c535391ca92de1308d2cfa7917ce19904afb0b023a1b1e723cc1432713aac",
+      "title": "Requirement Propagation Review"
+    },
+    {
+      "bytes": 3843,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 90,
+      "path": "docs/REQUIREMENT_SEMANTICS_CONTRACT.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [
+        "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md"
+      ],
+      "sha256": "41837461256804067193df1de6c32757412cd894290ee4c37aa8a82dc1c2330e",
+      "title": "Requirement Semantics Contract"
+    },
+    {
+      "bytes": 5352,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 122,
+      "path": "docs/REQUIREMENT_TRACE_CONTRACT.md",
+      "referenced_by": [
+        "docs/COMPACT_PLAN_CONTRACT.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [
+        "docs/REQUIREMENT_TRACE_NORMALIZATION.md"
+      ],
+      "sha256": "7407f8584eaf937e0298162cf37ee5a3741846d82a75686613ea62afd09583bd",
+      "title": "Requirement Trace Contract"
+    },
+    {
+      "bytes": 4140,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 89,
+      "path": "docs/REQUIREMENT_TRACE_NORMALIZATION.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/REQUIREMENT_TRACE_CONTRACT.md"
+      ],
+      "references": [],
+      "sha256": "ae21aab2a70a681b99f7a64ba872ad6656d97dc9ea31dbe9c94e461e55ec4152",
+      "title": "Requirement Trace Normalization"
+    },
+    {
+      "bytes": 2381,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 55,
+      "path": "docs/REVISION_EVIDENCE_MODEL.md",
+      "referenced_by": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "b2a5f6cfca4fa89d4884d694e09a37a3204561246782875cdd779c8cf4bfab0f",
+      "title": "Revision Evidence Model"
+    },
+    {
+      "bytes": 12449,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 191,
+      "path": "docs/SIMPLIFIED_EXECUTION_BRIEF_EXPERIMENT.md",
+      "referenced_by": [
+        "backend/scripts/write_contract_complexity_reports.py",
+        "docs/mutantpowers/plans/2026-08-03-contract-complexity-model-comparison.md"
+      ],
+      "references": [],
+      "sha256": "94906174f8f840929690d289ce133fa7b7e183246b0e61efe1f2482303c4851e",
+      "title": "Simplified execution brief experiment"
+    },
+    {
+      "bytes": 8988,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 238,
+      "path": "docs/STRUCTURED_REVISION_PLANNING.md",
+      "referenced_by": [
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DATA_MODEL.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/GEMINI_PROMPT_ARCHITECTURE.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md",
+        "docs/MODEL_GENERATION_CONTRACT.md",
+        "docs/PARAMETRIC_PRODUCT_MODEL.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
+      ],
+      "references": [],
+      "sha256": "ae4076ed8e948b1af3ee3b5da746f8bae300884e7607bed86b6a54cb54d052eb",
+      "title": "Structured Revision Planning"
+    },
+    {
+      "bytes": 5172,
+      "classification": "current_authoritative",
+      "immutable_evidence": false,
+      "line_count": 36,
+      "path": "docs/STUDY_INDEX.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/archive/README.md"
+      ],
+      "references": [],
+      "sha256": "d3b4d6e2fbbf85d0f3cc65944af69c949d943bf23ef9b7343a4311559b930aaf",
+      "title": "Gemini and Provider Study Index"
+    },
+    {
+      "bytes": 31087,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 562,
+      "path": "docs/TEST_STRATEGY.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [],
+      "sha256": "563c919da968a967ac4b4a92bdf442406361529b0a0083a6d632918748ad25e9",
+      "title": "Volundr Test Strategy"
+    },
+    {
+      "bytes": 4168,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 85,
+      "path": "docs/USER_TESTING_CHECKPOINT.md",
+      "referenced_by": [
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "dae91bcc1229c5b1f91cdd78943e82f083dc1322ae4179c3ab180d5eba3610dd",
+      "title": "User Testing Checkpoint"
+    },
+    {
+      "bytes": 3269,
+      "classification": "current_supporting",
+      "immutable_evidence": false,
+      "line_count": 70,
+      "path": "docs/WORKER_DIAGNOSTIC_REPAIR.md",
+      "referenced_by": [
+        "README.md",
+        "docs/DOCUMENTATION_MAP.md"
+      ],
+      "references": [],
+      "sha256": "f6b1d26882c1ddf8ba52e57bb79eff00530741f96a138eaf954de28d7ab01a31",
+      "title": "Worker-Diagnostic Repair"
+    },
+    {
+      "bytes": 20124,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 474,
+      "path": "docs/WORKFLOW_OBSERVABILITY.md",
+      "referenced_by": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/CAD_EXECUTION_SECURITY.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/DATA_MODEL.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [],
+      "sha256": "274eee3cdea0de6c6d4f8fcb494c933694a51d0a58d5a01ceb872b4f365d9c55",
+      "title": "Workflow Observability"
+    },
+    {
+      "bytes": 589,
+      "classification": "historical_superseded",
+      "immutable_evidence": true,
+      "line_count": 11,
+      "path": "docs/archive/README.md",
+      "referenced_by": [
+        "backend/tests/test_multi_output_generation.py",
+        "docs/CURRENT_REPOSITORY_AUDIT.md",
+        "docs/DOCUMENTATION_MAP.md",
+        "docs/EXPORTS.md",
+        "docs/MULTI_OUTPUT_GENERATION.md",
+        "docs/PARAMETER_CONFIGURATION.md",
+        "docs/WORKFLOW_OBSERVABILITY.md",
+        "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+        "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+        "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+        "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+        "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+        "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md"
+      ],
+      "references": [
+        "docs/CURRENT_TRAJECTORY.md",
+        "docs/STUDY_INDEX.md"
+      ],
+      "sha256": "9542cdee22692a6235ea79f18ed7b4134d98b88826b987b57f120163b328e5c9",
+      "title": "Archived Documentation"
+    },
+    {
+      "bytes": 15847,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 185,
+      "path": "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+      "referenced_by": [
+        "README.md",
+        "docs/CURRENT_STAGE_ROADMAP.md",
+        "docs/GENERATION_RELIABILITY_PLAN.md"
+      ],
+      "references": [],
+      "sha256": "c46e9cbb4edcfbcca13de924537fb0488ee10f479d0bd940749ce31af43ae7cd",
+      "title": "CadQuery Primary Transition Implementation Plan"
+    },
+    {
+      "bytes": 2820,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 32,
+      "path": "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "bde33a90b3278db143203220eca79d56a0f850ab95ac83bc7a9dc99f1042944b",
+      "title": "Complete Deterministic Workflow Gate Implementation Plan"
+    },
+    {
+      "bytes": 3331,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 32,
+      "path": "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "f4d308c701291d05b2b2c0cf12d992abb8de0c52e7ee8d9873b7ed22b7861254",
+      "title": "Deterministic Playwright Gate Implementation Plan"
+    },
+    {
+      "bytes": 3741,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 39,
+      "path": "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "4d2764efa40ea5061da18fee0da3ac49815b9dd476aad456c24e58fc255acae1",
+      "title": "Frontend User-Testing Workflow Implementation Plan"
+    },
+    {
+      "bytes": 8927,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 97,
+      "path": "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "c2c9f2b029b1fd7a7c89956d570655e16ad66ffa80f02fe55d2abc1d28af0e0a",
+      "title": "Chat-First Workflow and Live Harness Plan"
+    },
+    {
+      "bytes": 2771,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 65,
+      "path": "docs/mutantpowers/plans/2026-08-01-deterministic-parametric-patterns.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "afdc9543fe2c8919fc1632d94cb87918f1a46efc3d03bb1aee1c6c9a817d807e",
+      "title": "Deterministic Parametric Patterns"
+    },
+    {
+      "bytes": 4667,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 67,
+      "path": "docs/mutantpowers/plans/2026-08-01-gemini-stage-specific-routing.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "e6f8a9b00c705cb36d52f663b2602bf9f5e888705f3d3d28128f13672dfc1be7",
+      "title": "Gemini Stage-Specific Routing Implementation Plan"
+    },
+    {
+      "bytes": 6335,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 148,
+      "path": "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "96cd193372a850ca283a43e505d591b4c402257f31b403cdb17473a3bde59f91",
+      "title": "Proportional Planning Depth"
+    },
+    {
+      "bytes": 2460,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 53,
+      "path": "docs/mutantpowers/plans/2026-08-01-scaffold-owned-geometry-returns.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "be90d2e1c1ea711e5a12693d6b88ef21fb9a89f96ccb2a02214d2fd9b5fc46e5",
+      "title": "Scaffold-owned geometry-function returns"
+    },
+    {
+      "bytes": 5014,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 106,
+      "path": "docs/mutantpowers/plans/2026-08-03-contract-complexity-model-comparison.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "50bdc6af1fce01c1be6ce20a09749059871127ceaee71426fb8a7b25d31a69b3",
+      "title": "Contract complexity and model capability comparison"
+    },
+    {
+      "bytes": 3715,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 65,
+      "path": "docs/mutantpowers/plans/2026-08-03-deterministic-feature-verification.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "60ef21e31a80cdb80bbb75cb6e61e1ada198217e757ed8445b7c7a6ee229f7a8",
+      "title": "Deterministic feature verification and source-to-result traceability"
+    },
+    {
+      "bytes": 6886,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 63,
+      "path": "docs/mutantpowers/plans/2026-08-03-gemini-consistency-benchmark.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "eeb38b10cbc536c7cc827c810d9cf0c31c7d083e6b275367687463cdb49831f2",
+      "title": "Gemini Consistency Benchmark Implementation Plan"
+    },
+    {
+      "bytes": 7519,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 164,
+      "path": "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "7f1c441e321fdb3cbf7e04883817ba0d928c7d06bcc774c54ef28347c4b85129",
+      "title": "Geometry Slot Contract Production Plan"
+    },
+    {
+      "bytes": 13918,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 270,
+      "path": "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "538cb6ffd1294590ae8973ad573d2e3675630190565ef77a9d4b2cf46e8799c0",
+      "title": "Live Debug Batch Implementation Plan"
+    },
+    {
+      "bytes": 6953,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 142,
+      "path": "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "b722e55f31648db54e6e6690c6fae0b0980f7917e31260a5842052e0eddfe24d",
+      "title": "Live debug correction round 1"
+    },
+    {
+      "bytes": 8301,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 88,
+      "path": "docs/mutantpowers/plans/2026-08-03-ollama-five-case-benchmark.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "7df565d0e718b7740ac64df16c38ace205760ee48dbebde06516e8e1ac1141a3",
+      "title": "Ollama Five-Case Benchmark Implementation Plan"
+    },
+    {
+      "bytes": 5547,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 117,
+      "path": "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "2d20c3a73d92668951bcfc7a36e3fb3f117f857bd44e1faf4ef5f33c1d91b24b",
+      "title": "Provider-response convergence implementation plan"
+    },
+    {
+      "bytes": 5892,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 38,
+      "path": "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "0cf2b866d7f6d213a2f674d2e1acf30988e64ca21884e909fac77cde14eb96c3",
+      "title": "Gemini Flash Lite Behavior Study Implementation Plan"
+    },
+    {
+      "bytes": 9581,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 186,
+      "path": "docs/mutantpowers/plans/2026-08-04-gemini-provider-contract-foundation.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "db8117d1d2554987c07408a1fa49af127643cfc02794e4d51c47353e5a5322f9",
+      "title": "Gemini Provider Contract Foundation Plan"
+    },
+    {
+      "bytes": 7796,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 91,
+      "path": "docs/mutantpowers/plans/2026-08-04-gemini-system-boundary-methods.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "6424e0dec36fb80484f1599a96ae8157b1cb297669303712b2df50421be0fffa",
+      "title": "Gemini System-Boundary Methods Study"
+    },
+    {
+      "bytes": 2886,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 59,
+      "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-correction.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "634b7bfd5348f95bed27406b91363a01ba10908ae6f570daa3a1be2089feddef",
+      "title": "Gemini Provider Contract Correction Plan"
+    },
+    {
+      "bytes": 4745,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 48,
+      "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-final-repair.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "eb7e2ea9c2645a85eb6f211ac4c1bececd32d117c218eab13b99135326287c09",
+      "title": "Gemini Provider Contract Final Repair Plan"
+    },
+    {
+      "bytes": 6853,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 138,
+      "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-integration.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "fd3f3276d919f0113ef4b55fc71f03ecaf44980af3c0ba2427774fbc0442f9db",
+      "title": "Gemini Provider Contract Integration Plan"
+    }
+  ],
+  "schema_version": "volundr-repository-audit-v1",
+  "summary": {
+    "by_classification": {
+      "current_authoritative": 4,
+      "current_supporting": 51,
+      "historical_immutable": 148,
+      "historical_superseded": 21
+    },
+    "document_count": 224
+  }
+}

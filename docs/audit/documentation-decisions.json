@@ -1,0 +1,1356 @@
+{
+  "current_authoritative_documents": [
+    "docs/CURRENT_TRAJECTORY.md",
+    "docs/INTEGRATION_TEST_LOOP.md",
+    "docs/PROVIDER_CONTRACT.md",
+    "docs/STUDY_INDEX.md"
+  ],
+  "decisions": [
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "CODEX_KICKOFF_PROMPT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "README.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/AI_VISUAL_REVIEW_PLAN.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/ARCHITECTURE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_FUNCTIONAL_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_GEOMETRY_RETURN_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_PARAMETER_EFFECT_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_PATTERN_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_PROVENANCE_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_RETENTION_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_SCAFFOLD_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/BOTTLE_HOLDER_STRUCTURED_GEOMETRY_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/CADQUERY_BACKEND.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CADQUERY_COMPONENT_REVISION_EVALUATION_2026-07-30.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CADQUERY_COMPONENT_REVISION_READINESS_CORRECTION_2026-07-30.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CADQUERY_IDENTITY_CONTRACT_CORRECTION_2026-07-30.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/CADQUERY_LIVE_SMOKE_2026-07-30.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CADQUERY_LIVE_SMOKE_CORRECTION_2026-07-30.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CADQUERY_OUTPUT_PLACEMENT_AND_LID_REVISION_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CADQUERY_TRANSITION_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/CAD_BRIEF_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/CAD_EXECUTION_SECURITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/CHAT_FIRST_WORKFLOW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CHAT_WORKSPACE_FRONTEND_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/COMPACT_DETAILED_HARDENING_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/COMPACT_PLAN_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/COMPONENT_TARGETED_REVISIONS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CONTRACT_COMPLEXITY_MODEL_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/CURRENT_REPOSITORY_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/CURRENT_STAGE_ROADMAP.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_authoritative",
+      "path": "docs/CURRENT_TRAJECTORY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/DATA_MODEL.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/DEPLOYMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/DERIVED_DEPENDENCY_CLASSIFICATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/DESIGN_ARTIFACT_CONSISTENCY_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/DETERMINISTIC_FEATURE_VERIFICATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/DETERMINISTIC_USER_WORKFLOW_GATE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/DOCKER_BASELINE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/DOCUMENTATION_MAP.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/ENVIRONMENT_VARIABLES.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/EXPORTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/FEATURE_VERIFICATION_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/FRONTEND_USER_TESTING_PLAN.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/FRONTEND_WORKFLOW_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/FUNCTIONAL_DESIGN_INTENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/FUNCTIONAL_DESIGN_VERIFICATION_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_ABLATION_EVALUATOR_CORRECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_ABSOLUTE_QUALITY_FLOOR.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_BUILDABILITY_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_BUILDABILITY_SCORE_RECONCILIATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_CONSISTENCY_BENCHMARK.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_CONSISTENCY_FULL_RESULTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_CONSISTENCY_NEXT_ACTIONS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_CONSISTENCY_PILOT_RESULTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FINAL_SYSTEM_SELECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_ANALYZER_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_BASELINE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_BEFORE_AFTER.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_CLEANUP.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_CORRECTED_RESULTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_FEATURE_EVIDENCE_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_FIVE_CASE_BASELINE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_NEXT_ACTIONS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_OFFLINE_REPLAY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_RESPONSE_CORPUS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_RUN_RECORD.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_STUDY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_FLASH_LITE_VALIDATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_GEOMETRY_MODEL_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_INTRINSIC_RESPONSE_QUALITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_MANUAL_REVIEW_BUNDLE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_MODEL_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PHASE2_CLARIFICATION_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PHASE2_VALIDATION_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PHASE2_WORKER_REACH_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROCESSING_METHOD_ABLATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROFILE_ABLATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROFILE_ABLATION_RESULTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROFILE_B_SECOND_VALIDATION_PLAN.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROMPT_ARCHITECTURE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROMPT_CONCISION_EXPERIMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROMPT_CONTRACT_SELECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_ADAPTER.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION_ADAPTER.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION_HOLDOUT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_FOUNDATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_CONTRACT_HOLDOUT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_PROVIDER_PROCESSING_FACTORIAL.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_RESPONSE_VARIABILITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEMINI_RULESET.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_SAMPLING_AND_SEED_EXPERIMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_SECONDARY_CREDENTIAL_RESUME.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_SETTINGS_SELECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_STABLE_FOUNDATION_VALIDATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_STRUCTURED_OUTPUT_EXPERIMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_SYSTEM_BOUNDARY_METHODS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_TARGETED_PROMPT_METHOD.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_THINKING_LEVEL_EXPERIMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEMINI_THINKING_SELECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GENERATION_BENCHMARKS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/GENERATION_BLOCKER_ISOLATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/GENERATION_PIPELINE_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/GENERATION_RELIABILITY_PLAN.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/GEOMETRIC_INVARIANT_VALIDATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEOMETRY_EXECUTION_CONTEXT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEOMETRY_SLOT_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_authoritative",
+      "path": "docs/INTEGRATION_TEST_LOOP.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_CONVERGENCE_CORRECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_CONVERGENCE_CORRECTION_PLAN.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_CONVERGENCE_REGRESSION_CANDIDATES.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_CONVERGENCE_SELF_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_CORRECTION_PLAN.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_CORRECTION_ROUND_1.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_NEXT_PRIORITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_POST_CORRECTION_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_REGRESSION_CANDIDATES.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_BATCH_SELF_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_DEBUG_BATCH_PLAYWRIGHT_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_DESIGN_MATRIX_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LIVE_GENERATION_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/LOCAL_MODEL_NEXT_ACTIONS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_CONVERGENCE_BATCH_01.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_CONVERGENCE_BATCH_02.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_CONVERGENCE_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_LIVE_BATCH_01.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_LIVE_BATCH_02.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_LIVE_BATCH_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MIXED_CAD_LIVE_POST_CORRECTION_01.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/MODEL_GENERATION_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MULTI_DESIGN_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/MULTI_OUTPUT_GENERATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/MULTI_VIEW_SNAPSHOT_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/MVP_SCOPE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OBSERVED_FRONTEND_TESTING_RESULTS_TEMPLATE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_BENCHMARK_ADMISSION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_CALIBRATION_ERRORS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_CALIBRATION_RESOLUTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_FIVE_CASE_COMPATIBILITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_FIVE_CASE_CONSISTENCY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_FIVE_CASE_RESULTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_GEMINI_FIVE_CASE_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_HOLDOUT_FAILURE_ANATOMY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_HOLDOUT_VALIDATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_INSTALLATION_AND_IMPORT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_MODEL_CALIBRATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_MODEL_COMPARISON.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_MODEL_PROFILES.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_NATIVE_CAD_CAPABILITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_NEXT_ACTIONS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_PROMPT_COMPATIBILITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_PROVIDER_READINESS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_RESOURCE_PROFILE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/OLLAMA_RESPONSE_NORMALIZATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/PARAMETER_CONFIGURATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PARAMETRIC_PRODUCT_MODEL.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/PLANNING_DEPTH_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PLANNING_DEPTH_MODEL.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PLAN_SOURCE_IDENTITY_BOUNDARY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PRINTABILITY_INSPECTOR.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PRODUCT_DIRECTION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PRODUCT_REVIEW_ACTIONS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PRODUCT_VALIDATION_ROUND_1.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PROJECT_PERSISTENCE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PROMPT_CONTEXT_PACK.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_authoritative",
+      "path": "docs/PROVIDER_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PROVIDER_CONVERGENCE_REGRESSION_FIXTURES.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PROVIDER_INTEROPERABILITY_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/PROVIDER_INTEROPERABILITY_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/PROVIDER_RESPONSE_CONVERGENCE.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REPEATED_FEATURE_LAYOUTS.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REQUIREMENT_PIPELINE_AUDIT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REQUIREMENT_PROPAGATION_REVIEW.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REQUIREMENT_SEMANTICS_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REQUIREMENT_TRACE_CONTRACT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REQUIREMENT_TRACE_NORMALIZATION.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/REVISION_EVIDENCE_MODEL.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/SIMPLIFIED_EXECUTION_BRIEF_EXPERIMENT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/STRUCTURED_REVISION_PLANNING.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_authoritative",
+      "path": "docs/STUDY_INDEX.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/TEST_STRATEGY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/USER_TESTING_CHECKPOINT.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "current_supporting",
+      "path": "docs/WORKER_DIAGNOSTIC_REPAIR.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/WORKFLOW_OBSERVABILITY.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_superseded",
+      "path": "docs/archive/README.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-07-31-deterministic-playwright-gate.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-01-chat-first-workflow-and-live-harness.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-01-deterministic-parametric-patterns.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-01-gemini-stage-specific-routing.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-01-scaffold-owned-geometry-returns.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-contract-complexity-model-comparison.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-deterministic-feature-verification.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-gemini-consistency-benchmark.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-ollama-five-case-benchmark.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-04-gemini-provider-contract-foundation.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-04-gemini-system-boundary-methods.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-correction.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-final-repair.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-integration.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    }
+  ],
+  "schema_version": "volundr-repository-audit-v1",
+  "unresolved_review_items": []
+}
