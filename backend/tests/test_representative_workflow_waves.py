@@ -91,6 +91,21 @@ def test_initialize_wave_creates_repeatable_evidence_tree_and_preregistration(tm
     assert json.loads((root / "reports/frozen-project-corpus.json").read_text())["projects"][0]["project_id"] == "wave-test-project-01"
 
 
+def test_pre_live_repository_snapshot_refreshes_after_code_freeze(tmp_path: Path) -> None:
+    manifest = WaveManifest.from_dict(_manifest_payload())
+    repository_root = Path(__file__).resolve().parents[2]
+    root = tmp_path / "wave"
+    initialize_wave(root, manifest, repository_root=repository_root)
+    snapshot_path = root / "reports/repository-snapshot.json"
+    snapshot = json.loads(snapshot_path.read_text())
+    snapshot["head"] = "pre-freeze-head"
+    snapshot_path.write_text(json.dumps(snapshot), encoding="utf-8")
+
+    initialize_wave(root, manifest, repository_root=repository_root)
+
+    assert json.loads(snapshot_path.read_text())["head"] != "pre-freeze-head"
+
+
 def test_corrections_are_blocked_until_all_baseline_projects_and_analysis_are_complete(tmp_path: Path) -> None:
     manifest = WaveManifest.from_dict(_manifest_payload())
     runner = WaveRunner(manifest, tmp_path / "wave")

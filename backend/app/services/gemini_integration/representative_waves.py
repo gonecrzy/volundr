@@ -657,7 +657,16 @@ def initialize_wave(root: Path, manifest: WaveManifest, *, repository_root: Path
         "deployed": False,
     }
     _write_once(root / "reports/wave-preregistration.json", preregistration)
-    _write_once(root / "reports/repository-snapshot.json", snapshot)
+    snapshot_path = root / "reports/repository-snapshot.json"
+    evidence_started = any(
+        path.is_file()
+        for category in ("captures", "provider-attempts", "worker-jobs", "artifacts")
+        for path in (root / category).glob("*.json")
+    )
+    if snapshot_path.is_file() and not evidence_started:
+        _write_report(snapshot_path, snapshot)
+    else:
+        _write_once(snapshot_path, snapshot)
     _write_once(root / "reports/frozen-project-corpus.json", {
         "schema_version": WAVE_SCHEMA_VERSION,
         "wave_id": manifest.wave_id,
