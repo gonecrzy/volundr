@@ -18,6 +18,7 @@ from app.services.gemini_integration.representative_waves import (
     WaveRunner,
     analyze_wave_issues,
     build_wave_bundle,
+    build_differential_replays,
     cluster_wave_issues,
     initialize_wave,
     load_wave_manifest,
@@ -175,6 +176,27 @@ def _offline_replay(manifest, root: Path, *, counterfactual: bool) -> int:
         ]
         result = {**result, "fixtures": fixtures, "provider_successes": 0}
     write_wave_report(root, "counterfactual-replays.json", result)
+    differential = build_differential_replays(manifest, store)
+    write_wave_report(root, "differential-replays.json", differential)
+    write_wave_report(root, "regression-replay.json", [
+        {
+            "project_id": project.project_id,
+            "offline_only": True,
+            "provider_calls": 0,
+            "worker_calls": 0,
+            "differential_replays": [item for item in differential if item.get("project_id") == project.project_id],
+            "baseline_outcome": next(
+                (item for item in bundle.get("project_outcomes", []) if item.get("project_id") == project.project_id),
+                None,
+            ),
+        }
+        for project in manifest.projects
+    ])
+    write_wave_report(root, "combined-wave-evidence.json", {
+        **bundle,
+        "counterfactuals": result,
+        "differential_replays": differential,
+    })
     return 0
 
 

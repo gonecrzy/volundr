@@ -11,6 +11,7 @@ from app.services.gemini_integration.representative_waves import (
     WaveManifest,
     WaveRunner,
     analyze_wave_issues,
+    build_differential_replays,
     initialize_wave,
     load_wave_state,
     load_wave_manifest,
@@ -246,3 +247,41 @@ def test_issue_analysis_ignores_positive_validation_metadata(tmp_path: Path) -> 
     )
 
     assert result["issues"] == []
+
+
+def test_differential_replay_attributes_only_the_plan_adapter_change(tmp_path: Path) -> None:
+    manifest = WaveManifest.from_dict(_manifest_payload())
+    store = WaveEvidenceStore(tmp_path / "wave", wave_id=manifest.wave_id)
+    project_id = manifest.projects[0].project_id
+    raw_plan = json.dumps({
+        "components": [{"id": "body", "name": "body"}],
+        "printable_outputs": [{"id": "mounting_bracket", "component_id": "body"}],
+        "design_level": "single_part",
+        "assembly_strategy": {"type": "single_part"},
+    })
+    store.record_boundary({
+        "boundary_id": f"{project_id}:provider_plan",
+        "boundary": "provider_plan",
+        "project_id": project_id,
+        "output": {"text": raw_plan, "attempt_ids": [f"{project_id}:plan:attempt-1"]},
+    })
+    store.record_boundary({
+        "boundary_id": f"{project_id}:requirements_adapter",
+        "boundary": "requirements_adapter",
+        "project_id": project_id,
+        "output": {"accepted": True, "normalized": {"requirements": [{"id": "output_id"}, {"id": "single_printable_bracket"}]}},
+    })
+    store.record_boundary({
+        "boundary_id": f"{project_id}:plan_adapter",
+        "boundary": "plan_adapter",
+        "project_id": project_id,
+        "output": {"accepted": False, "failure_class": "missing_traceability", "validation_result": {"missing_requirement_traceability": ["output_id", "single_printable_bracket"]}},
+    })
+
+    replays = build_differential_replays(manifest, store)
+
+    assert len(replays) == 1
+    assert replays[0]["single_variable_changed"] == "plan_adapter"
+    assert replays[0]["fix_confirmed"] is True
+    assert replays[0]["provider_calls"] == 0
+    assert replays[0]["worker_calls"] == 0

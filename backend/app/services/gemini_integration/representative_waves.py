@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from app.services.gemini_integration.corpus import IntegrationProject
+from app.services.gemini_integration.adapters import GeminiPlanContractAdapter
 from app.services.gemini_integration.forensics import CausalGraph, IssueRecord
 from app.services.gemini_integration.profile import INTEGRATION_PROFILE_ID
 from app.services.workflow.redaction import RedactionService
@@ -585,6 +586,73 @@ def analyze_wave_issues(
     return {"issues": [issue.as_dict() for issue in issues], "causal_graph": causal.as_dict()}
 
 
+def build_differential_replays(manifest: WaveManifest, evidence_store: WaveEvidenceStore) -> list[dict[str, Any]]:
+    """Replay captured Plan responses through the corrected adapter only."""
+
+    boundaries_by_project: dict[str, list[dict[str, Any]]] = {}
+    for boundary in evidence_store.boundaries():
+        boundaries_by_project.setdefault(str(boundary.get("project_id") or ""), []).append(boundary)
+    replays: list[dict[str, Any]] = []
+    adapter = GeminiPlanContractAdapter()
+    for project in manifest.projects:
+        boundaries = boundaries_by_project.get(project.project_id, [])
+        provider = _boundary_named(boundaries, "provider_plan")
+        before_boundary = _boundary_named(boundaries, "plan_adapter")
+        if not provider or not before_boundary:
+            continue
+        raw = str((provider.get("output") or {}).get("text") or "")
+        if not raw:
+            continue
+        requirements_output = (_boundary_named(boundaries, "requirements_adapter") or {}).get("output") or {}
+        requirements = (requirements_output.get("normalized") or {}).get("requirements") or []
+        context = {
+            "project_id": project.project_id,
+            "revision_id": f"{project.project_id}:revision-001",
+            "expected_output_count": project.expected_output_count,
+            "required_requirement_ids": [
+                str(item.get("id")) for item in requirements
+                if isinstance(item, dict) and item.get("id") is not None
+            ],
+            "provenance": {"wave_id": manifest.wave_id, "synthetic": True},
+        }
+        after = adapter.adapt(raw, context).as_dict()
+        before = before_boundary.get("output") or {}
+        changed = {
+            "accepted": before.get("accepted") != after.get("accepted"),
+            "failure_class": before.get("failure_class") != after.get("failure_class"),
+            "validation_result": before.get("validation_result") != after.get("validation_result"),
+            "semantic_hash": before.get("semantic_hash_after") != after.get("semantic_hash_after"),
+        }
+        replays.append({
+            "replay_id": f"{manifest.wave_id}-{project.project_id}-plan-adapter",
+            "wave_id": manifest.wave_id,
+            "project_id": project.project_id,
+            "single_variable_changed": "plan_adapter",
+            "first_changed_boundary": "plan_adapter" if any(changed.values()) else None,
+            "changed_fields": [key for key, value in changed.items() if value],
+            "before": {
+                "accepted": before.get("accepted"),
+                "failure_class": before.get("failure_class"),
+                "validation_result": before.get("validation_result"),
+                "semantic_hash": before.get("semantic_hash_after"),
+            },
+            "after": {
+                "accepted": after.get("accepted"),
+                "failure_class": after.get("failure_class"),
+                "validation_result": after.get("validation_result"),
+                "semantic_hash": after.get("semantic_hash_after"),
+            },
+            "fix_confirmed": before.get("accepted") is False and after.get("accepted") is True,
+            "provider_calls": 0,
+            "worker_calls": 0,
+            "provider_success_eligible": False,
+            "synthetic": True,
+            "source_attempt_boundary_id": provider.get("boundary_id"),
+            "original_capture_hash": provider.get("output_hash"),
+        })
+    return replays
+
+
 def cluster_wave_issues(issues: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = {}
     for issue in issues:
@@ -848,6 +916,7 @@ __all__ = [
     "WaveRunner",
     "analyze_wave_issues",
     "build_wave_bundle",
+    "build_differential_replays",
     "cluster_wave_issues",
     "initialize_wave",
     "load_wave_state",
