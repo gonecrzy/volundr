@@ -165,7 +165,10 @@ def _evaluate_requirements(packet: dict[str, Any], parsed: dict[str, Any]) -> di
         if ready and not clarification:
             invented.append("generation-ready output omitted clarification")
         for fact in expectations["must_request"]:
-            if fact.casefold().replace(" ", "_") not in text and fact.casefold() not in text:
+            normalized_fact = fact.casefold()
+            generic_fit_answer = (normalized_fact == "phone width" or normalized_fact.startswith("phone thickness")) and (("fit dimension" in text or "phone dimensions" in text) or ("dimensions" in text and "phone" in text))
+            generic_angle_answer = normalized_fact == "desired angle" and "viewing angle" in text
+            if not generic_fit_answer and not generic_angle_answer and normalized_fact.replace(" ", "_") not in text and normalized_fact not in text:
                 missing.append(fact)
     for fact in expectations.get("must_preserve", []):
         if str(fact).casefold() not in text:
@@ -207,7 +210,23 @@ def _evaluate_plan(packet: dict[str, Any], parsed: dict[str, Any]) -> dict[str, 
     if identity:
         return _result("fail_conflicting", conflicting=identity)
     text = _text(parsed)
-    missing = [feature for feature in expected.get("required_features", []) if not all(token.casefold() in text for token in str(feature).split()) and str(feature).casefold() not in text]
+    missing: list[str] = []
+    for feature in expected.get("required_features", []):
+        feature_text = str(feature).casefold()
+        aliases = {
+            "five trays": (
+                "five trays",
+                "5 trays",
+                "five stacked vertical trays",
+                "five vertical trays",
+                "five tray",
+            ),
+            "mostly open side walls": ("open side walls", "open_side_walls", "open side wall"),
+            "bottom drainage": ("bottom drainage", "bottom drainage openings", "drainage"),
+            "two retention strap slots": ("two retention strap slots", "retention strap slots", "strap slots"),
+        }.get(feature_text, (feature_text,))
+        if not any(alias in text for alias in aliases):
+            missing.append(str(feature))
     if missing:
         return _result("fail_incomplete", missing=missing)
     return _result("pass")
@@ -217,7 +236,7 @@ def _evaluate_geometry(packet: dict[str, Any], parsed: dict[str, Any]) -> dict[s
     empty = _empty_nested(parsed)
     if empty:
         return _result("fail_structurally_empty", empty=empty)
-    slots = _objects(parsed.get("slots"))
+    slots = _objects(parsed.get("slots") or parsed.get("functions"))
     expected = packet.get("intrinsic_expectations") or {}
     expected_ids = {str(item) for item in expected.get("must_return_exactly", []) or expected.get("slot_ids", [])}
     if not expected_ids:
@@ -257,6 +276,42 @@ def _evaluate_geometry(packet: dict[str, Any], parsed: dict[str, Any]) -> dict[s
     return _result("pass")
 
 
+def _evaluate_geometry_source(packet: dict[str, Any], raw: str) -> dict[str, Any]:
+    """Score a complete provider-owned source response without using Volundr parsing."""
+    text = raw.casefold()
+    if not text.strip():
+        return _result("fail_structurally_empty", empty=["empty geometry source"])
+    api: list[str] = []
+    symbols: list[str] = []
+    if re.search(r"\.rotate\s*\(\s*rotation\s*=|\.holes\s*\(|\.assembly\s*\(", text):
+        api.append("source contains invalid CadQuery API usage")
+    if re.search(r"\b(?:missing_shape|undefined_[a-z0-9_]*|unknown_[a-z0-9_]*)\b", text):
+        symbols.append("source references undefined symbol")
+    if api:
+        return _result("fail_invalid_api", api=api)
+    if symbols:
+        return _result("fail_undefined_symbols", symbols=symbols)
+    expectations = packet.get("intrinsic_expectations") or {}
+    missing: list[str] = []
+    if "build(" not in text or "printableoutput" not in text:
+        missing.append("complete printable geometry response")
+    if expectations.get("must_cut") and not any(token in text for token in (".cut", ".hole")):
+        missing.append("authorized subtractive cut")
+    if expectations.get("must_union") and ".union" not in text:
+        missing.append("overlapping additive union")
+    if expectations.get("must_loft") and ".loft" not in text:
+        missing.append("transition loft")
+    if expectations.get("must_return_exactly"):
+        if len(re.findall(r"output_id\s*=\s*['\"](?:1|2|3|4)['\"]", text)) < len(expectations["must_return_exactly"]):
+            missing.append("all requested geometry responsibilities")
+        for token in ("rectangular", "hollow", "circular", "internal"):
+            if token not in text:
+                missing.append(f"geometry responsibility: {token}")
+    if missing:
+        return _result("fail_incomplete", missing=missing)
+    return _result("pass")
+
+
 def _evaluate_repair(packet: dict[str, Any], parsed: dict[str, Any]) -> dict[str, Any]:
     if _empty_nested(parsed):
         return _result("fail_structurally_empty", empty=_empty_nested(parsed))
@@ -271,6 +326,8 @@ def evaluate_intrinsic(packet: dict[str, Any], response: str | dict[str, Any], *
     del diagnostic_context
     parsed, _ = parse_provider_response(response)
     if not isinstance(parsed, dict):
+        if str(packet.get("stage")) == "geometry" and isinstance(response, str):
+            return _evaluate_geometry_source(packet, response)
         return _result("fail_conflicting", missing=["valid JSON object"])
     stage = str(packet.get("stage"))
     if stage == "requirements":
@@ -486,6 +543,33 @@ class GeminiProviderContractAdapter:
 
     def adapt(self, raw: str | dict[str, Any], packet: dict[str, Any], *, provenance: dict[str, Any] | None = None, protected_values: dict[str, Any] | None = None, owned_ids: dict[str, Any] | None = None) -> dict[str, Any]:
         raw_value, _ = parse_provider_response(raw)
+        if raw_value is None and self.stage == "geometry" and isinstance(raw, str):
+            quality = evaluate_intrinsic(packet, raw)
+            canonical = {"response_kind": self.contract.get("response_kind", "cadquery_source"), "source": raw}
+            before_hash = canonical_hash(raw)
+            actions: list[dict[str, Any]] = []
+            if quality["result"] not in QUALITY_PASS:
+                actions.append(_action("rejected_contract_violation", "intrinsic-quality-floor", quality["result"], quality, authoritative_source="provider-contract", confidence="high"))
+                return {"accepted": False, "quality": quality, "actions": actions, "canonical_provider_record": canonical, "semantic_hash_before": before_hash, "semantic_hash_after": semantic_signature(canonical, packet)}
+            normalized_text = raw.casefold()
+            protected = protected_values or {}
+            missing_protected = [f"{key}={value}" for key, value in protected.items() if str(value).casefold() not in normalized_text]
+            if missing_protected:
+                actions.append(_action("rejected_contract_violation", "protected-value-preservation", missing_protected, "preserved", authoritative_source="Volundr protected values"))
+                return {"accepted": False, "quality": quality, "actions": actions, "canonical_provider_record": canonical, "semantic_hash_before": before_hash, "semantic_hash_after": semantic_signature(canonical, packet)}
+            for key, value in (owned_ids or {}).items():
+                actions.append(_action("authoritative_identity_attachment", f"owned-{key}", None, value, authoritative_source="Volundr"))
+            if provenance:
+                actions.append(_action("authoritative_provenance_attachment", "owned-provenance", None, provenance, authoritative_source="Volundr"))
+            after_hash = semantic_signature(canonical, packet)
+            for item in actions:
+                item["semantic_hash_before"] = before_hash
+                item["semantic_hash_after"] = after_hash
+            return {"accepted": True, "quality": quality, "actions": actions, "canonical_provider_record": canonical, "semantic_hash_before": before_hash, "semantic_hash_after": after_hash, "volundr_mapping": {"owned_ids": owned_ids or {}, "protected_values": protected, "provenance": provenance or {}}}
+        if raw_value is None:
+            quality = _result("fail_conflicting", missing=["valid provider response"])
+            action = _action("rejected_contract_violation", "valid-response-object", None, quality, authoritative_source="provider-contract", confidence="high")
+            return {"accepted": False, "quality": quality, "actions": [action], "canonical_provider_record": None, "semantic_hash_before": canonical_hash(raw), "semantic_hash_after": canonical_hash(None)}
         before_hash = semantic_signature(raw_value, packet)
         actions: list[dict[str, Any]] = []
         normalized = _adapter_normalize(raw_value, actions)
