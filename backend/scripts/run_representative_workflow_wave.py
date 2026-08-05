@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from app.services.gemini_integration.forensics import CounterfactualFixture, replay_captured_evidence_offline
+from app.services.gemini_integration.cadquery_dialect import diagnose_wave_geometry_compatibility
 from app.services.gemini_integration.profile import GeminiFlashLiteContractV1, require_integration_profile
 from app.services.gemini_integration.prompts import GEOMETRY_T5_PROMPT_VERSION
 from app.services.gemini_integration.real_ports import build_real_boundary_ports
@@ -226,10 +227,12 @@ def _analyze(manifest, root: Path) -> int:
     outcomes = read_wave_report(root, "project-outcomes.json", [])
     coordinator = WaveRunner(manifest, root)
     load_wave_state(coordinator)
-    analysis = analyze_wave_issues(manifest, outcomes, store)
+    dialect_diagnosis = diagnose_wave_geometry_compatibility(store)
+    analysis = analyze_wave_issues(manifest, outcomes, store, dialect_diagnosis=dialect_diagnosis)
     clusters = cluster_wave_issues(analysis["issues"])
     ranking = rank_wave_issues(analysis["issues"], clusters)
     write_wave_report(root, "issue-register.json", analysis["issues"])
+    write_wave_report(root, "cadquery-dialect-diagnosis.json", dialect_diagnosis)
     write_wave_report(root, "issue-causal-graph.json", analysis["causal_graph"])
     write_wave_report(root, "cross-project-issue-clusters.json", clusters)
     write_wave_report(root, "issue-priority-ranking.json", ranking)
@@ -253,6 +256,7 @@ def _analyze(manifest, root: Path) -> int:
         causal_graph=analysis["causal_graph"],
         clusters=clusters,
         ranking=ranking,
+        dialect_diagnosis=dialect_diagnosis,
     )
     write_wave_report(root, "combined-wave-evidence.json", bundle)
     return 0
@@ -274,6 +278,12 @@ def _finalize(manifest, root: Path) -> int:
         raise RuntimeError("finalization requires zero-call offline regression replay")
 
     issues = read_wave_report(root, "issue-register.json", [])
+    dialect_diagnosis = read_wave_report(root, "cadquery-dialect-diagnosis.json", {})
+    dialect_issue_classes = sorted({
+        str(item.get("primary_issue_class"))
+        for item in dialect_diagnosis.get("projects", []) or []
+        if item.get("primary_issue_class")
+    })
     fixed_replays = [item for item in differential if item.get("fix_confirmed") is True]
     for issue in issues:
         for replay in fixed_replays:
@@ -312,13 +322,22 @@ def _finalize(manifest, root: Path) -> int:
         "remaining_provider_questions": [
             "whether the provider can produce complete clarification questions for all fit-critical fields",
             "whether the provider can produce worker-completing hollow and revised geometry strategies",
+            "whether future raw geometry responses avoid unsupported or hallucinated CadQuery APIs under the pinned worker runtime",
         ],
+        "cadquery_dialect_issue_classes": dialect_issue_classes,
     })
     write_wave_report(root, "wave-decision.json", {
         "decision": "wave_requires_generalized_narrow_fix",
-        "rationale": "a generalized Plan adapter correction was required and confirmed offline; provider clarification and worker-runtime questions remain for a fresh wave",
+        "rationale": "a generalized Plan adapter correction was required and confirmed offline; raw geometry compatibility was evaluated before separating a hallucinated API from a pinned-worker kernel timeout; provider clarification and worker-completion questions remain for a fresh wave",
         "production_routing_changed": False,
         "deployed": False,
+        "cadquery_compatibility_policy": {
+            "observed_issue_classes": dialect_issue_classes,
+            "versioned_deterministic_adapter_authorized": False,
+            "unrestricted_model_repair_authorized": False,
+            "geometry_ir_evaluation_triggered": False,
+            "valid_geometry_strategies_restricted": False,
+        },
     })
     next_projects = [
         {"project_id": "wave-02-project-01", "title": "Rotational flange with angled holes", "gap": "cylindrical and angled-hole geometry", "request": "Create a printable rotational flange with two angled through-holes and a preserved bore."},
@@ -330,7 +349,7 @@ def _finalize(manifest, root: Path) -> int:
     write_wave_report(root, "next-wave-recommendation.json", {
         "recommend_second_wave": True,
         "wave_id": "wave-02",
-        "reason": "wave-01 exposed provider clarification, worker-completion, and revision coverage gaps after the adapter correction",
+        "reason": "wave-01 exposed provider clarification, raw CadQuery dialect, worker-completion, and revision coverage gaps after the adapter correction",
         "projects": next_projects,
         "requires_new_manifest_without_orchestration_changes": True,
     })

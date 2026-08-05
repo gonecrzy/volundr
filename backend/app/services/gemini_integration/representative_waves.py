@@ -36,6 +36,7 @@ REQUIRED_WAVE_REPORTS = (
     "provider-attempts.json",
     "worker-jobs.json",
     "project-outcomes.json",
+    "cadquery-dialect-diagnosis.json",
     "issue-register.json",
     "issue-causal-graph.json",
     "cross-project-issue-clusters.json",
@@ -472,6 +473,8 @@ def analyze_wave_issues(
     manifest: WaveManifest,
     outcomes: Iterable[dict[str, Any]],
     evidence_store: WaveEvidenceStore,
+    *,
+    dialect_diagnosis: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create a multi-issue register and causal graph from preserved evidence."""
 
@@ -583,7 +586,87 @@ def analyze_wave_issues(
             if left_issue.classification != "consequence":
                 causal.add(left, right, "independent_of")
 
-    return {"issues": [issue.as_dict() for issue in issues], "causal_graph": causal.as_dict()}
+    issue_dicts = [issue.as_dict() for issue in issues]
+    if dialect_diagnosis is not None:
+        _apply_dialect_diagnosis(issue_dicts, causal, dialect_diagnosis)
+    return {"issues": issue_dicts, "causal_graph": causal.as_dict()}
+
+
+def _apply_dialect_diagnosis(
+    issues: list[dict[str, Any]],
+    causal: CausalGraph,
+    diagnosis: dict[str, Any],
+) -> None:
+    """Make compatibility evidence the first boundary when it precedes a worker failure."""
+
+    dialect_classes = {
+        "cadquery_dialect_mismatch",
+        "removed_cadquery_api",
+        "obsolete_cadquery_signature",
+        "direct_ocp_version_mismatch",
+        "hallucinated_cadquery_api",
+    }
+    for project in diagnosis.get("projects", []) or []:
+        project_id = str(project.get("project_id") or "")
+        primary_class = project.get("primary_issue_class")
+        project_issues = [item for item in issues if str(item.get("project_id")) == project_id]
+        worker_issue = next(
+            (
+                item for item in project_issues
+                if item.get("stage") in {"worker", "worker_runtime"}
+                and item.get("classification") == "root_cause"
+            ),
+            None,
+        )
+        if primary_class in {"cadquery_kernel_failure", "semantic_geometry_failure"}:
+            if worker_issue is not None:
+                worker_issue["issue_class"] = primary_class
+            continue
+        if primary_class not in dialect_classes:
+            continue
+        existing_numbers = [
+            int(str(item.get("issue_id")).rsplit("-", 1)[-1])
+            for item in project_issues
+            if str(item.get("issue_id", "")).rsplit("-", 1)[-1].isdigit()
+        ]
+        issue_id = f"{project_id}-issue-{max(existing_numbers or [0]) + 1:02d}"
+        evidence_paths = tuple(
+            str(item.get("boundary_id"))
+            for item in project.get("raw_provider_responses", []) or []
+            if item.get("boundary_id")
+        )
+        affected = [
+            item for item in project.get("references", []) or []
+            if item.get("issue_class") in dialect_classes
+        ]
+        detail = "; ".join(
+            f"{item.get('method') or item.get('symbol')}: {item.get('classification')}"
+            for item in affected[:8]
+        ) or "captured geometry reference did not match the pinned worker runtime"
+        issue = IssueRecord(
+            issue_id=issue_id,
+            project_id=project_id,
+            stage="provider_geometry",
+            primary_owner="provider_geometry",
+            secondary_factors=(),
+            classification="root_cause",
+            symptom=f"raw provider geometry is incompatible with pinned CadQuery/OCP runtime: {detail}",
+            incorrect_behavior="the provider emitted a CadQuery/OCP reference that the pinned worker cannot accept",
+            expected_behavior="raw provider statements must be characterized against the pinned runtime before worker execution is classified",
+            evidence_paths=evidence_paths,
+            input_hashes=(),
+            output_hashes=(),
+            confidence="confirmed",
+            recommended_fix_boundary="provider_geometry",
+            provider_call_required=True,
+            issue_class=str(primary_class),
+        ).as_dict()
+        issues.append(issue)
+        if worker_issue is not None:
+            worker_issue["classification"] = "consequence"
+            worker_issue["blocked_by"] = [issue_id]
+            worker_issue["secondary_factors"] = ["provider_geometry"]
+            causal.add(str(worker_issue.get("issue_id")), issue_id, "caused_by")
 
 
 def build_differential_replays(manifest: WaveManifest, evidence_store: WaveEvidenceStore) -> list[dict[str, Any]]:
@@ -654,7 +737,7 @@ def build_differential_replays(manifest: WaveManifest, evidence_store: WaveEvide
 
 
 def cluster_wave_issues(issues: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
-    groups: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = {}
+    groups: dict[tuple[str, str, str, str, str, str], list[dict[str, Any]]] = {}
     for issue in issues:
         key = (
             str(issue.get("primary_owner") or "unknown"),
@@ -662,11 +745,12 @@ def cluster_wave_issues(issues: Iterable[dict[str, Any]]) -> list[dict[str, Any]
             str(issue.get("recommended_fix_boundary") or "unknown"),
             str(issue.get("classification") or "unknown"),
             str(issue.get("symptom") or "unknown"),
+            str(issue.get("issue_class") or "unknown"),
         )
         groups.setdefault(key, []).append(issue)
     clusters: list[dict[str, Any]] = []
     for index, (key, members) in enumerate(sorted(groups.items()), start=1):
-        owner, stage, boundary, classification, symptom = key
+        owner, stage, boundary, classification, symptom, issue_class = key
         clusters.append({
             "cluster_id": f"cluster-{index:02d}",
             "primary_owner": owner,
@@ -674,6 +758,7 @@ def cluster_wave_issues(issues: Iterable[dict[str, Any]]) -> list[dict[str, Any]
             "recommended_fix_boundary": boundary,
             "classification": classification,
             "signature": symptom,
+            "issue_class": issue_class,
             "issue_ids": sorted(str(item.get("issue_id")) for item in members),
             "project_ids": sorted({str(item.get("project_id")) for item in members}),
             "frequency": len(members),
@@ -742,6 +827,7 @@ def build_wave_bundle(
     differential_replays: Any = None,
     clusters: Any = None,
     ranking: Any = None,
+    dialect_diagnosis: Any = None,
     rate_limit: Any = None,
     retry_summary: Any = None,
 ) -> dict[str, Any]:
@@ -762,6 +848,7 @@ def build_wave_bundle(
         "counterfactuals": counterfactuals or [],
         "differential_replays": differential_replays or [],
         "priority_ranking": ranking or [],
+        "cadquery_dialect_diagnosis": dialect_diagnosis or {},
         "rate_limit": rate_limit or {},
         "retry_summary": retry_summary or {},
         "redaction": {"credential_values_serialized": False, "credential_source": "GEMINI_API_KEY_2"},
@@ -874,6 +961,7 @@ def initialize_wave(root: Path, manifest: WaveManifest, *, repository_root: Path
         "provider-attempts.json": [],
         "worker-jobs.json": [],
         "project-outcomes.json": [],
+        "cadquery-dialect-diagnosis.json": {},
         "issue-register.json": [],
         "issue-causal-graph.json": {"nodes": [], "edges": []},
         "cross-project-issue-clusters.json": [],

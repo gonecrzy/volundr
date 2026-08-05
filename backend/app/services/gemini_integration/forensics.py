@@ -17,6 +17,7 @@ STAGE_ORDER = {
     "requirements": 1,
     "plan": 2,
     "geometry": 3,
+    "provider_geometry": 3,
     "source_assembly": 4,
     "static_validation": 5,
     "worker": 6,
@@ -55,6 +56,7 @@ class IssueRecord:
     counterfactual: dict[str, Any] = field(default_factory=lambda: {"run": False, "single_variable_changed": None, "result": None})
     reproduction: dict[str, Any] = field(default_factory=lambda: {"deterministic": False, "steps": []})
     status: str = "open"
+    issue_class: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -81,6 +83,7 @@ class IssueRecord:
             "confidence": self.confidence,
             "recommended_fix_boundary": self.recommended_fix_boundary,
             "provider_call_required": self.provider_call_required,
+            "issue_class": self.issue_class,
             "status": self.status,
         }
 

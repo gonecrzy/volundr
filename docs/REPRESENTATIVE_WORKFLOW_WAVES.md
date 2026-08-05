@@ -73,3 +73,26 @@ PYTHONPATH=backend backend/.venv/bin/python backend/scripts/run_representative_w
 The manifest is the only wave-specific orchestration input. A future wave
 requires a new `wave_id` and a new manifest/project corpus; the runner and
 boundary code do not need to be copied or edited.
+
+## CadQuery dialect diagnosis
+
+`reports/cadquery-dialect-diagnosis.json` is generated during `--analyze` for
+every captured raw `provider_geometry` response. It preserves the raw provider
+response and exact statements, then records every discovered CadQuery/OCP
+symbol, method, keyword, observed call shape, pinned-worker signature, and
+runtime classification. The pinned worker currently reports CadQuery 2.8.0
+and OCP 7.9.3.1.
+
+Compatibility is evaluated before a worker timeout is treated as a geometry
+failure. API references are classified as current-supported,
+current-signature-mismatch, historical-deprecated, historical-removed,
+direct-OCP-version-sensitive, or unknown/hallucinated. Historical release
+fields explicitly identify when only the pinned-runtime observation is
+available; the analyzer does not invent a historical acceptance window.
+
+The issue register uses the corresponding dialect, removed-API, obsolete
+signature, direct-OCP mismatch, hallucinated-API, kernel-failure, and semantic
+geometry issue classes. Raw statements are never repaired during this
+characterization. A compatibility adapter is appropriate only for a finite,
+versioned mapping; broad runtime drift is reserved for a future geometry IR
+evaluation rather than unrestricted model repair.
