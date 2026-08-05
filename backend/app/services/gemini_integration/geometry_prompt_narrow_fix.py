@@ -1542,7 +1542,10 @@ class GeometryPromptNarrowFixRunner:
         ports = build_real_boundary_ports(
             profile=self.profile,
             evidence_store=self.evidence_store,
-            jobs_root=self.report_root / "worker-jobs",
+            # The real worker container consumes the shared configured CAD
+            # workspace.  The job ID is study-scoped, while reports and
+            # provenance remain under this isolated narrow-fix subtree.
+            jobs_root=None,
         )
         trace: dict[str, Any] = {
             "run": True,
@@ -1553,6 +1556,7 @@ class GeometryPromptNarrowFixRunner:
             "provenance": provenance,
             "semantic_adapter_repair": False,
             "adapter_generated_geometry": False,
+            "worker_jobs_root": "configured_shared_cad_workspace",
         }
         try:
             source_result = await ports.assemble_source(project=project, plan=operation["request"].get("design_plan", {}), geometry=parsed, provenance=provenance)
@@ -1567,13 +1571,30 @@ class GeometryPromptNarrowFixRunner:
             trace["artifacts"] = _json_safe(artifacts)
             topology = await ports.inspect_topology(artifacts=artifacts, provenance=provenance)
             trace["topology"] = _json_safe(topology)
+            expected_outputs = {
+                str(item.get("id") or item.get("output_id")): int(item.get("expected_solid_count") or 1)
+                for item in operation["request"].get("design_plan", {}).get("printable_outputs", []) or []
+                if isinstance(item, dict) and (item.get("id") or item.get("output_id"))
+            }
+            observed_outputs = set(str(key) for key in (topology.get("solid_counts") or {}))
+            trace["expected_output_ids"] = sorted(expected_outputs)
+            trace["observed_output_ids"] = sorted(observed_outputs)
+            trace["expected_outputs_exist"] = set(expected_outputs) <= observed_outputs
+            trace["expected_solid_counts"] = expected_outputs
+            trace["observed_solid_counts"] = topology.get("solid_counts", {})
             verification = await ports.verify_requirements(project=project, plan=operation["request"].get("design_plan", {}), topology=topology, provenance=provenance)
             trace["verification"] = _json_safe(verification)
             candidate_decision = await ports.decide_candidate(project=project, verification=verification, provenance=provenance)
             trace["candidate_decision"] = _json_safe(candidate_decision)
             trace["boundary_sequence"] = ["provider_capture", "t5_geometry_adapter", "source_assembly", "static_validation", "worker", "artifacts", "topology", "verification", "candidate_decision"]
             trace["no_undefined_symbols"] = not any("undefined" in str(item).casefold() for item in (trace.get("static_validation", {}).get("findings", []) or []))
-            trace["expected_output_and_solid_counts_observed"] = bool(trace.get("topology", {}).get("solid_counts"))
+            trace["expected_output_and_solid_counts_observed"] = bool(
+                trace["expected_outputs_exist"]
+                and all(
+                    int(trace["observed_solid_counts"].get(output_id, -1)) == expected_count
+                    for output_id, expected_count in expected_outputs.items()
+                )
+            )
         except Exception as exc:
             trace["harness_failure"] = {"class": type(exc).__name__, "message": str(exc)}
         return trace
@@ -1632,6 +1653,21 @@ class GeometryPromptNarrowFixRunner:
                     "provider_calls": len(item.get("attempts", []) or []),
                     "raw_response_hash": (item.get("provider_result") or {}).get("raw_response_hash"),
                 })
+        worker_failure = worker.get("worker_boundary_failure")
+        if isinstance(worker_failure, dict):
+            issues.append({
+                "issue_id": f"{NARROW_FIX_ID}:worker:{worker_failure.get('classification')}",
+                "project_id": worker.get("project_id"),
+                "group": "worker-smoke",
+                "classification": worker_failure.get("classification"),
+                "owner": "source_assembly_boundary",
+                "root_cause": "source_assembly_worker_representation_mismatch",
+                "corrected": False,
+                "independent": True,
+                "provider_calls": 0,
+                "worker_calls": 1,
+                "evidence": worker_failure,
+            })
         issue_register = {
             "schema_version": "volundr-corrected-issue-register-v1",
             "study_id": STUDY_ID,
@@ -1666,6 +1702,13 @@ class GeometryPromptNarrowFixRunner:
                 for item in live.get("results", []) or []
                 if (item.get("validation_at_capture") or {}).get("passed") is False and (item.get("validation") or {}).get("passed") is True
             ],
+            "worker_failure_boundary": {
+                "classification": (worker.get("worker_boundary_failure") or {}).get("classification"),
+                "owner": "source_assembly_boundary",
+                "worker_calls": worker.get("worker_calls", 0),
+                "artifacts_reached": bool(worker.get("artifacts")),
+                "topology_reached": bool(worker.get("topology")),
+            } if isinstance(worker.get("worker_boundary_failure"), dict) else None,
             "provider_calls": 0,
             "worker_calls": 0,
         }
@@ -1692,7 +1735,16 @@ class GeometryPromptNarrowFixRunner:
         }
         self._write("rate-limit-report.json", rate_report)
         self._write("retry-report.json", retry_report)
-        integration_ready = geometry_decision["decision"] == "geometry_contract_qualified" and worker.get("run") is True and not worker.get("harness_failure")
+        worker_success = bool(
+            worker.get("run") is True
+            and worker.get("worker", {}).get("success") is True
+            and worker.get("python_valid") is True
+            and worker.get("expected_output_and_solid_counts_observed") is True
+            and worker.get("no_undefined_symbols") is True
+            and worker.get("adapter_generated_geometry") is False
+            and not worker.get("harness_failure")
+        )
+        integration_ready = geometry_decision["decision"] == "geometry_contract_qualified" and worker_success
         integration_decision = {
             "schema_version": "volundr-integration-decision-v1",
             "study_id": STUDY_ID,
