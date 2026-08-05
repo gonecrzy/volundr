@@ -320,8 +320,9 @@ def test_resume_does_not_repeat_completed_or_twice_failed_operations(tmp_path: P
     reports = output / "reports"
     reports.mkdir(parents=True)
     records = []
-    records.append({"logical_operation_id": "settings-study-results:S0-current-explicit:H0-current-stage-specific:T0-current:selection-requirements-fit:rep-1", "complete": True, "success": True, "status_code": 200, "parsed_response": {"clarification_required": True, "clarification_questions": [{"question": "What are the phone dimensions?"}], "generation_ready": False, "requirements": [{"id": "r1", "description": "phone stand"}]}, "attempts": [{"status_code": 200}]})
-    records.append({"logical_operation_id": "settings-study-results:S0-current-explicit:H0-current-stage-specific:T0-current:selection-requirements-specified:rep-1", "complete": False, "success": False, "status_code": 429, "attempts": [{"status_code": 429}, {"status_code": 429}]})
+    common = {"settings_profile": "S0-current-explicit", "thinking_profile": "H0-current-stage-specific", "prompt_profile": "T0-current"}
+    records.append({**common, "logical_operation_id": "settings-study-results:S0-current-explicit:H0-current-stage-specific:T0-current:selection-requirements-fit:rep-1", "complete": True, "success": True, "status_code": 200, "parsed_response": {"clarification_required": True, "clarification_questions": [{"question": "What are the phone dimensions?"}], "generation_ready": False, "requirements": [{"id": "r1", "description": "phone stand"}]}, "attempts": [{"status_code": 200}]})
+    records.append({**common, "logical_operation_id": "settings-study-results:S0-current-explicit:H0-current-stage-specific:T0-current:selection-requirements-specified:rep-1", "complete": False, "success": False, "status_code": 429, "attempts": [{"status_code": 429}, {"status_code": 429}]})
     (reports / "settings-study-results.json").write_text(json.dumps({"run": True, "records": records, "rate_limit": {"events": [{"old": True}]}}), encoding="utf-8")
     monkeypatch.setenv("GEMINI_API_KEY_2", "secondary-test-value")
 
