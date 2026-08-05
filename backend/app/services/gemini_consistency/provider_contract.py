@@ -573,7 +573,16 @@ class GeminiProviderContractAdapter:
         before_hash = semantic_signature(raw_value, packet)
         actions: list[dict[str, Any]] = []
         normalized = _adapter_normalize(raw_value, actions)
-        quality = evaluate_intrinsic(packet, normalized)
+        if self.stage == "repair" and (packet.get("frozen_facts", {}).get("required_statements") or str(packet.get("packet_id", "")).startswith("repair-m")):
+            # Repair packets with source-bearing executable contracts are not
+            # ordinary semantic JSON.  Reuse the strict offline evaluator so
+            # adapter replay cannot turn an incomplete or unsafe repair into a
+            # provider-contract success.
+            from .provider_contract_correction import evaluate_executable_repair
+
+            quality = evaluate_executable_repair(packet, normalized)
+        else:
+            quality = evaluate_intrinsic(packet, normalized)
         if quality["result"] not in QUALITY_PASS:
             actions.append(_action("rejected_contract_violation", "intrinsic-quality-floor", quality["result"], quality, authoritative_source="provider-contract", confidence="high"))
             return {"accepted": False, "quality": quality, "actions": actions, "canonical_provider_record": normalized, "semantic_hash_before": before_hash, "semantic_hash_after": semantic_signature(normalized, packet)}

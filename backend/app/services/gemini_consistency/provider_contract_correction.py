@@ -7,8 +7,11 @@ corrected bounded-repair contract only.
 
 from __future__ import annotations
 
+import re
 from copy import deepcopy
 from typing import Any
+
+from .geometry_slot_canonicalizer import GeometrySlotContractCanonicalizer
 
 
 TRANSPORT_RESULTS = {"transport_failure", "quota_failure"}
@@ -263,11 +266,80 @@ def evaluate_bounded_repair(packet: dict[str, Any], response: Any) -> dict[str, 
     return {"result": "pass", "repaired_slot_ids": sorted(repaired_ids), "preserved_slot_ids": sorted(completed_ids), "semantic_change_boundary": "declared invalid slots only", "source_snapshot": deepcopy(packet["repair_source"])}
 
 
+def evaluate_executable_repair(packet: dict[str, Any], response: Any) -> dict[str, Any]:
+    """Evaluate a complete model-owned replacement for a source-bearing packet."""
+    validity = repair_packet_validity(packet)
+    if not validity["valid"]:
+        return {"result": validity["classification"], "reasons": validity["reasons"]}
+    if not isinstance(response, dict) or not isinstance(response.get("repaired_items"), list):
+        return {"result": "fail_incomplete", "reasons": ["complete repaired_items payload is absent"]}
+    facts = packet["frozen_facts"]
+    invalid_ids = {str(item) for item in facts["invalid_slot_ids"]}
+    completed_ids = {str(item) for item in facts["completed_slot_ids"]}
+    repaired_items = response["repaired_items"]
+    repaired_ids = [str(item.get("slot_id")) for item in repaired_items if isinstance(item, dict)]
+    if len(repaired_items) != len(invalid_ids) or set(repaired_ids) != invalid_ids or len(repaired_ids) != len(set(repaired_ids)):
+        return {"result": "fail_incomplete", "reasons": ["exactly one replacement item per invalid slot is required"]}
+    if {str(item) for item in response.get("preserved_item_ids", [])} != completed_ids:
+        return {"result": "fail_conflicting", "reasons": ["completed protected items were not preserved"]}
+    source_by_id = _slot_map(packet["repair_source"].get("slots"))
+    for item in repaired_items:
+        if not isinstance(item, dict) or not isinstance(item.get("statements"), list) or not item["statements"]:
+            return {"result": "fail_incomplete", "reasons": ["replacement item has no executable statements"]}
+        if item.get("result_symbol") != facts.get("required_result_symbol", "body"):
+            return {"result": "fail_conflicting", "reasons": ["result_symbol does not match required result symbol"]}
+        statements = [str(statement) for statement in item["statements"]]
+        text = "\n".join(statements)
+        for defect in facts.get("defect_patterns", []):
+            if str(defect).casefold().startswith("missing "):
+                continue
+            if _compact(str(defect)) in _compact(text):
+                return {"result": "fail_conflicting", "reasons": [f"declared defect remains: {defect}"]}
+        for required_statement in facts.get("required_statements", []):
+            if _compact(str(required_statement)) not in _compact(text):
+                return {"result": "fail_incomplete", "reasons": [f"required repaired operation is absent: {required_statement}"]}
+        operation_family = str(facts.get("expected_operation_family") or "")
+        if operation_family and operation_family.casefold() not in text.casefold():
+            return {"result": "fail_wrong_geometry_strategy", "reasons": [f"expected operation family is absent: {operation_family}"]}
+        for key, value in (facts.get("protected_dimensions") or {}).items():
+            if str(value) not in text:
+                return {"result": "fail_conflicting", "reasons": [f"protected dimension {key}={value} changed or disappeared"]}
+        allowed = set(str(name) for name in facts.get("allowed_names", [])) | {str(facts.get("required_result_symbol", "body"))}
+        validation = GeometrySlotContractCanonicalizer().validate({"required_result_symbol": facts.get("required_result_symbol", "body"), "allowed_names": sorted(allowed)}, statements)
+        if not validation["valid"]:
+            return {"result": "fail_conflicting", "reasons": [validation["reason"]]}
+        if str(item.get("slot_id")) not in source_by_id:
+            return {"result": "fail_conflicting", "reasons": ["replacement slot is absent from source manifest"]}
+    if response.get("rejected_changes") is not None and not isinstance(response.get("rejected_changes"), list):
+        return {"result": "fail_conflicting", "reasons": ["rejected_changes is not a list"]}
+    if response.get("applied_changes"):
+        return {"result": "fail_conflicting", "reasons": ["unauthorized changes were applied"]}
+    return {"result": "pass", "repaired_slot_ids": sorted(invalid_ids), "preserved_slot_ids": sorted(completed_ids), "executable_replacement": True, "semantic_signature": canonical_repair_signature(response)}
+
+
+def canonical_repair_signature(response: Any) -> str:
+    items = response.get("repaired_items", []) if isinstance(response, dict) else []
+    normalized = sorted((item for item in items if isinstance(item, dict)), key=lambda item: str(item.get("slot_id")))
+    return json_like_hash(normalized)
+
+
+def json_like_hash(value: Any) -> str:
+    import hashlib
+    import json
+
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")).hexdigest()
+
+
+def _compact(value: str) -> str:
+    return re.sub(r"\s+", "", value).casefold()
+
+
 __all__ = [
     "corrected_content_denominator",
     "clarification_outcome",
     "earliest_blocker",
     "evaluate_bounded_repair",
+    "evaluate_executable_repair",
     "evaluate_requirements_correction",
     "furthest_valid_stage",
     "holdout_configuration_audit",

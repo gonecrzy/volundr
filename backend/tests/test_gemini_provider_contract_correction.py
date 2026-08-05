@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import json
 from app.services.gemini_consistency.provider_contract_correction import (
     clarification_outcome,
     corrected_content_denominator,
@@ -16,6 +18,9 @@ from app.services.gemini_consistency.provider_contract_correction import (
 from scripts.run_gemini_provider_contract_foundation import _generation_config
 from pathlib import Path
 
+import httpx
+
+import scripts.run_gemini_provider_contract_correction as correction
 from scripts.run_gemini_provider_contract_correction import _settings_selection, stage_prompt_selection
 
 
@@ -236,3 +241,45 @@ def test_transport_denominator_marks_quota_as_excluded() -> None:
     assert result["content_bearing_responses"] == 0
     assert result["quota_failures"] == 1
     assert result["transport_excluded_from_content"] is True
+
+
+def test_retry_policy_waits_once_for_hard_429_and_transport() -> None:
+    assert correction.retry_wait_seconds(429, 0) == 30.0
+    assert correction.retry_wait_seconds(429, 1) is None
+    assert correction.retry_wait_seconds(504, 0) == 10.0
+    assert correction.retry_wait_seconds(504, 1) is None
+    assert correction.retry_wait_seconds(400, 0) is None
+
+
+def test_correction_call_retries_429_once_without_third_attempt(monkeypatch) -> None:
+    packet = correction.repair_packets_v2()[2]
+    responses = [httpx.Response(429, json={"error": {"status": "RESOURCE_EXHAUSTED"}}), httpx.Response(429, json={"error": {"status": "RESOURCE_EXHAUSTED"}}), httpx.Response(200)]
+
+    async def no_sleep(_: float) -> None:
+        return None
+
+    monkeypatch.setattr(correction.asyncio, "sleep", no_sleep)
+
+    class Limiter:
+        def __init__(self):
+            self.events = []
+
+        async def acquire(self):
+            return {"call_start_monotonic": float(len(self.events)), "prior_rolling_window_count": len(self.events), "sleep_seconds": None}
+
+    async def run():
+        async def handler(_: httpx.Request) -> httpx.Response:
+            return responses.pop(0)
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://example.test") as client:
+            return await correction._call_provider_no_hard_429(client=client, limiter=Limiter(), logical_operation_id="retry-test", packet=packet, settings_profile="S0-current-explicit", thinking_profile="H1-provider-default", prompt_profile="T3-repair-executable-replacement-v1", prompt="frozen", generation_config={}, key="secondary-test")
+
+    result = asyncio.run(run())
+    assert [item["status_code"] for item in result["attempts"]] == [429, 429]
+    assert len(responses) == 1
+    assert all(item["logical_operation_id"] == "retry-test" for item in result["attempts"])
+
+
+def test_h1_repair_generation_config_omits_thinking_config() -> None:
+    config = correction._generation_config("S0-current-explicit", "H1-provider-default", "repair", "T3-repair-executable-replacement-v1")
+    assert "thinkingConfig" not in config
