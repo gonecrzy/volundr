@@ -196,3 +196,29 @@ def test_issue_analysis_preserves_multiple_issues_for_one_project(tmp_path: Path
     project_issues = [issue for issue in result["issues"] if issue["project_id"] == project_id]
     assert len(project_issues) >= 2
     assert {issue["classification"] for issue in project_issues} >= {"root_cause", "latent_independent_defect"}
+
+
+def test_issue_analysis_reads_deterministic_adapter_validation_results(tmp_path: Path) -> None:
+    manifest = WaveManifest.from_dict(_manifest_payload())
+    store = WaveEvidenceStore(tmp_path / "wave", wave_id=manifest.wave_id)
+    project_id = manifest.projects[0].project_id
+    store.record_boundary({
+        "boundary_id": f"{project_id}:plan_adapter",
+        "boundary": "plan_adapter",
+        "project_id": project_id,
+        "output": {
+            "accepted": False,
+            "failure_class": "missing_traceability",
+            "validation_result": {"missing_requirement_traceability": ["req-1"]},
+        },
+    })
+
+    result = analyze_wave_issues(
+        manifest,
+        [{"project_id": project_id, "earliest_blocker": "plan_adapter", "furthest_valid_stage": "plan"}],
+        store,
+    )
+
+    issues = [issue for issue in result["issues"] if issue["project_id"] == project_id]
+    assert any(issue["symptom"] == "missing_requirement_traceability: ['req-1']" for issue in issues)
+    assert all(issue["confidence"] == "confirmed" for issue in issues)

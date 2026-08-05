@@ -352,6 +352,18 @@ def _finding_records(value: Any) -> Iterable[dict[str, Any]]:
             for finding in findings:
                 if isinstance(finding, dict):
                     yield finding
+        validation = value.get("validation_result") or value.get("validation")
+        if isinstance(validation, dict):
+            for rule_id, detail in validation.items():
+                if detail in (None, False, True, [], {}, ""):
+                    continue
+                yield {
+                    "rule_id": str(rule_id),
+                    "message": f"{rule_id}: {detail}",
+                    "blocking": True,
+                    "_validation_generated": True,
+                    "deterministic": True,
+                }
         for child in value.values():
             yield from _finding_records(child)
     elif isinstance(value, list):
@@ -407,6 +419,7 @@ def analyze_wave_issues(
         if blocker:
             matching = [item for item in project_boundaries if str(item.get("boundary") or "") in {blocker, f"provider_{blocker}"}]
             evidence_paths = tuple(str(item.get("boundary_id")) for item in matching)
+            matching_failure = any((item.get("output") or {}).get("failure_class") for item in matching)
             issue = IssueRecord(
                 issue_id=f"{project_id}-issue-{index:02d}",
                 project_id=project_id,
@@ -420,7 +433,7 @@ def analyze_wave_issues(
                 evidence_paths=evidence_paths,
                 input_hashes=tuple(str(item.get("input_hash")) for item in matching if item.get("input_hash")),
                 output_hashes=tuple(str(item.get("output_hash")) for item in matching if item.get("output_hash")),
-                confidence="possible",
+                confidence="confirmed" if matching_failure or _OWNER_BY_BOUNDARY.get(blocker, "unknown") != "unknown" else "possible",
                 recommended_fix_boundary=_OWNER_BY_BOUNDARY.get(blocker, "unknown"),
                 provider_call_required=_OWNER_BY_BOUNDARY.get(blocker, "unknown").startswith("provider_"),
             )
@@ -443,14 +456,18 @@ def analyze_wave_issues(
                     stage=boundary_name,
                     primary_owner=_OWNER_BY_BOUNDARY.get(boundary_name, "unknown"),
                     secondary_factors=(),
-                    classification="root_cause" if not project_issue_ids else "latent_independent_defect",
+                    classification=(
+                        "contributing_factor"
+                        if finding.get("_validation_generated")
+                        else "root_cause" if not project_issue_ids else "latent_independent_defect"
+                    ),
                     symptom=str(finding.get("message") or finding.get("rule_id") or "captured validation finding"),
                     incorrect_behavior=str(finding.get("message") or "boundary finding was reported"),
                     expected_behavior="the boundary contract should be satisfied",
                     evidence_paths=(str(boundary.get("boundary_id")),),
                     input_hashes=(str(boundary.get("input_hash")),) if boundary.get("input_hash") else (),
                     output_hashes=(str(boundary.get("output_hash")),) if boundary.get("output_hash") else (),
-                    confidence="confirmed" if finding.get("deterministic") is True else "possible",
+                    confidence="confirmed" if finding.get("deterministic") is True or boundary_name in _OWNER_BY_BOUNDARY else "possible",
                     recommended_fix_boundary=_OWNER_BY_BOUNDARY.get(boundary_name, "unknown"),
                     provider_call_required=_OWNER_BY_BOUNDARY.get(boundary_name, "unknown").startswith("provider_"),
                 )
