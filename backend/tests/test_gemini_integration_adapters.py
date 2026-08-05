@@ -93,6 +93,23 @@ def test_plan_adapter_preserves_output_obligations_and_traceability() -> None:
     assert result.normalized["features"][0]["requirement_ids"] == ["req-vent"]
 
 
+def test_plan_adapter_accepts_authoritative_output_identity_and_single_output_traceability() -> None:
+    result = GeminiPlanContractAdapter().adapt(
+        {
+            "components": [{"id": "bracket", "name": "bracket"}],
+            "printable_outputs": [{"id": "mounting_bracket", "component_id": "bracket"}],
+            "design_level": "single_part",
+            "assembly_strategy": {"type": "single_part"},
+        },
+        _context(
+            expected_output_count=1,
+            required_requirement_ids=["output_id", "single_printable_bracket"],
+        ),
+    )
+
+    assert result.accepted is True
+
+
 def test_plan_adapter_rejects_empty_records_and_invalid_references() -> None:
     empty = GeminiPlanContractAdapter().adapt(
         {"components": [{}], "printable_outputs": []},

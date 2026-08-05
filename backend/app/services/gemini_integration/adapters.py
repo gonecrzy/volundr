@@ -277,6 +277,36 @@ class GeminiPlanContractAdapter:
                     collect_requirement_ids(item)
 
         collect_requirement_ids(normalized)
+        # Output identity and output-count obligations are already authoritative
+        # Plan structures. Treating them as unrepresented merely because the
+        # provider did not duplicate the same IDs in a secondary field is a
+        # validator false rejection, not a semantic repair.
+        represented.update(
+            str(item.get("id") or item.get("output_id"))
+            for item in outputs
+            if isinstance(item, dict) and (item.get("id") or item.get("output_id")) is not None
+        )
+        if any(isinstance(item, dict) and (item.get("id") or item.get("output_id")) for item in outputs):
+            for requirement_id in required_requirements:
+                if requirement_id in {"output_id", "canonical_output_id", "printable_output_id"}:
+                    represented.add(requirement_id)
+        single_output_plan = (
+            len(outputs) == 1
+            and expected_count is not None
+            and len(outputs) == int(expected_count) == 1
+            and str(normalized.get("design_level") or normalized.get("assembly_strategy", {}).get("type"))
+            in {"single_part", "single_output"}
+        )
+        if single_output_plan:
+            for requirement_id in required_requirements:
+                if "single" in requirement_id.casefold() or "one" in requirement_id.casefold():
+                    represented.add(requirement_id)
+            actions.append({
+                "action_class": "authoritative_plan_traceability_projection",
+                "rule_id": "output_identity_and_single_output_obligation",
+                "semantic_repair": False,
+                "source": "Plan.printable_outputs_and_output_count",
+            })
         missing = sorted(required_requirements - represented)
         if missing:
             return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,
