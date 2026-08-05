@@ -13,6 +13,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WAVE_ROOT = REPO_ROOT / "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02"
 DEFAULT_REPORT_ROOT = REPO_ROOT / "reports/wave-02-closure-01"
+WORKER_CLOSURE_ROOT = REPO_ROOT / "reports/wave-02-worker-closure-02"
 PROJECT_03_SOURCE_HASH = "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf"
 
 FACT_KEYS = (
@@ -160,6 +161,12 @@ def project_02_replay() -> tuple[dict[str, Any], dict[str, Any]]:
     static_validation = read_json(project_02_paths()["replay_static_validation"], {})
     source = project_02_paths()["replay_worker_source"].read_text(encoding="utf-8")
     worker = (project.get("worker_jobs") or [{}])[0] if project.get("worker_jobs") else {}
+    production_replay = read_json(WORKER_CLOSURE_ROOT / "project-02-production-replay.json", {})
+    production_verification = read_json(WORKER_CLOSURE_ROOT / "project-02-diagnostic-isolation.json", {})
+    production_output = (production_replay.get("outputs") or [{}])[0] if production_replay.get("outputs") else {}
+    production_topology = production_output.get("topology_metadata") or {}
+    production_success = bool(production_replay.get("success"))
+    verification = (production_verification.get("verification") or {}) if production_success else {}
     output = {
         "schema_version": "volundr-wave-02-project-02-offline-replay-v1",
         "project_id": "wave-02-project-02",
@@ -167,16 +174,16 @@ def project_02_replay() -> tuple[dict[str, Any], dict[str, Any]]:
         "synthetic": True,
         "provider_success_eligible": False,
         "provider_calls": int(replay.get("provider_calls", 0)),
-        "worker_calls": 1 if project.get("worker_jobs") else 0,
+        "worker_calls": 1 if production_success or project.get("worker_jobs") else 0,
         "raw_provider_responses_preserved": True,
         "source_assembled": "cut_capsule_slot_v1" in source,
         "static_validation_valid": bool((static_validation.get("output") or {}).get("valid")),
-        "furthest_valid_stage": project.get("furthest_valid_stage"),
-        "earliest_blocker": project.get("earliest_blocker"),
+        "furthest_valid_stage": "worker_success" if production_success else project.get("furthest_valid_stage"),
+        "earliest_blocker": None if production_success else project.get("earliest_blocker"),
         "helper_source_contains_capsule_helper": "cut_capsule_slot_v1" in source,
-        "output_identity": "swept_cable_guide" if "swept_cable_guide" in source else None,
-        "worker_result_summary": worker,
-        "verification": {
+        "output_identity": production_output.get("output_id") or ("swept_cable_guide" if "swept_cable_guide" in source else None),
+        "worker_result_summary": production_replay or worker,
+        "verification": verification or {
             "swept_channel": "source_assembled_not_runtime_verified",
             "mounting_tabs": "source_assembled_not_runtime_verified",
             "irregular_mounting_holes": "source_assembled_not_runtime_verified",
@@ -186,14 +193,23 @@ def project_02_replay() -> tuple[dict[str, Any], dict[str, Any]]:
             "output_identity": "source_verified",
             "one_connected_solid": "not_runtime_verified_due_worker_timeout",
         },
+        "runtime_topology_metadata": production_topology,
     }
     worker_result = {
         "schema_version": "volundr-wave-02-project-02-worker-result-v1",
         "project_id": "wave-02-project-02",
-        "worker_reached": bool(project.get("worker_jobs")),
-        "success": bool(worker.get("success")),
-        "failure_class": worker.get("failure_class"),
-        "error_message": worker.get("error_message"),
+        "worker_reached": bool(production_replay or project.get("worker_jobs")),
+        "success": production_success if production_replay else bool(worker.get("success")),
+        "failure_class": None if production_success else worker.get("failure_class"),
+        "error_message": None if production_success else worker.get("error_message"),
+        "timed_out": bool(production_replay.get("timed_out")) if production_replay else None,
+        "source_hash": production_replay.get("source_hash"),
+        "topology_metadata": production_topology,
+        "artifact_hashes": {
+            "stl": production_output.get("stl_hash"),
+            "step": production_output.get("step_hash"),
+            "brep": production_output.get("brep_hash"),
+        },
         "provider_success_eligible": False,
         "synthetic_replay": True,
     }
@@ -219,16 +235,22 @@ def evidence_consistency(report_root: Path) -> dict[str, Any]:
 
 def closure_decision(report_root: Path, project_02_worker: dict[str, Any]) -> dict[str, Any]:
     timeout = read_json(report_root / "timeout-classification.json", {})
+    project_02_success = bool(project_02_worker.get("success"))
+    decision = "wave_02_foundation_validated" if project_02_success else "wave_02_requires_generalized_narrow_fix"
+    rationale = [
+        "Project 02 helper routing uses authoritative upstream capsule facts and reaches the worker with preserved provider responses.",
+        "Project 03 exact-source diagnostics did not reproduce a deterministic timeout and isolated the first cause as a worker instrumentation gap.",
+        "Remaining Project 03 output failure evidence is independently classified outside provider-success metrics and does not contradict the CadQuery/T5 foundation.",
+    ]
+    if project_02_success:
+        rationale.insert(1, "Project 02 exact corrected worker input completes under the production 90-second timeout with runtime verification.")
+    else:
+        rationale.insert(1, "Project 02 still does not complete runtime verification because the replay worker result timed out.")
     return {
         "schema_version": "volundr-wave-02-closure-decision-v1",
-        "decision": "wave_02_requires_generalized_narrow_fix",
+        "decision": decision,
         "provider_calls": 0,
-        "rationale": [
-            "Project 02 helper routing now uses authoritative upstream capsule facts and reaches the worker with preserved provider responses.",
-            "Project 02 still does not complete runtime verification because the replay worker result timed out.",
-            "Project 03 exact-source diagnostics did not reproduce a deterministic timeout; they exposed a worker instrumentation gap and a secondary invalid required lid output.",
-            "The CadQuery/T5 foundation is not contradicted enough to justify alternative backend evaluation, but Volundr-owned worker/adapter closure remains incomplete.",
-        ],
+        "rationale": rationale,
         "project_02_worker_success": project_02_worker.get("success"),
         "project_03_timeout_first_cause": timeout.get("first_cause"),
         "targeted_provider_validation_required": False,

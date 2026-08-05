@@ -7779,6 +7779,46 @@
     {
       "classification": "historical_immutable",
       "kind": "study_record",
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "historical_immutable",
+      "kind": "study_record",
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/app-data/jobs/2212b3f3-b264-4735-8baa-05a6e5f955ba/data/debug-sessions/product-integration/validated-cadquery-product-flow-01",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "historical_immutable",
+      "kind": "study_record",
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/app-data/jobs/c0423ab0-a5aa-4a67-86aa-906a0baa0c8c/data/debug-sessions/product-integration/validated-cadquery-product-flow-01",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "historical_immutable",
+      "kind": "study_record",
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/app-data/projects/9b2249c3-d88e-4e6d-b8ec-51995df4b2a2/revision-plans/14a41d3c-01ff-4d44-92e2-9ffc94173699",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "historical_immutable",
+      "kind": "study_record",
       "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
@@ -11789,9 +11829,9 @@
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
-    "node_count": 695,
+    "node_count": 699,
     "safe_to_archive_nodes": 2,
     "safe_to_delete_nodes": 0,
-    "unreferenced_nodes": 243
+    "unreferenced_nodes": 247
   }
 }

@@ -7133,6 +7133,6 @@
   "policy": "Raw captures, attempts, hashes, provenance, and historical decisions are immutable and retained.",
   "removed_derived_results": [],
   "schema_version": "volundr-repository-audit-v1",
-  "study_record_count": 185,
+  "study_record_count": 189,
   "unresolved_review_items": []
 }

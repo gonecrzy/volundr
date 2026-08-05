@@ -14,10 +14,10 @@ does not call a provider or CAD worker.
 
 - Documentation files: 226 ({"current_authoritative": 4, "current_supporting": 51, "historical_immutable": 149, "historical_superseded": 21, "unknown_requires_review": 1})
 - Test and fixture items: 188 ({"historical_integrity_only": 10, "retain_current": 170, "retain_regression": 8})
-- Study directories indexed: 4008
-- Study records indexed: 185
+- Study directories indexed: 4075
+- Study records indexed: 189
 - Script/provider-code items: 96
-- Reference-graph nodes: 695
+- Reference-graph nodes: 699
 
 ## Retention and cleanup decisions
 

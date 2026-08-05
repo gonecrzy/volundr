@@ -1,10 +1,74 @@
 {
-  "error_message": "CAD worker did not complete job within 90 seconds",
-  "failure_class": "timeout",
+  "artifact_hashes": {
+    "brep": "6bd1cb28bcfbd127fbeb53fd3af9bc1ca4ed6ec8831f3838983734839b40b0cf",
+    "step": "22a6dcedcd859a7f62ada4004b51472a71ab5356c36c59402247fe0c95fbaf7d",
+    "stl": "470e988ab9b5a37f98c35d4b24ac6b40772019b92779c67802083bcd0ed6e8f3"
+  },
+  "error_message": null,
+  "failure_class": null,
   "project_id": "wave-02-project-02",
   "provider_success_eligible": false,
   "schema_version": "volundr-wave-02-project-02-worker-result-v1",
-  "success": false,
+  "source_hash": "ded9efb5e508828021276faafafade9891e7de49ea578b2ec9c166addaaba008",
+  "success": true,
   "synthetic_replay": true,
+  "timed_out": false,
+  "topology_metadata": {
+    "allow_disconnected_solids": false,
+    "bounding_box_mm": {
+      "size_x": 79.8157936577532,
+      "size_y": 57.40987931538065,
+      "size_z": 30.68874245019103,
+      "x_max": 79.8157935577532,
+      "x_min": -1.0000000375334881e-07,
+      "y_max": 40.0000001,
+      "y_min": -17.40987921538065,
+      "z_max": 30.688742350191003,
+      "z_min": -1.0000002524835707e-07
+    },
+    "coordinate_space": "print_space",
+    "detected_solid_count": 1,
+    "expected_solid_count": 1,
+    "model_space_bounds": {
+      "size_x": 79.8157936577532,
+      "size_y": 57.40987931538065,
+      "size_z": 30.688742450191477,
+      "x_max": 79.8157935577532,
+      "x_min": -1.0000000375334881e-07,
+      "y_max": 40.0000001,
+      "y_min": -17.40987921538065,
+      "z_max": 20.688742350191472,
+      "z_min": -10.000000100000005
+    },
+    "outcome": "valid",
+    "output_id": "swept_cable_guide",
+    "placement_policy": "cadquery-output-placement-v1",
+    "print_space_bounds": {
+      "size_x": 79.8157936577532,
+      "size_y": 57.40987931538065,
+      "size_z": 30.68874245019103,
+      "x_max": 79.8157935577532,
+      "x_min": -1.0000000375334881e-07,
+      "y_max": 40.0000001,
+      "y_min": -17.40987921538065,
+      "z_max": 30.688742350191003,
+      "z_min": -1.0000002524835707e-07
+    },
+    "print_transform": {
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "translation": [
+        0.0,
+        0.0,
+        10.0
+      ]
+    },
+    "shell_count": 1,
+    "valid": true,
+    "volume_mm3": 29588.141322916923
+  },
   "worker_reached": true
 }
