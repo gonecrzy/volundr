@@ -47,3 +47,11 @@ compatibility. Its 20-operation holdout passed 17/20 intrinsic checks, below
 the universal foundation floor. The provider decision is therefore
 `provider_contract_not_yet_stable`, and no Profile B or S0 settings are
 deployed.
+
+The subsequent provider-contract correction selected S0 settings on corrected
+content denominators, qualified the missing-fit requirements T2 prompt at 6/6,
+and found the source-bearing repair T2 prompt improved but below gate at 4/6.
+The corrected H1 holdout and adapter replay were gated, so the authoritative
+continuation decision is `corrected_second_validation_required`. See
+`GEMINI_PROVIDER_CONTRACT_FOUNDATION.md` and the correction reports under the
+study evidence root.

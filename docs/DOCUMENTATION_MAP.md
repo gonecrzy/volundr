@@ -67,7 +67,11 @@ selection in the corresponding selection documents, frozen contracts in
 `GEMINI_PROVIDER_CONTRACTS.md`, adapter behavior in
 `GEMINI_PROVIDER_CONTRACT_ADAPTER.md`, and holdout status in
 `GEMINI_PROVIDER_CONTRACT_HOLDOUT.md`. Its final decision is evidence only;
-it does not override production contracts.
+it does not override production contracts. The methodology correction,
+source-bearing repair gate, and second-validation plan are documented in
+`GEMINI_PROVIDER_CONTRACT_CORRECTION.md`,
+`GEMINI_PROVIDER_CONTRACT_CORRECTION_HOLDOUT.md`, and
+`GEMINI_PROVIDER_CONTRACT_CORRECTION_ADAPTER.md`.
 
 ### Historical evaluation evidence
 

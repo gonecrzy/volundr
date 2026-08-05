@@ -4,14 +4,19 @@ Study `gemini-provider-contract-foundation-01` evaluates
 `gemini-3.5-flash-lite` independently of the current Volundr parser, Plan
 normalization, source assembler, worker, topology, and verification code.
 
-The settings gate chose S0 explicit sampling. The thinking and prompt matrices
-were resumed under the same frozen operation IDs; H1 was the completed
-thinking winner in the final matrix, while no prompt candidate cleared the
-universal quality floor. These are study results, not a production
-deployment. The separate 20-operation holdout achieved 17/20 intrinsic
-quality passes, so the final provider decision is
-`provider_contract_not_yet_stable`. The adapter decision is separately
-`provider_contract_requires_revision`.
+The original settings report was corrected offline and its one missing S1
+multislot operation was completed once. Both S0 and S1 now have 12/12
+content-bearing passes; the corrected content-only decision selects S0 by the
+frozen entropy tie-break. The original holdout records were actually H0 with
+explicit MINIMAL thinking, so the historical H1 conclusion is retained as
+historical evidence but is not an H1 holdout conclusion.
+
+The correction tested a narrow missing-fit requirements prompt (T2, 6/6)
+against T0 (4/6), and real source-bearing repair packets (T2, 4/6) against T0
+(2/6). Because no repair prompt cleared the 6/6 gate, the corrected H1
+holdout and adapter replay were not authorized. The corrected final decision
+is `corrected_second_validation_required`; this is not a production
+deployment.
 
 All calls in this study used only the secondary credential slot and the exact
 model identity `gemini-3.5-flash-lite`. No Ollama, worker, or production calls

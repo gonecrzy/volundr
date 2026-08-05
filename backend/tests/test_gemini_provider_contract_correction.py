@@ -10,6 +10,7 @@ from app.services.gemini_consistency.provider_contract_correction import (
     holdout_configuration_audit,
     repair_packet_validity,
     select_settings_from_content,
+    source_contract_passed,
     worker_reach_semantics,
 )
 from scripts.run_gemini_provider_contract_foundation import _generation_config
@@ -188,3 +189,50 @@ def test_stage_selection_does_not_authorize_holdout_without_repair_prompt() -> N
     assert selection["selected"] is False
     assert selection["stages"]["requirements"]["selected_prompt"] == "T2-requirements-missing-fit-v1"
     assert selection["stages"]["repair"]["selected_prompt"] is None
+
+
+def test_clarification_answered_is_distinct_from_requested() -> None:
+    assert clarification_outcome(facts={"width": "missing"}, response={"clarification_required": True}, answer_submitted=True, resumed=True) == "clarification_answered"
+
+
+def test_clarification_answer_failure_is_distinct_from_missing_answer() -> None:
+    assert clarification_outcome(facts={"width": "missing"}, response={"clarification_required": True}, answer_submitted=True, resumed=False) == "clarification_answer_failed"
+
+
+def test_incorrect_clarification_request_is_classified() -> None:
+    assert clarification_outcome(facts={"width": "missing"}, response={"clarification_required": False}, answer_submitted=False, resumed=False) == "clarification_required_incorrectly"
+
+
+def test_clarification_not_required_is_classified() -> None:
+    assert clarification_outcome(facts={"width": 78}, response={"clarification_required": False}, answer_submitted=False, resumed=False) == "clarification_not_required"
+
+
+def test_source_contract_pass_is_detected_from_generation_chain() -> None:
+    assert source_contract_passed({"chain": {"stages": [{"source_contract_passed_hard_checks": True}]}}) is True
+
+
+def test_submitted_source_without_contract_is_not_worker_ready() -> None:
+    result = worker_reach_semantics({"source_submitted": True, "source_contract_passed": False})
+
+    assert result["worker_reached"] is True
+    assert result["worker_ready_valid_source"] is False
+
+
+def test_worker_runtime_failure_is_not_worker_completion() -> None:
+    result = worker_reach_semantics({"worker": {"status": "runtime_failed", "runtime_error": "CadQuery exception"}})
+
+    assert result["worker_reached"] is True
+    assert result["worker_completed"] is False
+    assert result["worker_runtime_failed"] is True
+
+
+def test_h1_generation_config_omits_thinking_for_repair() -> None:
+    assert "thinkingConfig" not in _generation_config("S0-current-explicit", "H1-provider-default", "repair", "T2-repair-bounded-payload-v1")
+
+
+def test_transport_denominator_marks_quota_as_excluded() -> None:
+    result = corrected_content_denominator([_record("S0-current-explicit", "quota_failure", status_code=429)])
+
+    assert result["content_bearing_responses"] == 0
+    assert result["quota_failures"] == 1
+    assert result["transport_excluded_from_content"] is True

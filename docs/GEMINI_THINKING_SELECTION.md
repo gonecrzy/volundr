@@ -11,5 +11,9 @@ winner before the resumed H1 records were restored. The final report is
 authoritative and the overall provider contract still failed later prompt and
 holdout gates.
 
-This decision is provider-contract evidence only and does not change the
-production thinking configuration.
+The corrected continuation treats H1 as provisional provider-default
+configuration and requires that its payload omit `thinkingConfig`. The
+historical 20-operation holdout used H0 with explicit MINIMAL thinking and is
+therefore not evidence for the H1 holdout gate. This decision is
+provider-contract evidence only and does not change production thinking
+configuration.

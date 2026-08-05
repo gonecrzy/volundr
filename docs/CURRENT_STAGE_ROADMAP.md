@@ -562,7 +562,11 @@ not deployment or a broad study.
 
 ## Gemini provider-contract gate
 
-The isolated contract study selected S0/H0/T0 for provider-only evidence but
-its holdout passed 17/20, below the universal floor. Keep the frozen artifacts
-and generic adapter experiment-scoped. Production provider settings, prompts,
-schemas, and deployment remain unchanged until a revised holdout qualifies.
+The isolated contract study's historical holdout was actually H0, not the
+selected H1 provider-default configuration. The offline correction completed
+the missing S1 settings operation and selected S0 on content-only evidence;
+requirements T2 qualified at 6/6, but source-bearing repair T2 reached only
+4/6. The corrected H1 holdout and adapter replay were gated. Keep all frozen
+artifacts experiment-scoped; production provider settings, prompts, schemas,
+and deployment remain unchanged until the documented second validation
+qualifies.

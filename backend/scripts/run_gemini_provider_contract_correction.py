@@ -654,6 +654,90 @@ def record_adapter_gate(repo_root: Path, provider: dict[str, Any]) -> dict[str, 
     return decision
 
 
+def rate_retry_report(repo_root: Path) -> dict[str, Any]:
+    correction = _correction_root(repo_root)
+    phase_names = ("settings-s1-replacement", "requirements-study-results", "repair-study-results", "corrected-holdout-results")
+    phases: dict[str, Any] = {}
+    all_records: list[dict[str, Any]] = []
+    for name in phase_names:
+        report = _json(_phase_report(correction, name)) or {}
+        records = report.get("records", [])
+        all_records.extend(records)
+        events = list((report.get("rate_limit") or {}).get("events") or [])
+        starts = sorted(float(item["call_start_monotonic"]) for item in events if item.get("call_start_monotonic") is not None)
+        phases[name] = {"run": bool(report.get("run")), "logical_operations": len(records), "provider_calls": sum(len(item.get("attempts", [])) for item in records), "retries": sum(max(0, len(item.get("attempts", [])) - 1) for item in records), "status_codes": sorted({item.get("status_code") for record in records for item in record.get("attempts", []) if item.get("status_code") is not None}), "actual_models": sorted({item.get("actual_model") for item in records if item.get("actual_model")}), "min_gap_seconds_within_process": round(min((right - left for left, right in zip(starts, starts[1:])), default=0.0), 3), "hard_429_retried": any(item.get("status_code") == 429 and len(record.get("attempts", [])) > 1 for record in records for item in record.get("attempts", []))}
+    report = {"schema_version": "gemini-provider-contract-correction-rate-retry-v1", "run": True, "offline_only": True, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "provider_calls": 0, "worker_calls": 0, "model": MODEL, "auth_policy": {"secondary_only": True, "environment": SECONDARY_ENV}, "limiter_policy": {"concurrency": 1, "default_requests_per_minute": 12, "hard_max_requests_per_rolling_60_seconds": 15, "minimum_gap_seconds": 5, "hard_429_retried": False}, "phases": phases, "aggregate": {"logical_operations": len(all_records), "provider_calls": sum(len(item.get("attempts", [])) for item in all_records), "retries": sum(max(0, len(item.get("attempts", [])) - 1) for item in all_records), "actual_models": sorted({item.get("actual_model") for item in all_records if item.get("actual_model")}), "worker_calls": 0}}
+    _redacted_write(correction / "rate-retry-report.json", report)
+    return report
+
+
+def second_validation_plan(repo_root: Path) -> dict[str, Any]:
+    plan = {
+        "schema_version": "gemini-provider-contract-correction-second-validation-plan-v1",
+        "run": True,
+        "offline_only": True,
+        "study_id": STUDY_ID,
+        "correction_id": CORRECTION_ID,
+        "provider_calls": 0,
+        "worker_calls": 0,
+        "decision_trigger": "run only after a repair prompt reaches 6/6 on three source-bearing repair packets",
+        "model": MODEL,
+        "auth": {"environment": SECONDARY_ENV, "primary_key_allowed": False},
+        "settings": {"profile": "S0-current-explicit", "basis": "corrected content denominators 12/12 for both S0 and S1; S0 lower contract entropy; historical S1 transport excluded"},
+        "thinking": {"profile": "H1-provider-default", "generation_config_must_omit": ["thinkingConfig"]},
+        "stage_prompts": {"requirements": "T2-requirements-missing-fit-v1", "plan": "T0-current", "geometry": "T0-current", "repair": "new independently qualified bounded-payload prompt"},
+        "packets": {"repair_prequalification": [item["packet_id"] for item in correction_repair_packets()], "holdout": [item["packet_id"] for item in _corrected_holdout_packets()]},
+        "holdout": {"logical_operations": 20, "packets": 10, "repetitions_per_packet": 2, "one_complete_workflow_per_packet": True},
+        "rate_limit": {"provider_concurrency": 1, "default_requests_per_minute": 12, "hard_max_requests_per_rolling_60_seconds": 15, "minimum_call_start_gap_seconds": 5, "retry_hard_429": False},
+        "capture": {"immutable_provider_payloads": True, "one_combined_manual_review_json": True, "actual_model_identity_required": MODEL},
+        "gates": {"settings": "both content denominators complete and no critical invention", "requirements": "6/6", "repair": "6/6 with actual repaired_items and corrected source semantics", "holdout": "20/20 content passes and exact H1 payload", "adapter": "replay only after provider qualification"},
+        "not_run_in_this_correction": True,
+    }
+    _redacted_write(_correction_root(repo_root) / "second-validation-plan.json", plan)
+    return plan
+
+
+def final_correction_decision(repo_root: Path, provider: dict[str, Any], adapter: dict[str, Any], rate: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    decision = {
+        "schema_version": "gemini-provider-contract-correction-final-decision-v1",
+        "run": True,
+        "offline_only": True,
+        "study_id": STUDY_ID,
+        "correction_id": CORRECTION_ID,
+        "provider_calls": 0,
+        "worker_calls": 0,
+        "decision": "corrected_second_validation_required",
+        "provider_decision": provider.get("decision"),
+        "adapter_decision": adapter.get("decision"),
+        "actual_model_identities": rate.get("aggregate", {}).get("actual_models", []),
+        "reasons": [
+            "The historical H1 holdout was actually H0 with explicit MINIMAL thinking and cannot support an H1 conclusion.",
+            "The corrected S1 transport denominator is complete and content-valid, but S0 wins the deterministic entropy tie-break.",
+            "The requirements T2 prompt is the safer qualified prompt at 6/6, while T0 is 4/6.",
+            "The source-bearing repair T2 prompt improves over T0 (4/6 versus 2/6) but does not meet the frozen 6/6 gate.",
+            "The corrected H1 holdout and adapter replay were correctly gated and made zero calls.",
+        ],
+        "production": {"provider_settings_changed": False, "adapter_changed": False, "deployed": False},
+        "required_next_step": "Complete the documented second validation after qualifying a bounded repair prompt; do not deploy based on this correction.",
+        "second_validation_plan": plan,
+    }
+    _redacted_write(_correction_root(repo_root) / "final-provider-contract-correction-decision.json", decision)
+    _redacted_write(_correction_root(repo_root) / "final-decision.json", decision)
+    return decision
+
+
+def combined_correction_bundle(repo_root: Path, *, provider: dict[str, Any], adapter: dict[str, Any], rate: dict[str, Any], plan: dict[str, Any], final: dict[str, Any]) -> dict[str, Any]:
+    correction = _correction_root(repo_root)
+    old_reports = _old_root(repo_root) / "reports"
+    historical_names = ("settings-study-results.json", "settings-study-decision.json", "thinking-study-results.json", "thinking-study-decision.json", "prompt-study-results.json", "prompt-study-decision.json", "holdout-packets.json", "holdout-results.json", "final-provider-contract-decision.json", "final-adapter-decision.json", "provider-retry-report.json", "gemini-rate-limit-report.json")
+    correction_names = ("methodology-audit.json", "settings-study-comparison.json", "settings-s1-replacement.json", "requirements-study-results.json", "requirements-study-decision.json", "repair-study-results.json", "repair-study-decision.json", "stage-prompt-selection.json", "corrected-holdout-results.json", "corrected-holdout-decision.json", "thinking-audit.json", "corrected-provider-decision.json", "corrected-adapter-replay-results.json", "corrected-adapter-decision.json", "rate-retry-report.json", "second-validation-plan.json", "final-provider-contract-correction-decision.json")
+    historical = {name.removesuffix(".json"): _json(old_reports / name) for name in historical_names}
+    correction_reports = {name.removesuffix(".json"): _json(correction / name) for name in correction_names if (correction / name).is_file()}
+    bundle = {"schema_version": "gemini-provider-contract-correction-combined-bundle-v1", "run": True, "offline_only": True, "study_id": STUDY_ID, "correction_id": CORRECTION_ID, "provider_calls": 0, "worker_calls": 0, "model": MODEL, "redaction": {"self_contained": True, "redacted_writer": "RedactionService", "historical_reports_preserved_under": f"{_old_root(repo_root).relative_to(repo_root)}/reports/historical/{HISTORICAL_DIRNAME}"}, "historical_evidence": historical, "correction_evidence": correction_reports, "provider_decision": provider, "adapter_decision": adapter, "rate_retry": rate, "second_validation_plan": plan, "final_decision": final}
+    _redacted_write(correction / "combined-correction-bundle.json", bundle)
+    return {"path": str((correction / "combined-correction-bundle.json").relative_to(repo_root)), "historical_report_count": len(historical), "correction_report_count": len(correction_reports), "provider_calls": 0, "worker_calls": 0}
+
+
 async def run_all(repo_root: Path) -> dict[str, Any]:
     """Run the authorized correction sequence, stopping at hard quota."""
     audit = methodology_audit(repo_root)
@@ -674,7 +758,11 @@ async def run_all(repo_root: Path) -> dict[str, Any]:
         holdout = record_holdout_gate(repo_root, selection, "corrected H1 holdout requires an independently qualified repair prompt; the all-six content gate was not met")
         provider = corrected_provider_decision(repo_root, settings, requirements, repair, holdout, selection)
         adapter = record_adapter_gate(repo_root, provider)
-        return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider, "adapter": adapter, "stopped": "stage prompt selection incomplete"}
+        rate = rate_retry_report(repo_root)
+        plan = second_validation_plan(repo_root)
+        final = final_correction_decision(repo_root, provider, adapter, rate, plan)
+        bundle = combined_correction_bundle(repo_root, provider=provider, adapter=adapter, rate=rate, plan=plan, final=final)
+        return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider, "adapter": adapter, "rate": rate, "plan": plan, "final": final, "bundle": bundle, "stopped": "stage prompt selection incomplete"}
     holdout = await corrected_holdout(repo_root, settings_profile, str(requirements["selected_prompt"]), str(repair["selected_prompt"]))
     provider = corrected_provider_decision(repo_root, settings, requirements, repair, holdout, selection)
     return {"methodology": audit, "settings": settings, "requirements": requirements, "repair": repair, "selection": selection, "holdout": holdout, "provider": provider}
