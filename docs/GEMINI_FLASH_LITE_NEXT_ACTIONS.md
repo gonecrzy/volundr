@@ -53,8 +53,9 @@ changes. See `GEMINI_FINAL_SYSTEM_SELECTION.md`.
 
 ## Provider-contract foundation status
 
-The independent contract study selected S0/H0/T0 for intrinsic quality, then
-failed its 20-operation holdout at 17/20. Record the provider decision as
+The independent contract study selected S0 for settings, but its completed
+thinking/prompt matrix did not leave a prompt candidate above the universal
+floor, and its holdout failed at 17/20. Record the provider decision as
 `provider_contract_not_yet_stable` and the adapter decision as
 `provider_contract_requires_revision`. Keep the contracts experiment-scoped;
 do not rebuild production around them or deploy them until a revised,

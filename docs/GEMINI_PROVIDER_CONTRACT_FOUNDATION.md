@@ -4,9 +4,11 @@ Study `gemini-provider-contract-foundation-01` evaluates
 `gemini-3.5-flash-lite` independently of the current Volundr parser, Plan
 normalization, source assembler, worker, topology, and verification code.
 
-The gated selection chose S0 explicit sampling, H0 current stage-specific
-thinking, and T0 current provider prompts. These are selection results, not a
-production deployment. The 20-operation holdout achieved 17/20 intrinsic
+The settings gate chose S0 explicit sampling. The thinking and prompt matrices
+were resumed under the same frozen operation IDs; H1 was the completed
+thinking winner in the final matrix, while no prompt candidate cleared the
+universal quality floor. These are study results, not a production
+deployment. The separate 20-operation holdout achieved 17/20 intrinsic
 quality passes, so the final provider decision is
 `provider_contract_not_yet_stable`. The adapter decision is separately
 `provider_contract_requires_revision`.
