@@ -235,7 +235,8 @@ def main(argv: list[str] | None = None) -> int:
     manifest = load_wave_manifest(manifest_path)
     if manifest.provider_profile != args.profile:
         parser.error("manifest provider_profile does not match --profile")
-    initialize_wave(root, manifest, repository_root=repository_root)
+    if args.prepare or (args.baseline and not args.resume):
+        initialize_wave(root, manifest, repository_root=repository_root)
     if args.prepare:
         return 0
     if args.baseline:

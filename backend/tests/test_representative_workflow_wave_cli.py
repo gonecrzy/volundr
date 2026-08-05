@@ -66,3 +66,15 @@ def test_replay_is_offline_and_preserves_zero_call_counts(tmp_path: Path) -> Non
     replay = json.loads((root / "reports/counterfactual-replays.json").read_text())
     assert replay["provider_calls"] == 0
     assert replay["worker_calls"] == 0
+
+
+def test_offline_replay_does_not_reinitialize_repository_snapshot(tmp_path: Path, monkeypatch) -> None:
+    manifest = _manifest(tmp_path / "manifest.json")
+    root = tmp_path / "wave"
+
+    def unexpected_initialization(*args, **kwargs):
+        raise AssertionError("offline replay must not initialize or rewrite repository snapshot")
+
+    monkeypatch.setattr(wave_cli, "initialize_wave", unexpected_initialization)
+
+    assert wave_cli.main(["--manifest", str(manifest), "--root", str(root), "--replay"]) == 0

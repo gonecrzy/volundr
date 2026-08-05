@@ -353,7 +353,7 @@ def _finding_records(value: Any) -> Iterable[dict[str, Any]]:
                 if isinstance(finding, dict):
                     yield finding
         validation = value.get("validation_result") or value.get("validation")
-        if isinstance(validation, dict):
+        if isinstance(validation, dict) and value.get("accepted") is not True:
             for rule_id, detail in validation.items():
                 if detail in (None, False, True, [], {}, ""):
                     continue
@@ -390,16 +390,89 @@ _OWNER_BY_BOUNDARY = {
 }
 
 
+def _boundary_aliases(boundary: str) -> set[str]:
+    reverse = {
+        "worker_runtime": "worker",
+        "static_validator": "static_validation",
+        "candidate_decision": "candidate",
+    }
+    aliases = {boundary, f"provider_{boundary}"}
+    if reverse.get(boundary):
+        aliases.add(reverse[boundary])
+    return aliases
+
+
+def _tokens_for_diagnosis(value: Any) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[a-z0-9]+", str(value).casefold())
+        if token not in {"mm", "deg", "degrees", "unit", "the", "of", "and", "with", "including", "status"}
+    }
+
+
+def _boundary_named(boundaries: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
+    return next((item for item in boundaries if str(item.get("boundary") or "") == name), None)
+
+
+def _infer_root_cause(project, blocker: str, boundaries: list[dict[str, Any]]) -> tuple[str, str, str]:
+    """Locate the first incorrect boundary for the observed advancement blocker."""
+
+    if blocker == "requirements_adapter":
+        adapter = _boundary_named(boundaries, "requirements_adapter") or {}
+        output = adapter.get("output") or {}
+        validation = output.get("validation_result") or {}
+        normalized = output.get("normalized") or {}
+        if output.get("failure_class") == "missing_required_clarification":
+            questions = " ".join(str(item) for item in normalized.get("clarification_questions", []))
+            unmatched = [
+                fact for fact in project.fit_critical_missing
+                if not _tokens_for_diagnosis(fact) <= _tokens_for_diagnosis(questions)
+            ]
+            if unmatched or not normalized.get("clarification_questions"):
+                return "provider_requirements", "provider_requirements", f"provider clarification did not explicitly ask for: {unmatched or list(project.fit_critical_missing)}"
+        if validation:
+            return "provider_requirements", "provider_requirements", f"provider requirements response failed the clarification contract: {validation}"
+
+    if blocker == "plan_adapter":
+        adapter = _boundary_named(boundaries, "plan_adapter") or {}
+        output = adapter.get("output") or {}
+        validation = output.get("validation_result") or {}
+        missing = [str(item) for item in validation.get("missing_requirement_traceability", [])]
+        plan = output.get("normalized") or {}
+        outputs = [item for item in plan.get("printable_outputs", []) if isinstance(item, dict)]
+        output_ids = {str(item.get("id") or item.get("output_id")) for item in outputs}
+        requirement_records = (
+            (_boundary_named(boundaries, "requirements_adapter") or {}).get("output") or {}
+        ).get("normalized", {}).get("requirements", [])
+        descriptions = {
+            str(item.get("id")): str(item.get("description") or "")
+            for item in requirement_records if isinstance(item, dict)
+        }
+        optional_missing = [item for item in missing if "may be proposed" in descriptions.get(item, "").casefold()]
+        identity_mapped = [item for item in missing if item in output_ids]
+        one_output_mapped = [
+            item for item in missing
+            if len(outputs) == 1 and int(project.expected_output_count) == 1
+            and ("single" in item.casefold() or "one" in item.casefold())
+            and str(plan.get("design_level") or plan.get("assembly_strategy", {}).get("type")) in {"single_part", "single_output"}
+        ]
+        if identity_mapped or one_output_mapped:
+            return "plan_adapter", "plan_adapter", "adapter failed to recognize authoritative identity/output-count traceability"
+        if optional_missing:
+            return "provider_requirements", "provider_requirements", f"provider requirements classified optional proposal as mandatory: {optional_missing}"
+        if missing:
+            return "provider_plan", "provider_plan", f"provider Plan omitted requirement traceability: {missing}"
+
+    owner = _OWNER_BY_BOUNDARY.get(blocker, "unknown")
+    return blocker, owner, f"workflow stopped at {blocker} after the last authoritative boundary"
+
+
 def analyze_wave_issues(
     manifest: WaveManifest,
     outcomes: Iterable[dict[str, Any]],
     evidence_store: WaveEvidenceStore,
 ) -> dict[str, Any]:
-    """Create a multi-issue register from preserved boundary findings.
-
-    This intentionally reports every captured finding independently; the
-    earliest blocker is only one record and never replaces later findings.
-    """
+    """Create a multi-issue register and causal graph from preserved evidence."""
 
     outcome_by_project = {str(item.get("project_id")): item for item in outcomes}
     boundaries_by_project: dict[str, list[dict[str, Any]]] = {}
@@ -415,36 +488,66 @@ def analyze_wave_issues(
         blocker = str(outcome.get("earliest_blocker") or "")
         project_issue_ids: list[str] = []
         index = 1
+        root_stage = root_owner = root_symptom = ""
 
         if blocker:
-            matching = [item for item in project_boundaries if str(item.get("boundary") or "") in {blocker, f"provider_{blocker}"}]
-            evidence_paths = tuple(str(item.get("boundary_id")) for item in matching)
-            matching_failure = any((item.get("output") or {}).get("failure_class") for item in matching)
-            issue = IssueRecord(
-                issue_id=f"{project_id}-issue-{index:02d}",
+            root_stage, root_owner, root_symptom = _infer_root_cause(project, blocker, project_boundaries)
+            root_boundaries = [item for item in project_boundaries if str(item.get("boundary") or "") in _boundary_aliases(root_stage)]
+            root_paths = tuple(str(item.get("boundary_id")) for item in root_boundaries)
+            root_id = f"{project_id}-issue-{index:02d}"
+            root_issue = IssueRecord(
+                issue_id=root_id,
                 project_id=project_id,
-                stage=blocker,
-                primary_owner=_OWNER_BY_BOUNDARY.get(blocker, "unknown"),
+                stage=root_stage,
+                primary_owner=root_owner,
                 secondary_factors=(),
                 classification="root_cause",
-                symptom=f"workflow stopped at {blocker}",
-                incorrect_behavior="the boundary did not produce an authoritative valid result",
-                expected_behavior="the boundary should produce an authoritative valid result or an explicit safe clarification",
-                evidence_paths=evidence_paths,
-                input_hashes=tuple(str(item.get("input_hash")) for item in matching if item.get("input_hash")),
-                output_hashes=tuple(str(item.get("output_hash")) for item in matching if item.get("output_hash")),
-                confidence="confirmed" if matching_failure or _OWNER_BY_BOUNDARY.get(blocker, "unknown") != "unknown" else "possible",
-                recommended_fix_boundary=_OWNER_BY_BOUNDARY.get(blocker, "unknown"),
-                provider_call_required=_OWNER_BY_BOUNDARY.get(blocker, "unknown").startswith("provider_"),
+                symptom=root_symptom,
+                incorrect_behavior=root_symptom,
+                expected_behavior="the first incorrect boundary must preserve the authoritative contract",
+                evidence_paths=root_paths,
+                input_hashes=tuple(str(item.get("input_hash")) for item in root_boundaries if item.get("input_hash")),
+                output_hashes=tuple(str(item.get("output_hash")) for item in root_boundaries if item.get("output_hash")),
+                confidence="confirmed" if root_owner != "unknown" else "possible",
+                recommended_fix_boundary=root_owner,
+                provider_call_required=root_owner.startswith("provider_"),
             )
-            issues.append(issue)
-            project_issue_ids.append(issue.issue_id)
+            issues.append(root_issue)
+            project_issue_ids.append(root_id)
             index += 1
+
+            if root_stage != blocker:
+                blocker_boundaries = [item for item in project_boundaries if str(item.get("boundary") or "") in _boundary_aliases(blocker)]
+                consequence_id = f"{project_id}-issue-{index:02d}"
+                consequence = IssueRecord(
+                    issue_id=consequence_id,
+                    project_id=project_id,
+                    stage=blocker,
+                    primary_owner=_OWNER_BY_BOUNDARY.get(blocker, "unknown"),
+                    secondary_factors=(root_owner,),
+                    classification="consequence",
+                    symptom=f"workflow stopped at {blocker} after {root_stage} output",
+                    incorrect_behavior="a downstream boundary rejected or could not advance the preserved upstream result",
+                    expected_behavior="downstream boundaries should receive a valid upstream contract result",
+                    evidence_paths=tuple(str(item.get("boundary_id")) for item in blocker_boundaries),
+                    input_hashes=tuple(str(item.get("input_hash")) for item in blocker_boundaries if item.get("input_hash")),
+                    output_hashes=tuple(str(item.get("output_hash")) for item in blocker_boundaries if item.get("output_hash")),
+                    blocked_by=(root_id,),
+                    confidence="confirmed",
+                    recommended_fix_boundary=_OWNER_BY_BOUNDARY.get(blocker, "unknown"),
+                    provider_call_required=False,
+                )
+                issues.append(consequence)
+                project_issue_ids.append(consequence_id)
+                causal.add(consequence_id, root_id, "caused_by")
+                index += 1
 
         seen_findings: set[tuple[str, str, str]] = set()
         for boundary in project_boundaries:
             boundary_name = str(boundary.get("boundary") or "unknown")
             for finding in _finding_records(boundary.get("output")):
+                if finding.get("_validation_generated") and root_stage != blocker and boundary_name == blocker:
+                    continue
                 key = (boundary_name, str(finding.get("rule_id") or finding.get("message") or ""), str(finding.get("message") or ""))
                 if key in seen_findings:
                     continue
@@ -475,28 +578,34 @@ def analyze_wave_issues(
                 project_issue_ids.append(issue_id)
                 index += 1
         for left, right in zip(project_issue_ids, project_issue_ids[1:]):
-            causal.add(left, right, "independent_of")
+            left_issue = next(item for item in issues if item.issue_id == left)
+            if left_issue.classification != "consequence":
+                causal.add(left, right, "independent_of")
 
     return {"issues": [issue.as_dict() for issue in issues], "causal_graph": causal.as_dict()}
 
 
 def cluster_wave_issues(issues: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
-    groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    groups: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = {}
     for issue in issues:
         key = (
             str(issue.get("primary_owner") or "unknown"),
             str(issue.get("stage") or "unknown"),
             str(issue.get("recommended_fix_boundary") or "unknown"),
+            str(issue.get("classification") or "unknown"),
+            str(issue.get("symptom") or "unknown"),
         )
         groups.setdefault(key, []).append(issue)
     clusters: list[dict[str, Any]] = []
     for index, (key, members) in enumerate(sorted(groups.items()), start=1):
-        owner, stage, boundary = key
+        owner, stage, boundary, classification, symptom = key
         clusters.append({
             "cluster_id": f"cluster-{index:02d}",
             "primary_owner": owner,
             "stage": stage,
             "recommended_fix_boundary": boundary,
+            "classification": classification,
+            "signature": symptom,
             "issue_ids": sorted(str(item.get("issue_id")) for item in members),
             "project_ids": sorted({str(item.get("project_id")) for item in members}),
             "frequency": len(members),

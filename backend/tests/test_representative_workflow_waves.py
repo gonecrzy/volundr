@@ -209,6 +209,7 @@ def test_issue_analysis_reads_deterministic_adapter_validation_results(tmp_path:
         "output": {
             "accepted": False,
             "failure_class": "missing_traceability",
+            "normalized": {"printable_outputs": [{"id": "req-1"}], "design_level": "single_part"},
             "validation_result": {"missing_requirement_traceability": ["req-1"]},
         },
     })
@@ -222,3 +223,26 @@ def test_issue_analysis_reads_deterministic_adapter_validation_results(tmp_path:
     issues = [issue for issue in result["issues"] if issue["project_id"] == project_id]
     assert any(issue["symptom"] == "missing_requirement_traceability: ['req-1']" for issue in issues)
     assert all(issue["confidence"] == "confirmed" for issue in issues)
+
+
+def test_issue_analysis_ignores_positive_validation_metadata(tmp_path: Path) -> None:
+    manifest = WaveManifest.from_dict(_manifest_payload())
+    store = WaveEvidenceStore(tmp_path / "wave", wave_id=manifest.wave_id)
+    project_id = manifest.projects[0].project_id
+    store.record_boundary({
+        "boundary_id": f"{project_id}:geometry_adapter",
+        "boundary": "geometry_adapter",
+        "project_id": project_id,
+        "output": {
+            "accepted": True,
+            "validation_result": {"required_result_symbol": "body", "numeric_literals_preserved": True},
+        },
+    })
+
+    result = analyze_wave_issues(
+        manifest,
+        [{"project_id": project_id, "earliest_blocker": None, "furthest_valid_stage": "geometry_adapter"}],
+        store,
+    )
+
+    assert result["issues"] == []
