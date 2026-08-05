@@ -1,0 +1,3149 @@
+{
+  "counterfactuals": [
+    {
+      "counterfactual_id": "exact_authoritative_output_ids_only",
+      "provider_success_eligible": false,
+      "result": {
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "error_message": "requested output not found: enclosure_base",
+        "execution_manifest_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_authoritative_output_ids/worker-workspace/counterfactual_authoritative_output_ids/execution-manifest.json",
+        "execution_timing": {
+          "functions": [
+            {
+              "elapsed_ms": 0.429,
+              "name": "_volundr_apply_patterns"
+            },
+            {
+              "elapsed_ms": 15.009,
+              "name": "_ai_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 15.572,
+              "name": "_ai_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 21.079,
+              "name": "apply_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 18.325,
+              "name": "_ai_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 25.94,
+              "name": "apply_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 29.356,
+              "name": "_ai_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 39.66,
+              "name": "apply_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 25.377,
+              "name": "_ai_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 33.591,
+              "name": "apply_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 138.91,
+              "name": "build_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 6.011,
+              "name": "_ai_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 18.993,
+              "name": "_ai_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 26.757,
+              "name": "apply_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 25.205,
+              "name": "_ai_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 43.976,
+              "name": "apply_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 29.9,
+              "name": "_ai_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 48.988,
+              "name": "apply_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 128.931,
+              "name": "build_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 3.831,
+              "name": "_ai_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 25.033,
+              "name": "_ai_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 33.104,
+              "name": "apply_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 39.681,
+              "name": "build_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 308.097,
+              "name": "build"
+            }
+          ],
+          "operations": [
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 13.51,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.496,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 11.506,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.791,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 11.884,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.291,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 5.558,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 17.995,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.057,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 3,
+                "face_count": 3,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.466,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 11,
+                "solid_count": 1
+              },
+              "elapsed_ms": 15.548,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.447,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.327,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.235,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 12.004,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.912,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.596,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 12,
+                "solid_count": 2
+              },
+              "elapsed_ms": 15.654,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.938,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 5.18,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 36,
+                "face_count": 18,
+                "solid_count": 3
+              },
+              "elapsed_ms": 18.111,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.415,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.576,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.359,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 15.432,
+              "name": "cut"
+            }
+          ],
+          "outputs": {
+            "cable_clamp": {},
+            "enclosure_base": {},
+            "enclosure_lid": {}
+          },
+          "total_ms": 326.751
+        },
+        "exit_code": 0,
+        "mode": "cadquery_cli_runner",
+        "output_size_bytes": 0,
+        "outputs": [
+          {
+            "brep_path": null,
+            "compile_error": "requested output not found: enclosure_base",
+            "feature_trace": [],
+            "output_id": "enclosure_base",
+            "step_path": null,
+            "stl_path": null,
+            "success": false,
+            "topology_metadata": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": null,
+              "detected_solid_count": 0,
+              "expected_solid_count": 1,
+              "outcome": "execution_failed",
+              "output_id": "enclosure_base",
+              "shell_count": 0,
+              "valid": false,
+              "volume_mm3": null
+            }
+          },
+          {
+            "brep_path": null,
+            "compile_error": "requested output not found: enclosure_lid",
+            "feature_trace": [],
+            "output_id": "enclosure_lid",
+            "step_path": null,
+            "stl_path": null,
+            "success": false,
+            "topology_metadata": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": null,
+              "detected_solid_count": 0,
+              "expected_solid_count": 1,
+              "outcome": "execution_failed",
+              "output_id": "enclosure_lid",
+              "shell_count": 0,
+              "valid": false,
+              "volume_mm3": null
+            }
+          },
+          {
+            "brep_path": null,
+            "compile_error": "requested output not found: cable_clamp",
+            "feature_trace": [],
+            "output_id": "cable_clamp",
+            "step_path": null,
+            "stl_path": null,
+            "success": false,
+            "topology_metadata": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": null,
+              "detected_solid_count": 0,
+              "expected_solid_count": 1,
+              "outcome": "execution_failed",
+              "output_id": "cable_clamp",
+              "shell_count": 0,
+              "valid": false,
+              "volume_mm3": null
+            }
+          }
+        ],
+        "run_id": "counterfactual_authoritative_output_ids",
+        "source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+        "success": false,
+        "timed_out": false,
+        "wall_seconds": 3.800633
+      },
+      "single_variable_changed": "requested_output_ids",
+      "synthetic": true
+    },
+    {
+      "counterfactual_id": "one_output_enclosure_base_output",
+      "provider_success_eligible": false,
+      "result": {
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "error_message": null,
+        "execution_manifest_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_enclosure_base_output/worker-workspace/counterfactual_one_output_enclosure_base_output/execution-manifest.json",
+        "execution_timing": {
+          "functions": [
+            {
+              "elapsed_ms": 0.497,
+              "name": "_volundr_apply_patterns"
+            },
+            {
+              "elapsed_ms": 16.014,
+              "name": "_ai_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 16.524,
+              "name": "_ai_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 24.232,
+              "name": "apply_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 16.409,
+              "name": "_ai_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 21.993,
+              "name": "apply_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 18.121,
+              "name": "_ai_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 24.732,
+              "name": "apply_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 17.294,
+              "name": "_ai_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 25.332,
+              "name": "apply_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 116.44,
+              "name": "build_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 3.707,
+              "name": "_ai_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 14.199,
+              "name": "_ai_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 20.955,
+              "name": "apply_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 16.983,
+              "name": "_ai_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 27.42,
+              "name": "apply_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 21.279,
+              "name": "_ai_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 35.6,
+              "name": "apply_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 90.315,
+              "name": "build_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 5.936,
+              "name": "_ai_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 20.197,
+              "name": "_ai_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 28.205,
+              "name": "apply_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 37.357,
+              "name": "build_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 244.843,
+              "name": "build"
+            }
+          ],
+          "operations": [
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 13.602,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.539,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 11.523,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.007,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 11.976,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.253,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 2.846,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 11.579,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.462,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 3,
+                "face_count": 3,
+                "solid_count": 1
+              },
+              "elapsed_ms": 2.775,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 11,
+                "solid_count": 1
+              },
+              "elapsed_ms": 10.617,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.305,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.301,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 2.994,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 7.355,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.336,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.109,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 12,
+                "solid_count": 2
+              },
+              "elapsed_ms": 10.033,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.348,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.084,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 36,
+                "face_count": 18,
+                "solid_count": 3
+              },
+              "elapsed_ms": 14.385,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.475,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.696,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.679,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 8.704,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 11,
+                "solid_count": 1
+              },
+              "elapsed_ms": 4.018,
+              "name": "translate"
+            }
+          ],
+          "outputs": {
+            "enclosure_base_output": {
+              "export_ms": 35.232
+            }
+          },
+          "total_ms": 299.897
+        },
+        "exit_code": 0,
+        "mode": "cadquery_cli_runner",
+        "output_size_bytes": 1484,
+        "outputs": [
+          {
+            "brep_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_enclosure_base_output/worker-workspace/counterfactual_one_output_enclosure_base_output/outputs/enclosure_base_output/enclosure_base_output.brep",
+            "compile_error": null,
+            "feature_trace": [
+              {
+                "elapsed_ms": 20.108,
+                "error": null,
+                "feature_id": "_ai_component_enclosure_base",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_enclosure_base"
+              },
+              {
+                "elapsed_ms": 24.21,
+                "error": null,
+                "feature_id": "base_cavity_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 50.0,
+                    "xmin": -50.0,
+                    "ymax": 35.0,
+                    "ymin": -35.0,
+                    "zmax": 15.0,
+                    "zmin": -15.0
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 210000.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_base_cavity_feature"
+              },
+              {
+                "elapsed_ms": 21.979,
+                "error": null,
+                "feature_id": "base_walls_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 50.0,
+                    "xmin": -50.0,
+                    "ymax": 35.0,
+                    "ymin": -35.0,
+                    "zmax": 15.0,
+                    "zmin": -15.0
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 210000.0
+                },
+                "input_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 255937.5
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_base_walls_feature"
+              },
+              {
+                "elapsed_ms": 24.719,
+                "error": null,
+                "feature_id": "connector_opening_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 255937.5
+                },
+                "input_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_connector_opening_feature"
+              },
+              {
+                "elapsed_ms": 25.318,
+                "error": null,
+                "feature_id": "fastening_bosses_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "input_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "operation_category": "no_effect",
+                "operation_names": [
+                  "cylinder",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "shape_changed": false,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_fastening_bosses_feature"
+              },
+              {
+                "elapsed_ms": 6.312,
+                "error": null,
+                "feature_id": "_ai_component_enclosure_lid",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_enclosure_lid"
+              },
+              {
+                "elapsed_ms": 20.945,
+                "error": null,
+                "feature_id": "lid_shell_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 24,
+                  "face_count": 12,
+                  "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                  "solid_count": 2,
+                  "valid": true,
+                  "volume": 78751.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_lid_shell_feature"
+              },
+              {
+                "elapsed_ms": 27.404,
+                "error": null,
+                "feature_id": "alignment_lip_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 24,
+                  "face_count": 12,
+                  "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                  "solid_count": 2,
+                  "valid": true,
+                  "volume": 78751.0
+                },
+                "input_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 36,
+                  "face_count": 18,
+                  "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92751.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_alignment_lip_feature"
+              },
+              {
+                "elapsed_ms": 35.582,
+                "error": null,
+                "feature_id": "ventilation_slots_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 36,
+                  "face_count": 18,
+                  "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92751.0
+                },
+                "input_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 48,
+                  "face_count": 23,
+                  "shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92551.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_ventilation_slots_feature"
+              },
+              {
+                "elapsed_ms": 9.075,
+                "error": null,
+                "feature_id": "_ai_component_cable_clamp",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_cable_clamp"
+              },
+              {
+                "elapsed_ms": 28.187,
+                "error": null,
+                "feature_id": "cable_clamp_body_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "cylinder",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 7.5,
+                    "xmin": -7.5,
+                    "ymax": 7.5,
+                    "ymin": -7.5,
+                    "zmax": 7.5,
+                    "zmin": -7.5
+                  },
+                  "edge_count": 15,
+                  "face_count": 7,
+                  "shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 2196.902755
+                },
+                "output_id": "enclosure_base_output",
+                "output_shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_cable_clamp_body_feature"
+              }
+            ],
+            "output_id": "enclosure_base_output",
+            "step_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_enclosure_base_output/worker-workspace/counterfactual_one_output_enclosure_base_output/outputs/enclosure_base_output/enclosure_base_output.step",
+            "stl_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_enclosure_base_output/worker-workspace/counterfactual_one_output_enclosure_base_output/outputs/enclosure_base_output/enclosure_base_output.stl",
+            "success": true,
+            "topology_metadata": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 105.0,
+                "size_y": 75.0,
+                "size_z": 32.5,
+                "x_max": 52.5,
+                "x_min": -52.5,
+                "y_max": 37.5,
+                "y_min": -37.5,
+                "z_max": 32.5,
+                "z_min": 0.0
+              },
+              "coordinate_space": "print_space",
+              "detected_solid_count": 1,
+              "expected_solid_count": 1,
+              "model_space_bounds": {
+                "size_x": 105.0,
+                "size_y": 75.0,
+                "size_z": 32.5,
+                "x_max": 52.5,
+                "x_min": -52.5,
+                "y_max": 37.5,
+                "y_min": -37.5,
+                "z_max": 16.25,
+                "z_min": -16.25
+              },
+              "outcome": "valid",
+              "output_id": "enclosure_base_output",
+              "placement_policy": "cadquery-output-placement-v1",
+              "print_space_bounds": {
+                "size_x": 105.0,
+                "size_y": 75.0,
+                "size_z": 32.5,
+                "x_max": 52.5,
+                "x_min": -52.5,
+                "y_max": 37.5,
+                "y_min": -37.5,
+                "z_max": 32.5,
+                "z_min": 0.0
+              },
+              "print_transform": {
+                "rotation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "translation": [
+                  0.0,
+                  0.0,
+                  16.25
+                ]
+              },
+              "shell_count": 1,
+              "valid": true,
+              "volume_mm3": 252337.5
+            }
+          }
+        ],
+        "run_id": "counterfactual_one_output_enclosure_base_output",
+        "source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+        "success": true,
+        "timed_out": false,
+        "wall_seconds": 3.914501
+      },
+      "single_variable_changed": "requested_outputs_one_at_a_time",
+      "synthetic": true
+    },
+    {
+      "counterfactual_id": "one_output_enclosure_lid_output",
+      "provider_success_eligible": false,
+      "result": {
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "error_message": "output shape is invalid",
+        "execution_manifest_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_enclosure_lid_output/worker-workspace/counterfactual_one_output_enclosure_lid_output/execution-manifest.json",
+        "execution_timing": {
+          "functions": [
+            {
+              "elapsed_ms": 0.415,
+              "name": "_volundr_apply_patterns"
+            },
+            {
+              "elapsed_ms": 14.885,
+              "name": "_ai_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 16.097,
+              "name": "_ai_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 22.217,
+              "name": "apply_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 14.302,
+              "name": "_ai_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 19.687,
+              "name": "apply_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 23.192,
+              "name": "_ai_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 31.547,
+              "name": "apply_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 26.873,
+              "name": "_ai_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 38.524,
+              "name": "apply_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 130.423,
+              "name": "build_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 5.947,
+              "name": "_ai_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 21.552,
+              "name": "_ai_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 33.458,
+              "name": "apply_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 22.201,
+              "name": "_ai_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 37.62,
+              "name": "apply_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 27.846,
+              "name": "_ai_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 48.469,
+              "name": "apply_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 130.261,
+              "name": "build_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 5.62,
+              "name": "_ai_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 25.165,
+              "name": "_ai_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 34.5,
+              "name": "apply_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 44.014,
+              "name": "build_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 305.393,
+              "name": "build"
+            }
+          ],
+          "operations": [
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 12.472,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.909,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 10.5,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.345,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 10.523,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.233,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 4.126,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 15.39,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.404,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 3,
+                "face_count": 3,
+                "solid_count": 1
+              },
+              "elapsed_ms": 2.889,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 11,
+                "solid_count": 1
+              },
+              "elapsed_ms": 17.597,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.092,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.4,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 2.952,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 12.362,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.443,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 4.105,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 12,
+                "solid_count": 2
+              },
+              "elapsed_ms": 13.007,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.356,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 2.811,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 36,
+                "face_count": 18,
+                "solid_count": 3
+              },
+              "elapsed_ms": 18.571,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.14,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.987,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.167,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 12.823,
+              "name": "cut"
+            }
+          ],
+          "outputs": {
+            "enclosure_lid_output": {
+              "export_ms": 12.972
+            }
+          },
+          "total_ms": 333.21
+        },
+        "exit_code": 0,
+        "mode": "cadquery_cli_runner",
+        "output_size_bytes": 0,
+        "outputs": [
+          {
+            "brep_path": null,
+            "compile_error": "output shape is invalid",
+            "feature_trace": [
+              {
+                "elapsed_ms": 18.407,
+                "error": null,
+                "feature_id": "_ai_component_enclosure_base",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_enclosure_base"
+              },
+              {
+                "elapsed_ms": 22.204,
+                "error": null,
+                "feature_id": "base_cavity_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 50.0,
+                    "xmin": -50.0,
+                    "ymax": 35.0,
+                    "ymin": -35.0,
+                    "zmax": 15.0,
+                    "zmin": -15.0
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 210000.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_base_cavity_feature"
+              },
+              {
+                "elapsed_ms": 19.675,
+                "error": null,
+                "feature_id": "base_walls_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 50.0,
+                    "xmin": -50.0,
+                    "ymax": 35.0,
+                    "ymin": -35.0,
+                    "zmax": 15.0,
+                    "zmin": -15.0
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 210000.0
+                },
+                "input_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 255937.5
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_base_walls_feature"
+              },
+              {
+                "elapsed_ms": 31.529,
+                "error": null,
+                "feature_id": "connector_opening_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 255937.5
+                },
+                "input_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_connector_opening_feature"
+              },
+              {
+                "elapsed_ms": 38.505,
+                "error": null,
+                "feature_id": "fastening_bosses_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "input_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "operation_category": "no_effect",
+                "operation_names": [
+                  "cylinder",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "shape_changed": false,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_fastening_bosses_feature"
+              },
+              {
+                "elapsed_ms": 10.673,
+                "error": null,
+                "feature_id": "_ai_component_enclosure_lid",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_enclosure_lid"
+              },
+              {
+                "elapsed_ms": 33.435,
+                "error": null,
+                "feature_id": "lid_shell_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 24,
+                  "face_count": 12,
+                  "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                  "solid_count": 2,
+                  "valid": true,
+                  "volume": 78751.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_lid_shell_feature"
+              },
+              {
+                "elapsed_ms": 37.604,
+                "error": null,
+                "feature_id": "alignment_lip_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 24,
+                  "face_count": 12,
+                  "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                  "solid_count": 2,
+                  "valid": true,
+                  "volume": 78751.0
+                },
+                "input_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 36,
+                  "face_count": 18,
+                  "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92751.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_alignment_lip_feature"
+              },
+              {
+                "elapsed_ms": 48.449,
+                "error": null,
+                "feature_id": "ventilation_slots_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 36,
+                  "face_count": 18,
+                  "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92751.0
+                },
+                "input_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 48,
+                  "face_count": 23,
+                  "shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92551.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_ventilation_slots_feature"
+              },
+              {
+                "elapsed_ms": 9.439,
+                "error": null,
+                "feature_id": "_ai_component_cable_clamp",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_cable_clamp"
+              },
+              {
+                "elapsed_ms": 34.482,
+                "error": null,
+                "feature_id": "cable_clamp_body_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "cylinder",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 7.5,
+                    "xmin": -7.5,
+                    "ymax": 7.5,
+                    "ymin": -7.5,
+                    "zmax": 7.5,
+                    "zmin": -7.5
+                  },
+                  "edge_count": 15,
+                  "face_count": 7,
+                  "shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 2196.902755
+                },
+                "output_id": "enclosure_lid_output",
+                "output_shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_cable_clamp_body_feature"
+              }
+            ],
+            "output_id": "enclosure_lid_output",
+            "step_path": null,
+            "stl_path": null,
+            "success": false,
+            "topology_metadata": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 105.0,
+                "size_y": 75.0,
+                "size_z": 20.5,
+                "x_max": 52.5,
+                "x_min": -52.5,
+                "y_max": 37.5,
+                "y_min": -37.5,
+                "z_max": 20.0,
+                "z_min": -0.5
+              },
+              "detected_solid_count": 3,
+              "expected_solid_count": 1,
+              "outcome": "solid_count_mismatch",
+              "output_id": "enclosure_lid_output",
+              "shell_count": 3,
+              "valid": false,
+              "volume_mm3": 92550.99999999999
+            }
+          }
+        ],
+        "run_id": "counterfactual_one_output_enclosure_lid_output",
+        "source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+        "success": false,
+        "timed_out": false,
+        "wall_seconds": 3.968933
+      },
+      "single_variable_changed": "requested_outputs_one_at_a_time",
+      "synthetic": true
+    },
+    {
+      "counterfactual_id": "one_output_cable_clamp_output",
+      "provider_success_eligible": false,
+      "result": {
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "error_message": null,
+        "execution_manifest_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_cable_clamp_output/worker-workspace/counterfactual_one_output_cable_clamp_output/execution-manifest.json",
+        "execution_timing": {
+          "functions": [
+            {
+              "elapsed_ms": 0.438,
+              "name": "_volundr_apply_patterns"
+            },
+            {
+              "elapsed_ms": 15.764,
+              "name": "_ai_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 19.627,
+              "name": "_ai_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 26.178,
+              "name": "apply_feature_base_cavity_feature"
+            },
+            {
+              "elapsed_ms": 21.994,
+              "name": "_ai_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 32.982,
+              "name": "apply_feature_base_walls_feature"
+            },
+            {
+              "elapsed_ms": 30.782,
+              "name": "_ai_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 44.502,
+              "name": "apply_feature_connector_opening_feature"
+            },
+            {
+              "elapsed_ms": 33.385,
+              "name": "_ai_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 50.118,
+              "name": "apply_feature_fastening_bosses_feature"
+            },
+            {
+              "elapsed_ms": 173.886,
+              "name": "build_component_enclosure_base"
+            },
+            {
+              "elapsed_ms": 9.156,
+              "name": "_ai_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 28.693,
+              "name": "_ai_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 41.004,
+              "name": "apply_feature_lid_shell_feature"
+            },
+            {
+              "elapsed_ms": 27.843,
+              "name": "_ai_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 45.618,
+              "name": "apply_feature_alignment_lip_feature"
+            },
+            {
+              "elapsed_ms": 28.776,
+              "name": "_ai_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 48.398,
+              "name": "apply_feature_ventilation_slots_feature"
+            },
+            {
+              "elapsed_ms": 150.038,
+              "name": "build_component_enclosure_lid"
+            },
+            {
+              "elapsed_ms": 5.822,
+              "name": "_ai_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 17.239,
+              "name": "_ai_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 26.354,
+              "name": "apply_feature_cable_clamp_body_feature"
+            },
+            {
+              "elapsed_ms": 35.167,
+              "name": "build_component_cable_clamp"
+            },
+            {
+              "elapsed_ms": 359.681,
+              "name": "build"
+            }
+          ],
+          "operations": [
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 14.147,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.837,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 15.071,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.378,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 16.771,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 5.083,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.472,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 18.633,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 4.119,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 3,
+                "face_count": 3,
+                "solid_count": 1
+              },
+              "elapsed_ms": 4.148,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 11,
+                "solid_count": 1
+              },
+              "elapsed_ms": 21.365,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 5.54,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 5.495,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 6.162,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 13.749,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.038,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 5.588,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 24,
+                "face_count": 12,
+                "solid_count": 2
+              },
+              "elapsed_ms": 17.073,
+              "name": "union"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.536,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 3.453,
+              "name": "translate"
+            },
+            {
+              "before": {
+                "edge_count": 36,
+                "face_count": 18,
+                "solid_count": 3
+              },
+              "elapsed_ms": 19.448,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 3.032,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.286,
+              "name": "box"
+            },
+            {
+              "before": {
+                "edge_count": null,
+                "face_count": null,
+                "solid_count": null
+              },
+              "elapsed_ms": 2.292,
+              "name": "cylinder"
+            },
+            {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 9.885,
+              "name": "cut"
+            },
+            {
+              "before": {
+                "edge_count": 15,
+                "face_count": 7,
+                "solid_count": 1
+              },
+              "elapsed_ms": 4.843,
+              "name": "translate"
+            }
+          ],
+          "outputs": {
+            "cable_clamp_output": {
+              "export_ms": 36.615
+            }
+          },
+          "total_ms": 415.392
+        },
+        "exit_code": 0,
+        "mode": "cadquery_cli_runner",
+        "output_size_bytes": 26084,
+        "outputs": [
+          {
+            "brep_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_cable_clamp_output/worker-workspace/counterfactual_one_output_cable_clamp_output/outputs/cable_clamp_output/cable_clamp_output.brep",
+            "compile_error": null,
+            "feature_trace": [
+              {
+                "elapsed_ms": 20.057,
+                "error": null,
+                "feature_id": "_ai_component_enclosure_base",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_enclosure_base"
+              },
+              {
+                "elapsed_ms": 26.137,
+                "error": null,
+                "feature_id": "base_cavity_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 50.0,
+                    "xmin": -50.0,
+                    "ymax": 35.0,
+                    "ymin": -35.0,
+                    "zmax": 15.0,
+                    "zmin": -15.0
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 210000.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_base_cavity_feature"
+              },
+              {
+                "elapsed_ms": 32.962,
+                "error": null,
+                "feature_id": "base_walls_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 50.0,
+                    "xmin": -50.0,
+                    "ymax": 35.0,
+                    "ymin": -35.0,
+                    "zmax": 15.0,
+                    "zmin": -15.0
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 210000.0
+                },
+                "input_shape_hash": "0a4f80fe80ab5ce4af936abf4e79aa8594b9ef8ea6d7ad5c72bb20f28f0ed273",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 255937.5
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_base_walls_feature"
+              },
+              {
+                "elapsed_ms": 44.481,
+                "error": null,
+                "feature_id": "connector_opening_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 255937.5
+                },
+                "input_shape_hash": "abd0bf2c5e60dd0c67fa742231d1c97d595becb4cc9d29ac16fb0fcca97ef862",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_connector_opening_feature"
+              },
+              {
+                "elapsed_ms": 50.097,
+                "error": null,
+                "feature_id": "fastening_bosses_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "input_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "operation_category": "no_effect",
+                "operation_names": [
+                  "cylinder",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 16.25,
+                    "zmin": -16.25
+                  },
+                  "edge_count": 24,
+                  "face_count": 11,
+                  "shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 252337.5
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "8b96e7243ad9c1d6ec05b959de3d3a512fa11163002397c0104728c210873912",
+                "shape_changed": false,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_fastening_bosses_feature"
+              },
+              {
+                "elapsed_ms": 14.963,
+                "error": null,
+                "feature_id": "_ai_component_enclosure_lid",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_enclosure_lid"
+              },
+              {
+                "elapsed_ms": 40.99,
+                "error": null,
+                "feature_id": "lid_shell_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 24,
+                  "face_count": 12,
+                  "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                  "solid_count": 2,
+                  "valid": true,
+                  "volume": 78751.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_lid_shell_feature"
+              },
+              {
+                "elapsed_ms": 45.597,
+                "error": null,
+                "feature_id": "alignment_lip_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 24,
+                  "face_count": 12,
+                  "shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                  "solid_count": 2,
+                  "valid": true,
+                  "volume": 78751.0
+                },
+                "input_shape_hash": "a1acc9d4aabc5e280aefd4c3a193e5af49ade06715bdd522bc4d8b3c2512ec29",
+                "operation_category": "additive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "union"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 36,
+                  "face_count": 18,
+                  "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92751.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_alignment_lip_feature"
+              },
+              {
+                "elapsed_ms": 48.376,
+                "error": null,
+                "feature_id": "ventilation_slots_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 36,
+                  "face_count": 18,
+                  "shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92751.0
+                },
+                "input_shape_hash": "a40e56f9988c86abb3b697c0a23996928c95fc3d9bca61918502f760b38d1b20",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "translate",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 52.5,
+                    "xmin": -52.5,
+                    "ymax": 37.5,
+                    "ymin": -37.5,
+                    "zmax": 20.0,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 48,
+                  "face_count": 23,
+                  "shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+                  "solid_count": 3,
+                  "valid": true,
+                  "volume": 92551.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "f41ead97ce354e47edd759b4e9d2d110ae4bc0b172eeb719f2123cccc37ac570",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_ventilation_slots_feature"
+              },
+              {
+                "elapsed_ms": 8.743,
+                "error": null,
+                "feature_id": "_ai_component_cable_clamp",
+                "input": null,
+                "input_shape_hash": null,
+                "operation_category": "additive",
+                "operation_names": [
+                  "box"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_component_cable_clamp"
+              },
+              {
+                "elapsed_ms": 26.338,
+                "error": null,
+                "feature_id": "cable_clamp_body_feature",
+                "input": {
+                  "bounds": {
+                    "xmax": 0.5,
+                    "xmin": -0.5,
+                    "ymax": 0.5,
+                    "ymin": -0.5,
+                    "zmax": 0.5,
+                    "zmin": -0.5
+                  },
+                  "edge_count": 12,
+                  "face_count": 6,
+                  "shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 1.0
+                },
+                "input_shape_hash": "fd4dd56fe8323568fea4d6a90620c4ba1de87b2b49ae2b8203876cc23d17dbd9",
+                "operation_category": "subtractive",
+                "operation_names": [
+                  "box",
+                  "cylinder",
+                  "cut"
+                ],
+                "output": {
+                  "bounds": {
+                    "xmax": 7.5,
+                    "xmin": -7.5,
+                    "ymax": 7.5,
+                    "ymin": -7.5,
+                    "zmax": 7.5,
+                    "zmin": -7.5
+                  },
+                  "edge_count": 15,
+                  "face_count": 7,
+                  "shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+                  "solid_count": 1,
+                  "valid": true,
+                  "volume": 2196.902755
+                },
+                "output_id": "cable_clamp_output",
+                "output_shape_hash": "1d8f2c8faf1a8677a5fb7a882f540bc5e235816171c13b77189abcb4b89a0615",
+                "shape_changed": true,
+                "source_executed": true,
+                "source_function_id": "_ai_feature_cable_clamp_body_feature"
+              }
+            ],
+            "output_id": "cable_clamp_output",
+            "step_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_cable_clamp_output/worker-workspace/counterfactual_one_output_cable_clamp_output/outputs/cable_clamp_output/cable_clamp_output.step",
+            "stl_path": "/root/volundr/reports/wave-02-closure-01/project-03-diagnostic-runs/counterfactual_one_output_cable_clamp_output/worker-workspace/counterfactual_one_output_cable_clamp_output/outputs/cable_clamp_output/cable_clamp_output.stl",
+            "success": true,
+            "topology_metadata": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 15.0,
+                "size_y": 15.0,
+                "size_z": 15.0,
+                "x_max": 7.5,
+                "x_min": -7.5,
+                "y_max": 7.5,
+                "y_min": -7.5,
+                "z_max": 15.0,
+                "z_min": 0.0
+              },
+              "coordinate_space": "print_space",
+              "detected_solid_count": 1,
+              "expected_solid_count": 1,
+              "model_space_bounds": {
+                "size_x": 15.0,
+                "size_y": 15.0,
+                "size_z": 15.0,
+                "x_max": 7.5,
+                "x_min": -7.5,
+                "y_max": 7.5,
+                "y_min": -7.5,
+                "z_max": 7.5,
+                "z_min": -7.5
+              },
+              "outcome": "valid",
+              "output_id": "cable_clamp_output",
+              "placement_policy": "cadquery-output-placement-v1",
+              "print_space_bounds": {
+                "size_x": 15.0,
+                "size_y": 15.0,
+                "size_z": 15.0,
+                "x_max": 7.5,
+                "x_min": -7.5,
+                "y_max": 7.5,
+                "y_min": -7.5,
+                "z_max": 15.0,
+                "z_min": 0.0
+              },
+              "print_transform": {
+                "rotation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "translation": [
+                  0.0,
+                  0.0,
+                  7.5
+                ]
+              },
+              "shell_count": 1,
+              "valid": true,
+              "volume_mm3": 2196.9027549038283
+            }
+          }
+        ],
+        "run_id": "counterfactual_one_output_cable_clamp_output",
+        "source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+        "success": true,
+        "timed_out": false,
+        "wall_seconds": 4.23418
+      },
+      "single_variable_changed": "requested_outputs_one_at_a_time",
+      "synthetic": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "error_message": "CAD worker did not complete job within 90 seconds",
+  "failure_class": "timeout",
+  "project_id": "wave-02-project-02",
+  "provider_success_eligible": false,
+  "schema_version": "volundr-wave-02-project-02-worker-result-v1",
+  "success": false,
+  "synthetic_replay": true,
+  "worker_reached": true
+}

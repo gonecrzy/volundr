@@ -1,0 +1,11 @@
+{
+  "confidence": "high",
+  "failed_output_ids": [
+    "enclosure_lid_output"
+  ],
+  "first_cause": "worker_instrumentation_gap",
+  "kernel_failure_claimed": false,
+  "reason": "The preserved baseline recorded a client-side worker timeout, but the exact source under diagnostic instrumentation did not time out and instead exposed a required-output failure.",
+  "secondary_observed_failure": "source_semantic_complexity_failure",
+  "timeout_behavior_deterministic": false
+}

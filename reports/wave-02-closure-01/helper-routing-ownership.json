@@ -1,0 +1,90 @@
+{
+  "authoritative_facts_owner": "volundr_manifest_and_requirements_contract",
+  "helper_routing": {
+    "authoritative_change": {
+      "feature_center_local_mm": [
+        35,
+        12
+      ],
+      "local_coordinate_frame": {
+        "depth_direction": [
+          0,
+          0,
+          -1
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "origin_mm": [
+          0,
+          0,
+          18
+        ],
+        "x_direction": [
+          1,
+          0,
+          0
+        ],
+        "y_direction": [
+          0,
+          1,
+          0
+        ]
+      },
+      "requested_feature_dimensions": {
+        "depth_direction": [
+          0,
+          0,
+          -1
+        ],
+        "depth_mm": 4,
+        "depth_mode": "blind",
+        "end_radius_mm": 4,
+        "orientation_degrees": 20,
+        "overall_length_mm": 34,
+        "profile_type": "rounded_end_capsule",
+        "width_mm": 8
+      }
+    },
+    "authoritative_component_id": "guide_body",
+    "authoritative_feature_id": "capsule_retention_slot",
+    "authoritative_profile_type": "rounded_end_capsule",
+    "component_id": "swept_cable_guide_body",
+    "feature_id": "capsule_slot_feature",
+    "feature_identity_source": "plan_parameter_trace",
+    "helper_applied": true,
+    "helper_source": "def _ai_feature_capsule_slot_feature(body, params):\n    body = cut_capsule_slot_v1(body, frame=CapsuleSlotFrame(origin_mm=(0, 0, 18), x_direction=(1, 0, 0), y_direction=(0, 1, 0), normal=(0, 0, 1), depth_direction=(0, 0, -1)), center_local_mm=(params['capsule_slot_center_x'], params['capsule_slot_center_y']), overall_length_mm=params['capsule_slot_length'], width_mm=params['capsule_slot_width'], end_radius_mm=params['capsule_slot_width'] / 2, orientation_degrees=params['capsule_slot_orientation'], depth_mode='blind', blind_depth_mm=params['capsule_slot_depth'], depth_direction=(0, 0, -1))\n    return body",
+    "parameter_id_sources": {
+      "center_x": "plan_requirement_trace",
+      "center_y": "plan_requirement_trace",
+      "depth": "plan_requirement_trace",
+      "length": "plan_requirement_trace",
+      "orientation": "plan_requirement_trace",
+      "width": "plan_requirement_trace"
+    },
+    "parameter_ids": {
+      "center_x": "capsule_slot_center_x",
+      "center_y": "capsule_slot_center_y",
+      "depth": "capsule_slot_depth",
+      "length": "capsule_slot_length",
+      "orientation": "capsule_slot_orientation",
+      "width": "capsule_slot_width"
+    },
+    "plan_profile_type": null,
+    "provider_strategy_preserved_for_other_features": true,
+    "routing_version": "capsule-slot-routing-v1",
+    "target_output_id": "swept_cable_guide"
+  },
+  "ownership_rule": "profile_type rounded_end_capsule from frozen manifest or accepted requirements is authoritative Volundr data; Plan need not repeat it",
+  "plan_owner": "provider_traceability_association_only",
+  "production_routing_changed": true,
+  "project_id": "wave-02-project-02",
+  "provider_calls": 0,
+  "provider_plan_preserved_unchanged": true,
+  "provider_repair_claimed": false,
+  "qualified_helper": "cut_capsule_slot_v1",
+  "schema_version": "volundr-wave-02-helper-routing-ownership-v1",
+  "synthetic_replay_provider_success_eligible": false
+}

@@ -1,0 +1,5044 @@
+{
+  "operation_records": [
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.519,
+      "name": "box",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.309,
+      "name": "box",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.778,
+      "name": "union",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.415,
+      "name": "box",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.353,
+      "name": "union",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.399,
+      "name": "box",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.179,
+      "name": "translate",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.396,
+      "name": "cut",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.654,
+      "name": "cylinder",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.971,
+      "name": "translate",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.869,
+      "name": "union",
+      "run_id": "03_build_enclosure_base"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.267,
+      "name": "box",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.761,
+      "name": "box",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.375,
+      "name": "translate",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.299,
+      "name": "union",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.493,
+      "name": "box",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.525,
+      "name": "translate",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 15.997,
+      "name": "union",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.428,
+      "name": "box",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.666,
+      "name": "translate",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 29.855,
+      "name": "cut",
+      "run_id": "03_build_enclosure_lid"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 10.914,
+      "name": "box",
+      "run_id": "03_build_cable_clamp"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.309,
+      "name": "box",
+      "run_id": "03_build_cable_clamp"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.302,
+      "name": "cylinder",
+      "run_id": "03_build_cable_clamp"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.41,
+      "name": "cut",
+      "run_id": "03_build_cable_clamp"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.477,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.361,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.384,
+      "name": "union",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.419,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.024,
+      "name": "union",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.326,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.276,
+      "name": "translate",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.753,
+      "name": "cut",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.523,
+      "name": "cylinder",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.913,
+      "name": "translate",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 20.087,
+      "name": "union",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.739,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.39,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.321,
+      "name": "translate",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 9.759,
+      "name": "union",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.724,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.044,
+      "name": "translate",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 16.163,
+      "name": "union",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.306,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.705,
+      "name": "translate",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 22.785,
+      "name": "cut",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.429,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.216,
+      "name": "box",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.23,
+      "name": "cylinder",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.001,
+      "name": "cut",
+      "run_id": "06_build_all_outputs_no_export"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.952,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.265,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.418,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.355,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.048,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.266,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.399,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.513,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.462,
+      "name": "cylinder",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.407,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.853,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.316,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.218,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.311,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.294,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.193,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.273,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 14.944,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.591,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 7.853,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 28.753,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.333,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.197,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.956,
+      "name": "cylinder",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.138,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 18.483,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.621,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 19.991,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.114,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 18.95,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.975,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.605,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.056,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.562,
+      "name": "cylinder",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.274,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.455,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.631,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.212,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.304,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.48,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.284,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.343,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 13.033,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.261,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.838,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 24.711,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.636,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.248,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.0,
+      "name": "cylinder",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.607,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.698,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.36,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.319,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.337,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.779,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.277,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.935,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.351,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.976,
+      "name": "cylinder",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.764,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.875,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.973,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.353,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.224,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.687,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.241,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.229,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 15.233,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.789,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.028,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 20.111,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.332,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.215,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.846,
+      "name": "cylinder",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.58,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_brep"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 16.823,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.397,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.316,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.587,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.917,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.676,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.425,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.463,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.588,
+      "name": "cylinder",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.519,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.722,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.423,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.456,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.714,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.422,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.791,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.08,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 15.304,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.331,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.939,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 20.904,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.601,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.318,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.806,
+      "name": "cylinder",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.136,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.247,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.994,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.344,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.306,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.332,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.622,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 7.193,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.704,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.339,
+      "name": "cylinder",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.002,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 19.387,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.408,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.124,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 7.349,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.503,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.623,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.547,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 19.059,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.301,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.371,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 21.811,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.102,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.587,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.533,
+      "name": "cylinder",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.012,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.755,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.497,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.629,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.314,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.413,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.415,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.462,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.969,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.492,
+      "name": "cylinder",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.491,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.112,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.382,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.553,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.43,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.739,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.182,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.818,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 14.667,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.503,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.396,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 20.646,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.363,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.157,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.167,
+      "name": "cylinder",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.115,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_step"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 14.088,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.57,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.436,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.354,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.405,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.403,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.445,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.748,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.635,
+      "name": "cylinder",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.325,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 20.93,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.34,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.435,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.432,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 9.705,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.474,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.349,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 14.808,
+      "name": "union",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.313,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.258,
+      "name": "translate",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 18.704,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.481,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.323,
+      "name": "box",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.516,
+      "name": "cylinder",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.322,
+      "name": "cut",
+      "run_id": "export_enclosure_base_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 10.68,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.285,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.528,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.505,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.754,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.856,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.503,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 18.371,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.445,
+      "name": "cylinder",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.659,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.791,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.329,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.39,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.433,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 9.801,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.743,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.13,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 14.906,
+      "name": "union",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.393,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.408,
+      "name": "translate",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 21.727,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.448,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.153,
+      "name": "box",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.265,
+      "name": "cylinder",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.335,
+      "name": "cut",
+      "run_id": "export_enclosure_lid_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 18.817,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.952,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 19.02,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.012,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.429,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.965,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.6,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.739,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.667,
+      "name": "cylinder",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.872,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.513,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.426,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.42,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.509,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.904,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.285,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.121,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 19.433,
+      "name": "union",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.217,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.368,
+      "name": "translate",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 26.349,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.751,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.569,
+      "name": "box",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.866,
+      "name": "cylinder",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.626,
+      "name": "cut",
+      "run_id": "export_cable_clamp_output_stl"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 12.38,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.179,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.329,
+      "name": "union",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.631,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.197,
+      "name": "union",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.434,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.865,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.581,
+      "name": "cut",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.163,
+      "name": "cylinder",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.868,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.12,
+      "name": "union",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.423,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.28,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.591,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.846,
+      "name": "union",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.998,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.279,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 12.913,
+      "name": "union",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.726,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.755,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 17.514,
+      "name": "cut",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.449,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.554,
+      "name": "box",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.863,
+      "name": "cylinder",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.01,
+      "name": "cut",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.567,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": 15,
+        "face_count": 7,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.953,
+      "name": "translate",
+      "run_id": "full_original_worker_job_diagnostic_300s"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 13.51,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.496,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.506,
+      "name": "union",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.791,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.884,
+      "name": "union",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.291,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.558,
+      "name": "translate",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.995,
+      "name": "cut",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.057,
+      "name": "cylinder",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.466,
+      "name": "translate",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.548,
+      "name": "union",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.447,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.327,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.235,
+      "name": "translate",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.004,
+      "name": "union",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.912,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.596,
+      "name": "translate",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 15.654,
+      "name": "union",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.938,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.18,
+      "name": "translate",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 18.111,
+      "name": "cut",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.415,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.576,
+      "name": "box",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.359,
+      "name": "cylinder",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.432,
+      "name": "cut",
+      "run_id": "counterfactual_authoritative_output_ids"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 13.602,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.539,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.523,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.007,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.976,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.253,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.846,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.579,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.462,
+      "name": "cylinder",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.775,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.617,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.305,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.301,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.994,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 7.355,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.336,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.109,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 10.033,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.348,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.084,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 14.385,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.475,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.696,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.679,
+      "name": "cylinder",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 8.704,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.018,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_base_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 12.472,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.909,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.5,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.345,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.523,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.233,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.126,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.39,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.404,
+      "name": "cylinder",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.889,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.597,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.092,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.4,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.952,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.362,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.443,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.105,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 13.007,
+      "name": "union",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.356,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 2.811,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 18.571,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.14,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.987,
+      "name": "box",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.167,
+      "name": "cylinder",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.823,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_enclosure_lid_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 14.147,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.837,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.071,
+      "name": "union",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.378,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.771,
+      "name": "union",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 5.083,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.472,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 18.633,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.119,
+      "name": "cylinder",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.148,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 21.365,
+      "name": "union",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 5.54,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 5.495,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.162,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.749,
+      "name": "union",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.038,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.588,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 17.073,
+      "name": "union",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.536,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.453,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 19.448,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.032,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.286,
+      "name": "box",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.292,
+      "name": "cylinder",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 9.885,
+      "name": "cut",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": 15,
+        "face_count": 7,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.843,
+      "name": "translate",
+      "run_id": "counterfactual_one_output_cable_clamp_output"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.525,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.05,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.717,
+      "name": "union",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.305,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.489,
+      "name": "union",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.48,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.277,
+      "name": "translate",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.313,
+      "name": "cut",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.525,
+      "name": "cylinder",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.589,
+      "name": "translate",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.296,
+      "name": "union",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.252,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.218,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.277,
+      "name": "translate",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 9.221,
+      "name": "union",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.392,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.556,
+      "name": "translate",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 13.2,
+      "name": "union",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 5.043,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.679,
+      "name": "translate",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 21.886,
+      "name": "cut",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.506,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.572,
+      "name": "box",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.697,
+      "name": "cylinder",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.588,
+      "name": "cut",
+      "run_id": "counterfactual_exports_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 12.534,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.439,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.164,
+      "name": "union",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.203,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 19.309,
+      "name": "union",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.137,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.747,
+      "name": "translate",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.995,
+      "name": "cut",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.467,
+      "name": "cylinder",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 3.576,
+      "name": "translate",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 15.466,
+      "name": "union",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.345,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.044,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 8.545,
+      "name": "translate",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 13.772,
+      "name": "union",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.877,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.312,
+      "name": "translate",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 22.716,
+      "name": "union",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.884,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 8.115,
+      "name": "translate",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 26.556,
+      "name": "cut",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.7,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.899,
+      "name": "box",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.967,
+      "name": "cylinder",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 10.819,
+      "name": "cut",
+      "run_id": "counterfactual_step_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 15.468,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.364,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 18.587,
+      "name": "union",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.622,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 16.556,
+      "name": "union",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.877,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 7.119,
+      "name": "translate",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 19.95,
+      "name": "cut",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.355,
+      "name": "cylinder",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.366,
+      "name": "translate",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 20.46,
+      "name": "union",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.847,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.617,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.78,
+      "name": "translate",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.998,
+      "name": "union",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.625,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 9.117,
+      "name": "translate",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 18.424,
+      "name": "union",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 4.075,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 6.803,
+      "name": "translate",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 25.451,
+      "name": "cut",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.799,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.768,
+      "name": "box",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.854,
+      "name": "cylinder",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 18.884,
+      "name": "cut",
+      "run_id": "counterfactual_stl_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 11.485,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.533,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.883,
+      "name": "union",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.375,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.258,
+      "name": "union",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.216,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.147,
+      "name": "translate",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 14.049,
+      "name": "cut",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.356,
+      "name": "cylinder",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 3,
+        "face_count": 3,
+        "solid_count": 1
+      },
+      "elapsed_ms": 4.638,
+      "name": "translate",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 11,
+        "solid_count": 1
+      },
+      "elapsed_ms": 17.04,
+      "name": "union",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.599,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.58,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.931,
+      "name": "translate",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 12.68,
+      "name": "union",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.569,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.86,
+      "name": "translate",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 24,
+        "face_count": 12,
+        "solid_count": 2
+      },
+      "elapsed_ms": 16.314,
+      "name": "union",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.342,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 5.665,
+      "name": "translate",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 36,
+        "face_count": 18,
+        "solid_count": 3
+      },
+      "elapsed_ms": 21.744,
+      "name": "cut",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 3.868,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.38,
+      "name": "box",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": null,
+        "face_count": null,
+        "solid_count": null
+      },
+      "elapsed_ms": 2.839,
+      "name": "cylinder",
+      "run_id": "counterfactual_brep_disabled"
+    },
+    {
+      "before": {
+        "edge_count": 12,
+        "face_count": 6,
+        "solid_count": 1
+      },
+      "elapsed_ms": 11.77,
+      "name": "cut",
+      "run_id": "counterfactual_brep_disabled"
+    }
+  ]
+}

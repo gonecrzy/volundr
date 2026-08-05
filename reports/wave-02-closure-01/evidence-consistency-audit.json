@@ -1,0 +1,11 @@
+{
+  "adapter_owned_failures_not_provider_owned": true,
+  "baseline_provider_attempt_ids_reconciled": true,
+  "immutable_captures_changed": false,
+  "production_timeout_changed": false,
+  "project_03_diagnostics_excluded_from_provider_metrics": true,
+  "provider_attempt_count": 12,
+  "raw_response_hashes_preserved": true,
+  "schema_version": "volundr-wave-02-evidence-consistency-audit-v1",
+  "synthetic_replay_excluded_from_provider_metrics": true
+}

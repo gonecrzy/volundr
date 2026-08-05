@@ -1,0 +1,612 @@
+{
+  "closure_decision": {
+    "alternative_backend_evaluation_required": false,
+    "decision": "wave_02_requires_generalized_narrow_fix",
+    "project_02_worker_success": false,
+    "project_03_timeout_first_cause": "worker_instrumentation_gap",
+    "provider_calls": 0,
+    "provider_success_claimed": false,
+    "rationale": [
+      "Project 02 helper routing now uses authoritative upstream capsule facts and reaches the worker with preserved provider responses.",
+      "Project 02 still does not complete runtime verification because the replay worker result timed out.",
+      "Project 03 exact-source diagnostics did not reproduce a deterministic timeout; they exposed a worker instrumentation gap and a secondary invalid required lid output.",
+      "The CadQuery/T5 foundation is not contradicted enough to justify alternative backend evaluation, but Volundr-owned worker/adapter closure remains incomplete."
+    ],
+    "schema_version": "volundr-wave-02-closure-decision-v1",
+    "targeted_provider_validation_required": false
+  },
+  "diagnostic_summary": {
+    "project_03_full_original_success": false,
+    "project_03_full_original_timed_out": false,
+    "project_03_provider_calls": 0
+  },
+  "evidence_consistency_audit": {
+    "adapter_owned_failures_not_provider_owned": true,
+    "baseline_provider_attempt_ids_reconciled": true,
+    "immutable_captures_changed": false,
+    "production_timeout_changed": false,
+    "project_03_diagnostics_excluded_from_provider_metrics": true,
+    "provider_attempt_count": 12,
+    "raw_response_hashes_preserved": true,
+    "schema_version": "volundr-wave-02-evidence-consistency-audit-v1",
+    "synthetic_replay_excluded_from_provider_metrics": true
+  },
+  "helper_authority_trace": {
+    "boundaries": [
+      {
+        "boundary": "frozen_wave_02_project_02_manifest",
+        "content_hash": "d89031b6735f73d9ccc71a64bfa43e01cb218738f9aa569422b6b9d82edef4ab",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": true
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/projects/wave-02-project-02.json"
+      },
+      {
+        "boundary": "authoritative_user_request",
+        "content_hash": "a9c2da095224a81050376ee17475b0b21cdeace47933a9a94d0772d07f5a6531",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": false
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/projects/wave-02-project-02.json"
+      },
+      {
+        "boundary": "requirements_request_and_response",
+        "content_hash": "0b254900a23eda2d7f1b7fbabdf2da1226a781927791f429c6b6c40a2807c836",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/captures/wave-02-project-02_wave-02-project-02_revision-001_provider_requirements.json"
+      },
+      {
+        "boundary": "requirements_adapter_output",
+        "content_hash": "c84516c05cf99e89bf5c0ad5707b1b5c43eb2bcacbc6d97f1f19e14e1c2b037e",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": false
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/captures/wave-02-project-02_wave-02-project-02_revision-001_requirements_adapter.json"
+      },
+      {
+        "boundary": "plan_request_and_response",
+        "content_hash": "863d11bf6555241d2a4928f3402088a834c01ab4cb6262680e93d859ad31a552",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/captures/wave-02-project-02_wave-02-project-02_revision-001_provider_plan.json"
+      },
+      {
+        "boundary": "plan_adapter_output",
+        "content_hash": "e22195d97e4762b9678f6eee58cfb8980b333beb563d3d9f6357781639aecf54",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": false
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": false
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/captures/wave-02-project-02_wave-02-project-02_revision-001_plan_adapter.json"
+      },
+      {
+        "boundary": "geometry_execution_brief",
+        "content_hash": "553771a1423b7c7291eaba3cde763e097b6639824d9c85c419f4d91e80886efa",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/captures/wave-02-project-02_wave-02-project-02_revision-001_provider_geometry.json"
+      },
+      {
+        "boundary": "source_assembly",
+        "content_hash": "ade2d070c3cae72fd13a2d827f8bea47020c8b7a11e278b7efee445471fe079e",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": true
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/captures/boundaries/wave-02-project-02_wave-02-project-02_revision-001_source_assembly.json"
+      },
+      {
+        "boundary": "deterministic_helper_router",
+        "content_hash": "49c5a8e1a014d709bf79c285e1162e3dbe52ae9afde57a12318b6aec510df060",
+        "facts": {
+          "blind_depth": {
+            "present": true
+          },
+          "center": {
+            "present": true
+          },
+          "depth_direction": {
+            "present": true
+          },
+          "end_radius_invariant": {
+            "present": true
+          },
+          "feature_identity": {
+            "present": true
+          },
+          "feature_kind": {
+            "present": true
+          },
+          "orientation": {
+            "present": true
+          },
+          "overall_length": {
+            "present": true
+          },
+          "owning_frame": {
+            "present": true
+          },
+          "profile_type": {
+            "present": false
+          },
+          "target_output": {
+            "present": true
+          },
+          "width": {
+            "present": true
+          }
+        },
+        "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/worker-jobs/gemini-integration-wave-02-project-02-wave-02-project-02-revision-001/input/model.py"
+      }
+    ],
+    "facts": [
+      "feature_identity",
+      "feature_kind",
+      "profile_type",
+      "overall_length",
+      "width",
+      "end_radius_invariant",
+      "center",
+      "owning_frame",
+      "orientation",
+      "blind_depth",
+      "depth_direction",
+      "target_output"
+    ],
+    "first_observed_losses": [
+      {
+        "classification": "context_construction_loss_after_frozen_manifest",
+        "fact": "profile_type",
+        "first_missing_boundary": "requirements_adapter_output",
+        "repair": "router treats frozen authoritative profile_type as Volundr-owned and does not require Plan repetition"
+      },
+      {
+        "classification": "fixture_manifest_identity_mismatch_reconciled_by_plan_traceability",
+        "fact": "feature_identity_and_parameter_ids",
+        "first_mismatch_boundary": "frozen_wave_02_project_02_manifest",
+        "repair": "router resolves exactly one Plan feature and parameter map through Plan requirement traceability while preserving frozen geometry facts"
+      }
+    ],
+    "project_id": "wave-02-project-02",
+    "provider_calls": 0,
+    "schema_version": "volundr-wave-02-helper-authority-trace-v1"
+  },
+  "helper_routing_ownership": {
+    "authoritative_facts_owner": "volundr_manifest_and_requirements_contract",
+    "helper_routing": {
+      "authoritative_change": {
+        "feature_center_local_mm": [
+          35,
+          12
+        ],
+        "local_coordinate_frame": {
+          "depth_direction": [
+            0,
+            0,
+            -1
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "origin_mm": [
+            0,
+            0,
+            18
+          ],
+          "x_direction": [
+            1,
+            0,
+            0
+          ],
+          "y_direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        "requested_feature_dimensions": {
+          "depth_direction": [
+            0,
+            0,
+            -1
+          ],
+          "depth_mm": 4,
+          "depth_mode": "blind",
+          "end_radius_mm": 4,
+          "orientation_degrees": 20,
+          "overall_length_mm": 34,
+          "profile_type": "rounded_end_capsule",
+          "width_mm": 8
+        }
+      },
+      "authoritative_component_id": "guide_body",
+      "authoritative_feature_id": "capsule_retention_slot",
+      "authoritative_profile_type": "rounded_end_capsule",
+      "component_id": "swept_cable_guide_body",
+      "feature_id": "capsule_slot_feature",
+      "feature_identity_source": "plan_parameter_trace",
+      "helper_applied": true,
+      "helper_source": "def _ai_feature_capsule_slot_feature(body, params):\n    body = cut_capsule_slot_v1(body, frame=CapsuleSlotFrame(origin_mm=(0, 0, 18), x_direction=(1, 0, 0), y_direction=(0, 1, 0), normal=(0, 0, 1), depth_direction=(0, 0, -1)), center_local_mm=(params['capsule_slot_center_x'], params['capsule_slot_center_y']), overall_length_mm=params['capsule_slot_length'], width_mm=params['capsule_slot_width'], end_radius_mm=params['capsule_slot_width'] / 2, orientation_degrees=params['capsule_slot_orientation'], depth_mode='blind', blind_depth_mm=params['capsule_slot_depth'], depth_direction=(0, 0, -1))\n    return body",
+      "parameter_id_sources": {
+        "center_x": "plan_requirement_trace",
+        "center_y": "plan_requirement_trace",
+        "depth": "plan_requirement_trace",
+        "length": "plan_requirement_trace",
+        "orientation": "plan_requirement_trace",
+        "width": "plan_requirement_trace"
+      },
+      "parameter_ids": {
+        "center_x": "capsule_slot_center_x",
+        "center_y": "capsule_slot_center_y",
+        "depth": "capsule_slot_depth",
+        "length": "capsule_slot_length",
+        "orientation": "capsule_slot_orientation",
+        "width": "capsule_slot_width"
+      },
+      "plan_profile_type": null,
+      "provider_strategy_preserved_for_other_features": true,
+      "routing_version": "capsule-slot-routing-v1",
+      "target_output_id": "swept_cable_guide"
+    },
+    "ownership_rule": "profile_type rounded_end_capsule from frozen manifest or accepted requirements is authoritative Volundr data; Plan need not repeat it",
+    "plan_owner": "provider_traceability_association_only",
+    "production_routing_changed": true,
+    "project_id": "wave-02-project-02",
+    "provider_calls": 0,
+    "provider_plan_preserved_unchanged": true,
+    "provider_repair_claimed": false,
+    "qualified_helper": "cut_capsule_slot_v1",
+    "schema_version": "volundr-wave-02-helper-routing-ownership-v1",
+    "synthetic_replay_provider_success_eligible": false
+  },
+  "project_02_offline_replay": {
+    "earliest_blocker": "worker_runtime",
+    "furthest_valid_stage": "worker",
+    "helper_source_contains_capsule_helper": true,
+    "offline_only": true,
+    "output_identity": "swept_cable_guide",
+    "project_id": "wave-02-project-02",
+    "provider_calls": 0,
+    "provider_success_eligible": false,
+    "raw_provider_responses_preserved": true,
+    "schema_version": "volundr-wave-02-project-02-offline-replay-v1",
+    "source_assembled": true,
+    "static_validation_valid": true,
+    "synthetic": true,
+    "verification": {
+      "capsule_slot": "helper_routed_not_runtime_verified_due_worker_timeout",
+      "connectivity": "not_runtime_verified_due_worker_timeout",
+      "helper_dimensions_and_frame": "source_verified",
+      "irregular_mounting_holes": "source_assembled_not_runtime_verified",
+      "mounting_tabs": "source_assembled_not_runtime_verified",
+      "one_connected_solid": "not_runtime_verified_due_worker_timeout",
+      "output_identity": "source_verified",
+      "swept_channel": "source_assembled_not_runtime_verified"
+    },
+    "worker_calls": 1,
+    "worker_result_summary": {
+      "compile_result": "CadQueryCompileResult(job_id='gemini-integration-wave-02-project-02-wave-02-project-02-revision-001', success=False, timed_out=True, exit_code=None, source_path=PosixPath('/root/volundr/data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/worker-jobs/gemini-integration-wave-02-project-02-wave-02-project-02-revision-001/input/model.py'), stl_path=None, step_path=None, stdout_path=None, stderr_path=None, metadata_path=None, source_hash='ded9efb5e508828021276faafafade9891e7de49ea578b2ec9c166addaaba008', output_size_bytes=0, metadata=None, error_message='CAD worker did not complete job within 90 seconds', command_args=None, outputs=[], execution_manifest_path=None, execution_timing=None)",
+      "error_message": "CAD worker did not complete job within 90 seconds",
+      "failure_class": "timeout",
+      "job_id": "gemini-integration-wave-02-project-02-wave-02-project-02-revision-001",
+      "provenance": {
+        "project_id": "wave-02-project-02",
+        "provenance_marker": "volundr-representative-workflow-wave",
+        "revision_id": "wave-02-project-02:revision-001",
+        "study_id": "representative-workflow-wave-02",
+        "wave_id": "wave-02"
+      },
+      "success": false
+    }
+  },
+  "project_02_worker_result": {
+    "error_message": "CAD worker did not complete job within 90 seconds",
+    "failure_class": "timeout",
+    "project_id": "wave-02-project-02",
+    "provider_success_eligible": false,
+    "schema_version": "volundr-wave-02-project-02-worker-result-v1",
+    "success": false,
+    "synthetic_replay": true,
+    "worker_reached": true
+  },
+  "project_03_source_hash": "f725a0eca8888e923b25e69f21a8c5d20f0c49bbacb1ab613202b399a682acdf",
+  "project_03_timeout_classification": {
+    "confidence": "high",
+    "failed_output_ids": [
+      "enclosure_lid_output"
+    ],
+    "first_cause": "worker_instrumentation_gap",
+    "kernel_failure_claimed": false,
+    "reason": "The preserved baseline recorded a client-side worker timeout, but the exact source under diagnostic instrumentation did not time out and instead exposed a required-output failure.",
+    "secondary_observed_failure": "source_semantic_complexity_failure",
+    "timeout_behavior_deterministic": false
+  },
+  "provider_calls": 0,
+  "provider_success_claimed": false,
+  "schema_version": "volundr-wave-02-closure-01-combined-v1",
+  "synthetic_results_excluded_from_provider_metrics": true
+}

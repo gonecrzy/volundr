@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +62,8 @@ async def _run(root: Path, repository_root: Path) -> dict[str, Any]:
     manifest = load_wave_manifest(root / "wave-manifest.json")
     profile = GeminiFlashLiteContractV1.from_repository(repository_root)
     replay_root = root / "replays" / "corrected-boundary-replay"
+    if replay_root.exists():
+        shutil.rmtree(replay_root)
     store = IntegrationEvidenceStore(replay_root, study_id="representative-workflow-wave-02-corrected-replay")
     ports = build_real_boundary_ports(
         profile=profile,

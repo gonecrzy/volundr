@@ -288,6 +288,103 @@ def test_wave_capsule_routing_requires_plan_traceability_and_preserves_other_pro
     assert "return cq.Workplane('XY').box(80, 40, 18)" in source
     assert validate_scaffold_source(source) == []
 
-    missing_traceability = {**plan, "features": [{"id": "capsule_retention_slot", "component_id": "guide_body"}]}
+    missing_plan_profile = {**plan, "features": [{"id": "capsule_retention_slot", "component_id": "guide_body"}]}
+    routed_without_plan_profile = build_capsule_slot_feature_source(missing_plan_profile, capsule_facts)
+    assert "cut_capsule_slot_v1" in routed_without_plan_profile["helper_source"]
+
+    missing_authoritative_profile = {
+        **capsule_facts,
+        "requested_feature_dimensions": {
+            key: value
+            for key, value in capsule_facts["requested_feature_dimensions"].items()
+            if key != "profile_type"
+        },
+    }
     with pytest.raises(CapsuleSlotContractError, match="profile_type"):
-        build_capsule_slot_feature_source(missing_traceability, capsule_facts)
+        build_capsule_slot_feature_source(missing_plan_profile, missing_authoritative_profile)
+
+
+def test_capsule_routing_uses_plan_association_when_frozen_identity_is_stale() -> None:
+    plan = {
+        "parameters": [
+            {"id": "capsule_slot_length", "source_requirement_id": "capsule_slot_length"},
+            {"id": "capsule_slot_width", "source_requirement_id": "capsule_slot_width"},
+            {"id": "capsule_slot_center_x", "source_requirement_id": "capsule_slot_center_x"},
+            {"id": "capsule_slot_center_y", "source_requirement_id": "capsule_slot_center_y"},
+            {"id": "capsule_slot_orientation", "source_requirement_id": "capsule_slot_orientation"},
+            {"id": "capsule_slot_depth", "source_requirement_id": "capsule_slot_depth"},
+        ],
+        "features": [
+            {
+                "id": "capsule_slot_feature",
+                "component_id": "swept_cable_guide_body",
+                "parameters": [
+                    "capsule_slot_length",
+                    "capsule_slot_width",
+                    "capsule_slot_center_x",
+                    "capsule_slot_center_y",
+                    "capsule_slot_orientation",
+                    "capsule_slot_depth",
+                ],
+                "requirement_ids": [
+                    "capsule_slot_feature",
+                    "capsule_slot_length",
+                    "capsule_slot_width",
+                    "capsule_slot_center_x",
+                    "capsule_slot_center_y",
+                    "capsule_slot_orientation",
+                    "capsule_slot_depth",
+                ],
+            }
+        ],
+        "printable_outputs": [
+            {"id": "swept_cable_guide", "component_ids": ["swept_cable_guide_body"], "expected_solid_count": 1}
+        ],
+    }
+    stale_frozen_capsule_facts = {
+        "feature_id": "capsule_retention_slot",
+        "component_id": "guide_body",
+        "target_output_id": "swept_cable_guide",
+        "requested_feature_dimensions": {
+            "profile_type": "rounded_end_capsule",
+            "overall_length_mm": 34,
+            "width_mm": 8,
+            "end_radius_mm": 4,
+            "orientation_degrees": 20,
+            "depth_mode": "blind",
+            "depth_mm": 4,
+            "depth_direction": [0, 0, -1],
+        },
+        "feature_center_local_mm": [35, 12],
+        "local_coordinate_frame": {
+            "origin_mm": [0, 0, 18],
+            "x_direction": [1, 0, 0],
+            "y_direction": [0, 1, 0],
+            "normal": [0, 0, 1],
+            "depth_direction": [0, 0, -1],
+        },
+        "parameter_ids": {
+            "length": "capsule_length_mm",
+            "width": "capsule_width_mm",
+            "center_x": "capsule_center_x_mm",
+            "center_y": "capsule_center_y_mm",
+            "orientation": "capsule_orientation_degrees",
+            "depth": "capsule_depth_mm",
+        },
+    }
+
+    routed = build_capsule_slot_feature_source(plan, stale_frozen_capsule_facts)
+
+    assert routed["feature_id"] == "capsule_slot_feature"
+    assert routed["component_id"] == "swept_cable_guide_body"
+    assert routed["authoritative_feature_id"] == "capsule_retention_slot"
+    assert routed["authoritative_component_id"] == "guide_body"
+    assert routed["parameter_ids"] == {
+        "length": "capsule_slot_length",
+        "width": "capsule_slot_width",
+        "center_x": "capsule_slot_center_x",
+        "center_y": "capsule_slot_center_y",
+        "orientation": "capsule_slot_orientation",
+        "depth": "capsule_slot_depth",
+    }
+    assert "cut_capsule_slot_v1" in routed["helper_source"]

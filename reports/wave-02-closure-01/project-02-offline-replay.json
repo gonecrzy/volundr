@@ -1,0 +1,40 @@
+{
+  "earliest_blocker": "worker_runtime",
+  "furthest_valid_stage": "worker",
+  "helper_source_contains_capsule_helper": true,
+  "offline_only": true,
+  "output_identity": "swept_cable_guide",
+  "project_id": "wave-02-project-02",
+  "provider_calls": 0,
+  "provider_success_eligible": false,
+  "raw_provider_responses_preserved": true,
+  "schema_version": "volundr-wave-02-project-02-offline-replay-v1",
+  "source_assembled": true,
+  "static_validation_valid": true,
+  "synthetic": true,
+  "verification": {
+    "capsule_slot": "helper_routed_not_runtime_verified_due_worker_timeout",
+    "connectivity": "not_runtime_verified_due_worker_timeout",
+    "helper_dimensions_and_frame": "source_verified",
+    "irregular_mounting_holes": "source_assembled_not_runtime_verified",
+    "mounting_tabs": "source_assembled_not_runtime_verified",
+    "one_connected_solid": "not_runtime_verified_due_worker_timeout",
+    "output_identity": "source_verified",
+    "swept_channel": "source_assembled_not_runtime_verified"
+  },
+  "worker_calls": 1,
+  "worker_result_summary": {
+    "compile_result": "CadQueryCompileResult(job_id='gemini-integration-wave-02-project-02-wave-02-project-02-revision-001', success=False, timed_out=True, exit_code=None, source_path=PosixPath('/root/volundr/data/debug-sessions/representative-workflow-waves/representative-workflow-wave-02/replays/corrected-boundary-replay/worker-jobs/gemini-integration-wave-02-project-02-wave-02-project-02-revision-001/input/model.py'), stl_path=None, step_path=None, stdout_path=None, stderr_path=None, metadata_path=None, source_hash='ded9efb5e508828021276faafafade9891e7de49ea578b2ec9c166addaaba008', output_size_bytes=0, metadata=None, error_message='CAD worker did not complete job within 90 seconds', command_args=None, outputs=[], execution_manifest_path=None, execution_timing=None)",
+    "error_message": "CAD worker did not complete job within 90 seconds",
+    "failure_class": "timeout",
+    "job_id": "gemini-integration-wave-02-project-02-wave-02-project-02-revision-001",
+    "provenance": {
+      "project_id": "wave-02-project-02",
+      "provenance_marker": "volundr-representative-workflow-wave",
+      "revision_id": "wave-02-project-02:revision-001",
+      "study_id": "representative-workflow-wave-02",
+      "wave_id": "wave-02"
+    },
+    "success": false
+  }
+}

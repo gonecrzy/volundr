@@ -332,7 +332,7 @@
       "markers": [],
       "path": "backend/tests/test_capsule_slot_helper.py",
       "reason": "current production behavior, safety invariant, or tooling",
-      "sha256": "70eb048b077c0ba1e0718badafaa4d6ca0c13b35f0f8454511f10da402a38301"
+      "sha256": "86bf72b13e9560c50ad291d46e2361c468d469101a49fb7ead52a3209cbb2016"
     },
     {
       "classification": "retain_current",
