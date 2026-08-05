@@ -52,9 +52,18 @@ class GeminiFlashLiteContractV1:
     @classmethod
     def from_repository(cls, repository_root: Path) -> "GeminiFlashLiteContractV1":
         repository_root = repository_root.resolve()
-        source = repository_root / "backend/app/services/ai/gemini_cli.py"
+        source_paths = {
+            "prompt_builder": "backend/app/services/ai/gemini_cli.py",
+            "provider_adapter": "backend/app/services/gemini_consistency/provider_contract.py",
+            "integration_adapters": "backend/app/services/gemini_integration/adapters.py",
+            "source_assembler": "backend/app/services/cad/source_scaffold.py",
+            "worker_integration": "backend/app/services/cad/worker_client.py",
+            "verification": "backend/app/services/projects/output_outcomes.py",
+            "workflow_runner": "backend/app/services/gemini_integration/workflow.py",
+        }
         source_hashes = {
-            "backend/app/services/ai/gemini_cli.py": hashlib.sha256(source.read_bytes()).hexdigest()
+            key: hashlib.sha256((repository_root / relative_path).read_bytes()).hexdigest()
+            for key, relative_path in source_paths.items()
         }
         settings = {
             "temperature": 0.2,
@@ -112,4 +121,3 @@ class GeminiFlashLiteContractV1:
                 "primary_fallback": False,
             },
         }
-

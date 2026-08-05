@@ -7,6 +7,7 @@ import os
 import time
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 import httpx
@@ -26,8 +27,13 @@ class SecondaryCredential:
     metadata: dict[str, Any]
 
 
-def load_secondary_credential() -> SecondaryCredential:
+def load_secondary_credential(*, dotenv_path: Path | None = None) -> SecondaryCredential:
     value = os.environ.get(SECONDARY_CREDENTIAL_ENV)
+    if not value:
+        for candidate in _dotenv_candidates(dotenv_path):
+            value = _read_secondary_credential(candidate)
+            if value:
+                break
     if not value:
         raise RuntimeError(f"{SECONDARY_CREDENTIAL_ENV} is absent; no provider call was attempted")
     return SecondaryCredential(
@@ -38,6 +44,37 @@ def load_secondary_credential() -> SecondaryCredential:
             "credential_present": True,
         },
     )
+
+
+def _dotenv_candidates(dotenv_path: Path | None) -> list[Path]:
+    if dotenv_path is not None:
+        return [dotenv_path]
+    repository_root = Path(__file__).resolve().parents[4]
+    candidates = [Path.cwd() / ".env", repository_root / ".env", repository_root / "backend" / ".env"]
+    unique: list[Path] = []
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved not in unique:
+            unique.append(resolved)
+    return unique
+
+
+def _read_secondary_credential(path: Path) -> str | None:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError):
+        return None
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("export "):
+            stripped = stripped[7:].lstrip()
+        if not stripped.startswith(f"{SECONDARY_CREDENTIAL_ENV}="):
+            continue
+        value = stripped.split("=", 1)[1].strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        return value or None
+    return None
 
 
 def retry_delay_seconds(status_code: int | None, attempt_index: int) -> float | None:

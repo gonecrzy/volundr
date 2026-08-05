@@ -97,6 +97,9 @@ async def test_runner_exercises_real_boundary_sequence_and_isolates_provenance(t
     assert outcome.candidate_decision == "candidate"
     assert ports.calls == ["source_assembly", "static_validation", "worker", "artifacts", "topology", "verification", "candidate"]
     assert [stage for stage, _, _ in ports.provider.calls] == ["requirements", "plan", "geometry"]
+    geometry_prompt = ports.provider.calls[-1][1]
+    assert '"slots"' in geometry_prompt
+    assert '"active_requirements"' in geometry_prompt
     assert all(item[2].startswith("gemini-provider-contract-integration-01:") for item in ports.provider.calls)
     assert all(boundary["provenance"]["study_id"] == "gemini-provider-contract-integration-01" for boundary in store.boundaries())
 
@@ -133,4 +136,3 @@ async def test_runner_stops_at_unsafe_adapter_blocker_without_skipping_forensic_
     assert not ports.calls
     assert store.boundaries()
     assert any(item["boundary"] == "requirements_adapter" for item in store.boundaries())
-

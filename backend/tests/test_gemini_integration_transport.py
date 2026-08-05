@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 import httpx
 import pytest
@@ -23,7 +24,7 @@ def test_only_secondary_credential_is_allowed(monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "primary-secret")
 
     with pytest.raises(RuntimeError, match="GEMINI_API_KEY_2"):
-        load_secondary_credential()
+        load_secondary_credential(dotenv_path=Path("/tmp/gemini-integration-no-credential.env"))
 
     monkeypatch.setenv("GEMINI_API_KEY_2", "secondary-secret")
     credential = load_secondary_credential()
@@ -33,6 +34,20 @@ def test_only_secondary_credential_is_allowed(monkeypatch) -> None:
         "credential_slot": "secondary",
         "credential_present": True,
     }
+
+
+def test_secondary_credential_can_be_read_from_explicit_dotenv_without_loading_primary(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY_2", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "primary-secret")
+    dotenv = tmp_path / ".env"
+    dotenv.write_text(
+        "GEMINI_API_KEY=primary-secret\nexport GEMINI_API_KEY_2='secondary-from-dotenv'\n",
+        encoding="utf-8",
+    )
+
+    credential = load_secondary_credential(dotenv_path=dotenv)
+
+    assert credential.value == "secondary-from-dotenv"
 
 
 def test_retry_delays_are_frozen_and_no_third_attempt_is_permitted() -> None:
@@ -105,4 +120,3 @@ async def test_transport_failure_receives_one_retry_and_counts_both_attempts(mon
     assert result.text == "ok"
     assert len(result.attempts) == 2
     assert waits == [10.0]
-

@@ -25,6 +25,33 @@ from app.services.gemini_integration.workflow import IntegrationWorkflowRunner
 STUDY_ID = "gemini-provider-contract-integration-01"
 
 
+def _read_json(path: Path, fallback):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return fallback
+
+
+def _preserved_report_fields(writer: IntegrationReportWriter, bundle: dict) -> dict:
+    def existing(key: str, report_name: str, fallback):
+        if key in bundle:
+            return bundle[key]
+        return _read_json(writer.reports_root / report_name, fallback)
+
+    decision_document = _read_json(writer.reports_root / "integration-decision.json", {})
+    return {
+        "project_outcomes": existing("project_outcomes", "project-outcomes.json", []),
+        "issues": existing("issues", "issue-register.json", []),
+        "causal_graph": existing("causal_graph", "issue-causal-graph.json", {"nodes": [], "edges": []}),
+        "ownership_summary": existing("ownership_summary", "ownership-summary.json", {}),
+        "priority_ranking": existing("priority_ranking", "next-action-ranking.json", []),
+        "rate_limit": existing("rate_limit", "rate-limit-report.json", {}),
+        "retry_summary": existing("retry_summary", "retry-report.json", {}),
+        "differential_replays": existing("differential_replays", "differential-replays.json", []),
+        "decision": decision_document.get("decision", "insufficient_evidence"),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the explicit Gemini provider-contract integration study")
     parser.add_argument("--profile", required=True)
@@ -63,9 +90,11 @@ def main(argv: list[str] | None = None) -> int:
         replay = replay_captured_evidence_offline(evidence)
         (writer.root / "replays").mkdir(parents=True, exist_ok=True)
         (writer.root / "replays/offline-replay.json").write_text(json.dumps(replay, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        writer.write_final(profile=profile, projects=corpus, project_outcomes=[], provider_attempts=evidence_store.provider_attempts(), issues=[], next_action={"mode": "offline_replay"})
+        preserved = _preserved_report_fields(writer, evidence)
+        writer.write_final(profile=profile, projects=corpus, provider_attempts=evidence_store.provider_attempts(), next_action={"mode": "offline_replay"}, **preserved)
         return 0
     if args.counterfactual:
+        bundle = _read_json(writer.reports_root / "all-integration-loop-evidence.json", {"provider_attempts": evidence_store.provider_attempts()})
         fixtures = [
             CounterfactualFixture(
                 fixture_id=f"counterfactual-{index:03d}",
@@ -77,7 +106,8 @@ def main(argv: list[str] | None = None) -> int:
         ]
         (writer.root / "counterfactuals").mkdir(parents=True, exist_ok=True)
         (writer.root / "counterfactuals/one-variable-fixtures.json").write_text(json.dumps(fixtures, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        writer.write_final(profile=profile, projects=corpus, project_outcomes=[], provider_attempts=evidence_store.provider_attempts(), issues=[], counterfactuals=fixtures, next_action={"mode": "offline_counterfactual"})
+        preserved = _preserved_report_fields(writer, bundle)
+        writer.write_final(profile=profile, projects=corpus, provider_attempts=evidence_store.provider_attempts(), counterfactuals=fixtures, next_action={"mode": "offline_counterfactual"}, **preserved)
         return 0
     if not args.live:
         parser.error("live execution requires --live; use --dry-run for preregistration only")
@@ -97,7 +127,14 @@ def main(argv: list[str] | None = None) -> int:
     causal = CausalGraph()
     outcomes, register = _run_live_projects(runner, corpus, evidence_store, register)
     ranked = rank_issues((issue, {"frequency": 1, "severity": 3, "confidence": 1, "downstream_impact": 2, "estimated_correction_cost": 1}) for issue in register.all())
-    decision = "integration_foundation_ready" if outcomes and evidence_store.provider_attempts() else "insufficient_evidence"
+    completed_candidates = [item for item in outcomes if item.get("candidate_decision") == "candidate"]
+    decision = (
+        "integration_foundation_ready"
+        if completed_candidates
+        else "integration_foundation_requires_narrow_fix"
+        if outcomes and evidence_store.provider_attempts()
+        else "insufficient_evidence"
+    )
     writer.write_final(
         profile=profile,
         projects=corpus,

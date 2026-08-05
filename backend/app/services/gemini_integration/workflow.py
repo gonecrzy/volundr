@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Protocol
 
 from app.services.ai.provider import DesignPlanRequest, ModelGenerationRequest, RequirementExtractionRequest
-from app.services.cad.geometry_slots import build_geometry_slot_manifest
+from app.services.cad.geometry_slots import build_geometry_slot_brief, build_geometry_slot_manifest
 from app.services.gemini_integration.adapters import (
     AdapterEvidence,
     GeminiGeometryContractAdapter,
@@ -94,13 +94,13 @@ class IntegrationWorkflowRunner:
             operation_id = f"{self.study_id}:{project.project_id}:{revision_id}:{operation_suffix}"
             result = await self.ports.provider_call(stage=stage, prompt=rendered.prompt, operation_id=operation_id)
             for attempt in result.attempts:
-                enriched = {**attempt, "project_id": project.project_id, "revision_id": revision_id, "prompt_hash": rendered.prompt_hash, "prompt_version": rendered.prompt_version, "provenance": self._provenance(project.project_id, revision_id)}
+                enriched = {**attempt, "project_id": project.project_id, "revision_id": revision_id, "prompt_hash": rendered.prompt_hash, "prompt_version": rendered.prompt_version, "rendered_prompt": rendered.prompt, "provenance": self._provenance(project.project_id, revision_id)}
                 self.evidence_store.record_provider_attempt(enriched)
                 if attempt.get("attempt_id"):
                     attempt_ids.append(str(attempt["attempt_id"]))
             boundary_ids.append(self._capture_boundary(
                 project, revision_id, f"provider_{stage}",
-                {"prompt_hash": rendered.prompt_hash, "prompt_version": rendered.prompt_version, "request": request.__dict__},
+                {"prompt_hash": rendered.prompt_hash, "prompt_version": rendered.prompt_version, "rendered_prompt": rendered.prompt, "request": request.__dict__},
                 {"attempt_ids": [item.get("attempt_id") for item in result.attempts], "complete": result.complete, "text": result.text},
             ))
             if not result.complete or not result.text:
@@ -166,12 +166,23 @@ class IntegrationWorkflowRunner:
             return self._outcome(project, revision_id, earliest, furthest, None, boundary_ids, attempt_ids, worker_jobs)
         plan = plan_evidence.normalized
         manifest = build_geometry_slot_manifest(plan, planning_depth="detailed_plan")
+        geometry_brief = build_geometry_slot_brief(
+            planning_depth="detailed_plan",
+            active_requirements=list(specification.get("requirements", [])),
+            requirement_delta=[],
+            preserved_requirements=list(specification.get("requirements", [])),
+            proposals=list(plan.get("proposals", []) or plan.get("proposed_decisions", []) or []),
+            design_plan=plan,
+            slot_manifest=manifest,
+            exposed_controls=list(plan.get("exposed_controls", []) or []),
+        )
         geometry_request = ModelGenerationRequest(
             project_name=project.title,
             original_intent=project.user_request,
             user_instruction=project.user_request,
             design_plan=plan,
             geometry_slot_manifest=manifest,
+            geometry_slot_brief=geometry_brief,
             geometry_contract="volundr-geometry-slots-v1",
         )
         geometry_result = await provider("geometry", geometry_request, "geometry")

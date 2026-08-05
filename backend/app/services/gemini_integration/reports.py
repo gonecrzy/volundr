@@ -65,7 +65,13 @@ class IntegrationReportWriter:
         corpus = tuple(corpus)
         snapshot = self._repository_snapshot()
         self._write("repository-snapshot.json", snapshot)
-        self._write("provider-profile-v1.json", profile.as_dict())
+        profile_document = profile.as_dict()
+        profile_document["prompt_contract"] = {
+            "requirements": {"version": profile.stage_prompt_versions["requirements"], "source": "GeminiCliProvider.build_requirement_prompt + immutable T2 appendix"},
+            "plan": {"version": profile.stage_prompt_versions["plan"], "source": "GeminiCliProvider.build_design_plan_prompt"},
+            "geometry": {"version": profile.stage_prompt_versions["geometry"], "source": "GeminiCliProvider.build_geometry_slots_prompt"},
+        }
+        self._write("provider-profile-v1.json", profile_document)
         self._write("adapter-contracts.json", {
             "schema_version": "volundr-provider-contract-integration-v1",
             "stages": {
@@ -159,6 +165,14 @@ class IntegrationReportWriter:
             except (OSError, subprocess.CalledProcessError):
                 return None
 
+        migration_head = None
+        alembic = self.repository_root / "backend/.venv/bin/alembic"
+        if alembic.is_file():
+            try:
+                migration_head = subprocess.check_output([str(alembic), "heads"], cwd=self.repository_root / "backend", text=True, stderr=subprocess.DEVNULL).strip()
+            except (OSError, subprocess.CalledProcessError):
+                migration_head = None
+
         historical = []
         for root in (
             "data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01",
@@ -177,10 +191,9 @@ class IntegrationReportWriter:
             "origin_main": git("rev-parse", "origin/main"),
             "divergence": git("rev-list", "--left-right", "--count", "HEAD...origin/main"),
             "worktree": git("status", "--short"),
-            "migration_head": None,
+            "migration_head": migration_head,
             "historical_evidence_hashes": historical,
         }
 
 
 __all__ = ["IntegrationReportWriter", "REQUIRED_REPORTS"]
-
