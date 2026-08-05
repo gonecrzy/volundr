@@ -13,7 +13,9 @@ from app.services.gemini_consistency.provider_contract_correction import (
     worker_reach_semantics,
 )
 from scripts.run_gemini_provider_contract_foundation import _generation_config
-from scripts.run_gemini_provider_contract_correction import _settings_selection
+from pathlib import Path
+
+from scripts.run_gemini_provider_contract_correction import _settings_selection, stage_prompt_selection
 
 
 def _record(profile: str, result: str, *, status_code: int = 200) -> dict:
@@ -178,3 +180,11 @@ def test_settings_replacement_deduplicates_the_failed_logical_operation() -> Non
     assert summary["complete"] is True
     assert summary["content_bearing_responses"] == 12
     assert decision["historical_transport_failures_excluded"]["S1-profile-b"] == 1
+
+
+def test_stage_selection_does_not_authorize_holdout_without_repair_prompt() -> None:
+    selection = stage_prompt_selection(Path("/root/volundr"), {"selected_prompt": "T2-requirements-missing-fit-v1"}, {"selected_prompt": None})
+
+    assert selection["selected"] is False
+    assert selection["stages"]["requirements"]["selected_prompt"] == "T2-requirements-missing-fit-v1"
+    assert selection["stages"]["repair"]["selected_prompt"] is None
