@@ -38,7 +38,10 @@ def render_integration_prompt(
     elif stage == "plan":
         prompt = provider.build_design_plan_prompt(request)
     elif stage == "geometry":
-        prompt = provider.build_scaffold_geometry_prompt(request)
+        if request.geometry_slot_manifest or request.geometry_contract == "volundr-geometry-slots-v1":
+            prompt = provider.build_geometry_slots_prompt(request)
+        else:
+            prompt = provider.build_scaffold_geometry_prompt(request)
     else:
         raise ValueError(f"unsupported integration stage: {stage}")
     return RenderedIntegrationPrompt(
@@ -50,4 +53,3 @@ def render_integration_prompt(
 
 
 __all__ = ["RenderedIntegrationPrompt", "render_integration_prompt"]
-

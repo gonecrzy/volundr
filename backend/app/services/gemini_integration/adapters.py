@@ -165,9 +165,27 @@ class GeminiRequirementsContractAdapter:
                 failure_class=_failure_for_quality(provider.get("quality") or {}), context=context,
             )
         if not isinstance(normalized, dict) or not isinstance(normalized.get("requirements"), list):
-            return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,
-                             validation={"reason": "requirements must be a non-empty list"},
-                             failure_class="structurally_empty", context=context)
+            source_records = [
+                item
+                for field in ("critical_dimensions", "functional_requirements")
+                for item in (normalized.get(field, []) if isinstance(normalized, dict) else [])
+                if isinstance(item, dict)
+            ]
+            if source_records:
+                normalized["requirements"] = source_records
+                actions.append({
+                    "action_class": "semantic_requirement_projection",
+                    "rule_id": "authoritative-requirement-records",
+                    "original": ["critical_dimensions", "functional_requirements"],
+                    "normalized": "requirements",
+                    "authoritative_source": "Volundr requirements persistence contract",
+                    "confidence": "high",
+                    "ambiguity_status": "none",
+                })
+            else:
+                return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,
+                                 validation={"reason": "requirements must be a non-empty list"},
+                                 failure_class="structurally_empty", context=context)
         requirements = normalized["requirements"]
         if not requirements or any(not _meaningful(item, ("id", "subject", "description", "value", "operator")) for item in requirements):
             return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,
@@ -240,10 +258,25 @@ class GeminiPlanContractAdapter:
             return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,
                              validation={"invalid_component_references": invalid}, failure_class="invalid_reference", context=context)
         required_requirements = {str(item) for item in context.get("required_requirement_ids", [])}
-        represented = {str(item.get("id") or item.get("requirement_id")) for item in normalized.get("requirements", []) if isinstance(item, dict)}
-        for item in [*features, *(normalized.get("validation_targets") or [])]:
-            if isinstance(item, dict):
-                represented.update(str(value) for value in item.get("requirement_ids", []) or [])
+        represented: set[str] = {
+            str(item.get("id") or item.get("requirement_id"))
+            for item in normalized.get("requirements", [])
+            if isinstance(item, dict) and (item.get("id") or item.get("requirement_id")) is not None
+        }
+
+        def collect_requirement_ids(value: Any) -> None:
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key in {"requirement_id", "source_requirement_id"} and item is not None:
+                        represented.add(str(item))
+                    elif key == "requirement_ids" and isinstance(item, list):
+                        represented.update(str(entry) for entry in item)
+                    collect_requirement_ids(item)
+            elif isinstance(value, list):
+                for item in value:
+                    collect_requirement_ids(item)
+
+        collect_requirement_ids(normalized)
         missing = sorted(required_requirements - represented)
         if missing:
             return _evidence(self.stage, raw, parsed, normalized, accepted=False, actions=actions,

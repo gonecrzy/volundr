@@ -60,6 +60,21 @@ def test_requirements_adapter_rejects_invented_fit_value_and_conflicting_readine
     assert result.normalization_actions
 
 
+def test_requirements_adapter_maps_current_design_specification_records() -> None:
+    raw = {
+        "critical_dimensions": [{"id": "width", "value": 100, "unit": "mm", "operator": "exact"}],
+        "functional_requirements": [{"id": "hole", "description": "through hole", "operator": "present"}],
+        "clarification_required": False,
+        "generation_ready": True,
+    }
+
+    result = GeminiRequirementsContractAdapter().adapt(raw, _context())
+
+    assert result.accepted is True
+    assert [item["id"] for item in result.normalized["requirements"]] == ["width", "hole"]
+    assert any(action["action_class"] == "semantic_requirement_projection" for action in result.normalization_actions)
+
+
 def test_plan_adapter_preserves_output_obligations_and_traceability() -> None:
     raw = {
         "components": [{"id": "base", "name": "base"}],
@@ -146,4 +161,3 @@ def test_geometry_adapter_does_not_invent_missing_slots_or_geometry() -> None:
     assert result.accepted is False
     assert result.failure_class == "missing_slots"
     assert result.normalized["slots"] == [{"slot_id": 1, "statements": ["body = body.cut(cutter)"], "result_symbol": "body"}]
-

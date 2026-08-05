@@ -94,7 +94,7 @@ class IntegrationWorkflowRunner:
             operation_id = f"{self.study_id}:{project.project_id}:{revision_id}:{operation_suffix}"
             result = await self.ports.provider_call(stage=stage, prompt=rendered.prompt, operation_id=operation_id)
             for attempt in result.attempts:
-                enriched = {**attempt, "project_id": project.project_id, "revision_id": revision_id, "prompt_hash": rendered.prompt_hash, "prompt_version": rendered.prompt_version, "provenance": self.provenance}
+                enriched = {**attempt, "project_id": project.project_id, "revision_id": revision_id, "prompt_hash": rendered.prompt_hash, "prompt_version": rendered.prompt_version, "provenance": self._provenance(project.project_id, revision_id)}
                 self.evidence_store.record_provider_attempt(enriched)
                 if attempt.get("attempt_id"):
                     attempt_ids.append(str(attempt["attempt_id"]))
@@ -177,39 +177,47 @@ class IntegrationWorkflowRunner:
         geometry_result = await provider("geometry", geometry_request, "geometry")
         if geometry_result is None:
             return self._outcome(project, revision_id, earliest, furthest, None, boundary_ids, attempt_ids, worker_jobs)
+        allowed_names = {"body", "cq", "params", "cutter"}
+        for slot in manifest.get("slots", []) or []:
+            if isinstance(slot, dict):
+                allowed_names.update(str(value) for value in slot.get("authorized_parameter_ids", []) or [])
+                allowed_names.update(str(value) for value in slot.get("approved_helpers", []) or [])
         geometry_evidence = self.geometry_adapter.adapt(
             geometry_result.text,
-            {**self._context(project, revision_id), "expected_slot_ids": [item.get("slot_id") for item in manifest.get("slots", [])], "allowed_names": ["body", "cq", "cutter"]},
+            {**self._context(project, revision_id), "expected_slot_ids": [item.get("slot_id") for item in manifest.get("slots", [])], "allowed_names": sorted(allowed_names)},
         )
         boundary_ids.append(self._capture_adapter(project, revision_id, "geometry_adapter", geometry_evidence))
         if not geometry_evidence.accepted:
             earliest = earliest or "geometry_adapter"
             return self._outcome(project, revision_id, earliest, furthest, None, boundary_ids, attempt_ids, worker_jobs)
         furthest = "geometry_adapter"
-        source_result = await self.ports.assemble_source(project=project, plan=plan, geometry=geometry_evidence.normalized, provenance=self.provenance)
+        source_result = await self.ports.assemble_source(project=project, plan=plan, geometry=geometry_evidence.normalized, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "source_assembly", {"plan": plan, "geometry": geometry_evidence.normalized}, source_result))
         source = str(source_result.get("source") or "")
-        static_result = await self.ports.static_validate(source=source, provenance=self.provenance)
+        static_result = await self.ports.static_validate(source=source, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "static_validation", {"source": source}, static_result))
         if not static_result.get("valid", False):
             return self._outcome(project, revision_id, "static_validator", "static_validation", None, boundary_ids, attempt_ids, worker_jobs)
-        worker_result = await self.ports.worker_submit(source=source, output_manifest=source_result.get("output_manifest", []), provenance=self.provenance)
+        worker_result = await self.ports.worker_submit(source=source, output_manifest=source_result.get("output_manifest", []), provenance=self._provenance(project.project_id, revision_id))
         worker_jobs.append(worker_result)
         boundary_ids.append(self._capture_boundary(project, revision_id, "worker", {"source": source}, worker_result))
         if not worker_result.get("success", False):
             return self._outcome(project, revision_id, "worker_runtime", "worker", None, boundary_ids, attempt_ids, worker_jobs)
-        artifacts = await self.ports.collect_artifacts(worker_result=worker_result, provenance=self.provenance)
+        artifacts = await self.ports.collect_artifacts(worker_result=worker_result, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "artifacts", worker_result, artifacts))
-        topology = await self.ports.inspect_topology(artifacts=artifacts, provenance=self.provenance)
+        topology = await self.ports.inspect_topology(artifacts=artifacts, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "topology", artifacts, topology))
-        verification = await self.ports.verify_requirements(project=project, plan=plan, topology=topology, provenance=self.provenance)
+        verification = await self.ports.verify_requirements(project=project, plan=plan, topology=topology, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "verification", {"plan": plan, "topology": topology}, verification))
-        candidate = await self.ports.decide_candidate(project=project, verification=verification, provenance=self.provenance)
+        candidate = await self.ports.decide_candidate(project=project, verification=verification, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "candidate", verification, candidate))
         return self._outcome(project, revision_id, None, "candidate", candidate.get("decision"), boundary_ids, attempt_ids, worker_jobs)
 
     def _context(self, project: IntegrationProject, revision_id: str) -> dict[str, Any]:
-        return {"project_id": project.project_id, "revision_id": revision_id, "operation_id": f"{self.study_id}:{project.project_id}", "provenance": self.provenance}
+        return {"project_id": project.project_id, "revision_id": revision_id, "operation_id": f"{self.study_id}:{project.project_id}", "provenance": self._provenance(project.project_id, revision_id)}
+
+    def _provenance(self, project_id: str, revision_id: str) -> dict[str, Any]:
+        return {**self.provenance, "project_id": project_id, "revision_id": revision_id}
 
     def _capture_boundary(self, project: IntegrationProject, revision_id: str, boundary: str, input_value: Any, output_value: Any) -> str:
         boundary_id = f"{project.project_id}:{revision_id}:{boundary}"
@@ -222,7 +230,7 @@ class IntegrationWorkflowRunner:
             "output_hash": hashlib.sha256(json.dumps(output_value, sort_keys=True, default=str).encode()).hexdigest(),
             "input": input_value,
             "output": output_value,
-            "provenance": self.provenance,
+            "provenance": self._provenance(project.project_id, revision_id),
         })
         return boundary_id
 
@@ -235,4 +243,3 @@ class IntegrationWorkflowRunner:
 
 
 __all__ = ["IntegrationBoundaryPorts", "IntegrationWorkflowOutcome", "IntegrationWorkflowRunner"]
-

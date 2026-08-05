@@ -1,7 +1,14 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable
+
+from app.services.gemini_integration.adapters import (
+    GeminiGeometryContractAdapter,
+    GeminiPlanContractAdapter,
+    GeminiRequirementsContractAdapter,
+)
 
 
 STAGE_ORDER = {
@@ -181,6 +188,56 @@ def replay_evidence_offline(evidence: dict[str, Any], *, validators: Iterable[Ca
     }
 
 
+def replay_captured_evidence_offline(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Re-run stage adapters over captured provider responses without I/O."""
+
+    adapters = {
+        "requirements": GeminiRequirementsContractAdapter(),
+        "plan": GeminiPlanContractAdapter(),
+        "geometry": GeminiGeometryContractAdapter(),
+    }
+    records: list[dict[str, Any]] = []
+    for attempt in evidence.get("provider_attempts", []) or []:
+        stage = str(attempt.get("stage") or "")
+        response = attempt.get("response") or {}
+        raw = _response_text_from_payload(response) if isinstance(response, dict) else None
+        adapter = adapters.get(stage)
+        if adapter is None or raw is None:
+            records.append({"attempt_id": attempt.get("attempt_id"), "stage": stage, "replayed": False, "reason": "no replayable content"})
+            continue
+        context = {
+            "project_id": attempt.get("project_id"),
+            "revision_id": attempt.get("revision_id"),
+            "provenance": {"study_id": (evidence.get("study") or {}).get("study_id"), "synthetic": False},
+        }
+        if stage == "geometry":
+            try:
+                parsed = json.loads(raw)
+                context["expected_slot_ids"] = [item.get("slot_id") for item in parsed.get("slots", []) if isinstance(item, dict)]
+            except (TypeError, ValueError):
+                context["expected_slot_ids"] = []
+        result = adapter.adapt(raw, context)
+        records.append({"attempt_id": attempt.get("attempt_id"), "stage": stage, "replayed": True, "provider_success_eligible": False, "adapter": result.as_dict()})
+    return {"offline_only": True, "provider_calls": 0, "worker_calls": 0, "records": records}
+
+
+def _response_text_from_payload(payload: dict[str, Any]) -> str | None:
+    candidates = payload.get("candidates")
+    if not isinstance(candidates, list):
+        return None
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            continue
+        content = candidate.get("content")
+        parts = content.get("parts") if isinstance(content, dict) else None
+        if not isinstance(parts, list):
+            continue
+        text = "".join(str(item.get("text")) for item in parts if isinstance(item, dict) and item.get("text") is not None)
+        if text:
+            return text
+    return None
+
+
 def rank_issues(issues: Iterable[tuple[IssueRecord, dict[str, float]]]) -> list[dict[str, Any]]:
     ranked: list[dict[str, Any]] = []
     for issue, factors in issues:
@@ -205,6 +262,6 @@ __all__ = [
     "IssueRegister",
     "count_provider_successes",
     "rank_issues",
+    "replay_captured_evidence_offline",
     "replay_evidence_offline",
 ]
-

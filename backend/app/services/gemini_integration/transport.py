@@ -171,7 +171,7 @@ class SecondaryGeminiClient:
                     "retry_delay_seconds": None,
                     "request": payload,
                     "response": response_payload,
-                    "credential": credential.metadata,
+                    "auth_metadata": credential.metadata,
                 }
                 attempts.append(attempt)
                 if self.attempt_recorder is not None:
@@ -249,4 +249,3 @@ __all__ = [
     "load_secondary_credential",
     "retry_delay_seconds",
 ]
-
