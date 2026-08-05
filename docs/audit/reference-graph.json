@@ -7,6 +7,7 @@
       "path": "CODEX_KICKOFF_PROMPT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -19,6 +20,7 @@
       "path": "README.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/tests/test_multi_output_generation.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -261,6 +263,7 @@
         "README.md",
         "backend/app/services/ai/__init__.py",
         "backend/app/services/ai/ollama.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/corpus.py",
         "backend/app/services/gemini_consistency/runner.py",
         "backend/app/services/gemini_consistency/service.py",
@@ -323,6 +326,7 @@
         "backend/app/services/ai/model_policy.py",
         "backend/app/services/ai/ollama.py",
         "backend/app/services/ai/provider.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/comparison.py",
         "backend/app/services/gemini_consistency/geometry_slot_canonicalizer.py",
@@ -406,6 +410,7 @@
         "backend/tests/test_design_plans.py",
         "backend/tests/test_design_specifications.py",
         "backend/tests/test_diagnostic_inputs.py",
+        "backend/tests/test_documentation_audit.py",
         "backend/tests/test_e2e_fixture_server.py",
         "backend/tests/test_environment_configuration.py",
         "backend/tests/test_export_packaging.py",
@@ -687,6 +692,20 @@
       "safe_to_delete": false
     },
     {
+      "classification": "current_supporting",
+      "kind": "provider_or_integration_code",
+      "path": "backend/app/services/documentation_audit.py",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py",
+        "backend/scripts/audit_repository.py",
+        "backend/tests/test_documentation_audit.py"
+      ],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
       "classification": "historical_immutable",
       "kind": "provider_or_integration_code",
       "path": "backend/app/services/gemini_consistency/__init__.py",
@@ -744,6 +763,7 @@
       "path": "backend/app/services/gemini_consistency/buildability_reanalysis.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/scripts/run_gemini_buildability_phase2.py",
         "backend/scripts/run_gemini_buildability_reanalysis.py",
@@ -1009,6 +1029,7 @@
       "path": "backend/app/services/gemini_consistency/profile_ablation.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/system_boundary_methods.py",
         "backend/scripts/run_gemini_buildability_reanalysis.py",
         "backend/scripts/run_gemini_profile_ablation.py",
@@ -1030,6 +1051,7 @@
       "referenced_by": [
         "backend/app/services/ai/gemini_cli.py",
         "backend/app/services/ai/provider.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/provider_contract.py",
         "backend/app/services/gemini_integration/adapters.py",
         "backend/app/services/gemini_integration/forensics.py",
@@ -1075,6 +1097,7 @@
       "path": "backend/app/services/gemini_consistency/provider_contract_correction.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/provider_contract.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
         "backend/tests/test_gemini_provider_contract_correction.py",
@@ -1092,6 +1115,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_consistency/provider_contract.py",
         "backend/app/services/gemini_consistency/replay.py",
@@ -1202,6 +1226,7 @@
       "referenced_by": [
         "README.md",
         "backend/app/services/ai/gemini_cli.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/runner.py",
         "backend/app/services/gemini_consistency/service.py",
         "backend/app/services/gemini_consistency/study.py",
@@ -1299,6 +1324,7 @@
         "backend/app/services/ai/model_policy.py",
         "backend/app/services/ai/ollama.py",
         "backend/app/services/ai/source_extraction.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/__init__.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
@@ -1374,6 +1400,7 @@
         "backend/tests/test_design_artifact_consistency.py",
         "backend/tests/test_design_plans.py",
         "backend/tests/test_design_specifications.py",
+        "backend/tests/test_documentation_audit.py",
         "backend/tests/test_failure_taxonomy.py",
         "backend/tests/test_feature_evidence.py",
         "backend/tests/test_feature_measurements.py",
@@ -1517,6 +1544,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/corpus.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
@@ -1552,6 +1580,7 @@
         "backend/scripts/run_gemini_study.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
         "backend/tests/test_ai_provider_selection.py",
+        "backend/tests/test_documentation_audit.py",
         "backend/tests/test_gemini_buildability_reanalysis.py",
         "backend/tests/test_gemini_consistency_api.py",
         "backend/tests/test_gemini_flash_lite_analyzer.py",
@@ -1649,6 +1678,7 @@
       "path": "backend/app/services/gemini_consistency/system_boundary_methods.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
         "backend/tests/test_gemini_system_boundary_methods.py",
         "docs/TEST_STRATEGY.md",
@@ -1743,6 +1773,7 @@
       "referenced_by": [
         "README.md",
         "backend/app/services/ai/gemini_api.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
@@ -1911,6 +1942,7 @@
       "path": "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/scripts/run_gemini_geometry_prompt_narrow_fix.py",
         "backend/tests/test_gemini_geometry_prompt_narrow_fix.py",
         "docs/INTEGRATION_TEST_LOOP.md"
@@ -1925,6 +1957,7 @@
       "path": "backend/app/services/gemini_integration/narrow_fix.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -1949,6 +1982,7 @@
         "README.md",
         "backend/app/services/ai/gemini_cli.py",
         "backend/app/services/ai/ollama.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
@@ -1986,6 +2020,7 @@
         "backend/tests/test_cadquery_contract.py",
         "backend/tests/test_design_plans.py",
         "backend/tests/test_design_specifications.py",
+        "backend/tests/test_documentation_audit.py",
         "backend/tests/test_gemini_buildability_reanalysis.py",
         "backend/tests/test_gemini_cli_provider.py",
         "backend/tests/test_gemini_consistency_persistence.py",
@@ -2213,6 +2248,7 @@
       "referenced_by": [
         "CODEX_KICKOFF_PROMPT.md",
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/reporting.py",
@@ -2246,6 +2282,7 @@
         "backend/tests/test_debug_batch_frozen_replays.py",
         "backend/tests/test_debug_batch_reports.py",
         "backend/tests/test_design_artifact_consistency.py",
+        "backend/tests/test_documentation_audit.py",
         "backend/tests/test_gemini_buildability_reanalysis.py",
         "backend/tests/test_gemini_consistency_comparison.py",
         "backend/tests/test_gemini_consistency_reporting.py",
@@ -2336,6 +2373,7 @@
       "path": "backend/app/services/gemini_integration/targeted_validation.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/scripts/run_gemini_provider_contract_targeted_validation.py",
         "backend/tests/test_gemini_integration_targeted_validation.py"
@@ -2427,6 +2465,7 @@
         "CODEX_KICKOFF_PROMPT.md",
         "README.md",
         "backend/app/services/ai/model_policy.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/buildability_reanalysis.py",
         "backend/app/services/gemini_consistency/comparison.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
@@ -2635,6 +2674,7 @@
       "path": "backend/scripts/audit_gemini_phase2.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/TEST_STRATEGY.md"
       ],
       "references": [],
@@ -2648,6 +2688,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/INTEGRATION_TEST_LOOP.md"
       ],
       "references": [],
@@ -2854,6 +2895,7 @@
       "path": "backend/scripts/run_gemini_study.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-08-04-gemini-flash-lite-study.md",
         "scripts/run-gemini-study"
       ],
@@ -3070,6 +3112,7 @@
         "backend/app/services/ai/gemini_cli.py",
         "backend/app/services/ai/ollama.py",
         "backend/app/services/ai/provider.py",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_consistency/provider_contract.py",
@@ -3965,7 +4008,9 @@
       "kind": "test",
       "path": "backend/tests/test_documentation_audit.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "safe_to_archive": false,
       "safe_to_delete": false
@@ -4258,7 +4303,9 @@
       "kind": "test",
       "path": "backend/tests/test_gemini_geometry_prompt_narrow_fix.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "safe_to_archive": false,
       "safe_to_delete": false
@@ -4451,6 +4498,7 @@
       "path": "backend/tests/test_gemini_profile_ablation.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/TEST_STRATEGY.md"
       ],
       "references": [],
@@ -4463,6 +4511,7 @@
       "path": "backend/tests/test_gemini_provider_contract_correction.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-final-repair.md"
       ],
       "references": [],
@@ -4474,7 +4523,9 @@
       "kind": "test",
       "path": "backend/tests/test_gemini_provider_contract_foundation.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "safe_to_archive": false,
       "safe_to_delete": false
@@ -4485,6 +4536,7 @@
       "path": "backend/tests/test_gemini_system_boundary_methods.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/TEST_STRATEGY.md",
         "docs/mutantpowers/plans/2026-08-04-gemini-system-boundary-methods.md"
       ],
@@ -4809,6 +4861,7 @@
       "path": "backend/tests/test_prompt_snapshots.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
       ],
       "references": [],
@@ -4954,6 +5007,7 @@
       "referenced_by": [
         "CODEX_KICKOFF_PROMPT.md",
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/comparison.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
         "backend/app/services/gemini_consistency/runner.py",
@@ -5573,6 +5627,7 @@
       "path": "data/debug-sessions/gemini-flash-lite-study/gemini-flash-lite-study-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/study.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/audit_gemini_phase2.py",
@@ -5715,6 +5770,7 @@
       "path": "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -5912,6 +5968,7 @@
       "path": "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/phase-2/live-data-final/current-production/jobs/11ed33e7-70e6-4bd6-bbb0-4688dda32860/work/data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -5944,6 +6001,7 @@
       "path": "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/phase-2/live-data-final/current-production/jobs/ba6e174b-7508-4366-aa06-af81811632bf/work/data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -5976,6 +6034,7 @@
       "path": "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/phase-2/live-data-final/current-production/jobs/ceda86ae-ca56-4ddc-abb3-9531e8f35626/work/data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -6008,6 +6067,7 @@
       "path": "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/phase-2/live-data-final/profile-b-sampling/jobs/3043fdb1-e061-4787-b208-844a21637796/work/data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -6040,6 +6100,7 @@
       "path": "data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01/phase-2/live-data-final/profile-b-sampling/jobs/9ef42a1b-e5fa-4411-981a-7105823e5591/work/data/debug-sessions/gemini-profile-ablation/gemini-profile-ablation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -6072,6 +6133,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-foundation/gemini-provider-contract-foundation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
@@ -6094,6 +6156,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-foundation/gemini-provider-contract-foundation-01/reports/provider-contract-correction-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
         "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION.md",
         "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION_ADAPTER.md",
@@ -6111,6 +6174,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-integration-geometry-fix-validation/gemini-provider-contract-integration-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -6142,6 +6206,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-integration/gemini-provider-contract-integration-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -6173,6 +6238,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-integration/gemini-provider-contract-integration-01/reports/geometry-prompt-narrow-fix-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "docs/STUDY_INDEX.md"
       ],
@@ -6186,6 +6252,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-integration/gemini-provider-contract-integration-01/reports/geometry-prompt-narrow-fix-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "docs/STUDY_INDEX.md"
       ],
@@ -6209,6 +6276,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-integration/gemini-provider-contract-integration-01/reports/narrow-fix-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
@@ -6226,6 +6294,7 @@
       "path": "data/debug-sessions/gemini-provider-contract-integration/gemini-provider-contract-integration-01/reports/targeted-provider-validation-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/scripts/run_gemini_provider_contract_targeted_validation.py",
@@ -6243,6 +6312,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6261,6 +6331,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-02/live-data/A-current-p0/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6293,6 +6364,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-02/live-data/B-profile-b-p0/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6325,6 +6397,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-02/live-data/C-current-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6357,6 +6430,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-02/live-data/D-profile-b-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6389,6 +6463,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-03/live-data/A-current-p0/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6421,6 +6496,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-03/live-data/B-profile-b-p0/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6453,6 +6529,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-03/live-data/C-current-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6485,6 +6562,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-03/live-data/D-profile-b-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6529,6 +6607,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-04-secondary-resume-secondary-replacement-01/live-data/C-current-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6561,6 +6640,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-04-secondary-resume-secondary-replacement-01/live-data/D-profile-b-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6593,6 +6673,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-04-secondary-resume/live-data/C-current-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6625,6 +6706,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-04/live-data/A-current-p0/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6657,6 +6739,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/factorial/run-04/live-data/B-profile-b-p0/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6689,6 +6772,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/final-validation/factorial/live-data/current-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -6721,6 +6805,7 @@
       "path": "data/debug-sessions/gemini-system-boundary-methods/gemini-system-boundary-methods-01/final-validation/factorial/live-data/profile-b-p3/debug-sessions/gemini-flash-lite-study/gemini-system-boundary-methods-01",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -7108,6 +7193,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -7121,6 +7207,7 @@
       "path": "docs/AI_VISUAL_REVIEW_PLAN.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PRODUCT_DIRECTION.md"
       ],
@@ -7134,6 +7221,7 @@
       "path": "docs/ARCHITECTURE.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GENERATION_RELIABILITY_PLAN.md",
@@ -7237,6 +7325,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/ARCHITECTURE.md",
         "docs/CAD_EXECUTION_SECURITY.md",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
@@ -7329,6 +7418,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CADQUERY_BACKEND.md",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
@@ -7437,6 +7527,7 @@
       "path": "docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PRODUCT_VALIDATION_ROUND_1.md"
       ],
@@ -7451,6 +7542,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/REPEATED_FEATURE_LAYOUTS.md",
         "docs/REQUIREMENT_TRACE_CONTRACT.md"
@@ -7468,6 +7560,7 @@
       "path": "docs/COMPONENT_TARGETED_REVISIONS.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DATA_MODEL.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -7501,6 +7594,7 @@
       "path": "docs/CURRENT_REPOSITORY_AUDIT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
       ],
@@ -7538,6 +7632,8 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
+        "backend/tests/test_documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/INTEGRATION_TEST_LOOP.md",
@@ -7575,6 +7671,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -7587,6 +7684,7 @@
       "path": "docs/DERIVED_DEPENDENCY_CLASSIFICATION.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -7624,6 +7722,7 @@
       "path": "docs/DETERMINISTIC_USER_WORKFLOW_GATE.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md"
       ],
@@ -7652,6 +7751,7 @@
       "referenced_by": [
         "CODEX_KICKOFF_PROMPT.md",
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md",
         "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
         "docs/REPEATED_FEATURE_LAYOUTS.md",
@@ -7678,6 +7778,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DEPLOYMENT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
@@ -7693,6 +7794,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -7760,6 +7862,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PARAMETRIC_PRODUCT_MODEL.md"
       ],
@@ -7786,6 +7889,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CADQUERY_BACKEND.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -8262,6 +8366,7 @@
       "path": "docs/GEMINI_PROVIDER_CONTRACTS.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -8286,6 +8391,7 @@
       "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -8322,6 +8428,8 @@
       "path": "docs/GEMINI_PROVIDER_CONTRACT_FOUNDATION.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
+        "backend/tests/test_documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
       ],
@@ -8335,6 +8443,7 @@
       "path": "docs/GEMINI_PROVIDER_CONTRACT_HOLDOUT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -8371,6 +8480,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "backend/app/services/ai/gemini_cli.py",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GENERATION_RELIABILITY_PLAN.md",
         "docs/MODEL_GENERATION_CONTRACT.md"
@@ -8558,6 +8668,7 @@
       "path": "docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md"
       ],
@@ -8571,6 +8682,7 @@
       "path": "docs/GEOMETRY_EXECUTION_CONTEXT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
@@ -8587,6 +8699,7 @@
       "path": "docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md",
         "docs/LIVE_BATCH_CORRECTION_PLAN.md"
       ],
@@ -8614,6 +8727,7 @@
       "path": "docs/GEOMETRY_SLOT_CONTRACT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
       ],
@@ -8627,6 +8741,7 @@
       "path": "docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
       ],
@@ -8640,6 +8755,7 @@
       "path": "docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -8653,6 +8769,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_TRAJECTORY.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -8791,6 +8908,7 @@
       "path": "docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DEPLOYMENT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
@@ -8951,6 +9069,7 @@
       "path": "docs/MODEL_GENERATION_CONTRACT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -8978,6 +9097,7 @@
       "path": "docs/MULTI_OUTPUT_GENERATION.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DATA_MODEL.md",
@@ -9000,6 +9120,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/ARCHITECTURE.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -9026,6 +9147,7 @@
       "path": "docs/MVP_SCOPE.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
         "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
@@ -9056,6 +9178,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/FRONTEND_USER_TESTING_PLAN.md",
         "docs/PRODUCT_VALIDATION_ROUND_1.md"
@@ -9294,6 +9417,7 @@
       "path": "docs/PARAMETRIC_PRODUCT_MODEL.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
       ],
@@ -9307,6 +9431,7 @@
       "path": "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GEOMETRY_EXECUTION_CONTEXT.md",
         "docs/REPEATED_FEATURE_LAYOUTS.md"
@@ -9335,6 +9460,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -9348,6 +9474,7 @@
       "path": "docs/PLAN_SOURCE_IDENTITY_BOUNDARY.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -9360,6 +9487,7 @@
       "path": "docs/PRINTABILITY_INSPECTOR.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -9372,6 +9500,7 @@
       "path": "docs/PRODUCT_DIRECTION.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
@@ -9387,7 +9516,9 @@
       "kind": "documentation",
       "path": "docs/PRODUCT_REVIEW_ACTIONS.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "safe_to_archive": false,
       "safe_to_delete": false
@@ -9399,6 +9530,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -9412,6 +9544,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -9425,6 +9558,7 @@
       "path": "docs/PROMPT_CONTEXT_PACK.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -9439,6 +9573,8 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
+        "backend/tests/test_documentation_audit.py",
         "docs/CURRENT_TRAJECTORY.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
@@ -9453,6 +9589,7 @@
       "path": "docs/PROVIDER_CONVERGENCE_REGRESSION_FIXTURES.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
       ],
       "references": [],
@@ -9466,6 +9603,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -9492,6 +9630,7 @@
       "path": "docs/PROVIDER_RESPONSE_CONVERGENCE.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
       ],
       "references": [],
@@ -9505,6 +9644,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/COMPACT_PLAN_CONTRACT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md"
@@ -9534,6 +9674,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -9545,7 +9686,9 @@
       "kind": "documentation",
       "path": "docs/REQUIREMENT_PROPAGATION_REVIEW.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "safe_to_archive": false,
       "safe_to_delete": false
@@ -9557,6 +9700,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CHAT_MESSAGE_IDENTITY_CONTRACT.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -9572,6 +9716,7 @@
       "path": "docs/REQUIREMENT_TRACE_CONTRACT.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/COMPACT_PLAN_CONTRACT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -9590,6 +9735,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/REQUIREMENT_TRACE_CONTRACT.md"
       ],
@@ -9604,6 +9750,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/ARCHITECTURE.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -9650,6 +9797,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/archive/README.md"
@@ -9664,6 +9812,7 @@
       "path": "docs/TEST_STRATEGY.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
         "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
@@ -9697,6 +9846,7 @@
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -9732,6 +9882,7 @@
       "path": "docs/archive/README.md",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/tests/test_multi_output_generation.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_TRAJECTORY.md",
@@ -10533,9 +10684,9 @@
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
-    "node_count": 622,
+    "node_count": 623,
     "safe_to_archive_nodes": 2,
     "safe_to_delete_nodes": 0,
-    "unreferenced_nodes": 197
+    "unreferenced_nodes": 192
   }
 }

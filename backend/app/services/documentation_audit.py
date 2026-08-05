@@ -288,7 +288,7 @@ def _searchable_sources(root: Path, tracked: list[str]) -> dict[str, str]:
         for path in tracked
         if path == "README.md"
         or path == "CODEX_KICKOFF_PROMPT.md"
-        or path.startswith("docs/")
+        or path.startswith("docs/") and not path.startswith("docs/audit/")
         or path.startswith("backend/scripts/")
         or path.startswith("scripts/")
         or path.startswith("backend/app/services/gemini_")
@@ -720,6 +720,10 @@ def build_script_code_inventory(root: Path, tracked: list[str] | None = None) ->
             for path in base.rglob("*")
             if path.is_file() and path.suffix in {".py", ".sh"}
         )
+    paths = sorted(set(paths))
+    audit_module = root / "backend/app/services/documentation_audit.py"
+    if audit_module.is_file():
+        paths.append(_normalized(audit_module.relative_to(root)))
     paths = sorted(set(paths))
     sources = _searchable_sources(root, tracked)
     items: list[dict[str, Any]] = []

@@ -16,8 +16,8 @@ does not call a provider or CAD worker.
 - Test and fixture items: 179 ({"historical_integrity_only": 10, "retain_current": 161, "retain_regression": 8})
 - Study directories indexed: 3812
 - Study records indexed: 141
-- Script/provider-code items: 78
-- Reference-graph nodes: 622
+- Script/provider-code items: 79
+- Reference-graph nodes: 623
 
 ## Retention and cleanup decisions
 

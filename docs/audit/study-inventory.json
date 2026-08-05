@@ -26701,6 +26701,7 @@
       "purpose": "Gemini Flash Lite baseline and validation study",
       "raw_capture_count": 1,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/study.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/audit_gemini_phase2.py",
@@ -26791,6 +26792,7 @@
       "purpose": "Gemini settings, thinking, prompt, and buildability ablation",
       "raw_capture_count": 132,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -26834,6 +26836,7 @@
       "purpose": "Gemini settings, thinking, prompt, and buildability ablation",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -26877,6 +26880,7 @@
       "purpose": "Gemini settings, thinking, prompt, and buildability ablation",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -26920,6 +26924,7 @@
       "purpose": "Gemini settings, thinking, prompt, and buildability ablation",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -26963,6 +26968,7 @@
       "purpose": "Gemini settings, thinking, prompt, and buildability ablation",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -27006,6 +27012,7 @@
       "purpose": "Gemini settings, thinking, prompt, and buildability ablation",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/phase2_audit.py",
         "backend/app/services/gemini_consistency/profile_ablation.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -27113,6 +27120,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 512,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27143,6 +27151,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27173,6 +27182,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27203,6 +27213,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27233,6 +27244,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27263,6 +27275,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27293,6 +27306,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27323,6 +27337,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27353,6 +27368,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27383,6 +27399,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27413,6 +27430,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27443,6 +27461,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27473,6 +27492,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27503,6 +27523,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27533,6 +27554,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27563,6 +27585,7 @@
       "purpose": "system-boundary and processing-method study",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_foundation.py",
         "backend/scripts/run_gemini_system_boundary_methods.py",
@@ -27818,6 +27841,7 @@
       "purpose": "provider contract foundation and intrinsic quality gate",
       "raw_capture_count": 9,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
@@ -27945,6 +27969,7 @@
       "purpose": "provider contract foundation and intrinsic quality gate",
       "raw_capture_count": 1,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/scripts/run_gemini_provider_contract_correction.py",
         "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION.md",
         "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION_ADAPTER.md",
@@ -27984,6 +28009,7 @@
       "purpose": "historical geometry fix validation copy",
       "raw_capture_count": 3,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -28086,6 +28112,7 @@
       "purpose": "integration-only stage and real-boundary evidence",
       "raw_capture_count": 38,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
@@ -28136,6 +28163,7 @@
       "purpose": "integration-only stage and real-boundary evidence",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
@@ -28187,6 +28215,7 @@
       "purpose": "integration-only stage and real-boundary evidence",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/scripts/run_gemini_provider_contract_targeted_validation.py",
@@ -28233,6 +28262,7 @@
       "purpose": "integration-only stage and real-boundary evidence",
       "raw_capture_count": 7,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "docs/STUDY_INDEX.md"
       ],
@@ -28275,6 +28305,7 @@
       "purpose": "offline correction of the Plan-to-worker printable output identity boundary",
       "raw_capture_count": 0,
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/STUDY_INDEX.md"
       ],
       "reproducible": true,
@@ -28297,6 +28328,7 @@
       "referenced_by": [
         "CODEX_KICKOFF_PROMPT.md",
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "backend/app/services/gemini_consistency/comparison.py",
         "backend/app/services/gemini_consistency/interaction_capture.py",
         "backend/app/services/gemini_consistency/runner.py",

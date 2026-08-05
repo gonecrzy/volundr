@@ -60,6 +60,7 @@
       "line_count": 85,
       "path": "CODEX_KICKOFF_PROMPT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -73,6 +74,7 @@
       "line_count": 365,
       "path": "README.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/tests/test_multi_output_generation.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -106,6 +108,7 @@
       "path": "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -120,6 +123,7 @@
       "line_count": 28,
       "path": "docs/AI_VISUAL_REVIEW_PLAN.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PRODUCT_DIRECTION.md"
       ],
@@ -134,6 +138,7 @@
       "line_count": 512,
       "path": "docs/ARCHITECTURE.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GENERATION_RELIABILITY_PLAN.md",
@@ -246,6 +251,7 @@
       "path": "docs/CADQUERY_BACKEND.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/ARCHITECTURE.md",
         "docs/CAD_EXECUTION_SECURITY.md",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
@@ -345,6 +351,7 @@
       "path": "docs/CADQUERY_TRANSITION_EVALUATION.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CADQUERY_BACKEND.md",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
@@ -459,6 +466,7 @@
       "line_count": 77,
       "path": "docs/COMPACT_DETAILED_PIPELINE_DIAGNOSIS.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PRODUCT_VALIDATION_ROUND_1.md"
       ],
@@ -474,6 +482,7 @@
       "path": "docs/COMPACT_PLAN_CONTRACT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [
@@ -490,6 +499,7 @@
       "line_count": 186,
       "path": "docs/COMPONENT_TARGETED_REVISIONS.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DATA_MODEL.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -525,6 +535,7 @@
       "line_count": 1108,
       "path": "docs/CURRENT_REPOSITORY_AUDIT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
       ],
       "references": [],
@@ -562,6 +573,8 @@
       "path": "docs/CURRENT_TRAJECTORY.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
+        "backend/tests/test_documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/archive/README.md"
@@ -599,6 +612,7 @@
       "path": "docs/DEPLOYMENT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -612,6 +626,7 @@
       "line_count": 77,
       "path": "docs/DERIVED_DEPENDENCY_CLASSIFICATION.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/AI_CAD_DIRECTION_ALIGNMENT.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -652,6 +667,7 @@
       "line_count": 130,
       "path": "docs/DETERMINISTIC_USER_WORKFLOW_GATE.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md"
       ],
@@ -682,6 +698,7 @@
       "referenced_by": [
         "CODEX_KICKOFF_PROMPT.md",
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
         "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
         "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
@@ -706,6 +723,7 @@
       "path": "docs/ENVIRONMENT_VARIABLES.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DEPLOYMENT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md"
@@ -722,6 +740,7 @@
       "path": "docs/EXPORTS.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -793,6 +812,7 @@
       "path": "docs/FUNCTIONAL_DESIGN_INTENT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/PARAMETRIC_PRODUCT_MODEL.md"
       ],
@@ -821,6 +841,7 @@
       "path": "docs/FUNCTIONAL_GEOMETRY_VERIFICATION.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CADQUERY_BACKEND.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -1332,6 +1353,7 @@
       "line_count": 17,
       "path": "docs/GEMINI_PROVIDER_CONTRACTS.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -1358,6 +1380,7 @@
       "line_count": 25,
       "path": "docs/GEMINI_PROVIDER_CONTRACT_CORRECTION.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -1397,6 +1420,8 @@
       "line_count": 27,
       "path": "docs/GEMINI_PROVIDER_CONTRACT_FOUNDATION.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
+        "backend/tests/test_documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
       ],
@@ -1411,6 +1436,7 @@
       "line_count": 17,
       "path": "docs/GEMINI_PROVIDER_CONTRACT_HOLDOUT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -1450,6 +1476,7 @@
       "path": "docs/GEMINI_RULESET.md",
       "referenced_by": [
         "backend/app/services/ai/gemini_cli.py",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GENERATION_RELIABILITY_PLAN.md",
         "docs/MODEL_GENERATION_CONTRACT.md"
@@ -1652,6 +1679,7 @@
       "line_count": 140,
       "path": "docs/GEOMETRY_BODY_SYMBOL_CONTRACT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/MULTI_VIEW_SNAPSHOT_LIVE_EVALUATION.md"
       ],
@@ -1666,6 +1694,7 @@
       "line_count": 81,
       "path": "docs/GEOMETRY_EXECUTION_CONTEXT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -1682,6 +1711,7 @@
       "line_count": 211,
       "path": "docs/GEOMETRY_SLOTS_BLOCKER_REVIEW.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/GEOMETRY_SLOTS_LIVE_EVALUATION.md",
         "docs/LIVE_BATCH_CORRECTION_PLAN.md"
       ],
@@ -1711,6 +1741,7 @@
       "line_count": 65,
       "path": "docs/GEOMETRY_SLOT_CONTRACT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
       ],
@@ -1725,6 +1756,7 @@
       "line_count": 44,
       "path": "docs/GEOMETRY_SLOT_PRODUCTION_ROLLOUT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-geometry-slot-contract-production.md"
       ],
@@ -1739,6 +1771,7 @@
       "line_count": 27,
       "path": "docs/GEOMETRY_TOPOLOGY_CONVERGENCE.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -1753,6 +1786,7 @@
       "path": "docs/INTEGRATION_TEST_LOOP.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_TRAJECTORY.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -1902,6 +1936,7 @@
       "line_count": 99,
       "path": "docs/LIVE_DEBUG_BATCH_IMPLEMENTATION.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DEPLOYMENT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-03-live-debug-batch.md",
@@ -2074,6 +2109,7 @@
       "line_count": 258,
       "path": "docs/MODEL_GENERATION_CONTRACT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
@@ -2103,6 +2139,7 @@
       "line_count": 225,
       "path": "docs/MULTI_OUTPUT_GENERATION.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DATA_MODEL.md",
@@ -2126,6 +2163,7 @@
       "path": "docs/MULTI_VIEW_SNAPSHOT_CONTRACT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/ARCHITECTURE.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -2154,6 +2192,7 @@
       "line_count": 175,
       "path": "docs/MVP_SCOPE.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
         "docs/mutantpowers/plans/2026-07-31-frontend-user-testing-workflow.md",
@@ -2186,6 +2225,7 @@
       "path": "docs/OBSERVED_FRONTEND_TESTING_SCRIPT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/FRONTEND_USER_TESTING_PLAN.md",
         "docs/PRODUCT_VALIDATION_ROUND_1.md"
@@ -2445,6 +2485,7 @@
       "line_count": 25,
       "path": "docs/PARAMETRIC_PRODUCT_MODEL.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md"
       ],
@@ -2459,6 +2500,7 @@
       "line_count": 105,
       "path": "docs/PATTERN_COORDINATE_SPACE_CONTRACT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GEOMETRY_EXECUTION_CONTEXT.md",
         "docs/REPEATED_FEATURE_LAYOUTS.md"
@@ -2489,6 +2531,7 @@
       "path": "docs/PLANNING_DEPTH_MODEL.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -2503,6 +2546,7 @@
       "line_count": 51,
       "path": "docs/PLAN_SOURCE_IDENTITY_BOUNDARY.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -2516,6 +2560,7 @@
       "line_count": 138,
       "path": "docs/PRINTABILITY_INSPECTOR.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -2529,6 +2574,7 @@
       "line_count": 208,
       "path": "docs/PRODUCT_DIRECTION.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
@@ -2545,7 +2591,9 @@
       "immutable_evidence": false,
       "line_count": 36,
       "path": "docs/PRODUCT_REVIEW_ACTIONS.md",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "sha256": "f5bd7dffe04d2bbf20310a9f2a177c342ce85a6bafa0ea93c09c80aab183981d",
       "title": "Product Review Actions"
@@ -2558,6 +2606,7 @@
       "path": "docs/PRODUCT_VALIDATION_ROUND_1.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -2572,6 +2621,7 @@
       "path": "docs/PROJECT_PERSISTENCE.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -2586,6 +2636,7 @@
       "line_count": 44,
       "path": "docs/PROMPT_CONTEXT_PACK.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-08-01-proportional-planning-depth.md"
       ],
@@ -2601,6 +2652,8 @@
       "path": "docs/PROVIDER_CONTRACT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
+        "backend/tests/test_documentation_audit.py",
         "docs/CURRENT_TRAJECTORY.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GEMINI_PROFILE_B_STABILITY_REVIEW.md"
@@ -2616,6 +2669,7 @@
       "line_count": 39,
       "path": "docs/PROVIDER_CONVERGENCE_REGRESSION_FIXTURES.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
       ],
       "references": [],
@@ -2630,6 +2684,7 @@
       "path": "docs/PROVIDER_INTEROPERABILITY_CONTRACT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -2658,6 +2713,7 @@
       "line_count": 63,
       "path": "docs/PROVIDER_RESPONSE_CONVERGENCE.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md"
       ],
       "references": [],
@@ -2672,6 +2728,7 @@
       "path": "docs/REPEATED_FEATURE_LAYOUTS.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/COMPACT_PLAN_CONTRACT.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -2702,6 +2759,7 @@
       "path": "docs/REQUIREMENT_PIPELINE_AUDIT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -2714,7 +2772,9 @@
       "immutable_evidence": false,
       "line_count": 133,
       "path": "docs/REQUIREMENT_PROPAGATION_REVIEW.md",
-      "referenced_by": [],
+      "referenced_by": [
+        "backend/app/services/documentation_audit.py"
+      ],
       "references": [],
       "sha256": "4b5c535391ca92de1308d2cfa7917ce19904afb0b023a1b1e723cc1432713aac",
       "title": "Requirement Propagation Review"
@@ -2727,6 +2787,7 @@
       "path": "docs/REQUIREMENT_SEMANTICS_CONTRACT.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [
@@ -2742,6 +2803,7 @@
       "line_count": 122,
       "path": "docs/REQUIREMENT_TRACE_CONTRACT.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/COMPACT_PLAN_CONTRACT.md",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md"
@@ -2760,6 +2822,7 @@
       "path": "docs/REQUIREMENT_TRACE_NORMALIZATION.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/REQUIREMENT_TRACE_CONTRACT.md"
       ],
@@ -2775,6 +2838,7 @@
       "path": "docs/REVISION_EVIDENCE_MODEL.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/ARCHITECTURE.md",
         "docs/DOCUMENTATION_MAP.md"
       ],
@@ -2824,6 +2888,7 @@
       "path": "docs/STUDY_INDEX.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/CURRENT_STAGE_ROADMAP.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/archive/README.md"
@@ -2839,6 +2904,7 @@
       "line_count": 562,
       "path": "docs/TEST_STRATEGY.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md",
         "docs/mutantpowers/plans/2026-07-30-cadquery-primary-transition.md",
         "docs/mutantpowers/plans/2026-07-31-complete-deterministic-workflow-gate.md",
@@ -2874,6 +2940,7 @@
       "path": "docs/WORKER_DIAGNOSTIC_REPAIR.md",
       "referenced_by": [
         "README.md",
+        "backend/app/services/documentation_audit.py",
         "docs/DOCUMENTATION_MAP.md"
       ],
       "references": [],
@@ -2911,6 +2978,7 @@
       "line_count": 11,
       "path": "docs/archive/README.md",
       "referenced_by": [
+        "backend/app/services/documentation_audit.py",
         "backend/tests/test_multi_output_generation.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
