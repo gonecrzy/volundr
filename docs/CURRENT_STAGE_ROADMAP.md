@@ -554,19 +554,18 @@ provider still tried to consume component-space placements as planar points.
 
 ## Gemini profile buildability gate
 
-The completed profile matrix has been re-evaluated with absolute quality floors
-and buildability-first selection. Profile B is a candidate, not a production
-change. Its focused validation completed ten project operations but did not
-establish worker-ready improvement; the next step is a second validation only,
-not deployment or a broad study.
+The completed profile matrix and its focused validation remain historical
+evidence. Profile B was a candidate, not a production change, and did not
+establish worker-ready improvement. Do not use that study to override the
+frozen integration foundation; see `CURRENT_TRAJECTORY.md` and
+`STUDY_INDEX.md`.
 
 ## Gemini provider-contract gate
 
-The isolated contract study's historical holdout was actually H0, not the
-selected H1 provider-default configuration. The offline correction completed
-the missing S1 settings operation and selected S0 on content-only evidence;
-requirements T2 qualified at 6/6, but source-bearing repair T2 reached only
-4/6. The corrected H1 holdout and adapter replay were gated. Keep all frozen
-artifacts experiment-scoped; production provider settings, prompts, schemas,
-and deployment remain unchanged until the documented second validation
-qualifies.
+The historical contract foundation and correction are indexed in
+`STUDY_INDEX.md`; their frozen artifacts remain experiment-scoped. The current
+integration-only foundation uses the explicit provider contract and has
+qualified the targeted geometry failure mode, then corrected the downstream
+printable-output identity boundary. Production provider settings, prompts,
+schemas, and deployment remain unchanged. The next development phase is
+representative complete workflows, not another broad provider study.

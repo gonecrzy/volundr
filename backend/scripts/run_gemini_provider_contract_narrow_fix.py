@@ -9,7 +9,9 @@ from app.services.gemini_integration.profile import INTEGRATION_PROFILE_ID, requ
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the zero-call Gemini provider-contract narrow-fix audit")
+    parser = argparse.ArgumentParser(
+        description="Run the historical zero-call Gemini provider-contract narrow-fix audit; not the current integration runner"
+    )
     parser.add_argument("--profile", required=True)
     parser.add_argument("--study-root", type=Path, default=Path("data/debug-sessions/gemini-provider-contract-integration/gemini-provider-contract-integration-01"))
     parser.add_argument("--output", type=Path, default=None)

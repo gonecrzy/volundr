@@ -15,7 +15,9 @@ from app.services.gemini_integration.targeted_validation import (
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the preregistered six-operation Gemini provider validation")
+    parser = argparse.ArgumentParser(
+        description="Run the historical preregistered six-operation Gemini provider validation; not the current integration runner"
+    )
     parser.add_argument("--profile", required=True)
     parser.add_argument("--study-id", default=STUDY_ID)
     parser.add_argument(

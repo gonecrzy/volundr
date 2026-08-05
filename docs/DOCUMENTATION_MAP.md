@@ -2,12 +2,28 @@
 
 This file explains exactly what belongs in each project document.
 
+## Current Gemini integration entry point
+
+Read `CURRENT_TRAJECTORY.md` first for the frozen provider configuration,
+integration-only status, stage ownership, credentials, replay policy, and next
+phase. Read `PROVIDER_CONTRACT.md` for the observable requirements, Plan,
+geometry, identity, source, worker, artifact, topology, verification, and
+candidate contracts. Read `INTEGRATION_TEST_LOOP.md` for the offline-first
+boundary loop. Read `STUDY_INDEX.md` for chronology. The documents named in the
+study sections below are evidence or historical context unless they are also
+listed as current product contracts; they cannot override the current
+trajectory.
+
 ## Authority categories
 
 ### Normative current contracts
 
 These documents define intended behavior and should be read for the matching
 task:
+
+- Gemini integration trajectory and observable boundaries:
+  `CURRENT_TRAJECTORY.md`, `PROVIDER_CONTRACT.md`, and
+  `INTEGRATION_TEST_LOOP.md`.
 
 - Product direction and scope: `PRODUCT_DIRECTION.md`, `MVP_SCOPE.md`,
   `AI_CAD_DIRECTION_ALIGNMENT.md`.
