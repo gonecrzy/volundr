@@ -31,3 +31,13 @@ stopped before D; a later replacement completed C and D. Two replacement
 captures were transport timeouts, leaving only current/P0 as a clean finalist.
 The final two-system comparison was therefore not authorized, and no prompt
 ablation or deployment followed.
+
+## Independent provider-contract study
+
+The later `gemini-provider-contract-foundation-01` study used only
+`GEMINI_API_KEY_2`, exact model `gemini-3.5-flash-lite`, and zero worker calls.
+It separated intrinsic provider quality from current-build compatibility. S0,
+H0, and T0 won their gated selection stages, but the 20-operation holdout
+passed only 17/20. This does not change the historical P3 result or authorize
+provider deployment; the independent provider decision is
+`provider_contract_not_yet_stable`.

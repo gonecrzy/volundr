@@ -559,3 +559,10 @@ and buildability-first selection. Profile B is a candidate, not a production
 change. Its focused validation completed ten project operations but did not
 establish worker-ready improvement; the next step is a second validation only,
 not deployment or a broad study.
+
+## Gemini provider-contract gate
+
+The isolated contract study selected S0/H0/T0 for provider-only evidence but
+its holdout passed 17/20, below the universal floor. Keep the frozen artifacts
+and generic adapter experiment-scoped. Production provider settings, prompts,
+schemas, and deployment remain unchanged until a revised holdout qualifies.

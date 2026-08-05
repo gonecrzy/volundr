@@ -60,6 +60,15 @@ The secondary-credential continuation and quota stop are documented in
 `GEMINI_SECONDARY_CREDENTIAL_RESUME.md`; the credential value itself is never
 part of the evidence.
 
+The provider-contract foundation study is documented in
+`GEMINI_PROVIDER_CONTRACT_FOUNDATION.md`, with intrinsic scoring in
+`GEMINI_INTRINSIC_RESPONSE_QUALITY.md`, gated settings/thinking/prompt
+selection in the corresponding selection documents, frozen contracts in
+`GEMINI_PROVIDER_CONTRACTS.md`, adapter behavior in
+`GEMINI_PROVIDER_CONTRACT_ADAPTER.md`, and holdout status in
+`GEMINI_PROVIDER_CONTRACT_HOLDOUT.md`. Its final decision is evidence only;
+it does not override production contracts.
+
 ### Historical evaluation evidence
 
 Earlier benchmark and transition reports remain useful for chronology, failure

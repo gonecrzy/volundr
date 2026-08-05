@@ -553,3 +553,10 @@ changes, canonical stage funnels, earliest blocker selection, worker-ready
 source semantics, reconciled failure signatures, verification-not-run versus
 feature-absent classification, replayable feature evidence, historical report
 preservation, and zero-provider-call offline regeneration.
+
+Provider-contract foundation tests additionally cover intrinsic evaluator
+independence, declared settings/thinking/prompt diffs, secondary-only
+credential selection, bounded 429/502 retries, resumability, source-preserving
+adapter mapping, and closed-failure semantics. The 20-operation provider
+holdout is a separate gate; its 17/20 result does not authorize production
+changes.

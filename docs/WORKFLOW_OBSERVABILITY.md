@@ -462,3 +462,13 @@ that embeds Phase 1 records and focused Phase 2 arm evidence while preserving
 the normal immutable envelopes. Its experiment-local proxy records call start,
 rolling-window count, sleep, status, model endpoint, and limiter decision;
 offline report generation performs zero provider calls.
+
+## Provider-contract study observability
+
+`gemini-provider-contract-foundation-01` records logical-operation IDs,
+provider-attempt IDs, model identity, payload/configuration hashes, retry
+linkage, limiter events, raw-response hashes, intrinsic quality, regularity
+signatures, adapter actions, and redaction status. Provider failures are
+separate from content failures. The study used the secondary credential slot
+only, made zero worker calls, and ended with provider decision
+`provider_contract_not_yet_stable`.

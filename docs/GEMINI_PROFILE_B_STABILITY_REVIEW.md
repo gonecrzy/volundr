@@ -37,3 +37,13 @@ offline replay, but its live provider × processing factorial stopped on a hard
 `insufficient_evidence`, not a replacement provider decision. See
 `GEMINI_SYSTEM_BOUNDARY_METHODS.md` and
 `GEMINI_PROVIDER_PROCESSING_FACTORIAL.md`.
+
+## Provider-contract foundation study
+
+The independent provider-contract study selected S0 explicit settings, H0
+stage-specific thinking, and T0 current prompts for
+`gemini-3.5-flash-lite`. This selection deliberately excludes current-build
+compatibility. Its 20-operation holdout passed 17/20 intrinsic checks, below
+the universal foundation floor. The provider decision is therefore
+`provider_contract_not_yet_stable`, and no Profile B or S0 settings are
+deployed.
