@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 
+import httpx
+import pytest
+
+import scripts.run_gemini_provider_contract_foundation as foundation
 from scripts.run_gemini_provider_contract_foundation import (
     HOLDOUT_PACKET_IDS,
     MODEL,
@@ -155,6 +160,15 @@ def test_geometry_api_symbols_and_result_assignment_are_intrinsic_failures() -> 
     assert evaluate_intrinsic(packet, invalid[2])["result"] == "fail_structurally_empty"
 
 
+def test_geometry_source_contract_is_scored_without_current_parser_acceptance() -> None:
+    packet = _packet("selection-geometry-simple")
+    source = """```python\nimport cadquery as cq\ndef build(params):\n    body = cq.Workplane('XY').box(100, 80, 10).faces('>Z').workplane().hole(20)\n    return Product(outputs=[PrintableOutput(output_id='body', model=body)])\n```"""
+
+    result = evaluate_intrinsic(packet, source, diagnostic_context={"parser_acceptance": False, "worker_reached": False})
+
+    assert result["result"] == "pass"
+
+
 def test_semantic_and_byte_consistency_are_separate_and_entropy_is_reproducible() -> None:
     packet = _packet("selection-geometry-simple")
     first = {"slots": [{"slot_id": "1", "statements": ["body = body.cut(cq.Workplane('XY').circle(4).extrude(5))"], "result_symbol": "body"}]}
@@ -187,6 +201,24 @@ def test_generic_adapter_attaches_volundr_ownership_without_inventing_provider_m
     assert {action["action_class"] for action in result["actions"]} >= {"result_symbol_normalization", "prior_shape_alias_normalization", "slot_attachment"}
 
 
+def test_generic_adapter_accepts_provider_owned_geometry_source_without_current_parser() -> None:
+    packet = _packet("selection-geometry-simple")
+    source = """```python
+import cadquery as cq
+def build(params):
+    body = cq.Workplane('XY').box(100, 80, 10).faces('>Z').workplane().hole(20)
+    return Product(outputs=[PrintableOutput(output_id='body', model=body)])
+```"""
+    adapter = GeminiProviderContractAdapter(stage="geometry", contract={"response_kind": "cadquery_source"})
+
+    result = adapter.adapt(source, packet, provenance={"logical_operation_id": "source-1"})
+
+    assert result["accepted"] is True
+    assert result["canonical_provider_record"]["response_kind"] == "cadquery_source"
+    assert result["canonical_provider_record"]["source"] == source
+    assert result["volundr_mapping"]["provenance"] == {"logical_operation_id": "source-1"}
+
+
 def test_adapter_rejects_protected_dimension_change_and_arbitrary_api_repair() -> None:
     packet = _packet("selection-geometry-simple")
     adapter = GeminiProviderContractAdapter(stage="geometry", contract={"required_slot_ids": ["1"], "required_result_symbol": "body"})
@@ -199,3 +231,105 @@ def test_adapter_rejects_protected_dimension_change_and_arbitrary_api_repair() -
     assert protected["accepted"] is False
     assert rejected["accepted"] is False
     assert all(action["action_class"] != "rejected_ambiguity" for action in rejected["actions"])
+
+
+def test_settings_thinking_and_prompt_profiles_change_only_declared_contract_inputs() -> None:
+    s0 = foundation._generation_config("S0-current-explicit", "H0-current-stage-specific", "requirements", "T0-current")
+    s1 = foundation._generation_config("S1-profile-b", "H0-current-stage-specific", "requirements", "T0-current")
+    assert set(s0) - {"temperature", "topP", "topK"} == {"maxOutputTokens", "thinkingConfig"}
+    assert set(s1) - {"seed", "candidateCount"} == {"maxOutputTokens", "thinkingConfig"}
+    assert foundation._thinking_config("H0-current-stage-specific", "requirements") != foundation._thinking_config("H1-provider-default", "requirements")
+    packet = _packet("selection-requirements-fit")
+    assert foundation._prompt_for_packet(packet, "T0-current") != foundation._prompt_for_packet(packet, "T1-canonical-contract")
+
+
+def test_only_secondary_credential_is_selected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY_2", "secondary-test-value")
+    assert foundation._require_secondary_key() == "secondary-test-value"
+    monkeypatch.delenv("GEMINI_API_KEY_2", raising=False)
+    with pytest.raises(RuntimeError, match="GEMINI_API_KEY_2"):
+        foundation._require_secondary_key()
+
+
+class _FakeLimiter:
+    def __init__(self) -> None:
+        self.events: list[dict] = []
+
+    async def acquire(self) -> dict:
+        return {"call_start_monotonic": float(len(self.events) + 1), "prior_rolling_window_count": len(self.events), "sleep_seconds": None, "limiter_decision": "allow", "effective_requests_per_minute": 12}
+
+
+def _provider_response(text: str, *, model: str = MODEL) -> httpx.Response:
+    return httpx.Response(200, json={"modelVersion": model, "candidates": [{"content": {"parts": [{"text": text}]}}]})
+
+
+def test_retry_429_is_identical_and_has_one_new_attempt(monkeypatch: pytest.MonkeyPatch) -> None:
+    packet = _packet("selection-requirements-fit")
+    valid = json.dumps({"clarification_required": True, "clarification_questions": [{"question": "What are the phone dimensions?"}], "generation_ready": False, "requirements": [{"id": "r1", "description": "phone stand", "source": "user"}]})
+    responses = [httpx.Response(429, json={"error": {"status": "RESOURCE_EXHAUSTED"}}), _provider_response(valid)]
+
+    async def no_sleep(_: float) -> None:
+        return None
+
+    monkeypatch.setattr(foundation.asyncio, "sleep", no_sleep)
+
+    async def run() -> dict:
+        async def handler(_: httpx.Request) -> httpx.Response:
+            return responses.pop(0)
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://example.test") as client:
+            return await foundation._call_provider(client=client, limiter=_FakeLimiter(), logical_operation_id="op-429", packet=packet, settings_profile="S0-current-explicit", thinking_profile="H0-current-stage-specific", prompt_profile="T0-current", prompt="frozen", generation_config={"temperature": 0.2}, key="secondary-test-value")
+
+    result = asyncio.run(run())
+    assert result["complete"] is True
+    assert len(result["attempts"]) == 2
+    assert result["attempts"][0]["status_code"] == 429
+    assert result["attempts"][0]["retry_wait_seconds"] >= 30
+    assert result["attempts"][1]["retry_number"] == 1
+    assert result["attempts"][0]["provider_attempt_id"] != result["attempts"][1]["provider_attempt_id"]
+    assert result["attempts"][0]["logical_operation_id"] == result["attempts"][1]["logical_operation_id"] == "op-429"
+    assert result["attempts"][0]["payload_hash"] == result["attempts"][1]["payload_hash"]
+    assert result["attempts"][0]["configuration_hash"] == result["attempts"][1]["configuration_hash"]
+
+
+def test_second_429_receives_no_third_attempt(monkeypatch: pytest.MonkeyPatch) -> None:
+    packet = _packet("selection-requirements-fit")
+    responses = [httpx.Response(429), httpx.Response(429), _provider_response("never-used")]
+
+    async def no_sleep(_: float) -> None:
+        return None
+
+    monkeypatch.setattr(foundation.asyncio, "sleep", no_sleep)
+
+    async def run() -> dict:
+        async def handler(_: httpx.Request) -> httpx.Response:
+            return responses.pop(0)
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://example.test") as client:
+            return await foundation._call_provider(client=client, limiter=_FakeLimiter(), logical_operation_id="op-twice-429", packet=packet, settings_profile="S0-current-explicit", thinking_profile="H0-current-stage-specific", prompt_profile="T0-current", prompt="frozen", generation_config={}, key="secondary-test-value")
+
+    result = asyncio.run(run())
+    assert result["complete"] is False
+    assert [item["status_code"] for item in result["attempts"]] == [429, 429]
+    assert len(responses) == 1
+
+
+def test_resume_does_not_repeat_completed_or_twice_failed_operations(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    output = tmp_path / "study"
+    reports = output / "reports"
+    reports.mkdir(parents=True)
+    records = []
+    records.append({"logical_operation_id": "settings-study-results:S0-current-explicit:H0-current-stage-specific:T0-current:selection-requirements-fit:rep-1", "complete": True, "success": True, "status_code": 200, "parsed_response": {"clarification_required": True, "clarification_questions": [{"question": "What are the phone dimensions?"}], "generation_ready": False, "requirements": [{"id": "r1", "description": "phone stand"}]}, "attempts": [{"status_code": 200}]})
+    records.append({"logical_operation_id": "settings-study-results:S0-current-explicit:H0-current-stage-specific:T0-current:selection-requirements-specified:rep-1", "complete": False, "success": False, "status_code": 429, "attempts": [{"status_code": 429}, {"status_code": 429}]})
+    (reports / "settings-study-results.json").write_text(json.dumps({"run": True, "records": records, "rate_limit": {"events": [{"old": True}]}}), encoding="utf-8")
+    monkeypatch.setenv("GEMINI_API_KEY_2", "secondary-test-value")
+
+    async def fail_if_called(**_: object) -> dict:
+        raise AssertionError("resume repeated an existing logical operation")
+
+    monkeypatch.setattr(foundation, "_call_provider", fail_if_called)
+    packets = [_packet("selection-requirements-fit"), _packet("selection-requirements-specified")]
+    result = asyncio.run(foundation.run_live_matrix(output, phase="settings-study-results", settings_profiles=["S0-current-explicit"], thinking_profile="H0-current-stage-specific", prompt_profiles=["T0-current"], packets=packets, repetitions=1, limiter=_FakeLimiter()))
+    assert len(result["records"]) == 2
+    assert result["rate_limit"]["events"] == [{"old": True}]
