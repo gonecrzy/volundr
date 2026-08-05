@@ -393,6 +393,7 @@
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_contract_complexity_reports.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_final_reports.py",
@@ -1196,6 +1197,7 @@
         "backend/scripts/run_t5_capsule_helper_correction.py",
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_final_reports.py",
         "backend/scripts/write_wave_02_reports.py",
@@ -1324,6 +1326,7 @@
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/tests/test_cad_worker.py",
         "backend/tests/test_cadquery_api_reliability.py",
         "backend/tests/test_cadquery_execution_timing.py",
@@ -1467,6 +1470,7 @@
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/tests/test_ai_provider_selection.py",
         "backend/tests/test_cad_first_build_volume_policy.py",
         "backend/tests/test_cad_worker.py",
@@ -2514,6 +2518,7 @@
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_contract_complexity_reports.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_final_reports.py",
@@ -2786,6 +2791,7 @@
         "backend/scripts/run_t5_corrected_review.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
         "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_contract_complexity_reports.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_final_reports.py",
@@ -3414,6 +3420,16 @@
     {
       "classification": "current_supporting",
       "kind": "script",
+      "path": "backend/scripts/run_wave_02_worker_closure_02.py",
+      "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
+      "referenced_by": [],
+      "references": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false
+    },
+    {
+      "classification": "current_supporting",
+      "kind": "script",
       "path": "backend/scripts/write_contract_complexity_reports.py",
       "reason": "No deletion or move is authorized by absence of an import; preserve evidence and operator discoverability.",
       "referenced_by": [],
@@ -3579,6 +3595,7 @@
         "backend/scripts/run_live_generation_benchmarks.py",
         "backend/scripts/run_representative_workflow_wave.py",
         "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_contract_complexity_reports.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_reports.py",
@@ -3808,6 +3825,7 @@
         "backend/tests/fixtures/generation_benchmarks/core.json",
         "backend/tests/fixtures/generation_benchmarks/full.json",
         "backend/tests/test_ai_provider_selection.py",
+        "backend/tests/test_cad_worker.py",
         "backend/tests/test_config.py",
         "backend/tests/test_debug_batch_api.py",
         "backend/tests/test_debug_batch_capability.py",
@@ -8240,6 +8258,7 @@
       "referenced_by": [
         "backend/scripts/diagnose_wave_02_project_03_worker.py",
         "backend/scripts/replay_wave_02_corrected.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_final_reports.py",
         "backend/scripts/write_wave_02_reports.py",
@@ -11770,9 +11789,9 @@
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
-    "node_count": 694,
+    "node_count": 695,
     "safe_to_archive_nodes": 2,
     "safe_to_delete_nodes": 0,
-    "unreferenced_nodes": 242
+    "unreferenced_nodes": 243
   }
 }

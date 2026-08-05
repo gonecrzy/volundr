@@ -233,7 +233,7 @@
       "markers": [],
       "path": "backend/tests/test_cad_worker.py",
       "reason": "current production behavior, safety invariant, or tooling",
-      "sha256": "08dc2d7b51a54417aaffc2d00b80f1f40371f876fe2836461ce14e164f369eda"
+      "sha256": "a27b6407d69ce0f15f6a390419bd2c09a8e2a3f3926c4c445578a488488cf762"
     },
     {
       "classification": "retain_current",

@@ -32976,13 +32976,14 @@
       "referenced_by": [
         "backend/scripts/diagnose_wave_02_project_03_worker.py",
         "backend/scripts/replay_wave_02_corrected.py",
+        "backend/scripts/run_wave_02_worker_closure_02.py",
         "backend/scripts/write_wave_02_closure_01_reports.py",
         "backend/scripts/write_wave_02_final_reports.py",
         "backend/scripts/write_wave_02_reports.py",
         "backend/tests/test_gemini_integration_real_ports.py",
         "docs/REPRESENTATIVE_WORKFLOW_WAVES.md"
       ],
-      "reproducible": false,
+      "reproducible": true,
       "secret_scan": "filename-only; values were not loaded into the audit report",
       "sensitive_filename_signals": [],
       "status": "historical_immutable",
