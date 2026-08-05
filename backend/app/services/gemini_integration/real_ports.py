@@ -35,6 +35,64 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def canonicalize_worker_output_manifest(
+    printable_outputs: list[dict[str, Any]] | tuple[dict[str, Any], ...] | None,
+    *,
+    provenance: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Map the Plan output identity to the worker's canonical ``output_id`` once.
+
+    Plans captured by the integration study use ``id`` for printable outputs,
+    while the real worker/runtime/artifact boundary is keyed by ``output_id``.
+    This is the sole integration mapping between those representations.  The
+    returned manifest contains only the canonical worker field; the mapping
+    evidence preserves the authoritative source field and value.
+    """
+
+    canonical_manifest: list[dict[str, Any]] = []
+    mappings: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for index, output in enumerate(printable_outputs or []):
+        if not isinstance(output, dict):
+            raise ValueError(f"printable output {index} must be an object")
+
+        plan_id = output.get("id")
+        worker_id = output.get("output_id")
+        if plan_id is not None and not isinstance(plan_id, str):
+            raise ValueError(f"printable output {index} has a non-string id")
+        if worker_id is not None and not isinstance(worker_id, str):
+            raise ValueError(f"printable output {index} has a non-string output_id")
+        plan_id = plan_id.strip() if isinstance(plan_id, str) else None
+        worker_id = worker_id.strip() if isinstance(worker_id, str) else None
+        if not plan_id and not worker_id:
+            raise ValueError(f"printable output {index} has no output identity")
+        if plan_id and worker_id and plan_id != worker_id:
+            raise ValueError(
+                f"printable output {index} has conflicting identities: id={plan_id!r}, output_id={worker_id!r}"
+            )
+
+        canonical_id = worker_id or plan_id
+        assert canonical_id is not None
+        if canonical_id in seen:
+            raise ValueError(f"duplicate printable output identity: {canonical_id}")
+        seen.add(canonical_id)
+        source_fields = [field for field, value in (("id", plan_id), ("output_id", worker_id)) if value]
+        mapped = {key: value for key, value in output.items() if key not in {"id", "output_id"}}
+        mapped["output_id"] = canonical_id
+        canonical_manifest.append(mapped)
+        mappings.append({
+            "manifest_index": index,
+            "canonical_field": "output_id",
+            "canonical_value": canonical_id,
+            "source_fields": source_fields,
+            "source_values": {field: output.get(field) for field in source_fields},
+            "mapping": "Plan.printable_outputs.id_to_worker.output_id" if source_fields == ["id"] else "identity_preserved",
+            "semantic_repair": False,
+            "provenance": provenance,
+        })
+    return canonical_manifest, mappings
+
+
 def build_real_boundary_ports(
     *,
     profile: GeminiFlashLiteContractV1,
@@ -59,10 +117,14 @@ def build_real_boundary_ports(
         }
         parsed = parse_geometry_slots(json.dumps(payload), manifest)
         rendered = render_cadquery_scaffold(plan, parsed.functions)
-        output_manifest = list(plan.get("printable_outputs", []) or [])
+        output_manifest, output_identity_mapping = canonicalize_worker_output_manifest(
+            plan.get("printable_outputs", []),
+            provenance=provenance,
+        )
         return {
             "source": rendered.source,
             "output_manifest": output_manifest,
+            "output_identity_mapping": output_identity_mapping,
             "scaffold_hash": rendered.scaffold_hash,
             "geometry_function_ids": list(rendered.expected_geometry_functions),
             "provenance": provenance,
@@ -83,6 +145,11 @@ def build_real_boundary_ports(
         }
 
     async def worker_submit(*, source, output_manifest, provenance):
+        if any(
+            not isinstance(item, dict) or not isinstance(item.get("output_id"), str) or not item["output_id"].strip()
+            for item in output_manifest
+        ):
+            raise ValueError("worker output manifest must contain canonical output_id values")
         project_id = str(provenance.get("project_id") or "project")
         revision_id = str(provenance.get("revision_id") or "revision")
         job_id = f"gemini-integration-{project_id}-{revision_id}".replace(":", "-")
@@ -191,4 +258,4 @@ def build_real_boundary_ports(
     )
 
 
-__all__ = ["build_real_boundary_ports"]
+__all__ = ["build_real_boundary_ports", "canonicalize_worker_output_manifest"]

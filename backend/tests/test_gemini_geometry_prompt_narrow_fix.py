@@ -2,6 +2,8 @@ import json
 import shutil
 from pathlib import Path
 
+import pytest
+
 from app.services.ai.provider import ModelGenerationRequest
 from app.services.gemini_integration.geometry_prompt_narrow_fix import (
     FAILURE_CLASSES,
@@ -17,6 +19,7 @@ from app.services.gemini_integration.geometry_prompt_narrow_fix import (
 from app.services.gemini_integration.profile import GeminiFlashLiteContractV1
 from app.services.gemini_integration.prompts import render_geometry_prompt_v2, render_integration_prompt
 from app.services.gemini_integration.capture import IntegrationEvidenceStore
+from app.services.gemini_integration.real_ports import canonicalize_worker_output_manifest
 
 
 def _repo() -> Path:
@@ -120,3 +123,27 @@ def test_runner_offline_mode_writes_no_provider_or_worker_calls(tmp_path: Path) 
     assert result["mode"] == "offline"
     assert result["failure_audit"]["provider_calls"] == 0
     assert result["fixtures"]["worker_calls"] == 0
+    assert result["preregistration"]["execution_accounting"]["live_provider_attempts"] == 0
+    assert result["preregistration"]["execution_accounting"]["offline_report_generation_calls"] == 1
+
+
+def test_worker_output_identity_is_mapped_once_to_canonical_output_id() -> None:
+    manifest, mappings = canonicalize_worker_output_manifest(
+        [{"id": "plate_print", "label": "Plate Print"}],
+        provenance={"study_id": "test-study", "provenance_marker": "test"},
+    )
+
+    assert manifest == [{"label": "Plate Print", "output_id": "plate_print"}]
+    assert mappings[0]["canonical_field"] == "output_id"
+    assert mappings[0]["source_fields"] == ["id"]
+    assert mappings[0]["semantic_repair"] is False
+
+
+def test_worker_output_identity_rejects_conflicting_or_ambiguous_ids() -> None:
+    with pytest.raises(ValueError, match="conflicting identities"):
+        canonicalize_worker_output_manifest(
+            [{"id": "plate_print", "output_id": "other_print"}],
+            provenance={},
+        )
+    with pytest.raises(ValueError, match="no output identity"):
+        canonicalize_worker_output_manifest([{"label": "unnamed"}], provenance={})

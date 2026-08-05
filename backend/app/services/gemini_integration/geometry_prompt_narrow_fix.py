@@ -20,6 +20,7 @@ from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Iterable
 
+from app.core.config import settings
 from app.services.ai.provider import ModelGenerationRequest
 from app.services.cad.cadquery_contract import SAFE_CALL_NAMES
 from app.services.cad.geometry_slots import parse_geometry_slots
@@ -80,6 +81,23 @@ FAILURE_CLASSES = {
     "malformed_response_structure",
     "multiple_independent_defects",
 }
+
+
+def _execution_accounting(
+    *,
+    live_provider_attempts: int = 0,
+    offline_provider_attempts: int = 0,
+    offline_report_generation_calls: int = 0,
+    worker_smoke_attempts: int = 0,
+) -> dict[str, int]:
+    """Keep external attempts distinct from local offline report generation."""
+
+    return {
+        "live_provider_attempts": int(live_provider_attempts),
+        "offline_provider_attempts": int(offline_provider_attempts),
+        "offline_report_generation_calls": int(offline_report_generation_calls),
+        "worker_smoke_attempts": int(worker_smoke_attempts),
+    }
 
 
 @dataclass(frozen=True)
@@ -1160,6 +1178,7 @@ class GeometryPromptNarrowFixRunner:
 
     def _offline_reports(self) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         failure_audit = audit_historical_failures(self.study_root, self.validator)
+        failure_audit["execution_accounting"] = _execution_accounting(offline_report_generation_calls=1)
         prompt_report = {
             "schema_version": "volundr-geometry-prompt-v2-v1",
             "study_id": STUDY_ID,
@@ -1215,8 +1234,10 @@ class GeometryPromptNarrowFixRunner:
             ],
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(offline_report_generation_calls=1),
         }
         fixture_results = run_fixture_corpus(self.validator)
+        fixture_results["execution_accounting"] = _execution_accounting(offline_report_generation_calls=1)
         self._write("failure-audit.json", failure_audit)
         self._write("geometry-prompt-v2.json", prompt_report)
         self._write("validator-fixture-results.json", fixture_results)
@@ -1257,6 +1278,7 @@ class GeometryPromptNarrowFixRunner:
             "repair_calls": 0,
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(offline_report_generation_calls=1),
             "credential_policy": {
                 "required_environment_variable": "GEMINI_API_KEY_2",
                 "primary_credential_allowed": False,
@@ -1280,6 +1302,7 @@ class GeometryPromptNarrowFixRunner:
                 "fixture_report_hash": _sha(fixture_results),
                 "provider_calls": 0,
                 "worker_calls": 0,
+                "execution_accounting": _execution_accounting(offline_report_generation_calls=1),
             },
             "preserved_capture_hashes": self.initial_capture_hashes,
             "preserved_prior_report_hashes": self.initial_prior_report_hashes,
@@ -1387,6 +1410,10 @@ class GeometryPromptNarrowFixRunner:
             "capture_hashes_after": self._capture_hashes(),
             "preserved_captures_unchanged": self._capture_hashes() == self.initial_capture_hashes,
             "rate_limit_events": limiter.events,
+            "qualified_geometry_prompt_version": GEOMETRY_T5_PROMPT_VERSION,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=sum(len(item.get("attempts", [])) for item in results),
+            ),
             "provenance": {
                 "study_id": STUDY_ID,
                 "validation_id": NARROW_FIX_ID,
@@ -1416,6 +1443,13 @@ class GeometryPromptNarrowFixRunner:
             "passed": len(passed),
             "required_passed": 6,
             "provider_attempts": live.get("provider_calls", 0),
+            "qualified_geometry_prompt_version": GEOMETRY_T5_PROMPT_VERSION,
+            "production_geometry_prompt_version": self.profile.stage_prompt_versions["geometry"],
+            "observed_geometry_prompt_versions": sorted({
+                str((item.get("operation") or {}).get("prompt_version"))
+                for item in results
+                if (item.get("operation") or {}).get("prompt_version")
+            }),
             "failure_classes": failures,
             "validator_counterfactual_corrections": [
                 {
@@ -1431,6 +1465,10 @@ class GeometryPromptNarrowFixRunner:
             "adapter_semantic_repairs": sum(1 for item in results if (item.get("adapter") or {}).get("semantic_repair")),
             "provider_calls": live.get("provider_calls", 0),
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+            ),
             "provenance": {"study_id": STUDY_ID, "validation_id": NARROW_FIX_ID, "marker": "volundr-geometry-prompt-narrow-fix"},
         }
 
@@ -1455,6 +1493,7 @@ class GeometryPromptNarrowFixRunner:
             "offline_only": True,
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(offline_report_generation_calls=1),
             "records": records,
             "replayed_operation_count": len(records),
             "hashes_preserved": all(item["raw_response_hash"] == item["replayed_response_hash"] for item in records),
@@ -1476,6 +1515,12 @@ class GeometryPromptNarrowFixRunner:
             adapter["validation_revision"] = "validator-generalized-capability-fix-v1"
         replayed["validator_replay_revision"] = "validator-generalized-capability-fix-v1"
         replayed["validator_replay_provider_calls"] = 0
+        replayed["qualified_geometry_prompt_version"] = GEOMETRY_T5_PROMPT_VERSION
+        existing_accounting = live.get("execution_accounting") or {}
+        replayed["execution_accounting"] = _execution_accounting(
+            live_provider_attempts=int(existing_accounting.get("live_provider_attempts", live.get("provider_calls", 0))),
+            offline_report_generation_calls=1,
+        )
         return replayed
 
     def _regression_replay(self, live: dict[str, Any], failure_audit: dict[str, Any], fixture_results: dict[str, Any]) -> dict[str, Any]:
@@ -1497,6 +1542,7 @@ class GeometryPromptNarrowFixRunner:
                 "passed": evidence.passed,
                 "failure_classes": list(evidence.failure_classes),
                 "provider_calls": 0,
+                "execution_accounting": _execution_accounting(),
             })
         old_valid = []
         targeted_adapter = _read_json(self.study_root / "reports" / TARGETED_ID / "adapter-replay-results.json", {})
@@ -1508,6 +1554,7 @@ class GeometryPromptNarrowFixRunner:
             "offline_only": True,
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(offline_report_generation_calls=1),
             "historical_targeted_failures": {
                 "count": failure_audit.get("historical_failure_count", 0),
                 "all_rejected_by_strict_t5": all(not record.get("parser_counterfactual", {}).get("validation", {}).get("passed") for record in failure_audit.get("records", [])),
@@ -1526,7 +1573,13 @@ class GeometryPromptNarrowFixRunner:
             "prior_report_hashes_preserved": self._prior_report_hashes() == self.initial_prior_report_hashes,
         }
 
-    async def _run_worker_smoke_async(self, live: dict[str, Any], geometry_decision: dict[str, Any]) -> dict[str, Any]:
+    async def _run_worker_smoke_async(
+        self,
+        live: dict[str, Any],
+        geometry_decision: dict[str, Any],
+        *,
+        worker_smoke_id: str = "output-identity-fix-01",
+    ) -> dict[str, Any]:
         if geometry_decision.get("decision") != "geometry_contract_qualified":
             return {"run": False, "reason": "geometry qualification gate not met"}
         candidate = next(
@@ -1538,29 +1591,55 @@ class GeometryPromptNarrowFixRunner:
         operation = candidate["operation"]
         parsed, _ = parse_provider_response((candidate.get("provider_result") or {}).get("text"))
         project = next(item for item in build_integration_corpus() if item.project_id == operation.get("project_id"))
-        provenance = self._provenance(project.project_id, int(operation.get("repetition") or 1))
+        provenance = self._provenance(
+            project.project_id,
+            int(operation.get("repetition") or 1),
+            worker_smoke_id=worker_smoke_id,
+        )
+        prior_report = _read_json(self.report_root / "worker-smoke-result.json", None)
         ports = build_real_boundary_ports(
             profile=self.profile,
             evidence_store=self.evidence_store,
-            # The real worker container consumes the shared configured CAD
-            # workspace.  The job ID is study-scoped, while reports and
-            # provenance remain under this isolated narrow-fix subtree.
-            jobs_root=None,
+            # Resolve the configured workspace against the repository when the
+            # setting is relative; this keeps the integration job visible to
+            # the real worker container regardless of the caller's cwd.
+            jobs_root=(
+                Path(settings.cad_workspace_dir)
+                if Path(settings.cad_workspace_dir).is_absolute()
+                else self.repository_root / Path(settings.cad_workspace_dir)
+            ),
         )
         trace: dict[str, Any] = {
             "run": True,
             "provider_calls": 0,
             "worker_calls": 1,
+            "execution_accounting": _execution_accounting(worker_smoke_attempts=1),
             "project_id": project.project_id,
             "operation_id": operation.get("operation_id"),
+            "qualified_geometry_prompt_version": operation.get("prompt_version", GEOMETRY_T5_PROMPT_VERSION),
+            "worker_smoke_id": worker_smoke_id,
             "provenance": provenance,
             "semantic_adapter_repair": False,
             "adapter_generated_geometry": False,
             "worker_jobs_root": "configured_shared_cad_workspace",
         }
+        if isinstance(prior_report, dict):
+            prior_failure = prior_report.get("worker_boundary_failure") or {}
+            prior_worker = prior_report.get("worker") or {}
+            trace["prior_worker_smoke_evidence"] = prior_report.get("prior_worker_smoke_evidence") or {
+                "report": str(self.report_root / "worker-smoke-result.json"),
+                "worker_smoke_id": prior_report.get("worker_smoke_id", "pre-output-identity-fix"),
+                "job_id": prior_worker.get("job_id"),
+                "success": prior_worker.get("success"),
+                "error_message": prior_worker.get("error_message"),
+                "classification": prior_failure.get("classification"),
+                "first_incorrect_boundary": prior_failure.get("first_incorrect_boundary", "source_assembly_output_manifest_representation"),
+                "preserved_offline": True,
+            }
         try:
             source_result = await ports.assemble_source(project=project, plan=operation["request"].get("design_plan", {}), geometry=parsed, provenance=provenance)
             trace["source_assembly"] = _json_safe(source_result)
+            trace["output_identity_mapping"] = source_result.get("output_identity_mapping", [])
             source = str(source_result.get("source") or "")
             static_result = await ports.static_validate(source=source, provenance=provenance)
             trace["static_validation"] = _json_safe(static_result)
@@ -1572,9 +1651,9 @@ class GeometryPromptNarrowFixRunner:
             topology = await ports.inspect_topology(artifacts=artifacts, provenance=provenance)
             trace["topology"] = _json_safe(topology)
             expected_outputs = {
-                str(item.get("id") or item.get("output_id")): int(item.get("expected_solid_count") or 1)
-                for item in operation["request"].get("design_plan", {}).get("printable_outputs", []) or []
-                if isinstance(item, dict) and (item.get("id") or item.get("output_id"))
+                str(item["output_id"]): int(item.get("expected_solid_count") or 1)
+                for item in source_result.get("output_manifest", []) or []
+                if isinstance(item, dict) and item.get("output_id")
             }
             observed_outputs = set(str(key) for key in (topology.get("solid_counts") or {}))
             trace["expected_output_ids"] = sorted(expected_outputs)
@@ -1595,12 +1674,26 @@ class GeometryPromptNarrowFixRunner:
                     for output_id, expected_count in expected_outputs.items()
                 )
             )
+            if worker_result.get("success") is not True:
+                trace["worker_boundary_failure"] = {
+                    "classification": "worker_runtime",
+                    "first_incorrect_boundary": "worker",
+                    "reason": worker_result.get("error_message") or "worker failed",
+                    "canonical_output_identity": "output_id",
+                    "provenance": provenance,
+                }
         except Exception as exc:
             trace["harness_failure"] = {"class": type(exc).__name__, "message": str(exc)}
         return trace
 
-    def run_worker_smoke(self, live: dict[str, Any], geometry_decision: dict[str, Any]) -> dict[str, Any]:
-        return asyncio.run(self._run_worker_smoke_async(live, geometry_decision))
+    def run_worker_smoke(
+        self,
+        live: dict[str, Any],
+        geometry_decision: dict[str, Any],
+        *,
+        worker_smoke_id: str = "output-identity-fix-01",
+    ) -> dict[str, Any]:
+        return asyncio.run(self._run_worker_smoke_async(live, geometry_decision, worker_smoke_id=worker_smoke_id))
 
     def finalize(self, live: dict[str, Any], failure_audit: dict[str, Any], fixture_results: dict[str, Any]) -> dict[str, Any]:
         self._allow_replay_replacement = True
@@ -1668,6 +1761,21 @@ class GeometryPromptNarrowFixRunner:
                 "worker_calls": 1,
                 "evidence": worker_failure,
             })
+        prior_worker_evidence = worker.get("prior_worker_smoke_evidence")
+        if isinstance(prior_worker_evidence, dict) and prior_worker_evidence.get("classification"):
+            issues.append({
+                "issue_id": f"{NARROW_FIX_ID}:worker:prior:{prior_worker_evidence.get('classification')}",
+                "project_id": worker.get("project_id"),
+                "group": "worker-smoke",
+                "classification": prior_worker_evidence.get("classification"),
+                "owner": "source_assembly_boundary",
+                "root_cause": "source_assembly_worker_representation_mismatch",
+                "corrected": worker_failure is None,
+                "independent": True,
+                "provider_calls": 0,
+                "worker_calls": 0,
+                "evidence": prior_worker_evidence,
+            })
         issue_register = {
             "schema_version": "volundr-corrected-issue-register-v1",
             "study_id": STUDY_ID,
@@ -1676,19 +1784,26 @@ class GeometryPromptNarrowFixRunner:
             "failure_classes": sorted({item.get("classification") for item in issues if item.get("classification")}),
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+                worker_smoke_attempts=int((worker.get("execution_accounting") or {}).get("worker_smoke_attempts", 0)),
+            ),
         }
         self._write("corrected-issue-register.json", issue_register)
         causal_graph = {
             "schema_version": "volundr-corrected-causal-graph-v1",
             "study_id": STUDY_ID,
             "validation_id": NARROW_FIX_ID,
-            "nodes": ["authoritative_manifest", "rendered_prompt", "raw_provider_response", "parsed_response", "t5_geometry_adapter", "source_assembly", "worker", "artifacts", "topology", "verification", "candidate_decision", "harness"],
+            "nodes": ["authoritative_manifest", "rendered_prompt", "raw_provider_response", "parsed_response", "t5_geometry_adapter", "source_assembly", "output_identity_mapping", "worker", "artifacts", "topology", "verification", "candidate_decision", "harness"],
             "edges": [
                 {"from": "authoritative_manifest", "to": "rendered_prompt", "evidence": "manifest hash and prompt hash in each operation"},
                 {"from": "rendered_prompt", "to": "raw_provider_response", "evidence": "prompt and raw response captured per operation"},
                 {"from": "raw_provider_response", "to": "parsed_response", "evidence": "raw and parsed hashes plus exact fence count"},
                 {"from": "parsed_response", "to": "t5_geometry_adapter", "evidence": "typed slot evidence"},
                 {"from": "t5_geometry_adapter", "to": "source_assembly", "evidence": "worker smoke is gated on six valid T5 captures"},
+                {"from": "source_assembly", "to": "output_identity_mapping", "evidence": "explicit Plan identity to canonical worker output_id mapping with conflict rejection"},
+                {"from": "output_identity_mapping", "to": "worker", "evidence": "worker request contains only canonical output_id"},
             ],
             "historical_first_incorrect_boundaries": [{"failure_id": record.get("failure_id"), "boundary": (record.get("causal_chain") or {}).get("first_incorrect_boundary")} for record in failure_audit.get("records", [])],
             "live_failure_boundaries": [{"operation_id": (item.get("operation") or {}).get("operation_id"), "boundary": "provider_content_boundary"} for item in live.get("results", []) or [] if (item.get("validation") or {}).get("passed") is not True],
@@ -1711,6 +1826,11 @@ class GeometryPromptNarrowFixRunner:
             } if isinstance(worker.get("worker_boundary_failure"), dict) else None,
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+                worker_smoke_attempts=int((worker.get("execution_accounting") or {}).get("worker_smoke_attempts", 0)),
+            ),
         }
         self._write("corrected-causal-graph.json", causal_graph)
         attempts = [attempt for item in live.get("results", []) or [] for attempt in item.get("attempts", []) or []]
@@ -1725,6 +1845,10 @@ class GeometryPromptNarrowFixRunner:
             "limiter_events": live.get("rate_limit_events", []),
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+            ),
         }
         retry_report = {
             "max_attempts_per_logical_operation": max((len(item.get("attempts", []) or []) for item in live.get("results", []) or []), default=0),
@@ -1732,6 +1856,10 @@ class GeometryPromptNarrowFixRunner:
             "third_attempts": [attempt.get("attempt_id") for attempt in attempts if int(attempt.get("attempt_index", 0)) >= 2],
             "provider_calls": 0,
             "worker_calls": 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+            ),
         }
         self._write("rate-limit-report.json", rate_report)
         self._write("retry-report.json", retry_report)
@@ -1751,9 +1879,15 @@ class GeometryPromptNarrowFixRunner:
             "validation_id": NARROW_FIX_ID,
             "decision": "integration_foundation_ready_for_representative_workflow" if integration_ready else "integration_foundation_requires_another_narrow_fix" if geometry_decision["decision"] != "geometry_contract_qualified" else "insufficient_evidence",
             "geometry_decision": geometry_decision["decision"],
+            "qualified_geometry_prompt_version": geometry_decision.get("qualified_geometry_prompt_version"),
             "worker_smoke_run": worker.get("run") is True,
             "provider_calls": 0,
             "worker_calls": 1 if worker.get("run") is True else 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+                worker_smoke_attempts=int((worker.get("execution_accounting") or {}).get("worker_smoke_attempts", 0)),
+            ),
             "final_audit_question": "Did this change make Volundr more generally capable of consuming valid geometry, or did it merely make the current fixtures pass?",
             "answer": "It expanded the contract machinery across varied valid CadQuery strategies and leaves implementation strategy open; targeted live qualification remains evidence of the boundary, not universal geometry capability." if fixture_results.get("all_expected_results") else "insufficient generalized evidence",
             "provenance": {"study_id": STUDY_ID, "validation_id": NARROW_FIX_ID, "marker": "volundr-geometry-prompt-narrow-fix"},
@@ -1765,13 +1899,32 @@ class GeometryPromptNarrowFixRunner:
             "profile": self.profile.as_dict(),
             "reports": {name: str(self.report_root / name) for name in REPORT_NAMES},
             "failure_audit": {"historical_failure_count": failure_audit.get("historical_failure_count"), "distinct_failure_classes": failure_audit.get("distinct_failure_classes", [])},
-            "live": {"logical_operations": live.get("logical_operation_count"), "provider_attempts": live.get("provider_calls"), "passed": geometry_decision.get("passed")},
-            "replay": {"adapter_provider_calls": 0, "regression_provider_calls": 0, "capture_hashes_preserved": regression.get("capture_hashes_preserved")},
-            "worker": {"run": worker.get("run"), "reason": worker.get("reason")},
+            "live": {
+                "logical_operations": live.get("logical_operation_count"),
+                "live_provider_attempts": (live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls")),
+                "qualified_geometry_prompt_version": geometry_decision.get("qualified_geometry_prompt_version"),
+                "passed": geometry_decision.get("passed"),
+            },
+            "replay": {
+                "offline_provider_attempts": 0,
+                "offline_report_generation_calls": 1,
+                "capture_hashes_preserved": regression.get("capture_hashes_preserved"),
+            },
+            "worker": {
+                "run": worker.get("run"),
+                "worker_smoke_attempts": (worker.get("execution_accounting") or {}).get("worker_smoke_attempts", 0),
+                "canonical_output_identity": "output_id",
+                "reason": worker.get("reason"),
+            },
             "decisions": {"geometry": geometry_decision.get("decision"), "integration": integration_decision.get("decision")},
             "generalization": {"valid_fixture_count": fixture_results.get("valid_fixture_count"), "negative_fixture_count": fixture_results.get("negative_fixture_count"), "all_expected_results": fixture_results.get("all_expected_results")},
             "provider_calls": 0,
             "worker_calls": 1 if worker.get("run") is True else 0,
+            "execution_accounting": _execution_accounting(
+                live_provider_attempts=int((live.get("execution_accounting") or {}).get("live_provider_attempts", live.get("provider_calls", 0))),
+                offline_report_generation_calls=1,
+                worker_smoke_attempts=int((worker.get("execution_accounting") or {}).get("worker_smoke_attempts", 0)),
+            ),
             "provenance": {"study_id": STUDY_ID, "validation_id": NARROW_FIX_ID, "marker": "volundr-geometry-prompt-narrow-fix"},
         }
         self._write("combined-geometry-narrow-fix-evidence.json", combined)
@@ -1787,12 +1940,15 @@ class GeometryPromptNarrowFixRunner:
         live_results = self.run_live()
         return self.finalize(live_results, failure_audit, fixture_results)
 
-    def _provenance(self, project_id: str, repetition: int) -> dict[str, Any]:
+    def _provenance(self, project_id: str, repetition: int, *, worker_smoke_id: str | None = None) -> dict[str, Any]:
+        revision_suffix = "geometry-narrow-fix"
+        if worker_smoke_id:
+            revision_suffix = f"{revision_suffix}:{worker_smoke_id}"
         return {
             "study_id": STUDY_ID,
             "validation_id": NARROW_FIX_ID,
             "project_id": project_id,
-            "revision_id": f"{project_id}:geometry-narrow-fix:rep-{repetition:02d}",
+            "revision_id": f"{project_id}:{revision_suffix}:rep-{repetition:02d}",
             "provenance_marker": "volundr-geometry-prompt-narrow-fix",
             "integration_only": True,
         }
