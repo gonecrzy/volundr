@@ -12,6 +12,8 @@ from app.services.cad.capsule_slot_source import (
     build_capsule_slot_helper_statement,
     validate_capsule_slot_facts,
 )
+from app.services.cad.capsule_slot_routing import build_capsule_slot_feature_source
+from app.services.cad.source_scaffold import render_cadquery_scaffold, validate_scaffold_source
 from app.services.research.provider_ir_validation import assemble_t5_source
 from app.services.research.t5_final_revision_microstudy import (
     build_final_tasks,
@@ -225,3 +227,67 @@ def test_capsule_source_assembly_is_deterministic_and_raw_t5_remains_default() -
     assert "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, CapsuleSlotFrame, cut_capsule_slot_v1" in helper_source
     validate_cadquery_source(helper_source)
     assert "body = cut_capsule_slot_v1(body" in helper_source
+
+
+def test_wave_capsule_routing_requires_plan_traceability_and_preserves_other_provider_functions() -> None:
+    plan = {
+        "parameters": [
+            {"id": "capsule_length_mm", "type": "float", "value": 34},
+            {"id": "capsule_width_mm", "type": "float", "value": 8},
+            {"id": "capsule_center_x_mm", "type": "float", "value": 35},
+            {"id": "capsule_center_y_mm", "type": "float", "value": 12},
+            {"id": "capsule_orientation_degrees", "type": "float", "value": 20},
+            {"id": "capsule_depth_mm", "type": "float", "value": 4},
+        ],
+        "components": [{"id": "guide_body"}],
+        "features": [{"id": "capsule_retention_slot", "component_id": "guide_body", "profile_type": "rounded_end_capsule"}],
+        "printable_outputs": [{"id": "swept_cable_guide", "component_ids": ["guide_body"], "expected_solid_count": 1}],
+    }
+    capsule_facts = {
+        "feature_id": "capsule_retention_slot",
+        "component_id": "guide_body",
+        "target_output_id": "swept_cable_guide",
+        "requested_feature_dimensions": {
+            "profile_type": "rounded_end_capsule",
+            "overall_length_mm": 34,
+            "width_mm": 8,
+            "end_radius_mm": 4,
+            "orientation_degrees": 20,
+            "depth_mode": "blind",
+            "depth_mm": 4,
+            "depth_direction": [0, 0, -1],
+        },
+        "feature_center_local_mm": [35, 12],
+        "local_coordinate_frame": {
+            "origin_mm": [0, 0, 18],
+            "x_direction": [1, 0, 0],
+            "y_direction": [0, 1, 0],
+            "normal": [0, 0, 1],
+            "depth_direction": [0, 0, -1],
+        },
+        "parameter_ids": {
+            "length": "capsule_length_mm",
+            "width": "capsule_width_mm",
+            "center_x": "capsule_center_x_mm",
+            "center_y": "capsule_center_y_mm",
+            "orientation": "capsule_orientation_degrees",
+            "depth": "capsule_depth_mm",
+        },
+    }
+    routed = build_capsule_slot_feature_source(plan, capsule_facts)
+    source = render_cadquery_scaffold(
+        plan,
+        {
+            "_ai_component_guide_body": "def _ai_component_guide_body(params):\n    return cq.Workplane('XY').box(80, 40, 18)",
+            "_ai_feature_capsule_retention_slot": "def _ai_feature_capsule_retention_slot(body, params):\n    return body",
+        },
+        deterministic_feature_sources={"capsule_retention_slot": routed["helper_source"]},
+    ).source
+    assert "cut_capsule_slot_v1" in source
+    assert "return body" in source
+    assert "return cq.Workplane('XY').box(80, 40, 18)" in source
+    assert validate_scaffold_source(source) == []
+
+    missing_traceability = {**plan, "features": [{"id": "capsule_retention_slot", "component_id": "guide_body"}]}
+    with pytest.raises(CapsuleSlotContractError, match="profile_type"):
+        build_capsule_slot_feature_source(missing_traceability, capsule_facts)

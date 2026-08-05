@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any
 
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
+from app.services.cad.capsule_slot_routing import build_capsule_slot_feature_source
+from volundr_cad.capsule_slot import CapsuleSlotContractError
 from app.services.cad.geometry_slots import (
     GEOMETRY_SLOTS_SCHEMA_VERSION,
     build_geometry_slot_manifest,
@@ -116,7 +118,31 @@ def build_real_boundary_ports(
             "slots": geometry.get("slots", []) if isinstance(geometry, dict) else [],
         }
         parsed = parse_geometry_slots(json.dumps(payload), manifest)
-        rendered = render_cadquery_scaffold(plan, parsed.functions)
+        deterministic_feature_sources = {}
+        helper_routing = None
+        capsule_slot = (project.frozen_facts or {}).get("capsule_slot")
+        if capsule_slot is not None:
+            try:
+                helper_routing = build_capsule_slot_feature_source(plan, capsule_slot)
+                deterministic_feature_sources[helper_routing["feature_id"]] = helper_routing["helper_source"]
+            except CapsuleSlotContractError as exc:
+                return {
+                    "source": "",
+                    "output_manifest": [],
+                    "source_assembly_error": str(exc),
+                    "failure_class": "deterministic_helper_routing_failure",
+                    "helper_routing": {
+                        "routing_required": True,
+                        "helper_applied": False,
+                        "error_type": type(exc).__name__,
+                    },
+                    "provenance": provenance,
+                }
+        rendered = render_cadquery_scaffold(
+            plan,
+            parsed.functions,
+            deterministic_feature_sources=deterministic_feature_sources,
+        )
         output_manifest, output_identity_mapping = canonicalize_worker_output_manifest(
             plan.get("printable_outputs", []),
             provenance=provenance,
@@ -127,6 +153,10 @@ def build_real_boundary_ports(
             "output_identity_mapping": output_identity_mapping,
             "scaffold_hash": rendered.scaffold_hash,
             "geometry_function_ids": list(rendered.expected_geometry_functions),
+            "helper_routing": helper_routing or {
+                "routing_required": False,
+                "helper_applied": False,
+            },
             "provenance": provenance,
         }
 

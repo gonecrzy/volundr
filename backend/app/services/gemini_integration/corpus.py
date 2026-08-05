@@ -21,6 +21,14 @@ class IntegrationProject:
     revision_of: str | None = None
     requirement_delta: tuple[dict[str, Any], ...] = ()
     protected_facts: tuple[str, ...] = ()
+    expected_requirements_outcome: dict[str, Any] | None = None
+    clarification_expectations: dict[str, Any] | None = None
+    expected_output_ids: tuple[str, ...] = ()
+    exact_fixed_points: dict[str, Any] | None = None
+    coordinate_frame_obligations: tuple[dict[str, Any], ...] = ()
+    expected_verification_checks: tuple[str, ...] = ()
+    permissible_proposal_fields: tuple[str, ...] = ()
+    forbidden_substitutions: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.expected_solid_counts is None:
@@ -41,6 +49,14 @@ class IntegrationProject:
             "revision_of": self.revision_of,
             "requirement_delta": list(self.requirement_delta),
             "protected_facts": list(self.protected_facts),
+            "expected_requirements_outcome": dict(self.expected_requirements_outcome or {}),
+            "clarification_expectations": dict(self.clarification_expectations or {}),
+            "expected_output_ids": list(self.expected_output_ids),
+            "exact_fixed_points": self.exact_fixed_points or {},
+            "coordinate_frame_obligations": list(self.coordinate_frame_obligations),
+            "expected_verification_checks": list(self.expected_verification_checks),
+            "permissible_proposal_fields": list(self.permissible_proposal_fields),
+            "forbidden_substitutions": list(self.forbidden_substitutions),
         }
 
 

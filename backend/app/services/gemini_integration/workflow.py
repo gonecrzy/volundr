@@ -23,6 +23,7 @@ from app.services.gemini_integration.transport import ProviderCallResult
 
 ProviderCall = Callable[..., Awaitable[ProviderCallResult]]
 BoundaryCall = Callable[..., Awaitable[dict[str, Any]]]
+GeometryPromptRenderer = Callable[[GeminiFlashLiteContractV1, Any], Any]
 
 
 def _json_safe(value: Any) -> Any:
@@ -77,6 +78,7 @@ class IntegrationWorkflowRunner:
         ports: IntegrationBoundaryPorts,
         wave_id: str | None = None,
         provenance_marker: str = "volundr-provider-contract-integration",
+        geometry_prompt_renderer: GeometryPromptRenderer = render_geometry_prompt_v2,
     ) -> None:
         require_integration_profile(profile.profile_id)
         self.profile = profile
@@ -85,6 +87,7 @@ class IntegrationWorkflowRunner:
         self.provenance_marker = provenance_marker
         self.evidence_store = evidence_store
         self.ports = ports
+        self.geometry_prompt_renderer = geometry_prompt_renderer
         self.requirements_adapter = GeminiRequirementsContractAdapter()
         self.plan_adapter = GeminiPlanContractAdapter()
         self.geometry_adapter = GeminiGeometryContractAdapter()
@@ -107,7 +110,7 @@ class IntegrationWorkflowRunner:
         async def provider(stage: str, request: Any, operation_suffix: str) -> ProviderCallResult | None:
             nonlocal earliest, furthest
             rendered = (
-                render_geometry_prompt_v2(self.profile, request)
+                self.geometry_prompt_renderer(self.profile, request)
                 if stage == "geometry"
                 else render_integration_prompt(self.profile, stage, request)
             )
@@ -227,6 +230,17 @@ class IntegrationWorkflowRunner:
         furthest = "geometry_adapter"
         source_result = await self.ports.assemble_source(project=project, plan=plan, geometry=geometry_evidence.normalized, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "source_assembly", {"plan": plan, "geometry": geometry_evidence.normalized}, source_result))
+        if source_result.get("source_assembly_error"):
+            helper_failure = self._capture_boundary(
+                project,
+                revision_id,
+                "deterministic_helper_routing",
+                {"plan": plan, "geometry": geometry_evidence.normalized},
+                source_result,
+            )
+            boundary_ids.append(helper_failure)
+            earliest = earliest or str(source_result.get("failure_class") or "source_assembly")
+            return self._outcome(project, revision_id, earliest, "source_assembly", None, boundary_ids, attempt_ids, worker_jobs)
         source = str(source_result.get("source") or "")
         static_result = await self.ports.static_validate(source=source, provenance=self._provenance(project.project_id, revision_id))
         boundary_ids.append(self._capture_boundary(project, revision_id, "static_validation", {"source": source}, static_result))

@@ -45,6 +45,18 @@ def test_prepare_is_provider_free(tmp_path: Path) -> None:
     assert not list((root / "provider-attempts").glob("*.json"))
 
 
+def test_prepare_records_preregistered_t5_parameter_map_version(tmp_path: Path) -> None:
+    manifest = _manifest(tmp_path / "manifest.json")
+    payload = json.loads(manifest.read_text())
+    payload["execution_policy"]["geometry_prompt_version"] = "T5-geometry-exact-slot-contract-v2-parameter-map"
+    manifest.write_text(json.dumps(payload), encoding="utf-8")
+    root = tmp_path / "wave"
+
+    assert wave_cli.main(["--manifest", str(manifest), "--root", str(root), "--prepare"]) == 0
+    profile = json.loads((root / "reports/provider-profile.json").read_text())
+    assert profile["resolved_stage_prompt_versions"]["geometry"] == "T5-geometry-exact-slot-contract-v2-parameter-map"
+
+
 def test_live_fails_before_provider_calls_without_secondary_credential(tmp_path: Path, monkeypatch) -> None:
     manifest = _manifest(tmp_path / "manifest.json")
     root = tmp_path / "wave"

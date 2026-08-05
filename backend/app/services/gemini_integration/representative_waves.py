@@ -128,6 +128,14 @@ class WaveManifest:
                     revision_of=raw_project.get("revision_of"),
                     requirement_delta=tuple(raw_project.get("requirement_delta") or ()),
                     protected_facts=tuple(str(item) for item in raw_project.get("protected_facts") or ()),
+                    expected_requirements_outcome=dict(raw_project.get("expected_requirements_outcome") or {}),
+                    clarification_expectations=dict(raw_project.get("clarification_expectations") or {}),
+                    expected_output_ids=tuple(str(item) for item in raw_project.get("expected_output_ids") or ()),
+                    exact_fixed_points=dict(raw_project.get("exact_fixed_points") or {}),
+                    coordinate_frame_obligations=tuple(raw_project.get("coordinate_frame_obligations") or ()),
+                    expected_verification_checks=tuple(str(item) for item in raw_project.get("expected_verification_checks") or ()),
+                    permissible_proposal_fields=tuple(str(item) for item in raw_project.get("permissible_proposal_fields") or ()),
+                    forbidden_substitutions=tuple(str(item) for item in raw_project.get("forbidden_substitutions") or ()),
                 )
             )
         return cls(
@@ -887,6 +895,7 @@ def _repository_snapshot(repository_root: Path) -> dict[str, Any]:
         "origin_main": git("rev-parse", "origin/main"),
         "divergence": git("rev-list", "--left-right", "--count", "HEAD...origin/main"),
         "worktree": git("status", "--short"),
+        "worktree_clean": not bool(git("status", "--short")),
         "migration_head": migration_head,
     }
 

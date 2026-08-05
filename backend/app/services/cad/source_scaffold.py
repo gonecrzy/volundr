@@ -13,6 +13,7 @@ import re
 import textwrap
 from dataclasses import dataclass, field
 from typing import Any
+from collections.abc import Mapping
 
 from app.services.cad.parameter_effects import (
     build_parameter_effect_contract,
@@ -118,6 +119,8 @@ def extract_geometry_functions(
 def render_cadquery_scaffold(
     design_plan: dict[str, Any],
     geometry_functions: dict[str, str],
+    *,
+    deterministic_feature_sources: Mapping[str, str] | None = None,
 ) -> ScaffoldRender:
     """Render canonical source around provider-owned geometry functions."""
 
@@ -132,6 +135,16 @@ def render_cadquery_scaffold(
     component_ids = [str(item.get("id")) for item in components if item.get("id")]
     feature_by_id = {str(item["id"]): item for item in features if item.get("id")}
     component_by_id = {str(item["id"]): item for item in components if item.get("id")}
+    deterministic_feature_sources = {
+        str(key): str(value)
+        for key, value in (deterministic_feature_sources or {}).items()
+    }
+    unknown_deterministic_features = set(deterministic_feature_sources) - set(feature_by_id)
+    if unknown_deterministic_features:
+        raise ScaffoldSourceError(
+            "deterministic helper source references unknown features: "
+            + ", ".join(sorted(unknown_deterministic_features))
+        )
     expected_functions: list[str] = []
     for component_id in component_ids:
         expected_functions.append(_component_geometry_name(component_id))
@@ -163,7 +176,8 @@ def render_cadquery_scaffold(
         "# VOLUNDR_SCAFFOLD_VERSION: " + SCAFFOLD_VERSION,
         "# VOLUNDR_SCAFFOLD_HASH: __PLACEHOLDER__",
         "import cadquery as cq",
-        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface, resolve_pattern_points, place_pattern_cutters",
+        "from volundr_cad.runtime import ParameterSpec, PrintableOutput, Product, component, feature, shared_helper, protected_interface, resolve_pattern_points, place_pattern_cutters"
+        + (", CapsuleSlotFrame, cut_capsule_slot_v1" if deterministic_feature_sources else ""),
         "",
         "PARAMETERS = [",
     ]
@@ -261,7 +275,8 @@ def render_cadquery_scaffold(
         if component_id not in component_by_id:
             continue
         function_name = _feature_geometry_name(feature_id)
-        lines.extend(_ai_block(function_name, geometry_functions[function_name]))
+        function_source = deterministic_feature_sources.get(feature_id, geometry_functions[function_name])
+        lines.extend(_ai_block(function_name, function_source))
         lines.extend(
             [
                 f'@feature("{feature_id}", component="{component_id}")',

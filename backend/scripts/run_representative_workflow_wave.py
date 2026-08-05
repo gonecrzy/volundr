@@ -12,7 +12,12 @@ from typing import Any
 from app.services.gemini_integration.forensics import CounterfactualFixture, replay_captured_evidence_offline
 from app.services.gemini_integration.cadquery_dialect import diagnose_wave_geometry_compatibility
 from app.services.gemini_integration.profile import GeminiFlashLiteContractV1, require_integration_profile
-from app.services.gemini_integration.prompts import GEOMETRY_T5_PROMPT_VERSION
+from app.services.gemini_integration.prompts import (
+    GEOMETRY_T5_PROMPT_VERSION,
+    GEOMETRY_T5_PARAMETER_ACCESS_PROMPT_VERSION,
+    render_geometry_prompt_v2,
+    render_geometry_prompt_parameter_access_v1,
+)
 from app.services.gemini_integration.real_ports import build_real_boundary_ports
 from app.services.gemini_integration.representative_waves import (
     WAVE_PROVENANCE_MARKER,
@@ -59,14 +64,19 @@ def _resolve(path: Path, repository_root: Path) -> Path:
     return path if path.is_absolute() else repository_root / path
 
 
-def _write_provider_profile(root: Path, repository_root: Path) -> None:
+def _write_provider_profile(root: Path, repository_root: Path, *, geometry_prompt_version: str | None = None) -> None:
     profile = GeminiFlashLiteContractV1.from_repository(repository_root)
     document = profile.as_dict()
+    resolved_geometry_version = geometry_prompt_version or GEOMETRY_T5_PROMPT_VERSION
+    document["stage_prompt_versions"] = {
+        **document.get("stage_prompt_versions", {}),
+        "geometry": resolved_geometry_version,
+    }
     document.update({
         "resolved_stage_prompt_versions": {
             "requirements": "T2-requirements-missing-fit-v1",
             "plan": "T0-current",
-            "geometry": GEOMETRY_T5_PROMPT_VERSION,
+            "geometry": resolved_geometry_version,
         },
         "seed": "omitted",
         "thinkingConfig": "omitted",
@@ -137,6 +147,11 @@ async def _run_baseline(manifest, root: Path, repository_root: Path, *, resume: 
         provenance_marker=WAVE_PROVENANCE_MARKER,
         evidence_store=store,
         ports=ports,
+        geometry_prompt_renderer=(
+            render_geometry_prompt_parameter_access_v1
+            if manifest.execution_policy.get("geometry_prompt_version") == GEOMETRY_T5_PARAMETER_ACCESS_PROMPT_VERSION
+            else render_geometry_prompt_v2
+        ),
     )
     for project in manifest.projects:
         if resume and project.project_id in known_outcomes and project.project_id in coordinator.state.completed_project_ids:
@@ -419,9 +434,13 @@ def main(argv: list[str] | None = None) -> int:
     manifest = load_wave_manifest(manifest_path)
     if manifest.provider_profile != args.profile:
         parser.error("manifest provider_profile does not match --profile")
-    _write_provider_profile(root, repository_root)
     if args.prepare or (args.baseline and not args.resume):
         initialize_wave(root, manifest, repository_root=repository_root)
+    _write_provider_profile(
+        root,
+        repository_root,
+        geometry_prompt_version=manifest.execution_policy.get("geometry_prompt_version"),
+    )
     if args.prepare:
         return 0
     if args.baseline:
