@@ -87,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.replay:
         bundle_path = writer.reports_root / "all-integration-loop-evidence.json"
         evidence = json.loads(bundle_path.read_text(encoding="utf-8")) if bundle_path.is_file() else {"study": {"study_id": args.study_id}, "provider_attempts": evidence_store.provider_attempts()}
-        replay = replay_captured_evidence_offline(evidence)
+        replay = replay_captured_evidence_offline(evidence, boundaries=evidence_store.boundaries())
         (writer.root / "replays").mkdir(parents=True, exist_ok=True)
         (writer.root / "replays/offline-replay.json").write_text(json.dumps(replay, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         preserved = _preserved_report_fields(writer, evidence)

@@ -9,6 +9,7 @@ from app.services.gemini_integration.adapters import (
     GeminiPlanContractAdapter,
     GeminiRequirementsContractAdapter,
 )
+from app.services.gemini_consistency.provider_contract import canonical_hash
 
 
 STAGE_ORDER = {
@@ -188,7 +189,11 @@ def replay_evidence_offline(evidence: dict[str, Any], *, validators: Iterable[Ca
     }
 
 
-def replay_captured_evidence_offline(evidence: dict[str, Any]) -> dict[str, Any]:
+def replay_captured_evidence_offline(
+    evidence: dict[str, Any],
+    *,
+    boundaries: Iterable[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Re-run stage adapters over captured provider responses without I/O."""
 
     adapters = {
@@ -196,6 +201,67 @@ def replay_captured_evidence_offline(evidence: dict[str, Any]) -> dict[str, Any]
         "plan": GeminiPlanContractAdapter(),
         "geometry": GeminiGeometryContractAdapter(),
     }
+    boundary_records = list(boundaries or [])
+    project_records = {
+        str(item.get("project_id")): item
+        for item in evidence.get("projects", []) or []
+        if isinstance(item, dict) and item.get("project_id") is not None
+    }
+    provider_boundary_by_attempt: dict[str, dict[str, Any]] = {}
+    adapter_boundaries_by_project: dict[str, list[dict[str, Any]]] = {}
+    for boundary in boundary_records:
+        project_id = str(boundary.get("project_id") or "")
+        adapter_boundaries_by_project.setdefault(project_id, []).append(boundary)
+        if not str(boundary.get("boundary") or "").startswith("provider_"):
+            continue
+        output = boundary.get("output") or {}
+        for attempt_id in output.get("attempt_ids", []) or []:
+            provider_boundary_by_attempt[str(attempt_id)] = boundary
+
+    def project_context(project_id: str) -> dict[str, Any]:
+        project = project_records.get(project_id) or {}
+        return {
+            "fit_critical_missing": list(project.get("fit_critical_missing", []) or []),
+        }
+
+    def requirement_ids(project_id: str) -> list[str]:
+        for boundary in adapter_boundaries_by_project.get(project_id, []):
+            if boundary.get("boundary") != "requirements_adapter":
+                continue
+            output = boundary.get("output") or {}
+            if output.get("accepted") is not True:
+                continue
+            normalized = output.get("normalized") or {}
+            return [
+                str(item.get("id"))
+                for item in normalized.get("requirements", []) or []
+                if isinstance(item, dict) and item.get("id") is not None
+            ]
+        return []
+
+    def authoritative_geometry_context(attempt: dict[str, Any], project_id: str) -> dict[str, Any]:
+        provider_boundary = provider_boundary_by_attempt.get(str(attempt.get("attempt_id")))
+        request = ((provider_boundary or {}).get("input") or {}).get("request") or {}
+        manifest = request.get("geometry_slot_manifest") if isinstance(request, dict) else None
+        if not isinstance(manifest, dict):
+            return {}
+        allowed_names = {"body", "cq", "params", "cutter"}
+        for slot in manifest.get("slots", []) or []:
+            if not isinstance(slot, dict):
+                continue
+            allowed_names.update(str(item) for item in slot.get("authorized_parameter_ids", []) or [])
+            allowed_names.update(str(item) for item in slot.get("approved_helpers", []) or [])
+        return {
+            "expected_slot_ids": [
+                item.get("slot_id")
+                for item in manifest.get("slots", []) or []
+                if isinstance(item, dict) and item.get("slot_id") is not None
+            ],
+            "allowed_names": sorted(allowed_names),
+            "manifest_hash": canonical_hash(manifest),
+            "prompt_hash": ((provider_boundary or {}).get("input") or {}).get("prompt_hash"),
+        }
+
     records: list[dict[str, Any]] = []
     for attempt in evidence.get("provider_attempts", []) or []:
         stage = str(attempt.get("stage") or "")
@@ -210,14 +276,35 @@ def replay_captured_evidence_offline(evidence: dict[str, Any]) -> dict[str, Any]
             "revision_id": attempt.get("revision_id"),
             "provenance": {"study_id": (evidence.get("study") or {}).get("study_id"), "synthetic": False},
         }
+        project_id = str(attempt.get("project_id") or "")
+        context.update(project_context(project_id))
+        if stage == "plan":
+            project = project_records.get(project_id) or {}
+            context["expected_output_count"] = project.get("expected_output_count")
+            context["required_requirement_ids"] = requirement_ids(project_id)
         if stage == "geometry":
-            try:
-                parsed = json.loads(raw)
-                context["expected_slot_ids"] = [item.get("slot_id") for item in parsed.get("slots", []) if isinstance(item, dict)]
-            except (TypeError, ValueError):
-                context["expected_slot_ids"] = []
+            authoritative = authoritative_geometry_context(attempt, project_id)
+            if authoritative:
+                context.update(authoritative)
+            else:
+                try:
+                    parsed = json.loads(raw)
+                    context["expected_slot_ids"] = [item.get("slot_id") for item in parsed.get("slots", []) if isinstance(item, dict)]
+                except (TypeError, ValueError):
+                    context["expected_slot_ids"] = []
         result = adapter.adapt(raw, context)
-        records.append({"attempt_id": attempt.get("attempt_id"), "stage": stage, "replayed": True, "provider_success_eligible": False, "adapter": result.as_dict()})
+        records.append({
+            "attempt_id": attempt.get("attempt_id"),
+            "stage": stage,
+            "replayed": True,
+            "provider_success_eligible": False,
+            "authoritative_context": {
+                key: context[key]
+                for key in ("expected_output_count", "required_requirement_ids", "fit_critical_missing", "expected_slot_ids", "allowed_names", "manifest_hash", "prompt_hash")
+                if key in context
+            },
+            "adapter": result.as_dict(),
+        })
     return {"offline_only": True, "provider_calls": 0, "worker_calls": 0, "records": records}
 
 

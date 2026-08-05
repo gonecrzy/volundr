@@ -59,7 +59,7 @@ def build_integration_corpus() -> tuple[IntegrationProject, ...]:
                 {"fact": "cable diameter", "answer": "8 mm"},
                 {"fact": "mounting pattern", "answer": "two holes, 40 mm center-to-center"},
             ),
-            fit_critical_missing=("cable diameter", "mounting pattern"),
+            fit_critical_missing=("cable diameter",),
             semantic_obligations=("request missing cable diameter", "request missing mounting pattern", "continue with frozen answers"),
         ),
         IntegrationProject(
@@ -116,4 +116,3 @@ def corpus_hash(corpus: tuple[IntegrationProject, ...] | None = None) -> str:
 
 
 __all__ = ["IntegrationProject", "build_integration_corpus", "corpus_hash"]
-

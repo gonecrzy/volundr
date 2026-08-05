@@ -7,6 +7,7 @@ from app.services.gemini_integration.forensics import (
     count_provider_successes,
     rank_issues,
     replay_evidence_offline,
+    replay_captured_evidence_offline,
 )
 
 
@@ -95,3 +96,25 @@ def test_offline_replay_makes_no_provider_calls_and_ranking_is_evidence_based() 
     assert ranked[0]["issue_id"] == "issue-01"
     assert ranked[0]["raw_score"] == 12.0
 
+
+def test_captured_replay_uses_authoritative_geometry_manifest_not_returned_slot_ids() -> None:
+    attempt_id = "study:project-003:geometry:attempt-1"
+    response = {"candidates": [{"content": {"parts": [{"text": '{"schema_version":"volundr-geometry-slots-v1","slots":[]}' }]}}]}
+    evidence = {
+        "study": {"study_id": "gemini-provider-contract-integration-01"},
+        "projects": [{"project_id": "project-003", "expected_output_count": 1}],
+        "provider_attempts": [{"attempt_id": attempt_id, "project_id": "project-003", "revision_id": "project-003:revision-001", "stage": "geometry", "response": response}],
+    }
+    boundaries = [{
+        "boundary": "provider_geometry",
+        "project_id": "project-003",
+        "output": {"attempt_ids": [attempt_id]},
+        "input": {"prompt_hash": "prompt", "request": {"geometry_slot_manifest": {"slots": [{"slot_id": 0}, {"slot_id": 1}]}}},
+    }]
+
+    replay = replay_captured_evidence_offline(evidence, boundaries=boundaries)
+
+    record = replay["records"][0]
+    assert record["authoritative_context"]["expected_slot_ids"] == [0, 1]
+    assert record["adapter"]["accepted"] is False
+    assert record["adapter"]["failure_class"] == "missing_slots"
