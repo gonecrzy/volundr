@@ -12,12 +12,12 @@ does not call a provider or CAD worker.
 
 ## Inventory totals
 
-- Documentation files: 224 ({"current_authoritative": 4, "current_supporting": 51, "historical_immutable": 148, "historical_superseded": 21})
-- Test and fixture items: 179 ({"historical_integrity_only": 10, "retain_current": 161, "retain_regression": 8})
-- Study directories indexed: 3812
-- Study records indexed: 141
-- Script/provider-code items: 79
-- Reference-graph nodes: 623
+- Documentation files: 226 ({"current_authoritative": 4, "current_supporting": 51, "historical_immutable": 149, "historical_superseded": 21, "unknown_requires_review": 1})
+- Test and fixture items: 187 ({"historical_integrity_only": 10, "retain_current": 169, "retain_regression": 8})
+- Study directories indexed: 3977
+- Study records indexed: 182
+- Script/provider-code items: 89
+- Reference-graph nodes: 684
 
 ## Retention and cleanup decisions
 
@@ -33,6 +33,7 @@ does not call a provider or CAD worker.
   tests pending explicit evidence of safe consolidation.
 - Tests rewritten or consolidated: none inferred from pass/fail alone.
 - Unresolved review items:
+- `docs/REPRESENTATIVE_WORKFLOW_WAVES.md`
 - `existing migration schema drift reported by alembic check`
 
 ## Automated checks

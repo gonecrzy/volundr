@@ -258,6 +258,24 @@
       "historical_contract_terms": [],
       "kind": "test",
       "markers": [],
+      "path": "backend/tests/test_cadquery_dialect_audit.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "cbee2cd72a0c1c44a98dbe38ac3998b3f8b63a8f338d124eda9f84a38f1721bc"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_cadquery_dialect_diagnostics.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f986675110afa063a06d1bafa47b9114ec87e3893bba4cf941618c9dbe46fe94"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
       "path": "backend/tests/test_cadquery_execution_timing.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "5c2e775365fcc81478c7cc1fe78bfc27b964800ea2271d86a765988ab62f8b91"
@@ -523,6 +541,15 @@
       "historical_contract_terms": [],
       "kind": "test",
       "markers": [],
+      "path": "backend/tests/test_experimental_geometry_ir.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "f8e921fbb33077db12b7c227f16f6caf92c9379c8f268315e8eb5e1ed4f092c4"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
       "path": "backend/tests/test_export_packaging.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "9e35408a2ebbbc6624ce2657a48dfc1cb8028294025d7d44e138bb607419e1fa"
@@ -752,7 +779,7 @@
       "markers": [],
       "path": "backend/tests/test_gemini_integration_adapters.py",
       "reason": "current integration boundary or replay behavior",
-      "sha256": "e40222f3280f9dc2c5c7453c631cb99734ca62737e9b3aa8f05469ef0828ef74"
+      "sha256": "32cd42bb2bac0f8823b08687210fe199fe1fc728488ba61f3ddf8834a4972cee"
     },
     {
       "classification": "retain_current",
@@ -864,7 +891,7 @@
       "markers": [],
       "path": "backend/tests/test_gemini_integration_workflow.py",
       "reason": "current integration boundary or replay behavior",
-      "sha256": "9757a8c68022ee5e5767881333f1b228de2cce8ef75049116faf1acb527d8e6f"
+      "sha256": "a0afd24ded59c1023e9e490e0791563d6a39774b05cd97ccd84b1821a90058d9"
     },
     {
       "classification": "retain_current",
@@ -1224,12 +1251,41 @@
     },
     {
       "classification": "retain_current",
+      "historical_contract_terms": [
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_provider_ir_targeted_validation.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "2339e76864358322828e98caccb5ccbbdd38ff60f4ed12e59659c1c4bd46cbe5"
+    },
+    {
+      "classification": "retain_current",
       "historical_contract_terms": [],
       "kind": "test",
       "markers": [],
       "path": "backend/tests/test_provider_response_convergence.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "256974a1e50ed6cbcd130783c0d9518dc8f0d0855c0a610fc6c3b9d5fb7f4271"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_representative_workflow_wave_cli.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a753e14003d84615762af7f5084018d914083ec491754796c5996703ba1c469f"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_representative_workflow_waves.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "18021c035305226d2babc7c03fe2faf923e9e4fdc1cbbfaa43fcc48c9b6bb852"
     },
     {
       "classification": "retain_current",
@@ -1293,6 +1349,26 @@
       "path": "backend/tests/test_structured_revision_planning.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "0c59af4a693ccdafed8a1508e25f831bff93ed13c80fe52977d65378a1a03e91"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_t5_final_revision_microstudy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "273ef3b1a08bebf34778ff1a781038ab280ff0142de3febecf3c10b2f30cc6c1"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [
+        "T0-current"
+      ],
+      "kind": "test",
+      "markers": [],
+      "path": "backend/tests/test_t5_parameter_revision_validation.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "9b2487c45135a9ded30c82c00feeaf719ddac36afe659d36f7a84f434c45ae8f"
     },
     {
       "classification": "retain_current",
@@ -1641,10 +1717,10 @@
   "summary": {
     "by_classification": {
       "historical_integrity_only": 10,
-      "retain_current": 161,
+      "retain_current": 169,
       "retain_regression": 8
     },
-    "item_count": 179,
+    "item_count": 187,
     "marker_counts": {
       "skip": 1,
       "warning": 1

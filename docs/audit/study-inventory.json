@@ -3,7 +3,7 @@
     {
       "collection": null,
       "depth": 0,
-      "direct_directory_count": 13,
+      "direct_directory_count": 14,
       "direct_file_count": 0,
       "path": "data/debug-sessions"
     },
@@ -26683,6 +26683,1161 @@
       "direct_directory_count": 0,
       "direct_file_count": 1,
       "path": "data/debug-sessions/ollama-only/setup-dry-run/server-probe"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 1,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 2,
+      "direct_directory_count": 9,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/artifacts"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 28,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/captures"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/counterfactuals"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/issues"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/projects"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 11,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/provider-attempts"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/replays"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 5,
+      "direct_file_count": 26,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 0,
+      "direct_file_count": 13,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/cadquery-dialect-audit-02"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 1,
+      "direct_file_count": 20,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 18,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/.home"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/.home/.cache"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/.home/.cache/ezdxf"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 6,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-original"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-original/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-original/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-original"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-original/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-original/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-original/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-original"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-original/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-original/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-original/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-original"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-original/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-original/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-original/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 6,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-original"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-original/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-original/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-separate-multi-output-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-separate-multi-output-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 2,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-separate-multi-output-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-separate-multi-output-ir/outputs/enclosure_base"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-separate-multi-output-ir/outputs/enclosure_lid"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-box-workplane-signature-drift-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-box-workplane-signature-drift-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-box-workplane-signature-drift-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-box-workplane-signature-drift-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-irregular-fixed-hole-layout-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-irregular-fixed-hole-layout-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-irregular-fixed-hole-layout-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-irregular-fixed-hole-layout-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-raw-cadquery-escape-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-raw-cadquery-escape-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-raw-cadquery-escape-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-raw-cadquery-escape-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-revision-preserves-protected-values-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-revision-preserves-protected-values-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-revision-preserves-protected-values-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-revision-preserves-protected-values-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-semantic-slot-replaces-slot1d-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-semantic-slot-replaces-slot1d-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-semantic-slot-replaces-slot1d-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-semantic-slot-replaces-slot1d-ir/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-separate-multi-output-ir"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-separate-multi-output-ir/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 2,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-separate-multi-output-ir/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-separate-multi-output-ir/outputs/enclosure_base"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-separate-multi-output-ir/outputs/enclosure_lid"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 2,
+      "direct_file_count": 22,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/provider-ir-targeted-validation-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 12,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/provider-ir-targeted-validation-01/operation-captures"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 10,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/provider-ir-targeted-validation-01/t5-corrected-review"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 1,
+      "direct_file_count": 11,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-final-revision-microstudy-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 3,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-final-revision-microstudy-01/operation-captures"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 1,
+      "direct_file_count": 19,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-parameter-revision-validation-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 6,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-parameter-revision-validation-01/operation-captures"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 3,
+      "direct_directory_count": 5,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 1,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/gemini-integration-wave-01-project-04-wave-01-project-04-revision-001"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/gemini-integration-wave-01-project-04-wave-01-project-04-revision-001/input"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 1,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/gemini-integration-wave-01-project-05-wave-01-project-05-revision-001"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/gemini-integration-wave-01-project-05-wave-01-project-05-revision-001/input"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 5,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/.home"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/.home/.cache"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/.home/.cache/ezdxf"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 6,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery-replay-fixed"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery-replay-fixed/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery-replay-fixed/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery-replay-fixed/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-02-t5_raw_cadquery"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-02-t5_raw_cadquery/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-02-t5_raw_cadquery/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-02-t5_raw_cadquery/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 6,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/t5-corrected-review-provider-ir-validation-task-06"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/t5-corrected-review-provider-ir-validation-task-06/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/t5-corrected-review-provider-ir-validation-task-06/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 8,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/.home"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/.home/.cache"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/.home/.cache/ezdxf"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-01-provider"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-01-provider/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-01-provider/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-01-provider/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-02-provider"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-02-provider/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-02-provider/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-02-provider/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-03-provider"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-03-provider/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-03-provider/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-03-provider/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-authority"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-authority/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-authority/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-authority/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-left_hole"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-left_hole/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-left_hole/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-left_hole/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-right_hole_and_slot"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-right_hole_and_slot/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-right_hole_and_slot/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-right_hole_and_slot/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-slot"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-slot/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-slot/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-slot/outputs/mounting_bracket"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 4,
+      "direct_directory_count": 5,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/.home"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/.home/.cache"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/.home/.cache/ezdxf"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-01-job-04"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-01-job-04/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-01-job-04/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-01-job-04/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-02-job-02"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-02-job-02/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-02-job-02/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-02-job-02/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 8,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-03-job-01"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-03-job-01/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-03-job-01/outputs"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-03-job-01/outputs/body"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 5,
+      "direct_directory_count": 2,
+      "direct_file_count": 6,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03/__pycache__"
+    },
+    {
+      "collection": "representative-workflow-waves",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03/outputs"
     }
   ],
   "inventory": "studies",
@@ -28014,7 +29169,6 @@
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
-        "backend/app/services/gemini_integration/workflow.py",
         "backend/scripts/run_gemini_geometry_prompt_narrow_fix.py",
         "backend/scripts/run_gemini_provider_contract_integration.py",
         "backend/scripts/run_gemini_provider_contract_narrow_fix.py",
@@ -28117,7 +29271,6 @@
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
-        "backend/app/services/gemini_integration/workflow.py",
         "backend/scripts/run_gemini_geometry_prompt_narrow_fix.py",
         "backend/scripts/run_gemini_provider_contract_integration.py",
         "backend/scripts/run_gemini_provider_contract_narrow_fix.py",
@@ -28335,11 +29488,13 @@
         "backend/app/services/gemini_consistency/study.py",
         "backend/app/services/gemini_consistency/study_analyzer.py",
         "backend/app/services/gemini_consistency/study_reporting.py",
+        "backend/app/services/gemini_integration/cadquery_dialect_audit.py",
         "backend/app/services/gemini_integration/capture.py",
         "backend/app/services/gemini_integration/forensics.py",
         "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
         "backend/app/services/gemini_integration/narrow_fix.py",
         "backend/app/services/gemini_integration/reports.py",
+        "backend/app/services/gemini_integration/representative_waves.py",
         "backend/app/services/gemini_integration/targeted_validation.py",
         "backend/app/services/gemini_integration/transport.py",
         "backend/app/services/gemini_integration/workflow.py",
@@ -28352,7 +29507,12 @@
         "backend/scripts/run_live_geometry_model_comparison.py",
         "backend/scripts/run_live_multi_design_evaluation.py",
         "backend/scripts/run_live_requirement_driven_revision_sequence.py",
+        "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/scripts/run_t5_parameter_revision_validation.py",
         "backend/scripts/write_contract_complexity_reports.py",
+        "backend/tests/test_cadquery_dialect_audit.py",
         "backend/tests/test_contract_complexity_experiment.py",
         "backend/tests/test_debug_batch_frozen_replays.py",
         "backend/tests/test_design_plans.py",
@@ -28376,6 +29536,9 @@
         "backend/tests/test_live_geometry_model_comparison.py",
         "backend/tests/test_models.py",
         "backend/tests/test_ollama_holdout_anatomy.py",
+        "backend/tests/test_provider_ir_targeted_validation.py",
+        "backend/tests/test_representative_workflow_wave_cli.py",
+        "backend/tests/test_representative_workflow_waves.py",
         "backend/tests/test_structured_revision_planning.py",
         "docs/ARCHITECTURE.md",
         "docs/BOTTLE_HOLDER_FUNCTIONAL_LIVE_EVALUATION.md",
@@ -28453,7 +29616,8 @@
         "docs/mutantpowers/plans/2026-08-03-live-debug-correction-round-1.md",
         "docs/mutantpowers/plans/2026-08-03-provider-response-convergence.md",
         "docs/mutantpowers/plans/2026-08-04-gemini-provider-contract-foundation.md",
-        "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-final-repair.md"
+        "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-final-repair.md",
+        "docs/mutantpowers/plans/2026-08-05-provider-ir-targeted-validation.md"
       ],
       "reproducible": true,
       "secret_scan": "filename-only; values were not loaded into the audit report",
@@ -30680,15 +31844,861 @@
       "study_id": "setup-dry-run",
       "superseded_by": null,
       "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 362,
+      "final_decisions": [
+        {
+          "path": "reports/cadquery-dialect-audit-02/architecture-decision.json",
+          "values": {
+            "decision": "hybrid_geometry_ir_evaluation_required"
+          }
+        },
+        {
+          "path": "reports/hybrid-geometry-ir-evaluation-01/architecture-decision.json",
+          "values": {
+            "decision": "targeted_provider_ir_validation_required"
+          }
+        },
+        {
+          "path": "reports/live-rerun-decision.json",
+          "values": {
+            "provider_calls": 0,
+            "worker_calls": 0
+          }
+        },
+        {
+          "path": "reports/provider-ir-targeted-validation-01/provider-ir-decision.json",
+          "values": {
+            "decision": "raw_cadquery_t5_remains_preferred"
+          }
+        },
+        {
+          "path": "reports/provider-ir-targeted-validation-01/t5-corrected-review/worker-rerun-decision.json",
+          "values": {
+            "provider_calls": 0,
+            "worker_calls": 1
+          }
+        },
+        {
+          "path": "reports/t5-parameter-revision-validation-01/decision.json",
+          "values": {
+            "decision": "insufficient_evidence"
+          }
+        },
+        {
+          "path": "reports/wave-decision.json",
+          "values": {
+            "decision": "wave_requires_generalized_narrow_fix"
+          }
+        }
+      ],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 49,
+      "referenced_by": [
+        "backend/scripts/run_cadquery_dialect_audit.py",
+        "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
+        "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_representative_workflow_wave.py",
+        "backend/scripts/run_t5_corrected_review.py",
+        "backend/scripts/run_t5_final_revision_microstudy.py",
+        "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/tests/test_gemini_integration_workflow.py",
+        "backend/tests/test_provider_ir_targeted_validation.py",
+        "backend/tests/test_representative_workflow_waves.py",
+        "docs/REPRESENTATIVE_WORKFLOW_WAVES.md",
+        "docs/mutantpowers/plans/2026-08-05-provider-ir-targeted-validation.md"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "representative-workflow-wave-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 240,
+      "final_decisions": [
+        {
+          "path": "architecture-decision.json",
+          "values": {
+            "decision": "targeted_provider_ir_validation_required"
+          }
+        }
+      ],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 17,
+      "referenced_by": [
+        "backend/scripts/run_hybrid_geometry_ir_evaluation.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-geometry-ir-evaluation-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 7,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-original",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-box-workplane-signature-drift-original",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-original",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-irregular-fixed-hole-layout-original",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-raw-cadquery-escape-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-raw-cadquery-escape-original",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-raw-cadquery-escape-original",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-original",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-revision-preserves-protected-values-original",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 7,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-original",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-semantic-slot-replaces-slot1d-original",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 18,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-1785941908821108227-separate-multi-output-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-1785941908821108227-separate-multi-output-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-box-workplane-signature-drift-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-box-workplane-signature-drift-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-irregular-fixed-hole-layout-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-irregular-fixed-hole-layout-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-raw-cadquery-escape-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-raw-cadquery-escape-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-revision-preserves-protected-values-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-revision-preserves-protected-values-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 13,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-semantic-slot-replaces-slot1d-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-semantic-slot-replaces-slot1d-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 18,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/hybrid-geometry-ir-evaluation-01/worker-jobs/hybrid-ir-01-separate-multi-output-ir",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "hybrid-ir-01-separate-multi-output-ir",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 44,
+      "final_decisions": [
+        {
+          "path": "provider-ir-decision.json",
+          "values": {
+            "decision": "raw_cadquery_t5_remains_preferred"
+          }
+        },
+        {
+          "path": "t5-corrected-review/worker-rerun-decision.json",
+          "values": {
+            "provider_calls": 0,
+            "worker_calls": 1
+          }
+        }
+      ],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/provider-ir-targeted-validation-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 2,
+      "referenced_by": [
+        "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_t5_corrected_review.py",
+        "backend/tests/test_provider_ir_targeted_validation.py",
+        "docs/mutantpowers/plans/2026-08-05-provider-ir-targeted-validation.md"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "provider-ir-targeted-validation-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 14,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-final-revision-microstudy-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [
+        "backend/scripts/run_t5_final_revision_microstudy.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 25,
+      "final_decisions": [
+        {
+          "path": "decision.json",
+          "values": {
+            "decision": "insufficient_evidence"
+          }
+        }
+      ],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/reports/t5-parameter-revision-validation-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 2,
+      "referenced_by": [
+        "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/tests/test_t5_parameter_revision_validation.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-parameter-revision-validation-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/gemini-integration-wave-01-project-04-wave-01-project-04-revision-001",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 0,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "gemini-integration-wave-01-project-04-wave-01-project-04-revision-001",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/gemini-integration-wave-01-project-05-wave-01-project-05-revision-001",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 0,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "gemini-integration-wave-01-project-05-wave-01-project-05-revision-001",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 4,
+      "referenced_by": [
+        "backend/scripts/run_provider_ir_targeted_validation.py",
+        "backend/scripts/run_t5_corrected_review.py",
+        "backend/tests/test_provider_ir_targeted_validation.py",
+        "docs/mutantpowers/plans/2026-08-05-provider-ir-targeted-validation.md"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "provider-ir-targeted-validation-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery-replay-fixed",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "provider-ir-targeted-validation-01-provider-ir-validation-task-01-t5_raw_cadquery-replay-fixed",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/provider-ir-targeted-validation-01/provider-ir-targeted-validation-01-provider-ir-validation-task-02-t5_raw_cadquery",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "provider-ir-targeted-validation-01-provider-ir-validation-task-02-t5_raw_cadquery",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 7,
+      "referenced_by": [
+        "backend/scripts/run_t5_final_revision_microstudy.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-01-provider",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-01-provider",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-02-provider",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-02-provider",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-03-provider",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-03-provider",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-authority",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-authority",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-left_hole",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-control-left_hole",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-right_hole_and_slot",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-control-right_hole_and_slot",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-final-revision-microstudy-01/t5-final-revision-microstudy-01-control-slot",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-final-revision-microstudy-01-control-slot",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 4,
+      "referenced_by": [
+        "backend/scripts/run_t5_parameter_revision_validation.py",
+        "backend/tests/test_t5_parameter_revision_validation.py"
+      ],
+      "reproducible": true,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-parameter-revision-validation-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-01-job-04",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-01-job-04",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-02-job-02",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-02-job-02",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-03-job-01",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-03-job-01",
+      "superseded_by": null,
+      "unique_evidence": true
+    },
+    {
+      "chronological_position": null,
+      "collection": "representative-workflow-waves",
+      "commit_association": [],
+      "derived_report_count": 0,
+      "final_decisions": [],
+      "path": "data/debug-sessions/representative-workflow-waves/representative-workflow-wave-01/worker-jobs/t5-parameter-revision-validation-01/t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03",
+      "purpose": "unclassified debug-session collection",
+      "raw_capture_count": 1,
+      "referenced_by": [],
+      "reproducible": false,
+      "secret_scan": "filename-only; values were not loaded into the audit report",
+      "sensitive_filename_signals": [],
+      "status": "historical_immutable",
+      "study_id": "t5-parameter-revision-validation-01-t5-parameter-revision-validation-01-task-06-job-03",
+      "superseded_by": null,
+      "unique_evidence": true
     }
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
-    "collection_count": 13,
-    "derived_report_count": 491,
-    "directory_count": 3812,
-    "raw_capture_count": 1361,
-    "record_count": 141,
+    "collection_count": 14,
+    "derived_report_count": 1395,
+    "directory_count": 3977,
+    "raw_capture_count": 1478,
+    "record_count": 182,
     "records_with_sensitive_filename_signals": 0
   }
 }

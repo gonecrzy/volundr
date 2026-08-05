@@ -1123,6 +1123,12 @@
       "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
     },
     {
+      "action": "review",
+      "classification": "unknown_requires_review",
+      "path": "docs/REPRESENTATIVE_WORKFLOW_WAVES.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
       "action": "retain",
       "classification": "historical_immutable",
       "path": "docs/REQUIREMENT_DRIVEN_REVISION_LIVE_EVALUATION.md",
@@ -1349,8 +1355,16 @@
       "classification": "historical_immutable",
       "path": "docs/mutantpowers/plans/2026-08-05-gemini-provider-contract-integration.md",
       "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
+    },
+    {
+      "action": "retain",
+      "classification": "historical_immutable",
+      "path": "docs/mutantpowers/plans/2026-08-05-provider-ir-targeted-validation.md",
+      "reason": "Current documents are linked from the new entry point; historical documents remain discoverable and non-authoritative."
     }
   ],
   "schema_version": "volundr-repository-audit-v1",
-  "unresolved_review_items": []
+  "unresolved_review_items": [
+    "docs/REPRESENTATIVE_WORKFLOW_WAVES.md"
+  ]
 }

@@ -99,6 +99,7 @@ def _make_task(
     authority: dict[str, Any] | None = None,
     revision_delta: dict[str, Any] | None = None,
     output_id: str = "body",
+    study_id: str = STUDY_ID,
 ) -> ProviderStudyTask:
     result_symbol = "body"
     facts = copy.deepcopy(facts)
@@ -154,7 +155,7 @@ def _make_task(
     if authority is not None:
         brief["revision_authority"] = copy.deepcopy(authority)
     request = ModelGenerationRequest(
-        project_name=f"{STUDY_ID}-{number:02d}",
+        project_name=f"{study_id}-{number:02d}",
         original_intent=intent,
         user_instruction=intent,
         design_specification={"requirements": facts},
@@ -178,7 +179,7 @@ def _make_task(
         },
     )
     return ProviderStudyTask(
-        task_id=f"{STUDY_ID}-task-{number:02d}",
+        task_id=f"{study_id}-task-{number:02d}",
         task_number=number,
         title=title,
         authoritative_request=intent,

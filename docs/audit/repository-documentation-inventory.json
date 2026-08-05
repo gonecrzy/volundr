@@ -1,7 +1,7 @@
 {
   "embedded_documentation_sources": [
     {
-      "line": 1118,
+      "line": 1367,
       "path": "backend/app/services/gemini_integration/geometry_prompt_narrow_fix.py",
       "text": "\"\"\"Explicit integration-only runner for the frozen T5 geometry study.\"\"\""
     },
@@ -34,6 +34,11 @@
       "line": 41,
       "path": "backend/scripts/run_gemini_provider_contract_targeted_validation.py",
       "text": "parser.error(f\"targeted validation requires the preserved study ID {STUDY_ID!r}\")"
+    },
+    {
+      "line": 291,
+      "path": "backend/scripts/run_provider_ir_targeted_validation.py",
+      "text": "reason = \"one narrow provider contract defect remains after otherwise reliable emission\""
     },
     {
       "line": 174,
@@ -139,6 +144,7 @@
       "path": "docs/ARCHITECTURE.md",
       "referenced_by": [
         "backend/app/services/documentation_audit.py",
+        "backend/app/services/gemini_integration/cadquery_dialect_audit.py",
         "docs/CURRENT_REPOSITORY_AUDIT.md",
         "docs/DOCUMENTATION_MAP.md",
         "docs/GENERATION_RELIABILITY_PLAN.md",
@@ -2739,6 +2745,17 @@
       "title": "Repeated Feature Layouts"
     },
     {
+      "bytes": 5474,
+      "classification": "unknown_requires_review",
+      "immutable_evidence": false,
+      "line_count": 98,
+      "path": "docs/REPRESENTATIVE_WORKFLOW_WAVES.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "7a96020b67382015e33f4963598dfd7c464cc0675e539201c6f6f0d84732a635",
+      "title": "Representative workflow waves"
+    },
+    {
       "bytes": 8635,
       "classification": "historical_immutable",
       "immutable_evidence": true,
@@ -3256,6 +3273,17 @@
       "references": [],
       "sha256": "fd3f3276d919f0113ef4b55fc71f03ecaf44980af3c0ba2427774fbc0442f9db",
       "title": "Gemini Provider Contract Integration Plan"
+    },
+    {
+      "bytes": 5774,
+      "classification": "historical_immutable",
+      "immutable_evidence": true,
+      "line_count": 67,
+      "path": "docs/mutantpowers/plans/2026-08-05-provider-ir-targeted-validation.md",
+      "referenced_by": [],
+      "references": [],
+      "sha256": "1d111f66c654c15225e12dc81375b260c51527ada9bc26fe27924a5532e38929",
+      "title": "Provider IR Targeted Validation Plan"
     }
   ],
   "schema_version": "volundr-repository-audit-v1",
@@ -3263,9 +3291,10 @@
     "by_classification": {
       "current_authoritative": 4,
       "current_supporting": 51,
-      "historical_immutable": 148,
-      "historical_superseded": 21
+      "historical_immutable": 149,
+      "historical_superseded": 21,
+      "unknown_requires_review": 1
     },
-    "document_count": 224
+    "document_count": 226
   }
 }

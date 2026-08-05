@@ -227,6 +227,22 @@
     {
       "classification": "retain_current",
       "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_dialect_audit.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_dialect_audit.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_cadquery_dialect_diagnostics.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_cadquery_dialect_diagnostics.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
       "path": "backend/tests/test_cadquery_execution_timing.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
@@ -455,6 +471,14 @@
       "reason": "current production behavior, safety invariant, or tooling",
       "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
       "replacement_test_path": "backend/tests/test_environment_configuration.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_experimental_geometry_ir.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_experimental_geometry_ir.py"
     },
     {
       "classification": "retain_current",
@@ -1067,10 +1091,34 @@
     {
       "classification": "retain_current",
       "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_provider_ir_targeted_validation.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_provider_ir_targeted_validation.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
       "path": "backend/tests/test_provider_response_convergence.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
       "replacement_test_path": "backend/tests/test_provider_response_convergence.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_representative_workflow_wave_cli.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_representative_workflow_wave_cli.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_representative_workflow_waves.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_representative_workflow_waves.py"
     },
     {
       "classification": "retain_current",
@@ -1127,6 +1175,22 @@
       "reason": "current production behavior, safety invariant, or tooling",
       "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
       "replacement_test_path": "backend/tests/test_structured_revision_planning.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_t5_final_revision_microstudy.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_t5_final_revision_microstudy.py"
+    },
+    {
+      "classification": "retain_current",
+      "old_invariant": "See the test source and historical contract terms recorded in the inventory.",
+      "path": "backend/tests/test_t5_parameter_revision_validation.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "replacement_invariant": "Current production behavior, integration boundary, safety invariant, regression, or historical evidence integrity.",
+      "replacement_test_path": "backend/tests/test_t5_parameter_revision_validation.py"
     },
     {
       "classification": "retain_current",
