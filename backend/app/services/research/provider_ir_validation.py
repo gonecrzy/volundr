@@ -497,12 +497,20 @@ def classify_ir_response(raw: str, task: ProviderStudyTask) -> dict[str, Any]:
     return evidence
 
 
-def _t5_semantic_check(raw: str, task: ProviderStudyTask) -> list[str]:
+def _t5_semantic_check(
+    raw: str,
+    task: ProviderStudyTask,
+    recognized_operations: set[str] | None = None,
+) -> list[str]:
     text = raw.casefold()
+    recognized_operations = recognized_operations or set()
     parameter_values = {
         str(item.get("id")): item.get("value")
         for item in (task.request.design_plan or {}).get("parameters", []) or []
         if isinstance(item, dict) and item.get("id") is not None
+    }
+    token_operation_aliases = {
+        "advanced": {"advanced_transition"},
     }
 
     def contains_authoritative_value(value: int | float) -> bool:
@@ -514,7 +522,14 @@ def _t5_semantic_check(raw: str, task: ProviderStudyTask) -> list[str]:
         )
 
     failures = ["authoritative_value_not_preserved" for value in task.required_ir_values if not contains_authoritative_value(value)]
-    failures.extend("required_semantic_operation_missing" for token in task.required_t5_tokens if token.casefold() not in text)
+    failures.extend(
+        "required_semantic_operation_missing"
+        for token in task.required_t5_tokens
+        if token.casefold() not in text
+        and token.casefold() not in recognized_operations
+        and not (token_operation_aliases.get(token.casefold(), set()) & recognized_operations)
+        and token.casefold() != "raw_cadquery"
+    )
     for value in task.protected_values.values():
         if not contains_authoritative_value(value):
             failures.append("protected_revision_value_missing")
@@ -557,15 +572,28 @@ def classify_t5_response(raw: str, task: ProviderStudyTask) -> dict[str, Any]:
     failures = list(validation.get("failure_classes") or [])
     if not validation.get("passed"):
         failures.append("t5_contract_validation_failure")
-    semantic_failures = _t5_semantic_check(raw, task)
+    recognized_operations = {
+        str(item.get("operation"))
+        for slot in (validation.get("slots") or [])
+        for item in (slot.get("semantic_operation_recognition") or [])
+        if isinstance(item, dict) and item.get("operation")
+    }
+    semantic_failures = _t5_semantic_check(raw, task, recognized_operations)
     failures.extend(semantic_failures)
     evidence["failure_classes"] = sorted(set(failures))
     evidence["semantic_obligations"] = not semantic_failures
     evidence["static_validation"] = bool(validation.get("passed"))
     evidence["first_incorrect_boundary"] = None if not failures else ("semantic_obligations" if semantic_failures and validation.get("passed") else "contract_parse")
     evidence["payload"] = payload
-    if not failures:
+    evidence["semantic_operation_recognition"] = sorted(recognized_operations)
+    # Source assembly is an independent boundary.  A semantically incomplete
+    # or runtime-incompatible but structurally parseable provider response must
+    # still be assembled so the review can distinguish those failures.
+    try:
         evidence["assembled_source"] = assemble_t5_source(task, payload)
+    except (KeyError, TypeError, ValueError):
+        pass
+    else:
         evidence["source_hash"] = _hash(evidence["assembled_source"])
     return evidence
 

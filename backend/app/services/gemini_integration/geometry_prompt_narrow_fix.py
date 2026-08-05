@@ -72,6 +72,7 @@ FAILURE_CLASSES = {
     "invalid_python_statement",
     "invalid_cadquery_method",
     "invalid_cadquery_argument",
+    "invalid_parameter_access",
     "missing_required_operation",
     "wrong_boolean_operation",
     "missing_required_slot",
@@ -180,6 +181,8 @@ class GeometrySlotEvidence:
     protected_value_changes: tuple[Any, ...] = ()
     statements: tuple[dict[str, Any], ...] = ()
     failure_classes: tuple[str, ...] = ()
+    semantic_operation_recognition: tuple[dict[str, Any], ...] = ()
+    raw_cadquery_requirement_exempted: bool = False
     raw_provider_slot: Any = None
 
     @classmethod
@@ -197,6 +200,8 @@ class GeometrySlotEvidence:
             protected_value_changes=tuple(deepcopy(value.get("protected_value_changes", []) or [])),
             statements=tuple(deepcopy(value.get("statements", []) or [])),
             failure_classes=tuple(str(item) for item in value.get("failure_classes", []) or []),
+            semantic_operation_recognition=tuple(deepcopy(value.get("semantic_operation_recognition", []) or [])),
+            raw_cadquery_requirement_exempted=bool(value.get("raw_cadquery_requirement_exempted")),
             raw_provider_slot=deepcopy(value.get("raw_provider_slot")),
         )
 
@@ -214,6 +219,8 @@ class GeometrySlotEvidence:
             "protected_value_changes": list(self.protected_value_changes),
             "statements": list(self.statements),
             "failure_classes": list(self.failure_classes),
+            "semantic_operation_recognition": list(self.semantic_operation_recognition),
+            "raw_cadquery_requirement_exempted": self.raw_cadquery_requirement_exempted,
             "raw_provider_slot": self.raw_provider_slot,
         }
 
@@ -519,6 +526,16 @@ def _subscript_parameter_stores(tree: ast.AST) -> list[str]:
     return values
 
 
+def _parameter_attribute_ids(tree: ast.AST) -> list[str]:
+    values: list[str] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Attribute) or not isinstance(node.value, ast.Name) or node.value.id != "params":
+            continue
+        if node.attr not in {"get", "items", "keys", "values"}:
+            values.append(node.attr)
+    return values
+
+
 def _calls(tree: ast.AST) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for node in ast.walk(tree):
@@ -531,6 +548,195 @@ def _calls(tree: ast.AST) -> list[dict[str, Any]]:
         else:
             records.append({"kind": "dynamic", "method": None, "keywords": [item.arg for item in node.keywords], "position": _position(node)})
     return records
+
+
+def _call_chain_records(tree: ast.AST) -> list[dict[str, Any]]:
+    """Return maximal CadQuery call chains with their receiver roots.
+
+    Semantic operation recognition must inspect the chain, not just a set of
+    method names.  For example, ``slot2D(...).cutBlind(...)`` is a slot cut,
+    while ``slot2D(...)`` alone is only a profile.  AST nodes stay internal;
+    the returned records contain only JSON-safe structural facts.
+    """
+
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+    ]
+    nested_call_ids = {
+        id(node.func.value)
+        for node in calls
+        if isinstance(node.func.value, ast.Call)
+    }
+    records: list[dict[str, Any]] = []
+    for node in calls:
+        if id(node) in nested_call_ids:
+            continue
+        chain: list[dict[str, Any]] = []
+        current: ast.AST = node
+        while isinstance(current, ast.Call) and isinstance(current.func, ast.Attribute):
+            chain.append({
+                "method": current.func.attr,
+                "arg_nodes": list(current.args),
+                "keyword_names": [item.arg for item in current.keywords],
+                "keyword_nodes": [
+                    {"name": item.arg, "value_node": item.value}
+                    for item in current.keywords
+                    if item.arg is not None
+                ],
+            })
+            current = current.func.value
+        root_symbol = current.id if isinstance(current, ast.Name) else None
+        chain.reverse()
+        records.append({
+            "root_symbol": root_symbol,
+            "methods": [item["method"] for item in chain],
+            "calls": chain,
+        })
+    return records
+
+
+def _is_value_expression(node: ast.AST) -> bool:
+    """Accept numeric literals, local values, parameter references, and math."""
+
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, (int, float)) and not isinstance(node.value, bool)
+    if isinstance(node, ast.Name):
+        return True
+    if isinstance(node, (ast.Attribute, ast.Subscript)):
+        return True
+    if isinstance(node, ast.UnaryOp):
+        return _is_value_expression(node.operand)
+    if isinstance(node, ast.BinOp):
+        return _is_value_expression(node.left) and _is_value_expression(node.right)
+    return False
+
+
+def _receiver_kind(
+    root_symbol: str | None,
+    expectation: SlotExpectation,
+    geometry_symbols: set[str],
+) -> str:
+    if root_symbol == "cq":
+        return "cadquery_constructor"
+    if root_symbol in set(expectation.allowed_input_symbols) | geometry_symbols:
+        return "workplane_value"
+    return "unknown"
+
+
+def _recognize_semantic_operation(
+    operation: str,
+    chains: list[dict[str, Any]],
+    expectation: SlotExpectation,
+    geometry_symbols: set[str],
+    capabilities: CadQueryCapabilities,
+) -> list[dict[str, Any]]:
+    """Recognize narrow documented semantic equivalents from parsed chains."""
+
+    recognized: list[dict[str, Any]] = []
+    for chain in chains:
+        receiver = _receiver_kind(chain.get("root_symbol"), expectation, geometry_symbols)
+        if receiver == "unknown":
+            continue
+        methods = list(chain.get("methods") or [])
+        calls = list(chain.get("calls") or [])
+        supported_names = capabilities.method_names | capabilities.module_names
+        if any(method not in supported_names for method in methods):
+            continue
+
+        if operation == "slot" and "slot2D" in methods and "cutBlind" in methods:
+            slot_index = methods.index("slot2D")
+            cut_index = methods.index("cutBlind")
+            slot_call = calls[slot_index]
+            cut_call = calls[cut_index]
+            slot_args = slot_call.get("arg_nodes") or []
+            cut_args = cut_call.get("arg_nodes") or []
+            if (
+                cut_index > slot_index
+                and len(slot_args) >= 2
+                and len(cut_args) >= 1
+                and all(_is_value_expression(item) for item in slot_args[:2])
+                and _is_value_expression(cut_args[0])
+            ):
+                recognized.append({
+                    "operation": "slot",
+                    "implementation": "slot2D+cutBlind",
+                    "receiver": chain.get("root_symbol"),
+                    "receiver_kind": receiver,
+                    "methods": methods,
+                    "boolean_intent": "subtractive",
+                })
+        elif operation == "counterbore" and "cboreHole" in methods:
+            call = calls[methods.index("cboreHole")]
+            args = call.get("arg_nodes") or []
+            keywords = set(call.get("keyword_names") or [])
+            keyword_values = {
+                str(item.get("name")): item.get("value_node")
+                for item in call.get("keyword_nodes", []) or []
+            }
+            if (
+                (len(args) >= 3 and all(_is_value_expression(item) for item in args[:3]))
+                or (
+                    {"diameter", "cboreDiameter", "cboreDepth"}.issubset(keywords)
+                    and all(_is_value_expression(keyword_values[name]) for name in ("diameter", "cboreDiameter", "cboreDepth"))
+                )
+            ):
+                recognized.append({
+                    "operation": "counterbore",
+                    "implementation": "cboreHole",
+                    "receiver": chain.get("root_symbol"),
+                    "receiver_kind": receiver,
+                    "methods": methods,
+                    "boolean_intent": "subtractive",
+                })
+        elif operation == "countersink" and "cskHole" in methods:
+            call = calls[methods.index("cskHole")]
+            args = call.get("arg_nodes") or []
+            keywords = set(call.get("keyword_names") or [])
+            keyword_values = {
+                str(item.get("name")): item.get("value_node")
+                for item in call.get("keyword_nodes", []) or []
+            }
+            if (
+                (len(args) >= 3 and all(_is_value_expression(item) for item in args[:3]))
+                or (
+                    {"diameter", "cskDiameter", "cskAngle"}.issubset(keywords)
+                    and all(_is_value_expression(keyword_values[name]) for name in ("diameter", "cskDiameter", "cskAngle"))
+                )
+            ):
+                recognized.append({
+                    "operation": "countersink",
+                    "implementation": "cskHole",
+                    "receiver": chain.get("root_symbol"),
+                    "receiver_kind": receiver,
+                    "methods": methods,
+                    "boolean_intent": "subtractive",
+                })
+        elif operation == "hole" and "hole" in methods:
+            call = calls[methods.index("hole")]
+            args = call.get("arg_nodes") or []
+            if args and _is_value_expression(args[0]):
+                recognized.append({
+                    "operation": "hole",
+                    "implementation": "hole",
+                    "receiver": chain.get("root_symbol"),
+                    "receiver_kind": receiver,
+                    "methods": methods,
+                    "boolean_intent": "subtractive",
+                })
+        elif operation == "advanced_transition" and {"rect", "circle", "loft"}.issubset(methods):
+            loft_index = methods.index("loft")
+            if methods.index("rect") < loft_index and methods.index("circle") < loft_index:
+                recognized.append({
+                    "operation": "advanced_transition",
+                    "implementation": "rect+circle+loft",
+                    "receiver": chain.get("root_symbol"),
+                    "receiver_kind": receiver,
+                    "methods": methods,
+                    "boolean_intent": "additive_or_explicit_union",
+                })
+    return recognized
 
 
 def _comprehension_bound_names(tree: ast.AST) -> set[str]:
@@ -559,6 +765,11 @@ def _operation_aliases(operation: str) -> set[str]:
         # Shell/hollow responsibility is semantic.  Subtractive inner-volume
         # construction is a valid alternative to the shell() method.
         "shell": {"shell", "cut"},
+        # Compound hole and slot recognition is argument- and chain-sensitive;
+        # these labels must not be accepted by a name-only substring match.
+        "slot": {"slot"},
+        "counterbore": {"counterbore"},
+        "countersink": {"countersink"},
     }.get(operation, {operation})
 
 
@@ -668,6 +879,8 @@ class T5GeometryValidator:
         referenced: list[str] = []
         targets: list[str] = []
         methods: list[dict[str, Any]] = []
+        chains: list[dict[str, Any]] = []
+        geometry_symbols: set[str] = set()
         statement_records: list[dict[str, Any]] = []
         external = set(expectation.allowed_input_symbols) | set(SAFE_CALL_NAMES)
         protected_names = set(expectation.protected_values)
@@ -693,9 +906,12 @@ class T5GeometryValidator:
             record["assignment_targets"] = list(local_targets)
             calls = _calls(tree)
             record["calls"] = calls
+            chains.extend(_call_chain_records(tree))
             referenced.extend(local_loads)
             targets.extend(local_targets)
             methods.extend(calls)
+            if any(_is_geometry_call(item) for item in calls):
+                geometry_symbols.update(local_targets)
             for name in local_loads:
                 if name in comprehension_bound:
                     continue
@@ -712,6 +928,11 @@ class T5GeometryValidator:
                     record["failure_classes"].append("undefined_input_symbol")
             for parameter_id in _subscript_parameter_stores(tree):
                 record["failure_classes"].append("protected_value_change")
+            for parameter_id in _parameter_attribute_ids(tree):
+                if parameter_id not in set(expectation.authorized_parameter_ids) | set(expectation.required_parameter_ids) | set(expectation.protected_values):
+                    record["failure_classes"].append("undefined_input_symbol")
+                else:
+                    record["failure_classes"].append("invalid_parameter_access")
             if any(name in {"params", "cq"} or (name in external and name not in {expectation.required_result_symbol}) for name in local_targets):
                 record["failure_classes"].append("protected_value_change")
             for name in local_targets:
@@ -729,13 +950,39 @@ class T5GeometryValidator:
         }
         used_methods = {str(item.get("method")) for item in methods}
         missing_operations: list[str] = []
-        for required_operation in required_ops:
+        semantic_operation_recognition: list[dict[str, Any]] = []
+        for required_operation in sorted(required_ops):
+            if required_operation == "raw_cadquery":
+                # T5 statements are already the bounded raw-CadQuery escape;
+                # requiring a literal label inside Python would be a fixture
+                # error, not a provider obligation.
+                continue
+            recognized = _recognize_semantic_operation(
+                required_operation,
+                chains,
+                expectation,
+                geometry_symbols,
+                self.capabilities,
+            )
+            semantic_operation_recognition.extend(recognized)
+            if recognized:
+                continue
             aliases = _operation_aliases(required_operation)
             if not used_methods.intersection(aliases):
                 failures.append("missing_required_operation")
                 missing_operations.append(str(required_operation))
                 if used_methods.intersection({"cut", "hole", "union", "intersect", "loft", "sweep", "revolve", "shell"}):
                     failures.append("wrong_boolean_operation")
+        if "raw_cadquery" in required_ops:
+            semantic_operation_recognition.extend(
+                _recognize_semantic_operation(
+                    "advanced_transition",
+                    chains,
+                    expectation,
+                    geometry_symbols,
+                    self.capabilities,
+                )
+            )
         if expectation.required_feature_ids and not any(_is_geometry_call(item) for item in methods):
             failures.append("responsibility_mismatch")
         if any(item.get("method") in {str(fid) for fid in expectation.required_feature_ids} for item in methods):
@@ -756,6 +1003,8 @@ class T5GeometryValidator:
             "referenced_symbols": sorted(set(referenced)),
             "assignment_targets": targets,
             "cadquery_methods_and_arguments": methods,
+            "semantic_operation_recognition": semantic_operation_recognition,
+            "raw_cadquery_requirement_exempted": "raw_cadquery" in required_ops,
             "missing_or_unauthorized_operations": {
                 "required": sorted(required_ops),
                 "observed": sorted(used_methods),

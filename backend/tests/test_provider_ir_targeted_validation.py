@@ -6,8 +6,10 @@ from pathlib import Path
 import pytest
 
 from app.services.gemini_integration.profile import GeminiFlashLiteContractV1
+from app.services.gemini_integration.geometry_prompt_narrow_fix import T5GeometryValidator
 from app.services.gemini_integration.transport import SecondaryGeminiClient, SharedIntegrationRateLimiter
 from scripts.run_provider_ir_targeted_validation import run_study
+from scripts.run_t5_corrected_review import REVIEW_REPORT_NAMES, run_review
 from app.services.research.geometry_ir_experimental import IR_SCHEMA_ID, GeometryIRValidationError
 from app.services.research.provider_ir_validation import (
     MAX_ATTEMPTS,
@@ -138,6 +140,173 @@ def test_t5_semantics_accept_authorized_parameter_references_as_exact_values() -
     assert "id='fact_0'" in source
 
 
+def test_t5_recognizes_slot2d_cutblind_as_a_semantic_slot() -> None:
+    task = build_frozen_task_corpus()[2]
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "length = params['fact_0']",
+                "width = params['fact_1']",
+                "height = params['fact_2']",
+                "body = cq.Workplane('XY').box(length, width, height)",
+                "body = body.faces('>Z').workplane().center(0, 8).slot2D(20, 6, 0).cutBlind(-10)",
+            ],
+        }],
+    })
+
+    evidence = classify_t5_response(raw, task)
+
+    assert evidence["contract_valid"] is True
+    assert evidence["semantic_obligations"] is True
+    assert evidence["t5_validation"]["passed"] is True
+    assert "missing_required_operation" not in evidence["failure_classes"]
+
+
+def test_t5_recognizes_cbore_hole_as_a_semantic_counterbore() -> None:
+    task = build_frozen_task_corpus()[3]
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "length = params['fact_0']",
+                "width = params['fact_1']",
+                "height = params['fact_2']",
+                "hole_dia = 5",
+                "cbore_dia = 10",
+                "cbore_depth = 3",
+                "body = cq.Workplane('XY').box(length, width, height).faces('>Z').workplane().cboreHole(hole_dia, cbore_dia, cbore_depth)",
+            ],
+        }],
+    })
+
+    evidence = classify_t5_response(raw, task)
+
+    assert evidence["contract_valid"] is True
+    assert evidence["semantic_obligations"] is True
+    assert evidence["t5_validation"]["passed"] is True
+    assert "missing_required_operation" not in evidence["failure_classes"]
+
+
+def test_t5_rejects_attribute_parameter_access_that_worker_runtime_cannot_resolve() -> None:
+    task = build_frozen_task_corpus()[3]
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "length = params.fact_0",
+                "width = params.fact_1",
+                "height = params.fact_2",
+                "body = cq.Workplane('XY').box(length, width, height).faces('>Z').workplane().cboreHole(5, 10, 3)",
+            ],
+        }],
+    })
+
+    evidence = classify_t5_response(raw, task)
+
+    assert evidence["contract_valid"] is False
+    assert "invalid_parameter_access" in evidence["failure_classes"]
+    assert evidence["semantic_operation_recognition"] == ["counterbore"]
+
+
+def test_t5_recognizes_csk_hole_as_a_semantic_countersink() -> None:
+    task = build_frozen_task_corpus()[3]
+    task.request.design_plan["features"][0]["operation"] = "countersink"
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "body = cq.Workplane('XY').box(70, 50, 8).faces('>Z').workplane().cskHole(5, 10, 82, 3)",
+            ],
+        }],
+    })
+
+    evidence = T5GeometryValidator().validate(raw, task.request)
+
+    assert evidence["passed"] is True
+    assert evidence["slots"][0]["semantic_operation_recognition"][0]["implementation"] == "cskHole"
+
+
+def test_t5_does_not_accept_slot2d_without_a_subtractive_cut() -> None:
+    task = build_frozen_task_corpus()[2]
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "body = cq.Workplane('XY').box(60, 40, 20)",
+                "body = body.faces('>Z').workplane().slot2D(20, 6, 0)",
+            ],
+        }],
+    })
+
+    evidence = classify_t5_response(raw, task)
+
+    assert evidence["contract_valid"] is False
+    assert "missing_required_operation" in evidence["failure_classes"]
+
+
+def test_t5_revision_keeps_semantic_failures_after_slot_alias_recognition() -> None:
+    task = build_frozen_task_corpus()[4]
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "body = body.faces('>Z').workplane().pushPoints([(-25, 0), (25, 0)]).hole(6.0)",
+                "body = body.faces('>Z').workplane().center(0, 0).slot2D(18.0, 5.0, 0).cutBlind(-10.0)",
+            ],
+        }],
+    })
+
+    evidence = classify_t5_response(raw, task)
+
+    assert evidence["contract_valid"] is True
+    assert evidence["t5_validation"]["passed"] is True
+    assert evidence["semantic_obligations"] is False
+    assert evidence["assembled_source"]
+    assert "protected_revision_value_missing" in evidence["failure_classes"]
+    assert "authoritative_value_not_preserved" in evidence["failure_classes"]
+    assert "missing_required_operation" not in evidence["failure_classes"]
+
+
+def test_t5_does_not_require_raw_cadquery_literal_inside_raw_statements() -> None:
+    task = build_frozen_task_corpus()[5]
+    raw = json.dumps({
+        "schema_version": "volundr-geometry-slots-v1",
+        "slots": [{
+            "slot_id": 0,
+            "result_symbol": "body",
+            "statements": [
+                "l = params['fact_0']",
+                "w = params['fact_1']",
+                "h = params['fact_2']",
+                "base_box = cq.Workplane('XY').box(l, w, h)",
+                "loft_box = cq.Workplane('XY').workplane(offset=h - 0.5).rect(l, w).workplane(offset=10.0).circle(w / 3.0).loft(combine=True)",
+                "body = base_box.union(loft_box)",
+            ],
+        }],
+    })
+
+    evidence = classify_t5_response(raw, task)
+
+    assert evidence["contract_valid"] is True
+    assert evidence["semantic_obligations"] is True
+    assert evidence["t5_validation"]["passed"] is True
+    assert "missing_required_operation" not in evidence["failure_classes"]
+    assert "required_semantic_operation_missing" not in evidence["failure_classes"]
+
+
 def test_unknown_ir_operation_and_cadquery_method_names_are_rejected() -> None:
     task = build_frozen_task_corpus()[0]
     unknown = json.loads(json.dumps(build_known_good_ir(task)))
@@ -255,6 +424,39 @@ async def test_offline_replay_compiles_synthetic_fixtures_without_provider_or_wo
     generated_names = {path.name for path in (tmp_path / "reports").glob("*.json")}
     assert set(report_names()).issubset(generated_names)
     assert json.loads((tmp_path / "reports" / "wave-02-gate.json").read_text())["authorized"] is False
+
+
+def test_t5_corrected_review_replays_all_preserved_responses_without_calls(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    study_root = Path(
+        "/root/volundr/data/debug-sessions/representative-workflow-waves/"
+        "representative-workflow-wave-01/reports/provider-ir-targeted-validation-01"
+    )
+
+    async def fail_provider(*args, **kwargs):
+        raise AssertionError("corrected review must not call the provider")
+
+    monkeypatch.setattr(SecondaryGeminiClient, "generate", fail_provider)
+
+    result = run_review(
+        report_root=study_root,
+        review_root=tmp_path / "t5-corrected-review",
+        execute_worker=False,
+        worker_root=tmp_path / "workers",
+    )
+
+    assert result["provider_calls"] == 0
+    assert result["worker_calls"] == 0
+    assert len(result["tasks"]) == 6
+    assert set(REVIEW_REPORT_NAMES) == {
+        path.name for path in (tmp_path / "t5-corrected-review").glob("*.json")
+    }
+    assert result["decision"]["decision"] in {
+        "wave_02_ready_under_t5",
+        "targeted_t5_provider_validation_required",
+        "t5_requires_narrow_evaluator_fix",
+        "t5_provider_contract_requires_revision",
+        "insufficient_evidence",
+    }
 
 
 @pytest.mark.asyncio
