@@ -25,6 +25,16 @@ derived for print preview and printing. The live Gemini benchmark gate, local
 verification, Docker verification, and remaining product-quality limitations are
 recorded in `docs/CADQUERY_TRANSITION_EVALUATION.md`.
 
+The current Gemini integration foundation is research-only and ready for the
+next representative complete-workflow phase. It is frozen to the explicit
+`gemini_flash_lite_contract_v1` profile, uses `output_id` as the canonical
+printable-output identity, and does not change production routing or deployment.
+Start with [`docs/CURRENT_TRAJECTORY.md`](docs/CURRENT_TRAJECTORY.md), the
+observable contracts in [`docs/PROVIDER_CONTRACT.md`](docs/PROVIDER_CONTRACT.md),
+and the offline loop in
+[`docs/INTEGRATION_TEST_LOOP.md`](docs/INTEGRATION_TEST_LOOP.md). Historical
+provider studies are indexed in [`docs/STUDY_INDEX.md`](docs/STUDY_INDEX.md).
+
 The authoritative direction is defined in:
 
 - `docs/CADQUERY_BACKEND.md`
@@ -84,10 +94,12 @@ diagnostic repair. See `docs/PROVIDER_INTEROPERABILITY_CONTRACT.md`,
 
 ## Documentation
 
-Start with `docs/DOCUMENTATION_MAP.md` and read only the task-scoped normative
-documents listed there. Use current evaluation reports for evidence and treat
-historical or superseded documents as background, not as implementation
-authority.
+Start with [`docs/CURRENT_TRAJECTORY.md`](docs/CURRENT_TRAJECTORY.md) for the
+current provider/integration direction, then use
+[`docs/DOCUMENTATION_MAP.md`](docs/DOCUMENTATION_MAP.md) for task-scoped
+product contracts. Use evaluation reports for evidence and treat historical or
+superseded documents as background, not as implementation authority. The
+machine-readable repository audit is under `docs/audit/`.
 
 
 ## V1 Containers
@@ -267,6 +279,20 @@ records provider timing, generation evidence, workflow traces, and a
 secret-redacted diagnostic bundle. The worker and browser never receive the
 API key, and the command fails if the key is found in generated evidence.
 Live smoke tests consume provider quota and are not run in CI.
+
+### Integration-only provider profile
+
+The repository audit and captured-evidence replay are provider-free:
+
+```bash
+PYTHONPATH=backend backend/.venv/bin/python backend/scripts/audit_repository.py
+```
+
+The integration runner is not part of normal production routing. It requires
+the exact `gemini_flash_lite_contract_v1` profile, an explicit study ID, and
+the secondary-only `GEMINI_API_KEY_2` policy when live calls are separately
+authorized. Run `--replay`, `--counterfactual`, or `--dry-run` first; do not
+use a historical study runner as the current integration command.
 
 ## Manual Source API
 
