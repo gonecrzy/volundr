@@ -47,6 +47,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--replay", action="store_true", help="replay captured provider responses offline")
     parser.add_argument("--counterfactual", action="store_true", help="run one-variable adapter counterfactuals offline")
     parser.add_argument("--finalize", action="store_true", help="record corrections, decision, and next-wave recommendation")
+    parser.add_argument("--next-wave-template", action="store_true", help="materialize the recorded fresh next-wave manifest template")
+    parser.add_argument("--output", type=Path, help="output path for --next-wave-template")
     parser.add_argument("--resume", action="store_true", help="resume an interrupted baseline idempotently")
     return parser
 
@@ -326,16 +328,50 @@ def _finalize(manifest, root: Path) -> int:
     return 0
 
 
+def _next_wave_template(manifest, root: Path, output: Path) -> int:
+    recommendation = read_wave_report(root, "next-wave-recommendation.json", {})
+    projects = recommendation.get("projects") or []
+    if len(projects) != 5:
+        raise RuntimeError("next-wave template requires a finalized five-project recommendation")
+    payload = {
+        "schema_version": "volundr-representative-wave-v1",
+        "wave_id": str(recommendation.get("wave_id") or "wave-02"),
+        "provider_profile": manifest.provider_profile,
+        "execution_policy": manifest.execution_policy,
+        "diagnostic_policy": manifest.diagnostic_policy,
+        "call_caps": manifest.call_caps,
+        "stopping_rules": manifest.stopping_rules,
+        "projects": [
+            {
+                "project_id": item["project_id"],
+                "title": item["title"],
+                "user_request": item["request"],
+                "frozen_facts": {},
+                "expected_output_count": 1,
+                "expected_solid_counts": {},
+                "semantic_obligations": [item.get("gap", "fresh coverage")],
+            }
+            for item in projects
+        ],
+    }
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    selected = sum(bool(value) for value in (args.prepare, args.baseline, args.analyze, args.replay, args.counterfactual, args.finalize))
+    selected = sum(bool(value) for value in (args.prepare, args.baseline, args.analyze, args.replay, args.counterfactual, args.finalize, args.next_wave_template))
     if selected != 1:
         parser.error("choose exactly one wave operation")
     if args.baseline and not args.live:
         parser.error("baseline execution requires --live; use --prepare for provider-free preregistration")
     if args.resume and not args.baseline:
         parser.error("--resume is only valid with --baseline")
+    if args.next_wave_template and not args.output:
+        parser.error("--next-wave-template requires --output")
     try:
         require_integration_profile(args.profile)
     except ValueError as exc:
@@ -356,6 +392,8 @@ def main(argv: list[str] | None = None) -> int:
         return _analyze(manifest, root)
     if args.finalize:
         return _finalize(manifest, root)
+    if args.next_wave_template:
+        return _next_wave_template(manifest, root, _resolve(args.output, repository_root))
     return _offline_replay(manifest, root, counterfactual=args.counterfactual)
 
 

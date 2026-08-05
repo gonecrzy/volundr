@@ -117,3 +117,16 @@ def test_finalize_records_wave_decision_and_fresh_next_wave_recommendation(tmp_p
     assert decision["decision"] == "wave_requires_generalized_narrow_fix"
     assert len(recommendation["projects"]) == 5
     assert json.loads((reports / "corrections-applied.json").read_text())[0]["boundary"] == "plan_adapter"
+
+    template_path = tmp_path / "wave-02-manifest.json"
+    assert wave_cli.main([
+        "--manifest", str(manifest_path),
+        "--root", str(root),
+        "--next-wave-template",
+        "--output", str(template_path),
+    ]) == 0
+    template = json.loads(template_path.read_text())
+    assert template["wave_id"] == "wave-02"
+    assert [project["project_id"] for project in template["projects"]] == [
+        f"wave-02-project-{index:02d}" for index in range(1, 6)
+    ]

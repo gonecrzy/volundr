@@ -1,0 +1,319 @@
+{
+  "schema_version": "volundr-representative-wave-v1",
+  "wave_id": "wave-01",
+  "provider_profile": "gemini_flash_lite_contract_v1",
+  "execution_policy": {
+    "baseline_before_corrections": true,
+    "run_all_projects_before_product_corrections": true,
+    "production_routing_changed": false,
+    "deployed": false,
+    "credential_environment_variable": "GEMINI_API_KEY_2",
+    "offline_replay_before_new_live_calls": true
+  },
+  "diagnostic_policy": {
+    "preserve_raw_and_normalized_content": true,
+    "record_multiple_issues_per_project": true,
+    "continue_forensics_after_unsafe_blocker": true,
+    "synthetic_counterfactuals_provider_success_eligible": false,
+    "root_cause_requires_first_incorrect_boundary": true
+  },
+  "call_caps": {
+    "provider_logical_operations": 40,
+    "provider_attempts": 50,
+    "worker_jobs": 10,
+    "max_attempts_per_logical_operation": 2
+  },
+  "stopping_rules": {
+    "unsafe_blocker": "stop_normal_execution_at_project_blocker_and_continue_forensics",
+    "harness_defect": "stop_preserve_fix_harness_rerun_affected_operation_continue_wave",
+    "http_429": "wait_30_seconds_retry_once",
+    "transport_502_503_504_or_timeout": "wait_10_seconds_retry_once",
+    "malformed_content": "fail_closed_no_transport_retry"
+  },
+  "coverage_matrix": {
+    "wave-01-project-01": {
+      "clarification_behavior": "fully_specified",
+      "output_count": "single",
+      "new_design_or_revision": "new_design",
+      "layout_regularity": "explicit_nonuniform_fixed_positions",
+      "additive_subtractive_operations": "rib_plus_four_through_holes",
+      "fit_critical_geometry": "none",
+      "hollow_or_solid_geometry": "connected_solid",
+      "loft_sweep_revolve_capability": "not_required",
+      "output_identity": "mounting_bracket",
+      "topology_expectations": "one_solid",
+      "requirement_verification": "dimensions_holes_rib_fillets_identity"
+    },
+    "wave-01-project-02": {
+      "clarification_behavior": "required_then_frozen_answers",
+      "output_count": "single",
+      "new_design_or_revision": "new_design",
+      "layout_regularity": "centered_access",
+      "additive_subtractive_operations": "support_plus_cable_opening",
+      "fit_critical_geometry": "device_and_connector_fit",
+      "hollow_or_solid_geometry": "connected_solid",
+      "loft_sweep_revolve_capability": "not_required",
+      "output_identity": "device_cradle",
+      "topology_expectations": "one_solid",
+      "requirement_verification": "clarification_preservation_orientation_access"
+    },
+    "wave-01-project-03": {
+      "clarification_behavior": "fully_specified",
+      "output_count": "exactly_two",
+      "new_design_or_revision": "new_design",
+      "layout_regularity": "bounded_four_boss_pattern_and_slots",
+      "additive_subtractive_operations": "bosses_slots_exit_lip",
+      "fit_critical_geometry": "board_clearance",
+      "hollow_or_solid_geometry": "two_separate_solids",
+      "loft_sweep_revolve_capability": "not_required",
+      "output_identity": "enclosure_base_and_enclosure_lid",
+      "topology_expectations": "two_outputs_each_one_solid",
+      "requirement_verification": "space_wall_outputs_bosses_slots_exit_lip"
+    },
+    "wave-01-project-04": {
+      "clarification_behavior": "fully_specified",
+      "output_count": "single",
+      "new_design_or_revision": "new_design",
+      "layout_regularity": "profile_transition",
+      "additive_subtractive_operations": "hollow_wall_and_flanges",
+      "fit_critical_geometry": "duct_interface_fit",
+      "hollow_or_solid_geometry": "connected_hollow_solid",
+      "loft_sweep_revolve_capability": "loft_or_sweep_or_other_valid_strategy",
+      "output_identity": "transition_duct",
+      "topology_expectations": "one_hollow_solid",
+      "requirement_verification": "profiles_length_wall_flanges_hollow_topology"
+    },
+    "wave-01-project-05": {
+      "clarification_behavior": "revision_without_new_clarification",
+      "output_count": "single",
+      "new_design_or_revision": "bounded_revision_of_project_01",
+      "layout_regularity": "preserve_nonuniform_base_layout",
+      "additive_subtractive_operations": "slot_added_holes_resized_rib_preserved",
+      "fit_critical_geometry": "cable_slot_access",
+      "hollow_or_solid_geometry": "connected_solid",
+      "loft_sweep_revolve_capability": "not_required",
+      "output_identity": "mounting_bracket",
+      "topology_expectations": "one_solid_and_no_unrelated_redesign",
+      "requirement_verification": "delta_and_protected_fact_preservation"
+    }
+  },
+  "projects": [
+    {
+      "project_id": "wave-01-project-01",
+      "title": "Mechanical mounting bracket",
+      "user_request": "Create a single printable right-angle mounting bracket. The base plate must be 80 mm by 50 mm by 6 mm. The upright plate must be 50 mm by 45 mm by 6 mm. Join the plates at 90 degrees. Cut two 6 mm through-holes in the base at the explicitly nonuniform positions (15, 15) mm and (65, 35) mm. Cut two 5 mm through-holes in the upright at the explicitly nonuniform local positions (12, 13) mm and (34, 31) mm; do not convert them to a generated regular pattern. Add one additive reinforcement rib, fillet external edges where practical, preserve one connected solid, and use the canonical printable output ID mounting_bracket.",
+      "frozen_facts": {
+        "base_plate_mm": [80, 50, 6],
+        "upright_plate_mm": [50, 45, 6],
+        "plate_angle_degrees": 90,
+        "base_hole_diameter_mm": 6,
+        "base_hole_positions_mm": [[15, 15], [65, 35]],
+        "upright_hole_diameter_mm": 5,
+        "upright_hole_positions_mm": [[12, 13], [34, 31]],
+        "hole_layout": "explicit_nonuniform_fixed_positions",
+        "reinforcement_rib_count": 1,
+        "external_edges_filleted_where_practical": true,
+        "one_connected_solid": true,
+        "one_printable_output": true,
+        "output_id": "mounting_bracket"
+      },
+      "expected_output_count": 1,
+      "expected_solid_counts": {"mounting_bracket": 1},
+      "semantic_obligations": [
+        "explicit dimensions",
+        "additive and subtractive operations",
+        "irregular fixed hole layout",
+        "one additive reinforcement rib",
+        "external edge fillets where practical",
+        "one connected solid",
+        "single output identity mounting_bracket"
+      ],
+      "protected_facts": [
+        "base_plate_mm",
+        "upright_plate_mm",
+        "plate_angle_degrees",
+        "base_hole_diameter_mm",
+        "base_hole_positions_mm",
+        "upright_hole_diameter_mm",
+        "upright_hole_positions_mm",
+        "output_id"
+      ]
+    },
+    {
+      "project_id": "wave-01-project-02",
+      "title": "Underspecified mating cradle",
+      "user_request": "Design a one-part desktop cradle for a handheld device with cable access. Ask for clarification before planning because the request intentionally omits the device width, device thickness including case status, cable connector dimensions, and desired viewing angle.",
+      "frozen_facts": {
+        "device_width_mm": 74,
+        "device_thickness_with_case_mm": 12,
+        "device_height_mm": 158,
+        "connector_opening_width_mm": 16,
+        "connector_opening_depth_mm": 10,
+        "viewing_angle_degrees": 67,
+        "one_printed_part": true,
+        "portrait_support": true,
+        "landscape_support": true,
+        "centered_cable_access": true,
+        "output_id": "device_cradle"
+      },
+      "clarification_answers": [
+        {"fact": "device_width_mm", "answer": 74},
+        {"fact": "device_thickness_with_case_mm", "answer": 12},
+        {"fact": "device_height_mm", "answer": 158},
+        {"fact": "connector_opening_width_mm", "answer": 16},
+        {"fact": "connector_opening_depth_mm", "answer": 10},
+        {"fact": "viewing_angle_degrees", "answer": 67},
+        {"fact": "one_printed_part", "answer": true}
+      ],
+      "fit_critical_missing": [
+        "device_width_mm",
+        "device_thickness_with_case_mm",
+        "device_height_mm",
+        "connector_opening_width_mm",
+        "connector_opening_depth_mm",
+        "viewing_angle_degrees"
+      ],
+      "expected_output_count": 1,
+      "expected_solid_counts": {"device_cradle": 1},
+      "semantic_obligations": [
+        "requirements stage stops for clarification",
+        "clarified values are preserved",
+        "portrait support",
+        "landscape support",
+        "centered cable access",
+        "one connected solid",
+        "output identity device_cradle"
+      ],
+      "protected_facts": [
+        "device_width_mm",
+        "device_thickness_with_case_mm",
+        "device_height_mm",
+        "connector_opening_width_mm",
+        "connector_opening_depth_mm",
+        "viewing_angle_degrees",
+        "output_id"
+      ]
+    },
+    {
+      "project_id": "wave-01-project-03",
+      "title": "Two-output electronics enclosure",
+      "user_request": "Create an enclosure for a rectangular electronics board with internal usable space 100 mm by 65 mm by 25 mm and wall thickness 2.5 mm. Create exactly two separate printable outputs with canonical IDs enclosure_base and enclosure_lid. The base must include four internal mounting bosses and one cable exit. The removable lid must include ventilation slots and a lid alignment lip. Ordinary screw-fastening features may be proposed. Keep the base and lid as separate printable solids.",
+      "frozen_facts": {
+        "internal_usable_space_mm": [100, 65, 25],
+        "wall_thickness_mm": 2.5,
+        "output_ids": ["enclosure_base", "enclosure_lid"],
+        "output_count": 2,
+        "four_internal_mounting_bosses": true,
+        "ventilation_slots_in_lid": true,
+        "one_cable_exit_in_base": true,
+        "lid_alignment_lip": true,
+        "ordinary_screw_fastening_features_may_be_proposed": true,
+        "outputs_remain_separate": true
+      },
+      "expected_output_count": 2,
+      "expected_solid_counts": {"enclosure_base": 1, "enclosure_lid": 1},
+      "semantic_obligations": [
+        "100 by 65 by 25 mm internal usable space",
+        "2.5 mm walls",
+        "exactly two outputs",
+        "four internal mounting bosses",
+        "ventilation slots in lid",
+        "cable exit in base",
+        "lid alignment lip",
+        "separate printable solids",
+        "canonical output identity propagation"
+      ],
+      "protected_facts": [
+        "internal_usable_space_mm",
+        "wall_thickness_mm",
+        "output_ids",
+        "output_count",
+        "outputs_remain_separate"
+      ]
+    },
+    {
+      "project_id": "wave-01-project-04",
+      "title": "Hollow rectangular-to-round transition duct",
+      "user_request": "Create one hollow printable transition duct. The rectangular inlet is 90 mm by 55 mm, the circular outlet is 60 mm diameter, and the transition length is 120 mm. Preserve 2.5 mm wall thickness. Add an 8 mm wide rectangular inlet flange and an 8 mm wide circular outlet flange. Use a loft, sweep, shell, subtraction, or another valid CadQuery strategy; do not assume a loft is required. Preserve one connected hollow solid with canonical output ID transition_duct.",
+      "frozen_facts": {
+        "rectangular_inlet_mm": [90, 55],
+        "circular_outlet_diameter_mm": 60,
+        "transition_length_mm": 120,
+        "wall_thickness_mm": 2.5,
+        "rectangular_inlet_flange_width_mm": 8,
+        "circular_outlet_flange_width_mm": 8,
+        "one_printable_output": true,
+        "one_connected_hollow_solid": true,
+        "output_id": "transition_duct",
+        "valid_strategy_is_provider_owned": true
+      },
+      "expected_output_count": 1,
+      "expected_solid_counts": {"transition_duct": 1},
+      "semantic_obligations": [
+        "rectangular 90 by 55 mm inlet",
+        "60 mm circular outlet",
+        "120 mm transition length",
+        "2.5 mm wall thickness",
+        "8 mm rectangular inlet flange",
+        "8 mm circular outlet flange",
+        "one connected hollow solid",
+        "provider-owned valid construction strategy",
+        "output identity transition_duct"
+      ],
+      "protected_facts": [
+        "rectangular_inlet_mm",
+        "circular_outlet_diameter_mm",
+        "transition_length_mm",
+        "wall_thickness_mm",
+        "output_id"
+      ]
+    },
+    {
+      "project_id": "wave-01-project-05",
+      "title": "Bounded mounting bracket revision",
+      "user_request": "Use the completed wave-01-project-01 mechanical mounting bracket as the authoritative prior design. Revise only the two upright hole diameters from 5 mm to 6 mm and add one cable-retention slot to the upright. Preserve the base plate dimensions, upright plate dimensions, base-hole dimensions and locations, reinforcement rib, output identity mounting_bracket, all unrelated geometry, and one connected solid. Use the normal revision workflow; do not use generative repair as a substitute and do not redesign unrelated geometry.",
+      "frozen_facts": {
+        "authoritative_prior_project_id": "wave-01-project-01",
+        "upright_hole_diameter_mm_old": 5,
+        "upright_hole_diameter_mm_new": 6,
+        "cable_retention_slot_count_delta": 1,
+        "base_plate_mm": [80, 50, 6],
+        "upright_plate_mm": [50, 45, 6],
+        "base_hole_diameter_mm": 6,
+        "base_hole_positions_mm": [[15, 15], [65, 35]],
+        "reinforcement_rib_count": 1,
+        "one_connected_solid": true,
+        "output_id": "mounting_bracket"
+      },
+      "revision_of": "wave-01-project-01",
+      "requirement_delta": [
+        {"path": "upright_hole_diameter_mm", "old": 5, "new": 6},
+        {"path": "upright.cable_retention_slot_count", "old": 0, "new": 1}
+      ],
+      "expected_output_count": 1,
+      "expected_solid_counts": {"mounting_bracket": 1},
+      "semantic_obligations": [
+        "normal revision workflow",
+        "upright holes change from 5 mm to 6 mm",
+        "one cable-retention slot added to upright",
+        "base dimensions preserved",
+        "upright dimensions preserved",
+        "base hole dimensions and locations preserved",
+        "reinforcement rib preserved",
+        "output identity preserved",
+        "unrelated geometry preserved",
+        "one connected solid",
+        "no generative repair substitution"
+      ],
+      "protected_facts": [
+        "authoritative_prior_project_id",
+        "base_plate_mm",
+        "upright_plate_mm",
+        "base_hole_diameter_mm",
+        "base_hole_positions_mm",
+        "reinforcement_rib_count",
+        "output_id"
+      ]
+    }
+  ]
+}
