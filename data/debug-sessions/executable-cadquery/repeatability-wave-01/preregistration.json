@@ -1,0 +1,46 @@
+{
+  "schema_version": "executable-cadquery-repeatability-preregistration-v1",
+  "wave_id": "repeatability-wave-01",
+  "objective": "Qualify the experimental Gemini complete-source CadQuery architecture for repeatability using six frozen visible projects.",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "head_at_freeze": "6cb3a4851ba9f7b20b7027a4e3f35c15dffed966",
+  "main_at_freeze": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "commit_count_ahead_of_main": 19,
+  "corpus_manifest": "data/debug-sessions/executable-cadquery/repeatability-wave-01/corpus-manifest.json",
+  "corpus_manifest_sha256": "dd8f679debb9e21678374c63449d1d4155592106fb4b968d60e089f93d275e4c",
+  "execution_policy": {
+    "provider_concurrency": 1,
+    "sequential_projects": true,
+    "prompt_changes_allowed": false,
+    "fixture_changes_after_first_provider_call": false,
+    "codex_proxy_allowed": false,
+    "automatic_repair_ladder": ["L0", "L1", "L2", "L3"],
+    "automatic_provider_operation_budget": 9,
+    "shared_application_fix_cycles_max": 2
+  },
+  "success_definition": {
+    "visible_success_requires": ["complete_source", "source_contract", "worker", "topology", "semantic", "candidate_review", "browser_model"],
+    "accepted_success_adds": ["acceptance", "step", "stl", "brep_or_source", "package"]
+  },
+  "thresholds": {
+    "creation_count": 6,
+    "candidate_ready_minimum": 4,
+    "accepted_minimum": 3,
+    "package_minimum": 3,
+    "revision_success_minimum": 2,
+    "strong_candidate_ready_minimum": 5,
+    "strong_accepted_minimum": 4
+  },
+  "stop_rules": [
+    "same application-owned defect twice",
+    "same unidentified failure twice",
+    "persistence or authorization break",
+    "artifact isolation break",
+    "credential isolation break",
+    "worker infrastructure failure twice independently of generated source"
+  ],
+  "planned_revisions": 2,
+  "planned_restart_exercise": 1,
+  "planned_project_06_controlled_optional_failure": true
+}

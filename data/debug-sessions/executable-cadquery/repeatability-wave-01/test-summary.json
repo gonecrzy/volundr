@@ -1,0 +1,137 @@
+{
+  "schema_version": "executable-cadquery-repeatability-test-summary-v1",
+  "corpus": {
+    "project_count": 6,
+    "creation_attempt_count": 5,
+    "not_run_count": 1,
+    "not_run_projects": ["project-06"],
+    "sequential": true,
+    "provider_concurrency": 1,
+    "codex_proxy_calls": 0,
+    "provider_calls": {
+      "initial_wave": 10,
+      "fix_cycle_01": 3,
+      "fix_cycle_02": 4,
+      "total": 17
+    }
+  },
+  "project_results": [
+    {
+      "project_id": "project-01",
+      "status": "accepted",
+      "source": "project-01-result.json",
+      "application_state": "candidate_ready",
+      "browser_model_visible": true,
+      "visible_success": true,
+      "accepted": true,
+      "package_validated": true,
+      "semantic_status": "passed",
+      "failure_class": null
+    },
+    {
+      "project_id": "project-02",
+      "status": "failed",
+      "source": "project-02-result.json",
+      "application_state": "candidate_ready",
+      "browser_model_visible": true,
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false,
+      "semantic_status": "missing_required_findings",
+      "failure_owner": "validator",
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable"
+    },
+    {
+      "project_id": "project-03",
+      "status": "failed",
+      "source": "project-03-result.json",
+      "application_state": "failed",
+      "browser_model_visible": true,
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false,
+      "semantic_status": "not_reached",
+      "failure_owner": "application",
+      "failure_boundary": "artifact",
+      "failure_class": "stl_export_failure"
+    },
+    {
+      "project_id": "project-04",
+      "status": "failed",
+      "source": "fix-cycle-02/project-04-result.json",
+      "initial_wave_source": "project-04-result.json",
+      "application_state": "verification_failed",
+      "browser_model_visible": true,
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false,
+      "semantic_status": "missing_required_findings",
+      "failure_owner": "application",
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable"
+    },
+    {
+      "project_id": "project-05",
+      "status": "failed",
+      "source": "fix-cycle-02/project-05-result.json",
+      "initial_wave_source": "project-05-result.json",
+      "application_state": "verification_failed",
+      "browser_model_visible": true,
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false,
+      "semantic_status": "missing_required_findings",
+      "failure_owner": "application",
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable"
+    },
+    {
+      "project_id": "project-06",
+      "status": "not_run_shared_defect_stop",
+      "source": "project-06-result.json",
+      "application_state": null,
+      "browser_model_visible": false,
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false,
+      "semantic_status": "not_run",
+      "failure_class": null
+    }
+  ],
+  "stage_metrics": {
+    "source_contract_initial_wave_successes": 1,
+    "source_contract_initial_wave_attempts": 5,
+    "source_contract_converged_through_existing_repair_ladder": 3,
+    "source_contract_successes_after_first_fix_cycle": 5,
+    "worker_reached_projects": 5,
+    "worker_reached_attempted_projects": 5,
+    "worker_successful_final_project_paths": 4,
+    "semantic_product_qualified_successes": 1,
+    "candidate_review_successes": 1,
+    "browser_visible_attempted_projects": 5,
+    "accepted_creations": 1,
+    "accepted_package_validations": 1,
+    "artifact_hash_coherent_accepted_creations": 1
+  },
+  "repair_metrics": {
+    "successful_visible_models": 1,
+    "mean_recorded_repair_levels": null,
+    "median_recorded_repair_levels": null,
+    "max_recorded_repair_levels": null,
+    "reason_metrics_are_null": "The application repair_convergence fields undercounted retry operations for project-01 and project-02; raw model-operation records and all cycle-specific results are retained instead of inventing normalized repair counts."
+  },
+  "offline_regression": {
+    "backend": {"command": "backend/.venv/bin/python -m pytest -q backend/tests", "passed": 1344, "failed": 0, "warnings": 1},
+    "frontend_unit": {"command": "npm test", "passed": 104, "failed": 0},
+    "frontend_build": {"command": "npm run build", "status": "passed"},
+    "offline_browser": {"command": "npm run test:e2e", "passed": 22, "skipped": 15, "failed": 0},
+    "live_harness_unit": {"command": "npm run test:live-harness", "passed": 8, "failed": 0},
+    "alembic_check": "passed",
+    "compose_config": "passed",
+    "container_nginx_config": "passed",
+    "secret_scan": "passed"
+  },
+  "stop_reason": "shared defect stop after 2 occurrences of application:semantic_requirement_unverifiable in fix-cycle-02; initial wave stop was after 2 occurrences of application:source_contract_violation",
+  "provider_calls": 17
+}

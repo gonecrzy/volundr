@@ -1,0 +1,67 @@
+{
+  "schema_version": "executable-cadquery-repeatability-final-decision-v1",
+  "decision": "executable_cadquery_architecture_not_repeatable",
+  "stop_reason": "shared defect stop after 2 occurrences of application:semantic_requirement_unverifiable in the second bounded fix cycle; the initial wave had already stopped after 2 occurrences of application:source_contract_violation",
+  "evidence_root": "data/debug-sessions/executable-cadquery/repeatability-wave-01",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "source_head_at_results_freeze": "386743c608f8977d4b87c5d0897a0fe40933d390",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "main_modified": false,
+  "corpus_project_count": 6,
+  "creation_attempt_count": 5,
+  "project_06_status": "not_run_shared_defect_stop",
+  "candidate_ready_count": 1,
+  "application_reported_candidate_ready_counts": {
+    "initial_wave": 2,
+    "fix_cycle_01": 2,
+    "fix_cycle_02": 0
+  },
+  "accepted_count": 1,
+  "package_count": 1,
+  "visible_success_count": 1,
+  "revision_attempt_count": 0,
+  "revision_success_count": 0,
+  "restart_status": "not_reached_shared_defect_stop",
+  "partial_output_status": "not_reached_shared_defect_stop",
+  "shared_application_fix_cycles_used": 2,
+  "shared_application_fix_cycles_max": 2,
+  "defect_timeline": [
+    {
+      "cycle": "initial-wave",
+      "occurrences": 2,
+      "owner": "application",
+      "boundary": "source_contract",
+      "failure_class": "source_contract_violation",
+      "projects": ["project-04", "project-05"],
+      "stop": true
+    },
+    {
+      "cycle": "fix-cycle-01",
+      "fix_commit": "dc2e7f6",
+      "occurrences": 2,
+      "owner": "validator",
+      "boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "projects": ["project-04", "project-05"],
+      "stop": true
+    },
+    {
+      "cycle": "fix-cycle-02",
+      "fix_commit": "386743c",
+      "occurrences": 2,
+      "owner": "application",
+      "boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "projects": ["project-04", "project-05"],
+      "stop": true
+    }
+  ],
+  "unresolved_repeated_application_defect": true,
+  "merge_eligible": false,
+  "merge_ineligibility_reasons": [
+    "fewer than four product-qualified candidate-visible successes",
+    "fewer than four accepted creations",
+    "fewer than two successful bounded revisions",
+    "repeated application-owned semantic coverage defect remained after the maximum two shared fix cycles"
+  ]
+}

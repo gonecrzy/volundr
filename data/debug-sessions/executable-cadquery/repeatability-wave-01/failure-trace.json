@@ -1,0 +1,40 @@
+{
+  "schema_version": "executable-cadquery-repeatability-failure-trace-v1",
+  "entries": [
+    {
+      "cycle": "initial-wave",
+      "project_ids": ["project-04", "project-05"],
+      "owner": "application",
+      "boundary": "source_contract",
+      "failure_class": "source_contract_violation",
+      "diagnostic": "complete-source v2 requires exactly one frozen-contract output",
+      "repair_ladder": "L0 repeated unchanged",
+      "result": "shared stop after second occurrence",
+      "evidence": ["project-04-result.json", "project-05-result.json"]
+    },
+    {
+      "cycle": "fix-cycle-01",
+      "project_ids": ["project-04", "project-05"],
+      "owner": "validator",
+      "boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "diagnostic": "semantic verifier returned no finding for one or more frozen requirements",
+      "repair_ladder": "not entered",
+      "result": "shared stop after second occurrence",
+      "evidence": ["fix-cycle-01/project-04-result.json", "fix-cycle-01/project-05-result.json"]
+    },
+    {
+      "cycle": "fix-cycle-02",
+      "project_ids": ["project-04", "project-05"],
+      "owner": "application",
+      "boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "diagnostic": "semantic coverage was completed as unverifiable before application promotion",
+      "repair_ladder": "L3 repeated without measurable progress",
+      "result": "final shared stop after second occurrence",
+      "evidence": ["fix-cycle-02/project-04-result.json", "fix-cycle-02/project-05-result.json"]
+    }
+  ],
+  "provider_calls_after_final_fix": 0,
+  "security_or_data_integrity_failure": false
+}

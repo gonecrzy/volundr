@@ -1,0 +1,83 @@
+{
+  "schema_version": "executable-cadquery-repeatability-project-result-v1",
+  "project_id": "project-03",
+  "title": "Swept cable guide",
+  "started_at": "2026-08-06T22:06:54.560Z",
+  "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695",
+  "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+  "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+  "state_reported_by_application": "failed",
+  "status": "failed",
+  "first_incorrect_owner": "application",
+  "observed_boundary": "artifact",
+  "failure_class": "stl_export_failure",
+  "terminal_stop_reason": "workflow did not reach a verified candidate",
+  "semantic_verification": {
+    "status": "missing",
+    "finding_count": 0,
+    "missing_requirement_ids": [
+      "swept_curved_body",
+      "sweep_cross_section",
+      "mounting_hole",
+      "access_slot"
+    ]
+  },
+  "browser_model_visible": true,
+  "visible_success": false,
+  "accepted": false,
+  "package_validated": false,
+  "artifact_results": [],
+  "repair_convergence": {
+    "initial_generation_succeeded": true,
+    "repairs": {
+      "L0": 0,
+      "L1": 1,
+      "L2": 0,
+      "L3": 0
+    },
+    "total_model_operations": 2,
+    "highest_stage_reached": "failed",
+    "visible_success": false
+  },
+  "model_operations": [
+    {
+      "operation": "initial",
+      "level": "initial",
+      "ordinal": 0,
+      "source_hash": "b4da2a10a8f866a3c35fa0cc75cd85656556f0eca774b0c69aa02ef1ba538862",
+      "normalized_failure": null,
+      "progress_decision": {
+        "measurable_progress": true,
+        "progress_reasons": [
+          "first_repair_after_failure"
+        ]
+      },
+      "parent_operation_id": null,
+      "credential_slot": null,
+      "operation_id": "59614cec-7a42-47ea-bda8-8d5a14755695:attempt:1"
+    },
+    {
+      "operation": "repair",
+      "level": "L1",
+      "ordinal": 1,
+      "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+      "normalized_failure": null,
+      "progress_decision": {
+        "measurable_progress": false,
+        "no_violation_decrease_across_two_repairs": false,
+        "no_violation_decrease_streak": 0,
+        "progress_reasons": [],
+        "progress_result": "no_progress",
+        "protected_fact_regression": false,
+        "repair_level": "L1",
+        "same_diagnostic_signature": false,
+        "violation_count_decreased": false
+      },
+      "parent_operation_id": null,
+      "credential_slot": null,
+      "operation_id": "59614cec-7a42-47ea-bda8-8d5a14755695:attempt:2"
+    }
+  ],
+  "provenance_safe": true,
+  "completed_at": "2026-08-06T22:07:13.917Z"
+}

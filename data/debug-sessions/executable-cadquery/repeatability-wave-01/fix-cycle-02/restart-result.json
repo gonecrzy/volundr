@@ -1,0 +1,8 @@
+{
+  "schema_version": "executable-cadquery-repeatability-restart-v1",
+  "status": "not_reached_shared_defect_stop",
+  "duplicate_provider_operations": null,
+  "duplicate_worker_jobs": null,
+  "browser_restore": null,
+  "artifacts_coherent": null
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": "executable-cadquery-repeatability-final-decision-v1",
+  "decision": "executable_cadquery_architecture_not_repeatable",
+  "stop_reason": "shared defect stop after 2 occurrences of application:semantic_requirement_unverifiable",
+  "candidate_ready_count": 0,
+  "accepted_count": 0,
+  "package_count": 0,
+  "revision_success_count": 0,
+  "unresolved_repeated_application_defect": true,
+  "main_modified": false
+}

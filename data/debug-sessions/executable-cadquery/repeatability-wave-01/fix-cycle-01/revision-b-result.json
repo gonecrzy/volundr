@@ -1,0 +1,5 @@
+{
+  "schema_version": "executable-cadquery-repeatability-revision-result-v1",
+  "status": "unavailable",
+  "reason": "fewer than two accepted creations were available after the sequential corpus stop"
+}

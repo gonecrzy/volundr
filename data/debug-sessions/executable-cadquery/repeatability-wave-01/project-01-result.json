@@ -1,0 +1,85 @@
+{
+  "schema_version": "executable-cadquery-repeatability-project-result-v1",
+  "project_id": "project-01",
+  "title": "Mounting bracket regression",
+  "started_at": "2026-08-06T22:06:22.131Z",
+  "workflow_id": "88b9bf06-5d69-4722-bef6-7d78c1ea81c5",
+  "database_project_id": "239c374d-d150-4af4-a662-bcfe75381d24",
+  "revision_id": "3e8c6baf-a89f-43f6-82bb-1cfd589670dd",
+  "state_reported_by_application": "candidate_ready",
+  "status": "accepted",
+  "first_incorrect_owner": null,
+  "observed_boundary": null,
+  "failure_class": null,
+  "terminal_stop_reason": null,
+  "semantic_verification": {
+    "status": "passed",
+    "finding_count": 7,
+    "missing_requirement_ids": []
+  },
+  "browser_model_visible": true,
+  "visible_success": true,
+  "accepted": true,
+  "package_validated": true,
+  "artifact_results": [
+    {
+      "output_id": "mounting_bracket_regression",
+      "kind": "step",
+      "available": true,
+      "registered_sha256": "89d980ad0e96dc2086b1f35f26d72b978a0362694b3fd6b5928352a977c9b51c",
+      "downloaded_sha256": "89d980ad0e96dc2086b1f35f26d72b978a0362694b3fd6b5928352a977c9b51c",
+      "size_bytes": 77593,
+      "hash_match": true
+    },
+    {
+      "output_id": "mounting_bracket_regression",
+      "kind": "stl",
+      "available": true,
+      "registered_sha256": "2e1d4246c3711ff1ef4a5a65180a98ed81af20178d9f66cfb6d8e687b50deafa",
+      "downloaded_sha256": "2e1d4246c3711ff1ef4a5a65180a98ed81af20178d9f66cfb6d8e687b50deafa",
+      "size_bytes": 154384,
+      "hash_match": true
+    },
+    {
+      "output_id": "mounting_bracket_regression",
+      "kind": "brep",
+      "available": true,
+      "registered_sha256": "42fa707776c4a13a73b8c3dc50abdd1e75899578178d6aa125fde99e9844bd6b",
+      "downloaded_sha256": "42fa707776c4a13a73b8c3dc50abdd1e75899578178d6aa125fde99e9844bd6b",
+      "size_bytes": 310538,
+      "hash_match": true
+    }
+  ],
+  "repair_convergence": {
+    "initial_generation_succeeded": false,
+    "repairs": {
+      "L0": 0,
+      "L1": 0,
+      "L2": 0,
+      "L3": 0
+    },
+    "total_model_operations": 2,
+    "highest_stage_reached": "candidate_ready",
+    "visible_success": true
+  },
+  "model_operations": [
+    {
+      "operation": "initial",
+      "level": "initial",
+      "ordinal": 0,
+      "source_hash": "5b9560b9c9bccbb666855cc772acbfe6af2bd5a60c23dcbb6b3d11ef2b49751e",
+      "normalized_failure": "source contract violation for mounting_bracket_regression: try[path] is not allowed in generated CadQuery source",
+      "progress_decision": {
+        "measurable_progress": true,
+        "progress_reasons": [
+          "first_repair_after_failure"
+        ]
+      },
+      "parent_operation_id": null,
+      "credential_slot": null,
+      "operation_id": "88b9bf06-5d69-4722-bef6-7d78c1ea81c5:attempt:1"
+    }
+  ],
+  "provenance_safe": true,
+  "completed_at": "2026-08-06T22:06:38.824Z"
+}

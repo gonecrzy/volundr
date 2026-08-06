@@ -1,0 +1,21 @@
+{
+  "schema_version": "executable-cadquery-repeatability-test-summary-v1",
+  "project_results": [
+    {
+      "project_id": "project-04",
+      "status": "failed",
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false
+    },
+    {
+      "project_id": "project-05",
+      "status": "failed",
+      "visible_success": false,
+      "accepted": false,
+      "package_validated": false
+    }
+  ],
+  "stop_reason": "shared defect stop after 2 occurrences of application:semantic_requirement_unverifiable",
+  "provider_calls": 4
+}

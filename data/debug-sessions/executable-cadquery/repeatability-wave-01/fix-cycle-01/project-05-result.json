@@ -1,0 +1,65 @@
+{
+  "schema_version": "executable-cadquery-repeatability-project-result-v1",
+  "project_id": "project-05",
+  "title": "Two-part mechanical relationship",
+  "started_at": "2026-08-06T22:11:40.448Z",
+  "workflow_id": "e8b0c57e-5500-49b8-83d1-f58042aeb439",
+  "database_project_id": "258d524f-c3c2-4614-a33a-3a31e67bddd0",
+  "revision_id": "b7dbe4de-a350-4e59-9db8-6f8f69c662f8",
+  "state_reported_by_application": "candidate_ready",
+  "status": "failed",
+  "first_incorrect_owner": "validator",
+  "observed_boundary": "semantic",
+  "failure_class": "semantic_requirement_unverifiable",
+  "terminal_stop_reason": "semantic verifier returned no finding for one or more frozen requirements",
+  "semantic_verification": {
+    "status": "passed",
+    "finding_count": 1,
+    "missing_requirement_ids": [
+      "support_dimensions",
+      "support_mounting_holes",
+      "insert_dimensions",
+      "mating_clearance",
+      "alignment",
+      "support_chamfer",
+      "insert_opening"
+    ]
+  },
+  "browser_model_visible": true,
+  "visible_success": false,
+  "accepted": false,
+  "package_validated": false,
+  "artifact_results": [],
+  "repair_convergence": {
+    "initial_generation_succeeded": false,
+    "repairs": {
+      "L0": 0,
+      "L1": 0,
+      "L2": 0,
+      "L3": 0
+    },
+    "total_model_operations": 2,
+    "highest_stage_reached": "candidate_ready",
+    "visible_success": false
+  },
+  "model_operations": [
+    {
+      "operation": "initial",
+      "level": "initial",
+      "ordinal": 0,
+      "source_hash": "feed913489ea8b12fab74f87266c1e4e0d595a3cf9cf09a41d10fc841ba636ef",
+      "normalized_failure": "source contract violation for ['support', 'mating_insert']: try[path] is not allowed in generated CadQuery source",
+      "progress_decision": {
+        "measurable_progress": true,
+        "progress_reasons": [
+          "first_repair_after_failure"
+        ]
+      },
+      "parent_operation_id": null,
+      "credential_slot": null,
+      "operation_id": "e8b0c57e-5500-49b8-83d1-f58042aeb439:attempt:1"
+    }
+  ],
+  "provenance_safe": true,
+  "completed_at": "2026-08-06T22:11:56.506Z"
+}

@@ -1,0 +1,5 @@
+{
+  "schema_version": "executable-cadquery-repeatability-partial-output-v1",
+  "status": "not_reached_shared_defect_stop",
+  "controlled_failure_used": false
+}

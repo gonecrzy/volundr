@@ -1,0 +1,6 @@
+{
+  "schema_version": "executable-cadquery-repeatability-partial-output-v1",
+  "status": "not_reached_shared_defect_stop",
+  "reason": "The controlled optional Project-06 partial-output exercise was not reached because the sequential corpus stopped on the repeated shared defect.",
+  "controlled_failure_used": false
+}

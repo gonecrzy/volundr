@@ -1,0 +1,47 @@
+{
+  "schema_version": "executable-cadquery-repeatability-project-result-v1",
+  "project_id": "project-04",
+  "title": "Two-output enclosure",
+  "started_at": "2026-08-06T22:11:22.862Z",
+  "workflow_id": "151b76d8-e940-40a7-8c17-176e653244f8",
+  "database_project_id": "4af3a218-47ec-4340-80f7-0867453933de",
+  "revision_id": "cfcc072b-f641-43e8-b8e0-51645b53c6f0",
+  "state_reported_by_application": "candidate_ready",
+  "status": "failed",
+  "first_incorrect_owner": "validator",
+  "observed_boundary": "semantic",
+  "failure_class": "semantic_requirement_unverifiable",
+  "terminal_stop_reason": "semantic verifier returned no finding for one or more frozen requirements",
+  "semantic_verification": {
+    "status": "passed",
+    "finding_count": 1,
+    "missing_requirement_ids": [
+      "enclosure_envelope",
+      "wall_thickness",
+      "mating_clearance",
+      "base_mounting_bosses",
+      "base_cable_exit",
+      "lid_ventilation_opening"
+    ]
+  },
+  "browser_model_visible": true,
+  "visible_success": false,
+  "accepted": false,
+  "package_validated": false,
+  "artifact_results": [],
+  "repair_convergence": {
+    "initial_generation_succeeded": false,
+    "repairs": {
+      "L0": 0,
+      "L1": 0,
+      "L2": 0,
+      "L3": 0
+    },
+    "total_model_operations": 1,
+    "highest_stage_reached": "candidate_ready",
+    "visible_success": false
+  },
+  "model_operations": [],
+  "provenance_safe": true,
+  "completed_at": "2026-08-06T22:11:40.448Z"
+}

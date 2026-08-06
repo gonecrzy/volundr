@@ -1,0 +1,63 @@
+{
+  "schema_version": "executable-cadquery-repeatability-project-result-v1",
+  "project_id": "project-02",
+  "title": "Rotational mechanical part",
+  "started_at": "2026-08-06T22:06:38.825Z",
+  "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355",
+  "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+  "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+  "state_reported_by_application": "candidate_ready",
+  "status": "failed",
+  "first_incorrect_owner": "validator",
+  "observed_boundary": "semantic",
+  "failure_class": "semantic_requirement_unverifiable",
+  "terminal_stop_reason": "semantic verifier returned no finding for one or more frozen requirements",
+  "semantic_verification": {
+    "status": "passed",
+    "finding_count": 1,
+    "missing_requirement_ids": [
+      "coaxial_diameters",
+      "axial_dimensions",
+      "through_bore",
+      "counterbore",
+      "bolt_circle"
+    ]
+  },
+  "browser_model_visible": true,
+  "visible_success": false,
+  "accepted": false,
+  "package_validated": false,
+  "artifact_results": [],
+  "repair_convergence": {
+    "initial_generation_succeeded": false,
+    "repairs": {
+      "L0": 0,
+      "L1": 0,
+      "L2": 0,
+      "L3": 0
+    },
+    "total_model_operations": 2,
+    "highest_stage_reached": "candidate_ready",
+    "visible_success": false
+  },
+  "model_operations": [
+    {
+      "operation": "initial",
+      "level": "initial",
+      "ordinal": 0,
+      "source_hash": "7fd103b28a375928dc882e7c40e102f2697f714b16f659efd17a42729c5789ac",
+      "normalized_failure": "source contract violation for shaft_coupling: imports are only allowed at top level",
+      "progress_decision": {
+        "measurable_progress": true,
+        "progress_reasons": [
+          "first_repair_after_failure"
+        ]
+      },
+      "parent_operation_id": null,
+      "credential_slot": null,
+      "operation_id": "1b8ef86f-004c-4e57-9a3c-39068f443355:attempt:1"
+    }
+  ],
+  "provenance_safe": true,
+  "completed_at": "2026-08-06T22:06:54.560Z"
+}

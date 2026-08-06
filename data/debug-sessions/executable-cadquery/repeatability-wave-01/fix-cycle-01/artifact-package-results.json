@@ -1,0 +1,17 @@
+{
+  "schema_version": "executable-cadquery-repeatability-artifact-results-v1",
+  "projects": [
+    {
+      "project_id": "project-04",
+      "accepted": false,
+      "package_validated": false,
+      "artifacts": []
+    },
+    {
+      "project_id": "project-05",
+      "accepted": false,
+      "package_validated": false,
+      "artifacts": []
+    }
+  ]
+}

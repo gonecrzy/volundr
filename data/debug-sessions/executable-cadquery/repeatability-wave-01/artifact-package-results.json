@@ -1,0 +1,81 @@
+{
+  "schema_version": "executable-cadquery-repeatability-artifact-results-v1",
+  "projects": [
+    {
+      "project_id": "project-01",
+      "accepted": true,
+      "package_validated": true,
+      "artifacts": [
+        {
+          "output_id": "mounting_bracket_regression",
+          "kind": "step",
+          "available": true,
+          "registered_sha256": "89d980ad0e96dc2086b1f35f26d72b978a0362694b3fd6b5928352a977c9b51c",
+          "downloaded_sha256": "89d980ad0e96dc2086b1f35f26d72b978a0362694b3fd6b5928352a977c9b51c",
+          "size_bytes": 77593,
+          "hash_match": true
+        },
+        {
+          "output_id": "mounting_bracket_regression",
+          "kind": "stl",
+          "available": true,
+          "registered_sha256": "2e1d4246c3711ff1ef4a5a65180a98ed81af20178d9f66cfb6d8e687b50deafa",
+          "downloaded_sha256": "2e1d4246c3711ff1ef4a5a65180a98ed81af20178d9f66cfb6d8e687b50deafa",
+          "size_bytes": 154384,
+          "hash_match": true
+        },
+        {
+          "output_id": "mounting_bracket_regression",
+          "kind": "brep",
+          "available": true,
+          "registered_sha256": "42fa707776c4a13a73b8c3dc50abdd1e75899578178d6aa125fde99e9844bd6b",
+          "downloaded_sha256": "42fa707776c4a13a73b8c3dc50abdd1e75899578178d6aa125fde99e9844bd6b",
+          "size_bytes": 310538,
+          "hash_match": true
+        }
+      ]
+    },
+    {
+      "project_id": "project-02",
+      "accepted": false,
+      "package_validated": false,
+      "artifacts": []
+    },
+    {
+      "project_id": "project-03",
+      "accepted": false,
+      "package_validated": false,
+      "artifacts": []
+    },
+    {
+      "project_id": "project-04",
+      "accepted": false,
+      "package_validated": false,
+      "artifacts": []
+    },
+    {
+      "project_id": "project-05",
+      "accepted": false,
+      "package_validated": false,
+      "artifacts": []
+    }
+  ],
+  "nonaccepted_worker_outputs": [
+    {
+      "cycle": "fix-cycle-01",
+      "projects": {
+        "project-04": {"worker_success": true, "output_ids": ["enclosure_base", "enclosure_lid"], "package_validated": false},
+        "project-05": {"worker_success": true, "output_ids": ["support", "mating_insert"], "package_validated": false}
+      },
+      "source": "fix-cycle-01/project-0{4,5}-result.json"
+    },
+    {
+      "cycle": "fix-cycle-02",
+      "projects": {
+        "project-04": {"worker_success": true, "output_ids": ["enclosure_base", "enclosure_lid"], "package_validated": false},
+        "project-05": {"worker_success": true, "output_ids": ["support", "mating_insert"], "package_validated": false}
+      },
+      "source": "fix-cycle-02/project-0{4,5}-result.json"
+    }
+  ]
+}

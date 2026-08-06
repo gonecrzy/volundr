@@ -1,0 +1,11 @@
+{
+  "schema_version": "executable-cadquery-repeatability-project-result-v1",
+  "project_id": "project-06",
+  "title": "Required plus optional output",
+  "status": "not_run_shared_defect_stop",
+  "terminal_stop_reason": "shared defect stop after 2 occurrences of application:source_contract_violation",
+  "provider_operations": [],
+  "visible_success": false,
+  "accepted": false,
+  "package_validated": false
+}

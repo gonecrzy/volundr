@@ -1,0 +1,103 @@
+{
+  "schema_version": "executable-cadquery-repeatability-repair-convergence-v1",
+  "evidence_note": "The cycle-specific files are authoritative for each bounded run. Application repair_convergence counters are retained verbatim; raw model-operation records are used for retry visibility where those counters undercounted retries.",
+  "cycles": [
+    {
+      "cycle_id": "initial-wave",
+      "source_directory": ".",
+      "projects": ["project-01", "project-02", "project-03", "project-04", "project-05"],
+      "stop_reason": "shared defect stop after 2 occurrences of application:source_contract_violation"
+    },
+    {
+      "cycle_id": "fix-cycle-01",
+      "source_directory": "fix-cycle-01",
+      "projects": ["project-04", "project-05"],
+      "fix_commit": "dc2e7f6",
+      "stop_reason": "shared defect stop after 2 occurrences of validator:semantic_requirement_unverifiable"
+    },
+    {
+      "cycle_id": "fix-cycle-02",
+      "source_directory": "fix-cycle-02",
+      "projects": ["project-04", "project-05"],
+      "fix_commit": "386743c",
+      "stop_reason": "shared defect stop after 2 occurrences of application:semantic_requirement_unverifiable"
+    }
+  ],
+  "consolidated_metrics": {
+    "attempted_projects": 5,
+    "visible_successes": 1,
+    "accepted_creations": 1,
+    "package_validations": 1,
+    "maximum_shared_fix_cycles_used": 2,
+    "revisions_attempted": 0,
+    "restart_attempted": false,
+    "controlled_partial_output_attempted": false
+  },
+  "creations": [
+    {
+      "project_id": "project-01",
+      "initial_generation_succeeded": false,
+      "repairs": {
+        "L0": 0,
+        "L1": 0,
+        "L2": 0,
+        "L3": 0
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "candidate_ready",
+      "visible_success": true
+    },
+    {
+      "project_id": "project-02",
+      "initial_generation_succeeded": false,
+      "repairs": {
+        "L0": 0,
+        "L1": 0,
+        "L2": 0,
+        "L3": 0
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "candidate_ready",
+      "visible_success": false
+    },
+    {
+      "project_id": "project-03",
+      "initial_generation_succeeded": true,
+      "repairs": {
+        "L0": 0,
+        "L1": 1,
+        "L2": 0,
+        "L3": 0
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "failed",
+      "visible_success": false
+    },
+    {
+      "project_id": "project-04",
+      "initial_generation_succeeded": false,
+      "repairs": {
+        "L0": 1,
+        "L1": 0,
+        "L2": 0,
+        "L3": 0
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "failed",
+      "visible_success": false
+    },
+    {
+      "project_id": "project-05",
+      "initial_generation_succeeded": false,
+      "repairs": {
+        "L0": 1,
+        "L1": 0,
+        "L2": 0,
+        "L3": 0
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "failed",
+      "visible_success": false
+    }
+  ]
+}

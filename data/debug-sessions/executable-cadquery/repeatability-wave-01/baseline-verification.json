@@ -1,0 +1,32 @@
+{
+  "schema_version": "executable-cadquery-repeatability-baseline-v1",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "head": "6cb3a4851ba9f7b20b7027a4e3f35c15dffed966",
+  "worktree_clean_before_live": true,
+  "remote_branch_matched_before_live": true,
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "alembic": {"current": "0039_align_fresh_database_schema", "heads": ["0039_align_fresh_database_schema"], "check": "passed"},
+  "compose_config": "passed",
+  "production_defaults": {
+    "validated_cadquery_flow_enabled": false,
+    "executable_cadquery_flow_enabled": false,
+    "complete_source_experiment_opt_in_only": true
+  },
+  "credential_boundary": {
+    "api_primary_configured_without_value_record": true,
+    "api_fallback_configured_without_value_record": true,
+    "cad_worker_gemini_credentials": "absent",
+    "host_browser_playwright_credentials": "absent",
+    "credential_values_in_evidence": false
+  },
+  "offline_suites": {
+    "backend": {"command": "backend/.venv/bin/python -m pytest -q backend/tests", "passed": 1342, "failed": 0},
+    "frontend_unit": {"command": "npm test", "passed": 104, "failed": 0},
+    "frontend_build": {"command": "npm run build", "status": "passed"},
+    "offline_browser": {"command": "npm run test:e2e", "passed": 22, "skipped": 15, "failed": 0}
+  },
+  "preexisting_command_note": "make backend-test from backend fails to collect one test importing backend.scripts; the authoritative repository-root backend suite passed 1342 tests.",
+  "git_diff_check": "passed",
+  "provider_calls_before_live": 0
+}

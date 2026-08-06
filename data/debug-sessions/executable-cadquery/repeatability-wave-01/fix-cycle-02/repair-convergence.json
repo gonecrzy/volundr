@@ -1,0 +1,31 @@
+{
+  "schema_version": "executable-cadquery-repeatability-repair-convergence-v1",
+  "creations": [
+    {
+      "project_id": "project-04",
+      "initial_generation_succeeded": true,
+      "repairs": {
+        "L0": 0,
+        "L1": 0,
+        "L2": 0,
+        "L3": 1
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "verification_failed",
+      "visible_success": false
+    },
+    {
+      "project_id": "project-05",
+      "initial_generation_succeeded": true,
+      "repairs": {
+        "L0": 0,
+        "L1": 0,
+        "L2": 0,
+        "L3": 1
+      },
+      "total_model_operations": 2,
+      "highest_stage_reached": "verification_failed",
+      "visible_success": false
+    }
+  ]
+}
