@@ -1,0 +1,38 @@
+{
+  "schema_version": "local-clean-ci-results-v1",
+  "status": "passed",
+  "classification": "authoritative_remote_ci_unavailable",
+  "equivalent_gate": "local_clean_ci_equivalent_passed",
+  "checkout": {
+    "path": "/tmp/volundr-clean-final.ixwHZL",
+    "commit": "d61df539aea3f98074380eb863207588e7a129be",
+    "worktree_clean_at_start": true,
+    "repository_env_present": false,
+    "tracked_runtime_databases": false,
+    "tracked_browser_state": false,
+    "tracked_frontend_assets": false,
+    "historical_fixture_corpora": "copied read-only from local ignored offline evidence because repository tests explicitly reference them; no credentials or runtime databases were copied"
+  },
+  "backend": {
+    "dependencies": "fresh editable install from backend[test]",
+    "database": "new disposable SQLite at checkout data/app.db",
+    "migration_chain": {"upgrade_head": true, "downgrade_base": true, "upgrade_head_again": true, "alembic_check": true, "head": "0039_align_fresh_database_schema"},
+    "tests": {"passed": 1246, "skipped": 1, "failed": 0}
+  },
+  "frontend": {
+    "dependencies": "npm ci from package-lock.json",
+    "unit_tests": {"passed": 104, "failed": 0},
+    "build": "passed",
+    "offline_playwright_default": {"passed": 21, "skipped": 14, "failed": 0},
+    "offline_playwright_validated_shell": {"passed": 1, "failed": 0}
+  },
+  "deployment_and_secrets": {
+    "compose_config": "passed",
+    "localhost_api_port_boundary": "passed",
+    "worker_credential_boundary": "passed",
+    "nginx_config_test": "passed",
+    "built_asset_secret_scan": "passed"
+  },
+  "provider_calls": 0,
+  "note": "The subsequent live-harness-only commits changed browser/live orchestration and did not alter the backend/frontend application implementation covered by this gate."
+}

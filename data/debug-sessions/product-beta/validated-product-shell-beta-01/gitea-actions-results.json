@@ -1,0 +1,16 @@
+{
+  "schema_version": "gitea-actions-results-v1",
+  "status": "not_discoverable",
+  "classification": "gitea_ci_access_unavailable",
+  "remote_kind": "gitea",
+  "workflow_commit": "f4b79011e15992faea020094bd68e62dfa410192",
+  "workflow_path_checked": ".github/workflows/application-integrity.yml",
+  "gitea_workflow_path_checked": ".gitea/workflows",
+  "actions_enabled": "unknown",
+  "runner": "unknown",
+  "run_triggered": false,
+  "run_id": null,
+  "jobs": [],
+  "reason": "Repository SSH authentication succeeded, but Gitea API/page access and shell/configuration access were unavailable; no authoritative run could be queried or triggered.",
+  "operator_action": "Expose the repository Actions status/run endpoint or provide an operator-supplied authoritative result."
+}

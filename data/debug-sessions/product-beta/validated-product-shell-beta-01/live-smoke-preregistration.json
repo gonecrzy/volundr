@@ -1,0 +1,53 @@
+{
+  "schema_version": "validated-product-shell-live-smoke-preregistration-v2",
+  "status_before_provider_call": "preregistered",
+  "commit": "f4b79011e15992faea020094bd68e62dfa410192",
+  "database_migration_head": "0039_align_fresh_database_schema",
+  "feature_flag": {
+    "production_default": false,
+    "live_overlay": "VOLUNDR_LIVE_VALIDATED_CADQUERY_FLOW_ENABLED=true",
+    "frontend_overlay": "VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=true"
+  },
+  "credential_layering": {
+    "source": "repository root .env",
+    "loader": "frontend/scripts/run-live-e2e.sh",
+    "backend_env_file": "0600 temporary file, backend/API only",
+    "primary_slot": {"name": "GEMINI_API_KEY_2", "presence": "required and present"},
+    "fallback_slot": {"name": "GEMINI_API_KEY", "presence": "required and present"},
+    "frontend_browser_playwright": "unset",
+    "worker": "unset",
+    "build_and_evidence": "must not contain credential values"
+  },
+  "provider_profile": {
+    "provider": "gemini_api",
+    "model": "gemini-3.5-flash-lite",
+    "policy_version": "gemini-stage-routing-v1",
+    "transport": "validated Gemini transport",
+    "max_attempts_per_logical_operation": 2,
+    "max_logical_provider_operations": 8,
+    "retry_policy": "primary slot first; one permitted fallback only after 429; no third attempt"
+  },
+  "browser_scenario": {
+    "creation_count": 1,
+    "design": "one compact asymmetric mounting plate; 96 mm wide, 64 mm deep, 4 mm thick; three mounting holes; one recessed irregular slot arrangement; exactly one printable output",
+    "revision_count": 1,
+    "revision": "change one dimension to 100 mm and add one bounded recessed 8 mm by 4 mm slot near the upper-right feature group",
+    "protected_facts": ["one output identity", "three mounting holes", "specified source/plan requirements", "accepted parent revision relationship"],
+    "restart": "one API restart while the durable workflow is nonterminal, followed by reconciliation and continued browser polling; no duplicate browser creation, provider operation, or worker job"
+  },
+  "success_conditions": [
+    "UUID creation identity and durable workflow URL",
+    "requirements, plan, provider attempts, worker execution, semantic verification, and candidate output",
+    "STEP/STL/source artifacts, package, download, and stable URL after refresh",
+    "one accepted parent and one distinct revised workflow UUID with preserved output identity",
+    "credential boundary scan passes",
+    "production feature flag remains disabled by default"
+  ],
+  "stop_conditions": [
+    "first provider, worker, API restart, credential, or browser boundary failure",
+    "any leaked credential value",
+    "unexpected second creation or unbounded revision/provider operation",
+    "ambiguous replay or duplicate durable operation"
+  ],
+  "provider_calls_authorized": true
+}

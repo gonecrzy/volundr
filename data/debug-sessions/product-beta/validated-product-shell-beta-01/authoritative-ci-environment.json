@@ -1,0 +1,23 @@
+{
+  "schema_version": "authoritative-ci-environment-v1",
+  "repository": "ssh://git@10.1.10.204:222/gonecrzy69/volundr.git",
+  "remote_kind": "gitea",
+  "authoritative_branch": "main",
+  "local_head_before_live": "f4b79011e15992faea020094bd68e62dfa410192",
+  "origin_main": "f4b79011e15992faea020094bd68e62dfa410192",
+  "gitea_version": "unavailable through the permitted SSH boundary",
+  "actions_enabled": "unknown; server UI/API was not reachable",
+  "api_or_page_access": "unavailable; SSH port forwarding was administratively prohibited",
+  "workflow_directories": {
+    ".gitea/workflows": "absent",
+    ".github/workflows": ["application-integrity.yml"]
+  },
+  "runner_availability": "unknown; no runner/configuration endpoint was reachable",
+  "operator_access": "SSH repository authentication only; Gitea reports no shell access",
+  "classification": "gitea_ci_access_unavailable",
+  "evidence": [
+    "SSH banner identified Gitea and denied shell access.",
+    "Read-only API/page access was unavailable through the allowed connection boundary.",
+    "The remote main ref matched local main before live smoke."
+  ]
+}
