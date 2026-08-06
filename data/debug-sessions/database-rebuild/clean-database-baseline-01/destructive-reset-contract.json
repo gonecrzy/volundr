@@ -1,0 +1,22 @@
+{
+  "administrative_database_denylist_enforced": true,
+  "advisory_lock": "data/.volundr-reset.lock",
+  "allowed_environments": [
+    "development",
+    "test",
+    "staging"
+  ],
+  "destructive_paths": [
+    "data/app.db",
+    "data/app.db-wal",
+    "data/app.db-shm"
+  ],
+  "dry_run_default": true,
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "exact_database_confirmation_required": true,
+  "explicit_destructive_flag_required": true,
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "production_case_insensitive_refusal": true,
+  "status": "passed",
+  "writer_and_shared_mount_checks_fail_closed": true
+}

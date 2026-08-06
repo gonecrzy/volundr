@@ -1,0 +1,7 @@
+{
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "fixture_assertion": "durable running workflow is reconciled to a safe failure after restart",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "real_staging_workflow_present": false,
+  "status": "fixture_contract_passed_real_flow_not_applicable"
+}

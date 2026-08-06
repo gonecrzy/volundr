@@ -1,0 +1,9 @@
+{
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "http_status": 200,
+  "response_shape": "empty list",
+  "route": "GET /api/projects",
+  "status": "passed",
+  "validated_flag_default": false
+}

@@ -1,0 +1,20 @@
+{
+  "database_name": "app.db",
+  "database_target": "sqlite:///<redacted>/app.db",
+  "default_validated_cadquery_flow_enabled": false,
+  "destructive_scope": [
+    "current local non-production Volundr SQLite database file and SQLite sidecars only"
+  ],
+  "environment": "staging",
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "host_classification": "local-docker-compose",
+  "protected_scope": [
+    "production/shared databases",
+    "Git history and refs",
+    "committed evidence",
+    "artifact quarantine contents"
+  ],
+  "schema": "main",
+  "status": "passed"
+}

@@ -1,0 +1,18 @@
+{
+  "committed_changes": [
+    {
+      "commit_message": "Add guarded non-production database reset workflow",
+      "scope": "reset tool, focused tests, operator documentation"
+    },
+    {
+      "commit_message": "Align fresh database schema with application models",
+      "scope": "0039 migration and fresh-database drift regression test"
+    }
+  ],
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "migration_ownership": "new 0039 migration owns the model/schema boundary discovered by fresh audit",
+  "pending_cycle": "Verify clean database staging baseline",
+  "source_aligned_images_rebuilt": true,
+  "status": "passed"
+}

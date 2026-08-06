@@ -1,0 +1,15 @@
+{
+  "base": "base",
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "head": "0039_align_fresh_database_schema",
+  "intermediate_validated_migrations": [
+    "0037_validated_cadquery_workflow",
+    "0038_validated_cadquery_hardening"
+  ],
+  "manual_schema_or_stamp_used": false,
+  "migration_mode": "empty_database_upgrade",
+  "post_upgrade_current": "0039_align_fresh_database_schema",
+  "post_upgrade_row_counts_are_empty_except_alembic_version": true,
+  "status": "passed"
+}

@@ -1,0 +1,21 @@
+{
+  "action": "recoverable_quarantine_move",
+  "after": {
+    "artifact_root_bytes": 0,
+    "artifact_root_mode": "0755"
+  },
+  "artifact_root": "data/jobs",
+  "before": {
+    "bytes": 44082317,
+    "committed_files": false,
+    "directory_count": 441,
+    "file_count": 914,
+    "shared_mount": false
+  },
+  "committed_wave_evidence_preserved": true,
+  "database_backup_preserved": true,
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "quarantine_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01/artifact-quarantine-20260806T012346Z",
+  "status": "passed"
+}

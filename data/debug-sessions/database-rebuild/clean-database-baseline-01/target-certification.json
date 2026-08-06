@@ -1,0 +1,12 @@
+{
+  "administrative_target": false,
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "other_volundr_project_mounts": [],
+  "production_or_shared_target": false,
+  "status": "passed",
+  "target": "sqlite:///<redacted>/app.db",
+  "target_is_local_compose_nonproduction": true,
+  "target_name": "app.db",
+  "target_schema": "main"
+}

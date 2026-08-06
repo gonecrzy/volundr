@@ -1,0 +1,16 @@
+{
+  "browser_console_note": "Only expected auth polling errors on an intentionally missing unauthenticated deep link; one WebGL deprecation warning.",
+  "controlled_enabled": {
+    "deep_link_auth_without_actor": 401,
+    "deep_link_missing_workflow_with_actor": 404,
+    "frontend_feature_region_present": true,
+    "route_isolated_from_legacy": true
+  },
+  "default_disabled": {
+    "http_status": 404,
+    "route": "POST /api/validated-cadquery/designs"
+  },
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "status": "passed"
+}

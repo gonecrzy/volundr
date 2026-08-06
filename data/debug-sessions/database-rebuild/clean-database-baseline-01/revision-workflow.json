@@ -1,0 +1,8 @@
+{
+  "deterministic_fixture_contract": "passed in test_validated_cadquery_workflow.py",
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "real_staging_attempted": false,
+  "reason": "No real workflow exists because provider credentials were absent.",
+  "status": "blocked_by_creation_workflow"
+}

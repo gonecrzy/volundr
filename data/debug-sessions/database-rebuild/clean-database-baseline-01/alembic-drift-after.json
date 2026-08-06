@@ -1,0 +1,10 @@
+{
+  "alembic_check_exit": 0,
+  "current_revision": "0039_align_fresh_database_schema",
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "head": "0039_align_fresh_database_schema",
+  "known_nonblocking_warning": "SQLAlchemy table-cycle warning is unchanged and does not produce drift.",
+  "output_summary": "No new upgrade operations detected.",
+  "status": "passed"
+}

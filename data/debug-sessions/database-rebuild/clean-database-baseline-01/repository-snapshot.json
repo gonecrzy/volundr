@@ -1,0 +1,19 @@
+{
+  "branch": "main",
+  "commit_at_evidence_generation": "0022fc5d02213e854b1c6d266ba9715145d100e4",
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "initial_expected_commit": "ead7e4ddae04ecb0103f80df8712bfc8de29114f",
+  "initial_origin_alignment": {
+    "ahead": 0,
+    "behind": 0,
+    "equal": true
+  },
+  "required_cycle_commits": [
+    "Add guarded non-production database reset workflow",
+    "Align fresh database schema with application models",
+    "Verify clean database staging baseline"
+  ],
+  "secret_values_serialized": false,
+  "status": "passed"
+}

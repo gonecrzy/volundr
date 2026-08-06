@@ -1,0 +1,65 @@
+{
+  "blocked": [
+    "real provider-backed creation",
+    "real revision",
+    "real partial sibling failure",
+    "real restart reconciliation",
+    "real package generation"
+  ],
+  "blocker": "No GEMINI_API_KEY_2 primary or GEMINI_API_KEY fallback credential was configured in the controlled staging container.",
+  "completed": [
+    "guarded reset",
+    "base-to-head migration",
+    "fresh schema audit",
+    "0039 alignment and repeated rebuild",
+    "artifact quarantine",
+    "default and controlled routing checks",
+    "fixture contract tests"
+  ],
+  "credential_values_serialized": false,
+  "database": {
+    "artifact_root_bytes": 0,
+    "row_policy": "empty except alembic_version",
+    "target": "sqlite:///<redacted>/app.db"
+  },
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "reports": [
+    "preregistration.json",
+    "repository-snapshot.json",
+    "destructive-reset-contract.json",
+    "reset-dry-run.json",
+    "pre-reset-inventory.json",
+    "target-certification.json",
+    "writer-shutdown-check.json",
+    "reset-execution.json",
+    "migration-base-to-head.json",
+    "fresh-schema-inventory.json",
+    "alembic-drift-before.json",
+    "alembic-drift-after.json",
+    "schema-alignment-decision.json",
+    "bootstrap-results.json",
+    "artifact-reconciliation.json",
+    "application-startup-results.json",
+    "legacy-route-results.json",
+    "validated-route-results.json",
+    "creation-workflow.json",
+    "revision-workflow.json",
+    "partial-output-workflow.json",
+    "restart-recovery.json",
+    "provider-attempts.json",
+    "worker-jobs.json",
+    "package-integrity.json",
+    "production-routing-check.json",
+    "implementation-ledger.json",
+    "final-database-decision.json",
+    "combined-database-rebuild-evidence.json"
+  ],
+  "schema": {
+    "alembic_check": "clean",
+    "application_tables": 44,
+    "current": "0039_align_fresh_database_schema"
+  },
+  "scope": "clean non-production Volundr database rebuild and controlled staging baseline",
+  "status": "insufficient_evidence"
+}

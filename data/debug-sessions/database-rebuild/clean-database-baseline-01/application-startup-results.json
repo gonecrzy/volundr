@@ -1,0 +1,23 @@
+{
+  "api_image_source_aligned": true,
+  "controlled_staging_stack": {
+    "health": 200,
+    "migration_on_startup": false,
+    "ready": 200,
+    "validated_flag": true
+  },
+  "default_stack": {
+    "health": 200,
+    "migration_on_startup": false,
+    "ready": 200,
+    "validated_flag": false
+  },
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "services": [
+    "volundr-api",
+    "volundr-cad-worker",
+    "volundr-web"
+  ],
+  "status": "passed"
+}

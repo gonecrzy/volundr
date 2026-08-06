@@ -1,0 +1,15 @@
+{
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "fresh_rebuild_repeated": true,
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "migration_added": "0039_align_fresh_database_schema",
+  "migration_scope": [
+    "repair null timestamp assumptions",
+    "align component generation-attempt index",
+    "align project-message index",
+    "make project slug index unique"
+  ],
+  "reason": "Fresh 0038 rebuild reproduced 19 model/schema operations.",
+  "required": true,
+  "status": "passed"
+}

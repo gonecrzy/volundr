@@ -1,0 +1,9 @@
+{
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "jobs_root": "data/jobs",
+  "jobs_root_bytes_after_reconciliation": 0,
+  "real_workflow_job_count": 0,
+  "reason": "No provider-backed creation was attempted.",
+  "status": "passed_for_clean_baseline"
+}

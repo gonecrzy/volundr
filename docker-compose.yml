@@ -5,6 +5,7 @@ services:
       context: ./frontend
       args:
         VITE_VOLUNDR_CHAT_FIRST: ${VITE_VOLUNDR_CHAT_FIRST:-true}
+        VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED: ${VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED:-false}
     restart: unless-stopped
     depends_on:
       volundr-api:
@@ -54,7 +55,9 @@ services:
       VOLUNDR_GEMINI_API_BASE_URL: ${VOLUNDR_GEMINI_API_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
       VOLUNDR_SNAPSHOTS_ENABLED: ${VOLUNDR_SNAPSHOTS_ENABLED:-true}
       VOLUNDR_DEVELOPER_TOOLS_ENABLED: ${VOLUNDR_DEVELOPER_TOOLS_ENABLED:-false}
+      VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED: ${VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED:-false}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEY_2: ${GEMINI_API_KEY_2:-}
     ports:
       - "${VOLUNDR_API_PORT:-8000}:8000"
     volumes:

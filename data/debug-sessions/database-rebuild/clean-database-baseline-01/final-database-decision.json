@@ -1,0 +1,14 @@
+{
+  "blocker": "Controlled staging has neither GEMINI_API_KEY_2 nor GEMINI_API_KEY configured.",
+  "database_integrity": "passed",
+  "database_state": "empty clean baseline; no synthetic rows were inserted",
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "legacy_routing": "passed",
+  "next_required_input": "A non-production provider credential pair is required to execute the real creation/revision/partial-output/package flow.",
+  "provider_backed_product_flow": "not_demonstrated",
+  "schema_drift": "passed",
+  "secret_values_serialized": false,
+  "status": "insufficient_evidence",
+  "validated_routing": "passed_for_flag_and_auth_boundary"
+}

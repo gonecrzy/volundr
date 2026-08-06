@@ -1,0 +1,14 @@
+{
+  "active_services": [],
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "open_database_handles": 0,
+  "services_stopped_before_reset": [
+    "volundr-api",
+    "volundr-cad-worker",
+    "volundr-web"
+  ],
+  "shared_projects": [],
+  "status": "passed",
+  "writer_probe_policy": "docker labels, lsof handles, and mount ownership"
+}

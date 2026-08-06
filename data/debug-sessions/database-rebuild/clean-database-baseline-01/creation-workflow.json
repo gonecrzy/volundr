@@ -1,0 +1,8 @@
+{
+  "clean_database_preserved": true,
+  "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
+  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "real_staging_attempted": false,
+  "reason": "Provider credentials were absent in the controlled staging container; no uncredentialed provider call was attempted.",
+  "status": "blocked_by_environment"
+}
