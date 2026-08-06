@@ -1,8 +1,14 @@
 {
   "schema_version": "validated-product-shell-live-smoke-preregistration-v2",
   "status_before_provider_call": "preregistered",
-  "commit": "f4b79011e15992faea020094bd68e62dfa410192",
+  "commit": "ca7a7f016c1361f25f7bb11f5e998a4b3ff441c2",
   "database_migration_head": "0039_align_fresh_database_schema",
+  "application_fix": {
+    "commit": "8e3cb63829d22e5e5399690e0f842b9762aa7455",
+    "boundary": "component_scoped_requirement_trace",
+    "offline_result": "persisted_live_plan_certified_without_blocking_trace_ambiguity",
+    "rerun_justification": "The prior live stop was reproduced as an application-owned trace bug and fixed; no prompt, helper, geometry backend, provider setting, or credential policy changed."
+  },
   "feature_flag": {
     "production_default": false,
     "live_overlay": "VOLUNDR_LIVE_VALIDATED_CADQUERY_FLOW_ENABLED=true",
