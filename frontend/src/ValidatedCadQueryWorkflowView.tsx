@@ -31,6 +31,29 @@ function apiDownloadUrl(apiBase: string, downloadUrl: string): string {
   return downloadUrl.startsWith("/") ? downloadUrl : `${apiBase}${downloadUrl}`;
 }
 
+function readableRequirement(value: unknown): string {
+  return String(value ?? "requirement")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function readableFailure(value: unknown): string {
+  const labels: Record<string, string> = {
+    provider_response_contract_failure: "Provider response format",
+    python_syntax_error: "Source syntax",
+    source_contract_violation: "Source contract",
+    python_name_error: "Source name resolution",
+    python_type_error: "Source type error",
+    cadquery_selector_error: "CadQuery selection",
+    worker_timeout: "Worker timeout",
+    solid_count_mismatch: "Solid count",
+    semantic_requirement_failed: "Design requirement mismatch",
+    semantic_requirement_unverifiable: "Design requirement not proven",
+    repair_budget_exhausted: "Repair budget exhausted",
+  };
+  return labels[String(value)] ?? "Bounded repair step";
+}
+
 export function ValidatedCadQueryWorkflowView({
   apiBase,
   enabled,
@@ -57,6 +80,15 @@ export function ValidatedCadQueryWorkflowView({
   const identities = useMemo(() => createValidatedRequestIdentityStore(), []);
   const currentProjectId = projectId ?? route.projectId;
   const currentWorkflowId = workflowId ?? route.workflowId;
+
+  const executableProvenance = workflow?.provenance ?? {};
+  const executableContract = executableProvenance.executable_design_contract as Record<string, unknown> | undefined;
+  const semanticVerification = (
+    workflow?.verification.semantic_verification ?? executableProvenance.semantic_verification
+  ) as Record<string, unknown> | undefined;
+  const repairHistory = Array.isArray(executableProvenance.repair_history)
+    ? executableProvenance.repair_history.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+    : [];
 
   const clarificationQuestion = useMemo(() => {
     const questions = workflow?.requirements?.clarification_questions;
@@ -256,6 +288,29 @@ export function ValidatedCadQueryWorkflowView({
       ) : (
         <>
           <p className="validated-workflow-summary">{workflowSummary(workflow)}</p>
+          {executableProvenance.source_generation_mode === "complete_source" || executableProvenance.source_generation_mode === "complete_source_revision" ? (
+            <section className="validated-executable-summary" aria-label="Executable CadQuery experiment">
+              <h3>Executable CadQuery experiment</h3>
+              <p>Gemini supplied a complete CadQuery source file. Volundr executed that source and checked the final geometry.</p>
+              <dl>
+                <div><dt>Transport</dt><dd>Gemini API</dd></div>
+                <div><dt>Automatic provider operations</dt><dd>{String(executableProvenance.automatic_provider_operation_count ?? 0)} / {String(executableProvenance.automatic_provider_operation_budget ?? 7)}</dd></div>
+                <div><dt>Current repair level</dt><dd>{repairHistory.length ? readableFailure(repairHistory[repairHistory.length - 1].failure_class) : "Initial generation"}</dd></div>
+                <div><dt>Protected facts</dt><dd>{Array.isArray(executableContract?.protected_facts) ? executableContract.protected_facts.length : 0} recorded</dd></div>
+              </dl>
+              {semanticVerification ? (
+                <div className="validated-executable-checks">
+                  <strong>Final-geometry checklist</strong>
+                  {(["passed", "failed", "unverifiable"] as const).map((status) => {
+                    const values = Array.isArray(semanticVerification[status]) ? semanticVerification[status] : [];
+                    return values.length ? <p key={status}><span>{status === "passed" ? "Passed" : status === "failed" ? "Needs repair" : "Not proven"}</span> {values.map(readableRequirement).join(", ")}</p> : null;
+                  })}
+                </div>
+              ) : null}
+              {executableProvenance.source_generation_mode === "complete_source_revision" && workflow.verification.output_identity_preserved === true ? <p className="validated-executable-preservation">Output identity preserved for this revision.</p> : null}
+              {repairHistory.length ? <div className="validated-executable-history"><strong>Repair history</strong>{repairHistory.map((attempt, index) => <p key={`${String(attempt.operation_id ?? index)}`}>Attempt {String(attempt.attempt_number ?? index + 1)} · {readableFailure(attempt.failure_class)}</p>)}</div> : null}
+            </section>
+          ) : null}
           <div className="validated-workflow-sections">
             <section><h3>Requirements</h3><p>{String(workflow.requirements.purpose ?? workflow.requirements.object_type ?? "Requirements captured")}</p>
               {clarificationQuestion && workflow.state === "awaiting_clarification" ? <div className="validated-workflow-clarification"><label>{clarificationQuestion}<input value={clarification} onChange={(event) => setClarification(event.target.value)} /></label><button type="button" disabled={busy || !clarification.trim()} onClick={() => void submitClarification()}>Submit detail</button></div> : null}
@@ -265,7 +320,7 @@ export function ValidatedCadQueryWorkflowView({
           <div className="validated-output-grid" aria-label="Validated outputs">
             {workflow.outputs.map((output) => <article className="validated-output-card" key={output.output_id}><div><h3>{output.output_id}</h3><span>{outputStateLabel(output.state)}</span></div><p>{output.solid_count == null ? "Solid count pending" : `${output.solid_count} solid${output.solid_count === 1 ? "" : "s"}`} · topology {output.topology_status ?? "pending"}</p><div className="validated-output-artifacts">{artifacts.filter((artifact) => artifact.output_id === output.output_id && artifact.available && artifact.download_url).map((artifact) => <a key={artifact.artifact_id} href={apiDownloadUrl(apiBase, artifact.download_url!)}>Download {artifact.kind.toUpperCase()}</a>)}</div>{output.safe_diagnostic ? <p className="validated-diagnostic">{output.safe_diagnostic}</p> : null}</article>)}
           </div>
-          {workflow.state === "candidate_ready" ? <div className="validated-workflow-actions"><button type="button" disabled={busy} onClick={() => void acceptCandidate()}>Accept candidate</button></div> : null}
+          {workflow.state === "candidate_ready" || workflow.state === "revision_ready" ? <div className="validated-workflow-actions"><button type="button" disabled={busy} onClick={() => void acceptCandidate()}>Accept candidate</button></div> : null}
           {packageArtifact?.download_url ? <a className="download" href={apiDownloadUrl(apiBase, packageArtifact.download_url)}>Download design package</a> : workflow.package_available ? <span className="validated-workflow-package">Design package is being prepared.</span> : workflow.state === "partially_completed" ? <span className="validated-workflow-package">Incomplete package unavailable until every required output passes.</span> : null}
           {workflow.revision_id && workflow.package_available ? <div className="validated-workflow-revision"><h3>Make a bounded revision</h3><label>What should change?<input value={revisionInstruction} onChange={(event) => setRevisionInstruction(event.target.value)} placeholder="Change one dimension and add a feature" /></label><label>New dimension value (optional)<input value={revisionDimension} onChange={(event) => setRevisionDimension(event.target.value)} placeholder="96 mm" /></label><button type="button" disabled={busy || !revisionInstruction.trim()} onClick={() => void startRevision()}>Start revision</button></div> : null}
           {workflow.diagnostics.message ? <p className="validated-diagnostic">{String(workflow.diagnostics.message)}</p> : null}

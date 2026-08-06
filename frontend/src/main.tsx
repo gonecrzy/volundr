@@ -144,6 +144,7 @@ const GEOMETRY_BODY_FAILURE_PREFIXES = [
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_CHAT_FIRST?: string;
   VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED?: string;
+  VITE_VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED?: string;
   VITE_BUILD_ID?: string;
   VITE_BUILD_SHA?: string;
   VITE_BUILD_TIMESTAMP?: string;
@@ -154,6 +155,8 @@ const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).
 const ADVANCED_WORKFLOW_ENABLED = true;
 const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
 const VALIDATED_CADQUERY_FLOW_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false").toLowerCase() === "true";
+const EXECUTABLE_CADQUERY_FLOW_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED ?? "false").toLowerCase() === "true";
+const PRODUCT_VALIDATED_FLOW_ENABLED = VALIDATED_CADQUERY_FLOW_ENABLED || EXECUTABLE_CADQUERY_FLOW_ENABLED;
 const STAGED_WORKFLOW_ENABLED = !CHAT_FIRST_ENABLED;
 const FRONTEND_BUILD_ID = FRONTEND_ENV.VITE_BUILD_ID ?? "frontend-dev";
 const FRONTEND_BUILD_IDENTITY = JSON.stringify({
@@ -827,6 +830,15 @@ function App() {
     : selectedRevision?.status === "succeeded" && selectedRevision.stl_path
       ? `${API_BASE}/revisions/${selectedRevision.id}/stl`
       : null;
+  const validatedStlArtifact = validatedArtifacts.find(
+    (artifact) => artifact.kind === "stl" && artifact.available && artifact.download_url,
+  );
+  const validatedStlUrl = validatedStlArtifact?.download_url
+    ? (validatedStlArtifact.download_url.startsWith("/")
+      ? validatedStlArtifact.download_url
+      : `${API_BASE}${validatedStlArtifact.download_url}`)
+    : null;
+  const viewerStlUrl = validatedStlUrl ?? stlUrl;
   const sourceUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/source` : null;
   const manifestUrl = selectedRevision ? `${API_BASE}/revisions/${selectedRevision.id}/output-manifest` : null;
   const diagnosticBundleUrl = workflowCorrelation.workflowRunId
@@ -843,7 +855,7 @@ function App() {
   const isDraftProject = project?.status === "draft";
   const canCompileSource = source.trim().length > 0;
   const validatedFlowHasDesign = Boolean(validatedWorkflow || validatedRoute.workflowId);
-  const canAskAi = generationPrompt.trim().length > 0 && (!VALIDATED_CADQUERY_FLOW_ENABLED || !validatedFlowHasDesign);
+  const canAskAi = generationPrompt.trim().length > 0 && (!PRODUCT_VALIDATED_FLOW_ENABLED || !validatedFlowHasDesign);
   const canSaveProject = Boolean(project) && hasProjectName;
   const workspaceTitle =
     project && !isDraftProject ? project.name : projectName.trim() || "Untitled draft";
@@ -890,7 +902,7 @@ function App() {
       : !CHAT_FIRST_ENABLED && ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
         ? "Change the design"
         : "Send";
-  const chatPlaceholder = VALIDATED_CADQUERY_FLOW_ENABLED
+  const chatPlaceholder = PRODUCT_VALIDATED_FLOW_ENABLED
     ? validatedFlowHasDesign ? "Use the workflow review controls below" : "Describe the design you want to build"
     : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
       ? "Answer clarification"
@@ -1584,7 +1596,7 @@ function App() {
     setMessage(null);
     setSourceContractError(null);
     try {
-      if (VALIDATED_CADQUERY_FLOW_ENABLED && !validatedFlowHasDesign) {
+      if (PRODUCT_VALIDATED_FLOW_ENABLED && !validatedFlowHasDesign) {
         validatedRequestIdentities.setPending("start_design", "new-design", { name: "Validated design", intent: prompt });
         const next = await validatedApi.startDesign(
           "Validated design",
@@ -1653,7 +1665,7 @@ function App() {
         void recordFrontendWorkflowEvent(currentProject.id, "start_over_branch_created", "conversation", {});
       }
     } catch (error) {
-      if (VALIDATED_CADQUERY_FLOW_ENABLED && isDefinitiveValidatedRequestError(error)) {
+      if (PRODUCT_VALIDATED_FLOW_ENABLED && isDefinitiveValidatedRequestError(error)) {
         validatedRequestIdentities.clear("start_design", "new-design");
       }
       const detail = error instanceof Error ? error.message : "Chat workflow failed";
@@ -2100,7 +2112,7 @@ function App() {
   }
 
   function submitPrompt() {
-    if (VALIDATED_CADQUERY_FLOW_ENABLED && !validatedFlowHasDesign) {
+    if (PRODUCT_VALIDATED_FLOW_ENABLED && !validatedFlowHasDesign) {
       void submitChatFirstMessage();
       return;
     }
@@ -2883,7 +2895,7 @@ function App() {
         validatedWorkflow={
           <ValidatedCadQueryWorkflowView
             apiBase={API_BASE}
-            enabled={VALIDATED_CADQUERY_FLOW_ENABLED}
+            enabled={PRODUCT_VALIDATED_FLOW_ENABLED}
             projectId={validatedRoute.projectId}
             workflowId={validatedRoute.workflowId}
             embedded
@@ -2902,8 +2914,8 @@ function App() {
             artifacts={validatedArtifacts}
           />
         }
-        viewer={<StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />}
-        hasModel={Boolean(stlUrl && selectedRevision?.status === "succeeded")}
+        viewer={<StlViewer stlUrl={viewerStlUrl} highlights={printabilityHighlights} />}
+        hasModel={Boolean(viewerStlUrl)}
         technicalDetails={chatTechnicalDetails}
         snapshotPacket={snapshotPacket}
         revisionComparison={revisionComparison}
