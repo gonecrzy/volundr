@@ -1,0 +1,44 @@
+{
+  "schema_version": "scoped-requirement-trace-boundary-trace-v1",
+  "provider_calls": 0,
+  "transitions": [
+    {
+      "boundary": "user_intent_to_requirement",
+      "persisted": {"raw_evidence":"Place the features asymmetrically","requirement_id":"asymmetric_feature_placement","subject":"features","target":"mounting plate","value":"asymmetric"},
+      "inferred": {"scope":"cross_feature_layout","cardinality":"many"},
+      "observed": "The extracted requirement preserved plural subject and stable identity; no clarification was requested or needed."
+    },
+    {
+      "boundary": "provider_plan_to_trace_inputs",
+      "persisted": {"feature_ids":["mounting_holes_feature_id","recessed_slot_feature_id"],"feature_layout_requirement_ids":["asymmetric_feature_placement"],"output_id":"mounting_plate_output","component_id":"mounting_plate_comp"},
+      "inferred": {"explicit_compatible_feature_set":true,"required_trace_shape":"output/component plus two features"},
+      "observed": "The Plan contains valid multi-target evidence; it does not contain a single explicit trace_target field, but that omission is not material for the persisted multi-feature representation."
+    },
+    {
+      "boundary": "source_contract_to_trace_inputs",
+      "persisted": {"hard_checks_passed":true,"source_sha256":"95e9b2ee7dfd729d2d9374eca5c5be43e8673ae5efba108583ebfe4c5f98ce82","source_feature_symbols":["_ai_feature_mounting_holes_feature_id","_ai_feature_recessed_slot_feature_id"]},
+      "inferred": {"source_ownership_available":true},
+      "observed": "Source generation was accepted by the CadQuery contract and had symbols for both participating features."
+    },
+    {
+      "boundary": "historical_trace_normalization",
+      "persisted": {"candidate_matches":["mounting_holes_feature_id","recessed_slot_feature_id"],"failure_class":"design_artifact_inconsistent"},
+      "inferred": {"cardinality_assumption":"exactly_one_feature","application_owner":"trace_normalization"},
+      "observed": "Historical code rejected the valid set as ambiguous and failed closed before worker submission."
+    },
+    {
+      "boundary": "current_trace_normalization_baseline",
+      "persisted": {"candidate_matches":["mounting_holes_feature_id","recessed_slot_feature_id"],"component_id":"mounting_plate_comp","output_id":"mounting_plate_output"},
+      "inferred": {"normalization_decision":"component_scoped_feature_ambiguity","missing_representation":["feature_ids","validation_target_type"]},
+      "observed": "Current HEAD passes a component/output trace but loses the cross-feature participant set, so it is not a correct final representation."
+    },
+    {
+      "boundary": "current_trace_normalization_after_narrow_fix",
+      "persisted": {"candidate_matches":["mounting_holes_feature_id","recessed_slot_feature_id"],"component_id":"mounting_plate_comp","output_id":"mounting_plate_output"},
+      "inferred": {"scope":"cross_feature_layout","plan_feature_ids":["mounting_holes_feature_id","recessed_slot_feature_id"],"validation_target":{"type":"layout_constraint","id":"asymmetric_feature_placement_layout"}},
+      "observed": "The exact persisted fixture passes pre-execution consistency without a blocking finding, while preserving fail-closed behavior for missing or incompatible target sets."
+    }
+  ],
+  "ownership_result": "application_trace_model_first_incorrect_boundary",
+  "historical_failure_reproduced_offline": true
+}

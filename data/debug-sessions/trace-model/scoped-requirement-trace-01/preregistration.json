@@ -1,0 +1,22 @@
+{
+  "schema_version": "scoped-requirement-trace-preregistration-v1",
+  "status": "offline_investigation",
+  "starting_branch": "main",
+  "starting_head": "8a6f514fb144297bf69343c96869fcff479f4fe6",
+  "remote": "origin/main",
+  "migration_head": "0039_align_fresh_database_schema",
+  "validated_feature_default_enabled": false,
+  "provider_calls_before_optional_confirmation": 0,
+  "recovery_history": "artifact-recovery-history.json",
+  "prior_decision_preserved": "prior-insufficient-evidence.json",
+  "historical_fixture": {
+    "project_id": "88810cf2-2fc4-4deb-8430-8918a7c66234",
+    "workflow_id": "6e56268c-9d84-47c4-866b-924c569ed22a",
+    "revision_id": "d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60",
+    "failure_class": "design_artifact_inconsistent"
+  },
+  "scope": "one recovered historical fixture; no provider behavior, prompts, settings, geometry strategy, worker, browser harness, or schema changes unless proven necessary",
+  "live_confirmation_budget": 1,
+  "live_confirmation_authorized_before_offline_gate": false,
+  "source_modified_at_preregistration": false
+}

@@ -1,0 +1,137 @@
+{
+  "schema_version": "scoped-requirement-trace-exact-offline-replay-v1",
+  "provider_calls": 0,
+  "fixture": {
+    "project_id": "88810cf2-2fc4-4deb-8430-8918a7c66234",
+    "workflow_id": "6e56268c-9d84-47c4-866b-924c569ed22a",
+    "revision_id": "d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60",
+    "requirements_attempt": "85743a6f-c3ba-4cb0-9bca-96593906197c",
+    "plan_attempt": "206fcf31-f8d2-4cc6-b592-61fe30f5d1ea",
+    "invalid_geometry_slot_attempt": "a2e9b559-c4f8-4d20-8479-72f668d54367",
+    "failed_source_attempt": "87917451-1486-41d4-9f02-edcb60431fc3",
+    "bounded_followup_repair_attempt": "f852f4c8-666f-4cf3-ace8-a6108e06cd20"
+  },
+  "persisted_inputs": {
+    "requirement": {
+      "id": "asymmetric_feature_placement",
+      "subject": "features",
+      "target": "mounting plate",
+      "value": "asymmetric",
+      "raw_evidence": "Place the features asymmetrically"
+    },
+    "plan": {
+      "component_id": "mounting_plate_comp",
+      "output_id": "mounting_plate_output",
+      "feature_ids": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+      "layout_requirement_links": {
+        "mounting_holes_feature_id": ["asymmetric_feature_placement"],
+        "recessed_slot_feature_id": ["asymmetric_feature_placement"]
+      },
+      "layout_positions": {
+        "mounting_holes_feature_id": [[15,15,4],[80,20,4],[50,52,4]],
+        "recessed_slot_feature_id": [[30,35,4]]
+      },
+      "validation_target_count": 4
+    },
+    "source": {
+      "source_sha256": "95e9b2ee7dfd729d2d9374eca5c5be43e8673ae5efba108583ebfe4c5f98ce82",
+      "cadquery_contract": "cadquery-v1",
+      "hard_checks_passed": true,
+      "source_feature_symbols": ["_ai_feature_mounting_holes_feature_id", "_ai_feature_recessed_slot_feature_id"]
+    },
+    "persisted_trace": {
+      "requirement_trace_sha256": "6b72838e82a920bb5f35b87f11c68f8311e985770103307bb85666b46e169d03",
+      "status": "trace_ambiguous",
+      "blocking": true,
+      "candidate_matches": ["mounting_holes_feature_id", "recessed_slot_feature_id"]
+    }
+  },
+  "replays": [
+    {
+      "name": "historical_code_replay",
+      "application_commit": "f4b79011e15992faea020094bd68e62dfa410192",
+      "result": {
+        "requirement_id": "asymmetric_feature_placement",
+        "trace_classification": "human_review",
+        "status": "trace_ambiguous",
+        "blocking": true,
+        "component_ids": [],
+        "plan_feature_id": null,
+        "candidate_matches": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+        "pre_execution_passed": false,
+        "first_incorrect_boundary": "design_artifact_inconsistent"
+      },
+      "reproduced": true,
+      "worker_executed": false,
+      "provider_calls": 0
+    },
+    {
+      "name": "current_code_replay_baseline",
+      "application_commit": "8a6f514fb144297bf69343c96869fcff479f4fe6",
+      "result": {
+        "requirement_id": "asymmetric_feature_placement",
+        "trace_classification": "source_trace_required",
+        "status": "source_component_output_trace",
+        "blocking": false,
+        "component_ids": ["mounting_plate_comp"],
+        "output_ids": ["mounting_plate_output"],
+        "plan_feature_id": null,
+        "normalization_decision": "component_scoped_feature_ambiguity",
+        "pre_execution_passed": true
+      },
+      "interpretation": "The existing component-scoped fix suppresses the ambiguity but does not encode the two participating features or a layout validation target.",
+      "provider_calls": 0
+    },
+    {
+      "name": "current_code_replay_after_narrow_fix",
+      "application_commit": "working_tree_after_tdd_fix",
+      "result": {
+        "requirement_id": "asymmetric_feature_placement",
+        "scope": "cross_feature_layout",
+        "trace_classification": "source_trace_required",
+        "status": "source_cross_feature_layout_trace",
+        "blocking": false,
+        "component_ids": ["mounting_plate_comp"],
+        "output_ids": ["mounting_plate_output"],
+        "plan_feature_id": null,
+        "plan_feature_ids": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+        "validation_target_id": "asymmetric_feature_placement_layout",
+        "validation_target_type": "layout_constraint",
+        "pre_execution_passed": true
+      },
+      "interpretation": "The application now represents the explicit compatible feature set without selecting one feature or collapsing the requirement to component scope.",
+      "provider_calls": 0
+    }
+  ],
+  "bounded_repair": {
+    "attempt": "f852f4c8-666f-4cf3-ace8-a6108e06cd20",
+    "persisted_failure_class": "design_plan_invalid",
+    "persisted_error": "proposed_positions layout 'feat_mounting_holes' must declare a positive required_count",
+    "repaired_response_sha256": "bf99412fef214845a70db0d2ca25a1742b029b8605fdb2456fcc4bf101eae22f",
+    "trace_ownership_effect": "none; the repair stopped at Plan validation before source trace normalization"
+  },
+  "provider_fields_vs_application_fields": {
+    "persisted_provider_fields": [
+      "requirement_id",
+      "subject",
+      "target",
+      "value",
+      "feature.requirement_ids",
+      "feature_layouts.feature_id",
+      "feature_layouts.requirement_ids",
+      "feature_layouts.positions",
+      "printable_outputs.id",
+      "printable_outputs.component_ids"
+    ],
+    "application_derived_fields": [
+      "candidate_matches",
+      "component_ids",
+      "trace_classification",
+      "status",
+      "blocking",
+      "normalization_decision",
+      "first_incorrect_boundary"
+    ],
+    "conclusion": "The provider persisted enough information for a valid explicit multi-feature trace; the application-derived normalizer required a single feature or collapsed the set to a component."
+  }
+}

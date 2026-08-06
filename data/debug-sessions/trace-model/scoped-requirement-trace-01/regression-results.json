@@ -1,0 +1,45 @@
+{
+  "schema_version":"scoped-requirement-trace-regression-results-v1",
+  "provider_calls":0,
+  "exact_offline_replay": {
+    "historical_code_reproduced_design_artifact_inconsistent":true,
+    "current_fixed_code_pre_execution_passed":true,
+    "current_fixed_scope":"cross_feature_layout",
+    "current_fixed_feature_ids":["mounting_holes_feature_id","recessed_slot_feature_id"],
+    "current_fixed_output_ids":["mounting_plate_output"]
+  },
+  "focused_suites": {
+    "test_requirement_semantics_alignment.py": {"passed":24},
+    "test_design_artifact_consistency.py": {"passed":24},
+    "test_requirement_driven_contract.py": {"passed":42,"covered_by_full_suite":true}
+  },
+  "full_backend_suite": {
+    "command":"cd backend && PYTHONPATH=.. .venv/bin/pytest -q tests",
+    "passed":1254,
+    "failed":0,
+    "warnings":1,
+    "provider_calls":0
+  },
+  "static_and_schema_gates": {
+    "compileall":"passed",
+    "git_diff_check":"passed",
+    "alembic_current":"0039_align_fresh_database_schema",
+    "alembic_heads":"0039_align_fresh_database_schema",
+    "alembic_check":"passed_no_new_upgrade_operations",
+    "migration_added":false,
+    "frontend_changed":false,
+    "frontend_tests":"not_applicable"
+  },
+  "secret_scan": {
+    "changed_files":"no credential values or provider response bodies",
+    "recovered_raw_artifacts":"not staged; retained only in ignored freeze root",
+    "result":"passed"
+  },
+  "fail_closed_regressions": [
+    "implicit multi-feature candidates remain trace_ambiguous",
+    "empty cross-feature participant set blocks",
+    "incompatible explicit participant set blocks",
+    "component scope does not fabricate a feature target",
+    "relationship scope retains all named participants"
+  ]
+}

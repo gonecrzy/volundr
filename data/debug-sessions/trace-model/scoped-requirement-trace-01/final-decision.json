@@ -1,0 +1,20 @@
+{
+  "schema_version":"scoped-requirement-trace-final-decision-v1",
+  "decision":"scoped_trace_model_ready_offline_confirmation_deferred",
+  "provider_calls":0,
+  "requirement_id":"asymmetric_feature_placement",
+  "scope":"cross_feature_layout",
+  "first_incorrect_boundary":"application_trace_normalization_cardinality",
+  "provider_ownership":"not_supported_by_recovered_evidence",
+  "application_ownership":"proven",
+  "clarification_required":false,
+  "exact_historical_failure_replayed":true,
+  "exact_current_fixture_passes_offline":true,
+  "fail_closed_behavior_preserved":true,
+  "migration_added":false,
+  "production_default_enabled":false,
+  "live_confirmation":"deferred",
+  "prior_insufficient_evidence":"preserved in prior-insufficient-evidence.json",
+  "prior_live_decision":"preserved at data/debug-sessions/product-beta/validated-product-shell-beta-01/final-decision.json",
+  "required_next_state":"commit and push the narrow offline correction; do not run a provider workflow"
+}

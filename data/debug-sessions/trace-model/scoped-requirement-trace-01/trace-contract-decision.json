@@ -1,0 +1,28 @@
+{
+  "schema_version": "scoped-requirement-trace-contract-decision-v1",
+  "status":"application_owned_narrow_contract_fix_implemented_offline",
+  "provider_calls":0,
+  "scope":"cross_feature_layout",
+  "minimal_representation": {
+    "requirement_id":"asymmetric_feature_placement",
+    "scope":"cross_feature_layout",
+    "component_ids":["mounting_plate_comp"],
+    "output_ids":["mounting_plate_output"],
+    "feature_ids":["mounting_holes_feature_id","recessed_slot_feature_id"],
+    "cardinality":"many",
+    "validation_target":{"type":"layout_constraint","id":"asymmetric_feature_placement_layout"}
+  },
+  "invariants": [
+    "canonical requirement identity remains stable",
+    "output identity remains authoritative",
+    "feature-scoped requirements still require exactly one compatible feature",
+    "component-scoped requirements do not fabricate a feature ID",
+    "relationship and cross-feature requirements preserve all explicit participants",
+    "empty, incompatible, or implicit multi-target sets fail closed",
+    "multiple compatible candidates without explicit multi-target semantics remain ambiguous",
+    "provider omission remains distinguishable from application representation failure"
+  ],
+  "implementation_boundary":"existing requirement_trace_contract normalization; corrected at the first application classify-scope boundary; no provider, prompt, geometry, worker, frontend, or database schema change",
+  "migration":"none",
+  "live_confirmation":"deferred until all offline gates pass; at most one creation workflow"
+}

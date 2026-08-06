@@ -1,0 +1,37 @@
+{
+  "schema_version":"scoped-requirement-trace-implementation-ledger-v1",
+  "status":"offline_complete_pending_commit_and_push",
+  "provider_calls":0,
+  "changed_files": [
+    "backend/app/services/projects/requirement_trace_contract.py",
+    "backend/tests/test_requirement_semantics_alignment.py"
+  ],
+  "change_summary": [
+    "preserve feature_layouts at the requirement trace boundary",
+    "infer cross_feature_layout only from explicit scope or explicit multi-feature layout links",
+    "represent all participating feature IDs, component/output IDs, and a layout validation target",
+    "reject empty, incompatible, and implicit ambiguous target sets",
+    "allow explicit component scope without inventing a feature ID",
+    "retain all named relationship participants"
+  ],
+  "unchanged_foundation": [
+    "provider model/profile/settings/prompts",
+    "geometry strategy/backend/helpers",
+    "worker architecture",
+    "browser harness and credential policy",
+    "database schema",
+    "production-disabled feature default"
+  ],
+  "recovered_artifacts": {
+    "freeze_root":"/tmp/volundr-trace-model-recovery.Eb1ddC",
+    "staged":false,
+    "hash_manifest":"persisted-fixture-inventory.json"
+  },
+  "historical_records": {
+    "prior_insufficient_evidence_preserved":true,
+    "prior_live_decision_rewritten":false,
+    "historical_failure_rewritten":false
+  },
+  "commit_message":"Support scoped requirement trace validation",
+  "live_confirmation":"not run because the current instruction requires provider calls to remain zero"
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version":"scoped-requirement-trace-live-confirmation-preregistration-v1",
+  "status":"deferred_until_offline_gate",
+  "provider_calls":0,
+  "authorized_workflows":0,
+  "maximum_future_workflows":1,
+  "scenario":"unchanged recovered asymmetric mounting plate fixture",
+  "required_offline_gates":["exact replay","scope/cardinality tests","backend suite","Alembic checks","clean committed worktree","provider calls remain zero"],
+  "stop_conditions":["any provider/worker/browser/credential boundary failure","any fixture mutation","any second creation"],
+  "production_default_enabled":false
+}

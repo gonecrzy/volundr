@@ -1,0 +1,187 @@
+{
+  "schema_version": "scoped-requirement-trace-persisted-fixture-inventory-v1",
+  "provider_calls_during_current_investigation": 0,
+  "recovery_freeze": {
+    "root": "/tmp/volundr-trace-model-recovery.Eb1ddC",
+    "protection": "ignored temporary directory",
+    "hash_algorithm": "sha256",
+    "file_count": 70,
+    "total_bytes": 3422871,
+    "files": [
+      {"path":"bounded-repair/data/app.db","sha256":"650bbb724494f7d1cac2170e2fde48c69c38a0f12abbacfd3c5debb810fcfc6d"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/18a642af-7931-4081-8fb1-69e1aaf88543/chain.json","sha256":"edda18f4ec6693af191fe3afa45ad1377f9c95796917e73ce7fe712202a2cd6d"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/18a642af-7931-4081-8fb1-69e1aaf88543/design-spec.json","sha256":"058639a1fd95efc1fec4e0b7d76349f3202b22faf4daa27dd815d5056ac9eff6"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/18a642af-7931-4081-8fb1-69e1aaf88543/prompt.txt","sha256":"6bd94eb0e25e2bd2d2f372e46c5669807290a9904ba9b972e76c0759ccd3a42a"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/18a642af-7931-4081-8fb1-69e1aaf88543/raw-output.txt","sha256":"8558c0db6e9d783fe9a64502d9b84d3aa6ea7eeebc2ff883a9bec6b1b7f54ee9"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/18a642af-7931-4081-8fb1-69e1aaf88543/request.json","sha256":"10fa8fcdbbb992add87baf8de5a5520ed4258be9f094d19632d0d842b4e78593"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/chain.json","sha256":"e99e93f8b6b41aa9dd9bf9c94b29fe79c1be220a800158caff5a6f00173a3860"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/parsed-design-spec.json","sha256":"058639a1fd95efc1fec4e0b7d76349f3202b22faf4daa27dd815d5056ac9eff6"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/prompt.txt","sha256":"eb53366f1d24fa3c0655079cd1062804c5a887485ea8f7351aae3aa8a4bb98ab"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/provider-normalized.json","sha256":"f50099174409436baad2b2442a6c761aa6319c71c74aa20ce97d1aa7f7296cef"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/provider-parsed.json","sha256":"f50099174409436baad2b2442a6c761aa6319c71c74aa20ce97d1aa7f7296cef"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/raw-output.txt","sha256":"c58d05ffe7b834d1dc2f4e26b83fe29e7ed32e26db3d26ba14f9e461d71ce8bc"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/9eefc248-7f36-42fd-8df0-8dab236288db/request.json","sha256":"55900e0f7afb2fbaeb91ffea5440cc1fc8dbd5f9b21f311266ce129e218f0fcf"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/chain.json","sha256":"b374c1c8c32510e9ebce909d929d05d83b1702f99283f36cb0b85b4c7f678ee9"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/design-spec.json","sha256":"058639a1fd95efc1fec4e0b7d76349f3202b22faf4daa27dd815d5056ac9eff6"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/prompt.txt","sha256":"7245fc542b57484ab64f46482059174336989dfff2556894d084ad3f9e89277e"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/provider-normalized.json","sha256":"bf99412fef214845a70db0d2ca25a1742b029b8605fdb2456fcc4bf101eae22f"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/provider-parsed.json","sha256":"bf99412fef214845a70db0d2ca25a1742b029b8605fdb2456fcc4bf101eae22f"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/provider-repaired.json","sha256":"bf99412fef214845a70db0d2ca25a1742b029b8605fdb2456fcc4bf101eae22f"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/raw-output.txt","sha256":"d927281ab949cbc9afdf94831e0681f23980063e9eebaa485d9f50a66c23c82b"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/generation-runs/f852f4c8-666f-4cf3-ace8-a6108e06cd20/request.json","sha256":"8a91fbbe55d9578a6563b170ee83213c5e52b11c9ccfeb1fa9e9c7063f972ff1"},
+      {"path":"bounded-repair/data/fe44bb9a-d862-410e-a4b5-c1aeededa3ac/workflow-runs/fe811101-7c91-4272-ae99-2f76b8344558/planning/route-decision.json","sha256":"d67c920f9bf664eb9b283f90c1c22197fbf1896297d06c29f7a06d4d2d9b95a7"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/chain.json","sha256":"14dd899421adce85e53095772902b37168f68759aca9f68b2a2d7f8d69631b00"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/design-spec.json","sha256":"e07eef48efa3378f66abfe8bdbfca1c313a15c606e9d7900597a8ddd753f495f"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/parsed-design-plan.json","sha256":"28c29b5f61f07b8a5cedac68954cba6ea7aeb0472ddc1bd86c22923b3abee151"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/plan-normalized.json","sha256":"28c29b5f61f07b8a5cedac68954cba6ea7aeb0472ddc1bd86c22923b3abee151"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/plan-original.json","sha256":"b53621aaf5a5b3bf1eff855d969b2e94c3097b06be890f1aadae5f003b624f3e"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/prompt.txt","sha256":"9df56edd15f38a9529b10056f594524947c1263f3ad4fbffb463d260df407273"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/provider-normalized.json","sha256":"b53621aaf5a5b3bf1eff855d969b2e94c3097b06be890f1aadae5f003b624f3e"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/provider-parsed.json","sha256":"b53621aaf5a5b3bf1eff855d969b2e94c3097b06be890f1aadae5f003b624f3e"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/raw-output.txt","sha256":"26267be5ac551010df40531847f47a4781a71154d6bffc746d6aa5c46313c89a"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/206fcf31-f8d2-4cc6-b592-61fe30f5d1ea/request.json","sha256":"fb547f92b87ad24121380431ee7f4abf51deb57701f6a154e9aa5db13477a88c"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/chain.json","sha256":"dfd44be05180c9deb6b2ae817e30086ade4f45f4fa70d1606d51ab23f0194812"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/parsed-design-spec.json","sha256":"e07eef48efa3378f66abfe8bdbfca1c313a15c606e9d7900597a8ddd753f495f"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/prompt.txt","sha256":"eb53366f1d24fa3c0655079cd1062804c5a887485ea8f7351aae3aa8a4bb98ab"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/provider-normalized.json","sha256":"718a79c0908b74ae29c14465f9fb0800ffd25ec8eb67a4b63a6087e7f0c61f39"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/provider-parsed.json","sha256":"718a79c0908b74ae29c14465f9fb0800ffd25ec8eb67a4b63a6087e7f0c61f39"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/raw-output.txt","sha256":"203f464fcc9000a395495c1cf9b0c06d517a0aa60be7ec9726413bed1c2c2541"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/85743a6f-c3ba-4cb0-9bca-96593906197c/request.json","sha256":"55900e0f7afb2fbaeb91ffea5440cc1fc8dbd5f9b21f311266ce129e218f0fcf"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/chain.json","sha256":"98c063f93f63daa010675cdf9a22d7cbe085446883aadc7a1576f7fb99b79c8c"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/design-plan.json","sha256":"28c29b5f61f07b8a5cedac68954cba6ea7aeb0472ddc1bd86c22923b3abee151"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/design-spec.json","sha256":"e07eef48efa3378f66abfe8bdbfca1c313a15c606e9d7900597a8ddd753f495f"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/extracted-source.py","sha256":"95e9b2ee7dfd729d2d9374eca5c5be43e8673ae5efba108583ebfe4c5f98ce82"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/geometry-bodies-original.json","sha256":"40f4078ef6b3588401a9a93ea09dfabb873fe955eb60e2c4f0726244da7f4d10"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/geometry-bodies.json","sha256":"40f4078ef6b3588401a9a93ea09dfabb873fe955eb60e2c4f0726244da7f4d10"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/geometry-bodies.py","sha256":"90c86d41e8a419783cf4bacc4cca0769d5ee0e861150a0d1d48b2256918b6a99"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/prompt.txt","sha256":"96fb4902e355d1f8e3b792d074aa09109cf664e046c8e7623dce3889a6cc9d59"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/provider-normalized.json","sha256":"40f4078ef6b3588401a9a93ea09dfabb873fe955eb60e2c4f0726244da7f4d10"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/provider-parsed.json","sha256":"40f4078ef6b3588401a9a93ea09dfabb873fe955eb60e2c4f0726244da7f4d10"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/raw-output.txt","sha256":"26421f697d5f7e237b9ef70613eb9a7176fce017ff9c444d82c92799ee572de2"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/request.json","sha256":"576a92f356b8c71877337b646e4120ed6dfe9c323b95ae48e7aa42ebe41a7ae0"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/scaffold-manifest.json","sha256":"bed0bfadf303d8e548b03b8d75bbbaaa49d39ab5304395c01d2e72c9851c1412"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/87917451-1486-41d4-9f02-edcb60431fc3/source-contract.json","sha256":"c2a1a4609cca03f88184bf361be67a6a50bde8c0cb47ca9e5b453710de82488e"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/chain.json","sha256":"77cfdab5c4ca67a2c51a7d574efdeb7d638512a30b2e5f5d4e2ea9f3ba776c4a"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/design-plan.json","sha256":"28c29b5f61f07b8a5cedac68954cba6ea7aeb0472ddc1bd86c22923b3abee151"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/design-spec.json","sha256":"e07eef48efa3378f66abfe8bdbfca1c313a15c606e9d7900597a8ddd753f495f"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/prompt-context-pack.json","sha256":"d8b983c81cfc07fcf08e26a5d0798b9b2b11d4d49230c0df83aafdb26bdab8bb"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/prompt.txt","sha256":"d46b1ee891e4900f18ddab790617c8a16014c166edc1dd0e485ffe0a560ab122"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/provider-contract-manifest.json","sha256":"33fd4fa858d1fb0de5826491ff1647fd7d4a227aeba04ee35f079a81b4ec5f49"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/raw-output.txt","sha256":"1ab218646512c5db588663be49d46fc6c6c276b91fa01da03b8dfc62b4ae0976"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/generation-runs/a2e9b559-c4f8-4d20-8479-72f668d54367/request.json","sha256":"d67e7fa29ff7e2218a4cb27af1298130b64fd788431447350ff798304db38830"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/revisions/d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60/ai-output.txt","sha256":"26421f697d5f7e237b9ef70613eb9a7176fce017ff9c444d82c92799ee572de2"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/revisions/d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60/metadata/design-artifact-consistency.json","sha256":"b69dbef7a38c175a0c400255d5aecfe875bb609fde94e6d5f7fda2acd5e7ac4c"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/revisions/d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60/metadata/requirement-trace-normalized.json","sha256":"6b72838e82a920bb5f35b87f11c68f8311e985770103307bb85666b46e169d03"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/revisions/d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60/metadata/requirement-trace-original.json","sha256":"351922138ac7ef8463db1218acdbf5024af37bde3853a89a2e2e42f3b8897abf"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/revisions/d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60/source.py","sha256":"95e9b2ee7dfd729d2d9374eca5c5be43e8673ae5efba108583ebfe4c5f98ce82"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/workflow-runs/0e2aec9d-0558-4789-b405-ed47d65c9f5c/planning/geometry-execution-context.json","sha256":"1442e9a8d6f74d5dca25af69266a5c8653ce94c8c9f8a43d384e230fab1c8e26"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/workflow-runs/0e2aec9d-0558-4789-b405-ed47d65c9f5c/planning/provider-contract-manifest.json","sha256":"97112bbee2fde7ce473e59ea3ff6d921744bec15b8d3af220b5d162d9bf16d24"},
+      {"path":"first-run/data/88810cf2-2fc4-4deb-8430-8918a7c66234/workflow-runs/0e2aec9d-0558-4789-b405-ed47d65c9f5c/planning/route-decision.json","sha256":"90cc2f71bec6439611bdb864e48d1a7daa33465f538c5c063ae5c5757790dd3c"},
+      {"path":"first-run/data/app.db","sha256":"49cb35ccb9e001a95c96d51dbcab6b786045c40a9c30837f35e07a0cd99fec6a"}
+    ]
+  },
+  "persisted_fields": {
+    "historical_browser_evidence": {
+      "workflow_id": "6e56268c-9d84-47c4-866b-924c569ed22a",
+      "project_id": "88810cf2-2fc4-4deb-8430-8918a7c66234",
+      "revision_id": "d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60",
+      "failure_class": "design_artifact_inconsistent",
+      "worker_submitted": false,
+      "originating_commit": "f4b79011e15992faea020094bd68e62dfa410192",
+      "failure_evidence_commit": "147cab293232618d4e886828f152dba2449c2551"
+    },
+    "requirements": {
+      "requirement_id": "asymmetric_feature_placement",
+      "type": "orientation",
+      "kind": "orientation",
+      "object_type": "feature",
+      "subject": "features",
+      "target": "mounting plate",
+      "operator": "qualitative",
+      "value": "asymmetric",
+      "source": "user",
+      "protected": true,
+      "raw_evidence": "Place the features asymmetrically"
+    },
+    "plan": {
+      "component_id": "mounting_plate_comp",
+      "output_id": "mounting_plate_output",
+      "feature_ids": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+      "feature_layout_ids": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+      "feature_layout_requirement_ids": ["asymmetric_feature_placement"],
+      "relationship_count": 2,
+      "validation_target_count": 4,
+      "explicit_requirement_ids_on_both_features": true
+    },
+    "source": {
+      "contract": "cadquery-v1",
+      "hard_checks_passed": true,
+      "source_sha256": "95e9b2ee7dfd729d2d9374eca5c5be43e8673ae5efba108583ebfe4c5f98ce82",
+      "component_id": "mounting_plate_comp",
+      "output_id": "mounting_plate_output",
+      "feature_symbols": [
+        "_ai_feature_mounting_holes_feature_id",
+        "_ai_feature_recessed_slot_feature_id"
+      ]
+    },
+    "historical_normalized_trace": {
+      "requirement_id": "asymmetric_feature_placement",
+      "status": "trace_ambiguous",
+      "blocking": true,
+      "candidate_matches": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+      "trace_classification": "human_review",
+      "trace_sha256": "6b72838e82a920bb5f35b87f11c68f8311e985770103307bb85666b46e169d03"
+    },
+    "generation_attempts": [
+      {"id":"85743a6f-c3ba-4cb0-9bca-96593906197c","attempt_number":1,"stage":"requirements","status":"succeeded","provider_response":"valid_after_normalization"},
+      {"id":"206fcf31-f8d2-4cc6-b592-61fe30f5d1ea","attempt_number":2,"stage":"compact_plan","status":"succeeded","provider_response":"valid"},
+      {"id":"a2e9b559-c4f8-4d20-8479-72f668d54367","attempt_number":3,"stage":"source_generation","status":"started","provider_response":"invalid_json"},
+      {"id":"87917451-1486-41d4-9f02-edcb60431fc3","attempt_number":4,"stage":"source_generation_legacy_fallback","status":"failed","failure_class":"design_artifact_inconsistent","provider_response":"valid_after_normalization"},
+      {"id":"9eefc248-7f36-42fd-8df0-8dab236288db","attempt_number":1,"stage":"followup_requirements","status":"succeeded","provider_response":"valid_after_normalization"},
+      {"id":"18a642af-7931-4081-8fb1-69e1aaf88543","attempt_number":2,"stage":"followup_compact_plan","status":"failed","failure_class":"design_plan_invalid","provider_response":"invalid_json"},
+      {"id":"f852f4c8-666f-4cf3-ace8-a6108e06cd20","attempt_number":3,"stage":"followup_compact_plan_repair","status":"failed","failure_class":"design_plan_invalid","provider_response":"valid_after_normalization"}
+    ],
+    "provider_attempt_identity": {
+      "first_workflow_provider_attempt_ids": [
+        "875cc112-202e-40ff-8ca0-d72980bb554c",
+        "07a6c054-d18a-443a-a579-27ea79bc2dce",
+        "6349f9b6-c53f-43a7-817b-e9a9110a39d3"
+      ],
+      "first_workflow_logical_operation_ids": [
+        "c960b3c8-50ab-4b09-ac40-b1da7d71a426",
+        "ec6943b1-ef38-42fa-a2d1-7faeddbf4848",
+        "522f6c37-58da-4d21-9747-d44e913eee3c"
+      ],
+      "credential_slot": "primary",
+      "provider_profile": "gemini_api",
+      "model": "gemini-3.5-flash-lite"
+    }
+  },
+  "inferred_fields": {
+    "requirement_scope": {
+      "value": "cross_feature_layout",
+      "basis": ["plural subject features", "both Plan feature_layout entries carry the requirement ID", "asymmetric placement is a relation among participants rather than a property of one feature"]
+    },
+    "required_trace_shape": {
+      "value": {"output_ids":["mounting_plate_output"],"component_ids":["mounting_plate_comp"],"feature_ids":["mounting_holes_feature_id","recessed_slot_feature_id"],"cardinality":"many","validation_target_type":"layout_constraint"},
+      "basis": "The persisted Plan identifies one output/component and an explicit compatible two-feature set."
+    },
+    "provider_sufficiency": {
+      "value": "sufficient_for_cross_feature_layout",
+      "basis": "The Plan response persisted explicit requirement IDs on both feature layouts and features; no provider field was discarded before the ambiguity was raised."
+    },
+    "first_incorrect_owner": {
+      "value": "application_trace_normalization_cardinality",
+      "basis": "Historical code replays the failure; current HEAD treats the same two-feature candidate set as component-scoped, which hides rather than represents the cross-feature constraint."
+    },
+    "clarification_required": {
+      "value": false,
+      "basis": "The user intent explicitly names features plural and the Plan explicitly supplies the two participants."
+    },
+    "historical_vs_current_replay": {
+      "historical_origin_f4b7901": "blocking trace_ambiguous with two candidates and design_artifact_inconsistent downstream",
+      "current_head_8a6f514": "nonblocking source_component_output_trace with component_scoped_feature_ambiguity normalization decision",
+      "provider_calls": 0
+    }
+  }
+}

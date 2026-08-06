@@ -1,0 +1,9 @@
+{
+  "schema_version":"scoped-requirement-trace-migration-decision-v1",
+  "migration_required":false,
+  "migration_name":null,
+  "reason":"The corrected scoped trace can be represented in the existing structured requirement_trace artifact; no durable column or schema invariant is missing.",
+  "historical_records":"preserve unchanged and interpret conservatively",
+  "alembic_head":"0039_align_fresh_database_schema",
+  "provider_calls":0
+}

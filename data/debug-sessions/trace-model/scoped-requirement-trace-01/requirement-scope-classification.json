@@ -1,0 +1,36 @@
+{
+  "schema_version": "scoped-requirement-trace-scope-classification-v1",
+  "requirement_id": "asymmetric_feature_placement",
+  "persisted_semantics": {
+    "description":"Asymmetric placement of features",
+    "subject":"features",
+    "target":"mounting plate",
+    "value":"asymmetric",
+    "plan_participants":["mounting_holes_feature_id","recessed_slot_feature_id"]
+  },
+  "classification": {
+    "category":"cross_feature_layout",
+    "valid_target_type":"component_or_output_plus_explicit_set_of_participating_features",
+    "required_trace_cardinality":"many",
+    "validation_owner":"layout_constraint_semantic_verification",
+    "one_feature_id_required":false,
+    "multiple_feature_ids_allowed":true,
+    "output_id_sufficient":false,
+    "clarification_before_planning":false
+  },
+  "category_boundaries": {
+    "feature":{"valid_target_type":"one_named_feature","cardinality":"exactly_one","one_feature_id_required":true,"multiple_feature_ids_allowed":false,"output_id_sufficient":false,"validation_owner":"feature/source_or_geometry"},
+    "component":{"valid_target_type":"component_or_output","cardinality":"component","one_feature_id_required":false,"multiple_feature_ids_allowed":false,"output_id_sufficient":true,"validation_owner":"component/source"},
+    "relationship":{"valid_target_type":"named_relation_plus_all_participants","cardinality":"all_named_participants","one_feature_id_required":false,"multiple_feature_ids_allowed":true,"output_id_sufficient":false,"validation_owner":"relationship_verification"},
+    "cross_feature_layout":{"valid_target_type":"component_or_output_plus_feature_set","cardinality":"many","one_feature_id_required":false,"multiple_feature_ids_allowed":true,"output_id_sufficient":false,"validation_owner":"layout_constraint_semantic_verification"},
+    "output":{"valid_target_type":"output","cardinality":"one_or_explicit_output_set","one_feature_id_required":false,"multiple_feature_ids_allowed":false,"output_id_sufficient":true,"validation_owner":"output_semantics"},
+    "clarification_required":{"valid_target_type":"none_until_user_distinguishes_scope","cardinality":"none","one_feature_id_required":false,"multiple_feature_ids_allowed":false,"output_id_sufficient":false,"validation_owner":"clarification_boundary"}
+  },
+  "ownership_findings": {
+    "provider_omitted_required_data":false,
+    "application_required_wrong_trace_shape":true,
+    "application_discarded_valid_target_set":true,
+    "clarification_should_have_occurred":false,
+    "first_incorrect_owner":"application trace normalization/cardinality"
+  }
+}

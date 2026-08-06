@@ -132,6 +132,7 @@ def build_requirement_trace_manifest(
     normalized_features, normalization_decisions = _normalize_features(design_plan_payload)
     plan_components = _components(design_plan_payload)
     plan_outputs = _outputs(design_plan_payload)
+    feature_layouts = _feature_layouts(design_plan_payload)
     validation_targets = [
         item for item in design_plan_payload.get("validation_targets", []) or []
         if isinstance(item, dict)
@@ -203,6 +204,7 @@ def build_requirement_trace_manifest(
             item=item,
             plan_components=plan_components,
             plan_features=normalized_features,
+            feature_layouts=feature_layouts,
             plan_outputs=plan_outputs,
             patterns=patterns,
             validation_targets=validation_targets,
@@ -227,6 +229,7 @@ def build_requirement_trace_manifest(
         ),
         "components": deepcopy(design_plan_payload.get("components", []) or []),
         "features": deepcopy(design_plan_payload.get("features", []) or []),
+        "feature_layouts": deepcopy(feature_layouts),
         "patterns": deepcopy(design_plan_payload.get("patterns", []) or []),
         "outputs": deepcopy(
             design_plan_payload.get("printable_outputs", design_plan_payload.get("outputs", [])) or []
@@ -236,6 +239,7 @@ def build_requirement_trace_manifest(
     normalized = {
         "schema_version": "requirement-trace-normalized-v1",
         "features": normalized_features,
+        "feature_layouts": deepcopy(feature_layouts),
         "obligations": obligations,
         "requirement_aliases": [
             {
@@ -289,6 +293,7 @@ def _classify_item(
     item: dict[str, Any],
     plan_components: dict[str, dict[str, Any]],
     plan_features: list[dict[str, Any]],
+    feature_layouts: list[dict[str, Any]],
     plan_outputs: dict[str, dict[str, Any]],
     patterns: list[dict[str, Any]],
     validation_targets: list[dict[str, Any]],
@@ -328,6 +333,11 @@ def _classify_item(
     )
     findings: list[dict[str, Any]] = []
     feature_like = feature is not None or explicit_feature_requirement
+    cross_feature_match = _resolve_cross_feature_layout(
+        item,
+        plan_features,
+        feature_layouts,
+    )
 
     if source_trace_required:
         classification = "source_trace_required"
@@ -351,8 +361,158 @@ def _classify_item(
         "function_id": None,
         "output_id": None,
         "validation_target_id": _validation_target_id(target) if target else None,
+        "scope": None,
+        "plan_feature_ids": [],
+        "validation_target": None,
         "normalization_decision": None,
     }
+
+    if cross_feature_match.get("recognized"):
+        obligation["scope"] = "cross_feature_layout"
+        participant_ids = list(cross_feature_match.get("feature_ids", []))
+        obligation["plan_feature_ids"] = participant_ids
+        if cross_feature_match.get("status") == "missing":
+            obligation["blocking"] = True
+            obligation["status"] = "cross_feature_target_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.cross_feature_trace_missing",
+                    f"Cross-feature layout requirement `{requirement_id}` has no explicit compatible participant set.",
+                    item=item,
+                    obligation=obligation,
+                    blocking=True,
+                    metadata={
+                        "candidate_matches": participant_ids,
+                        "normalization_rule": "explicit_cross_feature_layout_set",
+                    },
+                )
+            )
+            return obligation, findings
+        if cross_feature_match.get("status") == "incompatible":
+            obligation["blocking"] = True
+            obligation["status"] = "cross_feature_target_incompatible"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.cross_feature_trace_incompatible",
+                    f"Cross-feature layout requirement `{requirement_id}` contains an incompatible participant set.",
+                    item=item,
+                    obligation=obligation,
+                    blocking=True,
+                    metadata={
+                        "candidate_matches": participant_ids,
+                        "rejected_matches": cross_feature_match.get("rejected", []),
+                        "normalization_rule": "explicit_cross_feature_layout_set",
+                    },
+                )
+            )
+            return obligation, findings
+
+        component_ids = list(cross_feature_match.get("component_ids", []))
+        output_ids = list(output_ids)
+        if not output_ids:
+            output_ids = [
+                output_id
+                for component_id in component_ids
+                if (output_id := _output_for_component(
+                    component_id,
+                    plan_outputs,
+                    source_output_ids,
+                    source_output_components,
+                )) is not None
+            ]
+        obligation["component_ids"] = component_ids
+        obligation["output_ids"] = output_ids
+        obligation["owning_component_id"] = component_ids[0] if len(component_ids) == 1 else None
+        obligation["output_id"] = output_ids[0] if len(output_ids) == 1 else None
+        obligation["validation_target_id"] = f"{requirement_id}_layout"
+        obligation["validation_target"] = {
+            "id": obligation["validation_target_id"],
+            "type": "layout_constraint",
+            "requirement_id": requirement_id,
+            "component_ids": component_ids,
+            "output_ids": output_ids,
+            "feature_ids": participant_ids,
+            "operator": item.get("operator"),
+            "expected_value": item.get("value"),
+            "source": "volundr_requirement_trace",
+        }
+        missing_components = [
+            component_id
+            for component_id in component_ids
+            if component_id not in source_component_ids
+        ]
+        missing_outputs = [
+            output_id for output_id in output_ids if output_id not in source_output_ids
+        ]
+        missing_feature_trace = [
+            feature_id
+            for feature_id in participant_ids
+            if feature_id not in source_feature_components
+            and feature_id not in source_feature_symbols
+        ]
+        if missing_components:
+            obligation["blocking"] = True
+            obligation["status"] = "component_trace_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.feature_function_trace_missing",
+                    f"Cross-feature layout requirement `{requirement_id}` has no generated owning component trace for `{', '.join(missing_components)}`.",
+                    item=item,
+                    obligation=obligation,
+                    component_id=missing_components[0],
+                    blocking=True,
+                )
+            )
+        elif missing_outputs or len(output_ids) != len(component_ids):
+            obligation["blocking"] = True
+            obligation["status"] = "output_trace_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.output_trace_missing",
+                    f"Cross-feature layout requirement `{requirement_id}` has no complete printable output trace.",
+                    item=item,
+                    obligation=obligation,
+                    output_id=missing_outputs[0] if missing_outputs else None,
+                    blocking=True,
+                )
+            )
+        elif missing_feature_trace:
+            obligation["blocking"] = True
+            obligation["status"] = "feature_function_trace_missing"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.feature_function_trace_missing",
+                    f"Cross-feature layout requirement `{requirement_id}` has no source trace for `{', '.join(missing_feature_trace)}`.",
+                    item=item,
+                    obligation=obligation,
+                    feature_id=missing_feature_trace[0],
+                    blocking=True,
+                )
+            )
+        else:
+            obligation["status"] = "source_cross_feature_layout_trace"
+            obligation["normalization_decision"] = "explicit_cross_feature_layout_trace"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.requirement_trace_normalized",
+                    f"Linked cross-feature layout requirement `{requirement_id}` to its explicit Plan feature set.",
+                    item=item,
+                    obligation=obligation,
+                    component_id=component_ids[0] if len(component_ids) == 1 else None,
+                    output_id=output_ids[0] if len(output_ids) == 1 else None,
+                    blocking=False,
+                    normalization_decision="explicit_cross_feature_layout_trace",
+                    metadata={
+                        "candidate_matches": participant_ids,
+                        "selected_match": {
+                            "feature_ids": participant_ids,
+                            "validation_target_id": obligation["validation_target_id"],
+                        },
+                        "normalization_rule": "explicit_cross_feature_layout_set",
+                    },
+                )
+            )
+        return obligation, findings
 
     if feature_match.get("ambiguous"):
         candidate_ids = {
@@ -366,6 +526,8 @@ def _classify_item(
             and feature.get("component_id")
         }
         component_scoped = (
+            str(item.get("scope") or item.get("requirement_scope") or "").lower() == "component"
+            and
             len(component_ids) == 1
             and candidate_components == set(component_ids)
         )
@@ -774,6 +936,8 @@ def _trace_items(
             existing["type"] = str(entry.get("type") or "qualitative_behavior")
             for key in (
                 "kind",
+                "scope",
+                "requirement_scope",
                 "operator",
                 "subject",
                 "object_type",
@@ -782,11 +946,18 @@ def _trace_items(
                 "unit",
                 "raw_evidence",
                 "feature_id",
+                "feature_ids",
                 "target_feature_id",
+                "target_feature_ids",
                 "component_id",
+                "component_ids",
                 "target_component_id",
+                "target_component_ids",
                 "output_id",
+                "output_ids",
                 "target_output_id",
+                "target_output_ids",
+                "validation_target_id",
             ):
                 if entry.get(key) is not None:
                     existing[key] = deepcopy(entry[key])
@@ -820,10 +991,25 @@ def _trace_items(
                 "protected": bool(entry.get("protected")),
                 "evidence": {"description": entry.get("description")},
                 "kind": entry.get("kind"),
+                "scope": entry.get("scope"),
+                "requirement_scope": entry.get("requirement_scope"),
                 "operator": entry.get("operator"),
                 "subject": entry.get("subject"),
                 "object_type": entry.get("object_type"),
                 "target": entry.get("target"),
+                "feature_id": entry.get("feature_id"),
+                "feature_ids": entry.get("feature_ids"),
+                "target_feature_id": entry.get("target_feature_id"),
+                "target_feature_ids": entry.get("target_feature_ids"),
+                "component_id": entry.get("component_id"),
+                "component_ids": entry.get("component_ids"),
+                "target_component_id": entry.get("target_component_id"),
+                "target_component_ids": entry.get("target_component_ids"),
+                "output_id": entry.get("output_id"),
+                "output_ids": entry.get("output_ids"),
+                "target_output_id": entry.get("target_output_id"),
+                "target_output_ids": entry.get("target_output_ids"),
+                "validation_target_id": entry.get("validation_target_id"),
                 "raw_evidence": entry.get("raw_evidence") or entry.get("description"),
             },
         )
@@ -927,6 +1113,119 @@ def _outputs(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
         normalized["component_ids"] = [str(value) for value in components if value]
         result[str(output_id)] = normalized
     return result
+
+
+def _feature_layouts(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for raw in payload.get("feature_layouts", []) or []:
+        if not isinstance(raw, dict):
+            continue
+        layout = deepcopy(raw)
+        feature_id = layout.get("feature_id") or layout.get("owning_feature_id") or layout.get("id")
+        if feature_id:
+            layout["feature_id"] = str(feature_id)
+        result.append(layout)
+    return result
+
+
+def _resolve_cross_feature_layout(
+    item: dict[str, Any],
+    features: list[dict[str, Any]],
+    feature_layouts: list[dict[str, Any]],
+) -> dict[str, Any]:
+    requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
+    scope = str(item.get("scope") or item.get("requirement_scope") or "").lower()
+    explicit_ids_present = "feature_ids" in item or "target_feature_ids" in item
+    explicit_ids = item.get("feature_ids") or item.get("target_feature_ids")
+    if explicit_ids is None:
+        explicit_ids = []
+    if isinstance(explicit_ids, str):
+        explicit_ids = [explicit_ids]
+    explicit_ids = [
+        canonical_requirement_id(str(value))
+        for value in explicit_ids
+        if value
+    ]
+    feature_by_id = {
+        canonical_requirement_id(str(feature.get("id"))): feature
+        for feature in features
+        if feature.get("id")
+    }
+    linked_ids = [
+        canonical_requirement_id(str(feature.get("id")))
+        for feature in features
+        if feature.get("id") and _contains_requirement_id(feature, requirement_id)
+    ]
+    layout_ids = [
+        canonical_requirement_id(str(layout.get("feature_id")))
+        for layout in feature_layouts
+        if layout.get("feature_id") and _contains_requirement_id(layout, requirement_id)
+    ]
+    layout_ids = list(dict.fromkeys(layout_ids))
+    linked_ids = list(dict.fromkeys(linked_ids))
+    recognized = (
+        scope == "cross_feature_layout"
+        or (not scope and len(layout_ids) >= 2)
+    )
+    if not recognized:
+        return {"recognized": False}
+
+    participant_ids = explicit_ids if explicit_ids_present else layout_ids or linked_ids
+    if not participant_ids:
+        return {
+            "recognized": True,
+            "status": "missing",
+            "feature_ids": participant_ids,
+        }
+    missing = [feature_id for feature_id in participant_ids if feature_id not in feature_by_id]
+    if missing:
+        return {
+            "recognized": True,
+            "status": "incompatible",
+            "feature_ids": participant_ids,
+            "rejected": missing,
+        }
+    if len(participant_ids) < 2:
+        return {
+            "recognized": True,
+            "status": "missing",
+            "feature_ids": participant_ids,
+        }
+    component_ids = list(dict.fromkeys(
+        str(feature_by_id[feature_id].get("component_id") or "")
+        for feature_id in participant_ids
+        if feature_by_id[feature_id].get("component_id")
+    ))
+    explicit_components = (
+        item.get("component_ids")
+        or item.get("target_component_ids")
+        or item.get("component_id")
+        or item.get("target_component_id")
+    )
+    if explicit_components is None:
+        explicit_components = []
+    if isinstance(explicit_components, str):
+        explicit_components = [explicit_components]
+    if explicit_components and set(map(str, explicit_components)) != set(component_ids):
+        return {
+            "recognized": True,
+            "status": "incompatible",
+            "feature_ids": participant_ids,
+            "rejected": component_ids,
+        }
+    if len(component_ids) != len({feature_by_id[feature_id].get("component_id") for feature_id in participant_ids}):
+        return {
+            "recognized": True,
+            "status": "incompatible",
+            "feature_ids": participant_ids,
+            "rejected": [feature_id for feature_id in participant_ids if not feature_by_id[feature_id].get("component_id")],
+        }
+    return {
+        "recognized": True,
+        "status": "valid",
+        "feature_ids": participant_ids,
+        "component_ids": component_ids,
+    }
 
 
 def _exposed_control_ids(payload: dict[str, Any]) -> set[str]:

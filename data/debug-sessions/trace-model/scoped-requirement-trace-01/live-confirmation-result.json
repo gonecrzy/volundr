@@ -1,0 +1,10 @@
+{
+  "schema_version":"scoped-requirement-trace-live-confirmation-result-v1",
+  "status":"deferred",
+  "reason":"Offline ownership and correction are resolved, but the current instruction explicitly keeps provider calls at zero.",
+  "provider_calls":0,
+  "creation_workflows_run":0,
+  "historical_fixture_changed":false,
+  "production_default_enabled":false,
+  "offline_gate_passed":true
+}

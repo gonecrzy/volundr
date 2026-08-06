@@ -1,0 +1,58 @@
+{
+  "schema_version": "scoped-requirement-trace-artifact-recovery-history-v1",
+  "history": [
+    {
+      "event": "prior_insufficient_evidence",
+      "record": "prior-insufficient-evidence.json",
+      "decision": "insufficient_evidence",
+      "provider_calls": 0
+    },
+    {
+      "event": "recovered_ignored_runtime_artifacts",
+      "recorded_on": "2026-08-06",
+      "decision_preserved": "insufficient_evidence",
+      "recovery_status": "linked_unambiguously",
+      "provider_calls_during_recovery": 0,
+      "freeze_root": "/tmp/volundr-trace-model-recovery.Eb1ddC",
+      "freeze_protection": "ignored temporary directory; raw runtime artifacts remain outside the repository",
+      "freeze_manifest": {
+        "file_count": 70,
+        "total_bytes": 3422871,
+        "hash_algorithm": "sha256",
+        "manifest_in": "persisted-fixture-inventory.json"
+      },
+      "identities": {
+        "workflow": [
+          "6e56268c-9d84-47c4-866b-924c569ed22a",
+          "ebdbc04e-0c95-40f0-a4d0-3e2e89b979d7"
+        ],
+        "project": [
+          "88810cf2-2fc4-4deb-8430-8918a7c66234",
+          "fe44bb9a-d862-410e-a4b5-c1aeededa3ac"
+        ],
+        "revision": ["d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60"],
+        "attempts": [
+          "85743a6f-c3ba-4cb0-9bca-96593906197c",
+          "206fcf31-f8d2-4cc6-b592-61fe30f5d1ea",
+          "a2e9b559-c4f8-4d20-8479-72f668d54367",
+          "87917451-1486-41d4-9f02-edcb60431fc3",
+          "9eefc248-7f36-42fd-8df0-8dab236288db",
+          "18a642af-7931-4081-8fb1-69e1aaf88543",
+          "f852f4c8-666f-4cf3-ace8-a6108e06cd20"
+        ],
+        "originating_commits": {
+          "harness_origin": "f4b79011e15992faea020094bd68e62dfa410192",
+          "failure_evidence_record": "147cab293232618d4e886828f152dba2449c2551",
+          "current_replay_start": "8a6f514fb144297bf69343c96869fcff479f4fe6"
+        }
+      },
+      "linkage_basis": [
+        "The first recovered database contains the exact persisted workflow, project, revision, generation attempts, provider-attempt rows, and failure state.",
+        "The recovered Plan, source, normalized trace, and design-artifact-consistency metadata use the same project and revision identities as the historical browser evidence.",
+        "The bounded follow-up database and artifacts contain the project and workflow identities recorded by browser-live-creation-followup-02.json.",
+        "The historical preregistration at the failure-evidence commit identifies the originating harness commit and migration head."
+      ],
+      "historical_decision_policy": "Append recovery and replay findings; do not rewrite the prior insufficient-evidence record or the prior live product decision."
+    }
+  ]
+}

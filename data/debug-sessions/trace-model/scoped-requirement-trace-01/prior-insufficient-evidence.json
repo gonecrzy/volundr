@@ -1,0 +1,13 @@
+{
+  "schema_version": "scoped-requirement-trace-prior-insufficient-evidence-v1",
+  "record_status": "preserved_snapshot",
+  "historical_decision": "insufficient_evidence",
+  "historical_decision_time": "2026-08-06",
+  "reason": "The initial offline investigation searched only the tracked debug-session summaries and found no authoritative runtime response bodies or replayable database artifacts.",
+  "provider_calls_during_initial_investigation": 0,
+  "source_changes_during_initial_investigation": false,
+  "historical_live_decision_preserved_at": "data/debug-sessions/product-beta/validated-product-shell-beta-01/final-decision.json",
+  "historical_live_decision_preserved_value": "live_provider_behavior_requires_targeted_followup",
+  "superseded_only_by": "artifact-recovery-history.json",
+  "preservation_rule": "This record is retained unchanged as the prior evidence state; recovery history is appended separately and does not rewrite the prior decision."
+}
