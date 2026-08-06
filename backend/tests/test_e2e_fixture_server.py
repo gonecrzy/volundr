@@ -7,6 +7,9 @@ from fastapi.testclient import TestClient
 from app.testing.e2e_fixture_server import create_e2e_fixture_app
 
 
+ACTOR_HEADERS = {"X-Volundr-Internal-Actor": "volundr-single-user"}
+
+
 def test_fixture_server_persists_real_workflow_and_exposes_bounded_summary(tmp_path: Path) -> None:
     app = create_e2e_fixture_app(tmp_path)
     with TestClient(app) as client:
@@ -28,6 +31,31 @@ def test_fixture_server_persists_real_workflow_and_exposes_bounded_summary(tmp_p
         assert summary.json()["provider_call_count"] == 1
         assert summary.json()["workflow_run_ids"] == [workflow_run_id]
         assert "arbitrary_payload" not in summary.json()
+
+
+def test_fixture_server_exposes_the_validated_product_route_with_fixture_provider(tmp_path: Path) -> None:
+    app = create_e2e_fixture_app(tmp_path)
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/validated-cadquery/designs",
+            headers={**ACTOR_HEADERS, "Idempotency-Key": "fixture-validated-1"},
+            json={"name": "Fixture validated plate", "intent": "Create a printable mounting plate."},
+        )
+
+        assert response.status_code == 201
+        workflow = response.json()
+        assert workflow["project_id"]
+        assert workflow["state"] in {"candidate_ready", "partially_completed", "failed", "verification_failed"}
+        loaded = client.get(
+            f"/api/validated-cadquery/projects/{workflow['project_id']}/designs/{workflow['id']}",
+            headers=ACTOR_HEADERS,
+        )
+        assert loaded.status_code == 200
+        artifacts = client.get(
+            f"/api/validated-cadquery/projects/{workflow['project_id']}/designs/{workflow['id']}/artifacts",
+            headers=ACTOR_HEADERS,
+        )
+        assert artifacts.status_code == 200
 
 
 def test_fixture_server_generates_a_real_candidate_after_plan_approval(tmp_path: Path) -> None:

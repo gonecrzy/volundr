@@ -12,10 +12,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.api.dependencies import get_ai_provider, get_cad_runner, get_data_dir
+from app.api.dependencies import (
+    get_ai_provider,
+    get_cad_runner,
+    get_data_dir,
+    get_validated_actor_id,
+    get_validated_ai_provider,
+)
 from app.api.capabilities import router as capabilities_router
 from app.api.debug_batches import router as debug_batches_router
 from app.api.projects import router as projects_router
+from app.api.validated_cadquery import router as validated_cadquery_router
+from app.core.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.models.revision import Revision
@@ -959,6 +967,7 @@ class FixtureRunner:
 
 def create_e2e_fixture_app(root: Path) -> FastAPI:
     root.mkdir(parents=True, exist_ok=True)
+    settings.validated_cadquery_flow_enabled = True
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     engine = create_engine(
@@ -980,6 +989,7 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
     app.include_router(projects_router)
     app.include_router(capabilities_router)
     app.include_router(debug_batches_router)
+    app.include_router(validated_cadquery_router)
 
     def override_db() -> Generator[Session, None, None]:
         with session_local() as session:
@@ -988,7 +998,9 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_data_dir] = lambda: data_dir
     app.dependency_overrides[get_ai_provider] = lambda: provider
+    app.dependency_overrides[get_validated_ai_provider] = lambda: provider
     app.dependency_overrides[get_cad_runner] = lambda: runner
+    app.dependency_overrides[get_validated_actor_id] = lambda: "volundr-single-user"
 
     @app.get("/health")
     def health() -> dict[str, str]:
