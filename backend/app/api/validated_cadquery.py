@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_cad_runner, get_data_dir, get_validated_actor_id, get_validated_ai_provider
+from app.api.dependencies import get_cad_runner, get_data_dir, get_validated_actor_id, get_workflow_ai_provider
 from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.project import ClarificationAnswersCreate
@@ -20,6 +20,7 @@ from app.schemas.validated_cadquery import (
     ValidatedOutputRead,
 )
 from app.services.validated_cadquery_workflow import ValidatedCadQueryWorkflowService
+from app.services.executable_cadquery.workflow import ExecutableCadQueryWorkflowService
 
 
 router = APIRouter(prefix="/api/validated-cadquery", tags=["validated-cadquery"])
@@ -32,7 +33,12 @@ def _service(
     cad_runner: object | None = None,
     owner_id: str = "anonymous",
 ) -> ValidatedCadQueryWorkflowService:
-    return ValidatedCadQueryWorkflowService(
+    service_type = (
+        ExecutableCadQueryWorkflowService
+        if settings.executable_cadquery_flow_enabled
+        else ValidatedCadQueryWorkflowService
+    )
+    return service_type(
         db=db,
         data_dir=data_dir,
         ai_provider=ai_provider,
@@ -46,12 +52,12 @@ async def start_validated_design(
     payload: ValidatedCadQueryStart,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    ai_provider: object = Depends(get_validated_ai_provider),
+    ai_provider: object = Depends(get_workflow_ai_provider),
     cad_runner: object = Depends(get_cad_runner),
     owner_id: str = Depends(get_validated_actor_id),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> ValidatedWorkflowRead:
-    if not settings.validated_cadquery_flow_enabled:
+    if not (settings.validated_cadquery_flow_enabled or settings.executable_cadquery_flow_enabled):
         raise HTTPException(status_code=404, detail="validated workflow not found")
     try:
         return await _service(db, data_dir, ai_provider, cad_runner, owner_id).start_design(payload, idempotency_key=idempotency_key)
@@ -78,7 +84,7 @@ async def submit_validated_clarification(
     payload: ClarificationAnswersCreate,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    ai_provider: object = Depends(get_validated_ai_provider),
+    ai_provider: object = Depends(get_workflow_ai_provider),
     cad_runner: object = Depends(get_cad_runner),
     owner_id: str = Depends(get_validated_actor_id),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
@@ -196,7 +202,7 @@ async def start_validated_revision(
     payload: ValidatedBoundedRevision,
     db: Session = Depends(get_db),
     data_dir: Path = Depends(get_data_dir),
-    ai_provider: object = Depends(get_validated_ai_provider),
+    ai_provider: object = Depends(get_workflow_ai_provider),
     cad_runner: object = Depends(get_cad_runner),
     owner_id: str = Depends(get_validated_actor_id),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),

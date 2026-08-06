@@ -1,0 +1,12 @@
+{
+  "schema_version": "executable-cadquery-repair-envelope-v1",
+  "repair_level": "L4",
+  "generation_session_id": "session-1",
+  "logical_operation_id": "operation-2",
+  "parent_operation_id": "operation-1",
+  "repair_ordinal": 1,
+  "canonical_output_ids": ["mounting_bracket"],
+  "previous_source_hash": "source-hash",
+  "previous_result_hash": "result-hash",
+  "requested_delta": "Increase the pocket while preserving the body."
+}

@@ -34,6 +34,8 @@ class ModelGenerationRequest:
     geometry_slot_completion: dict[str, Any] | None = None
     preserved_slot_hashes: dict[str, str] = field(default_factory=dict)
     geometry_slot_fallback_reason: str | None = None
+    executable_design_contract: dict[str, Any] | None = None
+    executable_repair_envelope: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

@@ -32,12 +32,12 @@ export default defineConfig({
   webServer: [
     {
       command:
-        `VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false"} VOLUNDR_BUILD_GIT_SHA=${buildSha} VOLUNDR_BUILD_BRANCH=${buildBranch} VOLUNDR_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_BUILD_DIRTY=${buildDirty} VOLUNDR_WORKER_BUILD_GIT_SHA=${buildSha} VOLUNDR_WORKER_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_WORKER_BUILD_DIRTY=${buildDirty} ./scripts/run-fixture-backend.sh`,
+        `VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false"} VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED ?? "false"} VOLUNDR_BUILD_GIT_SHA=${buildSha} VOLUNDR_BUILD_BRANCH=${buildBranch} VOLUNDR_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_BUILD_DIRTY=${buildDirty} VOLUNDR_WORKER_BUILD_GIT_SHA=${buildSha} VOLUNDR_WORKER_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_WORKER_BUILD_DIRTY=${buildDirty} ./scripts/run-fixture-backend.sh`,
       reuseExistingServer: false,
       url: `http://${ports.host}:${ports.apiPort}/health`,
     },
     {
-      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false"} VITE_BUILD_SHA=${buildSha} VITE_BUILD_TIMESTAMP=${buildTimestamp} VITE_BUILD_DIRTY=${buildDirty} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
+      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false"} VITE_VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED ?? "false"} VITE_BUILD_SHA=${buildSha} VITE_BUILD_TIMESTAMP=${buildTimestamp} VITE_BUILD_DIRTY=${buildDirty} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
       reuseExistingServer: false,
       url: `http://${ports.host}:${ports.webPort}`,
     },

@@ -29,6 +29,7 @@ def test_normal_environment_example_has_only_deployment_decisions() -> None:
         "VOLUNDR_CODEX_API_KEY",
         "VOLUNDR_CODEX_MODEL",
         "VOLUNDR_CODEX_API_MODE",
+        "VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED",
     }
 
 

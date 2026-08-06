@@ -1074,11 +1074,11 @@ class ValidatedCadQueryWorkflowService:
         return "\n".join(pieces)
 
     def require_enabled(self) -> None:
-        if not settings.validated_cadquery_flow_enabled:
+        if not (settings.validated_cadquery_flow_enabled or settings.executable_cadquery_flow_enabled):
             raise ValueError("validated CadQuery workflow is disabled")
 
     def _observe_feature_flag(self, workflow: ValidatedCadQueryWorkflow) -> None:
-        if settings.validated_cadquery_flow_enabled:
+        if settings.validated_cadquery_flow_enabled or settings.executable_cadquery_flow_enabled:
             return
         if workflow.state in {"candidate_ready", "revision_ready", "failed", "verification_failed", "partially_completed"}:
             return

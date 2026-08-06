@@ -136,12 +136,32 @@ def build_validated_ai_provider(config: Settings) -> AiProvider:
     )
 
 
+def build_executable_ai_provider(config: Settings) -> AiProvider:
+    """Build the experimental provider without the Codex geometry adapter."""
+
+    configured = config.ai_provider.strip().lower()
+    if configured not in {"gemini_api", "google_gemini_api"}:
+        raise ValueError("executable CadQuery flow requires the Gemini API provider")
+    provider = build_ai_provider(config, validated_transport=True)
+    if not isinstance(provider, GeminiApiProvider):
+        raise ValueError("executable CadQuery flow requires Gemini API transport")
+    return provider
+
+
 def get_validated_ai_provider(provider: AiProvider = Depends(get_ai_provider)) -> AiProvider:
     """Use the existing provider boundary with the validated transport policy."""
 
     if settings.validated_geometry_provider == "gemini_api" and not isinstance(provider, GeminiApiProvider):
         return provider
     return build_validated_ai_provider(settings)
+
+
+def get_workflow_ai_provider(provider: AiProvider = Depends(get_ai_provider)) -> AiProvider:
+    """Keep legacy validated routing unless the experimental route is enabled."""
+
+    if settings.executable_cadquery_flow_enabled:
+        return build_executable_ai_provider(settings)
+    return get_validated_ai_provider(provider)
 
 
 def get_validated_actor_id(
@@ -159,7 +179,7 @@ def get_validated_actor_id(
 
     if x_volundr_internal_actor == VALIDATED_SINGLE_USER_ACTOR_ID:
         return VALIDATED_SINGLE_USER_ACTOR_ID
-    if not settings.validated_cadquery_flow_enabled:
+    if not (settings.validated_cadquery_flow_enabled or settings.executable_cadquery_flow_enabled):
         return "anonymous"
     if settings.validated_api_direct_access_enabled and x_volundr_direct_access == "true":
         return VALIDATED_SINGLE_USER_ACTOR_ID

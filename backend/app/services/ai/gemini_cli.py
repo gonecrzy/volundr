@@ -49,6 +49,7 @@ CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION = "cadquery-geometry-slots-v1"
 CADQUERY_GEOMETRY_SLOTS_COMPLETION_PROMPT_VERSION = "cadquery-geometry-slots-completion-v1"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
+EXECUTABLE_CADQUERY_PROMPT_VERSION = "executable-cadquery-complete-source-v1"
 
 
 class GeminiCliProvider:
@@ -352,6 +353,8 @@ class GeminiCliProvider:
         return self.gemini_ruleset_version
 
     def prompt_template_version_for(self, request: ModelGenerationRequest) -> str:
+        if request.executable_design_contract is not None:
+            return EXECUTABLE_CADQUERY_PROMPT_VERSION
         if request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
             if request.geometry_slot_completion:
                 return CADQUERY_GEOMETRY_SLOTS_COMPLETION_PROMPT_VERSION
@@ -405,6 +408,8 @@ class GeminiCliProvider:
         return self.build_cadquery_prompt(request)
 
     def build_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        if request.executable_design_contract is not None:
+            return self.build_executable_cadquery_prompt(request)
         if request.geometry_contract == GEOMETRY_SLOTS_CONTRACT_VERSION:
             return self.build_geometry_slots_prompt(request)
         if request.generation_contract_version == SCAFFOLD_VERSION or request.geometry_body_diagnostics:
@@ -706,6 +711,48 @@ class GeminiCliProvider:
             ]
         )
         return "\n".join(parts)
+
+    def build_executable_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
+        """Ask Gemini for one complete source envelope without reconstruction."""
+
+        lines = [
+            "You return a complete executable source implementation in CadQuery for Volundr.",
+            "Return JSON only. Do not include Markdown fences or prose outside the JSON object.",
+            "Use schema_version exactly executable-cadquery-response-v1.",
+            "Return one output entry for every canonical output ID, exactly once.",
+            "Each output entry must contain output_id, parameters, and the complete source string.",
+            "The source string must be a complete standalone cadquery-v1 Python module.",
+            "Define the deterministic build(params) entry point and register the final output.",
+            "Return the complete replacement source for every repair; never return a patch.",
+            "Preserve every protected fact, required output, and canonical output ID.",
+            "Use only the imports and calls permitted by the existing cadquery-v1 source contract.",
+            "Do not write files, use network access, subprocesses, dynamic imports, or artifact exporters.",
+            "The design contract states what must be true; choose the CadQuery construction strategy yourself.",
+            "",
+            f"Prompt version: {EXECUTABLE_CADQUERY_PROMPT_VERSION}",
+            "Authoritative executable design contract:",
+            json.dumps(request.executable_design_contract, indent=2, sort_keys=True),
+            "",
+            "User instruction:",
+            request.user_instruction,
+        ]
+        if request.current_source:
+            lines.extend(
+                [
+                    "",
+                    "Previous complete source to replace only when a repair or revision requires it:",
+                    request.current_source,
+                ]
+            )
+        if request.executable_repair_envelope:
+            lines.extend(
+                [
+                    "",
+                    "Structured repair or revision envelope:",
+                    json.dumps(request.executable_repair_envelope, indent=2, sort_keys=True),
+                ]
+            )
+        return "\n".join(lines)
 
     def build_geometry_slots_prompt(self, request: ModelGenerationRequest) -> str:
         """Render the reduced provider-facing slot contract."""

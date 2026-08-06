@@ -18,6 +18,7 @@ from app.api.dependencies import (
     get_cad_runner,
     get_data_dir,
     get_validated_ai_provider,
+    get_workflow_ai_provider,
 )
 from app.api.capabilities import router as capabilities_router
 from app.api.debug_batches import router as debug_batches_router
@@ -44,7 +45,7 @@ from app.services.ai.provider import (
     SourceBriefRequest,
     SourceBriefResult,
 )
-from app.services.cad.cadquery_runner import CadQueryCompileResult, CadQueryOutputResult
+from app.services.cad.cadquery_runner import CadQueryCliRunner, CadQueryCompileResult, CadQueryOutputResult
 from app.services.cad.geometry_bodies import GEOMETRY_BODIES_SCHEMA_VERSION
 from app.services.cad.geometry_slots import GEOMETRY_SLOTS_SCHEMA_VERSION
 from app.services.cad.source_scaffold import SCAFFOLD_VERSION, _component_geometry_name, _feature_geometry_name
@@ -53,6 +54,8 @@ from app.schemas.project import ProjectCreate, RequirementExtractionCreate
 from app.services.projects.service import ProjectService
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.service import DebugBatchService
+from app.services.executable_cadquery.contract import RESPONSE_SCHEMA_VERSION
+from app.services.executable_cadquery.fixtures import valid_mounting_bracket_source
 
 
 PLATE_SOURCE = '''
@@ -737,6 +740,33 @@ class FixtureProvider:
         raise AssertionError("source briefs are not enabled in the initial fixture slice")
 
 
+class ExecutableFixtureProvider(FixtureProvider):
+    """Offline Gemini-shaped provider for the complete-source product path."""
+
+    async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
+        if request.executable_design_contract is None:
+            return await super().generate_cadquery_model(request)
+        source = valid_mounting_bracket_source()
+        if request.executable_repair_envelope and request.executable_repair_envelope.get("repair_level") == "L4":
+            source = source.replace("rect(40.0, 20.0)", "rect(46.0, 24.0)")
+        return ModelGenerationResult(
+            raw_output=json.dumps(
+                {
+                    "schema_version": RESPONSE_SCHEMA_VERSION,
+                    "outputs": [
+                        {
+                            "output_id": "mounting_bracket",
+                            "parameters": {},
+                            "source": source,
+                        }
+                    ],
+                }
+            ),
+            provider="gemini_api",
+            provider_model="fixture-gemini-complete-source",
+        )
+
+
 class FixtureRunner:
     def __init__(self, root: Path) -> None:
         self.root = root
@@ -998,12 +1028,22 @@ class FixtureRunner:
         )
 
 
-def create_e2e_fixture_app(root: Path, *, validated_enabled: bool | None = None) -> FastAPI:
+def create_e2e_fixture_app(
+    root: Path,
+    *,
+    validated_enabled: bool | None = None,
+    executable_enabled: bool | None = None,
+) -> FastAPI:
     root.mkdir(parents=True, exist_ok=True)
     settings.validated_cadquery_flow_enabled = (
         validated_enabled
         if validated_enabled is not None
         else os.environ.get("VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED", "false").lower() == "true"
+    )
+    settings.executable_cadquery_flow_enabled = (
+        executable_enabled
+        if executable_enabled is not None
+        else os.environ.get("VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED", "false").lower() == "true"
     )
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -1012,8 +1052,12 @@ def create_e2e_fixture_app(root: Path, *, validated_enabled: bool | None = None)
     )
     session_local = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     Base.metadata.create_all(engine)
-    provider = FixtureProvider()
-    runner = FixtureRunner(root)
+    provider = ExecutableFixtureProvider() if settings.executable_cadquery_flow_enabled else FixtureProvider()
+    runner = (
+        CadQueryCliRunner(workspace_root=root / "cad-workspace")
+        if settings.executable_cadquery_flow_enabled
+        else FixtureRunner(root)
+    )
 
     app = FastAPI(title="Volundr E2E Fixture API")
     app.add_middleware(
@@ -1036,6 +1080,7 @@ def create_e2e_fixture_app(root: Path, *, validated_enabled: bool | None = None)
     app.dependency_overrides[get_data_dir] = lambda: data_dir
     app.dependency_overrides[get_ai_provider] = lambda: provider
     app.dependency_overrides[get_validated_ai_provider] = lambda: provider
+    app.dependency_overrides[get_workflow_ai_provider] = lambda: provider
     app.dependency_overrides[get_cad_runner] = lambda: runner
 
     @app.get("/health")

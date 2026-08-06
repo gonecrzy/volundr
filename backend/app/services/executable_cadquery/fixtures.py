@@ -116,8 +116,9 @@ def build(params):
         (32.0, -17.0),
         (32.0, 17.0),
     ]).hole(5.0)
+    asymmetric_hole = cq.Workplane("XY").circle(5.0).extrude(16.0).translate((-22.0, 0.0, -8.0))
+    body = body.cut(asymmetric_hole)
     body = body.faces(">Z").workplane().rect(40.0, 20.0).cutBlind(-3.0)
-    body = body.faces(">Z").workplane().pushPoints([(-22.0, 0.0)]).hole(10.0)
     return Product(outputs=(PrintableOutput(
         output_id="mounting_bracket",
         label="Mounting bracket",

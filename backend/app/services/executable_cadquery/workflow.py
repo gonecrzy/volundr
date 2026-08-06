@@ -1,0 +1,649 @@
+"""Experimental Gemini complete-source workflow backed by existing services."""
+
+from __future__ import annotations
+
+from copy import deepcopy
+import json
+from pathlib import Path
+import re
+from typing import Any, Mapping
+
+from app.models.project import Project
+from app.models.revision import Revision
+from app.models.validated_cadquery_workflow import ValidatedCadQueryWorkflow
+from app.schemas.project import ProjectCreate
+from app.schemas.validated_cadquery import ValidatedBoundedRevision, ValidatedCadQueryStart
+from app.services.ai.provider import ModelGenerationRequest
+from app.services.executable_cadquery.contract import (
+    ExecutableCadQueryContractError,
+    parse_executable_cadquery_response,
+    validate_executable_cadquery_design_contract,
+)
+from app.services.executable_cadquery.fixtures import FROZEN_MOUNTING_BRACKET_CONTRACT
+from app.services.executable_cadquery.repair import (
+    build_executable_cadquery_repair_envelope,
+    classify_executable_failure,
+    compare_executable_progress,
+    decide_executable_repair,
+    source_result_hash,
+)
+from app.services.executable_cadquery.semantic import evaluate_executable_cadquery_semantics
+from app.services.projects.service import ProjectService
+from app.services.validated_cadquery_security import safe_relative_artifact_path
+from app.services.validated_cadquery_workflow import ValidatedCadQueryWorkflowService, safe_diagnostic
+
+
+class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
+    """Route complete Gemini source through the existing execution/persistence path."""
+
+    route = "executable-cadquery-v1"
+
+    async def start_design(
+        self,
+        payload: ValidatedCadQueryStart,
+        *,
+        idempotency_key: str | None = None,
+    ):
+        self.require_enabled()
+        operation = self._begin_operation("start_design", idempotency_key, payload.model_dump(mode="json"))
+        if operation.workflow_id:
+            return self.read(operation.workflow_id)
+        if operation.status == "completed":
+            raise ValueError("completed start operation has no linked workflow")
+        project_service = self._project_service()
+        project = None
+        workflow = None
+        try:
+            project = self.db.get(Project, operation.project_id) if operation.project_id else None
+            if project is None:
+                project = project_service.create_project(
+                    ProjectCreate(name=payload.name, original_intent=payload.intent),
+                    commit=False,
+                )
+            workflow = ValidatedCadQueryWorkflow(
+                project_id=project.id,
+                owner_id=self.owner_id,
+                state="requirements_ready",
+                route=self.route,
+                user_instruction=payload.intent,
+                requirements_json=json.dumps({"user_prompt": payload.intent}, sort_keys=True),
+                provenance_json=json.dumps(
+                    {
+                        "selected_route": self.route,
+                        "feature_flag": "VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED",
+                        "feature_flag_enabled": True,
+                        "provider_transport": "gemini_api",
+                        "provider_id": "gemini_api",
+                        "contract_version": "executable-cadquery-design-contract-v1",
+                        "source_generation_mode": "complete_source",
+                        "codex_proxy_used": False,
+                    },
+                    sort_keys=True,
+                ),
+            )
+            self.db.add(workflow)
+            self.db.flush()
+            contract = self._materialize_contract(project.id, workflow.id, ordinal=1)
+            workflow.plan_json = json.dumps(self._execution_plan(contract), sort_keys=True)
+            provenance = self._json(workflow.provenance_json)
+            provenance["executable_design_contract"] = contract
+            workflow.provenance_json = json.dumps(provenance, sort_keys=True)
+            operation.project_id = project.id
+            operation.workflow_id = workflow.id
+            operation.status = "running"
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+
+        self._active_workflow_id = workflow.id
+        try:
+            result = await self._generate_with_repair_ladder(
+                workflow,
+                contract,
+                requested_delta=None,
+                parent_revision_id=None,
+                starting_level="initial",
+            )
+            self._complete_operation(operation)
+            self.db.commit()
+            return result
+        except Exception as exc:
+            result = self._fail(workflow, exc, boundary="executable_workflow")
+            operation.status = "failed"
+            self.db.commit()
+            return result
+
+    async def start_bounded_revision(
+        self,
+        workflow_id: str,
+        payload: ValidatedBoundedRevision,
+        *,
+        idempotency_key: str | None = None,
+    ):
+        self.require_enabled()
+        parent = self._get(workflow_id)
+        if parent is None:
+            raise LookupError("validated workflow not found")
+        if parent.revision_id is None:
+            raise ValueError("a candidate revision is required before bounded revision")
+        base_revision = self.db.get(Revision, parent.revision_id)
+        if base_revision is None or not base_revision.is_accepted:
+            raise ValueError("bounded revision requires an accepted candidate")
+        revision_instruction = self._revision_instruction(payload)
+        operation = self._begin_operation(
+            "start_revision",
+            idempotency_key,
+            {"workflow_id": workflow_id, **payload.model_dump(mode="json")},
+            project_id=parent.project_id,
+            workflow_id=parent.id,
+        )
+        if operation.workflow_id and operation.workflow_id != parent.id:
+            return self.read(operation.workflow_id)
+        if operation.status in {"completed", "failed"} and operation.workflow_id:
+            child = self._get(operation.workflow_id)
+            if child is not None:
+                return self.read(child.id)
+        if operation.status == "running" and operation.workflow_id == parent.id:
+            return self.read(parent.id)
+
+        parent_provenance = self._json(parent.provenance_json)
+        previous_contract = parent_provenance.get("executable_design_contract")
+        if not isinstance(previous_contract, dict):
+            raise ValueError("accepted executable workflow has no durable design contract")
+        child = ValidatedCadQueryWorkflow(
+            project_id=parent.project_id,
+            owner_id=self.owner_id,
+            parent_workflow_id=parent.id,
+            parent_revision_id=base_revision.id,
+            state="plan_ready",
+            route=self.route,
+            user_instruction=revision_instruction,
+            provenance_json=json.dumps(
+                {
+                    "selected_route": self.route,
+                    "feature_flag": "VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED",
+                    "feature_flag_enabled": True,
+                    "provider_transport": "gemini_api",
+                    "provider_id": "gemini_api",
+                    "source_generation_mode": "complete_source_revision",
+                    "codex_proxy_used": False,
+                    "prior_revision_id": base_revision.id,
+                    "prior_source_hash": base_revision.source_hash,
+                    "protected_facts": payload.protected_facts,
+                },
+                sort_keys=True,
+            ),
+        )
+        self.db.add(child)
+        self.db.flush()
+        contract = self._revision_contract(
+            previous_contract,
+            project_id=parent.project_id,
+            workflow_id=child.id,
+            payload=payload,
+        )
+        child.requirements_json = json.dumps({"user_prompt": parent.user_instruction}, sort_keys=True)
+        child.plan_json = json.dumps(self._execution_plan(contract), sort_keys=True)
+        provenance = self._json(child.provenance_json)
+        provenance["executable_design_contract"] = contract
+        child.provenance_json = json.dumps(provenance, sort_keys=True)
+        operation.workflow_id = child.id
+        operation.status = "running"
+        self.db.commit()
+        self._active_workflow_id = child.id
+        try:
+            result = await self._generate_with_repair_ladder(
+                child,
+                contract,
+                requested_delta=revision_instruction,
+                parent_revision_id=base_revision.id,
+                starting_level="L4",
+            )
+            verification = self._json(child.verification_json)
+            verification.update(
+                {
+                    "prior_revision_id": base_revision.id,
+                    "preserved_output_ids": [output.output_id for output in base_revision.outputs],
+                    "output_identity_preserved": {
+                        output.output_id for output in base_revision.outputs
+                    }
+                    == {output.output_id for output in self.db.get(Revision, child.revision_id).outputs}
+                    if child.revision_id
+                    else False,
+                }
+            )
+            child.verification_json = json.dumps(verification, sort_keys=True)
+            if child.state == "candidate_ready":
+                child.state = "revision_ready"
+            self._complete_operation(operation)
+            self.db.commit()
+            return self.read(child.id)
+        except Exception as exc:
+            result = self._fail(child, exc, boundary="executable_revision")
+            operation.status = "failed"
+            self.db.commit()
+            return result
+
+    async def _generate_with_repair_ladder(
+        self,
+        workflow: ValidatedCadQueryWorkflow,
+        contract: dict[str, Any],
+        *,
+        requested_delta: str | None,
+        parent_revision_id: str | None,
+        starting_level: str,
+    ):
+        project = self.db.get(Project, workflow.project_id)
+        if project is None:
+            raise ValueError("executable workflow project not found")
+        previous_source: str | None = None
+        previous_source_hash: str | None = None
+        previous_result_hash: str | None = None
+        if parent_revision_id:
+            parent_revision = self.db.get(Revision, parent_revision_id)
+            if parent_revision is not None:
+                source_path = self._resolve_optional(parent_revision.source_path)
+                if source_path is not None:
+                    previous_source = source_path.read_text(encoding="utf-8")
+                    previous_source_hash = parent_revision.source_hash
+        history: list[dict[str, Any]] = []
+        level = starting_level
+        repair_ordinals = {"L0": 0, "L1": 0, "L2": 0, "L3": 0, "L4": 1 if starting_level == "L4" else 0}
+        previous_failure_class: str | None = None
+        previous_progress: dict[str, Any] = {}
+        attempt_count = 0
+
+        while attempt_count < 7:
+            attempt_count += 1
+            envelope = None
+            if level != "initial":
+                envelope = build_executable_cadquery_repair_envelope(
+                    repair_level=level,
+                    generation_session_id=workflow.id,
+                    logical_operation_id=f"{workflow.id}:generation",
+                    parent_operation_id=history[-1].get("operation_id") if history else None,
+                    repair_ordinal=repair_ordinals[level],
+                    previous_source=previous_source,
+                    previous_source_hash=previous_source_hash,
+                    previous_result_hash=previous_result_hash,
+                    design_contract=contract,
+                    provider_attempt=history[-1].get("provider_attempt") if history else None,
+                    worker_result=history[-1].get("worker_result") if history else None,
+                    topology_result=history[-1].get("topology_result") if history else None,
+                    semantic_result=history[-1].get("semantic_result") if history else None,
+                    protected_facts=contract.get("protected_facts", []),
+                    repair_history=history,
+                    requested_delta=requested_delta,
+                )
+            request = ModelGenerationRequest(
+                project_name=project.name,
+                original_intent=workflow.user_instruction,
+                user_instruction=workflow.user_instruction,
+                current_source=previous_source,
+                executable_design_contract=contract,
+                executable_repair_envelope=envelope,
+            )
+            provider_attempt: dict[str, Any] = {"attempt_number": attempt_count, "level": level}
+            failure_class: str | None = None
+            failure_boundary = "provider_response"
+            worker_result: dict[str, Any] = {}
+            topology_result: dict[str, Any] = {}
+            semantic_result: dict[str, Any] = {}
+            current_source_hash: str | None = None
+            current_result_hash: str | None = None
+            revision_id: str | None = None
+            raw_output: str | None = None
+            try:
+                if self.ai_provider is None:
+                    raise ValueError("executable Gemini provider is unavailable")
+                generation = await self.ai_provider.generate_cadquery_model(request)
+                raw_output = generation.raw_output
+                provider_attempt.update(
+                    {
+                        "provider": generation.provider,
+                        "provider_model": generation.provider_model,
+                        "status": "response_received",
+                    }
+                )
+                parsed = parse_executable_cadquery_response(raw_output, contract)
+                generated = parsed.outputs[0]
+                current_source_hash = generated.source_hash
+                failure_boundary = "execution"
+                revision_read = await self._project_service().create_complete_cadquery_revision(
+                    project_id=workflow.project_id,
+                    source=generated.source,
+                    user_instruction=workflow.user_instruction,
+                    design_plan_payload=self._execution_plan(contract),
+                    raw_ai_output=raw_output,
+                    parent_revision_id=parent_revision_id,
+                )
+                if revision_read is None:
+                    raise ValueError("complete source did not produce a revision")
+                revision_id = revision_read.id
+                revision = self.db.get(Revision, revision_id)
+                if revision is None:
+                    raise ValueError("complete source revision disappeared")
+                output = next(iter(revision.outputs), None)
+                worker_result = {
+                    "phase": "completed" if revision.status == "succeeded" else "failed",
+                    "output_ids": [item.output_id for item in revision.outputs],
+                    "revision_id": revision.id,
+                }
+                topology_result = self._json(output.topology_metadata_json if output else None)
+                if output is None or not output.stl_path or not output.step_path:
+                    failure_boundary = "artifact"
+                    failure_class = classify_executable_failure("artifact", {"stl_failure": True})
+                else:
+                    stl_path = safe_relative_artifact_path(self.data_dir, output.stl_path)
+                    semantic_result = evaluate_executable_cadquery_semantics(
+                        stl_path=stl_path,
+                        design_contract=contract,
+                    )
+                    current_result_hash = source_result_hash(
+                        {
+                            "worker": worker_result,
+                            "topology": topology_result,
+                            "semantic": semantic_result,
+                        }
+                    )
+                    if semantic_result.get("status") != "passed":
+                        failure_boundary = "semantic"
+                        failure_class = classify_executable_failure(
+                            "semantic",
+                            {
+                                "failed": semantic_result.get("failed"),
+                                "unverifiable": semantic_result.get("unverifiable"),
+                            },
+                        )
+                        self._set_semantic_block(output, semantic_result)
+                    else:
+                        self.sync_outputs(workflow, revision)
+                        self._merge_verification(workflow, semantic_result)
+                        self._record_generation_provenance(workflow, revision)
+                        self._record_executable_provenance(
+                            workflow,
+                            attempt_count=attempt_count,
+                            history=history,
+                            source_hash=current_source_hash,
+                            semantic_result=semantic_result,
+                        )
+                        self.db.commit()
+                        return self.read(workflow.id)
+            except ExecutableCadQueryContractError as exc:
+                failure_boundary = "provider_response"
+                failure_class = classify_executable_failure(
+                    "provider_response", {"schema_error": safe_diagnostic(str(exc))}
+                )
+                provider_attempt["status"] = "contract_failure"
+            except Exception as exc:
+                failure_class = failure_class or classify_executable_failure(
+                    failure_boundary, {"message": safe_diagnostic(str(exc))}
+                )
+                provider_attempt["status"] = "failed"
+                provider_attempt["failure_class"] = failure_class
+
+            failure_class = failure_class or "source_execution_error"
+            current_result_hash = current_result_hash or source_result_hash(
+                {"worker": worker_result, "topology": topology_result, "semantic": semantic_result}
+            )
+            progress = compare_executable_progress(
+                level if level != "initial" else "L0",
+                previous=previous_progress,
+                current={
+                    "contract_valid": current_source_hash is not None,
+                    "phase_index": 2 if worker_result.get("phase") == "completed" else 0,
+                    "completed_output_ids": worker_result.get("output_ids", []),
+                    "valid": topology_result.get("valid"),
+                    "detected_solid_count": topology_result.get("detected_solid_count"),
+                    "expected_solid_count": topology_result.get("expected_solid_count"),
+                    "failed_requirement_ids": semantic_result.get("failed", []),
+                    "unverifiable_requirement_ids": semantic_result.get("unverifiable", []),
+                    "passed_requirement_ids": semantic_result.get("passed", []),
+                },
+            )
+            if not history:
+                progress = {"measurable_progress": True, "progress_reasons": ["first_repair_after_failure"]}
+            operation_id = f"{workflow.id}:attempt:{attempt_count}"
+            history.append(
+                {
+                    "operation_id": operation_id,
+                    "attempt_number": attempt_count,
+                    "repair_level": level,
+                    "failure_boundary": failure_boundary,
+                    "failure_class": failure_class,
+                    "source_hash": current_source_hash,
+                    "result_hash": current_result_hash,
+                    "provider_attempt": provider_attempt,
+                    "worker_result": worker_result,
+                    "topology_result": topology_result,
+                    "semantic_result": semantic_result,
+                    "progress": progress,
+                    "revision_id": revision_id,
+                }
+            )
+            decision_level = level if level != "initial" else self._next_repair_level(failure_boundary)
+            decision = decide_executable_repair(
+                repair_level=decision_level,
+                repair_ordinal=repair_ordinals.get(decision_level, 0),
+                source_hash=current_source_hash,
+                previous_source_hash=previous_source_hash,
+                failure_class=failure_class,
+                previous_failure_class=previous_failure_class,
+                progress=progress,
+            )
+            previous_source = self._source_for_revision(revision_id) or previous_source
+            previous_source_hash = current_source_hash or previous_source_hash
+            previous_result_hash = current_result_hash
+            previous_failure_class = failure_class
+            previous_progress = progress
+            if decision["decision"] != "repair" or attempt_count >= 7:
+                self._record_executable_provenance(
+                    workflow,
+                    attempt_count=attempt_count,
+                    history=history,
+                    source_hash=previous_source_hash,
+                    semantic_result=semantic_result,
+                    terminal_reason=decision.get("stop_reason") or "operation_budget_exhausted",
+                )
+                if workflow.revision_id is None and revision_id:
+                    revision = self.db.get(Revision, revision_id)
+                    if revision is not None:
+                        self.sync_outputs(workflow, revision)
+                workflow.failure_boundary = failure_boundary
+                workflow.diagnostics_json = json.dumps(
+                    {
+                        "kind": failure_class,
+                        "message": self._safe_failure_message(failure_class),
+                        "first_incorrect_boundary": failure_boundary,
+                        "repair_level": decision_level,
+                        "repair_progress": progress.get("progress_result"),
+                    },
+                    sort_keys=True,
+                )
+                if workflow.state not in {"candidate_ready", "revision_ready"}:
+                    workflow.state = "verification_failed" if failure_boundary in {"topology", "semantic"} else "failed"
+                workflow.state_version += 1
+                self.db.commit()
+                return self.read(workflow.id)
+            level = decision_level
+            repair_ordinals[level] = repair_ordinals.get(level, 0) + 1
+
+        raise ValueError("executable provider operation budget exhausted")
+
+    def _materialize_contract(self, project_id: str, workflow_id: str, *, ordinal: int) -> dict[str, Any]:
+        contract = deepcopy(FROZEN_MOUNTING_BRACKET_CONTRACT)
+        contract.update(
+            {
+                "project_id": project_id,
+                "workflow_id": workflow_id,
+                "revision_id": f"{workflow_id}:candidate:{ordinal}",
+            }
+        )
+        return validate_executable_cadquery_design_contract(contract)
+
+    def _revision_contract(
+        self,
+        previous: Mapping[str, Any],
+        *,
+        project_id: str,
+        workflow_id: str,
+        payload: ValidatedBoundedRevision,
+    ) -> dict[str, Any]:
+        contract = deepcopy(dict(previous))
+        contract.update(
+            {
+                "project_id": project_id,
+                "workflow_id": workflow_id,
+                "revision_id": f"{workflow_id}:candidate:revision",
+            }
+        )
+        width, depth = _extract_pocket_dimensions(payload)
+        for requirement in contract.get("requirements", []):
+            if not isinstance(requirement, dict) or requirement.get("requirement_id") != "centered_recessed_pocket":
+                continue
+            expected = requirement.get("expected")
+            if isinstance(expected, dict):
+                if width is not None:
+                    expected["width"] = width
+                if depth is not None:
+                    expected["depth"] = depth
+        return validate_executable_cadquery_design_contract(contract)
+
+    @staticmethod
+    def _execution_plan(contract: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            "schema_version": "executable-cadquery-execution-plan-v1",
+            "printable_outputs": [
+                {
+                    "id": item["output_id"],
+                    "label": item["output_id"].replace("_", " ").title(),
+                    "component_id": item["output_id"],
+                    "component_ids": [item["output_id"]],
+                    "entrypoint": item["output_id"],
+                    "filename": f"{item['output_id']}.stl",
+                    "required": item["required"],
+                    "output_type": item["output_type"],
+                    "expected_solid_count": item["expected_solid_count"],
+                    "allow_disconnected_solids": False,
+                }
+                for item in contract.get("outputs", [])
+                if isinstance(item, Mapping)
+            ],
+            "semantic_contract": deepcopy(dict(contract)),
+        }
+
+    @staticmethod
+    def _next_repair_level(boundary: str) -> str:
+        return {
+            "provider_response": "L0",
+            "source_contract": "L0",
+            "execution": "L1",
+            "topology": "L2",
+            "semantic": "L3",
+            "protected_facts": "L3",
+            "artifact": "L1",
+        }.get(boundary, "L1")
+
+    def _source_for_revision(self, revision_id: str | None) -> str | None:
+        if not revision_id:
+            return None
+        revision = self.db.get(Revision, revision_id)
+        if revision is None:
+            return None
+        path = self._resolve_optional(revision.source_path)
+        return path.read_text(encoding="utf-8") if path is not None else None
+
+    @staticmethod
+    def _set_semantic_block(output: Any, semantic: dict[str, Any]) -> None:
+        summary = _json_dict(output.validation_summary_json)
+        summary.update(
+            {
+                "blocking_count": 1,
+                "executable_semantic": semantic,
+            }
+        )
+        output.validation_summary_json = json.dumps(summary, sort_keys=True)
+
+    @staticmethod
+    def _merge_verification(workflow: ValidatedCadQueryWorkflow, semantic: dict[str, Any]) -> None:
+        verification = _json_dict(workflow.verification_json)
+        verification["semantic_verification"] = semantic
+        workflow.verification_json = json.dumps(verification, sort_keys=True)
+
+    @staticmethod
+    def _json(raw: str | None) -> dict[str, Any]:
+        if not raw:
+            return {}
+        try:
+            value = json.loads(raw)
+        except (TypeError, json.JSONDecodeError):
+            return {}
+        return value if isinstance(value, dict) else {}
+
+    def _record_executable_provenance(
+        self,
+        workflow: ValidatedCadQueryWorkflow,
+        *,
+        attempt_count: int,
+        history: list[dict[str, Any]],
+        source_hash: str | None,
+        semantic_result: dict[str, Any],
+        terminal_reason: str | None = None,
+    ) -> None:
+        provenance = self._json(workflow.provenance_json)
+        provenance.update(
+            {
+                "source_hash": source_hash,
+                "automatic_provider_operation_count": attempt_count,
+                "automatic_provider_operation_budget": 7,
+                "repair_history": history,
+                "semantic_verification": semantic_result,
+            }
+        )
+        if terminal_reason:
+            provenance["terminal_reason"] = terminal_reason
+        workflow.provenance_json = json.dumps(provenance, sort_keys=True, default=str)
+
+    @staticmethod
+    def _safe_failure_message(failure_class: str) -> str:
+        messages = {
+            "provider_response_contract_failure": "Gemini did not return a compatible complete-source response.",
+            "python_syntax_error": "The generated source did not satisfy the executable CadQuery source contract.",
+            "source_contract_violation": "The generated source did not satisfy the executable CadQuery source contract.",
+            "cadquery_api_error": "The CAD worker could not execute the generated source.",
+            "worker_timeout": "The CAD worker did not finish within the bounded operation.",
+            "solid_count_mismatch": "The final geometry did not satisfy the required solid count.",
+            "semantic_requirement_failed": "Final geometry did not satisfy one or more design requirements.",
+            "semantic_requirement_unverifiable": "Final geometry could not prove one or more design requirements.",
+            "repair_budget_exhausted": "The bounded repair budget was exhausted without a verified candidate.",
+        }
+        return messages.get(failure_class, "The executable CadQuery operation did not produce a verified candidate.")
+
+
+def _extract_pocket_dimensions(payload: ValidatedBoundedRevision) -> tuple[float | None, float | None]:
+    values = {str(key).lower(): value for key, value in payload.dimension_changes.items()}
+    width = _number(values.get("pocket_width") or values.get("pocket_width_mm"))
+    depth = _number(values.get("pocket_depth") or values.get("pocket_depth_mm"))
+    match = re.search(r"(\d+(?:\.\d+)?)\s*mm\s*[×x]\s*(\d+(?:\.\d+)?)\s*mm", payload.instruction)
+    if match:
+        width = width or float(match.group(1))
+        depth = depth or float(match.group(2))
+    return width, depth
+
+
+def _number(value: Any) -> float | None:
+    try:
+        return None if value is None else float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _json_dict(raw: str | None) -> dict[str, Any]:
+    if not raw:
+        return {}
+    try:
+        value = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}

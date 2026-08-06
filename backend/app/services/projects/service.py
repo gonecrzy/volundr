@@ -1291,6 +1291,7 @@ class ProjectService:
         metadata_dir: Path,
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> None:
         output.execution_state = "validating"
         stl_path = stl_dir / output.filename
@@ -1336,6 +1337,7 @@ class ProjectService:
                 design_specification_payload=design_specification_payload,
                 design_specification_id=design_specification_id,
                 revision_output=output,
+                design_plan_payload=design_plan_payload,
             )
             self._persist_validation_findings(revision=revision, stl_path=stl_path, revision_output=output)
         output.compile_error = output_result.compile_error
@@ -10767,6 +10769,7 @@ class ProjectService:
         design_specification_payload: dict[str, Any] | None,
         design_specification_id: str | None,
         revision_output: RevisionOutput | None = None,
+        design_plan_payload: dict[str, Any] | None = None,
     ) -> None:
         if design_specification_payload is None:
             return
@@ -10776,7 +10779,7 @@ class ProjectService:
             source,
             self._revision_design_plan_payload(revision) or {},
         )
-        design_plan_payload = self._revision_design_plan_payload(revision) or {}
+        design_plan_payload = design_plan_payload or self._revision_design_plan_payload(revision) or {}
         context = GeometricAnalysisContext(
             mesh=mesh,
             design_specification=design_specification_payload,
@@ -11589,6 +11592,40 @@ class ProjectService:
         self.db.refresh(revision)
         return self._revision_read(revision, error_message=error_message)
 
+    async def create_complete_cadquery_revision(
+        self,
+        *,
+        project_id: str,
+        source: str,
+        user_instruction: str | None,
+        design_plan_payload: dict[str, Any],
+        design_specification_payload: dict[str, Any] | None = None,
+        raw_ai_output: str | None = None,
+        parent_revision_id: str | None = None,
+    ) -> RevisionRead | None:
+        """Execute provider-owned complete source through the existing worker path.
+
+        The experimental workflow supplies an already validated complete source
+        and a semantic execution plan. This adapter intentionally performs no
+        source extraction, reconstruction, or CadQuery generation.
+        """
+
+        validate_cadquery_source(source, contract_version="cadquery-v1")
+        return await self._create_cadquery_revision_from_planned_source(
+            project_id=project_id,
+            source=source,
+            user_instruction=user_instruction,
+            source_type="ai_initial" if parent_revision_id is None else "ai_revision",
+            raw_ai_output=raw_ai_output,
+            design_specification_id=None,
+            design_specification_payload=design_specification_payload,
+            design_plan_id=None,
+            design_plan_payload=design_plan_payload,
+            source_validation_result_id=None,
+            parent_revision_id=parent_revision_id,
+            auto_accept=False,
+        )
+
     async def _create_cadquery_revision_from_planned_source(
         self,
         *,
@@ -11882,6 +11919,7 @@ class ProjectService:
                 metadata_dir=metadata_dir,
                 design_specification_payload=design_specification_payload,
                 design_specification_id=design_specification_id,
+                design_plan_payload=design_plan_payload,
             )
 
         self._persist_assembly_output_findings(revision)
