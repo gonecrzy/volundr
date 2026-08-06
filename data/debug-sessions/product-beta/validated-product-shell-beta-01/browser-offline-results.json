@@ -1,0 +1,9 @@
+{
+  "schema_version": "validated-browser-offline-results-v1",
+  "validated_test": "passed",
+  "validated_command": "VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=true npx playwright test --config=playwright.config.ts e2e/validated-product-shell.spec.ts",
+  "validated_flow": ["real Vite frontend", "SQLite fixture API", "deterministic fixture provider", "real CAD worker", "UUID request header", "terminal polling stop", "candidate acceptance", "package download", "bounded revision", "stable reload"],
+  "default_off_suite": {"passed": 20, "skipped": 11, "status": "passed"},
+  "browser_console_errors": 0,
+  "browser_failed_requests": 0
+}

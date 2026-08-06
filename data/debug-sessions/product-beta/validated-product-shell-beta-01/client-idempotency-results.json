@@ -1,0 +1,11 @@
+{
+  "schema_version": "validated-client-idempotency-v1",
+  "unit_test_status": "passed",
+  "request_identity": "crypto.randomUUID with secure fallback",
+  "persistent_store": "sessionStorage",
+  "scopes": ["start_design:new-design", "clarification:{workflow_id}:{question_id}", "acceptance:{workflow_id}", "package:{workflow_id}", "revision:{workflow_id}"],
+  "identity_contains_user_text": false,
+  "pending_identity_survives_refresh": true,
+  "identity_cleared_after_success": true,
+  "duplicate_controls_removed": true
+}

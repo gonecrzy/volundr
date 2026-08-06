@@ -1,0 +1,21 @@
+{
+  "schema_version": "validated-product-shell-implementation-ledger-v1",
+  "commits": {
+    "integration": "eb069820516c156b64a8a926888da84a06f68d71",
+    "browser_coverage": "906af75e34e5a39615b0d97148a9c8119340a196d"
+  },
+  "layers": {
+    "chat_workspace_integration": true,
+    "opaque_retry_safe_request_identity": true,
+    "bounded_state_aware_polling": true,
+    "fixture_validated_route": true,
+    "offline_browser_coverage": true,
+    "root_env_secondary_and_fallback_loading": true,
+    "production_default_disabled": true
+  },
+  "protected_paths_untouched": true,
+  "provider_contract_untouched": true,
+  "cad_backend_untouched": true,
+  "authentication_model_untouched": true,
+  "database_foundation_untouched": true
+}

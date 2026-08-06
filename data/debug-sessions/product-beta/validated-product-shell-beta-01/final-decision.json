@@ -1,0 +1,9 @@
+{
+  "schema_version": "validated-product-shell-final-decision-v1",
+  "decision": "ci_environment_requires_narrow_fix",
+  "product_shell_offline_evidence": "passed",
+  "reason": "The integrated validated product shell, offline browser coverage, full backend/frontend checks, migration check, deployment-boundary checks, and secret scans pass. The required GitHub Actions run cannot be inspected because the repository remote is an internal SSH Git server and gh is unavailable; live provider browser smoke was therefore not run.",
+  "required_follow_up": "Expose the checked-in workflow through a discoverable GitHub Actions run or provide an approved equivalent CI result, then run the single controlled live creation/revision/package smoke.",
+  "default_flag_off": true,
+  "provider_calls_made": 0
+}

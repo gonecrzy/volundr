@@ -1,0 +1,10 @@
+{
+  "schema_version": "github-actions-results-v1",
+  "workflow": ".github/workflows/application-integrity.yml",
+  "status": "unavailable",
+  "reason": "The configured origin is an internal SSH Git server rather than GitHub, and the gh CLI is unavailable; no GitHub Actions run can be independently inspected from this workspace.",
+  "remote_kind": "internal-ssh",
+  "workflow_file_present": true,
+  "local_equivalent_gates": "passed",
+  "live_provider_call": "not_run"
+}

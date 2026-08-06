@@ -1,0 +1,13 @@
+{
+  "schema_version": "validated-product-shell-beta-preregistration-v1",
+  "objective": "Prepare the validated CadQuery workflow for internal product beta.",
+  "starting_commit": "0edf0cb5d7c7cae80c6ad64cb0e8ce6272d237f9",
+  "implementation_commits": [
+    "eb069820516c156b64a8a926888da84a06f68d71",
+    "906af75e34e5a39615b0d97148a9c8119340a196d"
+  ],
+  "validated_flow_default_enabled": false,
+  "provider_calls_authorized": false,
+  "database_policy": "forward migration only; no rebuild or purge",
+  "live_smoke_precondition": "offline and CI gates must pass"
+}

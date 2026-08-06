@@ -1,0 +1,10 @@
+{
+  "schema_version": "validated-client-polling-v1",
+  "unit_test_status": "passed",
+  "fake_timer_coverage": ["no overlap", "terminal stop", "failure backoff", "hidden tab pause/resume", "stale route response"],
+  "base_delay_ms": 3000,
+  "max_delay_ms": 30000,
+  "terminal_states": ["candidate_ready", "revision_ready", "partially_completed", "verification_failed", "failed"],
+  "manual_refresh": true,
+  "get_side_effect_free": true
+}
