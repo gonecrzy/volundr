@@ -45,6 +45,12 @@ from app.models.workflow import (
     WorkflowEvent,
     WorkflowRun,
 )
+from app.models.validated_cadquery_workflow import (
+    ValidatedCadQueryOutput,
+    ValidatedCadQueryWorkflow,
+)
+from app.models.validated_cadquery_operation import ValidatedCadQueryOperation
+from app.models.validated_cadquery_provider_attempt import ValidatedCadQueryProviderAttempt
 
 __all__ = [
     "ClarificationAnswer",
@@ -86,4 +92,8 @@ __all__ = [
     "WorkflowDiagnosis",
     "WorkflowEvent",
     "WorkflowRun",
+    "ValidatedCadQueryOutput",
+    "ValidatedCadQueryWorkflow",
+    "ValidatedCadQueryOperation",
+    "ValidatedCadQueryProviderAttempt",
 ]

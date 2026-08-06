@@ -13,11 +13,11 @@ does not call a provider or CAD worker.
 ## Inventory totals
 
 - Documentation files: 226 ({"current_authoritative": 4, "current_supporting": 51, "historical_immutable": 149, "historical_superseded": 21, "unknown_requires_review": 1})
-- Test and fixture items: 188 ({"historical_integrity_only": 10, "retain_current": 170, "retain_regression": 8})
-- Study directories indexed: 4075
+- Test and fixture items: 190 ({"historical_integrity_only": 10, "retain_current": 172, "retain_regression": 8})
+- Study directories indexed: 4143
 - Study records indexed: 189
-- Script/provider-code items: 96
-- Reference-graph nodes: 699
+- Script/provider-code items: 97
+- Reference-graph nodes: 702
 
 ## Retention and cleanup decisions
 

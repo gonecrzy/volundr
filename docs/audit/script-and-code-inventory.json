@@ -3622,14 +3622,25 @@
       "safe_to_archive": false,
       "safe_to_delete": false,
       "sha256": "b1a7266c1fb3a324658aa1b5d951f27aef6c35c4d90ea43cbf2775d3a377485f"
+    },
+    {
+      "classification": "current_supporting",
+      "decision": "retain",
+      "kind": "script",
+      "path": "scripts/run_validated_product_integration.py",
+      "reason": "operator or reproducibility script; no deletion inferred from import absence",
+      "referenced_by": [],
+      "safe_to_archive": false,
+      "safe_to_delete": false,
+      "sha256": "f516c3116db7825dd98c8738bf1d05a4115357895ff61fd0f04630eb37c9cd56"
     }
   ],
   "schema_version": "volundr-repository-audit-v1",
   "summary": {
     "by_classification": {
-      "current_supporting": 66,
+      "current_supporting": 67,
       "historical_immutable": 30
     },
-    "item_count": 96
+    "item_count": 97
   }
 }

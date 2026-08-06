@@ -2142,3 +2142,155 @@ summary:focus-visible {
     gap: 6px;
   }
 }
+ .validated-workflow-panel {
+  margin: 1rem auto;
+  max-width: 1180px;
+  padding: 1.25rem;
+  border: 1px solid #cbd5ce;
+  border-radius: 14px;
+  background: #f7faf7;
+  color: #1c2a22;
+}
+
+.validated-workflow-heading,
+.validated-workflow-heading > div,
+.validated-output-card > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.validated-workflow-heading h2,
+.validated-workflow-sections h3,
+.validated-output-card h3,
+.validated-workflow-revision h3 {
+  margin: 0;
+}
+
+.validated-workflow-stage {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #dfeedd;
+  color: #315b35;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.validated-workflow-start,
+.validated-workflow-clarification,
+.validated-workflow-revision {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.validated-workflow-start label,
+.validated-workflow-clarification label,
+.validated-workflow-revision label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.validated-workflow-start input,
+.validated-workflow-start textarea,
+.validated-workflow-clarification input,
+.validated-workflow-revision input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #b8c5bc;
+  border-radius: 8px;
+  padding: 0.65rem;
+  background: #ffffff;
+  color: inherit;
+  font: inherit;
+}
+
+.validated-workflow-start textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.validated-workflow-start button,
+.validated-workflow-actions button,
+.validated-workflow-clarification button,
+.validated-workflow-revision button {
+  justify-self: start;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  background: #3f6e45;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.validated-workflow-start button:disabled,
+.validated-workflow-actions button:disabled,
+.validated-workflow-clarification button:disabled,
+.validated-workflow-revision button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.validated-workflow-summary {
+  margin: 1rem 0;
+  font-size: 1rem;
+}
+
+.validated-workflow-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.validated-workflow-sections section,
+.validated-workflow-revision {
+  padding: 0.9rem;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.validated-output-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.validated-output-card {
+  padding: 0.9rem;
+  border: 1px solid #d3ddd5;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.validated-output-card span {
+  font-size: 0.82rem;
+  color: #496451;
+}
+
+.validated-output-artifacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.validated-diagnostic {
+  margin: 0.75rem 0 0;
+  padding: 0.65rem;
+  border-left: 3px solid #b47b35;
+  background: #fff8e8;
+  color: #614616;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .validated-workflow-sections {
+    grid-template-columns: 1fr;
+  }
+}

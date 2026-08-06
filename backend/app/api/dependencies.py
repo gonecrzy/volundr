@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import HTTPException
+from fastapi import Depends, Header, HTTPException
 
 from app.core.config import Settings, settings
 from app.services.ai.provider import AiProvider
@@ -35,6 +35,7 @@ def build_ai_provider(
     study_context: StudyContext | None = None,
     study_evidence_root: Path | None = None,
     benchmark_processing: str | None = None,
+    validated_transport: bool = False,
 ) -> AiProvider:
     provider = (benchmark_provider or config.ai_provider).strip().lower()
     if benchmark_model and provider not in {"ollama", "local_ollama", "gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
@@ -84,6 +85,9 @@ def build_ai_provider(
                     context=context,
                 )
             ) if benchmark_processing is not None else None,
+            validated_transport=validated_transport,
+            primary_api_key=config.gemini_api_key_2,
+            fallback_api_key=config.gemini_api_key,
         )
     if provider in {"gemini", "gemini_cli"}:
         model_policy = (
@@ -103,3 +107,38 @@ def build_ai_provider(
 
 def get_ai_provider() -> AiProvider:
     return build_ai_provider(settings)
+
+
+def get_validated_ai_provider(provider: AiProvider = Depends(get_ai_provider)) -> AiProvider:
+    """Use the existing provider boundary with the validated transport policy."""
+
+    if not isinstance(provider, GeminiApiProvider):
+        return provider
+    return build_ai_provider(settings, validated_transport=True)
+
+
+def get_validated_actor_id(
+    x_volundr_actor_id: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+) -> str:
+    """Consume the identity supplied by the existing authentication boundary.
+
+    The product flow does not implement a second authentication system. In a
+    deployed environment the auth layer supplies this stable actor header (or
+    a bearer token that is converted to a non-secret identity). The disabled
+    route remains discoverable for local health checks without requiring auth.
+    """
+
+    if x_volundr_actor_id:
+        actor = x_volundr_actor_id.strip()
+    elif authorization and authorization.lower().startswith("bearer "):
+        import hashlib
+
+        actor = "bearer:" + hashlib.sha256(authorization[7:].encode("utf-8")).hexdigest()
+    elif not settings.validated_cadquery_flow_enabled:
+        return "anonymous"
+    else:
+        raise HTTPException(status_code=401, detail="authentication is required")
+    if not actor or len(actor) > 160 or any(ord(char) < 32 for char in actor):
+        raise HTTPException(status_code=401, detail="authentication is required")
+    return actor

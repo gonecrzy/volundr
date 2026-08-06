@@ -116,6 +116,7 @@ import {
   ChatWorkspace,
   type ChatWorkspacePendingMessage,
 } from "./chatWorkspaceView";
+import { ValidatedCadQueryWorkflowView } from "./ValidatedCadQueryWorkflowView";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -135,6 +136,7 @@ const GEOMETRY_BODY_FAILURE_PREFIXES = [
 ];
 type VolundrFrontendEnv = {
   VITE_VOLUNDR_CHAT_FIRST?: string;
+  VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED?: string;
   VITE_BUILD_ID?: string;
   VITE_BUILD_SHA?: string;
   VITE_BUILD_TIMESTAMP?: string;
@@ -144,6 +146,7 @@ type VolundrFrontendEnv = {
 const FRONTEND_ENV = (import.meta as ImportMeta & { env?: VolundrFrontendEnv }).env ?? {};
 const ADVANCED_WORKFLOW_ENABLED = true;
 const CHAT_FIRST_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_CHAT_FIRST ?? "false").toLowerCase() === "true";
+const VALIDATED_CADQUERY_FLOW_ENABLED = (FRONTEND_ENV.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false").toLowerCase() === "true";
 const STAGED_WORKFLOW_ENABLED = !CHAT_FIRST_ENABLED;
 const FRONTEND_BUILD_ID = FRONTEND_ENV.VITE_BUILD_ID ?? "frontend-dev";
 const FRONTEND_BUILD_IDENTITY = JSON.stringify({
@@ -2795,6 +2798,7 @@ function App() {
     );
     return (
       <>
+        <ValidatedCadQueryWorkflowView apiBase={API_BASE} enabled={VALIDATED_CADQUERY_FLOW_ENABLED} />
         <DebugBatchView
           enabled={debugCapabilities?.developer_tools_enabled === true}
           activeBatch={activeDebugBatch}
@@ -2866,6 +2870,7 @@ function App() {
 
   return (
     <>
+      <ValidatedCadQueryWorkflowView apiBase={API_BASE} enabled={VALIDATED_CADQUERY_FLOW_ENABLED} />
       <DebugBatchView
         enabled={debugCapabilities?.developer_tools_enabled === true}
         activeBatch={activeDebugBatch}

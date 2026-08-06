@@ -26694,8 +26694,8 @@
     {
       "collection": "product-integration",
       "depth": 2,
-      "direct_directory_count": 1,
-      "direct_file_count": 1,
+      "direct_directory_count": 2,
+      "direct_file_count": 17,
       "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01"
     },
     {
@@ -27152,6 +27152,482 @@
       "direct_directory_count": 0,
       "direct_file_count": 1,
       "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/app-data/projects/9b2249c3-d88e-4e6d-b8ec-51995df4b2a2/revisions/c0423ab0-a5aa-4a67-86aa-906a0baa0c8c/stl"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 3,
+      "direct_directory_count": 2,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 4,
+      "direct_directory_count": 3,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/cad-jobs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 14,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/cad-jobs/518eac24-2bb0-465a-be49-fe4b35428aa5"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 14,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/cad-jobs/aad0ee42-13fa-4724-9c45-2116fcbcf787"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 5,
+      "direct_directory_count": 0,
+      "direct_file_count": 14,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/cad-jobs/f34d5962-c28a-429b-8099-7f43beecbffd"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 4,
+      "direct_directory_count": 2,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 5,
+      "direct_directory_count": 3,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 3,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/generation-runs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/generation-runs/4279f70e-1b4b-4509-857d-771fcea44078"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 16,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/generation-runs/abd1e5a3-4eb6-425d-b630-c693f9730502"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 10,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/generation-runs/ad96f40d-fcbb-41ca-9e59-6fd75db8e479"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 7,
+      "direct_file_count": 4,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/brep"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/geometry"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/logs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 4,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/metadata"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/snapshots"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 9,
+      "direct_directory_count": 2,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/snapshots/initial"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 10,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/snapshots/initial/components"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 11,
+      "direct_directory_count": 0,
+      "direct_file_count": 3,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/snapshots/initial/components/plate_body"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 10,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/snapshots/initial/whole"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/step"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/revisions/518eac24-2bb0-465a-be49-fe4b35428aa5/stl"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/workflow-runs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/workflow-runs/5b9a1a13-1b2c-4f2c-b8e4-61bf05653b6b"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 3,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/10b73dd0-a7dd-4def-9134-9fc279caebf6/workflow-runs/5b9a1a13-1b2c-4f2c-b8e4-61bf05653b6b/planning"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 5,
+      "direct_directory_count": 6,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/exports"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/exports/r1"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/exports/r2"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 5,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/generation-runs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 7,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/generation-runs/346e92b0-f276-424a-9fac-d8711e777933"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 10,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/generation-runs/4a2e4234-1b96-43bb-9b8f-916366d28a1c"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 9,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/generation-runs/8a31f9ed-641c-4c0a-ab4b-32bb96c2c889"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 16,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/generation-runs/956f89f6-f937-4210-afcb-0359a767cc79"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 16,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/generation-runs/fa4eca3d-4b3a-4f1f-9ad1-e97a190375cf"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revision-plans"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revision-plans/c67d096f-3e45-4297-8dcf-996a32e96fac"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 2,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 7,
+      "direct_file_count": 4,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/brep"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/geometry"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/logs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/metadata"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 1,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/snapshots"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 9,
+      "direct_directory_count": 2,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/snapshots/initial"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 10,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/snapshots/initial/components"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 11,
+      "direct_directory_count": 0,
+      "direct_file_count": 3,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/snapshots/initial/components/plate_body"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 10,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/snapshots/initial/whole"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/step"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/aad0ee42-13fa-4724-9c45-2116fcbcf787/stl"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 7,
+      "direct_file_count": 4,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/brep"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/geometry"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/logs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/metadata"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/snapshots"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 9,
+      "direct_directory_count": 2,
+      "direct_file_count": 1,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/snapshots/initial"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 10,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/snapshots/initial/components"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 11,
+      "direct_directory_count": 0,
+      "direct_file_count": 3,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/snapshots/initial/components/plate_body"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 10,
+      "direct_directory_count": 0,
+      "direct_file_count": 5,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/snapshots/initial/whole"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/step"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/revisions/f34d5962-c28a-429b-8099-7f43beecbffd/stl"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 0,
+      "direct_file_count": 2,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/validated-packages"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 6,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/workflow-runs"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 7,
+      "direct_directory_count": 1,
+      "direct_file_count": 0,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/workflow-runs/4e466e1c-1425-4c81-9ba3-fd28be38ac0e"
+    },
+    {
+      "collection": "product-integration",
+      "depth": 8,
+      "direct_directory_count": 0,
+      "direct_file_count": 3,
+      "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01/runtime-data/projects/3ef21de4-b1b0-4f85-90d6-311bea418a4d/workflow-runs/4e466e1c-1425-4c81-9ba3-fd28be38ac0e/planning"
     },
     {
       "collection": "representative-workflow-waves",
@@ -32543,7 +33019,7 @@
       "final_decisions": [],
       "path": "data/debug-sessions/product-integration/validated-cadquery-product-flow-01",
       "purpose": "unclassified debug-session collection",
-      "raw_capture_count": 14,
+      "raw_capture_count": 34,
       "referenced_by": [],
       "reproducible": false,
       "secret_scan": "filename-only; values were not loaded into the audit report",
@@ -33537,8 +34013,8 @@
   "summary": {
     "collection_count": 15,
     "derived_report_count": 1450,
-    "directory_count": 4075,
-    "raw_capture_count": 1509,
+    "directory_count": 4143,
+    "raw_capture_count": 1529,
     "record_count": 189,
     "records_with_sensitive_filename_signals": 0
   }

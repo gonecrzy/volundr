@@ -1,6 +1,7 @@
 import asyncio
 import os
 import re
+import uuid
 from typing import Any, Callable
 
 import httpx
@@ -20,6 +21,8 @@ from app.services.ai.provider import (
     SourceBriefRequest,
     SourceBriefResult,
 )
+from app.services.ai.validated_transport import ValidatedGeminiTransport
+from app.services.gemini_integration.transport import SharedIntegrationRateLimiter
 
 
 class GeminiApiProvider(GeminiCliProvider):
@@ -41,6 +44,14 @@ class GeminiApiProvider(GeminiCliProvider):
         model_policy: GeminiModelPolicy | None = None,
         interaction_recorder: Callable[..., Any] | None = None,
         response_processor: Callable[..., tuple[str, dict[str, Any]]] | None = None,
+        validated_transport: bool = False,
+        primary_api_key: str | None = None,
+        fallback_api_key: str | None = None,
+        sleep: Callable[[float], Any] = asyncio.sleep,
+        primary_limiter: SharedIntegrationRateLimiter | None = None,
+        fallback_limiter: SharedIntegrationRateLimiter | None = None,
+        global_semaphore: asyncio.Semaphore | None = None,
+        attempt_recorder: Callable[[dict[str, Any]], Any] | None = None,
     ) -> None:
         resolved_policy = model_policy or GeminiModelPolicy.from_settings(
             settings,
@@ -56,6 +67,18 @@ class GeminiApiProvider(GeminiCliProvider):
             if api_key is not None
             else settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
         )
+        self.validated_transport = validated_transport
+        self.primary_api_key = (
+            primary_api_key
+            if validated_transport
+            else (primary_api_key if primary_api_key is not None else self.api_key)
+        )
+        self.fallback_api_key = fallback_api_key
+        self._validated_sleep = sleep
+        self._validated_primary_limiter = primary_limiter or SharedIntegrationRateLimiter(sleep=sleep)
+        self._validated_fallback_limiter = fallback_limiter or SharedIntegrationRateLimiter(sleep=sleep)
+        self._validated_global_semaphore = global_semaphore or asyncio.Semaphore(1)
+        self._validated_attempt_recorder = attempt_recorder
         self.base_url = (base_url or settings.gemini_api_base_url).rstrip("/")
         self.model = model or resolved_policy.general_model
         self.timeout_seconds = timeout_seconds or settings.gemini_timeout_seconds
@@ -90,6 +113,18 @@ class GeminiApiProvider(GeminiCliProvider):
     @property
     def provider_id(self) -> str:
         return "gemini_api"
+
+    def set_validated_attempt_recorder(self, recorder: Callable[[dict[str, Any]], Any] | None) -> None:
+        previous = self._validated_attempt_recorder
+        if previous is None or recorder is None:
+            self._validated_attempt_recorder = recorder or previous
+            return
+
+        def combined(record: dict[str, Any]) -> None:
+            previous(record)
+            recorder(record)
+
+        self._validated_attempt_recorder = combined
 
     async def list_available_models(self) -> list[dict[str, Any]]:
         """Return safe metadata for models that support generateContent."""
@@ -176,6 +211,76 @@ class GeminiApiProvider(GeminiCliProvider):
             ],
             "generationConfig": generation_config,
         }
+        if self.validated_transport:
+            records: list[dict[str, Any]] = []
+
+            def record_attempt(record: dict[str, Any]) -> None:
+                records.append(record)
+                if self._validated_attempt_recorder is not None:
+                    self._validated_attempt_recorder(record)
+                self._record_interaction(
+                    stage=stage,
+                    prompt_mode=prompt_mode,
+                    requested_model=model or self.model,
+                    actual_model=(record.get("response") or {}).get("modelVersion"),
+                    prompt=prompt,
+                    request_payload=payload,
+                    response_payload=record.get("response") or None,
+                    raw_text=None,
+                    status_code=record.get("status_code"),
+                    provider_metadata={
+                        "logical_operation_id": record.get("logical_operation_id"),
+                        "attempt_id": record.get("attempt_id"),
+                        "credential_slot": record.get("credential_slot"),
+                        "credential_env_var": record.get("credential_env_var"),
+                        "credential_present": record.get("credential_present"),
+                        "request_hash": record.get("request_hash"),
+                    },
+                    usage_metadata=None,
+                    latency_ms=0,
+                    transport_retries=int(record.get("attempt_index") or 0),
+                    error_category=record.get("failure_class"),
+                )
+
+            result = await ValidatedGeminiTransport(
+                primary_credential=self.primary_api_key,
+                fallback_credential=self.fallback_api_key,
+                primary_limiter=self._validated_primary_limiter,
+                fallback_limiter=self._validated_fallback_limiter,
+                global_semaphore=self._validated_global_semaphore,
+                base_url=self.base_url,
+                timeout_seconds=self.timeout_seconds,
+                transport=self._transport,
+                sleep=self._validated_sleep,
+                attempt_recorder=record_attempt,
+            ).generate(endpoint_path=self._endpoint_path(model), payload=payload, operation_id=str(uuid.uuid4()))
+            self._last_provider_call_count = len(result.attempts)
+            self._last_provider_retry_count = max(0, len(result.attempts) - 1)
+            self._last_provider_request_id = result.provider_request_id
+            if result.status_code is None or result.status_code >= 400:
+                raise RuntimeError(self._validated_error_message(result.status_code))
+            response_payload = result.response_payload
+            raw_output = self._response_text(response_payload)
+            if not response_payload:
+                raise RuntimeError("Gemini API response was not valid JSON")
+            if not raw_output:
+                raise RuntimeError("Gemini API response missing response text")
+            actual_model = response_payload.get("modelVersion")
+            if not isinstance(actual_model, str) or not actual_model:
+                actual_model = model or self.model or ""
+            usage_metadata = response_payload.get("usageMetadata")
+            self._last_usage_metadata = usage_metadata if isinstance(usage_metadata, dict) else None
+            if self._response_processor is not None:
+                processed_output, metadata = self._response_processor(
+                    raw_output,
+                    stage=stage,
+                    context=processing_context or self._processing_context(prompt_mode),
+                )
+                if not isinstance(processed_output, str) or not processed_output.strip():
+                    raise RuntimeError("provider response processor returned an empty response")
+                raw_output = processed_output
+                self._last_processing_metadata = dict(metadata or {})
+            return raw_output, actual_model
         async with httpx.AsyncClient(
             base_url=self.base_url,
             timeout=self.timeout_seconds,
@@ -394,7 +499,7 @@ class GeminiApiProvider(GeminiCliProvider):
         return "provider_content_failure"
 
     def provider_settings(self) -> dict[str, Any]:
-        return {
+        result = {
             "base_url": self.base_url,
             "model": self.model,
             "timeout_seconds": self.timeout_seconds,
@@ -404,6 +509,31 @@ class GeminiApiProvider(GeminiCliProvider):
             "max_retries": self.max_retries,
             "max_retry_sleep_seconds": self.max_retry_sleep_seconds,
         }
+        if self.validated_transport:
+            result.update(
+                {
+                    "validated_transport": True,
+                    "primary_credential": {
+                        "environment_variable": "GEMINI_API_KEY_2",
+                        "credential_present": bool(self.primary_api_key),
+                    },
+                    "fallback_credential": {
+                        "environment_variable": "GEMINI_API_KEY",
+                        "credential_present": bool(self.fallback_api_key),
+                    },
+                }
+            )
+        return result
+
+    @staticmethod
+    def _validated_error_message(status_code: int | None) -> str:
+        if status_code == 429:
+            return "The provider rate limit was reached after the permitted fallback attempt."
+        if status_code in {401, 403}:
+            return "The provider authentication check failed."
+        if status_code in {408, 502, 503, 504, 599}:
+            return "The provider transport did not complete after the permitted retry."
+        return "The provider returned an invalid response."
 
     def _endpoint_path(self, model: str | None = None) -> str:
         return f"/{self._model_path(model)}:generateContent"

@@ -28,6 +28,10 @@ from app.models import (  # noqa: F401
     WorkflowDiagnosis,
     WorkflowEvent,
     WorkflowRun,
+    ValidatedCadQueryOutput,
+    ValidatedCadQueryWorkflow,
+    ValidatedCadQueryOperation,
+    ValidatedCadQueryProviderAttempt,
 )
 
 config = context.config

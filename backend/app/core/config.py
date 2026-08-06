@@ -63,6 +63,10 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY"),
     )
+    gemini_api_key_2: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("GEMINI_API_KEY_2", "VOLUNDR_GEMINI_API_KEY_2"),
+    )
     gemini_api_base_url: str = Field(
         default="https://generativelanguage.googleapis.com/v1beta"
     )
@@ -86,6 +90,9 @@ class Settings(BaseSettings):
     # for direct/compact plans and retains the legacy boundary for detailed
     # plans. This is intentionally absent from the minimal .env.example.
     geometry_contract_mode: str = Field(default="auto")
+    # Product-facing validated CadQuery workflow.  The existing chat and
+    # staged routes remain authoritative until this opt-in is enabled.
+    validated_cadquery_flow_enabled: bool = Field(default=False)
 
     @field_validator("build_dirty", "worker_build_dirty", mode="before")
     @classmethod

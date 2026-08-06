@@ -1384,6 +1384,15 @@
       "historical_contract_terms": [],
       "kind": "test",
       "markers": [],
+      "path": "backend/tests/test_validated_cadquery_workflow.py",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "6c036168ca214ebef5214510ca392744c455bdaab350058c74256c3a1b3a13cf"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
       "path": "backend/tests/test_volundr_cad_runtime.py",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "22d83651f055a50385a76e03b9ac636f49f9a06c44100a33a3604bad7a1368f9"
@@ -1708,6 +1717,15 @@
       "historical_contract_terms": [],
       "kind": "test",
       "markers": [],
+      "path": "frontend/src/validatedCadQueryWorkflow.test.ts",
+      "reason": "current production behavior, safety invariant, or tooling",
+      "sha256": "a26abf44f3688bebf9b5740cebcafa55a6c8656b8b68668f6663cd7d45e2b243"
+    },
+    {
+      "classification": "retain_current",
+      "historical_contract_terms": [],
+      "kind": "test",
+      "markers": [],
       "path": "frontend/src/workflowPresentation.test.ts",
       "reason": "current production behavior, safety invariant, or tooling",
       "sha256": "8a670ef46d94c366979878224262b9e93c472e026fb56d1391a3dc345b78a90b"
@@ -1726,10 +1744,10 @@
   "summary": {
     "by_classification": {
       "historical_integrity_only": 10,
-      "retain_current": 170,
+      "retain_current": 172,
       "retain_regression": 8
     },
-    "item_count": 188,
+    "item_count": 190,
     "marker_counts": {
       "skip": 1,
       "warning": 1
