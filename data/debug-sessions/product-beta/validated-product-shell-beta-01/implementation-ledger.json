@@ -2,7 +2,9 @@
   "schema_version": "validated-product-shell-implementation-ledger-v1",
   "commits": {
     "integration": "eb069820516c156b64a8a926888da84a06f68d71",
-    "browser_coverage": "906af75e34e5a39615b0d97148a9c8119340a196d"
+    "browser_coverage": "906af75e34e5a39615b0d97148a9c8119340a196d",
+    "ci_alignment": "d61df539aea3f98074380eb863207588e7a129be",
+    "controlled_live_harness": "f4b79011e15992faea020094bd68e62dfa410192"
   },
   "layers": {
     "chat_workspace_integration": true,
@@ -14,6 +16,7 @@
     "browser_auth_boundary_coverage": true,
     "browser_history_and_refresh_coverage": true,
     "root_env_secondary_and_fallback_loading": true,
+    "controlled_live_validated_route_coverage": true,
     "production_default_disabled": true
   },
   "protected_paths_untouched": true,
@@ -21,5 +24,5 @@
   "cad_backend_untouched": true,
   "authentication_model_untouched": true,
   "database_foundation_untouched": true,
-  "follow_up": "Fixture, clarification identity mapping, browser harness, and evidence refinements are included in the follow-up verification commit after the initial evidence commit."
+  "follow_up": "The offline product shell and clean local CI-equivalent pass. The single authorized live creation stopped at provider-owned design-artifact consistency before worker submission; targeted provider follow-up is required before internal beta readiness."
 }

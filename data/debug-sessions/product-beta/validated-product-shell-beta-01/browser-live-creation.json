@@ -1,0 +1,19 @@
+{
+  "schema_version": "browser-live-creation-v1",
+  "status": "stopped_at_first_failure",
+  "provider_calls_authorized": true,
+  "project_id": "88810cf2-2fc4-4deb-8430-8918a7c66234",
+  "workflow_id": "6e56268c-9d84-47c4-866b-924c569ed22a",
+  "revision_id": "d64708ac-d6cf-44aa-b6b4-f97bbd7f2e60",
+  "one_browser_creation_request": true,
+  "creation_idempotency_key_shape": "UUID v4; value not recorded",
+  "requirements": "provider returned requirements successfully",
+  "plan": "provider returned compact plan successfully",
+  "source_generation": "failed validation before worker submission",
+  "first_incorrect_boundary": "design_artifact_inconsistent",
+  "failure": "Requirement asymmetric_feature_placement matches multiple Plan features and cannot be linked safely.",
+  "worker_submitted": false,
+  "candidate_output": false,
+  "package_download": false,
+  "rerun": false
+}

@@ -1,12 +1,13 @@
 {
   "schema_version": "github-actions-results-v1",
   "workflow": ".github/workflows/application-integrity.yml",
-  "workflow_commit": "0edf0cb5d7c7cae80c6ad64cb0e8ce6272d237f9",
-  "status": "unavailable",
-  "reason": "The configured origin is confirmed by SSH banner as Gitea rather than GitHub; no GitHub Actions run or reachable authenticated Actions API is available from this workspace.",
+  "workflow_commit": "f4b79011e15992faea020094bd68e62dfa410192",
+  "status": "legacy_filename_authoritative_gitea_record",
+  "reason": "This historical filename is retained for compatibility; authoritative CI classification is recorded in gitea-actions-results.json and authoritative-ci-environment.json.",
   "remote_kind": "gitea-ssh",
   "server_banner": "Gitea does not provide shell access",
   "github_actions_run_id": null,
+  "authoritative_ci_classification": "gitea_ci_access_unavailable",
   "jobs": {
     "backend": "not_started",
     "frontend": "not_started",
@@ -14,5 +15,5 @@
   },
   "workflow_file_present": true,
   "local_equivalent_gates": "passed",
-  "live_provider_call": "not_run"
+  "live_provider_call": "stopped_at_first_provider_boundary"
 }

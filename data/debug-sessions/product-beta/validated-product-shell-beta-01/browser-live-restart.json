@@ -1,0 +1,10 @@
+{
+  "schema_version": "browser-live-restart-v1",
+  "status": "not_run",
+  "planned_restart": "one CAD worker restart during a durable nonterminal job",
+  "marker_observed": true,
+  "nonterminal_worker_job_observed": false,
+  "restart_executed": false,
+  "reason": "The provider-owned plan/source boundary failed before worker submission, so no restart was attempted.",
+  "rerun": false
+}

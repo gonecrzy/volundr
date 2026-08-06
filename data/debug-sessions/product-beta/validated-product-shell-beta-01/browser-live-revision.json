@@ -1,0 +1,8 @@
+{
+  "schema_version": "browser-live-revision-v1",
+  "status": "not_run",
+  "reason": "The single live creation stopped at source-generation validation before candidate acceptance; the bounded revision was intentionally not attempted.",
+  "revision_count": 0,
+  "duplicate_revision_requests": 0,
+  "rerun": false
+}

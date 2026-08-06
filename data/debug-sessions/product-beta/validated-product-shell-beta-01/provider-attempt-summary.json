@@ -1,0 +1,20 @@
+{
+  "schema_version": "provider-attempt-summary-v1",
+  "status": "provider_behavior_requires_targeted_followup",
+  "provider": "gemini_api",
+  "model": "gemini-3.5-flash-lite",
+  "credential_values_recorded": false,
+  "credential_slots": {
+    "primary": {"environment_variable": "GEMINI_API_KEY_2", "attempts": 4, "status_codes": [200]},
+    "fallback": {"environment_variable": "GEMINI_API_KEY", "attempts": 0, "status_codes": []}
+  },
+  "logical_operations": [
+    {"stage": "requirements", "status": "succeeded", "attempts": 1},
+    {"stage": "compact_plan", "status": "succeeded", "attempts": 1},
+    {"stage": "source_generation", "status": "failed_design_artifact_inconsistent", "attempts": 2}
+  ],
+  "transport_retries": 0,
+  "worker_calls": 0,
+  "first_incorrect_boundary": "design_artifact_inconsistent",
+  "rerun": false
+}
