@@ -1,7 +1,7 @@
 {
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "fresh_rebuild_repeated": true,
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "migration_added": "0039_align_fresh_database_schema",
   "migration_scope": [
     "repair null timestamp assumptions",

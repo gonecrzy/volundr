@@ -2,9 +2,10 @@
   "duplicate_provider_or_worker_operations_observed": false,
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "fixture_assertion": "durable running workflow is reconciled to a safe failure after restart",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "persisted_package_available_after_restart": true,
+  "persisted_revision_workflow_id": "ec677562-142d-4753-be2b-54f755ebdd67",
   "persisted_workflow_id": "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3",
   "real_staging_workflow_present": true,
-  "status": "accepted_workflow_persisted_across_controlled_restart_fixture_recovery_passed"
+  "status": "accepted_creation_and_revision_persisted_across_controlled_restarts_fixture_recovery_passed"
 }

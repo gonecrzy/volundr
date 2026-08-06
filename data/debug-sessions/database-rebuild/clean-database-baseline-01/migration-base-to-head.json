@@ -2,7 +2,7 @@
   "base": "base",
   "current_inventory_phase": "after_controlled_smoke_rows",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "head": "0039_align_fresh_database_schema",
   "intermediate_validated_migrations": [
     "0037_validated_cadquery_workflow",

@@ -406,6 +406,15 @@ def validate_revision_success_criteria(
         for item in plan.get("features", [])
         if isinstance(item, dict) and item.get("id")
     }
+    revision_feature_scope = {
+        str(feature_id)
+        for feature_id in payload.get("allowed_feature_changes", []) or []
+        if feature_id
+    } | {
+        str(feature_id)
+        for feature_id in payload.get("targeted_features", []) or []
+        if feature_id
+    }
     findings: list[dict[str, Any]] = []
     for index, criterion in enumerate(payload.get("success_criteria", [])):
         if not isinstance(criterion, dict):
@@ -440,7 +449,12 @@ def validate_revision_success_criteria(
                     entity_id=target_id or None,
                 )
             )
-        elif criterion_type in _OUTPUT_CRITERIA and target_id not in outputs and target_id not in features:
+        elif (
+            criterion_type in _OUTPUT_CRITERIA
+            and target_id not in outputs
+            and target_id not in features
+            and target_id not in revision_feature_scope
+        ):
             findings.append(
                 _finding(
                     "functional.revision_criterion_target_invalid",

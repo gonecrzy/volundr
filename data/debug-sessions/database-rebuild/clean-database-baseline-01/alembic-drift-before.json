@@ -3,7 +3,7 @@
   "current_revision": "0038_validated_cadquery_hardening",
   "decision": "migration_required",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "head": "0038_validated_cadquery_hardening",
   "operation_classes": [
     "nullable_timestamp_alignment",

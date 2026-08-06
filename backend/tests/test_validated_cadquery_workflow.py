@@ -227,6 +227,11 @@ def test_bounded_revision_reuses_accepted_workflow_authority(tmp_path) -> None:
             assert {output["output_id"] for output in revised_payload["outputs"]} == {
                 output["output_id"] for output in accepted_payload["outputs"]
             }
+            accepted_revision = client.post(
+                f"/api/candidates/{revised_payload['revision_id']}/accept"
+            )
+            assert accepted_revision.status_code == 200, accepted_revision.text
+            assert accepted_revision.json()["is_accepted"] is True
     finally:
         settings.validated_cadquery_flow_enabled = previous
         app.dependency_overrides.clear()

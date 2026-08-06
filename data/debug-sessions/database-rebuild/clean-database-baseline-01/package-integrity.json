@@ -13,9 +13,12 @@
     "accepted package manifest schema is validated",
     "package download is an application-produced ZIP"
   ],
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "package_schema": "validated-cadquery-design-package-v1",
-  "real_package_count": 1,
+  "real_package_count": 2,
   "status": "credentialed_real_package_passed",
-  "workflow_id": "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3"
+  "workflow_ids": [
+    "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3",
+    "ec677562-142d-4753-be2b-54f755ebdd67"
+  ]
 }

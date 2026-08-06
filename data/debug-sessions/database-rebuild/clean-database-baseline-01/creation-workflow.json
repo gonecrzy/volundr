@@ -10,20 +10,38 @@
     "primary_printable_output"
   ],
   "clean_database_preserved": "no historical application rows restored; only controlled smoke rows exist",
+  "complex_creation_probe": {
+    "application_semantic_verification": "failed; safe diagnostic reported output not generated",
+    "explicit_asymmetric_dimensions": {
+      "depth_mm": 70,
+      "height_mm": 5,
+      "width_mm": 120
+    },
+    "package_available": false,
+    "project_id": "f0f63a1d-b2b9-455f-be53-cbc0c9d9597c",
+    "requested_feature_types": [
+      "mounting_holes",
+      "cable_slot"
+    ],
+    "requested_irregular_layout": true,
+    "worker_geometry": "valid single solid artifacts were produced",
+    "workflow_id": "99913965-0171-4715-b03c-24b76f1068e3",
+    "workflow_state": "failed"
+  },
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "explicit_asymmetric_dimensions": {
     "depth_mm": 20,
     "height_mm": 10,
     "width_mm": 30
   },
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "package_available": true,
   "project_id": "1b408fe0-cab7-4c2a-81ab-49b9e9062e3a",
   "provider_attempt_count": 1,
   "real_staging_attempted": true,
-  "required_complexity_gap": "This bounded credential smoke used one rectangular solid; the requested multi-feature irregular creation case remains covered by fixture contracts pending the revision compliance fix.",
+  "required_complexity_gap": "The richer real creation reached valid worker geometry but failed application semantic verification; this is the remaining narrow application-owned boundary.",
   "required_output_count": 1,
-  "status": "accepted_candidate_and_package_passed",
+  "status": "simple_creation_package_passed_complex_creation_semantic_verification_blocked",
   "terminal_state": "candidate_ready",
   "topology_and_semantic_verification": "passed",
   "worker_job_recorded": true,

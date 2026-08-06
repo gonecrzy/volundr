@@ -215,6 +215,25 @@ def test_revision_criteria_reject_output_as_parameter_and_unknown_types() -> Non
     }
 
 
+def test_revision_criteria_allow_feature_explicitly_added_by_revision_scope() -> None:
+    findings = validate_revision_success_criteria(
+        {
+            "schema_version": "revision-plan-v2",
+            "allowed_feature_changes": ["top_edge_chamfer"],
+            "success_criteria": [
+                {
+                    "type": "required_feature_geometry_present",
+                    "target_id": "top_edge_chamfer",
+                    "expected_value": 4,
+                }
+            ],
+        },
+        plan={"parameters": [], "features": [], "printable_outputs": [{"id": "print_body"}]},
+    )
+
+    assert findings == []
+
+
 def test_noop_protected_parameter_reference_is_rejected() -> None:
     source = '''
 import cadquery as cq

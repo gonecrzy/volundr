@@ -1,8 +1,8 @@
 {
   "branch": "main",
-  "commit_at_evidence_generation": "fb113e33b3decc6de30213b8002eb814d4c01f3b",
+  "commit_at_evidence_generation": "09b426ce3b1790674f196e47af54e43dd1fe952d",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "initial_expected_commit": "ead7e4ddae04ecb0103f80df8712bfc8de29114f",
   "initial_origin_alignment": {
     "ahead": 0,

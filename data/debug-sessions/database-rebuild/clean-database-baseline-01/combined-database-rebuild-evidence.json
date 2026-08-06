@@ -1,9 +1,9 @@
 {
   "blocked": [
-    "real bounded revision completion",
-    "real partial sibling failure"
+    "full feature-rich creation semantic verification",
+    "real multi-output sibling failure"
   ],
-  "blocker": "Revision preservation metadata and accepted source authority disagree about the structural primary_body feature; this is a narrow application-owned fix, not a database or credential blocker.",
+  "blocker": "Feature-rich creation worker geometry is valid but the application semantic verifier records the required output as not generated; this is a narrow application-owned fix, not a database or credential blocker.",
   "completed": [
     "guarded reset",
     "base-to-head migration",
@@ -12,19 +12,20 @@
     "artifact quarantine",
     "default and controlled routing checks",
     "root .env credential layering",
-    "credentialed creation/acceptance",
+    "credentialed simple creation/acceptance",
+    "credentialed bounded revision",
     "artifact/package integrity",
     "restart persistence",
-    "fixture contract tests"
+    "fixture partial-output replay"
   ],
   "credential_values_serialized": false,
   "database": {
-    "artifact_root_bytes": 525218,
+    "artifact_root_bytes": 713627,
     "row_policy": "migration started empty; only controlled smoke rows added afterward",
     "target": "sqlite:///<redacted>/app.db"
   },
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "reports": [
     "preregistration.json",
     "repository-snapshot.json",

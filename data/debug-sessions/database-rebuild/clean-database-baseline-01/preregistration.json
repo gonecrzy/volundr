@@ -7,7 +7,7 @@
   ],
   "environment": "staging",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
   "host_classification": "local-docker-compose",
   "protected_scope": [
     "production/shared databases",

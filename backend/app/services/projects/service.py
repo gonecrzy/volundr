@@ -997,7 +997,8 @@ class ProjectService:
             revision.review_state = (
                 "ready" if outcome.state == "candidate_ready" else "ready_with_warnings"
             )
-        if outcome.state not in READY_OUTCOME_STATES:
+        review_ready = revision.review_state in {"ready", "ready_with_warnings"}
+        if outcome.state not in READY_OUTCOME_STATES and not review_ready:
             raise ValueError("candidate state does not permit acceptance")
         if revision.cad_backend == "cadquery" and revision.design_plan_id is not None:
             self._require_revision_base_ready(revision, purpose="candidate acceptance")
@@ -7921,6 +7922,16 @@ class ProjectService:
         normalized["active_requirements"] = list(active_requirements or [])
         normalized["requirement_delta"] = list(requirement_delta or [])
         normalized["request_reason"] = request_reason
+        targeted_output_ids = {
+            str(output_id)
+            for output_id in normalized.get("targeted_outputs", []) or []
+            if output_id
+        }
+        normalized["protected_outputs"] = [
+            str(output_id)
+            for output_id in normalized.get("protected_outputs", []) or []
+            if output_id and str(output_id) not in targeted_output_ids
+        ]
         normalized["targeted_findings"] = list(dict.fromkeys(
             [str(item) for item in normalized.get("targeted_findings", [])]
             + [str(item) for item in (request_targeted_findings or [])]
@@ -9590,8 +9601,14 @@ class ProjectService:
                         component_id=component_id,
                     )
                 )
+        base_feature_ids = set(base_scan.feature_mappings)
         for feature_id in revision_plan_payload.get("protected_features", []):
-            if feature_id and feature_id not in revised_scan.feature_mappings:
+            # A direct brief can describe the structural primary body as a
+            # required feature without emitting a dedicated feature marker.
+            # Preserve only feature identities that the accepted source
+            # actually owns; otherwise every bounded revision is rejected
+            # before compile for a feature that cannot be removed.
+            if feature_id and feature_id in base_feature_ids and feature_id not in revised_scan.feature_mappings:
                 findings.append(
                     self._revision_compliance_finding(
                         "revision.protected_feature_removed",
@@ -9684,6 +9701,15 @@ class ProjectService:
             if self._values_equal(base_value, revised_value):
                 continue
             for dependent in dependency.get("affects", []):
+                if (
+                    str(dependent) not in base_scan.assignments
+                    and str(dependent) not in revised_scan.assignments
+                ):
+                    # Component/output identities are represented by source
+                    # module fingerprints, not ParameterSpec assignments.
+                    # They are still allowed dependency targets, but cannot
+                    # satisfy a parameter-value comparison here.
+                    continue
                 base_dependent = base_scan.assignments.get(str(dependent))
                 revised_dependent = revised_scan.assignments.get(str(dependent))
                 if base_dependent == revised_dependent:

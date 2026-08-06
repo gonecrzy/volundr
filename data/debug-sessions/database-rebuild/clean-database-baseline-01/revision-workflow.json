@@ -1,5 +1,10 @@
 {
-  "affected_app_boundary": "revision preservation envelope/source authority alignment",
+  "artifact_download_statuses": {
+    "brep": 200,
+    "design-package": 200,
+    "step": 200,
+    "stl": 200
+  },
   "attempted_changes": [
     "width 30 mm -> 36 mm",
     "bounded top-edge chamfer request"
@@ -7,13 +12,21 @@
   "canonical_output_id_required": "primary_printable_output",
   "deterministic_fixture_contract": "passed in test_validated_cadquery_workflow.py",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "failure": "The accepted direct brief declares primary_body as protected, but its accepted source has no corresponding feature marker; generated revisions are therefore rejected before compile.",
-  "failure_boundary": "revision_source_compliance",
-  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "generated_at": "2026-08-06T03:01:58.058418Z",
+  "package_available": true,
   "parent_revision_id": "640bccff-997a-4a76-aa97-cd54c3dfd2ba",
   "parent_workflow_id": "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3",
+  "protected_facts_preserved": [
+    "primary printable output identity",
+    "single rectangular spacer purpose",
+    "source authority"
+  ],
   "provider_credentials_loaded": true,
   "real_staging_attempted": true,
-  "status": "real_attempted_requires_narrow_fix",
-  "successful_planning_boundary": true
+  "revision_id": "75a730b4-bc8b-49d6-95de-60e7c765cdf7",
+  "revision_review_state": "accepted",
+  "status": "accepted_revision_and_package_passed",
+  "successful_planning_boundary": true,
+  "successful_workflow_id": "ec677562-142d-4753-be2b-54f755ebdd67",
+  "terminal_state": "revision_ready"
 }
