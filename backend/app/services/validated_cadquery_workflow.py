@@ -172,10 +172,10 @@ def derive_validated_workflow_state(outputs: list[dict[str, Any]]) -> str:
     required = [item for item in outputs if bool(item.get("required", True))]
     completed = [item for item in outputs if item.get("state") == "completed"]
     failed = [item for item in outputs if item.get("state") not in {"completed", "pending"}]
-    if required and all(item.get("state") == "completed" for item in required):
-        return "candidate_ready"
     if completed and failed:
         return "partially_completed"
+    if required and all(item.get("state") == "completed" for item in required):
+        return "candidate_ready"
     if any(item.get("state") in {"invalid_shape", "semantic_verification_failed"} for item in outputs):
         return "verification_failed"
     if any(item.get("state") in VALIDATED_OUTPUT_STATES - {"pending"} for item in outputs):
@@ -1142,8 +1142,17 @@ class ValidatedCadQueryWorkflowService:
         for revision_output in revision_outputs:
             summary = _json_object(revision_output.validation_summary_json)
             topology = _json_object(revision_output.topology_metadata_json)
+            artifact_available = bool(revision_output.stl_path and revision_output.step_path)
+            worker_completed = revision_output.execution_state in {"ready", "ready_with_warnings"}
+            if (
+                revision_output.execution_state == "blocked"
+                and artifact_available
+                and topology.get("valid") is True
+                and summary.get("blocking_count", 0)
+            ):
+                worker_completed = True
             payload = {
-                "success": revision_output.execution_state in {"ready", "ready_with_warnings"},
+                "success": worker_completed,
                 "failure_class": "timeout" if "timeout" in (revision_output.compile_error or "").lower() else None,
                 "compile_error": revision_output.compile_error,
                 "topology_metadata": topology,

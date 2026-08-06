@@ -226,7 +226,10 @@ from app.services.geometry.functional import (
     FunctionalGeometryContext,
     FunctionalGeometryVerifierRegistry,
 )
-from app.services.geometry.requirement_compliance import evaluate_requirement_compliance
+from app.services.geometry.requirement_compliance import (
+    evaluate_requirement_compliance,
+    resolve_present_feature_ids,
+)
 from app.services.geometry.feature_evidence import (
     FeatureEvidenceEvaluation,
     FeatureEvidenceRecord,
@@ -10860,7 +10863,10 @@ class ProjectService:
                 evaluate_requirement_compliance(
                     active_requirement_items,
                     evidence=list(result.findings),
-                    present_feature_ids=set(source_metadata.feature_mappings),
+                    present_feature_ids=resolve_present_feature_ids(
+                        design_plan_payload,
+                        set(source_metadata.feature_mappings),
+                    ),
                 )
             )
         revision_dir = self._revision_dir(revision.project_id, revision.id)

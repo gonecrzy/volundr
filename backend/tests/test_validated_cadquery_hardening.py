@@ -91,7 +91,7 @@ def test_workflow_state_invariants_allow_optional_failure_but_block_required_fai
         ]
     )
 
-    assert optional_failure == "candidate_ready"
+    assert optional_failure == "partially_completed"
     assert required_failure == "partially_completed"
 
 

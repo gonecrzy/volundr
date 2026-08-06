@@ -220,6 +220,57 @@ def measure_opening_count(
     )
 
 
+def measure_opening_profiles(
+    mesh: Trimesh,
+    *,
+    axis: str,
+) -> list[dict[str, float]]:
+    """Return projected profiles of enclosed openings on an orthogonal plane."""
+
+    axis_index = _axis_index(axis)
+    if len(mesh.faces) == 0:
+        return []
+    side_faces = set(
+        int(index)
+        for index in np.where(np.abs(mesh.face_normals[:, axis_index]) < 0.35)[0]
+    )
+    adjacency: dict[int, list[int]] = {index: [] for index in side_faces}
+    for left, right in mesh.face_adjacency:
+        left_index = int(left)
+        right_index = int(right)
+        if left_index in side_faces and right_index in side_faces:
+            adjacency[left_index].append(right_index)
+            adjacency[right_index].append(left_index)
+    projection = [index for index in range(3) if index != axis_index]
+    profiles: list[dict[str, float]] = []
+    while side_faces:
+        start = side_faces.pop()
+        stack = [start]
+        component = [start]
+        while stack:
+            current = stack.pop()
+            for neighbor in adjacency[current]:
+                if neighbor in side_faces:
+                    side_faces.remove(neighbor)
+                    stack.append(neighbor)
+                    component.append(neighbor)
+        points = mesh.vertices[np.unique(mesh.faces[component].reshape(-1))][:, projection]
+        if len(points) < 8:
+            continue
+        minimum = points.min(axis=0)
+        maximum = points.max(axis=0)
+        center = (minimum + maximum) / 2
+        profiles.append(
+            {
+                "center_x": round(float(center[0]), 3),
+                "center_y": round(float(center[1]), 3),
+                "size_x": round(float(maximum[0] - minimum[0]), 3),
+                "size_y": round(float(maximum[1] - minimum[1]), 3),
+            }
+        )
+    return profiles
+
+
 def measure_slots(
     samples: Iterable[dict[str, Any]],
     *,

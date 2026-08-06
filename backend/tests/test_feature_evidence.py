@@ -82,6 +82,68 @@ def test_final_mesh_dimension_is_measured_not_inferred_from_source_name() -> Non
     assert record.evidence_method == "final_mesh_bounds"
 
 
+def test_mounting_plate_dimensions_use_final_mesh_bounds() -> None:
+    evaluation = evaluate_feature_evidence(
+        mesh=trimesh.creation.box(extents=(120, 70, 5)),
+        output_id="mounting_plate_output",
+        requirement_trace={
+            "features": [{
+                "feature_id": "base_plate_body",
+                "object_type": "mounting_plate",
+                "requirement_ids": ["plate_width"],
+            }],
+            "validation_targets": [{
+                "feature_id": "base_plate_body",
+                "measurement": "width",
+                "object_type": "mounting_plate",
+                "requirement_ids": ["plate_width"],
+                "value": 120,
+            }],
+        },
+        feature_trace=[_trace(feature_id="base_plate_body")],
+    )
+
+    assert evaluation.records[0].requirement_outcome == "satisfied"
+    assert evaluation.records[0].evidence_method == "final_mesh_bounds"
+
+
+def test_foundational_no_effect_feature_uses_its_component_geometry_trace() -> None:
+    evaluation = evaluate_feature_evidence(
+        mesh=trimesh.creation.box(extents=(120, 70, 5)),
+        output_id="mounting_plate_output",
+        requirement_trace={
+            "features": [{
+                "feature_id": "base_plate_body",
+                "component_id": "mounting_plate_component",
+                "object_type": "mounting_plate",
+                "operation": "extrude",
+                "requirement_ids": ["plate_width"],
+            }],
+            "validation_targets": [{
+                "feature_id": "base_plate_body",
+                "measurement": "width",
+                "object_type": "mounting_plate",
+                "requirement_ids": ["plate_width"],
+                "value": 120,
+            }],
+        },
+        feature_trace=[
+            {
+                "feature_id": "_ai_component_mounting_plate_component",
+                "source_function_id": "_ai_component_mounting_plate_component",
+                "source_executed": True,
+                "shape_changed": True,
+                "input_shape_hash": None,
+                "output_shape_hash": "component-output",
+            },
+            _trace(feature_id="base_plate_body", changed=False),
+        ],
+    )
+
+    assert evaluation.records[0].requirement_outcome == "satisfied"
+    assert evaluation.records[0].source_function_id == "_ai_component_mounting_plate_component"
+
+
 def test_singular_requirement_ids_and_output_scoped_traces_are_linked() -> None:
     evaluation = evaluate_feature_evidence(
         mesh=trimesh.creation.box(extents=(10, 10, 10)),

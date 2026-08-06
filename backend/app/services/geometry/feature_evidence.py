@@ -11,6 +11,7 @@ from trimesh import Trimesh
 
 from app.services.geometry.feature_measurements import (
     compare_dimension,
+    measure_opening_profiles,
     measure_compartments,
     measure_opening_count,
     measure_slots,
@@ -129,6 +130,7 @@ def evaluate_feature_evidence(
         source_id = str(trace.get("source_function_id") or "")
         feature_id = str(trace.get("feature_id") or "")
         candidates = {feature_id, source_id.removeprefix("_ai_feature_")}
+        candidates.add(source_id.removeprefix("_ai_component_"))
         for candidate in candidates:
             if candidate:
                 traces_by_feature.setdefault(candidate, []).append(trace)
@@ -149,6 +151,15 @@ def evaluate_feature_evidence(
         ]
         if not feature_requirement_ids:
             feature_requirement_ids = [feature_id]
+        if (
+            matches
+            and not any(bool(trace.get("shape_changed")) for trace in matches)
+            and str(feature.get("operation") or "").lower() in {"extrude", "additive", "create"}
+        ):
+            component_id = str(feature.get("component_id") or "")
+            component_matches = traces_by_feature.get(component_id, [])
+            if any(bool(trace.get("shape_changed")) for trace in component_matches):
+                matches = [trace for trace in component_matches if trace.get("shape_changed")]
         for requirement_id in feature_requirement_ids:
             target = target_by_requirement.get(requirement_id, {})
             record, findings = _evaluate_one(
@@ -268,6 +279,7 @@ def _evaluate_one(
     result = _measure_final_geometry(
         mesh=mesh,
         feature=feature,
+        requirement_id=requirement_id,
         target=target,
         topology_metadata=topology_metadata,
         trace=trace,
@@ -294,16 +306,22 @@ def _measure_final_geometry(
     *,
     mesh: Trimesh,
     feature: dict[str, Any],
+    requirement_id: str,
     target: dict[str, Any],
     topology_metadata: dict[str, Any] | None,
     trace: dict[str, Any],
 ) -> dict[str, Any]:
     feature_id = str(feature.get("feature_id") or feature.get("id"))
     object_type = str(feature.get("object_type") or "").lower()
+    layout = feature.get("layout") if isinstance(feature.get("layout"), dict) else {}
     measurement = str(target.get("measurement") or "")
     requested = _number(target.get("value"))
-    if measurement in {"width", "depth", "height"} and object_type in {"desktop organizer", "body", "base", "walls"}:
-        axis = {"width": 0, "depth": 1, "height": 2}[measurement]
+    if (
+        measurement in {"width", "depth", "height", "thickness"}
+        and (object_type in {"desktop organizer", "body", "base", "walls", "mounting_plate"}
+             or feature_id in {"main_body", "base_plate_body"})
+    ):
+        axis = {"width": 0, "depth": 1, "height": 2, "thickness": 2}[measurement]
         measured = float(mesh.bounds[1][axis] - mesh.bounds[0][axis])
         operator = str(target.get("operator") or "exact")
         tolerance = _number(target.get("tolerance_mm") or target.get("tolerance"))
@@ -319,6 +337,110 @@ def _measure_final_geometry(
             {"requested_mm": requested, "operator": operator, "applied_tolerance_mm": tolerance},
             measurement_inputs={"target_id": target.get("target_id") or target.get("id"), "axis": axis},
             geometry_presence="present",
+        )
+    if object_type == "mounting_hole" and measurement == "diameter":
+        tolerance = _number(target.get("tolerance_mm") or target.get("tolerance")) or 0.2
+        profiles = measure_opening_profiles(mesh, axis=str(target.get("axis") or "z"))
+        candidates = [
+            profile for profile in profiles
+            if abs(profile["size_x"] - requested) <= tolerance
+            and abs(profile["size_y"] - requested) <= tolerance
+        ]
+        expected_count = _integer(layout.get("required_count"))
+        detected = [max(profile["size_x"], profile["size_y"]) for profile in candidates]
+        passed = bool(candidates) and (expected_count is None or len(candidates) == expected_count)
+        if requested is not None and detected:
+            passed = passed and all(abs(value - requested) <= tolerance for value in detected)
+        return _result_payload(
+            passed,
+            "measured",
+            "hole_diameter_and_count" if passed else "hole_diameter_or_count_mismatch",
+            {
+                "expected_diameter_mm": requested,
+                "detected_diameters_mm": [round(value, 3) for value in detected],
+                "expected_count": expected_count,
+                "detected_count": len(candidates),
+            },
+            "final_mesh_axis_aligned_openings",
+            {"diameter_mm": tolerance},
+            measurement_inputs={"axis": str(target.get("axis") or "z")},
+            geometry_presence="present" if candidates else "absent",
+        )
+    if feature_id == "base_plate_body" and not target:
+        topology = verify_one_connected_output(
+            mesh,
+            expected_count=int((topology_metadata or {}).get("expected_solid_count") or 1),
+        )
+        return _result_payload(
+            topology.satisfied,
+            "measured",
+            topology.reason,
+            topology.measurements,
+            "authoritative_topology_and_final_mesh",
+            {},
+            geometry_presence="present" if topology.satisfied else "absent",
+        )
+    if feature_id == "mounting_holes" and not target:
+        profiles = measure_opening_profiles(mesh, axis="z")
+        expected_count = _integer(layout.get("required_count"))
+        expected_positions = layout.get("positions") or []
+        hole_profiles = [profile for profile in profiles if profile["size_x"] <= 8 and profile["size_y"] <= 8]
+        if requirement_id == "req_asymmetric_pattern" and expected_positions:
+            matched_positions = _match_positions(hole_profiles, expected_positions, tolerance=0.25)
+            return _result_payload(
+                matched_positions,
+                "measured",
+                "fixed_hole_layout" if matched_positions else "fixed_hole_layout_mismatch",
+                {"expected_count": len(expected_positions), "detected_count": len(hole_profiles)},
+                "final_mesh_opening_centers",
+                {"position_mm": 0.25},
+                geometry_presence="present" if hole_profiles else "absent",
+            )
+        passed = expected_count is not None and len(hole_profiles) == expected_count
+        return _result_payload(
+            passed,
+            "measured",
+            "hole_count" if passed else "hole_count_mismatch",
+            {"expected_count": expected_count, "detected_count": len(hole_profiles)},
+            "final_mesh_opening_profiles",
+            {},
+            geometry_presence="present" if hole_profiles else "absent",
+        )
+    if feature_id == "cable_slot" and not target:
+        bounds_size = mesh.bounds[1] - mesh.bounds[0]
+        profiles = [
+            profile for profile in measure_opening_profiles(mesh, axis="z")
+            if profile["size_x"] > 8
+            and profile["size_y"] > 5
+            and profile["size_x"] < float(bounds_size[0]) * 0.9
+            and profile["size_y"] < float(bounds_size[1]) * 0.9
+        ]
+        passed = len(profiles) == 1
+        return _result_payload(
+            passed,
+            "measured",
+            "slot_count" if passed else "slot_count_mismatch",
+            {"expected_count": 1, "detected_count": len(profiles)},
+            "final_mesh_opening_profiles",
+            {},
+            geometry_presence="present" if profiles else "absent",
+        )
+    if object_type == "cable_slot" and measurement in {"width", "height"}:
+        tolerance = _number(target.get("tolerance_mm") or target.get("tolerance")) or 0.2
+        profiles = measure_opening_profiles(mesh, axis=str(target.get("axis") or "z"))
+        requested_size = requested
+        candidates = [
+            profile for profile in profiles
+            if abs((max(profile["size_x"], profile["size_y"]) if measurement == "width" else min(profile["size_x"], profile["size_y"])) - requested_size) <= tolerance
+        ]
+        return _result_payload(
+            bool(candidates),
+            "measured",
+            "slot_dimension" if candidates else "slot_dimension_mismatch",
+            {"measurement": measurement, "requested_mm": requested_size, "profiles": candidates},
+            "final_mesh_opening_profiles",
+            {"dimension_mm": tolerance},
+            geometry_presence="present" if candidates else "absent",
         )
     if feature_id == "main_body":
         topology = verify_one_connected_output(mesh, expected_count=int((topology_metadata or {}).get("expected_solid_count") or 1))
@@ -439,6 +561,31 @@ def _source_function_id(feature_id: str, traces: list[dict[str, Any]]) -> str | 
     if traces:
         return str(traces[0].get("source_function_id") or "") or None
     return f"_ai_feature_{feature_id}" if feature_id else None
+
+
+def _match_positions(profiles: list[dict[str, Any]], expected_positions: list[Any], *, tolerance: float) -> bool:
+    remaining = list(profiles)
+    for expected in expected_positions:
+        if isinstance(expected, dict):
+            target = (_number(expected.get("x")), _number(expected.get("y")))
+        elif isinstance(expected, list) and len(expected) >= 2:
+            target = (_number(expected[0]), _number(expected[1]))
+        else:
+            return False
+        if any(value is None for value in target):
+            return False
+        match_index = next(
+            (
+                index for index, profile in enumerate(remaining)
+                if abs(profile["center_x"] - target[0]) <= tolerance
+                and abs(profile["center_y"] - target[1]) <= tolerance
+            ),
+            None,
+        )
+        if match_index is None:
+            return False
+        remaining.pop(match_index)
+    return not remaining
 
 
 def _mesh_hash(mesh: Trimesh) -> str:

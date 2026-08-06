@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from app.services.geometry.invariants import GeometricFinding
-from app.services.geometry.requirement_compliance import evaluate_requirement_compliance
+from app.services.geometry.requirement_compliance import (
+    evaluate_requirement_compliance,
+    resolve_present_feature_ids,
+)
 
 
 def _finding(
@@ -85,6 +88,31 @@ def test_missing_required_feature_is_blocking_when_source_evidence_proves_absenc
     assert result.is_blocking is True
 
 
+def test_feature_presence_mapping_preserves_requirement_ids_for_canonical_features() -> None:
+    present = resolve_present_feature_ids(
+        {
+            "features": [
+                {
+                    "id": "mounting_holes",
+                    "requirement_ids": ["req_mounting_holes_count"],
+                },
+                {
+                    "id": "cable_slot",
+                    "requirement_ids": ["req_cable_slot_count"],
+                },
+            ]
+        },
+        {"mounting_holes", "cable_slot"},
+    )
+
+    assert present == {
+        "mounting_holes",
+        "cable_slot",
+        "req_mounting_holes_count",
+        "req_cable_slot_count",
+    }
+
+
 def test_verified_requirement_is_reported_without_new_blocking_finding() -> None:
     findings = evaluate_requirement_compliance(
         [
@@ -101,4 +129,3 @@ def test_verified_requirement_is_reported_without_new_blocking_finding() -> None
 
     assert findings[0].verification_state == "verified"
     assert findings[0].is_blocking is False
-

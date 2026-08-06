@@ -11,6 +11,27 @@ from typing import Any, Iterable
 from app.services.geometry.invariants import GeometricFinding
 
 
+def resolve_present_feature_ids(
+    requirement_trace: dict[str, Any],
+    source_feature_ids: set[str],
+) -> set[str]:
+    """Expand canonical source feature identities to their requirement IDs."""
+
+    present = {str(feature_id) for feature_id in source_feature_ids}
+    for feature in requirement_trace.get("features", []) or []:
+        if not isinstance(feature, dict):
+            continue
+        feature_id = str(feature.get("feature_id") or feature.get("id") or "")
+        if not feature_id or feature_id not in present:
+            continue
+        present.update(
+            str(requirement_id)
+            for requirement_id in feature.get("requirement_ids", []) or []
+            if requirement_id
+        )
+    return present
+
+
 def evaluate_requirement_compliance(
     requirements: list[dict[str, Any]],
     *,
