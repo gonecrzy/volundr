@@ -1,0 +1,18 @@
+{
+  "schema_version": "product-qualification-artifact-package-results-v1",
+  "stage_2": {
+    "package_generation_attempted": false,
+    "package_available_projects": [],
+    "projects": {
+      "project-01": {"output_artifacts_available": ["asymmetric_mounting_bracket_output"], "package_available": false, "acceptance_run": false},
+      "project-02": {"output_artifacts_available": [], "package_available": false, "acceptance_run": false},
+      "project-03": {"output_artifacts_available": ["output_base_shell", "output_sliding_lid"], "package_available": false, "acceptance_run": false},
+      "project-04": {"output_artifacts_available": [], "package_available": false, "acceptance_run": false}
+    }
+  },
+  "stage_3": {
+    "revision_packages": [],
+    "reason": "No accepted creation existed to authorize a revision or package operation."
+  },
+  "artifact_path_isolation": "No path escape observed; live temporary workspace was wrapper-cleaned."
+}

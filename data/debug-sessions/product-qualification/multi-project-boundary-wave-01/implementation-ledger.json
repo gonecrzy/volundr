@@ -1,0 +1,111 @@
+{
+  "schema_version": "product-qualification-implementation-ledger-v1",
+  "generated_at": "2026-08-06T09:55:58Z",
+  "source_commit": "5bcc547800dde48d970811200a3b8ed483acfe17",
+  "decision_scope": "bounded four-project validated CadQuery qualification wave",
+  "stages": [
+    {
+      "stage": "preflight",
+      "status": "completed",
+      "source_changes": [],
+      "observations": [
+        "Starting main matched origin/main at ba0e0b2.",
+        "Alembic current and heads matched 0039; alembic check found no upgrade operations.",
+        "Validated flow production defaults remained disabled.",
+        "Primary and secondary Gemini credentials were available only to the controlled backend API wrapper; browser, Playwright, worker, and evidence paths were credential-free."
+      ]
+    },
+    {
+      "stage": "stage_0_trace_confirmation",
+      "status": "completed_with_provider_failure",
+      "source_changes": [],
+      "live_workflows": 1,
+      "provider_calls": 4,
+      "reruns": 0,
+      "first_incorrect_boundary": "provider_geometry_contract_failure",
+      "observations": [
+        "The exact historical asymmetric feature-placement workflow was executed once through the real chat-first path.",
+        "Requirements, both feature participants, cross-feature scope, output identity, and geometry validation targets were retained.",
+        "The provider did not emit the required layout_constraint and the worker was not reached; no source fix or rerun was authorized."
+      ],
+      "evidence": "stage-0-trace-confirmation.json"
+    },
+    {
+      "stage": "stage_1_offline_scope_matrix",
+      "status": "completed",
+      "source_changes": [
+        "backend/app/services/projects/requirement_trace_contract.py",
+        "backend/tests/test_requirement_semantics_alignment.py"
+      ],
+      "source_fix_cycles": 1,
+      "matrix_cases_passed": 7,
+      "provider_calls": 0,
+      "observations": [
+        "Relationship identity and participant coverage are now retained and checked.",
+        "Many components to one assembled output is supported without fabricating one output per component.",
+        "Duplicate explicit participants and incomplete output coverage are rejected.",
+        "The focused regression and full backend suite passed after the fix."
+      ],
+      "commit": "5bcc547 Confirm and harden scoped requirement trace coverage",
+      "evidence": "offline-scope-matrix.json"
+    },
+    {
+      "stage": "stage_2_frozen_creation_wave",
+      "status": "completed_with_interpretable_terminal_failures",
+      "source_changes": [],
+      "live_projects": 4,
+      "provider_calls": 13,
+      "reruns": 0,
+      "concurrency": 1,
+      "observations": [
+        "All four frozen projects completed the creation workflow with complete boundary traces.",
+        "Project 01 and Project 03 first failed at provider geometry semantic verification after topology passed.",
+        "Project 02 first failed at an isolated worker runtime boundary.",
+        "Project 04 first failed at the provider geometry contract boundary after bounded provider attempts.",
+        "Project 02 and Project 03 also exposed provider Plan relationship omissions; these were recorded without changing prompts/settings or rerunning.",
+        "No shared application defect, credential boundary failure, migration failure, authorization failure, or unidentified shared boundary was observed."
+      ],
+      "evidence": "failure-clusters.json"
+    },
+    {
+      "stage": "stage_3_revision_and_partial_output",
+      "status": "completed",
+      "source_changes": [],
+      "live_revision_attempts": 0,
+      "live_revision_reason": "No accepted Stage 2 creation existed.",
+      "offline_partial_output": "passed",
+      "observations": [
+        "Required-output partial completion kept the successful sibling artifact available while withholding package and complete-candidate acceptance.",
+        "Optional-output failure kept the required sibling reviewable with warnings.",
+        "The live revision gate remained closed exactly as required."
+      ],
+      "evidence": "partial-output-results.json"
+    },
+    {
+      "stage": "finalization",
+      "status": "completed",
+      "source_changes": [
+        "data/debug-sessions/product-qualification/multi-project-boundary-wave-01/test-summary.json",
+        "data/debug-sessions/product-qualification/multi-project-boundary-wave-01/implementation-ledger.json",
+        "data/debug-sessions/product-qualification/multi-project-boundary-wave-01/final-decision.json"
+      ],
+      "observations": [
+        "The live-wave prompt hashes were normalized to the frozen manifest's UTF-8 prompt-text hashing algorithm; the prior live harness used JSON.stringify(prompt) for those four evidence fields.",
+        "Reports contain sanitized metadata only and no provider bodies, source code, credentials, or raw user messages."
+      ]
+    }
+  ],
+  "remaining_follow_up": {
+    "owner": "provider_behavior",
+    "scope": [
+      "provider-generated geometry semantic compliance for the feature and mating-output prompts",
+      "provider Plan relationship emission for explicit cross-feature and mating relationships",
+      "provider geometry contract stability for required-plus-optional output prompts"
+    ],
+    "required_before_requalification": [
+      "preserve the frozen prompts and credential policy",
+      "re-run only under an explicitly authorized follow-up wave",
+      "retain per-project boundary traces and do not aggregate provider failures into an application defect without new evidence"
+    ]
+  }
+}

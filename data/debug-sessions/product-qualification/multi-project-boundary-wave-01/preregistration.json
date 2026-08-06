@@ -1,0 +1,48 @@
+{
+  "schema_version": "product-qualification-wave-preregistration-v1",
+  "stage": "stage_2_frozen_multi_project_creation_wave",
+  "frozen_at": "2026-08-06T09:35:54Z",
+  "source_commit": "5bcc547",
+  "remote": "origin/main",
+  "project_count": 4,
+  "execution_order": ["project-01", "project-02", "project-03", "project-04"],
+  "concurrency": 1,
+  "prompts_frozen": true,
+  "provider_settings_frozen": true,
+  "feature_flag": {
+    "VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED": true,
+    "production_default": false
+  },
+  "credential_policy": {
+    "backend_only": true,
+    "primary": "GEMINI_API_KEY_2",
+    "fallback": "GEMINI_API_KEY only after primary HTTP 429",
+    "fallback_wait_seconds": 30,
+    "fallback_max_per_logical_operation": 1,
+    "playwright_credentials": false,
+    "cad_worker_credentials": false
+  },
+  "rerun_policy": {
+    "stage_2_reruns_before_any_application_fix": 0,
+    "maximum_live_reruns_for_application_fixes_across_wave": 2,
+    "maximum_reruns_per_project": 1,
+    "provider_semantic_failure_rerun": false
+  },
+  "stop_conditions": [
+    "authorization_or_cross_project_isolation_failure",
+    "artifact_path_escape",
+    "database_or_migration_integrity_failure",
+    "credential_isolation_failure",
+    "idempotency_duplicate",
+    "restart_reconciliation_corruption",
+    "shared_application_defect_affecting_two_projects",
+    "same_unidentified_boundary_fails_twice",
+    "unreliable_provider_transport"
+  ],
+  "continue_conditions": [
+    "isolated_provider_semantic_failure",
+    "optional_output_failure_with_coherent_required_sibling",
+    "project_specific_unsupported_requirement",
+    "fully_classified_non_shared_failure"
+  ]
+}

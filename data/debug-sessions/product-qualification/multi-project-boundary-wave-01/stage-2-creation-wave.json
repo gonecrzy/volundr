@@ -1,0 +1,2599 @@
+{
+  "schema_version": "product-qualification-stage-2-creation-wave-v1",
+  "prompt_hash_algorithm": "sha256(UTF-8 prompt text; aligned to corpus-manifest.json)",
+  "source_commit": "5bcc547",
+  "execution_order": [
+    "project-01",
+    "project-02",
+    "project-03",
+    "project-04"
+  ],
+  "projects": [
+    {
+      "project_id": "ca0cd351-ed14-4bea-a3ac-2e6c2eb2cca0",
+      "workflow_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+      "prompt_sha256": "97227538c5a4d206cdd4abc3cf2f21472afe591a551255a1fe66df118d33b105",
+      "scenario": "project-01",
+      "title": "Feature-scoped mechanical part",
+      "started_at": "2026-08-06T09:40:05.234Z",
+      "completed_at": "2026-08-06T09:40:31.102Z",
+      "state": "verification_failed",
+      "clarification_count": 0,
+      "creation_request_count": 1,
+      "creation_idempotency_key_sha256": "cd992e8b7c5f13af2613384a3fb8f1c5fd61065802bf8d4ee09a9ce20ec9c93e",
+      "forbidden_mutations": [],
+      "provider_call_count": 3,
+      "provider_attempt_count": 3,
+      "workflow_run_count": 3,
+      "requirements": {
+        "schema_version": "1.0",
+        "outcome": "generation_ready",
+        "generation_ready": true,
+        "clarification_required": false,
+        "requirement_ids": [
+          "body_width",
+          "body_depth",
+          "body_thickness",
+          "pivot_bore_diameter",
+          "pivot_bore_left_distance",
+          "pivot_bore_front_distance",
+          "cable_pocket_width",
+          "cable_pocket_depth_dimension",
+          "single_output_bracket",
+          "pivot_bore_presence",
+          "cable_pocket_presence",
+          "no_mating_part"
+        ],
+        "protected_requirement_ids": [
+          "body_width",
+          "body_depth",
+          "body_thickness",
+          "pivot_bore_diameter",
+          "pivot_bore_left_distance",
+          "pivot_bore_front_distance",
+          "cable_pocket_width",
+          "cable_pocket_depth_dimension",
+          "single_output_bracket",
+          "pivot_bore_presence",
+          "cable_pocket_presence",
+          "no_mating_part"
+        ],
+        "functional_types": [
+          {
+            "id": "single_output_bracket",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "pivot_bore_presence",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "cable_pocket_presence",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "no_mating_part",
+            "type": "feature_absence",
+            "target": null
+          }
+        ],
+        "critical_dimensions": [
+          {
+            "id": "body_width",
+            "value": 110,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "body_depth",
+            "value": 72,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "body_thickness",
+            "value": 6,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "pivot_bore_diameter",
+            "value": 5,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "pivot_bore_left_distance",
+            "value": 18,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "pivot_bore_front_distance",
+            "value": 14,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "cable_pocket_width",
+            "value": 30,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "cable_pocket_depth_dimension",
+            "value": 12,
+            "unit": "mm",
+            "protected": true
+          }
+        ],
+        "trace_status": null,
+        "validation_status": null
+      },
+      "plan": {
+        "schema_version": "1.1",
+        "outcome": "plan_ready",
+        "components": [
+          {
+            "id": "mounting_bracket_body",
+            "role": "printable_part",
+            "required": true
+          }
+        ],
+        "features": [
+          {
+            "id": "pivot_bore_feature",
+            "component_id": "mounting_bracket_body",
+            "type": "hole_group",
+            "requirement_ids": [
+              "pivot_bore_presence",
+              "pivot_bore_diameter",
+              "pivot_bore_left_distance",
+              "pivot_bore_front_distance"
+            ]
+          },
+          {
+            "id": "cable_pocket_feature",
+            "component_id": "mounting_bracket_body",
+            "type": "slot",
+            "requirement_ids": [
+              "cable_pocket_presence",
+              "cable_pocket_width",
+              "cable_pocket_depth_dimension"
+            ]
+          }
+        ],
+        "relationships": [],
+        "feature_layouts": [
+          {
+            "id": null,
+            "feature_id": "pivot_bore_feature",
+            "layout_mode": "fixed_positions",
+            "required_count": 1,
+            "requirement_ids": []
+          },
+          {
+            "id": null,
+            "feature_id": "cable_pocket_feature",
+            "layout_mode": "fixed_positions",
+            "required_count": 1,
+            "requirement_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "id": "asymmetric_mounting_bracket_output",
+            "component_ids": [
+              "mounting_bracket_body"
+            ],
+            "required": true,
+            "quantity": 1
+          }
+        ],
+        "validation_targets": [
+          {
+            "id": "target_body_width",
+            "type": "dimension",
+            "measurement": "width",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "body_width"
+            ]
+          },
+          {
+            "id": "target_body_depth",
+            "type": "dimension",
+            "measurement": "depth",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "body_depth"
+            ]
+          },
+          {
+            "id": "target_body_thickness",
+            "type": "dimension",
+            "measurement": "thickness",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "body_thickness"
+            ]
+          },
+          {
+            "id": "target_pivot_bore_diameter",
+            "type": "dimension",
+            "measurement": "diameter",
+            "feature_id": "pivot_bore_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "pivot_bore_diameter"
+            ]
+          },
+          {
+            "id": "target_pivot_bore_left",
+            "type": "position",
+            "measurement": "position_x",
+            "feature_id": "pivot_bore_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "pivot_bore_left_distance"
+            ]
+          },
+          {
+            "id": "target_pivot_bore_front",
+            "type": "position",
+            "measurement": "position_y",
+            "feature_id": "pivot_bore_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "pivot_bore_front_distance"
+            ]
+          },
+          {
+            "id": "target_cable_pocket_width",
+            "type": "dimension",
+            "measurement": "width",
+            "feature_id": "cable_pocket_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "cable_pocket_width"
+            ]
+          },
+          {
+            "id": "target_cable_pocket_depth",
+            "type": "dimension",
+            "measurement": "depth",
+            "feature_id": "cable_pocket_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "cable_pocket_depth_dimension"
+            ]
+          }
+        ]
+      },
+      "outputs": [
+        {
+          "output_id": "asymmetric_mounting_bracket_output",
+          "required": true,
+          "state": "semantic_verification_failed",
+          "generation_status": "completed",
+          "worker_status": "completed",
+          "solid_count": 1,
+          "topology_status": "passed",
+          "semantic_verification": "failed",
+          "artifact_available": true,
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass."
+        }
+      ],
+      "verification": {
+        "state": "verification_failed",
+        "package_available": false,
+        "output_states": [
+          {
+            "output_id": "asymmetric_mounting_bracket_output",
+            "state": "semantic_verification_failed",
+            "artifact_available": true
+          }
+        ]
+      },
+      "provenance": {
+        "provider": "gemini_api",
+        "model": "gemini-3.5-flash-lite",
+        "source_hash": "3ac6bb6c325c352043abf004c640ca6c53ae19584626e2f7122ec3b36f37b430",
+        "feature_flag_enabled": true
+      },
+      "boundary_trace": [
+        {
+          "boundary": "user_request",
+          "input_sha256": "36ec232a62a39853bd79d59d7973547c38eb7e09e5ac7a3ce15aae8d8873b6b9",
+          "output_sha256": "c17cfc515d8d966764a1cf461f09d0784c9bfb2c408727cb6e3279e9fac79db2",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "succeeded",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirements_extraction",
+          "input_sha256": "36ec232a62a39853bd79d59d7973547c38eb7e09e5ac7a3ce15aae8d8873b6b9",
+          "output_sha256": "99a9da54df5daad8b16b26c484a26a9caa261fc49f29bf93e69c9bd6efc449b5",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "clarification_decision",
+          "input_sha256": "7bebd39c8c9b8b0c0a9b506cc32b2fb086a6d4a52c76f9523f171a46e4e3eeb3",
+          "output_sha256": "4dcd3d88dff167e130603771e73f996ec066fb97d5c43378e0e964002eebcf30",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "plan_creation",
+          "input_sha256": "99a9da54df5daad8b16b26c484a26a9caa261fc49f29bf93e69c9bd6efc449b5",
+          "output_sha256": "d460761f5bb69ea295b1f7650b38e0ec3951d9dc22099392c7c61977a65cffa4",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_scope_classification",
+          "input_sha256": "d460761f5bb69ea295b1f7650b38e0ec3951d9dc22099392c7c61977a65cffa4",
+          "output_sha256": "b9589bcec927dec61e62f357854b62a9685376b2ada9743d2318bd61d00e5528",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_trace",
+          "input_sha256": "5b986651503d2aa02c6f5f51a865abf735b9e5a37103b806e1ca3af5555eafd6",
+          "output_sha256": "a1f289191d1b5e3b765e761dc47128309cb9ef33af92fb978a75442944c44d01",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "source_generation_request",
+          "input_sha256": "d460761f5bb69ea295b1f7650b38e0ec3951d9dc22099392c7c61977a65cffa4",
+          "output_sha256": "5f5d8791441935e01b701188d7b90bcaffb3c46b668fa1f5db6bd4f8ff52abfb",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "initial_source_response",
+          "input_sha256": "4e75c04495271b604e1ba00eddfce0a84143a81a7a2584c566b1edf76447ca11",
+          "output_sha256": "a8330d3753c016842cebcfac31a9995fc3c140f0a9f4f13b53259e61d868adf2",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider_geometry",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "source_assembly",
+          "input_sha256": "6c909005e1027d4ceb992f128ac979af2c47ee2b0eaf976f45dc89a80091e181",
+          "output_sha256": "c919dc56472a1e44f102fffbe0864f51c10160ed46a208ef480b5eee26001543",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "worker_submission",
+          "input_sha256": "c919dc56472a1e44f102fffbe0864f51c10160ed46a208ef480b5eee26001543",
+          "output_sha256": "e84567322fa8cf95c57f9768af7eca23dd5fe6a58006e85ac26e918e5a478957",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "worker_output",
+          "input_sha256": "f4fa5cbfaf92784b20e1b90d6002b693a4d39c7027615cafb6048d9facafce79",
+          "output_sha256": "e84567322fa8cf95c57f9768af7eca23dd5fe6a58006e85ac26e918e5a478957",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "topology_verification",
+          "input_sha256": "e84567322fa8cf95c57f9768af7eca23dd5fe6a58006e85ac26e918e5a478957",
+          "output_sha256": "c9beb6a8ac581a42a09dabbf57a59dfdbfe41db141b45af50ff2d95ecc11654c",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "semantic_verification",
+          "input_sha256": "e84567322fa8cf95c57f9768af7eca23dd5fe6a58006e85ac26e918e5a478957",
+          "output_sha256": "e16195ba2a6ce57012690a16b0f3814060e509eff91cf889a9fc7ef6ab18a024",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "failed",
+          "blocking_findings": ["semantic_verification_failure"],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "workflow_aggregation",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "02420aea9cceef0e18a38a1ee1e0fd33b8832023ba2750ff99302e985d7ef809",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "failed",
+          "blocking_findings": [
+            "semantic_verification_failure"
+          ],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "candidate_eligibility",
+          "input_sha256": "e04eda8e7466786d1ba7557a074a82dcde3203eaed39ef24bd205b21b9e4d448",
+          "output_sha256": "02420aea9cceef0e18a38a1ee1e0fd33b8832023ba2750ff99302e985d7ef809",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "failed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "acceptance",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "f043bb99cc1de975dd15fc42a9b2b6a06f138c397c2551d600e60d93b237c084",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "artifact_generation",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "package_generation",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "frontend_presentation",
+          "input_sha256": "9f991a6bca3d2801066d8517797446eeb458b6f59dad3db8d7beaed4100e5376",
+          "output_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "durable_record_id": "a7968e70-3384-4bca-b9c3-fc523ce5be77",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        }
+      ],
+      "first_incorrect_boundary": "semantic_verification_failure",
+      "primary_blocker": "semantic_verification_failure",
+      "independent_findings": [
+        {
+          "output_id": "asymmetric_mounting_bracket_output",
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass."
+        }
+      ],
+      "unreached_boundaries": [],
+      "provider_attempts": [
+        {
+          "attempt_id": "0f5681a0-0fbe-4cb9-8130-082a2bd38de6",
+          "attempt_number": 1,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "requirements",
+            "classification": "valid",
+            "original_response_received": true,
+            "deterministic_normalization": false,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 4629,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "edb2b5c8-4380-45f0-805a-a4f6b64669ba",
+          "attempt_number": 2,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "detailed_plan",
+            "classification": "valid",
+            "original_response_received": true,
+            "deterministic_normalization": false,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 10514,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "6ad85f2e-9f9f-40d6-9775-43a05bede4aa",
+          "attempt_number": 3,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "failed",
+          "failure_class": "cadquery_compile_failure",
+          "provider_response": {
+            "stage": "source_generation",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "source_generation"
+          },
+          "duration_ms": 7648,
+          "resulting_revision_id": "aac5e7cc-d028-4e90-ab46-8bf495fc49ce"
+        }
+      ],
+      "workflow_events": [
+        {
+          "id": "bae83a7a-49b4-48af-b7c1-f3e2f3987c0c",
+          "event_types": [
+            "project_request.submitted",
+            "requirement_extraction.completed",
+            "planning.route.selected"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "id": "d1d6b816-a6f1-484d-867b-1019e14b5c8f",
+          "event_types": [
+            "design_plan_generation.started",
+            "design_plan_generation.completed"
+          ],
+          "sequence_numbers": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "7b7cc49a-5b0e-491e-81c7-56e74712f41a",
+          "event_types": [
+            "source_generation.started",
+            "provider.request_prepared",
+            "source_contract.passed",
+            "worker.submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "worker.completed",
+            "snapshot.generated",
+            "candidate.classified"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "browser_quality": {
+        "consoleErrors": [],
+        "pageErrors": [],
+        "failedRequests": [],
+        "httpErrors": []
+      }
+    },
+    {
+      "project_id": "10aad523-9a7e-4535-b7e7-3250d021b82d",
+      "workflow_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+      "prompt_sha256": "66f5abbda2d6b9994d27c9dd6acf4dadccfb1a434901a0716ac81eb245049a83",
+      "scenario": "project-02",
+      "title": "Cross-feature layout part",
+      "started_at": "2026-08-06T09:40:31.488Z",
+      "completed_at": "2026-08-06T09:40:51.850Z",
+      "state": "failed",
+      "clarification_count": 0,
+      "creation_request_count": 1,
+      "creation_idempotency_key_sha256": "339bccc8892487e085cf031c6d1f6e934d3eb6900217d6f47a1cf4f8b62e8657",
+      "forbidden_mutations": [],
+      "provider_call_count": 3,
+      "provider_attempt_count": 3,
+      "workflow_run_count": 3,
+      "requirements": {
+        "schema_version": "1.0",
+        "outcome": "generation_ready",
+        "generation_ready": true,
+        "clarification_required": false,
+        "requirement_ids": [
+          "plate_width",
+          "plate_depth",
+          "plate_thickness",
+          "output_count",
+          "mounting_holes_presence",
+          "cable_recess_presence",
+          "asymmetric_layout_relationship",
+          "no_mating_part"
+        ],
+        "protected_requirement_ids": [
+          "plate_width",
+          "plate_depth",
+          "plate_thickness",
+          "output_count",
+          "mounting_holes_presence",
+          "cable_recess_presence",
+          "asymmetric_layout_relationship",
+          "no_mating_part"
+        ],
+        "functional_types": [
+          {
+            "id": "output_count",
+            "type": "capacity",
+            "target": null
+          },
+          {
+            "id": "mounting_holes_presence",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "cable_recess_presence",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "asymmetric_layout_relationship",
+            "type": "relationship",
+            "target": "cable_recess_layout"
+          },
+          {
+            "id": "no_mating_part",
+            "type": "qualitative_behavior",
+            "target": null
+          }
+        ],
+        "critical_dimensions": [
+          {
+            "id": "plate_width",
+            "value": 120,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "plate_depth",
+            "value": 80,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "plate_thickness",
+            "value": 5,
+            "unit": "mm",
+            "protected": true
+          }
+        ],
+        "trace_status": null,
+        "validation_status": null
+      },
+      "plan": {
+        "schema_version": "1.1",
+        "outcome": "plan_ready",
+        "components": [
+          {
+            "id": "sensor_plate_body",
+            "role": "printable_part",
+            "required": true
+          }
+        ],
+        "features": [
+          {
+            "id": "mounting_hole_group",
+            "component_id": "sensor_plate_body",
+            "type": "hole_group",
+            "requirement_ids": [
+              "mounting_holes_presence"
+            ]
+          },
+          {
+            "id": "cable_recess",
+            "component_id": "sensor_plate_body",
+            "type": "slot",
+            "requirement_ids": [
+              "cable_recess_presence"
+            ]
+          }
+        ],
+        "relationships": [],
+        "feature_layouts": [
+          {
+            "id": null,
+            "feature_id": "mounting_hole_group",
+            "layout_mode": "proposed_positions",
+            "required_count": 4,
+            "requirement_ids": []
+          },
+          {
+            "id": null,
+            "feature_id": "cable_recess",
+            "layout_mode": "proposed_positions",
+            "required_count": 1,
+            "requirement_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "id": "sensor_plate_output",
+            "component_ids": [
+              "sensor_plate_body"
+            ],
+            "required": true,
+            "quantity": 1
+          }
+        ],
+        "validation_targets": [
+          {
+            "id": "verify_plate_width",
+            "type": "dimension",
+            "measurement": "width",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "plate_width"
+            ]
+          },
+          {
+            "id": "verify_plate_depth",
+            "type": "dimension",
+            "measurement": "depth",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "plate_depth"
+            ]
+          },
+          {
+            "id": "verify_plate_thickness",
+            "type": "dimension",
+            "measurement": "thickness",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "plate_thickness"
+            ]
+          },
+          {
+            "id": "verify_output_count",
+            "type": "count",
+            "measurement": "printable_output_count",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "output_count"
+            ]
+          },
+          {
+            "id": "verify_mounting_holes_presence",
+            "type": "count",
+            "measurement": "feature_count",
+            "feature_id": "mounting_hole_group",
+            "component_id": null,
+            "requirement_ids": [
+              "mounting_holes_presence"
+            ]
+          },
+          {
+            "id": "verify_cable_recess_presence",
+            "type": "count",
+            "measurement": "feature_count",
+            "feature_id": "cable_recess",
+            "component_id": null,
+            "requirement_ids": [
+              "cable_recess_presence"
+            ]
+          },
+          {
+            "id": "verify_asymmetric_layout",
+            "type": "qualitative",
+            "measurement": "layout_asymmetry",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "asymmetric_layout_relationship"
+            ]
+          },
+          {
+            "id": "verify_no_mating_part",
+            "type": "qualitative",
+            "measurement": "mating_part_absent",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "no_mating_part"
+            ]
+          }
+        ]
+      },
+      "outputs": [
+        {
+          "output_id": "sensor_plate_output",
+          "required": true,
+          "state": "not_generated",
+          "generation_status": "failed",
+          "worker_status": "failed",
+          "solid_count": null,
+          "topology_status": null,
+          "semantic_verification": "passed",
+          "artifact_available": false,
+          "failure_owner": "worker",
+          "safe_diagnostic": "Execution failed; detailed traceback is not available."
+        }
+      ],
+      "verification": {
+        "state": "failed",
+        "package_available": false,
+        "output_states": [
+          {
+            "output_id": "sensor_plate_output",
+            "state": "not_generated",
+            "artifact_available": false
+          }
+        ]
+      },
+      "provenance": {
+        "provider": "gemini_api",
+        "model": "gemini-3.5-flash-lite",
+        "source_hash": "7535d3505130bf7c36cf0a77589898ec17e433f0ac029828199402425577ecdf",
+        "feature_flag_enabled": true
+      },
+      "boundary_trace": [
+        {
+          "boundary": "user_request",
+          "input_sha256": "c373c5127ca1808ccba6d272fae19fe73720ae8fd59c652fa6eb628b71215651",
+          "output_sha256": "549a2fc3d1ea2e56a3e464817f887cd3a3b11d17f09527c9a9020de3ebe43e77",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "succeeded",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirements_extraction",
+          "input_sha256": "c373c5127ca1808ccba6d272fae19fe73720ae8fd59c652fa6eb628b71215651",
+          "output_sha256": "f5f04138154b454c479be626ff2ccc294a8bab36c930d0396b2aa812c142fccb",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "clarification_decision",
+          "input_sha256": "9cd06bd21ec93d50d583fb401387d3deb0b7c33f4a7fcc5f4e7239550db7e08f",
+          "output_sha256": "4dcd3d88dff167e130603771e73f996ec066fb97d5c43378e0e964002eebcf30",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "plan_creation",
+          "input_sha256": "f5f04138154b454c479be626ff2ccc294a8bab36c930d0396b2aa812c142fccb",
+          "output_sha256": "cb82454d31c1541f4fabe9c537f7b33a65cfcf9d0374a3fa25a12aa7993ad89b",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_scope_classification",
+          "input_sha256": "cb82454d31c1541f4fabe9c537f7b33a65cfcf9d0374a3fa25a12aa7993ad89b",
+          "output_sha256": "64920590acdcbf700dc8946078565f98015fbde74b5def2ef45b28311796ce6c",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_trace",
+          "input_sha256": "aa6bb29e60bf00912e13748591c42039ceadba0b80e9e02abecbab4427978838",
+          "output_sha256": "ee6fc5203c56b4abf82fe667196269c3e2c96f15a01eb0ab4ad5aa9da84c5705",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "source_generation_request",
+          "input_sha256": "cb82454d31c1541f4fabe9c537f7b33a65cfcf9d0374a3fa25a12aa7993ad89b",
+          "output_sha256": "5f5d8791441935e01b701188d7b90bcaffb3c46b668fa1f5db6bd4f8ff52abfb",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "initial_source_response",
+          "input_sha256": "ddd5faf5cbaca572232fe117779106f21d67f589536d5c70750197feabddf851",
+          "output_sha256": "a8330d3753c016842cebcfac31a9995fc3c140f0a9f4f13b53259e61d868adf2",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider_geometry",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "source_assembly",
+          "input_sha256": "6c909005e1027d4ceb992f128ac979af2c47ee2b0eaf976f45dc89a80091e181",
+          "output_sha256": "c919dc56472a1e44f102fffbe0864f51c10160ed46a208ef480b5eee26001543",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "worker_submission",
+          "input_sha256": "c919dc56472a1e44f102fffbe0864f51c10160ed46a208ef480b5eee26001543",
+          "output_sha256": "3a3108a2fccd7c3186bed862f2b949fdf1594a6a406a3a9678726cf3c89d30a8",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "worker_output",
+          "input_sha256": "09c6d961ae3ca927bdebb156ce7565c22d006fb12e1d886791091327e0a36513",
+          "output_sha256": "3a3108a2fccd7c3186bed862f2b949fdf1594a6a406a3a9678726cf3c89d30a8",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "topology_verification",
+          "input_sha256": "3a3108a2fccd7c3186bed862f2b949fdf1594a6a406a3a9678726cf3c89d30a8",
+          "output_sha256": "3766fd2b710b98ad97b6331aa5236d5a766ab5f98d779a98097d9a3bfe2fb380",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "semantic_verification",
+          "input_sha256": "3a3108a2fccd7c3186bed862f2b949fdf1594a6a406a3a9678726cf3c89d30a8",
+          "output_sha256": "d36ed22ea254d6f59bb032c6891c0390b3810b7e7320b03a4f35b38b1353c56d",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "workflow_aggregation",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "57a7fc94db72bef1cd1b73a003b5fe3d74d6163c44113cfe1d5d628276d0f209",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "failed",
+          "blocking_findings": [
+            "worker_runtime_failure"
+          ],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "candidate_eligibility",
+          "input_sha256": "409ef2015d58ddc6946d3098545a30b01bf236076b1aaebfea5cb300791b59cd",
+          "output_sha256": "57a7fc94db72bef1cd1b73a003b5fe3d74d6163c44113cfe1d5d628276d0f209",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "failed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "acceptance",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "f043bb99cc1de975dd15fc42a9b2b6a06f138c397c2551d600e60d93b237c084",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "artifact_generation",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "package_generation",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "frontend_presentation",
+          "input_sha256": "9548c3203db39d9cf1de9b8bb90e3e6e4038a8c2ff8b2059faf11d6e61d9efcf",
+          "output_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "durable_record_id": "2e87db71-d422-4bb9-b2fa-fcb1366c1871",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        }
+      ],
+      "first_incorrect_boundary": "worker_runtime_failure",
+      "primary_blocker": "worker_runtime_failure",
+      "independent_findings": [
+        {
+          "output_id": "sensor_plate_output",
+          "failure_owner": "worker",
+          "safe_diagnostic": "Execution failed; detailed traceback is not available."
+        }
+      ],
+      "unreached_boundaries": [],
+      "provider_attempts": [
+        {
+          "attempt_id": "d31ace0e-d752-4f7a-8b83-d83028a7fbe8",
+          "attempt_number": 1,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "requirements",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 3275,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "a0dcfca5-4513-4067-bb2c-94c613884c8d",
+          "attempt_number": 2,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "detailed_plan",
+            "classification": "valid",
+            "original_response_received": true,
+            "deterministic_normalization": false,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 7697,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "94821328-e5dc-4fe3-8c51-6d14f95d5fc3",
+          "attempt_number": 3,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "failed",
+          "failure_class": "cadquery_compile_failure",
+          "provider_response": {
+            "stage": "source_generation",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "source_generation"
+          },
+          "duration_ms": 7241,
+          "resulting_revision_id": "9f93dc28-1015-4299-8520-fbc4d1d0b21b"
+        }
+      ],
+      "workflow_events": [
+        {
+          "id": "194dcd71-0314-4d60-a982-1b31da88f92e",
+          "event_types": [
+            "project_request.submitted",
+            "requirement_extraction.completed",
+            "planning.route.selected"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "id": "791c464d-2ad6-4ad8-bfc6-282e8de3e207",
+          "event_types": [
+            "design_plan_generation.started",
+            "design_plan_generation.completed"
+          ],
+          "sequence_numbers": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "84612cfe-e85e-474d-b506-aa35b6a37ea3",
+          "event_types": [
+            "source_generation.started",
+            "provider.request_prepared",
+            "source_contract.passed",
+            "worker.submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "worker.failed",
+            "snapshot.not_applicable_before_worker",
+            "candidate.classified"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      "browser_quality": {
+        "consoleErrors": [],
+        "pageErrors": [],
+        "failedRequests": [],
+        "httpErrors": []
+      }
+    },
+    {
+      "project_id": "f795e638-89aa-484d-bbbc-2710f2eaa4a9",
+      "workflow_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+      "prompt_sha256": "076210d333c1c8ee739a3ea9127ee3242c6952cda5410aaa71335f3a7360b2a2",
+      "scenario": "project-03",
+      "title": "Two-output mating assembly",
+      "started_at": "2026-08-06T09:40:52.093Z",
+      "completed_at": "2026-08-06T09:41:17.434Z",
+      "state": "verification_failed",
+      "clarification_count": 0,
+      "creation_request_count": 1,
+      "creation_idempotency_key_sha256": "6ed2417e6bb8934a79ec0000840c621726d538c800db8ea7991c3a04cf804d20",
+      "forbidden_mutations": [],
+      "provider_call_count": 3,
+      "provider_attempt_count": 3,
+      "workflow_run_count": 3,
+      "requirements": {
+        "schema_version": "1.0",
+        "outcome": "generation_ready",
+        "generation_ready": true,
+        "clarification_required": false,
+        "requirement_ids": [
+          "base_width",
+          "base_depth",
+          "base_thickness",
+          "lid_clearance",
+          "lid_overlap",
+          "req_base_shell",
+          "req_sliding_lid",
+          "req_mounting_boss",
+          "req_latch_rail",
+          "req_center_alignment",
+          "req_exact_outputs"
+        ],
+        "protected_requirement_ids": [
+          "base_width",
+          "base_depth",
+          "base_thickness",
+          "lid_clearance",
+          "lid_overlap",
+          "req_base_shell",
+          "req_sliding_lid",
+          "req_mounting_boss",
+          "req_latch_rail",
+          "req_center_alignment",
+          "req_exact_outputs"
+        ],
+        "functional_types": [
+          {
+            "id": "req_base_shell",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "req_sliding_lid",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "req_mounting_boss",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "req_latch_rail",
+            "type": "feature_presence",
+            "target": null
+          },
+          {
+            "id": "req_center_alignment",
+            "type": "orientation",
+            "target": "base_shell"
+          },
+          {
+            "id": "req_exact_outputs",
+            "type": "feature_presence",
+            "target": null
+          }
+        ],
+        "critical_dimensions": [
+          {
+            "id": "base_width",
+            "value": 100,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "base_depth",
+            "value": 70,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "base_thickness",
+            "value": 4,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "lid_clearance",
+            "value": 0.3,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "lid_overlap",
+            "value": 2,
+            "unit": "mm",
+            "protected": true
+          }
+        ],
+        "trace_status": null,
+        "validation_status": null
+      },
+      "plan": {
+        "schema_version": "1.1",
+        "outcome": "plan_ready",
+        "components": [
+          {
+            "id": "base_shell",
+            "role": "printable_part",
+            "required": true
+          },
+          {
+            "id": "sliding_lid",
+            "role": "printable_part",
+            "required": true
+          }
+        ],
+        "features": [
+          {
+            "id": "base_shell_feature",
+            "component_id": "base_shell",
+            "type": "shell",
+            "requirement_ids": [
+              "req_base_shell",
+              "base_width",
+              "base_depth",
+              "base_thickness"
+            ]
+          },
+          {
+            "id": "mounting_boss_feature",
+            "component_id": "base_shell",
+            "type": "other",
+            "requirement_ids": [
+              "req_mounting_boss"
+            ]
+          },
+          {
+            "id": "sliding_lid_feature",
+            "component_id": "sliding_lid",
+            "type": "lid",
+            "requirement_ids": [
+              "req_sliding_lid",
+              "lid_clearance",
+              "lid_overlap"
+            ]
+          },
+          {
+            "id": "latch_rail_feature",
+            "component_id": "sliding_lid",
+            "type": "slot",
+            "requirement_ids": [
+              "req_latch_rail"
+            ]
+          }
+        ],
+        "relationships": [],
+        "feature_layouts": [],
+        "outputs": [
+          {
+            "id": "output_base_shell",
+            "component_ids": [
+              "base_shell"
+            ],
+            "required": true,
+            "quantity": 1
+          },
+          {
+            "id": "output_sliding_lid",
+            "component_ids": [
+              "sliding_lid"
+            ],
+            "required": true,
+            "quantity": 1
+          }
+        ],
+        "validation_targets": [
+          {
+            "id": "target_base_width",
+            "type": "dimension",
+            "measurement": "width",
+            "feature_id": "base_shell_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "base_width"
+            ]
+          },
+          {
+            "id": "target_base_depth",
+            "type": "dimension",
+            "measurement": "depth",
+            "feature_id": "base_shell_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "base_depth"
+            ]
+          },
+          {
+            "id": "target_base_thickness",
+            "type": "dimension",
+            "measurement": "thickness",
+            "feature_id": "base_shell_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "base_thickness"
+            ]
+          },
+          {
+            "id": "target_lid_clearance",
+            "type": "clearance",
+            "measurement": "clearance",
+            "feature_id": "sliding_lid_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "lid_clearance"
+            ]
+          },
+          {
+            "id": "target_lid_overlap",
+            "type": "fit",
+            "measurement": "overlap",
+            "feature_id": "sliding_lid_feature",
+            "component_id": null,
+            "requirement_ids": [
+              "lid_overlap"
+            ]
+          },
+          {
+            "id": "target_exact_outputs",
+            "type": "count",
+            "measurement": "count",
+            "feature_id": null,
+            "component_id": null,
+            "requirement_ids": [
+              "req_exact_outputs"
+            ]
+          }
+        ]
+      },
+      "outputs": [
+        {
+          "output_id": "output_base_shell",
+          "required": true,
+          "state": "semantic_verification_failed",
+          "generation_status": "completed",
+          "worker_status": "completed",
+          "solid_count": 1,
+          "topology_status": "passed",
+          "semantic_verification": "failed",
+          "artifact_available": true,
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass."
+        },
+        {
+          "output_id": "output_sliding_lid",
+          "required": true,
+          "state": "semantic_verification_failed",
+          "generation_status": "completed",
+          "worker_status": "completed",
+          "solid_count": 1,
+          "topology_status": "passed",
+          "semantic_verification": "failed",
+          "artifact_available": true,
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass."
+        }
+      ],
+      "verification": {
+        "state": "verification_failed",
+        "package_available": false,
+        "output_states": [
+          {
+            "output_id": "output_base_shell",
+            "state": "semantic_verification_failed",
+            "artifact_available": true
+          },
+          {
+            "output_id": "output_sliding_lid",
+            "state": "semantic_verification_failed",
+            "artifact_available": true
+          }
+        ]
+      },
+      "provenance": {
+        "provider": "gemini_api",
+        "model": "gemini-3.5-flash-lite",
+        "source_hash": "46c9bdbb5786c53e7367cfe281fc5a1f674f865d3219e8156a6ead2cc0effe0d",
+        "feature_flag_enabled": true
+      },
+      "boundary_trace": [
+        {
+          "boundary": "user_request",
+          "input_sha256": "5c107a43d2ca7a97bb41927f0b6211007d44a3fa8bcece655913429a41ae4801",
+          "output_sha256": "12fe3a9229be490111b25a2b3bfdbab83eebe2666d35cc80043acca08b15d77a",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "succeeded",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirements_extraction",
+          "input_sha256": "5c107a43d2ca7a97bb41927f0b6211007d44a3fa8bcece655913429a41ae4801",
+          "output_sha256": "d869735a77786e0acd13f452cc191f3e8b06410b9e45b130bf226db3e99adbfa",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "clarification_decision",
+          "input_sha256": "efa375a9e7619a801c666df9fd4c3ce48b176f8debc4b221187ae4d74b3f8cb8",
+          "output_sha256": "4dcd3d88dff167e130603771e73f996ec066fb97d5c43378e0e964002eebcf30",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "plan_creation",
+          "input_sha256": "d869735a77786e0acd13f452cc191f3e8b06410b9e45b130bf226db3e99adbfa",
+          "output_sha256": "7d5176c1c6a6a7611db990a2189b9ff3aaba5f8affb582658ea4903b5ef1fdd3",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_scope_classification",
+          "input_sha256": "7d5176c1c6a6a7611db990a2189b9ff3aaba5f8affb582658ea4903b5ef1fdd3",
+          "output_sha256": "0581cdf6af254b742c64f806504289f304b3461401af2caf087ee25fc020d9a6",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_trace",
+          "input_sha256": "89fee2212309305e17220c3a35a4fb412d9c0cb1cec8c242c17545ff30a880b6",
+          "output_sha256": "a295f8786811888ed1248a20cdd3b07fc7822b1a93d863cfc620bd875325d14e",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "source_generation_request",
+          "input_sha256": "7d5176c1c6a6a7611db990a2189b9ff3aaba5f8affb582658ea4903b5ef1fdd3",
+          "output_sha256": "5f5d8791441935e01b701188d7b90bcaffb3c46b668fa1f5db6bd4f8ff52abfb",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "initial_source_response",
+          "input_sha256": "39e0e22a1020ff716e0f387191e6f9edbcf65491d198932c92cc805aa11b747d",
+          "output_sha256": "a8330d3753c016842cebcfac31a9995fc3c140f0a9f4f13b53259e61d868adf2",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider_geometry",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "source_assembly",
+          "input_sha256": "6c909005e1027d4ceb992f128ac979af2c47ee2b0eaf976f45dc89a80091e181",
+          "output_sha256": "a8435642b9aa5b6059cb65148fc82a63b690d5f27bca913f94d77db8177a3c56",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "worker_submission",
+          "input_sha256": "a8435642b9aa5b6059cb65148fc82a63b690d5f27bca913f94d77db8177a3c56",
+          "output_sha256": "3a8ff38b98f377ea631a73a4723339647433564bfb2bfefb3e2e74247d2652e6",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "worker_output",
+          "input_sha256": "632613959e67cdaed48a358d81aef113070365162040bac72e605581f63c7e98",
+          "output_sha256": "3a8ff38b98f377ea631a73a4723339647433564bfb2bfefb3e2e74247d2652e6",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "topology_verification",
+          "input_sha256": "3a8ff38b98f377ea631a73a4723339647433564bfb2bfefb3e2e74247d2652e6",
+          "output_sha256": "f5cef9fa2362b522864f8ceed8c466c28098f5327f1d59f43e9308ab63007f7b",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "semantic_verification",
+          "input_sha256": "3a8ff38b98f377ea631a73a4723339647433564bfb2bfefb3e2e74247d2652e6",
+          "output_sha256": "74867bf63f68267732976996b90915884f0e03b3e2177b7f0df183d8e60b016e",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "failed",
+          "blocking_findings": ["semantic_verification_failure"],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "workflow_aggregation",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "02420aea9cceef0e18a38a1ee1e0fd33b8832023ba2750ff99302e985d7ef809",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "failed",
+          "blocking_findings": [
+            "semantic_verification_failure"
+          ],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "candidate_eligibility",
+          "input_sha256": "f014be0f54b0b513e3ea672ae57a1cdf965532115db62389d9d6ccbe1fe67b8a",
+          "output_sha256": "02420aea9cceef0e18a38a1ee1e0fd33b8832023ba2750ff99302e985d7ef809",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "failed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "acceptance",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "f043bb99cc1de975dd15fc42a9b2b6a06f138c397c2551d600e60d93b237c084",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "artifact_generation",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "package_generation",
+          "input_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "frontend_presentation",
+          "input_sha256": "27219cf5ea988ced977e42d5808681f87dd005bffdd48bba9404138cebcf0bf5",
+          "output_sha256": "24fce1cbb655e5e1cb2a1568752e8dc2b23da5908a2074f9a9c63bf195c5b4c6",
+          "durable_record_id": "1d810c64-ff2b-4098-93f6-ed1bfc051a19",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        }
+      ],
+      "first_incorrect_boundary": "semantic_verification_failure",
+      "primary_blocker": "semantic_verification_failure",
+      "independent_findings": [
+        {
+          "output_id": "output_base_shell",
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass."
+        },
+        {
+          "output_id": "output_sliding_lid",
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass."
+        }
+      ],
+      "unreached_boundaries": [],
+      "provider_attempts": [
+        {
+          "attempt_id": "a9bd2f30-d3a6-49a6-bc9e-575ce6d98c1e",
+          "attempt_number": 1,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "requirements",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 3910,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "5d11d33b-0b13-468a-b296-1a9479ba12b1",
+          "attempt_number": 2,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "detailed_plan",
+            "classification": "valid",
+            "original_response_received": true,
+            "deterministic_normalization": false,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 9815,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "f7a26456-8339-4a39-bdd9-ad8db5872648",
+          "attempt_number": 3,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "failed",
+          "failure_class": "cadquery_compile_failure",
+          "provider_response": {
+            "stage": "source_generation",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "source_generation"
+          },
+          "duration_ms": 9821,
+          "resulting_revision_id": "94b65bd9-9161-4d7a-8cf3-81e28eeee53b"
+        }
+      ],
+      "workflow_events": [
+        {
+          "id": "3570a5da-0f68-4e1f-805f-e761f3c6f170",
+          "event_types": [
+            "project_request.submitted",
+            "requirement_extraction.completed",
+            "planning.route.selected"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "id": "567671dc-2d3a-449f-bfab-bbb5d70f7470",
+          "event_types": [
+            "design_plan_generation.started",
+            "design_plan_generation.completed"
+          ],
+          "sequence_numbers": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "d9a6ab73-31d0-4ed5-9dab-f2b09ef5d22c",
+          "event_types": [
+            "source_generation.started",
+            "provider.request_prepared",
+            "source_contract.passed",
+            "worker.submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "execution.parameter_submitted",
+            "worker.completed",
+            "snapshot.generated",
+            "candidate.classified"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      ],
+      "browser_quality": {
+        "consoleErrors": [],
+        "pageErrors": [],
+        "failedRequests": [],
+        "httpErrors": []
+      }
+    },
+    {
+      "project_id": "27073cd7-3ee1-42a9-a9bd-8ea312ef15a0",
+      "workflow_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+      "prompt_sha256": "b7eb927a4dd7f5161af9139a3e8efdd4a1911c72116ff8ffbb09988496c41e56",
+      "scenario": "project-04",
+      "title": "Required plus optional output",
+      "started_at": "2026-08-06T09:41:18.168Z",
+      "completed_at": "2026-08-06T09:41:36.500Z",
+      "state": "failed",
+      "clarification_count": 0,
+      "creation_request_count": 1,
+      "creation_idempotency_key_sha256": "f26e8fc762efad7be69e732bd98e547f8f9a930fd90ad5153b292a93a9751663",
+      "forbidden_mutations": [],
+      "provider_call_count": 4,
+      "provider_attempt_count": 4,
+      "workflow_run_count": 2,
+      "requirements": {
+        "schema_version": "1.0",
+        "outcome": "generation_ready",
+        "generation_ready": true,
+        "clarification_required": false,
+        "requirement_ids": [
+          "invalidating_tray",
+          "tray_depth",
+          "tray_height",
+          "tray_width",
+          "req_label_plate_optional",
+          "req_label_plate_output",
+          "req_pen_pocket",
+          "req_tray_output"
+        ],
+        "protected_requirement_ids": [
+          "invalidating_tray",
+          "tray_depth",
+          "tray_height",
+          "tray_width",
+          "req_label_plate_optional",
+          "req_label_plate_output",
+          "req_pen_pocket",
+          "req_tray_output"
+        ],
+        "functional_types": [
+          {
+            "id": "req_label_plate_optional",
+            "type": "relationship",
+            "target": "tray"
+          },
+          {
+            "id": "req_label_plate_output",
+            "type": "feature_presence",
+            "target": "label_plate"
+          },
+          {
+            "id": "req_pen_pocket",
+            "type": "feature_presence",
+            "target": "pen_pocket"
+          },
+          {
+            "id": "req_tray_output",
+            "type": "feature_presence",
+            "target": "tray"
+          }
+        ],
+        "critical_dimensions": [
+          {
+            "id": "invalidating_tray",
+            "value": false,
+            "unit": null,
+            "protected": true
+          },
+          {
+            "id": "tray_depth",
+            "value": 90,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "tray_height",
+            "value": 30,
+            "unit": "mm",
+            "protected": true
+          },
+          {
+            "id": "tray_width",
+            "value": 140,
+            "unit": "mm",
+            "protected": true
+          }
+        ],
+        "trace_status": null,
+        "validation_status": null
+      },
+      "plan": {
+        "schema_version": "compact-cad-plan-v1",
+        "planning_depth": "compact_plan",
+        "outcome": "plan_ready",
+        "components": [
+          {
+            "id": "comp_tray",
+            "role": "primary",
+            "required": true
+          },
+          {
+            "id": "comp_label_plate",
+            "role": "secondary",
+            "required": true
+          }
+        ],
+        "features": [
+          {
+            "id": "feat_tray_body",
+            "component_id": "comp_tray",
+            "type": "feature",
+            "requirement_ids": [
+              "tray_width",
+              "tray_depth",
+              "tray_height",
+              "req_tray_output"
+            ]
+          },
+          {
+            "id": "feat_tray_cavity",
+            "component_id": "comp_tray",
+            "type": "feature",
+            "requirement_ids": [
+              "req_tray_output"
+            ]
+          },
+          {
+            "id": "feat_pen_pocket",
+            "component_id": "comp_tray",
+            "type": "feature",
+            "requirement_ids": [
+              "req_pen_pocket"
+            ]
+          },
+          {
+            "id": "feat_label_plate",
+            "component_id": "comp_label_plate",
+            "type": "feature",
+            "requirement_ids": [
+              "req_label_plate_output"
+            ]
+          }
+        ],
+        "relationships": [
+          {
+            "id": "rel_tray_independent",
+            "type": "independent_of",
+            "component_ids": [],
+            "feature_ids": [],
+            "source_id": "comp_tray",
+            "target_id": "comp_label_plate"
+          }
+        ],
+        "feature_layouts": [],
+        "outputs": [
+          {
+            "id": "output_tray",
+            "component_ids": [
+              "comp_tray"
+            ],
+            "required": true,
+            "quantity": 1
+          },
+          {
+            "id": "output_label_plate",
+            "component_ids": [
+              "comp_label_plate"
+            ],
+            "required": true,
+            "quantity": 1
+          }
+        ],
+        "validation_targets": [
+          {
+            "id": "val_tray_width",
+            "type": "width",
+            "measurement": "width",
+            "feature_id": "feat_tray_body",
+            "component_id": "comp_tray",
+            "requirement_ids": [
+              "tray_width"
+            ]
+          },
+          {
+            "id": "val_tray_depth",
+            "type": "depth",
+            "measurement": "depth",
+            "feature_id": "feat_tray_body",
+            "component_id": "comp_tray",
+            "requirement_ids": [
+              "tray_depth"
+            ]
+          },
+          {
+            "id": "val_tray_height",
+            "type": "height",
+            "measurement": "height",
+            "feature_id": "feat_tray_body",
+            "component_id": "comp_tray",
+            "requirement_ids": [
+              "tray_height"
+            ]
+          }
+        ]
+      },
+      "outputs": [],
+      "verification": {
+        "state": "failed",
+        "package_available": false,
+        "output_states": []
+      },
+      "provenance": {
+        "provider": "gemini_api",
+        "model": "gemini-3.5-flash-lite",
+        "source_hash": "58806aad07851f3a116bb7930abb01adfce801252f9f26d9fe7702cfffa8143c",
+        "feature_flag_enabled": true
+      },
+      "boundary_trace": [
+        {
+          "boundary": "user_request",
+          "input_sha256": "09ff4fe9890ebb07356439b292ca7e4bca0c7d3990564dc7827aca512caf04d6",
+          "output_sha256": "857b1dbd58279154011d33186c29cd55d6fa0764ee61e22601b66b75141164bd",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "succeeded",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirements_extraction",
+          "input_sha256": "09ff4fe9890ebb07356439b292ca7e4bca0c7d3990564dc7827aca512caf04d6",
+          "output_sha256": "cd5eddd15ffee1b0b622c98f5596cbe141788472a919abe9f5af4e3fe28aadf5",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "clarification_decision",
+          "input_sha256": "75665f89d49c272b645abe252919a51fa1dfeb4346c0c0bed1c0b1a00ab1787d",
+          "output_sha256": "4dcd3d88dff167e130603771e73f996ec066fb97d5c43378e0e964002eebcf30",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "plan_creation",
+          "input_sha256": "cd5eddd15ffee1b0b622c98f5596cbe141788472a919abe9f5af4e3fe28aadf5",
+          "output_sha256": "5d826925b4962fb99cd6a1b1447617e38e5006ff675e86f64b147d5299cf8bbc",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "provider/application",
+          "provider_supplied": true,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_scope_classification",
+          "input_sha256": "5d826925b4962fb99cd6a1b1447617e38e5006ff675e86f64b147d5299cf8bbc",
+          "output_sha256": "d0be27f742afec3b7589d786b1fb4406dc810791064c17b875deb2f2c30a3dfc",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "requirement_trace",
+          "input_sha256": "3e16d8c6569278a29698cd025a49affe4df4e97aa2ffb1f58eb4fca97310e289",
+          "output_sha256": "6551a23653c54c8ffc4bb37530a28d97d329d721cdf788af627b2317f34e16fb",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "source_generation_request",
+          "input_sha256": "5d826925b4962fb99cd6a1b1447617e38e5006ff675e86f64b147d5299cf8bbc",
+          "output_sha256": "c696bad5e8da96c27a0803ec679d40b29d835c49e5dd23f1c16428a83cdef860",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": true
+        },
+        {
+          "boundary": "initial_source_response",
+          "input_sha256": "9aa03e2a836d9a6ebe9cbfd46afed9b24977926e3ee1c6f61050f22c62c149f9",
+          "output_sha256": "f727a7156eaa43974a6a6e88cf0acbe351c1d476f7faa6e15151cf40d5d653aa",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "failed",
+          "blocking_findings": [
+            "provider_geometry_contract_failure"
+          ],
+          "non_blocking_findings": [],
+          "owner": "provider_geometry",
+          "provider_supplied": true,
+          "continued": false
+        },
+        {
+          "boundary": "source_assembly",
+          "input_sha256": "889a29f8d5704a5a8a8f270891a5106ea75ffe5bdf4095a6772dcf9a465e5fe6",
+          "output_sha256": "8397074bee7717fc3f1fa6e0d15274bf09324a507eccc45830eb6fc15a664039",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_reached",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "worker_submission",
+          "input_sha256": "8397074bee7717fc3f1fa6e0d15274bf09324a507eccc45830eb6fc15a664039",
+          "output_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_reached",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker/application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "worker_output",
+          "input_sha256": "122827cc109fde5a26c4afcd3aef71e11b7a8a9afa0787c86501df08035c5ec4",
+          "output_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_reached",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "worker",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "topology_verification",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "output_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_reached",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "semantic_verification",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "output_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_reached",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "workflow_aggregation",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "57a7fc94db72bef1cd1b73a003b5fe3d74d6163c44113cfe1d5d628276d0f209",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "failed",
+          "blocking_findings": [
+            "provider_geometry_contract_failure"
+          ],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "candidate_eligibility",
+          "input_sha256": "7413be852cb11e3d6bef211d4a13484666ef235fc9b9bbf354d97e16d7503bd9",
+          "output_sha256": "57a7fc94db72bef1cd1b73a003b5fe3d74d6163c44113cfe1d5d628276d0f209",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "failed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "acceptance",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "f043bb99cc1de975dd15fc42a9b2b6a06f138c397c2551d600e60d93b237c084",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "artifact_generation",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "package_generation",
+          "input_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "output_sha256": "75a0809d5a8f98101b460efa4e2134ea9432b51d326fc5300425e6a4797523f6",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "not_run",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "application",
+          "provider_supplied": false,
+          "continued": false
+        },
+        {
+          "boundary": "frontend_presentation",
+          "input_sha256": "883a45c59ec7651db81ce4e6971cb633c01240e9c956a0bf1f972557fc229e41",
+          "output_sha256": "53f2c691602f573c1c019dc941037c3a73ef5b3d807ad1c4aebbd0c932bd4e9a",
+          "durable_record_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+          "status": "observed",
+          "blocking_findings": [],
+          "non_blocking_findings": [],
+          "owner": "frontend/application",
+          "provider_supplied": false,
+          "continued": true
+        }
+      ],
+      "first_incorrect_boundary": "provider_geometry_contract_failure",
+      "primary_blocker": "provider_geometry_contract_failure",
+      "independent_findings": [],
+      "unreached_boundaries": [
+        "source_assembly",
+        "worker_submission",
+        "worker_output",
+        "topology_verification",
+        "semantic_verification"
+      ],
+      "provider_attempts": [
+        {
+          "attempt_id": "04def321-e4e5-4dd5-bc24-ce19bf8c0a3b",
+          "attempt_number": 1,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "requirements",
+            "classification": "valid",
+            "original_response_received": true,
+            "deterministic_normalization": false,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 3441,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "3e61d002-d63f-49b8-9395-0bed943ffcae",
+          "attempt_number": 2,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "succeeded",
+          "failure_class": "none",
+          "provider_response": {
+            "stage": "compact_plan",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "accepted"
+          },
+          "duration_ms": 5612,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "40b6ceda-66c7-4414-9c79-4645f1333aa6",
+          "attempt_number": 3,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "failed",
+          "failure_class": "geometry_body_failure",
+          "provider_response": {
+            "stage": "source_generation",
+            "classification": "partial_geometry_slots",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "source_generation"
+          },
+          "duration_ms": 2845,
+          "resulting_revision_id": null
+        },
+        {
+          "attempt_id": "a619e358-fae9-4153-85d5-b2554d6dfe1d",
+          "attempt_number": 4,
+          "provider": "gemini_api",
+          "model": "gemini-3.5-flash-lite",
+          "provider_call_count": 1,
+          "provider_retry_count": 0,
+          "content_repair_count": 0,
+          "status": "failed",
+          "failure_class": "design_artifact_inconsistent",
+          "provider_response": {
+            "stage": "source_generation",
+            "classification": "valid_after_normalization",
+            "original_response_received": true,
+            "deterministic_normalization": true,
+            "repair_attempted": false,
+            "repair_outcome": null,
+            "final_stage": "source_generation"
+          },
+          "duration_ms": 4465,
+          "resulting_revision_id": "5d758aeb-2c2b-4150-8031-8a6f86ea7bd2"
+        }
+      ],
+      "workflow_events": [
+        {
+          "id": "0ab70979-5f00-41ce-a1ae-188d0be5dce2",
+          "event_types": [
+            "project_request.submitted",
+            "requirement_extraction.completed",
+            "planning.route.selected"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "id": "1386d40f-a7f9-4856-9474-34ba408edb61",
+          "event_types": [
+            "source_generation.started",
+            "provider.request_prepared",
+            "geometry_slots.partial",
+            "geometry_slots.completion_started",
+            "geometry_slots.completion_succeeded",
+            "source_contract.passed"
+          ],
+          "sequence_numbers": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      "browser_quality": {
+        "consoleErrors": [],
+        "pageErrors": [],
+        "failedRequests": [],
+        "httpErrors": []
+      }
+    }
+  ]
+}

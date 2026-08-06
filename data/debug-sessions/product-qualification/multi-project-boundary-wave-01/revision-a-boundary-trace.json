@@ -1,0 +1,17 @@
+{
+  "schema_version": "product-qualification-revision-boundary-trace-v1",
+  "revision": "revision-a",
+  "status": "not_applicable",
+  "provider_calls": 0,
+  "reruns": 0,
+  "source_projects": ["project-01", "project-02"],
+  "reason": "No Stage 2 creation reached candidate_ready and no project was accepted; the objective forbids starting a revision without an accepted creation.",
+  "boundary_trace": [
+    {"boundary": "accepted_prior_revision", "status": "not_reached", "continued": false},
+    {"boundary": "new_revision_operation", "status": "not_run", "continued": false},
+    {"boundary": "revision_plan", "status": "not_run", "continued": false},
+    {"boundary": "revision_geometry", "status": "not_run", "continued": false},
+    {"boundary": "output_identity_and_protected_facts", "status": "not_run", "continued": false},
+    {"boundary": "revision_package_provenance", "status": "not_run", "continued": false}
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "product-qualification-final-decision-v1",
+  "generated_at": "2026-08-06T09:55:58Z",
+  "source_commit": "5bcc547800dde48d970811200a3b8ed483acfe17",
+  "decision": "provider_behavior_requires_targeted_followup",
+  "beta_eligibility": "not_eligible",
+  "production_default_enabled": false,
+  "github_mirror_ci": "inaccessible",
+  "authoritative_remote": "origin ssh://git@10.1.10.204:222/gonecrzy69/volundr.git",
+  "qualification_counts": {
+    "stage_0_live_workflows": 1,
+    "stage_0_provider_calls": 4,
+    "stage_1_matrix_cases_passed": 7,
+    "stage_1_provider_calls": 0,
+    "stage_2_projects": 4,
+    "stage_2_provider_calls": 13,
+    "stage_2_live_reruns": 0,
+    "accepted_creations": 0,
+    "revision_a": "not_applicable",
+    "revision_b": "not_applicable",
+    "offline_partial_output_qualification": true
+  },
+  "boundary_outcome": {
+    "project_01": "provider_geometry_semantic_failure",
+    "project_02": "worker_runtime_failure",
+    "project_03": "provider_geometry_semantic_failure",
+    "project_04": "provider_geometry_contract_failure",
+    "additional_provider_plan_finding": {
+      "projects": ["project-02", "project-03"],
+      "failure": "provider_plan_relationship_omission"
+    }
+  },
+  "rationale": [
+    "The bounded live wave completed with interpretable terminal boundaries for all four projects, so the result is not insufficient evidence.",
+    "The offline trace contract and partial-output isolation passed, and no shared application boundary defect was identified.",
+    "The live corpus produced no accepted creation, no package, and no authorized revision opportunity; therefore internal-beta readiness is not established.",
+    "The dominant blockers are provider-owned geometry semantics/contracts plus one isolated worker failure, requiring targeted provider follow-up before another qualification wave."
+  ],
+  "not_selected": {
+    "multi_project_product_flow_ready_for_internal_beta": "Rejected: zero accepted creations, zero packages, and no live revision qualification.",
+    "multi_project_product_flow_requires_narrow_fix": "Rejected: the offline trace fix passed and the live failures did not identify a narrow shared application defect.",
+    "shared_application_boundary_blocks_wave": "Rejected: no authorization, cross-project isolation, migration, credential, idempotency, or shared application boundary failure was observed.",
+    "product_integrity_blocked": "Rejected: no integrity or credential leakage failure was observed.",
+    "insufficient_evidence": "Rejected: all four project boundary traces and the controlled partial-output evidence are complete."
+  },
+  "evidence": [
+    "test-summary.json",
+    "implementation-ledger.json",
+    "stage-0-trace-confirmation.json",
+    "offline-scope-matrix.json",
+    "stage-2-creation-wave.json",
+    "failure-clusters.json",
+    "partial-output-results.json",
+    "project-01-boundary-trace.json",
+    "project-02-boundary-trace.json",
+    "project-03-boundary-trace.json",
+    "project-04-boundary-trace.json",
+    "revision-a-boundary-trace.json",
+    "revision-b-boundary-trace.json"
+  ]
+}

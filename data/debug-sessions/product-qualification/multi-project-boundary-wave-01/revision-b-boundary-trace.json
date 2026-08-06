@@ -1,0 +1,17 @@
+{
+  "schema_version": "product-qualification-revision-boundary-trace-v1",
+  "revision": "revision-b",
+  "status": "not_applicable",
+  "provider_calls": 0,
+  "reruns": 0,
+  "source_projects": ["project-03"],
+  "reason": "Project 3 reached verification_failed without an accepted revision; the mating-assembly revision must not be run on an unaccepted base.",
+  "boundary_trace": [
+    {"boundary": "accepted_prior_revision", "status": "not_reached", "continued": false},
+    {"boundary": "new_revision_operation", "status": "not_run", "continued": false},
+    {"boundary": "single_output_targeting", "status": "not_run", "continued": false},
+    {"boundary": "mating_relationship_preservation", "status": "not_run", "continued": false},
+    {"boundary": "unaffected_output_preservation", "status": "not_run", "continued": false},
+    {"boundary": "revision_package_provenance", "status": "not_run", "continued": false}
+  ]
+}

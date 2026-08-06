@@ -1,0 +1,35 @@
+{
+  "schema_version": "product-qualification-partial-output-results-v1",
+  "stage": "stage_3_partial_output_qualification",
+  "provider_calls": 0,
+  "controlled_failure_owner": "application_staging_fixture",
+  "controlled_failure_default": false,
+  "required_output_isolation": {
+    "test": "backend/tests/test_e2e_fixture_server.py::test_fixture_server_exposes_validated_partial_output_without_promoting_candidate",
+    "workflow_state": "partially_completed",
+    "outputs": [
+      {"output_id": "base", "required": true, "state": "completed", "artifact_available": true},
+      {"output_id": "lid", "required": true, "state": "worker_timeout", "artifact_available": false}
+    ],
+    "package_available": false,
+    "complete_candidate_acceptance": false,
+    "restart_reconciliation": "covered by validated workflow state and output aggregation regression tests"
+  },
+  "optional_output_isolation": {
+    "test": "backend/tests/test_multi_output_generation.py::test_optional_output_failure_keeps_assembly_reviewable_with_warnings",
+    "required_sibling": {"output_id": "body", "state": "completed", "artifact_available": true},
+    "optional_sibling": {"output_id": "lid", "state": "failed", "failure_owner": "worker"},
+    "assembly_review_state": "ready_with_warnings",
+    "optional_failure_finding": "assembly.optional_output_failed",
+    "provider_request_mutated": false
+  },
+  "frontend_confirmation": {
+    "test": "frontend/e2e/validated-partial-output.spec.ts",
+    "result": "1 passed",
+    "required_sibling_downloadable": true,
+    "failed_sibling_distinguished": true,
+    "incomplete_package_message": true,
+    "acceptance_control_absent": true
+  },
+  "decision": "partial_output_isolation_proven_offline; no live optional-output injection was attempted because the normal Project 4 provider workflow failed before generation"
+}

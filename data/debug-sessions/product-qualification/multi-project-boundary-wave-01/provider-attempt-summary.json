@@ -1,0 +1,24 @@
+{
+  "schema_version": "product-qualification-provider-attempt-summary-v1",
+  "stage_2_provider_calls": 13,
+  "stage_2_provider_attempts": 13,
+  "per_project": {
+    "project-01": {"provider_calls": 3, "attempts": 3, "failure_classes": ["none", "none", "cadquery_compile_failure"]},
+    "project-02": {"provider_calls": 3, "attempts": 3, "failure_classes": ["none", "none", "cadquery_compile_failure"]},
+    "project-03": {"provider_calls": 3, "attempts": 3, "failure_classes": ["none", "none", "cadquery_compile_failure"]},
+    "project-04": {"provider_calls": 4, "attempts": 4, "failure_classes": ["none", "none", "geometry_body_failure", "design_artifact_inconsistent"]}
+  },
+  "failure_class_counts": {
+    "none": 9,
+    "cadquery_compile_failure": 3,
+    "geometry_body_failure": 1,
+    "design_artifact_inconsistent": 1
+  },
+  "first_incorrect_boundary_counts": {
+    "semantic_verification_failure": 2,
+    "worker_runtime_failure": 1,
+    "provider_geometry_contract_failure": 1
+  },
+  "reruns": 0,
+  "credential_observation": "All live attempts used the controlled gemini_api route; no credentials are present in this report."
+}

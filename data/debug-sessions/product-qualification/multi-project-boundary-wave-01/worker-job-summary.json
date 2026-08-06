@@ -1,0 +1,17 @@
+{
+  "schema_version": "product-qualification-worker-job-summary-v1",
+  "stage_2": {
+    "worker_jobs_reached": 3,
+    "worker_jobs_not_reached": 1,
+    "completed_output_jobs": 2,
+    "failed_output_jobs": 1,
+    "projects": {
+      "project-01": {"worker_reached": true, "topology": "passed", "semantic": "failed", "outputs": 1},
+      "project-02": {"worker_reached": true, "worker_status": "failed", "outputs": 1},
+      "project-03": {"worker_reached": true, "topology": "passed", "semantic": "failed", "outputs": 2},
+      "project-04": {"worker_reached": false, "reason": "provider_geometry_contract_failure", "outputs": 0}
+    }
+  },
+  "worker_credentials": "empty by wrapper policy",
+  "worker_concurrency": 1
+}

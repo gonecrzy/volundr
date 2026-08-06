@@ -1,0 +1,12 @@
+{
+  "schema_version": "product-qualification-project-boundary-trace-v1",
+  "project_id": "project-04",
+  "workflow_id": "99ce9024-54b4-4557-a2ea-5ee821b55d10",
+  "durable_project_id": "27073cd7-3ee1-42a9-a9bd-8ea312ef15a0",
+  "source_report": "stage-2-creation-wave.json#projects[3]",
+  "first_incorrect_boundary": "provider_geometry_contract_failure",
+  "boundary_trace_complete": true,
+  "boundary_statuses": [
+    ["user_request", "succeeded"], ["requirements_extraction", "observed"], ["clarification_decision", "observed"], ["plan_creation", "observed"], ["requirement_scope_classification", "observed"], ["requirement_trace", "observed"], ["source_generation_request", "observed"], ["initial_source_response", "failed"], ["source_assembly", "not_reached"], ["worker_submission", "not_reached"], ["worker_output", "not_reached"], ["topology_verification", "not_reached"], ["semantic_verification", "not_reached"], ["workflow_aggregation", "failed"], ["candidate_eligibility", "failed"], ["acceptance", "not_run"], ["artifact_generation", "not_run"], ["package_generation", "not_run"], ["frontend_presentation", "observed"]
+  ]
+}

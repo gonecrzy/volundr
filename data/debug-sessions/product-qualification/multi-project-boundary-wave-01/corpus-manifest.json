@@ -1,0 +1,54 @@
+{
+  "schema_version": "product-qualification-corpus-manifest-v1",
+  "stage": "stage_2_frozen_multi_project_creation_wave",
+  "frozen_at": "2026-08-06T09:35:54Z",
+  "source_commit": "5bcc547",
+  "projects": [
+    {
+      "id": "project-01",
+      "title": "Feature-scoped mechanical part",
+      "prompt_sha256": "97227538c5a4d206cdd4abc3cf2f21472afe591a551255a1fe66df118d33b105",
+      "prompt": "Create one printable asymmetric mounting bracket as a single required output. Make the body 110 mm wide, 72 mm deep, and 6 mm thick. Add one 5 mm diameter through-bore named pivot_bore, one recessed 30 mm by 12 mm pocket named cable_pocket, and place the bore 18 mm from the left edge and 14 mm from the front edge rather than at the center. Do not create a mating part or any additional output.",
+      "expected_outputs": [{"id": "one_required_output", "required": true, "count": 1}],
+      "coverage": ["feature_scoped_numeric_trace", "component_shape_requirement", "output_identity", "geometry_verification", "package_creation"]
+    },
+    {
+      "id": "project-02",
+      "title": "Cross-feature layout part",
+      "prompt_sha256": "66f5abbda2d6b9994d27c9dd6acf4dadccfb1a434901a0716ac81eb245049a83",
+      "prompt": "Create one printable sensor plate as a single required output, 120 mm wide, 80 mm deep, and 5 mm thick. Add two named feature types: four mounting holes and one irregular cable recess. The holes and recess must have an explicit asymmetric relationship: arrange the hole group toward the upper-left and the recess toward the lower-right, with named participants mounting_hole_group and cable_recess_layout. Preserve both participants in the layout constraint and create exactly one output. Do not create a mating part.",
+      "expected_outputs": [{"id": "one_required_output", "required": true, "count": 1}],
+      "coverage": ["cross_feature_layout_scope", "multi_feature_trace", "layout_validation_target", "explicit_participant_semantics"]
+    },
+    {
+      "id": "project-03",
+      "title": "Two-output mating assembly",
+      "prompt_sha256": "076210d333c1c8ee739a3ea9127ee3242c6952cda5410aaa71335f3a7360b2a2",
+      "prompt": "Create a two-output mating enclosure: required base_shell output and required sliding_lid output. Base is 100 mm wide, 70 mm deep, 4 mm thick; lid mates over the base with 0.3 mm clearance and 2 mm overlap at the rim, aligned on the same center plane. Add a mounting_boss feature unique to base_shell and a latch_rail feature unique to sliding_lid. Preserve the overlap/clearance relationship and generate exactly two required printable outputs, with no third output.",
+      "expected_outputs": [
+        {"id": "base_shell", "required": true, "count": 1},
+        {"id": "sliding_lid", "required": true, "count": 1}
+      ],
+      "coverage": ["relationship_trace", "participant_preservation", "independent_worker_results", "output_specific_verification", "combined_package_provenance"]
+    },
+    {
+      "id": "project-04",
+      "title": "Required plus optional output",
+      "prompt_sha256": "b7eb927a4dd7f5161af9139a3e8efdd4a1911c72116ff8ffbb09988496c41e56",
+      "prompt": "Create a two-output desktop organizer with one required printable tray output and one optional printable label_plate output. The required tray must be independently useful, 140 mm wide, 90 mm deep, and 30 mm tall, with an off-center pen pocket. The optional label plate may be omitted without invalidating the tray; if generated, keep it a separate optional output. Do not make the required tray depend on the optional output.",
+      "expected_outputs": [
+        {"id": "tray", "required": true, "count": 1},
+        {"id": "label_plate", "required": false, "count": 1}
+      ],
+      "coverage": ["output_eligibility", "sibling_isolation", "partial_package_semantics", "optional_output_behavior", "frontend_presentation"]
+    }
+  ],
+  "execution_rules": {
+    "chat_first": true,
+    "creation_only": true,
+    "acceptance_or_revision": false,
+    "prompt_mutation": false,
+    "provider_setting_mutation": false,
+    "malformed_provider_request": false
+  }
+}

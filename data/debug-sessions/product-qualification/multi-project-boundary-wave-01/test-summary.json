@@ -1,0 +1,115 @@
+{
+  "schema_version": "product-qualification-test-summary-v1",
+  "generated_at": "2026-08-06T09:55:58Z",
+  "source_commit": "5bcc547800dde48d970811200a3b8ed483acfe17",
+  "remote": "origin/main",
+  "preflight_baseline": {
+    "initial_head": "ba0e0b2bde0a68e2bf9d11971b799d8e7a81c02f",
+    "migration_current": "0039_align_fresh_database_schema",
+    "migration_heads": ["0039_align_fresh_database_schema"],
+    "backend_corrected_baseline": {
+      "command": "PYTHONPATH=.. .venv/bin/python -m pytest -q",
+      "passed": 1254,
+      "warnings": 1
+    },
+    "backend_make_harness_note": "make backend-test collection failed before test execution because cd backend omitted the package-root import path; the corrected direct command above passed.",
+    "frontend_unit": {"test_files": 17, "passed": 104},
+    "offline_browser": {"total": 35, "passed": 21, "skipped": 14},
+    "credential_boundary_harness": {"passed": 8}
+  },
+  "stage_0": {
+    "live_test": {"passed": 1, "reruns": 0},
+    "provider_calls": 4,
+    "creation_workflows": 1,
+    "workflow_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+    "first_incorrect_boundary": "provider_geometry_contract_failure",
+    "primary_blocker": "provider_geometry_contract_failure",
+    "requirements_retained": true,
+    "cross_feature_participants_retained": true,
+    "layout_constraint_emitted": false,
+    "worker_reached": false,
+    "evidence": "stage-0-trace-confirmation.json"
+  },
+  "stage_1": {
+    "matrix_cases": 7,
+    "matrix_cases_passed": 7,
+    "provider_calls": 0,
+    "live_creation_workflows": 0,
+    "focused_trace_regression": {"passed": 62},
+    "cross_feature_regression": {"passed": 7},
+    "source_fix_cycles": 1,
+    "evidence": "offline-scope-matrix.json"
+  },
+  "stage_2": {
+    "live_projects": 4,
+    "live_tests_passed": 4,
+    "provider_calls": 13,
+    "provider_attempts": 13,
+    "live_reruns": 0,
+    "worker_jobs_reached": 3,
+    "worker_jobs_not_reached": 1,
+    "accepted_creations": 0,
+    "package_generation_attempted": false,
+    "browser_quality_clean": true,
+    "evidence": [
+      "stage-2-creation-wave.json",
+      "project-01-boundary-trace.json",
+      "project-02-boundary-trace.json",
+      "project-03-boundary-trace.json",
+      "project-04-boundary-trace.json",
+      "failure-clusters.json"
+    ]
+  },
+  "stage_3": {
+    "revision_a": {"status": "not_applicable", "provider_calls": 0, "reruns": 0},
+    "revision_b": {"status": "not_applicable", "provider_calls": 0, "reruns": 0},
+    "reason": "No Stage 2 workflow reached an accepted candidate, so the live revision gate correctly did not open.",
+    "partial_output_backend_tests": {"commands": 3, "passed": 4},
+    "partial_output_frontend_tests": {"passed": 1},
+    "required_sibling_isolation_proven": true,
+    "optional_sibling_isolation_proven": true,
+    "package_available_on_partial_failure": false,
+    "evidence": "partial-output-results.json"
+  },
+  "final_verification": {
+    "backend": {
+      "command": "PYTHONPATH=.. .venv/bin/python -m pytest -q",
+      "passed": 1258,
+      "warnings": 1,
+      "exit_code": 0,
+      "duration_seconds": 278.78
+    },
+    "frontend_unit": {
+      "command": "npm test",
+      "test_files": 17,
+      "passed": 104,
+      "exit_code": 0
+    },
+    "frontend_build": {
+      "command": "npm run build",
+      "typescript": "passed",
+      "vite": "passed",
+      "exit_code": 0
+    },
+    "offline_browser": {
+      "command": "npm run test:e2e",
+      "total": 35,
+      "passed": 21,
+      "skipped": 14,
+      "exit_code": 0
+    },
+    "migration": {
+      "current": "0039_align_fresh_database_schema",
+      "heads": ["0039_align_fresh_database_schema"],
+      "check": "No new upgrade operations detected.",
+      "exit_code": 0
+    },
+    "compose_config": {"command": "docker compose config --quiet", "exit_code": 0},
+    "nginx_config": {"command": "nginx:1.27-alpine nginx -t", "syntax": "ok", "exit_code": 0},
+    "credential_boundary_harness": {"command": "npm run test:live-harness", "passed": 8, "exit_code": 0},
+    "qualification_evidence_secret_scan": {"matches": 0, "exit_code": 0},
+    "tracked_env_key_files": [],
+    "git_diff_check": {"command": "git diff --check", "exit_code": 0},
+    "worktree_before_final_commit": {"status": "clean", "head_equals_origin_main": true}
+  }
+}

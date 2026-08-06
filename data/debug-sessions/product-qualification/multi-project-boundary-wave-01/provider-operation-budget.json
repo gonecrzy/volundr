@@ -1,0 +1,42 @@
+{
+  "schema_version": "product-qualification-provider-operation-budget-v1",
+  "stage": "stage_2_frozen_multi_project_creation_wave",
+  "frozen_at": "2026-08-06T09:35:54Z",
+  "source_commit": "5bcc547",
+  "implementation_basis": {
+    "requirements": "ProjectService.extract_requirements -> _run_requirement_extraction; one initial provider operation plus one bounded schema-repair operation (recursive retry).",
+    "plan": "_create_compact_plan_from_specification uses range(2); one initial Plan operation plus one bounded Plan repair operation.",
+    "geometry": "generate_initial_revision starts one source operation; geometry-slot completion or legacy fallback may add one focused operation; one mutually exclusive source-contract, geometry-body, or runtime repair may add one more.",
+    "transport": "run-live-api.sh sets VOLUNDR_GEMINI_API_MAX_RETRIES=1; eligible timeout/5xx retry remains on the original credential.",
+    "rate_limit": "One primary-to-fallback credential switch is permitted only after HTTP 429, with the preregistered wait; no credential rotation for semantic, contract, worker, topology, or verification failures."
+  },
+  "project_count": 4,
+  "logical_operations": {
+    "requirements": 4,
+    "plan": 4,
+    "geometry": 4,
+    "total_cap": 12,
+    "expected_base_operations_per_project": 3
+  },
+  "bounded_repairs": {
+    "requirements_per_project": 1,
+    "plan_per_project": 1,
+    "geometry_per_project": 2,
+    "transport_retries_per_provider_call": 1,
+    "429_fallbacks_per_logical_operation": 1
+  },
+  "attempts": {
+    "max_requirements_attempts_per_project": 2,
+    "max_plan_attempts_per_project": 2,
+    "max_geometry_attempts_per_project": 3,
+    "max_attempts_per_project": 7,
+    "total_attempt_cap": 28,
+    "stage_0_observed_provider_calls": 4,
+    "cumulative_stage_0_plus_stage_2_attempt_cap": 32
+  },
+  "concurrency": 1,
+  "live_rerun_budget": {
+    "stage_2_initial_wave": 0,
+    "application_fix_reruns_across_entire_wave": 2
+  }
+}

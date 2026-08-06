@@ -1,0 +1,43 @@
+{
+  "schema_version": "product-qualification-failure-clusters-v1",
+  "clusters": [
+    {
+      "id": "provider_geometry_semantic_cluster",
+      "projects": ["project-01", "project-03"],
+      "first_incorrect_boundary": "provider_geometry_semantic_failure",
+      "observed_result": "Topology passed, but semantic verification failed for the generated output(s).",
+      "owner": "provider_geometry",
+      "rerun": false,
+      "action": "Record for targeted provider follow-up; no prompt or setting change."
+    },
+    {
+      "id": "worker_runtime_cluster",
+      "projects": ["project-02"],
+      "first_incorrect_boundary": "worker_runtime_failure",
+      "observed_result": "Provider source response was accepted, but the worker failed before a usable output was generated.",
+      "owner": "worker",
+      "rerun": false,
+      "action": "Record isolated failure; do not rerun."
+    },
+    {
+      "id": "provider_geometry_contract",
+      "projects": ["project-04"],
+      "first_incorrect_boundary": "provider_geometry_contract_failure",
+      "observed_result": "The initial geometry response was partial/invalid; the bounded follow-up ended in design_artifact_inconsistent.",
+      "owner": "provider_geometry",
+      "rerun": false,
+      "action": "Stop this project at the terminal workflow; preserve downstream consequence separately."
+    },
+    {
+      "id": "provider_plan_relationship_omission",
+      "projects": ["project-02", "project-03"],
+      "first_incorrect_boundary": "provider_plan_contract_failure",
+      "observed_result": "The final sanitized Plans did not preserve the requested explicit relationship object; P2 retained relationship-like validation semantics, while P3 retained clearance/overlap targets but no relationship record.",
+      "owner": "provider_plan",
+      "rerun": false,
+      "action": "Record as repeatable provider Plan behavior; the offline application trace fixture proves supplied relationship identity/participants are preserved, so no application fix was justified during the frozen wave."
+    }
+  ],
+  "shared_application_defect_identified": false,
+  "unidentified_shared_boundary": false
+}
