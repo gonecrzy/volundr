@@ -41,7 +41,10 @@ from app.services.executable_cadquery.recovery import (
     RecoveryDecision,
     RecoveryRouter,
 )
-from app.services.executable_cadquery.semantic import evaluate_executable_cadquery_semantics
+from app.services.executable_cadquery.recovery_executor import RecoveryActionExecutor
+from app.services.executable_cadquery.semantic import (
+    evaluate_executable_cadquery_semantics_for_outputs,
+)
 from app.services.executable_cadquery.semantic_policy import (
     derive_candidate_policy,
     evaluate_semantic_policy,
@@ -59,6 +62,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self._recovery_router = RecoveryRouter()
+        self._recovery_executor = RecoveryActionExecutor(data_dir=self.data_dir)
 
     async def start_design(
         self,
@@ -388,14 +392,34 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "output_ids": [item.output_id for item in revision.outputs],
                     "revision_id": revision.id,
                 }
-                topology_result = self._json(output.topology_metadata_json if output else None)
-                if output is None or not output.stl_path or not output.step_path:
+                topology_by_output = {
+                    item.output_id: self._json(item.topology_metadata_json)
+                    for item in revision.outputs
+                }
+                topology_result = (
+                    next(iter(topology_by_output.values()), {})
+                    if len(topology_by_output) == 1
+                    else {
+                        "valid": bool(topology_by_output)
+                        and all(item.get("valid") is True for item in topology_by_output.values()),
+                        "outputs": topology_by_output,
+                        "output_ids": sorted(topology_by_output),
+                    }
+                )
+                stl_paths: dict[str, Path] = {}
+                for revision_output in revision.outputs:
+                    if not revision_output.stl_path or not revision_output.step_path:
+                        continue
+                    stl_paths[revision_output.output_id] = safe_relative_artifact_path(
+                        self.data_dir,
+                        revision_output.stl_path,
+                    )
+                if output is None or len(stl_paths) != len(revision.outputs):
                     failure_boundary = "artifact"
                     failure_class = classify_executable_failure("artifact", {"stl_failure": True})
                 else:
-                    stl_path = safe_relative_artifact_path(self.data_dir, output.stl_path)
-                    semantic_result = evaluate_executable_cadquery_semantics(
-                        stl_path=stl_path,
+                    semantic_result = evaluate_executable_cadquery_semantics_for_outputs(
+                        stl_paths=stl_paths,
                         design_contract=contract,
                     )
                     semantic_result = complete_executable_semantic_coverage(
@@ -418,7 +442,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                                 "unverifiable": semantic_result.get("unverifiable"),
                             },
                         )
-                        self._set_semantic_block(output, semantic_result)
+                        for revision_output in revision.outputs:
+                            self._set_semantic_block(revision_output, semantic_result)
                     else:
                         self.sync_outputs(workflow, revision)
                         self._merge_verification(workflow, semantic_result)
@@ -570,8 +595,39 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 and not recovery_decision.terminal
             )
             if not can_execute_provider_repair or attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
+                recovery_execution = None
+                if not can_execute_provider_repair and not recovery_decision.terminal:
+                    revision_for_recovery = self.db.get(Revision, revision_id) if revision_id else None
+                    recovery_execution = await self._recovery_executor.execute(
+                        recovery_decision,
+                        revision=revision_for_recovery,
+                        contract=contract,
+                        project_service=self._project_service(),
+                    )
+                    self._persist_recovery_execution(workflow, recovery_execution.to_record())
+                    if recovery_execution.semantic_result:
+                        semantic_result = complete_executable_semantic_coverage(
+                            recovery_execution.semantic_result,
+                            contract,
+                        )
+                        if semantic_result.get("status") == "passed" and revision_for_recovery is not None:
+                            self.sync_outputs(workflow, revision_for_recovery)
+                            self._merge_verification(workflow, semantic_result)
+                            self._record_executable_provenance(
+                                workflow,
+                                attempt_count=attempt_count,
+                                history=history,
+                                source_hash=previous_source_hash,
+                                semantic_result=semantic_result,
+                            )
+                            self.db.commit()
+                            return self.read(workflow.id)
                 if attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
                     terminal_reason = recovery_decision.terminal_reason or "operation_budget_exhausted"
+                elif recovery_decision.recommended_action == "require_review":
+                    terminal_reason = recovery_decision.terminal_reason
+                elif recovery_execution is not None and recovery_execution.executed:
+                    terminal_reason = recovery_decision.terminal_reason or "recovery_action_did_not_resolve_failure"
                 else:
                     terminal_reason = recovery_decision.terminal_reason or "recovery_action_requires_execution_adapter"
                 self._record_executable_provenance(
@@ -807,6 +863,19 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         diagnostics = _json_dict(workflow.diagnostics_json)
         diagnostics["latest_recovery_decision"] = record
         workflow.diagnostics_json = json.dumps(diagnostics, sort_keys=True, default=str)
+
+    @staticmethod
+    def _persist_recovery_execution(
+        workflow: ValidatedCadQueryWorkflow,
+        record: dict[str, Any],
+    ) -> None:
+        provenance = _json_dict(workflow.provenance_json)
+        executions = provenance.get("recovery_executions")
+        if not isinstance(executions, list):
+            executions = []
+        executions.append(record)
+        provenance["recovery_executions"] = executions
+        workflow.provenance_json = json.dumps(provenance, sort_keys=True, default=str)
 
     @staticmethod
     def _safe_failure_message(failure_class: str) -> str:
