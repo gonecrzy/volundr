@@ -1,0 +1,10 @@
+{
+  "schema_version": "browser-live-restart-followup-v1",
+  "status": "not_run",
+  "execution_commit": "94a07853a06cb2c5a9615191506304b060c8d2e7",
+  "marker_observed": true,
+  "nonterminal_worker_job_observed": false,
+  "restart_executed": false,
+  "reason": "The follow-up live creation stopped at compact-plan validation before worker submission.",
+  "rerun": false
+}

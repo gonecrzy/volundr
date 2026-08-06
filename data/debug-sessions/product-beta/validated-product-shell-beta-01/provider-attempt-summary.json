@@ -27,5 +27,6 @@
     "validation_target_count": 0,
     "application_action": "fail_closed_on_ambiguous_requirement_trace"
   },
-  "rerun": false
+  "rerun": false,
+  "followup_attempt_evidence": "provider-attempt-summary-followup-02.json"
 }

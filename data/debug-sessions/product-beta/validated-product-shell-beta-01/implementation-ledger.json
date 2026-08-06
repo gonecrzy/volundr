@@ -1,6 +1,6 @@
 {
   "schema_version": "validated-product-shell-implementation-ledger-v1",
-  "validated_code_head": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8",
+  "validated_code_head": "8e3cb63829d22e5e5399690e0f842b9762aa7455",
   "commits": {
     "integration": "eb069820516c156b64a8a926888da84a06f68d71",
     "browser_coverage": "906af75e34e5a39615b0d97148a9c8119340a196d",
@@ -9,7 +9,11 @@
     "credential_loader_precedence": "a3bfde5e84c4e13cd3b047bf52b271850fdafea3",
     "credential_loader_tests": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8",
     "evidence_update": "be7e06110050b9e8792144723e7d976ed3136a92",
-    "provider_linkage_evidence": "c89d6584df3f74d91b8dd70b8a8cb10aeaef18de"
+    "provider_linkage_evidence": "c89d6584df3f74d91b8dd70b8a8cb10aeaef18de",
+    "component_scoped_trace_fix": "8e3cb63829d22e5e5399690e0f842b9762aa7455",
+    "live_retry_guard": "a214a3ad021d1b6706da5fb04fae08b1bc8132c4",
+    "clean_current_gate": "ca7a7f016c1361f25f7bb11f5e998a4b3ff441c2",
+    "followup_live_execution": "94a07853a06cb2c5a9615191506304b060c8d2e7"
   },
   "layers": {
     "chat_workspace_integration": true,

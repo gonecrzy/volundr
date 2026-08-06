@@ -6,5 +6,6 @@
   "nonterminal_worker_job_observed": false,
   "restart_executed": false,
   "reason": "The provider-owned plan/source boundary failed before worker submission, so no restart was attempted.",
-  "rerun": false
+  "rerun": false,
+  "followup_attempt_evidence": "browser-live-restart-followup-02.json"
 }

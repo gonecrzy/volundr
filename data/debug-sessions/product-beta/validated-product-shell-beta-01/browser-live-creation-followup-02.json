@@ -1,0 +1,31 @@
+{
+  "schema_version": "browser-live-creation-followup-v1",
+  "status": "stopped_at_first_failure",
+  "execution_commit": "94a07853a06cb2c5a9615191506304b060c8d2e7",
+  "application_fix_commit": "8e3cb63829d22e5e5399690e0f842b9762aa7455",
+  "preregistration_recorded_commit": "ca7a7f016c1361f25f7bb11f5e998a4b3ff441c2",
+  "project_id": "fe44bb9a-d862-410e-a4b5-c1aeededa3ac",
+  "workflow_id": "ebdbc04e-0c95-40f0-a4d0-3e2e89b979d7",
+  "one_browser_creation_request": true,
+  "creation_idempotency_key_shape": "UUID v4; value not recorded",
+  "requirements": "provider returned requirements successfully",
+  "compact_plan": "provider returned an invalid plan after repair",
+  "first_incorrect_boundary": "design_plan_invalid",
+  "provider_attempts": 3,
+  "primary_status_codes": [200],
+  "fallback_attempts": 0,
+  "normalized_plan_structural_summary": {
+    "component_count": 1,
+    "feature_count": 3,
+    "feature_ids_missing": 3,
+    "printable_output_count": 1,
+    "validation_target_count": 4,
+    "relationship_count": 2,
+    "feature_layout_count": 2
+  },
+  "worker_submitted": false,
+  "candidate_output": false,
+  "package_download": false,
+  "rerun": false,
+  "restart": "not_run; no durable nonterminal worker job existed"
+}

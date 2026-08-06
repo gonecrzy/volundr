@@ -15,5 +15,7 @@
   "worker_submitted": false,
   "candidate_output": false,
   "package_download": false,
-  "rerun": false
+  "rerun": false,
+  "followup_attempt_evidence": "browser-live-creation-followup-02.json",
+  "followup_status": "stopped_at_first_provider_plan_failure"
 }

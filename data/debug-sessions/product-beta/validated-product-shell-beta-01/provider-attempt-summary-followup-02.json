@@ -1,0 +1,29 @@
+{
+  "schema_version": "provider-attempt-summary-followup-v1",
+  "status": "provider_behavior_requires_targeted_followup",
+  "provider": "gemini_api",
+  "model": "gemini-3.5-flash-lite",
+  "credential_values_recorded": false,
+  "credential_slot": "primary",
+  "credential_environment_variable": "GEMINI_API_KEY_2",
+  "attempts": 3,
+  "status_codes": [200],
+  "fallback_attempts": 0,
+  "logical_operations": [
+    {"stage": "requirements", "status": "succeeded", "attempts": 1},
+    {"stage": "compact_plan", "status": "failed_design_plan_invalid", "attempts": 2}
+  ],
+  "worker_calls": 0,
+  "first_incorrect_boundary": "design_plan_invalid",
+  "invalid_plan_contract": {
+    "component_count": 1,
+    "feature_count": 3,
+    "feature_ids_missing": 3,
+    "printable_output_count": 1,
+    "validation_target_count": 4,
+    "relationship_count": 2,
+    "feature_layout_count": 2
+  },
+  "response_bodies_recorded": false,
+  "rerun": false
+}
