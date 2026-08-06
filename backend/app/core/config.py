@@ -106,6 +106,8 @@ class Settings(BaseSettings):
     # Experimental complete-source Gemini workflow. It is isolated from the
     # validated route and remains disabled unless explicitly enabled.
     executable_cadquery_flow_enabled: bool = Field(default=False)
+    # Opt-in qualification harness input; unset in ordinary deployments.
+    executable_cadquery_corpus_manifest_path: Path | None = Field(default=None)
     validated_geometry_provider: str = Field(default="gemini_api")
     # Direct API access is an explicit local-development escape hatch. Normal
     # browser traffic must arrive through nginx's server-owned actor header.

@@ -1,0 +1,180 @@
+{
+  "schema_version": "executable-cadquery-repeatability-corpus-v1",
+  "wave_id": "repeatability-wave-01",
+  "frozen_at": "2026-08-06T00:00:00Z",
+  "provider": {
+    "provider_id": "gemini_api",
+    "model": "gemini-3.5-flash-lite",
+    "transport": "complete-source-v2",
+    "temperature": 0.2,
+    "thinking_level": "minimal",
+    "max_output_tokens": 8192,
+    "concurrency": 1
+  },
+  "projects": [
+    {
+      "project_id": "project-01",
+      "title": "Mounting bracket regression",
+      "prompt": "Create a mounting bracket with a body 90 mm wide, 55 mm deep, and 10 mm thick. Add four 6 mm through-holes with each mounting-hole center 9 mm from its nearest edge. Add a centered recessed pocket 44 mm wide, 22 mm deep, and 4 mm deep. Add one asymmetric 8 mm through-hole centered 22 mm from the left edge and 27 mm from the lower edge. Add one 3 mm external fillet where geometrically valid.",
+      "prompt_sha256": "3da2ecaa9bd027800ed5c5b8935ef8c99ea6faa3415508d793b2e553e4b96d2d",
+      "contract_sha256": "a68702a11e28ca905a751743768fe506375b9c7736c7363911910762a81a4801",
+      "purpose": "golden-path regression with distinct dimensions, positional features, and common prismatic operations",
+      "contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "repeatability-project-01",
+        "workflow_id": "repeatability-workflow-01",
+        "revision_id": "repeatability-revision-01",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "mounting_bracket_regression", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "body_dimensions", "scope": "mounting_bracket_regression", "expected": {"width": 90.0, "depth": 55.0, "thickness": 10.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "mounting_hole_pattern", "scope": "mounting_bracket_regression", "expected": {"count": 4, "diameter": 6.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "mounting_hole_edge_offsets", "scope": "mounting_bracket_regression", "expected": {"nearest_edge_offset": 9.0}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"},
+          {"requirement_id": "centered_recessed_pocket", "scope": "mounting_bracket_regression", "expected": {"width": 44.0, "depth": 22.0, "cut_depth": 4.0, "centered": true}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"},
+          {"requirement_id": "asymmetric_through_hole", "scope": "mounting_bracket_regression", "expected": {"diameter": 8.0, "x_from_left": 22.0, "y_from_lower": 27.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"},
+          {"requirement_id": "external_fillet", "scope": "mounting_bracket_regression", "expected": {"radius": 3.0}, "tolerance": 0.25, "verification_policy": "measure_when_supported"}
+        ],
+        "relationships": [{"relationship_id": "pocket_centered_in_body", "participants": ["mounting_bracket_regression"], "expected_relationship": "centered_recessed_pocket"}],
+        "protected_facts": [{"requirement_id": "body_dimensions", "authoritative_value": {"width": 90.0, "depth": 55.0, "thickness": 10.0}}, {"requirement_id": "mounting_hole_pattern", "authoritative_value": {"count": 4, "diameter": 6.0}}]
+      }
+    },
+    {
+      "project_id": "project-02",
+      "title": "Rotational mechanical part",
+      "prompt": "Create one stepped shaft coupling as a printable rotational mechanical part. Use three coaxial outside diameters of 36 mm, 28 mm, and 20 mm over explicit axial lengths of 12 mm, 18 mm, and 10 mm. Include a 12 mm through bore, a 20 mm diameter counterbore recessed 6 mm from one end, and four 5 mm bolt-circle holes on a 30 mm pitch circle. Preserve the coaxial alignment and all stated axial dimensions.",
+      "prompt_sha256": "d8312f7c905227ca7e3d79c20ce26c84b2ad0ebe46fffc8b81dc16a8484de3b8",
+      "contract_sha256": "4c6c9ec23996a88e7f8a1a744c591c3ff832fedeb8991abd038372db0ecf9c84",
+      "purpose": "revolve or cylinder strategies, coaxial relationships, axial dimensions, and a non-axisymmetric hole pattern",
+      "contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "repeatability-project-02",
+        "workflow_id": "repeatability-workflow-02",
+        "revision_id": "repeatability-revision-02",
+        "units": "mm",
+        "outputs": [{"output_id": "shaft_coupling", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "coaxial_diameters", "scope": "shaft_coupling", "expected": {"diameters": [36.0, 28.0, 20.0], "coaxial": true}, "tolerance": 0.25, "verification_policy": "final_mesh_axisymmetric_profiles"},
+          {"requirement_id": "axial_dimensions", "scope": "shaft_coupling", "expected": {"lengths": [12.0, 18.0, 10.0]}, "tolerance": 0.25, "verification_policy": "final_mesh_axial_sections"},
+          {"requirement_id": "through_bore", "scope": "shaft_coupling", "expected": {"diameter": 12.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "counterbore", "scope": "shaft_coupling", "expected": {"diameter": 20.0, "depth": 6.0}, "tolerance": 0.25, "verification_policy": "final_mesh_recess_profile"},
+          {"requirement_id": "bolt_circle", "scope": "shaft_coupling", "expected": {"count": 4, "diameter": 5.0, "pitch_circle_diameter": 30.0}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"}
+        ],
+        "relationships": [{"relationship_id": "all_steps_share_axis", "participants": ["shaft_coupling"], "expected_relationship": "coaxial"}],
+        "protected_facts": [{"requirement_id": "through_bore", "authoritative_value": {"diameter": 12.0, "through": true}}, {"requirement_id": "axial_dimensions", "authoritative_value": {"lengths": [12.0, 18.0, 10.0]}}]
+      }
+    },
+    {
+      "project_id": "project-03",
+      "title": "Swept cable guide",
+      "prompt": "Create one printable curved cable guide with a 10 mm by 6 mm rectangular cross section following a smooth 90 degree path with a 45 mm centerline radius and 70 mm total path length. Add one 6 mm mounting hole on the base and one 24 mm long by 8 mm wide access slot through the guide wall. The curved body must remain one connected solid and the path and cross-section dimensions must be explicit.",
+      "prompt_sha256": "b6a982773bda860e502e71adfe3db74c4f08298c84176da83755f6357d1cffef",
+      "contract_sha256": "814df03c41cf00f658d56ad3997eb1cfd1fd85b962ab797a16c4f3f4cc748195",
+      "purpose": "curved topology, swept or equivalent construction, path dimensions, mounting feature, and opening",
+      "contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "repeatability-project-03",
+        "workflow_id": "repeatability-workflow-03",
+        "revision_id": "repeatability-revision-03",
+        "units": "mm",
+        "outputs": [{"output_id": "curved_cable_guide", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "swept_curved_body", "scope": "curved_cable_guide", "expected": {"path_radius": 45.0, "path_angle_degrees": 90.0, "path_length": 70.0, "connected": true}, "tolerance": 0.5, "verification_policy": "final_mesh_curved_bounds"},
+          {"requirement_id": "sweep_cross_section", "scope": "curved_cable_guide", "expected": {"width": 10.0, "height": 6.0}, "tolerance": 0.25, "verification_policy": "final_mesh_section_profile"},
+          {"requirement_id": "mounting_hole", "scope": "curved_cable_guide", "expected": {"diameter": 6.0, "count": 1, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "access_slot", "scope": "curved_cable_guide", "expected": {"length": 24.0, "width": 8.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"}
+        ],
+        "relationships": [{"relationship_id": "cross_section_follows_path", "participants": ["curved_cable_guide"], "expected_relationship": "constant_section_along_curve"}],
+        "protected_facts": [{"requirement_id": "sweep_cross_section", "authoritative_value": {"width": 10.0, "height": 6.0}}, {"requirement_id": "mounting_hole", "authoritative_value": {"diameter": 6.0, "count": 1}}]
+      }
+    },
+    {
+      "project_id": "project-04",
+      "title": "Two-output enclosure",
+      "prompt": "Create exactly two printable outputs named enclosure_base and enclosure_lid. The assembled enclosure envelope is 80 mm wide, 60 mm deep, and 34 mm high. Use 3 mm walls, a 0.4 mm mating clearance, four base mounting bosses with 3 mm holes, and a unique cable-exit notch on the base. The lid must have a unique 20 mm by 10 mm ventilation opening and mate to the base without interference. Keep the outputs independent and preserve their identities.",
+      "prompt_sha256": "7f2bf871674b2c3d628b75fd280ee1030b8e10b33371648a5b121dcd35915151",
+      "contract_sha256": "6a376f263b9a22153f1b4d1c81a48df584cc7e00ddf6c82cd79b0d98328a3d4f",
+      "purpose": "independent complete source outputs, mating relationship, sibling isolation, and package provenance",
+      "contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "repeatability-project-04",
+        "workflow_id": "repeatability-workflow-04",
+        "revision_id": "repeatability-revision-04",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "enclosure_base", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "enclosure_lid", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "enclosure_envelope", "scope": "enclosure_base", "expected": {"width": 80.0, "depth": 60.0, "height": 34.0}, "tolerance": 0.5, "verification_policy": "cross_output_envelope"},
+          {"requirement_id": "wall_thickness", "scope": "enclosure_base", "expected": {"value": 3.0}, "tolerance": 0.25, "verification_policy": "final_mesh_wall_profile"},
+          {"requirement_id": "mating_clearance", "scope": "enclosure_lid", "expected": {"value": 0.4, "interference": false}, "tolerance": 0.1, "verification_policy": "cross_output_clearance"},
+          {"requirement_id": "base_mounting_bosses", "scope": "enclosure_base", "expected": {"count": 4, "hole_diameter": 3.0}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "base_cable_exit", "scope": "enclosure_base", "expected": {"width": 12.0, "height": 6.0}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"},
+          {"requirement_id": "lid_ventilation_opening", "scope": "enclosure_lid", "expected": {"width": 20.0, "height": 10.0}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"}
+        ],
+        "relationships": [{"relationship_id": "base_lid_mate", "participants": ["enclosure_base", "enclosure_lid"], "expected_relationship": "lid_clears_base_by_0_4_mm"}],
+        "protected_facts": [{"requirement_id": "enclosure_envelope", "authoritative_value": {"width": 80.0, "depth": 60.0, "height": 34.0}}, {"requirement_id": "mating_clearance", "authoritative_value": {"value": 0.4}}]
+      }
+    },
+    {
+      "project_id": "project-05",
+      "title": "Two-part mechanical relationship",
+      "prompt": "Create exactly two printable outputs named support and mating_insert. The support is 70 mm wide, 45 mm deep, and 12 mm high with two 5 mm mounting holes. The mating_insert is 30 mm wide, 20 mm deep, and 8 mm high and must align to the support's centered 30 mm by 20 mm pocket with 0.3 mm clearance on every side. Give the support a 2 mm chamfer and the insert a 4 mm through-opening. Preserve the parent relationship, output identities, and protected dimensions.",
+      "prompt_sha256": "7418a4490d17777d0f4bc346d0cb60e7bb045b1f95819df35063d39c5296b0f6",
+      "contract_sha256": "b8ce37f45c4adcc149c1d49173310587404293cc90d0e82ee7ce3cd66c4a77f9",
+      "purpose": "cross-output semantic verification, alignment, protected dimensions, and targeted relationship revision authority",
+      "contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "repeatability-project-05",
+        "workflow_id": "repeatability-workflow-05",
+        "revision_id": "repeatability-revision-05",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "support", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "mating_insert", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "support_dimensions", "scope": "support", "expected": {"width": 70.0, "depth": 45.0, "height": 12.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "support_mounting_holes", "scope": "support", "expected": {"count": 2, "diameter": 5.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "insert_dimensions", "scope": "mating_insert", "expected": {"width": 30.0, "depth": 20.0, "height": 8.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "mating_clearance", "scope": "mating_insert", "expected": {"per_side": 0.3, "interference": false}, "tolerance": 0.1, "verification_policy": "cross_output_clearance"},
+          {"requirement_id": "alignment", "scope": "mating_insert", "expected": {"relationship": "centered_in_support_pocket"}, "tolerance": 0.25, "verification_policy": "cross_output_alignment"},
+          {"requirement_id": "support_chamfer", "scope": "support", "expected": {"size": 2.0}, "tolerance": 0.25, "verification_policy": "measure_when_supported"},
+          {"requirement_id": "insert_opening", "scope": "mating_insert", "expected": {"diameter": 4.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"}
+        ],
+        "relationships": [{"relationship_id": "insert_aligns_to_support", "participants": ["support", "mating_insert"], "expected_relationship": "centered_with_0_3_mm_clearance"}],
+        "protected_facts": [{"requirement_id": "support_dimensions", "authoritative_value": {"width": 70.0, "depth": 45.0, "height": 12.0}}, {"requirement_id": "insert_dimensions", "authoritative_value": {"width": 30.0, "depth": 20.0, "height": 8.0}}, {"requirement_id": "alignment", "authoritative_value": {"relationship": "centered_in_support_pocket"}}]
+      }
+    },
+    {
+      "project_id": "project-06",
+      "title": "Required plus optional output",
+      "prompt": "Create one required printable output named main_part: a 64 mm diameter by 18 mm high circular mounting plate with three 5 mm through-holes on a 44 mm pitch circle and a centered 22 mm by 12 mm recessed pocket 3 mm deep. You may also create one optional output named auxiliary_part: a 20 mm diameter by 30 mm high alignment pin with a 6 mm axial bore. The main part must be useful independently, and the two output identities must remain distinct.",
+      "prompt_sha256": "3bc34dcc9c6b9db275d90d1516a76e885b32dc981b82f779f0a9b17edb8bb08f",
+      "contract_sha256": "8f9f1d271f1937c9d365b884480aa78270f005a0c87551d9e378b869194dadbb",
+      "purpose": "partial completion, optional sibling failure isolation, and complete package semantics",
+      "contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "repeatability-project-06",
+        "workflow_id": "repeatability-workflow-06",
+        "revision_id": "repeatability-revision-06",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "main_part", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "auxiliary_part", "required": false, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "main_plate_dimensions", "scope": "main_part", "expected": {"diameter": 64.0, "height": 18.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "main_mounting_pattern", "scope": "main_part", "expected": {"count": 3, "diameter": 5.0, "pitch_circle_diameter": 44.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"},
+          {"requirement_id": "main_recessed_pocket", "scope": "main_part", "expected": {"width": 22.0, "depth": 12.0, "cut_depth": 3.0}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"},
+          {"requirement_id": "main_independent_utility", "scope": "main_part", "expected": {"independent": true}, "tolerance": 0.0, "verification_policy": "required_output_artifact"},
+          {"requirement_id": "auxiliary_pin", "scope": "auxiliary_part", "expected": {"diameter": 20.0, "height": 30.0, "bore_diameter": 6.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds_and_opening"}
+        ],
+        "relationships": [{"relationship_id": "main_is_independent", "participants": ["main_part"], "expected_relationship": "usable_without_auxiliary_part"}],
+        "protected_facts": [{"requirement_id": "main_plate_dimensions", "authoritative_value": {"diameter": 64.0, "height": 18.0}}, {"requirement_id": "main_independent_utility", "authoritative_value": {"independent": true}}]
+      }
+    }
+  ]
+}

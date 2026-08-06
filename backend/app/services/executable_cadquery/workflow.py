@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 from typing import Any, Mapping
 
+from app.core.config import settings
 from app.models.project import Project
 from app.models.revision import Revision
 from app.models.validated_cadquery_workflow import ValidatedCadQueryWorkflow
@@ -20,6 +21,7 @@ from app.services.executable_cadquery.contract import (
     parse_executable_cadquery_response,
     validate_executable_cadquery_design_contract,
 )
+from app.services.executable_cadquery.corpus import load_repeatability_contract
 from app.services.executable_cadquery.evidence import persist_exact_provider_response
 from app.services.executable_cadquery.fixtures import FROZEN_MOUNTING_BRACKET_CONTRACT
 from app.services.executable_cadquery.dialect import (
@@ -91,7 +93,12 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             )
             self.db.add(workflow)
             self.db.flush()
-            contract = self._materialize_contract(project.id, workflow.id, ordinal=1)
+            contract = self._materialize_contract(
+                project.id,
+                workflow.id,
+                ordinal=1,
+                prompt=workflow.user_instruction,
+            )
             workflow.plan_json = json.dumps(self._execution_plan(contract), sort_keys=True)
             provenance = self._json(workflow.provenance_json)
             provenance["executable_design_contract"] = contract
@@ -569,8 +576,21 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
 
         raise ValueError("executable provider operation budget exhausted")
 
-    def _materialize_contract(self, project_id: str, workflow_id: str, *, ordinal: int) -> dict[str, Any]:
-        contract = deepcopy(FROZEN_MOUNTING_BRACKET_CONTRACT)
+    def _materialize_contract(
+        self,
+        project_id: str,
+        workflow_id: str,
+        *,
+        ordinal: int,
+        prompt: str,
+    ) -> dict[str, Any]:
+        if settings.executable_cadquery_corpus_manifest_path is not None:
+            _corpus_project_id, contract = load_repeatability_contract(
+                settings.executable_cadquery_corpus_manifest_path,
+                prompt=prompt,
+            )
+        else:
+            contract = deepcopy(FROZEN_MOUNTING_BRACKET_CONTRACT)
         contract.update(
             {
                 "project_id": project_id,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -15,7 +16,12 @@ from app.db.session import get_db
 from app.main import app
 from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
 from app.services.cad.cadquery_runner import CadQueryCliRunner
-from app.services.executable_cadquery.fixtures import valid_mounting_bracket_source
+from app.services.executable_cadquery.fixtures import (
+    FROZEN_MOUNTING_BRACKET_CONTRACT,
+    valid_mounting_bracket_source,
+)
+from app.services.executable_cadquery.workflow import ExecutableCadQueryWorkflowService
+from app.services.executable_cadquery.corpus import REPEATABILITY_CORPUS_SCHEMA_VERSION
 
 
 class CompleteSourceFixtureProvider:
@@ -34,6 +40,37 @@ class CompleteSourceFixtureProvider:
             provider="gemini_api",
             provider_model="fixture-gemini",
         )
+
+
+def test_opt_in_repeatability_manifest_selects_the_exact_prompt_contract(tmp_path, monkeypatch) -> None:
+    manifest_path = tmp_path / "corpus-manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema_version": REPEATABILITY_CORPUS_SCHEMA_VERSION,
+                "projects": [
+                    {
+                        "project_id": "project-01",
+                        "prompt": "A frozen repeatability prompt.",
+                        "contract": FROZEN_MOUNTING_BRACKET_CONTRACT,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(settings, "executable_cadquery_corpus_manifest_path", manifest_path)
+
+    service = ExecutableCadQueryWorkflowService(db=None, data_dir=tmp_path)
+    contract = service._materialize_contract(
+        "database-project",
+        "workflow-id",
+        ordinal=1,
+        prompt="A frozen repeatability prompt.",
+    )
+
+    assert contract["outputs"][0]["output_id"] == "mounting_bracket"
+    assert contract["project_id"] == "database-project"
 
 
 @pytest.mark.asyncio
