@@ -265,7 +265,9 @@ class GeminiApiProvider(GeminiCliProvider):
             self._last_provider_retry_count = max(0, len(result.attempts) - 1)
             self._last_provider_request_id = result.provider_request_id
             if result.status_code is None or result.status_code >= 400:
-                raise RuntimeError(self._validated_error_message(result.status_code))
+                raise RuntimeError(
+                    self._validated_error_message(result.status_code, result.response_payload)
+                )
             response_payload = result.response_payload
             raw_output = self._response_text(response_payload)
             if not response_payload:
@@ -533,11 +535,31 @@ class GeminiApiProvider(GeminiCliProvider):
         return result
 
     @staticmethod
-    def _validated_error_message(status_code: int | None) -> str:
+    def _validated_error_message(
+        status_code: int | None,
+        response_payload: dict[str, Any] | None = None,
+    ) -> str:
         if status_code == 429:
             return "The provider rate limit was reached after the permitted fallback attempt."
         if status_code in {401, 403}:
-            return "The provider authentication check failed."
+            error = response_payload.get("error") if isinstance(response_payload, dict) else None
+            fields: list[str] = []
+            if isinstance(error, dict):
+                status = error.get("status")
+                if isinstance(status, str) and re.fullmatch(r"[A-Z0-9_]{1,80}", status):
+                    fields.append(f"google_status={status}")
+                for detail in error.get("details") or []:
+                    if not isinstance(detail, dict):
+                        continue
+                    reason = detail.get("reason")
+                    if isinstance(reason, str) and re.fullmatch(r"[A-Z0-9_.-]{1,120}", reason):
+                        fields.append(f"google_reason={reason}")
+                    error_type = detail.get("@type")
+                    if isinstance(error_type, str) and re.fullmatch(r"[A-Za-z0-9:/._-]{1,200}", error_type):
+                        fields.append(f"google_type={error_type}")
+                    break
+            suffix = f" ({'; '.join(fields)})" if fields else ""
+            return f"The provider authentication check failed{suffix}."
         if status_code in {408, 502, 503, 504, 599}:
             return "The provider transport did not complete after the permitted retry."
         return "The provider returned an invalid response."

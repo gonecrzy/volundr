@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 import uuid
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable
@@ -42,8 +43,8 @@ class ValidatedGeminiTransport:
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         attempt_recorder: Callable[[dict[str, Any]], Any] | None = None,
     ) -> None:
-        self.primary_credential = primary_credential
-        self.fallback_credential = fallback_credential
+        self.primary_credential = self._validate_credential(primary_credential, "primary")
+        self.fallback_credential = self._validate_credential(fallback_credential, "fallback")
         self.primary_limiter = primary_limiter or SharedIntegrationRateLimiter()
         self.fallback_limiter = fallback_limiter or SharedIntegrationRateLimiter()
         self.global_semaphore = global_semaphore or asyncio.Semaphore(1)
@@ -161,7 +162,11 @@ class ValidatedGeminiTransport:
         try:
             async with self.global_semaphore:
                 response = await asyncio.wait_for(
-                    client.post(endpoint_path, params={"key": credential}, json=payload),
+                    client.post(
+                        endpoint_path,
+                        headers={"x-goog-api-key": credential},
+                        json=payload,
+                    ),
                     timeout=self.timeout_seconds,
                 )
             status_code = response.status_code
@@ -198,6 +203,18 @@ class ValidatedGeminiTransport:
     def _record_attempt(self, attempt: dict[str, Any]) -> None:
         if self.attempt_recorder is not None:
             self.attempt_recorder(dict(attempt))
+
+    @staticmethod
+    def _validate_credential(value: str | None, slot: str) -> str | None:
+        if value is None or value == "":
+            return None
+        if not isinstance(value, str):
+            raise ValueError(f"{slot} Gemini credential must be text")
+        if value != value.strip() or any(character in value for character in "\r\n"):
+            raise ValueError(f"{slot} Gemini credential contains surrounding whitespace")
+        if value[0] in {"'", '"'} or value[-1] in {"'", '"'}:
+            raise ValueError(f"{slot} Gemini credential contains shell quoting")
+        return value
 
     @staticmethod
     def _result(

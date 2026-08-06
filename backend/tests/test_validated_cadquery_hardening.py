@@ -145,7 +145,8 @@ async def test_validated_gemini_429_fallback_is_exact_and_redacted() -> None:
     text, _model = await provider._run_prompt("same prompt", stage="requirements")
 
     assert text == "ok"
-    assert [request.url.params["key"] for request in requests] == ["primary-secret", "fallback-secret"]
+    assert [request.headers["x-goog-api-key"] for request in requests] == ["primary-secret", "fallback-secret"]
+    assert all(request.url.query == b"" for request in requests)
     assert requests[0].content == requests[1].content
     assert sleeps == [30.0]
     assert records[0]["credential_slot"] == "primary"
@@ -182,7 +183,8 @@ async def test_validated_gemini_transport_retries_transient_failure_on_same_key_
     text, _model = await provider._run_prompt("same prompt", stage="geometry")
 
     assert text == "ok"
-    assert [request.url.params["key"] for request in requests] == ["primary-secret", "primary-secret"]
+    assert [request.headers["x-goog-api-key"] for request in requests] == ["primary-secret", "primary-secret"]
+    assert all(request.url.query == b"" for request in requests)
     assert sleeps == [10.0]
 
 
@@ -244,7 +246,8 @@ async def test_validated_gemini_malformed_and_auth_failures_do_not_rotate() -> N
     with pytest.raises(RuntimeError, match="missing response text"):
         await provider._run_prompt("same prompt", stage="requirements")
     assert len(requests) == 1
-    assert requests[0].url.params["key"] == "primary-secret"
+    assert requests[0].headers["x-goog-api-key"] == "primary-secret"
+    assert requests[0].url.query == b""
 
     auth_requests: list[httpx.Request] = []
     auth_provider = GeminiApiProvider(
@@ -257,6 +260,63 @@ async def test_validated_gemini_malformed_and_auth_failures_do_not_rotate() -> N
     with pytest.raises(RuntimeError, match="authentication"):
         await auth_provider._run_prompt("same prompt", stage="requirements")
     assert len(auth_requests) == 1
+
+
+@pytest.mark.asyncio
+async def test_validated_gemini_auth_error_preserves_safe_google_reason() -> None:
+    provider = GeminiApiProvider(
+        primary_api_key="primary-secret",
+        fallback_api_key="fallback-secret",
+        validated_transport=True,
+        transport=httpx.MockTransport(
+            lambda _request: httpx.Response(
+                401,
+                json={
+                    "error": {
+                        "status": "UNAUTHENTICATED",
+                        "details": [
+                            {
+                                "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                                "reason": "ACCESS_TOKEN_TYPE_UNSUPPORTED",
+                            }
+                        ],
+                    }
+                },
+            )
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="ACCESS_TOKEN_TYPE_UNSUPPORTED"):
+        await provider._run_prompt("same prompt", stage="requirements")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("credential", [" primary-secret", "primary-secret\n", "'primary-secret'"])
+async def test_validated_gemini_rejects_untrimmed_or_shell_quoted_credentials(credential: str) -> None:
+    provider = GeminiApiProvider(
+        primary_api_key=credential,
+        fallback_api_key="fallback-secret",
+        validated_transport=True,
+        transport=httpx.MockTransport(lambda _request: httpx.Response(200)),
+    )
+
+    with pytest.raises(ValueError, match="credential"):
+        await provider._run_prompt("same prompt", stage="requirements")
+
+
+@pytest.mark.asyncio
+async def test_validated_gemini_rejects_empty_primary_before_transport() -> None:
+    requests: list[httpx.Request] = []
+    provider = GeminiApiProvider(
+        primary_api_key="",
+        fallback_api_key="fallback-secret",
+        validated_transport=True,
+        transport=httpx.MockTransport(lambda request: requests.append(request) or httpx.Response(200)),
+    )
+
+    with pytest.raises(RuntimeError, match="primary Gemini credential"):
+        await provider._run_prompt("same prompt", stage="requirements")
+    assert requests == []
 
 
 def test_validated_api_is_idempotent_and_reads_after_flag_disable(validated_client: TestClient) -> None:
