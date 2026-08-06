@@ -54,7 +54,6 @@ from app.schemas.project import ProjectCreate, RequirementExtractionCreate
 from app.services.projects.service import ProjectService
 from app.schemas.debug_batch import DebugBatchStart
 from app.services.debug_batches.service import DebugBatchService
-from app.services.executable_cadquery.contract import RESPONSE_SCHEMA_VERSION
 from app.services.executable_cadquery.fixtures import valid_mounting_bracket_source
 
 
@@ -750,18 +749,7 @@ class ExecutableFixtureProvider(FixtureProvider):
         if request.executable_repair_envelope and request.executable_repair_envelope.get("repair_level") == "L4":
             source = source.replace("rect(40.0, 20.0)", "rect(46.0, 24.0)")
         return ModelGenerationResult(
-            raw_output=json.dumps(
-                {
-                    "schema_version": RESPONSE_SCHEMA_VERSION,
-                    "outputs": [
-                        {
-                            "output_id": "mounting_bracket",
-                            "parameters": {},
-                            "source": source,
-                        }
-                    ],
-                }
-            ),
+            raw_output=source,
             provider="gemini_api",
             provider_model="fixture-gemini-complete-source",
         )

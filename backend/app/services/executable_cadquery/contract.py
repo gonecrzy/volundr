@@ -7,9 +7,11 @@ source safety boundary.
 
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
 import hashlib
 import json
+import re
 from typing import Any, Mapping
 
 from app.services.cad.cadquery_contract import (
@@ -20,12 +22,45 @@ from app.services.cad.cadquery_contract import (
 
 
 DESIGN_CONTRACT_SCHEMA_VERSION = "executable-cadquery-design-contract-v1"
-RESPONSE_SCHEMA_VERSION = "executable-cadquery-response-v1"
+RESPONSE_SCHEMA_VERSION = "executable-cadquery-complete-source-v2"
 SOURCE_CONTRACT_VERSION = "cadquery-v1"
 
 
 class ExecutableCadQueryContractError(ValueError):
     """Raised when the provider response or authoritative contract is invalid."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        failure_kind: str = "source_contract_violation",
+        boundary: str = "source_contract",
+    ) -> None:
+        super().__init__(message)
+        self.failure_kind = failure_kind
+        self.boundary = boundary
+
+
+class ExecutableCadQueryResponseError(ExecutableCadQueryContractError):
+    """Raised when a provider response cannot yield exactly one source module."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            message,
+            failure_kind="response_empty_or_extraction_failure",
+            boundary="provider_response",
+        )
+
+
+class ExecutableCadQuerySyntaxError(ExecutableCadQueryContractError):
+    """Raised when the extracted module is not syntactically valid Python."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            message,
+            failure_kind="python_syntax_error",
+            boundary="source_contract",
+        )
 
 
 @dataclass(frozen=True)
@@ -102,93 +137,95 @@ def parse_executable_cadquery_response(
     raw_output: str,
     design_contract: Mapping[str, Any],
 ) -> ExecutableCadQueryResponse:
-    """Parse a strict provider envelope containing complete source units.
+    """Extract and validate one complete provider-owned CadQuery module.
 
-    The parser intentionally does not strip Markdown fences or repair source.
-    A provider response that is not already compatible is a contract failure
-    and must be repaired by returning a complete replacement response.
+    The only accepted response forms are raw Python or one fenced Python
+    block. The extracted source is passed unchanged to the existing
+    ``cadquery-v1`` validator; this function never reconstructs or patches it.
     """
 
     contract = validate_executable_cadquery_design_contract(design_contract)
-    try:
-        payload = json.loads(raw_output)
-    except (TypeError, json.JSONDecodeError) as exc:
-        raise ExecutableCadQueryContractError("response is not valid JSON") from exc
-    if not isinstance(payload, dict):
-        raise ExecutableCadQueryContractError("response envelope must be an object")
-    if payload.get("schema_version") != RESPONSE_SCHEMA_VERSION:
-        raise ExecutableCadQueryContractError("unsupported response schema_version")
-
-    expected_outputs = {
-        str(item["output_id"]): item
-        for item in contract["outputs"]
-        if isinstance(item, dict)
-    }
-    raw_outputs = payload.get("outputs")
-    if not isinstance(raw_outputs, list) or not raw_outputs:
-        raise ExecutableCadQueryContractError("response outputs are required")
-
-    parsed: list[ExecutableCadQuerySource] = []
-    seen: set[str] = set()
-    for index, item in enumerate(raw_outputs):
-        if not isinstance(item, dict):
-            raise ExecutableCadQueryContractError(f"response outputs[{index}] must be an object")
-        output_id = item.get("output_id")
-        if not isinstance(output_id, str) or not output_id:
-            raise ExecutableCadQueryContractError("response output_id is required")
-        if output_id in seen:
-            raise ExecutableCadQueryContractError(f"duplicate response output_id: {output_id}")
-        seen.add(output_id)
-        expected = expected_outputs.get(output_id)
-        if expected is None:
-            raise ExecutableCadQueryContractError(
-                f"canonical output identity changed: unexpected output {output_id}"
-            )
-        source = item.get("source")
-        if not isinstance(source, str) or not source.strip():
-            raise ExecutableCadQueryContractError(
-                f"complete source is required for output {output_id}"
-            )
-        parameters = item.get("parameters", {})
-        if not isinstance(parameters, dict):
-            raise ExecutableCadQueryContractError(
-                f"parameters for output {output_id} must be an object"
-            )
-        try:
-            metadata = validate_cadquery_source(source, contract_version=SOURCE_CONTRACT_VERSION)
-        except CadQueryContractError as exc:
-            raise ExecutableCadQueryContractError(
-                f"source contract violation for {output_id}: {exc}"
-            ) from exc
-        source_output_ids = set(metadata.output_ids)
-        if source_output_ids != {output_id}:
-            raise ExecutableCadQueryContractError(
-                f"canonical output identity changed in source for {output_id}: "
-                f"expected only {output_id}, got {sorted(source_output_ids)}"
-            )
-        expected_solid_count = int(expected["expected_solid_count"])
-        detected_solid_count = metadata.expected_solid_counts.get(output_id)
-        if detected_solid_count != expected_solid_count:
-            raise ExecutableCadQueryContractError(
-                f"expected solid count contract mismatch for {output_id}: "
-                f"expected {expected_solid_count}, got {detected_solid_count}"
-            )
-        parsed.append(
-            ExecutableCadQuerySource(
-                output_id=output_id,
-                parameters=json.loads(json.dumps(parameters, sort_keys=True, default=str)),
-                source=source,
-                source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
-                source_metadata=metadata,
-            )
-        )
-
-    missing = set(expected_outputs) - seen
-    if missing:
+    outputs = contract["outputs"]
+    if len(outputs) != 1:
         raise ExecutableCadQueryContractError(
-            f"canonical output identity missing from response: {sorted(missing)}"
+            "complete-source v2 requires exactly one frozen-contract output"
+        )
+    expected_output_id = str(outputs[0]["output_id"])
+    source = _extract_complete_source(raw_output)
+    try:
+        ast.parse(source)
+    except SyntaxError as exc:
+        raise ExecutableCadQuerySyntaxError(f"invalid Python syntax: {exc.msg}") from exc
+    try:
+        metadata = validate_cadquery_source(source, contract_version=SOURCE_CONTRACT_VERSION)
+    except CadQueryContractError as exc:
+        raise ExecutableCadQueryContractError(
+            f"source contract violation for {expected_output_id}: {exc}",
+            failure_kind="source_contract_violation",
+            boundary="source_contract",
+        ) from exc
+    if metadata.output_ids != [expected_output_id]:
+        raise ExecutableCadQueryContractError(
+            f"canonical output identity changed in source: expected only {expected_output_id}, "
+            f"got {metadata.output_ids}",
+            failure_kind="source_contract_violation",
+            boundary="source_contract",
+        )
+    expected_solid_count = int(outputs[0]["expected_solid_count"])
+    detected_solid_count = metadata.expected_solid_counts.get(expected_output_id)
+    if detected_solid_count != expected_solid_count:
+        raise ExecutableCadQueryContractError(
+            f"expected solid count contract mismatch for {expected_output_id}: "
+            f"expected {expected_solid_count}, got {detected_solid_count}",
+            failure_kind="source_contract_violation",
+            boundary="source_contract",
         )
     return ExecutableCadQueryResponse(
         schema_version=RESPONSE_SCHEMA_VERSION,
-        outputs=tuple(parsed),
+        outputs=(
+            ExecutableCadQuerySource(
+                output_id=expected_output_id,
+                parameters={},
+                source=source,
+                source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                source_metadata=metadata,
+            ),
+        ),
     )
+
+
+def _extract_complete_source(raw_output: str) -> str:
+    if not isinstance(raw_output, str) or not raw_output.strip():
+        raise ExecutableCadQueryResponseError("provider response is empty")
+    fence_count = raw_output.count("```")
+    if fence_count:
+        if fence_count != 2:
+            raise ExecutableCadQueryResponseError(
+                "provider response must contain exactly one fenced Python block"
+            )
+        match = re.fullmatch(
+            r"[ \t\r\n]*```python[ \t]*\r?\n(?P<source>[\s\S]*?)\r?\n```[ \t\r\n]*",
+            raw_output,
+        )
+        if match is None:
+            raise ExecutableCadQueryResponseError(
+                "provider response fenced block must be exactly one Python block with no prose"
+            )
+        source = match.group("source")
+    else:
+        source = raw_output
+        first_line = next((line.strip() for line in source.splitlines() if line.strip()), "")
+        starts_like_python = bool(
+            re.match(r"(?:import |from |def |class |@|[A-Za-z_]\w*\s*=)", first_line)
+        )
+        if not starts_like_python:
+            raise ExecutableCadQueryResponseError(
+                "provider response must be raw Python or exactly one fenced Python block"
+            )
+        if any(marker in source for marker in ("Here is", "Here’s", "Sure,", "```")):
+            raise ExecutableCadQueryResponseError(
+                "provider response contains prose outside the complete Python module"
+            )
+    if not source.strip():
+        raise ExecutableCadQueryResponseError("provider response contains no Python source")
+    return source

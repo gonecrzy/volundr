@@ -34,7 +34,7 @@ def test_executable_provider_ignores_codex_geometry_selection() -> None:
     assert provider.validated_transport is True
 
 
-def test_executable_prompt_requires_complete_source_envelope() -> None:
+def test_executable_prompt_requires_one_complete_raw_source_module() -> None:
     request = ModelGenerationRequest(
         project_name="Mounting bracket",
         original_intent="fixture",
@@ -48,10 +48,36 @@ def test_executable_prompt_requires_complete_source_envelope() -> None:
 
     prompt = provider.build_cadquery_prompt(request)
 
-    assert "executable-cadquery-response-v1" in prompt
-    assert "complete executable source" in prompt
-    assert "Return JSON only" in prompt
+    assert "executable-cadquery-complete-source-v2" in prompt
+    assert "exactly one complete executable raw Python module" in prompt
+    assert "Return raw Python source only" in prompt
+    assert "Do not return JSON" in prompt
     assert "source fragments" not in prompt
+
+
+def test_l0_prompt_contains_exact_prior_response_and_normalized_error() -> None:
+    prior_response = "Here is the module:\n```python\npass\n```"
+    normalized_error = "response_empty_or_extraction_failure: prose outside the module"
+    request = ModelGenerationRequest(
+        project_name="Mounting bracket",
+        original_intent="fixture",
+        user_instruction="fixture",
+        executable_design_contract={
+            "schema_version": "executable-cadquery-design-contract-v1",
+            "outputs": [{"output_id": "mounting_bracket", "required": True}],
+        },
+        executable_repair_envelope={
+            "schema_version": "executable-cadquery-repair-envelope-v1",
+            "repair_level": "L0",
+            "prior_provider_response": prior_response,
+            "prior_normalized_error": normalized_error,
+        },
+    )
+
+    prompt = GeminiCliProvider(model="gemini-test").build_cadquery_prompt(request)
+
+    assert prior_response in prompt
+    assert normalized_error in prompt
 
 
 def test_executable_flag_selects_experimental_workflow_service(monkeypatch, tmp_path) -> None:

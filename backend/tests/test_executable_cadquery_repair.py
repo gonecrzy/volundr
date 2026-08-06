@@ -10,6 +10,7 @@ from app.services.executable_cadquery.repair import (
     compare_executable_progress,
     decide_executable_repair,
 )
+from app.services.validated_cadquery_workflow import safe_diagnostic
 
 
 BASE_INPUT = {
@@ -169,3 +170,37 @@ def test_protected_fact_regression_is_immediate_stop() -> None:
         "stop_reason": "protected_fact_regression",
         "progress_result": "regressed",
     }
+
+
+def test_l0_repair_contains_exact_prior_response_and_normalized_error() -> None:
+    prior_response = "Here is the complete module:\n```python\npass\n```"
+    normalized_error = "response_empty_or_extraction_failure: prose outside the single Python module"
+
+    envelope = build_executable_cadquery_repair_envelope(
+        **BASE_INPUT,
+        repair_level="L0",
+        previous_provider_response=prior_response,
+        previous_normalized_error=normalized_error,
+    )
+
+    assert envelope["prior_provider_response"] == prior_response
+    assert envelope["prior_normalized_error"] == normalized_error
+
+
+def test_normalized_repair_evidence_redacts_credentials_and_host_paths() -> None:
+    normalized = safe_diagnostic(
+        "GEMINI_API_KEY_2=secret-value failed at /root/private/model.py"
+    )
+
+    assert "secret-value" not in normalized
+    assert "GEMINI_API_KEY_2" not in normalized
+    assert "/root/private/model.py" not in normalized
+
+    envelope = build_executable_cadquery_repair_envelope(
+        **BASE_INPUT,
+        repair_level="L0",
+        previous_normalized_error="GEMINI_API_KEY_2=secret-value at /root/private/model.py",
+    )
+    rendered = json.dumps(envelope, sort_keys=True)
+    assert "secret-value" not in rendered
+    assert "/root/private/model.py" not in rendered

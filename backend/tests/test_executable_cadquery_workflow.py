@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from collections.abc import Generator
 
 import pytest
@@ -16,7 +15,6 @@ from app.db.session import get_db
 from app.main import app
 from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
 from app.services.cad.cadquery_runner import CadQueryCliRunner
-from app.services.executable_cadquery.contract import RESPONSE_SCHEMA_VERSION
 from app.services.executable_cadquery.fixtures import valid_mounting_bracket_source
 
 
@@ -32,18 +30,7 @@ class CompleteSourceFixtureProvider:
         if request.executable_repair_envelope and request.executable_repair_envelope.get("repair_level") == "L4":
             source = source.replace("rect(40.0, 20.0)", "rect(46.0, 24.0)")
         return ModelGenerationResult(
-            raw_output=json.dumps(
-                {
-                    "schema_version": RESPONSE_SCHEMA_VERSION,
-                    "outputs": [
-                        {
-                            "output_id": "mounting_bracket",
-                            "parameters": {},
-                            "source": source,
-                        }
-                    ],
-                }
-            ),
+            raw_output=source,
             provider="gemini_api",
             provider_model="fixture-gemini",
         )
@@ -92,6 +79,13 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert payload["outputs"]
             assert payload["outputs"][0]["output_id"] == "mounting_bracket"
             assert payload["outputs"][0]["artifact_available"] is True
+            response_evidence = next(
+                (tmp_path / "data" / "debug-sessions" / "executable-cadquery" / payload["id"]).glob(
+                    "attempt-01-provider-response.txt"
+                )
+            )
+            assert response_evidence.read_text(encoding="utf-8") == valid_mounting_bracket_source()
+            assert response_evidence.stat().st_mode & 0o777 == 0o600
 
             accepted = client.post(f"/api/validated-cadquery/workflows/{payload['id']}/accept")
             assert accepted.status_code == 200, accepted.text

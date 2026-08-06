@@ -19,6 +19,7 @@ from app.services.executable_cadquery.contract import (
     parse_executable_cadquery_response,
     validate_executable_cadquery_design_contract,
 )
+from app.services.executable_cadquery.evidence import persist_exact_provider_response
 from app.services.executable_cadquery.fixtures import FROZEN_MOUNTING_BRACKET_CONTRACT
 from app.services.executable_cadquery.repair import (
     build_executable_cadquery_repair_envelope,
@@ -240,6 +241,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         previous_source: str | None = None
         previous_source_hash: str | None = None
         previous_result_hash: str | None = None
+        previous_provider_response: str | None = None
+        previous_normalized_error: str | None = None
         if parent_revision_id:
             parent_revision = self.db.get(Revision, parent_revision_id)
             if parent_revision is not None:
@@ -267,6 +270,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     previous_source=previous_source,
                     previous_source_hash=previous_source_hash,
                     previous_result_hash=previous_result_hash,
+                    previous_provider_response=previous_provider_response,
+                    previous_normalized_error=previous_normalized_error,
                     design_contract=contract,
                     provider_attempt=history[-1].get("provider_attempt") if history else None,
                     worker_result=history[-1].get("worker_result") if history else None,
@@ -294,16 +299,26 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             current_result_hash: str | None = None
             revision_id: str | None = None
             raw_output: str | None = None
+            normalized_error: str | None = None
             try:
                 if self.ai_provider is None:
                     raise ValueError("executable Gemini provider is unavailable")
                 generation = await self.ai_provider.generate_cadquery_model(request)
-                raw_output = generation.raw_output
+                raw_output = generation.raw_output if isinstance(generation.raw_output, str) else ""
+                response_evidence_path = persist_exact_provider_response(
+                    self.data_dir,
+                    workflow_id=workflow.id,
+                    attempt_number=attempt_count,
+                    raw_response=raw_output,
+                )
                 provider_attempt.update(
                     {
                         "provider": generation.provider,
                         "provider_model": generation.provider_model,
                         "status": "response_received",
+                        "response_evidence_path": response_evidence_path.resolve().relative_to(self.data_dir.resolve()).as_posix(),
+                        "response_length": len(raw_output),
+                        "response_hash": source_result_hash({"raw_response": raw_output}),
                     }
                 )
                 parsed = parse_executable_cadquery_response(raw_output, contract)
@@ -371,11 +386,19 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         self.db.commit()
                         return self.read(workflow.id)
             except ExecutableCadQueryContractError as exc:
-                failure_boundary = "provider_response"
+                failure_boundary = exc.boundary
+                normalized_error = safe_diagnostic(str(exc))
                 failure_class = classify_executable_failure(
-                    "provider_response", {"schema_error": safe_diagnostic(str(exc))}
+                    exc.boundary,
+                    {
+                        "failure_kind": exc.failure_kind,
+                        "normalized_error": normalized_error,
+                        "schema_error": normalized_error if exc.boundary == "provider_response" else None,
+                    },
                 )
                 provider_attempt["status"] = "contract_failure"
+                provider_attempt["failure_class"] = failure_class
+                provider_attempt["normalized_error"] = normalized_error
             except Exception as exc:
                 failure_class = failure_class or classify_executable_failure(
                     failure_boundary, {"message": safe_diagnostic(str(exc))}
@@ -415,6 +438,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "source_hash": current_source_hash,
                     "result_hash": current_result_hash,
                     "provider_attempt": provider_attempt,
+                    "normalized_error": normalized_error,
                     "worker_result": worker_result,
                     "topology_result": topology_result,
                     "semantic_result": semantic_result,
@@ -435,6 +459,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             previous_source = self._source_for_revision(revision_id) or previous_source
             previous_source_hash = current_source_hash or previous_source_hash
             previous_result_hash = current_result_hash
+            previous_provider_response = raw_output
+            previous_normalized_error = normalized_error
             previous_failure_class = failure_class
             previous_progress = progress
             if decision["decision"] != "repair" or attempt_count >= 7:

@@ -49,7 +49,7 @@ CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION = "cadquery-geometry-slots-v1"
 CADQUERY_GEOMETRY_SLOTS_COMPLETION_PROMPT_VERSION = "cadquery-geometry-slots-completion-v1"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
-EXECUTABLE_CADQUERY_PROMPT_VERSION = "executable-cadquery-complete-source-v1"
+EXECUTABLE_CADQUERY_PROMPT_VERSION = "executable-cadquery-complete-source-v2"
 
 
 class GeminiCliProvider:
@@ -713,18 +713,24 @@ class GeminiCliProvider:
         return "\n".join(parts)
 
     def build_executable_cadquery_prompt(self, request: ModelGenerationRequest) -> str:
-        """Ask Gemini for one complete source envelope without reconstruction."""
+        """Ask Gemini for exactly one complete raw source module."""
+
+        contract = request.executable_design_contract or {}
+        output_ids = [
+            str(item["output_id"])
+            for item in contract.get("outputs", [])
+            if isinstance(item, dict) and item.get("output_id")
+        ]
 
         lines = [
-            "You return a complete executable source implementation in CadQuery for Volundr.",
-            "Return JSON only. Do not include Markdown fences or prose outside the JSON object.",
-            "Use schema_version exactly executable-cadquery-response-v1.",
-            "Return one output entry for every canonical output ID, exactly once.",
-            "Each output entry must contain output_id, parameters, and the complete source string.",
-            "The source string must be a complete standalone cadquery-v1 Python module.",
+            "You return exactly one complete executable raw Python module in CadQuery for Volundr.",
+            "Return raw Python source only. The only wrapper permitted is exactly one fenced Python block labeled python.",
+            "Do not return JSON, a response envelope, prose, multiple code blocks, a diff, a patch, or partial source.",
+            "The source must be a complete standalone cadquery-v1 Python module.",
             "Define the deterministic build(params) entry point and register the final output.",
-            "Return the complete replacement source for every repair; never return a patch.",
-            "Preserve every protected fact, required output, and canonical output ID.",
+            "Return the complete replacement source for every repair; never return a patch or source fragment.",
+            "Preserve every protected fact and the canonical output identity derived from the design contract.",
+            f"The frozen contract contains exactly these canonical output IDs: {json.dumps(output_ids)}.",
             "Use only the imports and calls permitted by the existing cadquery-v1 source contract.",
             "Do not write files, use network access, subprocesses, dynamic imports, or artifact exporters.",
             "The design contract states what must be true; choose the CadQuery construction strategy yourself.",
@@ -745,13 +751,24 @@ class GeminiCliProvider:
                 ]
             )
         if request.executable_repair_envelope:
+            repair_envelope = request.executable_repair_envelope
             lines.extend(
                 [
                     "",
-                    "Structured repair or revision envelope:",
-                    json.dumps(request.executable_repair_envelope, indent=2, sort_keys=True),
+                    "Structured repair or revision facts:",
+                    "If prior_provider_response is present, it is the exact prior provider response. Correct that response by returning a complete replacement module.",
+                    json.dumps(repair_envelope, indent=2, sort_keys=True),
                 ]
             )
+            prior_response = repair_envelope.get("prior_provider_response")
+            if isinstance(prior_response, str) and prior_response:
+                lines.extend(
+                    [
+                        "",
+                        "Exact prior provider response (verbatim):",
+                        prior_response,
+                    ]
+                )
         return "\n".join(lines)
 
     def build_geometry_slots_prompt(self, request: ModelGenerationRequest) -> str:

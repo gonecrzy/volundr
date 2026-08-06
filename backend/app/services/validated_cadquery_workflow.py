@@ -187,6 +187,11 @@ def safe_diagnostic(value: str) -> str:
     for secret in (settings.gemini_api_key, settings.gemini_api_key_2):
         if secret:
             value = value.replace(secret, "[redacted]")
+    value = re.sub(
+        r"(?i)(?:GEMINI_API_KEY_2|GEMINI_API_KEY)\s*[=:]\s*[^\s,;]+",
+        "[redacted]",
+        value,
+    )
     value = redact_sensitive_text(value)
     value = re.sub(r"(?i)(?:key|api[_-]?key|authorization|token)\s*[=:]\s*[^\s,;]+", "[redacted]", value)
     value = re.sub(r"(?i)(?:/[^\s:]+)+(?:\.py|\.json|\.log)?", "[path]", value)

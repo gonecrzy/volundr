@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 import hashlib
+import re
 from typing import Any
 
 
@@ -30,8 +31,11 @@ def classify_executable_failure(boundary: str, evidence: Mapping[str, Any] | Non
     facts = evidence if isinstance(evidence, Mapping) else {}
     message = str(facts.get("normalized_error") or facts.get("message") or "").lower()
     exception_type = str(facts.get("exception_type") or "").lower()
+    failure_kind = str(facts.get("failure_kind") or "").lower()
     boundary = str(boundary or "").lower()
 
+    if boundary == "provider_response" and failure_kind == "response_empty_or_extraction_failure":
+        return "response_empty_or_extraction_failure"
     if boundary == "provider_response" or facts.get("schema_error"):
         return "provider_response_contract_failure"
     if boundary in {"auth", "authentication"}:
@@ -49,7 +53,7 @@ def classify_executable_failure(boundary: str, evidence: Mapping[str, Any] | Non
             return "step_export_failure"
         return "artifact_integrity_failure"
     if boundary == "source_contract":
-        if "syntax" in message or "parse" in message:
+        if failure_kind == "python_syntax_error" or "syntax" in message or "parse" in message:
             return "python_syntax_error"
         return "source_contract_violation"
     if boundary == "execution":
@@ -100,6 +104,8 @@ def build_executable_cadquery_repair_envelope(
     previous_source_hash: str | None,
     previous_result_hash: str | None,
     design_contract: Mapping[str, Any],
+    previous_provider_response: str | None = None,
+    previous_normalized_error: str | None = None,
     provider_attempt: Mapping[str, Any] | None = None,
     worker_result: Mapping[str, Any] | None = None,
     topology_result: Mapping[str, Any] | None = None,
@@ -137,6 +143,8 @@ def build_executable_cadquery_repair_envelope(
         "previous_complete_source": previous_source,
         "previous_source_hash": previous_source_hash,
         "previous_result_hash": previous_result_hash,
+        "prior_provider_response": previous_provider_response,
+        "prior_normalized_error": _redact_normalized_error(previous_normalized_error),
         "provider_attempt": _structured_facts(provider_attempt),
         "worker_result": worker,
         "topology_result": _structured_facts(topology_result),
@@ -292,6 +300,18 @@ def _number(value: Any) -> float:
         return float(value)
     except (TypeError, ValueError):
         return float("-inf")
+
+
+def _redact_normalized_error(value: str | None) -> str | None:
+    if value is None:
+        return None
+    redacted = re.sub(
+        r"(?i)(?:GEMINI_API_KEY_2|GEMINI_API_KEY|api[_-]?key|authorization|token)\s*[=:]\s*[^\s,;]+",
+        "[redacted]",
+        str(value),
+    )
+    redacted = re.sub(r"(?i)(?:/root/|/home/|/users/|[A-Za-z]:[\\/])[^\s,;]+", "[path]", redacted)
+    return redacted[:800]
 
 
 def source_result_hash(payload: Mapping[str, Any]) -> str:

@@ -183,7 +183,7 @@ test.describe.serial("executable CadQuery Gemini live golden path", () => {
             provider: "gemini_api",
             status: entry.provider_attempt?.status ?? "unknown",
             failure_class: entry.failure_class,
-            prompt_version: "executable-cadquery-complete-source-v1",
+            prompt_version: "executable-cadquery-complete-source-v2",
             provider_response: { stage: entry.failure_boundary },
             routing_metadata: { source: "durable_workflow_provenance" },
           })));
