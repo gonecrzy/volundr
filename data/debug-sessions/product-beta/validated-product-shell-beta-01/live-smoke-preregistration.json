@@ -33,7 +33,7 @@
     "revision_count": 1,
     "revision": "change one dimension to 100 mm and add one bounded recessed 8 mm by 4 mm slot near the upper-right feature group",
     "protected_facts": ["one output identity", "three mounting holes", "specified source/plan requirements", "accepted parent revision relationship"],
-    "restart": "one API restart while the durable workflow is nonterminal, followed by reconciliation and continued browser polling; no duplicate browser creation, provider operation, or worker job"
+    "restart": "one CAD worker restart while the durable workflow is nonterminal, followed by durable queue recovery and continued browser polling; no duplicate browser creation, provider operation, or worker job"
   },
   "success_conditions": [
     "UUID creation identity and durable workflow URL",
