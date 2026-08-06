@@ -73,6 +73,11 @@ class GeminiApiProvider(GeminiCliProvider):
             if validated_transport
             else (primary_api_key if primary_api_key is not None else self.api_key)
         )
+        if validated_transport and not self.api_key:
+            # Unit callers may provide the validated primary slot directly.
+            # Keep the provider's request guard aligned with the transport's
+            # credential source without changing ordinary provider behavior.
+            self.api_key = self.primary_api_key
         self.fallback_api_key = fallback_api_key
         self._validated_sleep = sleep
         self._validated_primary_limiter = primary_limiter or SharedIntegrationRateLimiter(sleep=sleep)
@@ -184,6 +189,8 @@ class GeminiApiProvider(GeminiCliProvider):
         prompt_mode: str = "provider",
         processing_context: dict[str, Any] | None = None,
     ) -> tuple[str, str]:
+        if self.validated_transport and not self.primary_api_key:
+            raise RuntimeError("primary Gemini credential is not configured")
         if not self.api_key:
             raise RuntimeError("Gemini API key is not configured")
 
