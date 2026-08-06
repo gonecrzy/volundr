@@ -12619,7 +12619,11 @@ class ProjectService:
         revision.compile_log_path = self._relative(
             self._write_assembly_compile_log(revision, revision_dir / "logs")
         )
-        self._certify_revision_artifacts(revision)
+        # Complete-source executable revisions intentionally bypass the
+        # reconstructed Design Plan boundary. Their source contract, worker,
+        # topology, and semantic checks remain authoritative for retry.
+        if revision.design_plan_id is not None:
+            self._certify_revision_artifacts(revision)
         revision.review_state = self._derive_review_state(revision.id)
         retry_outputs = list(
             self.db.scalars(

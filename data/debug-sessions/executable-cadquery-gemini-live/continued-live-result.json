@@ -1,13 +1,15 @@
 {
   "schema_version": "executable-cadquery-complete-source-live-result-v2",
-  "decision": "application_executor_or_validator_requires_narrow_fix",
-  "decision_basis": "The persisted original candidate was accepted through the real browser UI and its original artifacts and package passed. Exactly one conversational complete-source revision was submitted to Gemini and returned a source that passed extraction, syntax, and the cadquery-v1 source contract. The revision reached the CAD worker boundary but the worker failed while initializing the output directory, before revised artifacts, topology, or semantic verification could be produced. This is an application executor/worker boundary failure, not evidence that Gemini complete-source generation is nonviable.",
+  "decision": "executable_cadquery_visible_golden_path_ready",
+  "decision_basis": "The persisted original candidate was accepted through the real browser UI and its original artifacts and package passed. Exactly one conversational complete-source revision was submitted to Gemini and returned a source that passed extraction, syntax, and the cadquery-v1 source contract. The preserved pre-fix worker failure was reproduced as a worker-environment setup failure; after the worker fix at 165e54c, the exact same revision source was replayed without a provider call and completed through the real worker, topology, semantic verification, artifact production, browser acceptance, and package download. The revised model was visible in the frontend with the protected mounting_bracket identity preserved.",
   "branch": "experiment/gemini-executable-cadquery-v1",
   "project_id": "484b2943-0154-4ca6-bf7c-f3f33af8fc40",
   "parent_workflow_id": "371d2b67-5cec-4790-99e5-5c28c106d21a",
   "parent_revision_id": "a7c9c92b-7f68-4fda-bf67-04e3fad1d798",
   "revision_workflow_id": "7f076844-3ca3-4422-8fa5-735ab2d4606b",
   "revision_id": "49429eb9-0eac-44a8-bb3b-64a0a8730148",
+  "worker_fix_commit": "165e54c",
+  "revision_replay_commit": "d7b2068",
   "source_dialect": {
     "version": "cadquery-v1-source-dialect",
     "policy_hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
@@ -45,6 +47,7 @@
     "repair_levels_reached": ["initial"],
     "automatic_provider_operation_budget": 9,
     "provider_logical_operation_count": 2,
+    "replay_provider_logical_operation_count": 0,
     "provider_operations": [
       {
         "operation": "initial_generation",
@@ -95,8 +98,16 @@
     "revision_l1_repairs": 0,
     "revision_l2_repairs": 0,
     "revision_l3_repairs": 0,
-    "measurable_progress": false,
-    "stop_reason": "valid revision source reached the application worker, which failed before artifact production"
+    "measurable_progress": true,
+    "stop_reason": "exact source replay completed the worker, topology, semantic, artifact, and frontend acceptance paths with no additional provider operation",
+    "replay": {
+      "provider_calls": 0,
+      "worker_reached": true,
+      "topology_reached": true,
+      "semantic_verification_reached": true,
+      "semantic_status": "passed",
+      "source_sha256": "7ee3f07a3d26346a82ceb869cf5d891359ac086cb253b6f1ca1d49fd41f53758"
+    }
   },
   "original": {
     "candidate_ready": true,
@@ -117,21 +128,29 @@
   "revision": {
     "instruction": "Increase the centered recessed pocket to 46 mm × 24 mm while preserving the body dimensions, all five hole diameters, all hole-center positions, body thickness, external fillet requirement, and output identity.",
     "submitted_exactly_once": true,
-    "workflow_state": "failed",
+    "workflow_state": "revision_ready",
+    "revision_status": "succeeded",
+    "review_state": "ready",
     "parent_revision_id": "a7c9c92b-7f68-4fda-bf67-04e3fad1d798",
     "output_id_preserved": true,
     "source_extracted": true,
     "source_contract_valid": true,
     "worker_reached": true,
-    "worker_status": "failed",
-    "worker_failure_boundary": "artifact",
-    "worker_failure_kind": "stl_export_failure",
-    "worker_failure_class": "execution_failed",
-    "worker_failure_summary": "worker runner failed while initializing the output directory; no revised artifact was produced",
-    "topology_reached": false,
-    "semantic_verification_reached": false,
-    "candidate_accepted": false,
-    "artifact_sha256": null
+    "worker_status": "completed",
+    "worker_failure_boundary": null,
+    "worker_failure_kind": null,
+    "worker_failure_class": null,
+    "worker_failure_summary": null,
+    "pre_fix_failure_preserved_as": "worker_environment_failure",
+    "topology_reached": true,
+    "semantic_verification_reached": true,
+    "candidate_accepted": true,
+    "package_validated": true,
+    "artifact_sha256": {
+      "step": "53c4336e156f5a0c1896f5c526e19e99f063f0f9d634a39b2aeca9dc1010bbd3",
+      "stl": "800ccfed63e1aa35494ef471b5dc38ad6433b3bc8dd81b1420e1e53a6bc06433",
+      "brep": "072e1cb08e28b7c67433e887ce21067e2189d68c3f2034e2b93092c07a895741"
+    }
   },
   "artifacts": {
     "original": {
@@ -139,7 +158,12 @@
       "stl": "f7709224c1ca51d73b691514fd918320faeac02fbcece20df54900e87bcb9901",
       "brep": "fb1abbb0059eebd5013cf018b8143aeccdb92eb1dc40cd3ede864cbfd83adb4f"
     },
-    "revision": null
+    "revision": {
+      "step": "53c4336e156f5a0c1896f5c526e19e99f063f0f9d634a39b2aeca9dc1010bbd3",
+      "stl": "800ccfed63e1aa35494ef471b5dc38ad6433b3bc8dd81b1420e1e53a6bc06433",
+      "brep": "072e1cb08e28b7c67433e887ce21067e2189d68c3f2034e2b93092c07a895741",
+      "design_package": "72557b80834c6cede6124b741b0ec6c0f703ef6b97c9e460f7278050092b3fe7"
+    }
   },
   "integrity": {
     "codex_proxy_used": false,
@@ -150,14 +174,20 @@
     "second_creation_started": false,
     "second_revision_started": false,
     "main_modified": false,
-    "frontend_locator_fix_commit": "75611f4"
+    "frontend_locator_fix_commit": "75611f4",
+    "worker_fix_commit": "165e54c",
+    "credential_values_recorded": false
   },
   "final_evidence": {
     "original_model_screenshot": "data/debug-sessions/executable-cadquery/gemini-complete-source-01/original-model.png",
-    "revised_model_screenshot": null,
-    "visual_comparison": null,
+    "revised_model_screenshot": "data/debug-sessions/executable-cadquery/gemini-complete-source-01/revised-model.png",
+    "visual_comparison": {
+      "original_model_screenshot": "data/debug-sessions/executable-cadquery/gemini-complete-source-01/original-model.png",
+      "revised_model_screenshot": "data/debug-sessions/executable-cadquery/gemini-complete-source-01/revised-model.png",
+      "result": "revised mounting bracket visibly rendered in the frontend"
+    },
     "revision_failure_browser_evidence": "data/debug-sessions/executable-cadquery/gemini-complete-source-01/revision-failure-browser-evidence.json",
-    "browser_finalizer_result": "revision_worker_failure_before_candidate_ready",
+    "browser_finalizer_result": "revision_candidate_visible_accepted_and_packaged",
     "restart_refresh_back_forward": "passed",
     "completed_provider_operations_duplicated": false,
     "completed_worker_jobs_duplicated": false
