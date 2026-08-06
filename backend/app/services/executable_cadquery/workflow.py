@@ -386,6 +386,10 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         stl_path=stl_path,
                         design_contract=contract,
                     )
+                    semantic_result = complete_executable_semantic_coverage(
+                        semantic_result,
+                        contract,
+                    )
                     current_result_hash = source_result_hash(
                         {
                             "worker": worker_result,
@@ -754,6 +758,43 @@ def _extract_pocket_dimensions(payload: ValidatedBoundedRevision) -> tuple[float
         width = width or float(match.group(1))
         depth = depth or float(match.group(2))
     return width, depth
+
+
+def complete_executable_semantic_coverage(
+    semantic_result: Mapping[str, Any],
+    design_contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Prevent an incomplete verifier result from becoming a passing candidate."""
+
+    result = deepcopy(dict(semantic_result))
+    required_ids = {
+        str(item["requirement_id"])
+        for item in design_contract.get("requirements", [])
+        if isinstance(item, Mapping) and item.get("requirement_id")
+    }
+    findings = [
+        dict(item)
+        for item in result.get("findings", [])
+        if isinstance(item, Mapping) and item.get("requirement_id")
+    ]
+    found_ids = {str(item["requirement_id"]) for item in findings}
+    missing_ids = sorted(required_ids - found_ids)
+    if not missing_ids:
+        return result
+    result["unverifiable"] = sorted(
+        {str(item) for item in result.get("unverifiable", [])} | set(missing_ids)
+    )
+    result["findings"] = findings + [
+        {
+            "requirement_id": requirement_id,
+            "status": "unverifiable",
+            "measurements": {"reason": "semantic verifier did not produce a finding"},
+        }
+        for requirement_id in missing_ids
+    ]
+    if result.get("status") == "passed":
+        result["status"] = "unverifiable"
+    return result
 
 
 def _number(value: Any) -> float | None:

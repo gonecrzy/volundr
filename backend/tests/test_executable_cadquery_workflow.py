@@ -22,6 +22,7 @@ from app.services.executable_cadquery.fixtures import (
 )
 from app.services.executable_cadquery.workflow import ExecutableCadQueryWorkflowService
 from app.services.executable_cadquery.corpus import REPEATABILITY_CORPUS_SCHEMA_VERSION
+from app.services.executable_cadquery.workflow import complete_executable_semantic_coverage
 
 
 class CompleteSourceFixtureProvider:
@@ -71,6 +72,24 @@ def test_opt_in_repeatability_manifest_selects_the_exact_prompt_contract(tmp_pat
 
     assert contract["outputs"][0]["output_id"] == "mounting_bracket"
     assert contract["project_id"] == "database-project"
+
+
+def test_incomplete_semantic_coverage_cannot_be_reported_as_passed() -> None:
+    result = complete_executable_semantic_coverage(
+        {
+            "status": "passed",
+            "passed": ["topology"],
+            "failed": [],
+            "unverifiable": [],
+            "findings": [{"requirement_id": "topology", "status": "passed"}],
+        },
+        {
+            "requirements": [{"requirement_id": "coaxial_diameters"}],
+        },
+    )
+
+    assert result["status"] == "unverifiable"
+    assert result["unverifiable"] == ["coaxial_diameters"]
 
 
 @pytest.mark.asyncio
