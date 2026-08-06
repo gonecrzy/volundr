@@ -19,8 +19,8 @@ read_gemini_credentials() {
       # The repository .env is controlled configuration, not arbitrary input.
       # Keep both credentials in this wrapper only long enough to create the backend-only env file.
       . ./.env
-      GEMINI_API_KEY_2="${process_secondary:-${GEMINI_API_KEY_2:-}}"
-      GEMINI_API_KEY="${process_primary:-${GEMINI_API_KEY:-}}"
+      GEMINI_API_KEY_2="${GEMINI_API_KEY_2:-}"
+      GEMINI_API_KEY="${GEMINI_API_KEY:-}"
       printf 'export GEMINI_API_KEY_2=%q\n' "${GEMINI_API_KEY_2:-}"
       printf 'export GEMINI_API_KEY=%q\n' "${GEMINI_API_KEY:-}"
     ) 2>/dev/null
