@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 import { resolvePlaywrightPorts } from "./playwrightPorts";
 
 const liveEnabled = process.env.VOLUNDR_RUN_LIVE_E2E === "true";
-if (liveEnabled && process.env.GEMINI_API_KEY) {
+if (liveEnabled && (process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_2)) {
   throw new Error(
     "The live E2E wrapper must remove GEMINI_API_KEY before starting Playwright. Use npm run test:e2e:live.",
   );
@@ -26,7 +26,7 @@ export default defineConfig({
   testDir: "./e2e/live",
   workers: 1,
   fullyParallel: false,
-  retries: 1,
+  retries: 0,
   timeout: 240_000,
   expect: { timeout: 60_000 },
   outputDir: "test-results/live",
