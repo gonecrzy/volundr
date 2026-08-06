@@ -161,11 +161,7 @@ def parse_executable_cadquery_response(
 
     contract = validate_executable_cadquery_design_contract(design_contract)
     outputs = contract["outputs"]
-    if len(outputs) != 1:
-        raise ExecutableCadQueryContractError(
-            "complete-source v2 requires exactly one frozen-contract output"
-        )
-    expected_output_id = str(outputs[0]["output_id"])
+    expected_output_ids = [str(output["output_id"]) for output in outputs]
     source = _extract_complete_source(raw_output)
     source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
     try:
@@ -190,17 +186,17 @@ def parse_executable_cadquery_response(
         metadata = validate_cadquery_source(source, contract_version=SOURCE_CONTRACT_VERSION)
     except CadQueryContractError as exc:
         error = ExecutableCadQueryContractError(
-            f"source contract violation for {expected_output_id}: {exc}",
+            f"source contract violation for {expected_output_ids}: {exc}",
             failure_kind="source_contract_violation",
             boundary="source_contract",
             diagnostic=diagnose_cadquery_contract_error(source, str(exc)),
         )
         _attach_extraction_context(error, source, source_hash)
         raise error from exc
-    if metadata.output_ids != [expected_output_id]:
+    if set(metadata.output_ids) != set(expected_output_ids):
         error = ExecutableCadQueryContractError(
-            f"canonical output identity changed in source: expected only {expected_output_id}, "
-            f"got {metadata.output_ids}",
+            "canonical output identity changed in source: "
+            f"expected {expected_output_ids}, got {metadata.output_ids}",
             failure_kind="source_contract_violation",
             boundary="source_contract",
         )
@@ -213,34 +209,37 @@ def parse_executable_cadquery_response(
         )
         _attach_extraction_context(error, source, source_hash)
         raise error
-    expected_solid_count = int(outputs[0]["expected_solid_count"])
-    detected_solid_count = metadata.expected_solid_counts.get(expected_output_id)
-    if detected_solid_count != expected_solid_count:
-        error = ExecutableCadQueryContractError(
-            f"expected solid count contract mismatch for {expected_output_id}: "
-            f"expected {expected_solid_count}, got {detected_solid_count}",
-            failure_kind="source_contract_violation",
-            boundary="source_contract",
-        )
-        error.diagnostic = _diagnostic(
-            code="expected_solid_count_mismatch",
-            message=str(error),
-            source=source,
-            predicate=lambda node: isinstance(node, ast.Call)
-            and _diagnostic_call_name(node.func) == "PrintableOutput",
-        )
-        _attach_extraction_context(error, source, source_hash)
-        raise error
+    for output in outputs:
+        expected_output_id = str(output["output_id"])
+        expected_solid_count = int(output["expected_solid_count"])
+        detected_solid_count = metadata.expected_solid_counts.get(expected_output_id)
+        if detected_solid_count != expected_solid_count:
+            error = ExecutableCadQueryContractError(
+                f"expected solid count contract mismatch for {expected_output_id}: "
+                f"expected {expected_solid_count}, got {detected_solid_count}",
+                failure_kind="source_contract_violation",
+                boundary="source_contract",
+            )
+            error.diagnostic = _diagnostic(
+                code="expected_solid_count_mismatch",
+                message=str(error),
+                source=source,
+                predicate=lambda node: isinstance(node, ast.Call)
+                and _diagnostic_call_name(node.func) == "PrintableOutput",
+            )
+            _attach_extraction_context(error, source, source_hash)
+            raise error
     return ExecutableCadQueryResponse(
         schema_version=RESPONSE_SCHEMA_VERSION,
-        outputs=(
+        outputs=tuple(
             ExecutableCadQuerySource(
-                output_id=expected_output_id,
+                output_id=str(output["output_id"]),
                 parameters={},
                 source=source,
                 source_hash=source_hash,
                 source_metadata=metadata,
-            ),
+            )
+            for output in outputs
         ),
     )
 

@@ -13,6 +13,40 @@ from app.services.executable_cadquery.fixtures import (
 )
 
 
+def multi_output_contract() -> dict[str, object]:
+    return {
+        **FROZEN_MOUNTING_BRACKET_CONTRACT,
+        "outputs": [
+            {
+                "output_id": "enclosure_base",
+                "required": True,
+                "output_type": "printable_component",
+                "expected_solid_count": 1,
+            },
+            {
+                "output_id": "enclosure_lid",
+                "required": True,
+                "output_type": "printable_component",
+                "expected_solid_count": 1,
+            },
+        ],
+        "requirements": [],
+        "relationships": [],
+        "protected_facts": [],
+    }
+
+
+def valid_multi_output_source() -> str:
+    source = valid_mounting_bracket_source()
+    return source.replace(
+        'output_id="mounting_bracket",\n        label="Mounting bracket",\n        model=body,\n        component_id="mounting_bracket",',
+        'output_id="enclosure_base",\n        label="Enclosure base",\n        model=body,\n        component_id="enclosure_base",',
+    ).replace(
+        '    ),))\n',
+        '    ), PrintableOutput(\n        output_id="enclosure_lid",\n        label="Enclosure lid",\n        model=body,\n        component_id="enclosure_lid",\n        required=True,\n        expected_solid_count=1,\n        allow_disconnected_solids=False,\n    )))\n',
+    )
+
+
 def response_for(source: str) -> str:
     return source
 
@@ -38,6 +72,15 @@ def test_accepts_exactly_one_fenced_python_module() -> None:
     )
 
     assert parsed.outputs[0].source == source
+
+
+def test_accepts_all_outputs_from_a_frozen_multi_output_contract() -> None:
+    source = valid_multi_output_source()
+
+    parsed = parse_executable_cadquery_response(source, multi_output_contract())
+
+    assert [output.output_id for output in parsed.outputs] == ["enclosure_base", "enclosure_lid"]
+    assert all(output.source == source for output in parsed.outputs)
 
 
 @pytest.mark.parametrize(
