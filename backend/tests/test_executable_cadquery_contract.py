@@ -67,6 +67,9 @@ def test_separates_python_syntax_failure() -> None:
 
     assert exc_info.value.failure_kind == "python_syntax_error"
     assert "invalid Python syntax" in str(exc_info.value)
+    assert exc_info.value.extracted_source_hash
+    assert exc_info.value.extracted_source == "def build(params):\n    return ("
+    assert exc_info.value.diagnostic["code"] == "python_syntax_error"
 
 
 def test_rejects_canonical_output_identity_changes() -> None:

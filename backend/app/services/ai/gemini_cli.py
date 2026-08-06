@@ -34,6 +34,12 @@ from app.services.cad.geometry_slots import (
 )
 from app.services.cad.source_scaffold import SCAFFOLD_VERSION
 from app.services.projects.plan_provenance import FASTENER_LOOKUP_TABLES
+from app.services.executable_cadquery.dialect import (
+    CADQUERY_V1_SOURCE_SKELETON,
+    CADQUERY_V1_SOURCE_DIALECT_VERSION,
+    cadquery_v1_source_dialect,
+    cadquery_v1_source_dialect_hash,
+)
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
 REQUIREMENTS_PROMPT_VERSION = "requirements-v4"
@@ -49,7 +55,7 @@ CADQUERY_GEOMETRY_SLOTS_PROMPT_VERSION = "cadquery-geometry-slots-v1"
 CADQUERY_GEOMETRY_SLOTS_COMPLETION_PROMPT_VERSION = "cadquery-geometry-slots-completion-v1"
 CADQUERY_EXECUTION_REPAIR_PROMPT_VERSION = "cadquery-execution-repair-v2"
 CADQUERY_COMPONENT_REVISION_PROMPT_VERSION = "cadquery-component-revision-v2"
-EXECUTABLE_CADQUERY_PROMPT_VERSION = "executable-cadquery-complete-source-v2"
+EXECUTABLE_CADQUERY_PROMPT_VERSION = "executable-cadquery-complete-source-v3"
 
 
 class GeminiCliProvider:
@@ -726,9 +732,11 @@ class GeminiCliProvider:
             "You return exactly one complete executable raw Python module in CadQuery for Volundr.",
             "Return raw Python source only. The only wrapper permitted is exactly one fenced Python block labeled python.",
             "Do not return JSON, a response envelope, prose, multiple code blocks, a diff, a patch, or partial source.",
+            "Return no explanation or commentary outside the complete Python module.",
             "The source must be a complete standalone cadquery-v1 Python module.",
             "Define the deterministic build(params) entry point and register the final output.",
             "Return the complete replacement source for every repair; never return a patch or source fragment.",
+            "Preserve all valid design semantics from the prior complete source while correcting the reported contract findings.",
             "Preserve every protected fact and the canonical output identity derived from the design contract.",
             f"The frozen contract contains exactly these canonical output IDs: {json.dumps(output_ids)}.",
             "Use only the imports and calls permitted by the existing cadquery-v1 source contract.",
@@ -736,6 +744,13 @@ class GeminiCliProvider:
             "The design contract states what must be true; choose the CadQuery construction strategy yourself.",
             "",
             f"Prompt version: {EXECUTABLE_CADQUERY_PROMPT_VERSION}",
+            f"Source dialect version: {CADQUERY_V1_SOURCE_DIALECT_VERSION}",
+            f"Source dialect policy hash: {cadquery_v1_source_dialect_hash()}",
+            "Machine-readable cadquery-v1 source dialect summary:",
+            json.dumps(cadquery_v1_source_dialect(), indent=2, sort_keys=True),
+            "",
+            "Canonical cadquery-v1 source skeleton (protocol demonstration only; replace its trivial model):",
+            CADQUERY_V1_SOURCE_SKELETON,
             "Authoritative executable design contract:",
             json.dumps(request.executable_design_contract, indent=2, sort_keys=True),
             "",

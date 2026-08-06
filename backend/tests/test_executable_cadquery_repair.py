@@ -66,7 +66,8 @@ def test_repair_envelope_is_versioned_and_level_specific(level: str) -> None:
     assert "Traceback" not in rendered
     assert "/root/" not in rendered
     assert "api_key" not in rendered.lower()
-    assert "workplane" not in rendered.lower()
+    assert "canonical_source_skeleton" in rendered
+    assert "workplane" in rendered.lower()
     assert "fillet(" not in rendered.lower()
 
 
@@ -139,7 +140,7 @@ def test_l3_progress_requires_fewer_failures_without_protected_regression() -> N
 
 
 def test_stop_policy_rejects_repeated_hash_or_same_error_and_enforces_level_budgets() -> None:
-    assert AUTOMATIC_PROVIDER_OPERATION_BUDGET == 7
+    assert AUTOMATIC_PROVIDER_OPERATION_BUDGET == 9
     repeated_hash = decide_executable_repair(
         repair_level="L1",
         repair_ordinal=1,
@@ -163,6 +164,87 @@ def test_stop_policy_rejects_repeated_hash_or_same_error_and_enforces_level_budg
     )
     assert exhausted["decision"] == "stop"
     assert exhausted["stop_reason"] == "repair_budget_exhausted"
+
+
+def test_l0_allows_three_repairs_only_while_source_contract_progresses() -> None:
+    first = {
+        "extracted_source_hash": "source-1",
+        "diagnostic_signature": "try_statement_forbidden|10|4",
+        "violation_count": 1,
+        "syntax_valid": True,
+        "source_contract_valid": False,
+        "no_violation_decrease_streak": 0,
+    }
+    second = {
+        "extracted_source_hash": "source-2",
+        "diagnostic_signature": "top_level_if_forbidden|12|0",
+        "violation_count": 1,
+        "syntax_valid": True,
+        "source_contract_valid": False,
+        "no_violation_decrease_streak": 1,
+    }
+
+    comparison = compare_executable_progress("L0", previous=first, current=second)
+    assert comparison["measurable_progress"] is True
+    assert "extracted_source_hash_changed" in comparison["progress_reasons"]
+    assert "diagnostic_code_changed" in comparison["progress_reasons"]
+    assert decide_executable_repair(
+        repair_level="L0",
+        repair_ordinal=1,
+        source_hash="source-2",
+        previous_source_hash="source-1",
+        failure_class="source_contract_violation",
+        previous_failure_class="source_contract_violation",
+        progress=comparison,
+    )["decision"] == "repair"
+
+    for ordinal in (0, 1, 2):
+        assert decide_executable_repair(
+            repair_level="L0",
+            repair_ordinal=ordinal,
+            source_hash=f"source-{ordinal + 1}",
+            previous_source_hash=f"source-{ordinal}",
+            failure_class="source_contract_violation",
+            previous_failure_class="source_contract_violation",
+            progress={"measurable_progress": True},
+        )["decision"] == "repair"
+    assert decide_executable_repair(
+        repair_level="L0",
+        repair_ordinal=3,
+        source_hash="source-4",
+        previous_source_hash="source-3",
+        failure_class="source_contract_violation",
+        previous_failure_class="source_contract_violation",
+        progress={"measurable_progress": True},
+    )["stop_reason"] == "repair_budget_exhausted"
+
+    repeated = compare_executable_progress("L0", previous=second, current=second)
+    assert repeated["measurable_progress"] is False
+    assert decide_executable_repair(
+        repair_level="L0",
+        repair_ordinal=2,
+        source_hash="source-2",
+        previous_source_hash="source-2",
+        failure_class="source_contract_violation",
+        previous_failure_class="source_contract_violation",
+        progress=repeated,
+    )["stop_reason"] == "repeated_source_hash"
+
+
+def test_l0_envelope_contains_dialect_skeleton_and_full_contract() -> None:
+    envelope = build_executable_cadquery_repair_envelope(
+        **BASE_INPUT,
+        repair_level="L0",
+        previous_provider_response="complete prior response",
+        previous_normalized_error="top-level if statements are not allowed",
+    )
+
+    assert envelope["source_dialect"]["version"] == "cadquery-v1-source-dialect"
+    assert envelope["source_dialect_hash"]
+    assert envelope["canonical_source_skeleton"]
+    assert envelope["canonical_source_skeleton_hash"]
+    assert envelope["design_contract"]["schema_version"] == "executable-cadquery-design-contract-v1"
+    assert envelope["prior_provider_response"] == "complete prior response"
 
 
 def test_protected_fact_regression_is_immediate_stop() -> None:

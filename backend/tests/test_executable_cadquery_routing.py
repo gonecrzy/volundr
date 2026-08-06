@@ -71,11 +71,14 @@ def test_executable_prompt_requires_one_complete_raw_source_module() -> None:
 
     prompt = provider.build_cadquery_prompt(request)
 
-    assert "executable-cadquery-complete-source-v2" in prompt
+    assert "executable-cadquery-complete-source-v3" in prompt
     assert "exactly one complete executable raw Python module" in prompt
     assert "Return raw Python source only" in prompt
     assert "Do not return JSON" in prompt
     assert "source fragments" not in prompt
+    assert "cadquery-v1-source-dialect" in prompt
+    assert "Canonical cadquery-v1 source skeleton" in prompt
+    assert "top_level_if_forbidden" not in prompt
 
 
 def test_l0_prompt_contains_exact_prior_response_and_normalized_error() -> None:

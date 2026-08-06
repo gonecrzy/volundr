@@ -156,7 +156,7 @@ test.describe.serial("executable CadQuery Gemini live golden path", () => {
             provider: "gemini_api",
             status: entry.provider_attempt?.status ?? "unknown",
             failure_class: entry.failure_class,
-            prompt_version: "executable-cadquery-complete-source-v2",
+            prompt_version: "executable-cadquery-complete-source-v3",
             provider_response: { stage: entry.failure_boundary },
             routing_metadata: { source: "durable_workflow_provenance" },
           })));
@@ -169,7 +169,7 @@ test.describe.serial("executable CadQuery Gemini live golden path", () => {
               provider: workflow.provenance?.provider_id ?? "gemini_api",
               status: workflow.state === "accepted" ? "succeeded" : workflow.state,
               failure_class: null,
-              prompt_version: "executable-cadquery-complete-source-v2",
+              prompt_version: "executable-cadquery-complete-source-v3",
               provider_response: { stage: "source_extraction" },
               routing_metadata: { source: "durable_workflow_provenance" },
             }));

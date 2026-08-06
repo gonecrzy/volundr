@@ -8,10 +8,17 @@ import hashlib
 import re
 from typing import Any
 
+from app.services.executable_cadquery.dialect import (
+    CADQUERY_V1_SOURCE_SKELETON,
+    cadquery_v1_source_dialect,
+    cadquery_v1_source_dialect_hash,
+    cadquery_v1_source_skeleton_hash,
+)
+
 
 REPAIR_ENVELOPE_SCHEMA_VERSION = "executable-cadquery-repair-envelope-v1"
-AUTOMATIC_PROVIDER_OPERATION_BUDGET = 7
-REPAIR_LEVEL_BUDGETS = {"L0": 1, "L1": 2, "L2": 1, "L3": 2}
+AUTOMATIC_PROVIDER_OPERATION_BUDGET = 9
+REPAIR_LEVEL_BUDGETS = {"L0": 3, "L1": 2, "L2": 1, "L3": 2}
 
 _IMMEDIATE_STOP_FAILURES = {
     "authentication_failure",
@@ -144,6 +151,10 @@ def build_executable_cadquery_repair_envelope(
         "repair_ordinal": int(repair_ordinal),
         "canonical_output_ids": output_ids,
         "design_contract": contract,
+        "source_dialect": cadquery_v1_source_dialect(),
+        "source_dialect_hash": cadquery_v1_source_dialect_hash(),
+        "canonical_source_skeleton": CADQUERY_V1_SOURCE_SKELETON,
+        "canonical_source_skeleton_hash": cadquery_v1_source_skeleton_hash(),
         "previous_complete_source": previous_source,
         "previous_source_hash": previous_source_hash,
         "previous_result_hash": previous_result_hash,
@@ -170,6 +181,10 @@ def compare_executable_progress(
     before = previous if isinstance(previous, Mapping) else {}
     after = current if isinstance(current, Mapping) else {}
     reasons: list[str] = []
+    same_diagnostic_signature = bool(
+        before.get("diagnostic_signature")
+        and before.get("diagnostic_signature") == after.get("diagnostic_signature")
+    )
     if repair_level == "L1":
         if _number(after.get("phase_index")) > _number(before.get("phase_index")):
             reasons.append("later_execution_phase")
@@ -196,10 +211,39 @@ def compare_executable_progress(
         if len(after.get("unverifiable_requirement_ids") or []) < len(before.get("unverifiable_requirement_ids") or []):
             reasons.append("measurement_became_available")
     elif repair_level == "L0":
+        violation_count_decreased = (
+            _number(after.get("violation_count")) < _number(before.get("violation_count"))
+        )
+        no_decrease_streak = (
+            int(before.get("no_violation_decrease_streak") or 0) + 1
+            if before.get("violation_count") is not None
+            and after.get("violation_count") is not None
+            and not violation_count_decreased
+            else 0
+        )
         if before.get("contract_valid") is not True and after.get("contract_valid") is True:
             reasons.append("source_contract_passed")
+        if (
+            before.get("extracted_source_hash")
+            and before.get("extracted_source_hash") != after.get("extracted_source_hash")
+        ):
+            reasons.append("extracted_source_hash_changed")
+        if (
+            before.get("diagnostic_signature")
+            and before.get("diagnostic_signature") != after.get("diagnostic_signature")
+        ):
+            reasons.append("diagnostic_code_changed")
+        if violation_count_decreased:
+            reasons.append("violation_count_decreased")
+        if before.get("syntax_valid") is False and after.get("syntax_valid") is True:
+            reasons.append("syntax_became_valid")
         if before.get("failure_signature") and before.get("failure_signature") != after.get("failure_signature"):
             reasons.append("contract_failure_signature_removed")
+        if (
+            before.get("no_violation_decrease_streak", 0) >= 2
+            or (same_diagnostic_signature and not violation_count_decreased)
+        ):
+            reasons.clear()
     elif repair_level == "L4":
         if after.get("requested_delta_applied") is True:
             reasons.append("requested_delta_applied")
@@ -213,6 +257,17 @@ def compare_executable_progress(
         "protected_fact_regression": protected_regression,
         "progress_reasons": reasons,
         "progress_result": "regressed" if protected_regression else "progressed" if reasons else "no_progress",
+        "same_diagnostic_signature": same_diagnostic_signature,
+        "violation_count_decreased": (
+            repair_level == "L0"
+            and _number(after.get("violation_count")) < _number(before.get("violation_count"))
+        ),
+        "no_violation_decrease_streak": (
+            no_decrease_streak if repair_level == "L0" else 0
+        ),
+        "no_violation_decrease_across_two_repairs": (
+            repair_level == "L0" and no_decrease_streak >= 2
+        ),
     }
 
 
@@ -244,6 +299,22 @@ def decide_executable_repair(
         return {
             "decision": "stop",
             "stop_reason": "repeated_source_hash",
+            "progress_result": "no_progress",
+        }
+    if (
+        repair_level == "L0"
+        and progress.get("same_diagnostic_signature")
+        and not progress.get("violation_count_decreased")
+    ):
+        return {
+            "decision": "stop",
+            "stop_reason": "repeated_normalized_error",
+            "progress_result": "no_progress",
+        }
+    if repair_level == "L0" and progress.get("no_violation_decrease_across_two_repairs"):
+        return {
+            "decision": "stop",
+            "stop_reason": "no_violation_decrease_across_two_repairs",
             "progress_result": "no_progress",
         }
     if not progress.get("measurable_progress", False):

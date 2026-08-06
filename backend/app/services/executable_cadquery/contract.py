@@ -35,10 +35,25 @@ class ExecutableCadQueryContractError(ValueError):
         *,
         failure_kind: str = "source_contract_violation",
         boundary: str = "source_contract",
+        diagnostic: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
         self.failure_kind = failure_kind
         self.boundary = boundary
+        self.diagnostic = diagnostic or {
+            "code": "source_contract_violation",
+            "line": None,
+            "column": None,
+            "node_type": None,
+            "ast_path": None,
+            "enclosing_scope": None,
+            "message": message,
+            "violation_count": 1,
+        }
+        self.extracted_source: str | None = None
+        self.extracted_source_hash: str | None = None
+        self.syntax_valid = False
+        self.source_contract_valid = False
 
 
 class ExecutableCadQueryResponseError(ExecutableCadQueryContractError):
@@ -152,34 +167,70 @@ def parse_executable_cadquery_response(
         )
     expected_output_id = str(outputs[0]["output_id"])
     source = _extract_complete_source(raw_output)
+    source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
     try:
         ast.parse(source)
     except SyntaxError as exc:
-        raise ExecutableCadQuerySyntaxError(f"invalid Python syntax: {exc.msg}") from exc
+        error = ExecutableCadQuerySyntaxError(
+            f"invalid Python syntax: {exc.msg}",
+        )
+        error.diagnostic = {
+            "code": "python_syntax_error",
+            "line": exc.lineno,
+            "column": exc.offset,
+            "node_type": "SyntaxError",
+            "ast_path": None,
+            "enclosing_scope": "module",
+            "message": f"invalid Python syntax: {exc.msg}",
+            "violation_count": 1,
+        }
+        _attach_extraction_context(error, source, source_hash)
+        raise error from exc
     try:
         metadata = validate_cadquery_source(source, contract_version=SOURCE_CONTRACT_VERSION)
     except CadQueryContractError as exc:
-        raise ExecutableCadQueryContractError(
+        error = ExecutableCadQueryContractError(
             f"source contract violation for {expected_output_id}: {exc}",
             failure_kind="source_contract_violation",
             boundary="source_contract",
-        ) from exc
+            diagnostic=diagnose_cadquery_contract_error(source, str(exc)),
+        )
+        _attach_extraction_context(error, source, source_hash)
+        raise error from exc
     if metadata.output_ids != [expected_output_id]:
-        raise ExecutableCadQueryContractError(
+        error = ExecutableCadQueryContractError(
             f"canonical output identity changed in source: expected only {expected_output_id}, "
             f"got {metadata.output_ids}",
             failure_kind="source_contract_violation",
             boundary="source_contract",
         )
+        error.diagnostic = _diagnostic(
+            code="canonical_output_identity_mismatch",
+            message=str(error),
+            source=source,
+            predicate=lambda node: isinstance(node, ast.Call)
+            and _diagnostic_call_name(node.func) == "PrintableOutput",
+        )
+        _attach_extraction_context(error, source, source_hash)
+        raise error
     expected_solid_count = int(outputs[0]["expected_solid_count"])
     detected_solid_count = metadata.expected_solid_counts.get(expected_output_id)
     if detected_solid_count != expected_solid_count:
-        raise ExecutableCadQueryContractError(
+        error = ExecutableCadQueryContractError(
             f"expected solid count contract mismatch for {expected_output_id}: "
             f"expected {expected_solid_count}, got {detected_solid_count}",
             failure_kind="source_contract_violation",
             boundary="source_contract",
         )
+        error.diagnostic = _diagnostic(
+            code="expected_solid_count_mismatch",
+            message=str(error),
+            source=source,
+            predicate=lambda node: isinstance(node, ast.Call)
+            and _diagnostic_call_name(node.func) == "PrintableOutput",
+        )
+        _attach_extraction_context(error, source, source_hash)
+        raise error
     return ExecutableCadQueryResponse(
         schema_version=RESPONSE_SCHEMA_VERSION,
         outputs=(
@@ -187,7 +238,7 @@ def parse_executable_cadquery_response(
                 output_id=expected_output_id,
                 parameters={},
                 source=source,
-                source_hash=hashlib.sha256(source.encode("utf-8")).hexdigest(),
+                source_hash=source_hash,
                 source_metadata=metadata,
             ),
         ),
@@ -229,3 +280,172 @@ def _extract_complete_source(raw_output: str) -> str:
     if not source.strip():
         raise ExecutableCadQueryResponseError("provider response contains no Python source")
     return source
+
+
+def diagnose_cadquery_contract_error(source: str, message: str) -> dict[str, Any]:
+    """Normalize an existing validator message into stable AST diagnostics."""
+
+    tree = ast.parse(source)
+    lowered = message.lower()
+    code = "source_contract_violation"
+    diagnostic_message = message
+    predicate = lambda _node: False
+    top_level_type: str | None = None
+
+    if "try/except is not allowed" in lowered:
+        code = "try_statement_forbidden"
+        diagnostic_message = "try/except is not allowed"
+        predicate = lambda node: isinstance(node, ast.Try)
+    elif "with statements are not allowed" in lowered:
+        code = "with_statement_forbidden"
+        diagnostic_message = "with statements are not allowed"
+        predicate = lambda node: isinstance(node, (ast.With, ast.AsyncWith))
+    elif "global/nonlocal statements are not allowed" in lowered:
+        code = "global_nonlocal_forbidden"
+        diagnostic_message = "global and nonlocal statements are not allowed"
+        predicate = lambda node: isinstance(node, (ast.Global, ast.Nonlocal))
+    elif "imports are only allowed at top level" in lowered:
+        code = "nested_import_forbidden"
+        diagnostic_message = "imports inside functions are not allowed"
+        predicate = lambda node: isinstance(node, (ast.Import, ast.ImportFrom))
+    elif "dunder attribute access is not allowed" in lowered:
+        code = "dunder_access_forbidden"
+        diagnostic_message = "dunder attribute access is not allowed"
+        predicate = lambda node: isinstance(node, ast.Attribute) and node.attr.startswith("__")
+    elif "dynamic calls are not allowed" in lowered:
+        code = "dynamic_call_forbidden"
+        diagnostic_message = "dynamic calls are not allowed"
+        predicate = lambda node: isinstance(node, ast.Call) and not isinstance(
+            node.func, (ast.Name, ast.Attribute)
+        )
+    elif "unsafe call is not allowed:" in lowered:
+        name = message.split(":", 1)[-1].strip()
+        code = "unsafe_call_forbidden"
+        diagnostic_message = f"unsafe call is not allowed: {name}"
+        predicate = lambda node: isinstance(node, ast.Call) and _diagnostic_call_name(node.func) == name
+    elif "generated source cannot perform artifact writing" in lowered:
+        code = "artifact_export_forbidden"
+        diagnostic_message = "artifact exports are not allowed in generated source"
+        predicate = lambda node: isinstance(node, ast.Call) and (
+            _diagnostic_call_name(node.func) in {"export", "save", "write", "write_bytes", "write_text"}
+            or _diagnostic_dotted_name(node.func) == "cq.exporters.export"
+        )
+    elif "unsupported direct function call:" in lowered:
+        name = message.split(":", 1)[-1].strip()
+        code = "unsupported_direct_call"
+        diagnostic_message = f"unsupported direct function call: {name}"
+        predicate = lambda node: isinstance(node, ast.Call) and _diagnostic_call_name(node.func) == name
+    elif "unsupported top-level statement:" in lowered:
+        top_level_type = message.split(":", 1)[-1].strip()
+        code = f"top_level_{top_level_type.lower()}_forbidden"
+        diagnostic_message = f"top-level {top_level_type.lower()} statements are not allowed"
+    elif "top-level assignment" in lowered:
+        code = "top_level_assignment_forbidden"
+        diagnostic_message = "top-level assignments must be static declarations"
+        predicate = lambda node: isinstance(node, (ast.Assign, ast.AnnAssign))
+
+    node = None
+    if top_level_type:
+        node = next(
+            (candidate for candidate in tree.body if type(candidate).__name__ == top_level_type),
+            None,
+        )
+    if node is None:
+        node = next((candidate for candidate in ast.walk(tree) if predicate(candidate)), None)
+    return _diagnostic(
+        code=code,
+        message=diagnostic_message,
+        source=source,
+        node=node,
+    )
+
+
+def _attach_extraction_context(
+    error: ExecutableCadQueryContractError,
+    source: str,
+    source_hash: str,
+) -> None:
+    error.extracted_source = source
+    error.extracted_source_hash = source_hash
+    error.syntax_valid = not isinstance(error, ExecutableCadQuerySyntaxError)
+    error.source_contract_valid = False
+
+
+def _diagnostic(
+    *,
+    code: str,
+    message: str,
+    source: str,
+    node: ast.AST | None = None,
+    predicate: Any | None = None,
+) -> dict[str, Any]:
+    tree = ast.parse(source)
+    if node is None and predicate is not None:
+        node = next((candidate for candidate in ast.walk(tree) if predicate(candidate)), None)
+    elif node is not None and not any(candidate is node for candidate in ast.walk(tree)):
+        node = next(
+            (
+                candidate
+                for candidate in ast.walk(tree)
+                if type(candidate) is type(node)
+                and getattr(candidate, "lineno", None) == getattr(node, "lineno", None)
+                and getattr(candidate, "col_offset", None) == getattr(node, "col_offset", None)
+            ),
+            None,
+        )
+    path, scope = _ast_context(tree, node) if node is not None else (None, "module")
+    return {
+        "code": code,
+        "line": getattr(node, "lineno", None),
+        "column": getattr(node, "col_offset", None),
+        "node_type": type(node).__name__ if node is not None else None,
+        "ast_path": path,
+        "enclosing_scope": scope,
+        "message": message,
+        "violation_count": 1,
+    }
+
+
+def _ast_context(tree: ast.AST, target: ast.AST | None) -> tuple[str | None, str]:
+    if target is None:
+        return None, "module"
+    found: tuple[str, str] | None = None
+
+    def visit(node: ast.AST, path: str, scope: str) -> None:
+        nonlocal found
+        if node is target:
+            found = (path, scope)
+            return
+        child_scope = node.name if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) else scope
+        for field_name, value in ast.iter_fields(node):
+            if isinstance(value, ast.AST):
+                visit(value, f"{path}.{field_name}", child_scope)
+            elif isinstance(value, list):
+                for index, item in enumerate(value):
+                    if isinstance(item, ast.AST):
+                        visit(item, f"{path}.{field_name}[{index}]", child_scope)
+            if found is not None:
+                return
+
+    visit(tree, "module", "module")
+    return found or (None, "module")
+
+
+def _diagnostic_call_name(node: ast.expr) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return None
+
+
+def _diagnostic_dotted_name(node: ast.expr) -> str | None:
+    parts: list[str] = []
+    current: ast.expr = node
+    while isinstance(current, ast.Attribute):
+        parts.append(current.attr)
+        current = current.value
+    if isinstance(current, ast.Name):
+        parts.append(current.id)
+        return ".".join(reversed(parts))
+    return None

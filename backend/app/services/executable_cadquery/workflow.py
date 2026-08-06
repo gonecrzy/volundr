@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -21,7 +22,13 @@ from app.services.executable_cadquery.contract import (
 )
 from app.services.executable_cadquery.evidence import persist_exact_provider_response
 from app.services.executable_cadquery.fixtures import FROZEN_MOUNTING_BRACKET_CONTRACT
+from app.services.executable_cadquery.dialect import (
+    CADQUERY_V1_SOURCE_DIALECT_VERSION,
+    cadquery_v1_source_dialect_hash,
+    cadquery_v1_source_skeleton_hash,
+)
 from app.services.executable_cadquery.repair import (
+    AUTOMATIC_PROVIDER_OPERATION_BUDGET,
     build_executable_cadquery_repair_envelope,
     classify_executable_failure,
     compare_executable_progress,
@@ -254,10 +261,10 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         level = starting_level
         repair_ordinals = {"L0": 0, "L1": 0, "L2": 0, "L3": 0, "L4": 1 if starting_level == "L4" else 0}
         previous_failure_class: str | None = None
-        previous_progress: dict[str, Any] = {}
+        previous_comparison_facts: dict[str, Any] = {}
         attempt_count = 0
 
-        while attempt_count < 7:
+        while attempt_count < AUTOMATIC_PROVIDER_OPERATION_BUDGET:
             attempt_count += 1
             envelope = None
             if level != "initial":
@@ -299,7 +306,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             current_result_hash: str | None = None
             revision_id: str | None = None
             raw_output: str | None = None
+            extracted_source: str | None = None
             normalized_error: str | None = None
+            extraction_succeeded = False
+            syntax_valid = False
+            source_contract_valid = False
             try:
                 if self.ai_provider is None:
                     raise ValueError("executable Gemini provider is unavailable")
@@ -318,12 +329,25 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "status": "response_received",
                         "response_evidence_path": response_evidence_path.resolve().relative_to(self.data_dir.resolve()).as_posix(),
                         "response_length": len(raw_output),
-                        "response_hash": source_result_hash({"raw_response": raw_output}),
+                        "raw_response_hash": hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
+                        "response_hash": hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
                     }
                 )
                 parsed = parse_executable_cadquery_response(raw_output, contract)
                 generated = parsed.outputs[0]
+                extracted_source = generated.source
+                extraction_succeeded = True
+                syntax_valid = True
+                source_contract_valid = True
                 current_source_hash = generated.source_hash
+                provider_attempt.update(
+                    {
+                        "extracted_source_hash": current_source_hash,
+                        "syntax_valid": True,
+                        "source_contract_valid": True,
+                        "diagnostic": None,
+                    }
+                )
                 failure_boundary = "execution"
                 revision_read = await self._project_service().create_complete_cadquery_revision(
                     project_id=workflow.project_id,
@@ -388,6 +412,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             except ExecutableCadQueryContractError as exc:
                 failure_boundary = exc.boundary
                 normalized_error = safe_diagnostic(str(exc))
+                extracted_source = exc.extracted_source
+                current_source_hash = exc.extracted_source_hash
+                extraction_succeeded = bool(extracted_source)
+                syntax_valid = bool(exc.syntax_valid)
+                source_contract_valid = bool(exc.source_contract_valid)
                 failure_class = classify_executable_failure(
                     exc.boundary,
                     {
@@ -399,6 +428,14 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 provider_attempt["status"] = "contract_failure"
                 provider_attempt["failure_class"] = failure_class
                 provider_attempt["normalized_error"] = normalized_error
+                provider_attempt.update(
+                    {
+                        "extracted_source_hash": current_source_hash,
+                        "syntax_valid": syntax_valid,
+                        "source_contract_valid": source_contract_valid,
+                        "diagnostic": exc.diagnostic,
+                    }
+                )
             except Exception as exc:
                 normalized_error = safe_diagnostic(str(exc))
                 failure_class = failure_class or classify_executable_failure(
@@ -412,23 +449,40 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             current_result_hash = current_result_hash or source_result_hash(
                 {"worker": worker_result, "topology": topology_result, "semantic": semantic_result}
             )
+            diagnostic = provider_attempt.get("diagnostic") or {}
+            diagnostic_signature = json.dumps(
+                {
+                    key: diagnostic.get(key)
+                    for key in ("code", "line", "column", "node_type", "enclosing_scope", "message")
+                },
+                sort_keys=True,
+            )
+            comparison_facts = {
+                "contract_valid": source_contract_valid,
+                "extracted_source_hash": current_source_hash,
+                "diagnostic_signature": diagnostic_signature if diagnostic else normalized_error,
+                "failure_signature": normalized_error,
+                "violation_count": diagnostic.get("violation_count") if diagnostic else None,
+                "syntax_valid": syntax_valid,
+                "phase_index": 2 if worker_result.get("phase") == "completed" else 0,
+                "completed_output_ids": worker_result.get("output_ids", []),
+                "valid": topology_result.get("valid"),
+                "detected_solid_count": topology_result.get("detected_solid_count"),
+                "expected_solid_count": topology_result.get("expected_solid_count"),
+                "failed_requirement_ids": semantic_result.get("failed", []),
+                "unverifiable_requirement_ids": semantic_result.get("unverifiable", []),
+                "passed_requirement_ids": semantic_result.get("passed", []),
+            }
             progress = compare_executable_progress(
                 level if level != "initial" else "L0",
-                previous=previous_progress,
-                current={
-                    "contract_valid": current_source_hash is not None,
-                    "phase_index": 2 if worker_result.get("phase") == "completed" else 0,
-                    "completed_output_ids": worker_result.get("output_ids", []),
-                    "valid": topology_result.get("valid"),
-                    "detected_solid_count": topology_result.get("detected_solid_count"),
-                    "expected_solid_count": topology_result.get("expected_solid_count"),
-                    "failed_requirement_ids": semantic_result.get("failed", []),
-                    "unverifiable_requirement_ids": semantic_result.get("unverifiable", []),
-                    "passed_requirement_ids": semantic_result.get("passed", []),
-                },
+                previous=previous_comparison_facts,
+                current=comparison_facts,
             )
             if not history:
                 progress = {"measurable_progress": True, "progress_reasons": ["first_repair_after_failure"]}
+            comparison_facts["no_violation_decrease_streak"] = progress.get(
+                "no_violation_decrease_streak", 0
+            )
             operation_id = f"{workflow.id}:attempt:{attempt_count}"
             history.append(
                 {
@@ -438,6 +492,12 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "failure_boundary": failure_boundary,
                     "failure_class": failure_class,
                     "source_hash": current_source_hash,
+                    "extracted_source_hash": current_source_hash,
+                    "raw_response_hash": provider_attempt.get("raw_response_hash"),
+                    "extraction_succeeded": extraction_succeeded,
+                    "syntax_valid": syntax_valid,
+                    "source_contract_valid": source_contract_valid,
+                    "diagnostic": diagnostic,
                     "result_hash": current_result_hash,
                     "provider_attempt": provider_attempt,
                     "normalized_error": normalized_error,
@@ -459,13 +519,17 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 progress=progress,
             )
             previous_source = self._source_for_revision(revision_id) or previous_source
+            previous_source = extracted_source or previous_source
             previous_source_hash = current_source_hash or previous_source_hash
             previous_result_hash = current_result_hash
             previous_provider_response = raw_output
             previous_normalized_error = normalized_error
             previous_failure_class = failure_class
-            previous_progress = progress
-            if decision["decision"] != "repair" or attempt_count >= 7:
+            previous_comparison_facts = comparison_facts
+            if (
+                decision["decision"] != "repair"
+                or attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET
+            ):
                 self._record_executable_provenance(
                     workflow,
                     attempt_count=attempt_count,
@@ -486,6 +550,12 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "first_incorrect_boundary": failure_boundary,
                         "repair_level": decision_level,
                         "repair_progress": progress.get("progress_result"),
+                        "diagnostic": diagnostic,
+                        "raw_response_hash": provider_attempt.get("raw_response_hash"),
+                        "extracted_source_hash": current_source_hash,
+                        "extraction_succeeded": extraction_succeeded,
+                        "syntax_valid": syntax_valid,
+                        "source_contract_valid": source_contract_valid,
                     },
                     sort_keys=True,
                 )
@@ -624,7 +694,10 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             {
                 "source_hash": source_hash,
                 "automatic_provider_operation_count": attempt_count,
-                "automatic_provider_operation_budget": 7,
+                "automatic_provider_operation_budget": 9,
+                "source_dialect_version": CADQUERY_V1_SOURCE_DIALECT_VERSION,
+                "source_dialect_hash": cadquery_v1_source_dialect_hash(),
+                "source_skeleton_hash": cadquery_v1_source_skeleton_hash(),
                 "repair_history": history,
                 "semantic_verification": semantic_result,
             }
