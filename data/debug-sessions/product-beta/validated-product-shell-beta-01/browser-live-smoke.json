@@ -1,7 +1,7 @@
 {
   "schema_version": "validated-browser-live-smoke-v1",
   "status": "not_run",
-  "reason": "GitHub Actions status is unavailable from the configured internal remote, so the required offline/CI precondition for live provider calls was not met.",
+  "reason": "The configured remote is Gitea rather than GitHub and no GitHub Actions run is discoverable, so the required offline/CI precondition for live provider calls was not met.",
   "credential_loader_change": "run-live-e2e.sh now loads GEMINI_API_KEY_2 and GEMINI_API_KEY from the repository root .env into a backend-only 0600 env file.",
   "provider_calls": 0,
   "credential_values_recorded": false

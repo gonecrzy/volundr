@@ -1,9 +1,17 @@
 {
   "schema_version": "github-actions-results-v1",
   "workflow": ".github/workflows/application-integrity.yml",
+  "workflow_commit": "0edf0cb5d7c7cae80c6ad64cb0e8ce6272d237f9",
   "status": "unavailable",
-  "reason": "The configured origin is an internal SSH Git server rather than GitHub, and the gh CLI is unavailable; no GitHub Actions run can be independently inspected from this workspace.",
-  "remote_kind": "internal-ssh",
+  "reason": "The configured origin is confirmed by SSH banner as Gitea rather than GitHub; no GitHub Actions run or reachable authenticated Actions API is available from this workspace.",
+  "remote_kind": "gitea-ssh",
+  "server_banner": "Gitea does not provide shell access",
+  "github_actions_run_id": null,
+  "jobs": {
+    "backend": "not_started",
+    "frontend": "not_started",
+    "deployment-boundary": "not_started"
+  },
   "workflow_file_present": true,
   "local_equivalent_gates": "passed",
   "live_provider_call": "not_run"
