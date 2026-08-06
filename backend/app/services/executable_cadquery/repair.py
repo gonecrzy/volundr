@@ -19,7 +19,7 @@ from app.services.executable_cadquery.recovery import RecoveryRouter
 
 REPAIR_ENVELOPE_SCHEMA_VERSION = "executable-cadquery-repair-envelope-v1"
 AUTOMATIC_PROVIDER_OPERATION_BUDGET = 9
-REPAIR_LEVEL_BUDGETS = {"L0": 3, "L1": 2, "L2": 1, "L3": 2}
+REPAIR_LEVEL_BUDGETS = {"L0": 3, "L1": 3, "L2": 2, "L3": 4}
 
 _IMMEDIATE_STOP_FAILURES = {
     "authentication_failure",

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -23,6 +23,17 @@ class ValidatedBoundedRevision(BaseModel):
     dimension_changes: dict[str, float | int | str] = Field(default_factory=dict)
     added_features: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
     protected_facts: list[str] = Field(default_factory=list, max_length=40)
+
+
+class ValidatedIndependentReviewSubmit(BaseModel):
+    """The narrow persisted input from the blind final-package reviewer."""
+
+    reviewer: str = Field(default="blind_codex_cad_qa_v1", min_length=1, max_length=120)
+    review_cycle: int = Field(default=1, ge=1, le=3)
+    final_verdict: Literal["PASS", "FAIL", "UNCERTAIN"]
+    requirements: list[dict[str, Any]] = Field(default_factory=list, max_length=200)
+    revision_preservation: list[dict[str, Any]] = Field(default_factory=list, max_length=100)
+    discrepancies: list[str] = Field(default_factory=list, max_length=100)
 
 
 class ValidatedOutputRead(BaseModel):

@@ -5,6 +5,7 @@ import pytest
 
 from app.services.executable_cadquery.repair import (
     AUTOMATIC_PROVIDER_OPERATION_BUDGET,
+    REPAIR_LEVEL_BUDGETS,
     build_executable_cadquery_repair_envelope,
     classify_executable_failure,
     compare_executable_progress,
@@ -142,6 +143,7 @@ def test_l3_progress_requires_fewer_failures_without_protected_regression() -> N
 
 def test_stop_policy_rejects_repeated_hash_or_same_error_and_enforces_level_budgets() -> None:
     assert AUTOMATIC_PROVIDER_OPERATION_BUDGET == 9
+    assert REPAIR_LEVEL_BUDGETS == {"L0": 3, "L1": 3, "L2": 2, "L3": 4}
     repeated_hash = decide_executable_repair(
         repair_level="L1",
         repair_ordinal=1,
@@ -156,7 +158,7 @@ def test_stop_policy_rejects_repeated_hash_or_same_error_and_enforces_level_budg
 
     exhausted = decide_executable_repair(
         repair_level="L1",
-        repair_ordinal=2,
+        repair_ordinal=3,
         source_hash="new",
         previous_source_hash="old",
         failure_class="python_name_error",

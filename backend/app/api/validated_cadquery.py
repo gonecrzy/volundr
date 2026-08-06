@@ -13,6 +13,7 @@ from app.schemas.validated_cadquery import (
     ValidatedBoundedRevision,
     ValidatedCadQueryStart,
     ValidatedDiagnosticsRead,
+    ValidatedIndependentReviewSubmit,
     ValidatedPlanRead,
     ValidatedRequirementsRead,
     ValidatedVerificationRead,
@@ -147,6 +148,28 @@ def get_validated_verification(
         return _service(db, data_dir, owner_id=owner_id).verification(workflow_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/workflows/{workflow_id}/independent-review", response_model=ValidatedWorkflowRead)
+def submit_independent_review(
+    workflow_id: str,
+    payload: ValidatedIndependentReviewSubmit,
+    db: Session = Depends(get_db),
+    data_dir: Path = Depends(get_data_dir),
+    owner_id: str = Depends(get_validated_actor_id),
+) -> ValidatedWorkflowRead:
+    service = _service(db, data_dir, owner_id=owner_id)
+    if not isinstance(service, ExecutableCadQueryWorkflowService):
+        raise HTTPException(status_code=404, detail="independent review not found")
+    try:
+        return service.record_independent_review(
+            workflow_id,
+            payload.model_dump(mode="json"),
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.get("/workflows/{workflow_id}/artifacts", response_model=list[ValidatedArtifactRead])

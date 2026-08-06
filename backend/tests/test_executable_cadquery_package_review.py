@@ -11,8 +11,9 @@ from app.services.executable_cadquery.review import (
 )
 
 
-FROZEN_P1_PACKAGE = Path(
-    "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-01/package.zip"
+FROZEN_P1_PACKAGE = (
+    Path(__file__).resolve().parents[2]
+    / "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-01/package.zip"
 )
 
 
@@ -117,4 +118,3 @@ def test_blind_review_pass_is_vetoed_by_deterministic_volundr_failure() -> None:
     assert record["final_verdict"] == "PASS"
     assert record["disposition"] == "vetoed_by_deterministic_failure"
     assert record["accepted_for_candidate"] is False
-

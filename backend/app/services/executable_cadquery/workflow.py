@@ -256,6 +256,53 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             self.db.commit()
             return result
 
+    def record_independent_review(
+        self,
+        workflow_id: str,
+        review_record: Mapping[str, Any],
+    ):
+        """Persist a blind final-package review and rederive candidate state."""
+
+        workflow = self._get(workflow_id)
+        if workflow is None:
+            raise LookupError("validated workflow not found")
+        verification = self._json(workflow.verification_json)
+        semantic = verification.get("semantic_verification")
+        if not isinstance(semantic, Mapping):
+            raise ValueError("workflow has no persisted semantic verification")
+        review = dict(review_record)
+        verdict = str(review.get("final_verdict") or "").upper()
+        if verdict not in {"PASS", "FAIL", "UNCERTAIN"}:
+            raise ValueError("independent review must provide PASS, FAIL, or UNCERTAIN")
+        review["final_verdict"] = verdict
+        review["reviewer"] = str(review.get("reviewer") or "blind_codex_cad_qa_v1")
+        review_cycle = int(review.get("review_cycle") or 1)
+        if not 1 <= review_cycle <= 3:
+            raise ValueError("independent review cycle must be between 1 and 3")
+        review["review_cycle"] = review_cycle
+        verification["independent_final_review"] = review
+        verification["candidate_policy"] = derive_candidate_policy(
+            outputs=[
+                {
+                    "output_id": output.output_id,
+                    "required": output.required,
+                    "state": output.state,
+                    "worker_status": output.worker_status,
+                    "topology_status": output.topology_status,
+                    "artifact_available": output.artifact_available,
+                }
+                for output in workflow.outputs
+            ],
+            semantic_verification=semantic,
+            independent_review={"verdict": review.get("final_verdict")},
+        )
+        workflow.verification_json = json.dumps(verification, sort_keys=True, default=str)
+        diagnostics = self._json(workflow.diagnostics_json)
+        diagnostics["latest_independent_review"] = review
+        workflow.diagnostics_json = json.dumps(diagnostics, sort_keys=True, default=str)
+        self.db.commit()
+        return self.read(workflow.id)
+
     async def _generate_with_repair_ladder(
         self,
         workflow: ValidatedCadQueryWorkflow,
