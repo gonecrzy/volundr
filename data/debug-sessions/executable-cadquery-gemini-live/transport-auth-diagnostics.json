@@ -13,6 +13,20 @@
     "endpoint_joining": "base URL plus one model path",
     "429_fallback_policy_changed": false
   },
+  "approved_executable_assignment": {
+    "primary_environment_variable": "GEMINI_API_KEY",
+    "fallback_environment_variable": null,
+    "fallback_disabled": true,
+    "authentication_gate": "authentication_gate_passed"
+  },
+  "canonical_primary_probe": {
+    "http_status": 200,
+    "configured_model_available": true,
+    "supports_generateContent": true,
+    "x_goog_api_key_present": true,
+    "authorization_header_present": false,
+    "query_credential_used": false
+  },
   "safe_google_error_reason_persistence": true,
   "offline_transport_tests": "validated header/query isolation, credential validation, and structured 401 reason",
   "additional_real_network_calls_after_two_probes": 0

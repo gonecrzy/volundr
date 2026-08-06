@@ -1,7 +1,12 @@
 {
   "schema_version": "executable-cadquery-authenticated-continuation-result-v1",
-  "decision": "gemini_authentication_blocked",
-  "continuation_authorized": false,
+  "decision": "authentication_gate_passed",
+  "continuation_authorized": true,
+  "operator_approval": "operator_approved_primary_reassignment",
+  "primary_environment_variable": "GEMINI_API_KEY",
+  "fallback_environment_variable": null,
+  "fallback_disabled": true,
+  "authentication_gate": "authentication_gate_passed",
   "continued_creation_started": false,
   "additional_creation_requests": 0,
   "revision_requests": 0,
@@ -9,7 +14,7 @@
   "worker_reached": false,
   "topology_reached": false,
   "semantic_verification_reached": false,
-  "reason": "The intended primary credential failed the bounded canonical model-list probe; fallback validity does not authorize silent priority reassignment.",
+  "reason": "The approved primary reassignment passed the single canonical model-list probe; creation is authorized and has not started yet.",
   "prior_live_session": {
     "creation_requests": 1,
     "http_status": 401,

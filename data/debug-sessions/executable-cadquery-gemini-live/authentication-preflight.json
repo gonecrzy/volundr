@@ -1,17 +1,25 @@
 {
   "schema_version": "executable-cadquery-authentication-preflight-v1",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "head": "df7cf77",
+  "head": "661c699",
   "main": "d4d0bb5",
   "base_url": "https://generativelanguage.googleapis.com/v1beta",
   "api_version": "v1beta",
   "model": "gemini-3.5-flash-lite",
+  "operator_approval": {
+    "event": "operator_approved_primary_reassignment",
+    "timestamp": "2026-08-06T18:42:34Z",
+    "previous_primary_environment_variable": "GEMINI_API_KEY_2",
+    "previous_primary_authentication_result": "HTTP 401 UNAUTHENTICATED ACCESS_TOKEN_TYPE_UNSUPPORTED"
+  },
   "credential_slots": {
-    "primary": {"environment_variable": "GEMINI_API_KEY_2", "present": true},
-    "fallback": {"environment_variable": "GEMINI_API_KEY", "present": true}
+    "primary": {"environment_variable": "GEMINI_API_KEY", "present": true},
+    "fallback": null,
+    "fallback_disabled": true
   },
   "env_file": {"mode": "0600", "ignored": true},
   "worker_credential_isolation": "worker receives empty Gemini credential variables",
   "frontend_browser_playwright_credential_isolation": "credentials unset before Playwright starts",
-  "generation_fallback_policy": "fallback only after primary HTTP 429"
+  "generation_fallback_policy": "no fallback configured for this controlled executable-CadQuery run",
+  "authentication_gate": "authentication_gate_passed"
 }
