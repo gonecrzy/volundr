@@ -19,7 +19,9 @@ test("shows the complete-source model and accepts one bounded pocket revision", 
   await expect(page.getByLabel("Validated printable outputs").getByRole("article")).toHaveCount(1);
   await expect(page.locator("canvas").first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Accept candidate" }).click();
+  const validatedWorkflow = page.getByRole("region", { name: "Validated design workflow", exact: true });
+  await expect(validatedWorkflow.getByRole("button", { name: "Accept candidate", exact: true })).toHaveCount(1);
+  await validatedWorkflow.getByRole("button", { name: "Accept candidate", exact: true }).click();
   await expect(page.getByRole("link", { name: "Download design package" })).toBeVisible();
 
   await page.getByLabel("What should change?").fill(

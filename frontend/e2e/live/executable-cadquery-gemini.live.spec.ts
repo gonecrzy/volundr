@@ -129,13 +129,16 @@ test.describe.serial("executable CadQuery Gemini live golden path", () => {
         { timeout: 900_000, intervals: [1_000, 2_000, 5_000] },
       ).toMatch(/candidate_ready|failed|verification_failed/);
       expect(parent.state).toBe("candidate_ready");
-      await expect(page.getByText("Ready to review", { exact: true })).toBeVisible();
+      const candidateReview = page.getByRole("region", { name: "Candidate review", exact: true });
+      await expect(candidateReview).toHaveCount(1);
+      await expect(candidateReview.getByText("Ready to review", { exact: true })).toHaveCount(1);
+      await expect(candidateReview.getByText("Ready to review", { exact: true })).toBeVisible();
       await expect(page.locator("canvas").first()).toBeVisible();
       expect(parent.provenance.provider_id).toBe("gemini_api");
       expect(parent.provenance.codex_proxy_used).toBe(false);
       expect(parent.outputs).toHaveLength(1);
 
-      await page.getByRole("button", { name: "Accept candidate", exact: true }).click();
+      await page.getByRole("region", { name: "Validated design workflow", exact: true }).getByRole("button", { name: "Accept candidate", exact: true }).click();
       await expect(page.getByRole("link", { name: "Download design package", exact: true })).toBeVisible({ timeout: 120_000 });
       await expect(page.locator("canvas").first()).toBeVisible();
       await fs.mkdir(path.join(evidenceRoot, "screenshots"), { recursive: true });
