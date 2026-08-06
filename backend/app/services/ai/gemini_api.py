@@ -47,6 +47,8 @@ class GeminiApiProvider(GeminiCliProvider):
         validated_transport: bool = False,
         primary_api_key: str | None = None,
         fallback_api_key: str | None = None,
+        primary_credential_env: str = "GEMINI_API_KEY_2",
+        fallback_credential_env: str | None = "GEMINI_API_KEY",
         sleep: Callable[[float], Any] = asyncio.sleep,
         primary_limiter: SharedIntegrationRateLimiter | None = None,
         fallback_limiter: SharedIntegrationRateLimiter | None = None,
@@ -68,6 +70,8 @@ class GeminiApiProvider(GeminiCliProvider):
             else settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
         )
         self.validated_transport = validated_transport
+        self.primary_credential_env = primary_credential_env
+        self.fallback_credential_env = fallback_credential_env
         self.primary_api_key = (
             primary_api_key
             if validated_transport
@@ -252,6 +256,8 @@ class GeminiApiProvider(GeminiCliProvider):
             result = await ValidatedGeminiTransport(
                 primary_credential=self.primary_api_key,
                 fallback_credential=self.fallback_api_key,
+                primary_credential_env=self.primary_credential_env,
+                fallback_credential_env=self.fallback_credential_env,
                 primary_limiter=self._validated_primary_limiter,
                 fallback_limiter=self._validated_fallback_limiter,
                 global_semaphore=self._validated_global_semaphore,
@@ -523,11 +529,11 @@ class GeminiApiProvider(GeminiCliProvider):
                 {
                     "validated_transport": True,
                     "primary_credential": {
-                        "environment_variable": "GEMINI_API_KEY_2",
+                        "environment_variable": self.primary_credential_env,
                         "credential_present": bool(self.primary_api_key),
                     },
                     "fallback_credential": {
-                        "environment_variable": "GEMINI_API_KEY",
+                        "environment_variable": self.fallback_credential_env,
                         "credential_present": bool(self.fallback_api_key),
                     },
                 }

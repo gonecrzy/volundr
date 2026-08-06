@@ -291,6 +291,34 @@ async def test_validated_gemini_auth_error_preserves_safe_google_reason() -> Non
 
 
 @pytest.mark.asyncio
+async def test_validated_gemini_records_selected_slot_without_secret_or_fallback() -> None:
+    requests: list[httpx.Request] = []
+    records: list[dict[str, object]] = []
+    provider = GeminiApiProvider(
+        primary_api_key="approved-primary-secret",
+        fallback_api_key=None,
+        primary_credential_env="GEMINI_API_KEY",
+        fallback_credential_env=None,
+        validated_transport=True,
+        transport=httpx.MockTransport(
+            lambda request: requests.append(request)
+            or httpx.Response(200, json={"candidates": [{"content": {"parts": [{"text": "ok"}]}}]})
+        ),
+        attempt_recorder=records.append,
+    )
+
+    text, _model = await provider._run_prompt("same prompt", stage="requirements")
+
+    assert text == "ok"
+    assert len(requests) == 1
+    assert requests[0].headers["x-goog-api-key"] == "approved-primary-secret"
+    assert requests[0].url.query == b""
+    assert records[0]["credential_env_var"] == "GEMINI_API_KEY"
+    assert all("approved-primary-secret" not in str(record) for record in records)
+    assert provider.provider_settings()["fallback_credential"]["environment_variable"] is None
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("credential", [" primary-secret", "primary-secret\n", "'primary-secret'"])
 async def test_validated_gemini_rejects_untrimmed_or_shell_quoted_credentials(credential: str) -> None:
     provider = GeminiApiProvider(

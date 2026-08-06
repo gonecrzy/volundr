@@ -1,3 +1,5 @@
+import pytest
+
 from app.core.config import Settings
 
 
@@ -31,6 +33,22 @@ def test_settings_load_both_gemini_credentials_from_repository_env_file(tmp_path
 
     assert configured.gemini_api_key_2 == "secondary-fixture-key"
     assert configured.gemini_api_key == "primary-fixture-key"
+
+
+def test_settings_support_explicit_executable_gemini_credential_slots() -> None:
+    configured = Settings(
+        _env_file=None,
+        gemini_primary_credential_env="GEMINI_API_KEY",
+        gemini_fallback_credential_env="",
+    )
+
+    assert configured.gemini_primary_credential_env == "GEMINI_API_KEY"
+    assert configured.gemini_fallback_credential_env == ""
+
+
+def test_settings_reject_unsupported_executable_gemini_credential_slot() -> None:
+    with pytest.raises(ValueError, match="credential environment variable"):
+        Settings(_env_file=None, gemini_primary_credential_env="GEMINI_API_KEY_3")
 
 
 def test_settings_default_to_gemini_api_with_typed_defaults() -> None:

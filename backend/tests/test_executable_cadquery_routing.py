@@ -7,6 +7,29 @@ from app.services.ai.provider import ModelGenerationRequest
 from app.services.executable_cadquery.workflow import ExecutableCadQueryWorkflowService
 
 
+def test_executable_provider_uses_explicit_primary_and_disabled_fallback_slots() -> None:
+    configured = Settings(
+        _env_file=None,
+        ai_provider="gemini_api",
+        gemini_api_key="approved-primary-secret",
+        gemini_api_key_2="invalid-secondary-secret",
+        gemini_primary_credential_env="GEMINI_API_KEY",
+        gemini_fallback_credential_env="",
+    )
+
+    provider = build_executable_ai_provider(configured)
+
+    assert isinstance(provider, GeminiApiProvider)
+    assert provider.api_key == "approved-primary-secret"
+    assert provider.primary_api_key == "approved-primary-secret"
+    assert provider.fallback_api_key is None
+    metadata = provider.provider_settings()
+    assert metadata["primary_credential"]["environment_variable"] == "GEMINI_API_KEY"
+    assert metadata["fallback_credential"]["environment_variable"] is None
+    assert "approved-primary-secret" not in str(metadata)
+    assert "invalid-secondary-secret" not in str(metadata)
+
+
 def test_executable_flow_is_disabled_by_default_and_gemini_remains_default() -> None:
     configured = Settings(_env_file=None)
 

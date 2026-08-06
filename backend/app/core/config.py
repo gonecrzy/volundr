@@ -67,6 +67,10 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("GEMINI_API_KEY_2", "VOLUNDR_GEMINI_API_KEY_2"),
     )
+    # The experimental executable route can explicitly select one of the
+    # two known credential slots without changing ordinary provider defaults.
+    gemini_primary_credential_env: str = Field(default="GEMINI_API_KEY_2")
+    gemini_fallback_credential_env: str = Field(default="GEMINI_API_KEY")
     gemini_api_base_url: str = Field(
         default="https://generativelanguage.googleapis.com/v1beta"
     )
@@ -145,6 +149,26 @@ class Settings(BaseSettings):
         if isinstance(value, str) and not value.strip():
             return None
         return value
+
+    @field_validator("gemini_primary_credential_env")
+    @classmethod
+    def validate_gemini_primary_credential_env(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in {"GEMINI_API_KEY", "GEMINI_API_KEY_2"}:
+            raise ValueError(
+                "gemini_primary_credential_env must be a supported credential environment variable"
+            )
+        return normalized
+
+    @field_validator("gemini_fallback_credential_env")
+    @classmethod
+    def validate_gemini_fallback_credential_env(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in {"", "GEMINI_API_KEY", "GEMINI_API_KEY_2"}:
+            raise ValueError(
+                "gemini_fallback_credential_env must be a supported credential environment variable or empty"
+            )
+        return normalized
 
     @model_validator(mode="after")
     def derive_storage_paths(self) -> "Settings":
