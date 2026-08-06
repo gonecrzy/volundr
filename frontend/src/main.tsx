@@ -116,7 +116,13 @@ import {
   ChatWorkspace,
   type ChatWorkspacePendingMessage,
 } from "./chatWorkspaceView";
-import { ValidatedCadQueryWorkflowView } from "./ValidatedCadQueryWorkflowView";
+import { ValidatedCadQueryWorkflowView, ValidatedWorkflowOutputArea, validatedRouteIds } from "./ValidatedCadQueryWorkflowView";
+import {
+  createValidatedRequestIdentityStore,
+  createValidatedWorkflowApi,
+  type ValidatedWorkflowArtifact,
+  type ValidatedWorkflow,
+} from "./validatedCadQueryWorkflow";
 import "./styles.css";
 
 const API_BASE = "/api";
@@ -725,6 +731,9 @@ function App() {
   const [artifactIntegrity, setArtifactIntegrity] = useState<Workspace["artifact_integrity"]>({});
   const [generationAttempts, setGenerationAttempts] = useState<GenerationAttemptEvidence[]>([]);
   const [chatWorkflow, setChatWorkflow] = useState<ChatWorkflowResponse | null>(null);
+  const [validatedWorkflow, setValidatedWorkflow] = useState<ValidatedWorkflow | null>(null);
+  const [validatedArtifacts, setValidatedArtifacts] = useState<ValidatedWorkflowArtifact[]>([]);
+  const [validatedRoute, setValidatedRoute] = useState(() => validatedRouteIds(window.location.pathname));
   const [selectedRevision, setSelectedRevision] = useState<Revision | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -792,6 +801,8 @@ function App() {
   const observedWorkflowViews = useRef(new Set<string>());
   const chatRequestSequence = useRef(0);
   const pendingChatSubmission = useRef<{ clientMessageId: string; prompt: string } | null>(null);
+  const validatedApi = useMemo(() => createValidatedWorkflowApi(API_BASE), []);
+  const validatedRequestIdentities = useMemo(() => createValidatedRequestIdentityStore(), []);
 
   function recordWorkflowViewOnce(
     key: string,
@@ -830,7 +841,8 @@ function App() {
   const hasProjectName = projectName.trim().length > 0;
   const isDraftProject = project?.status === "draft";
   const canCompileSource = source.trim().length > 0;
-  const canAskAi = generationPrompt.trim().length > 0;
+  const validatedFlowHasDesign = Boolean(validatedWorkflow || validatedRoute.workflowId);
+  const canAskAi = generationPrompt.trim().length > 0 && (!VALIDATED_CADQUERY_FLOW_ENABLED || !validatedFlowHasDesign);
   const canSaveProject = Boolean(project) && hasProjectName;
   const workspaceTitle =
     project && !isDraftProject ? project.name : projectName.trim() || "Untitled draft";
@@ -877,9 +889,11 @@ function App() {
       : !CHAT_FIRST_ENABLED && ADVANCED_WORKFLOW_ENABLED && canPlanRevisionFromCurrentContext
         ? "Change the design"
         : "Send";
-  const chatPlaceholder = hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
-    ? "Answer clarification"
-    : "Message Gemini";
+  const chatPlaceholder = VALIDATED_CADQUERY_FLOW_ENABLED
+    ? validatedFlowHasDesign ? "Use the workflow review controls below" : "Describe the design you want to build"
+    : hasRequirementClarificationPending || hasDesignPlanClarificationPending || hasRevisionClarificationPending
+      ? "Answer clarification"
+      : "Message Gemini";
   const canApproveCurrentRevisionPlan =
     canApproveRevisionPlan(revisionPlan) && !isRevisionPlanActionPending && !isGeneratingRevision;
   const canGenerateFromCurrentRevisionPlan =
@@ -888,6 +902,7 @@ function App() {
     canGenerateConfiguration(configurationPreview) && !isGeneratingConfiguration;
 
   useEffect(() => {
+    setValidatedRoute(validatedRouteIds(window.location.pathname));
     const routeProjectId = projectIdFromPath(window.location.pathname);
     if (routeProjectId) {
       // Rehydrate the library independently from the opened workspace so a
@@ -906,6 +921,9 @@ function App() {
     void refreshPrintabilityProfiles();
 
     const onPopState = () => {
+      setValidatedRoute(validatedRouteIds(window.location.pathname));
+      setValidatedWorkflow(null);
+      setValidatedArtifacts([]);
       const nextProjectId = projectIdFromPath(window.location.pathname);
       if (nextProjectId) {
         void loadWorkspace(nextProjectId).catch(() => setMessage("Project could not be reopened from the server"));
@@ -1163,6 +1181,9 @@ function App() {
     setActiveWorkflow(null);
     setArtifactIntegrity({});
     setChatWorkflow(null);
+    setValidatedWorkflow(null);
+    setValidatedArtifacts([]);
+    setValidatedRoute({});
     setSelectedRevision(null);
     setCandidateFindings([]);
     setGeometricAnalysis(null);
@@ -1562,6 +1583,23 @@ function App() {
     setMessage(null);
     setSourceContractError(null);
     try {
+      if (VALIDATED_CADQUERY_FLOW_ENABLED && !validatedFlowHasDesign) {
+        const next = await validatedApi.startDesign(
+          "Validated design",
+          prompt,
+          validatedRequestIdentities.getOrCreate("start_design", "new-design"),
+        );
+        validatedRequestIdentities.clear("start_design", "new-design");
+        setValidatedWorkflow(next);
+        setValidatedArtifacts([]);
+        setValidatedRoute({ projectId: next.project_id, workflowId: next.id });
+        window.history.pushState({}, "", `/projects/${encodeURIComponent(next.project_id)}/designs/${encodeURIComponent(next.id)}`);
+        setGenerationPrompt((current) => current.trim() === prompt ? "" : current);
+        setPendingChatMessage((current) => current?.content === prompt ? null : current);
+        pendingChatSubmission.current = null;
+        await loadWorkspace(next.project_id);
+        return;
+      }
       const currentProject = project ?? (await createDraftProject());
       if (!project || project.id !== currentProject.id) {
         setProject(currentProject);
@@ -2057,6 +2095,10 @@ function App() {
   }
 
   function submitPrompt() {
+    if (VALIDATED_CADQUERY_FLOW_ENABLED && !validatedFlowHasDesign) {
+      void submitChatFirstMessage();
+      return;
+    }
     if (CHAT_FIRST_ENABLED) {
       void submitChatFirstMessage();
       return;
@@ -2243,6 +2285,9 @@ function App() {
   async function selectProject(nextProject: Project) {
     setIsProjectDrawerOpen(false);
     window.history.pushState({}, "", projectPath(nextProject.id));
+    setValidatedWorkflow(null);
+    setValidatedArtifacts([]);
+    setValidatedRoute({});
     await loadWorkspace(nextProject.id);
   }
 
@@ -2798,7 +2843,6 @@ function App() {
     );
     return (
       <>
-        <ValidatedCadQueryWorkflowView apiBase={API_BASE} enabled={VALIDATED_CADQUERY_FLOW_ENABLED} />
         <DebugBatchView
           enabled={debugCapabilities?.developer_tools_enabled === true}
           activeBatch={activeDebugBatch}
@@ -2831,6 +2875,28 @@ function App() {
         canAskAi={canAskAi}
         pendingMessage={pendingChatMessage}
         submissionError={submissionError}
+        validatedWorkflow={
+          <ValidatedCadQueryWorkflowView
+            apiBase={API_BASE}
+            enabled={VALIDATED_CADQUERY_FLOW_ENABLED}
+            projectId={validatedRoute.projectId}
+            workflowId={validatedRoute.workflowId}
+            embedded
+            showStartForm={false}
+            onWorkflowChange={(next) => {
+              setValidatedWorkflow(next);
+              if (next) setValidatedRoute({ projectId: next.project_id, workflowId: next.id });
+            }}
+            onArtifactsChange={setValidatedArtifacts}
+          />
+        }
+        validatedOutputs={
+          <ValidatedWorkflowOutputArea
+            apiBase={API_BASE}
+            workflow={validatedWorkflow}
+            artifacts={validatedArtifacts}
+          />
+        }
         viewer={<StlViewer stlUrl={stlUrl} highlights={printabilityHighlights} />}
         hasModel={Boolean(stlUrl && selectedRevision?.status === "succeeded")}
         technicalDetails={chatTechnicalDetails}
@@ -2870,7 +2936,6 @@ function App() {
 
   return (
     <>
-      <ValidatedCadQueryWorkflowView apiBase={API_BASE} enabled={VALIDATED_CADQUERY_FLOW_ENABLED} />
       <DebugBatchView
         enabled={debugCapabilities?.developer_tools_enabled === true}
         activeBatch={activeDebugBatch}

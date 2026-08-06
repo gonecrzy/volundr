@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createValidatedWorkflowApi,
+  createValidatedRequestIdentityStore,
   outputStateLabel,
   workflowStageLabel,
   workflowSummary,
@@ -42,5 +43,23 @@ describe("validated CadQuery workflow presentation", () => {
     expect((calls[0].init?.headers as Record<string, string>)["X-Volundr-Actor-Id"]).toBeUndefined();
     expect((calls[0].init?.headers as Record<string, string>)["Idempotency-Key"]).toBe("request-1");
     expect(calls[1].url).toBe("/api/validated-cadquery/projects/project-1/designs/workflow-1");
+  });
+
+  it("persists opaque request identities without deriving them from user text", () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+      removeItem: (key: string) => values.delete(key),
+    };
+    const store = createValidatedRequestIdentityStore(storage, () => "00000000-0000-4000-8000-000000000001");
+
+    const first = store.getOrCreate("start_design", "new-design");
+    expect(first).toBe("00000000-0000-4000-8000-000000000001");
+    expect(store.getOrCreate("start_design", "new-design")).toBe(first);
+    expect([...values.keys()][0]).not.toContain("Design name from the user");
+
+    store.clear("start_design", "new-design");
+    expect(store.getOrCreate("start_design", "new-design")).toBe(first);
   });
 });

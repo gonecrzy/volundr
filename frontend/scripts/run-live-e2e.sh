@@ -9,33 +9,46 @@ fi
 frontend_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repo_root="$(cd "$frontend_root/.." && pwd)"
 
-read_gemini_key() {
-  if [[ -n "${GEMINI_API_KEY:-}" ]]; then
-    printf '%s' "$GEMINI_API_KEY"
-    return
-  fi
+read_gemini_credentials() {
+  local process_secondary="${GEMINI_API_KEY_2:-}"
+  local process_primary="${GEMINI_API_KEY:-}"
   if [[ -f "$repo_root/.env" ]]; then
     (
       cd "$repo_root"
       set -a
       # The repository .env is controlled configuration, not arbitrary input.
-      # Keep the value in this wrapper only long enough to create the backend-only env file.
+      # Keep both credentials in this wrapper only long enough to create the backend-only env file.
       . ./.env
-      printf '%s' "${GEMINI_API_KEY:-}"
+      GEMINI_API_KEY_2="${process_secondary:-${GEMINI_API_KEY_2:-}}"
+      GEMINI_API_KEY="${process_primary:-${GEMINI_API_KEY:-}}"
+      printf 'export GEMINI_API_KEY_2=%q\n' "${GEMINI_API_KEY_2:-}"
+      printf 'export GEMINI_API_KEY=%q\n' "${GEMINI_API_KEY:-}"
     ) 2>/dev/null
+    return
   fi
+  printf 'export GEMINI_API_KEY_2=%q\n' "$process_secondary"
+  printf 'export GEMINI_API_KEY=%q\n' "$process_primary"
 }
 
-gemini_key="$(read_gemini_key)"
-if [[ -z "$gemini_key" ]]; then
-  printf '%s\n' "Live Gemini E2E requires GEMINI_API_KEY in the environment or repository .env." >&2
+gemini_credentials_file="$(mktemp)"
+chmod 600 "$gemini_credentials_file"
+read_gemini_credentials >"$gemini_credentials_file"
+# The validated transport uses GEMINI_API_KEY_2 first and GEMINI_API_KEY as fallback.
+if ! ( . "$gemini_credentials_file"; [[ -n "${GEMINI_API_KEY_2:-}" || -n "${GEMINI_API_KEY:-}" ]] ); then
+  rm -f "$gemini_credentials_file"
+  printf '%s\n' "Live Gemini E2E requires GEMINI_API_KEY_2 or GEMINI_API_KEY in the environment or repository .env." >&2
   exit 2
 fi
 
 live_data_dir="$(mktemp -d /tmp/volundr-live-e2e.XXXXXX)"
 backend_env_file="$(mktemp /tmp/volundr-live-backend-env.XXXXXX)"
 chmod 600 "$backend_env_file"
-printf 'export GEMINI_API_KEY=%q\n' "$gemini_key" > "$backend_env_file"
+cp "$gemini_credentials_file" "$backend_env_file"
+rm -f "$gemini_credentials_file"
+. "$backend_env_file"
+
+gemini_key="${GEMINI_API_KEY:-}"
+gemini_key_2="${GEMINI_API_KEY_2:-}"
 
 worker_pid=""
 playwright_pid=""
@@ -59,7 +72,10 @@ cleanup() {
   fi
 
   # Do not print matching lines: the key must never appear in test output.
-  if rg -a -F -- "$gemini_key" "$live_data_dir" "$frontend_root/test-results" >/dev/null 2>&1; then
+  if [[ -n "$gemini_key" ]] && rg -a -F -- "$gemini_key" "$live_data_dir" "$frontend_root/test-results" >/dev/null 2>&1; then
+    printf '%s\n' "Live E2E secret scan failed: the Gemini API key was found in generated evidence." >&2
+    test_status=1
+  elif [[ -n "$gemini_key_2" ]] && rg -a -F -- "$gemini_key_2" "$live_data_dir" "$frontend_root/test-results" >/dev/null 2>&1; then
     printf '%s\n' "Live E2E secret scan failed: the Gemini API key was found in generated evidence." >&2
     test_status=1
   fi
@@ -80,7 +96,9 @@ trap 'exit 130' INT TERM
   cd "$repo_root"
   exec setsid env \
     GEMINI_API_KEY= \
+    GEMINI_API_KEY_2= \
     VOLUNDR_GEMINI_API_KEY= \
+    VOLUNDR_GEMINI_API_KEY_2= \
     VOLUNDR_AI_PROVIDER=gemini_api \
     VOLUNDR_DATA_DIR="$live_data_dir/data" \
     VOLUNDR_CAD_WORKSPACE_DIR="$live_data_dir/data/jobs" \
@@ -90,7 +108,7 @@ trap 'exit 130' INT TERM
 worker_pid=$!
 
 cd "$frontend_root"
-unset GEMINI_API_KEY VOLUNDR_GEMINI_API_KEY
+unset GEMINI_API_KEY GEMINI_API_KEY_2 VOLUNDR_GEMINI_API_KEY VOLUNDR_GEMINI_API_KEY_2
 export VOLUNDR_LIVE_ENV_FILE="$backend_env_file"
 export VOLUNDR_LIVE_DATA_DIR="$live_data_dir"
 export VOLUNDR_LIVE_API_PORT="${VOLUNDR_LIVE_API_PORT:-0}"

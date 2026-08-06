@@ -20,6 +20,19 @@ def test_settings_ignore_unrelated_env_file_keys(tmp_path):
     assert settings.data_dir.as_posix() == "data"
 
 
+def test_settings_load_both_gemini_credentials_from_repository_env_file(tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "GEMINI_API_KEY_2=secondary-fixture-key\nGEMINI_API_KEY=primary-fixture-key\n",
+        encoding="utf-8",
+    )
+
+    configured = Settings(_env_file=env_file)
+
+    assert configured.gemini_api_key_2 == "secondary-fixture-key"
+    assert configured.gemini_api_key == "primary-fixture-key"
+
+
 def test_settings_default_to_gemini_api_with_typed_defaults() -> None:
     settings = Settings(_env_file=None)
 

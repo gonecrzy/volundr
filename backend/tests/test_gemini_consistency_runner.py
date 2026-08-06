@@ -241,7 +241,7 @@ def test_evidence_writer_redacts_prompts_responses_source_worker_screenshot_and_
         "all-surfaces.json",
         {
             "rendered_prompt": "Authorization: Bearer top-secret",
-            "provider_response": "AIzaSyA1234567890-secret",
+            "provider_response": "AIza1234567890",
             "source": "api_key = 'secret-value'\nprint('/root/private/source.py')",
             "worker_output": "database_url=postgresql://user:pass@host/db",
             "screenshots_metadata": {"path": "/tmp/private-shot.png"},
@@ -252,7 +252,7 @@ def test_evidence_writer_redacts_prompts_responses_source_worker_screenshot_and_
 
     rendered = (tmp_path / "evidence" / "all-surfaces.json").read_text()
     assert "top-secret" not in rendered
-    assert "1234567890-secret" not in rendered
+    assert "1234567890" not in rendered
     assert "secret-value" not in rendered
     assert "postgresql://" not in rendered
     assert "/root/private" not in rendered

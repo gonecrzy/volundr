@@ -64,6 +64,47 @@ export type ValidatedWorkflowArtifact = {
   download_url?: string | null;
 };
 
+export type ValidatedRequestAction = "start_design" | "clarification" | "acceptance" | "revision" | "package";
+
+type RequestIdentityStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+function defaultRequestIdentity(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  return [...bytes].map((byte, index) => `${byte.toString(16).padStart(2, "0")}${[3, 5, 7, 9].includes(index) ? "-" : ""}`).join("");
+}
+
+export function createValidatedRequestIdentityStore(
+  storage: RequestIdentityStorage | null = typeof window !== "undefined" ? window.sessionStorage : null,
+  identityFactory: () => string = defaultRequestIdentity,
+) {
+  const keyFor = (action: ValidatedRequestAction, scope: string) => `volundr:validated-request:${action}:${scope}`;
+  return {
+    getOrCreate(action: ValidatedRequestAction, scope: string): string {
+      const storageKey = keyFor(action, scope);
+      const existing = storage?.getItem(storageKey);
+      if (existing) return existing;
+      const identity = identityFactory();
+      storage?.setItem(storageKey, identity);
+      return identity;
+    },
+    clear(action: ValidatedRequestAction, scope: string): void {
+      storage?.removeItem(keyFor(action, scope));
+    },
+  };
+}
+
 export function createValidatedWorkflowApi(
   apiBase: string,
   fetcher: typeof fetch = fetch,
@@ -90,34 +131,43 @@ export function createValidatedWorkflowApi(
         : `/validated-cadquery/workflows/${encodeURIComponent(workflowId)}`;
       return request<ValidatedWorkflow>(path);
     },
-    listArtifacts(workflowId: string) {
-      return request<ValidatedWorkflowArtifact[]>(`/validated-cadquery/workflows/${encodeURIComponent(workflowId)}/artifacts`);
+    listArtifacts(workflowId: string, projectId?: string) {
+      const path = projectId
+        ? `/validated-cadquery/projects/${encodeURIComponent(projectId)}/designs/${encodeURIComponent(workflowId)}/artifacts`
+        : `/validated-cadquery/workflows/${encodeURIComponent(workflowId)}/artifacts`;
+      return request<ValidatedWorkflowArtifact[]>(path);
     },
-    startDesign(name: string, intent: string, idempotencyKey: string) {
+    startDesign(name: string, intent: string, idempotencyKey = defaultRequestIdentity()) {
       return request<ValidatedWorkflow>("/validated-cadquery/designs", {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({ name, intent }),
       });
     },
-    submitClarification(workflowId: string, questionId: string, answer: string, idempotencyKey: string) {
+    submitClarification(workflowId: string, questionId: string, answer: string, idempotencyKey = defaultRequestIdentity()) {
       return request<ValidatedWorkflow>(`/validated-cadquery/workflows/${encodeURIComponent(workflowId)}/clarification`, {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({ answers: [{ question_id: questionId, answer }] }),
       });
     },
-    acceptCandidate(workflowId: string, idempotencyKey: string) {
+    acceptCandidate(workflowId: string, idempotencyKey = defaultRequestIdentity()) {
       return request<ValidatedWorkflow>(`/validated-cadquery/workflows/${encodeURIComponent(workflowId)}/accept`, {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
       });
     },
-    startRevision(workflowId: string, body: Record<string, unknown>, idempotencyKey: string) {
+    startRevision(workflowId: string, body: Record<string, unknown>, idempotencyKey = defaultRequestIdentity()) {
       return request<ValidatedWorkflow>(`/validated-cadquery/workflows/${encodeURIComponent(workflowId)}/revision`, {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify(body),
+      });
+    },
+    createPackage(workflowId: string, idempotencyKey = defaultRequestIdentity()) {
+      return request<ValidatedWorkflow>(`/validated-cadquery/workflows/${encodeURIComponent(workflowId)}/package`, {
+        method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
       });
     },
   };

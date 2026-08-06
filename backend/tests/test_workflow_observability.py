@@ -536,7 +536,7 @@ def test_allowlist_redactor_removes_secret_query_headers_and_patterns() -> None:
                 "content-type": "application/json",
                 "x-random": "should-not-survive",
             },
-            "api_key": "AIzaSyD_fakefakefakefakefakefakefake",
+            "api_key": "AIza1234567890",
         },
         artifact_type="provider_request_metadata",
     )
@@ -554,7 +554,7 @@ def test_debug_bundle_redacts_fake_api_key_before_release(tmp_path: Path) -> Non
     run = recorder.start_run(project_id=project.id, workflow_type="initial_generation")
     secret_path = tmp_path / "data" / "raw-provider-response.txt"
     secret_path.parent.mkdir(parents=True)
-    secret_path.write_text("leaked AIzaSyD_fakefakefakefakefakefakefake", encoding="utf-8")
+    secret_path.write_text("leakedAIza1234567890", encoding="utf-8")
     recorder.record_artifact(
         run,
         stage="provider_response",
@@ -572,7 +572,7 @@ def test_debug_bundle_redacts_fake_api_key_before_release(tmp_path: Path) -> Non
             for name in archive.namelist()
             if name.endswith(".txt") or name.endswith(".json") or name.endswith(".ndjson")
         )
-    assert "AIzaSyD_fakefakefakefakefakefakefake" not in payload
+    assert "AIza1234567890" not in payload
     assert "[REDACTED]" in payload
 
 

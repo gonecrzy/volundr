@@ -91,6 +91,8 @@ type ChatWorkspaceProps = {
   canAskAi: boolean;
   pendingMessage: ChatWorkspacePendingMessage | null;
   submissionError: SubmissionErrorPresentation | null;
+  validatedWorkflow: ReactNode;
+  validatedOutputs: ReactNode;
   viewer: ReactNode;
   hasModel: boolean;
   technicalDetails: ReactNode;
@@ -134,6 +136,8 @@ export function ChatWorkspace({
   canAskAi,
   pendingMessage,
   submissionError,
+  validatedWorkflow,
+  validatedOutputs,
   viewer,
   hasModel,
   technicalDetails,
@@ -297,6 +301,7 @@ export function ChatWorkspace({
             pendingMessage={pendingMessage}
             submissionError={submissionError}
             activeWorkflow={activeWorkflow}
+            validatedWorkflow={validatedWorkflow}
             isChatActionPending={isChatActionPending}
             generationPrompt={generationPrompt}
             placeholder={project ? chatPlaceholder : "Describe the part you need"}
@@ -334,6 +339,7 @@ export function ChatWorkspace({
             revisionComparison={revisionComparison}
             snapshotApiBase={snapshotApiBase}
             technicalDetails={technicalDetails}
+            validatedOutputs={validatedOutputs}
           />
         </aside>
       </section>
@@ -380,6 +386,7 @@ export function ChatWorkspace({
               revisionComparison={revisionComparison}
               snapshotApiBase={snapshotApiBase}
               technicalDetails={technicalDetails}
+              validatedOutputs={validatedOutputs}
             />
           </aside>
         </div>
@@ -421,6 +428,7 @@ function ConversationPanel({
   pendingMessage,
   submissionError,
   activeWorkflow,
+  validatedWorkflow,
   isChatActionPending,
   generationPrompt,
   placeholder,
@@ -439,6 +447,7 @@ function ConversationPanel({
   pendingMessage: ChatWorkspacePendingMessage | null;
   submissionError: SubmissionErrorPresentation | null;
   activeWorkflow: Record<string, unknown> | null;
+  validatedWorkflow: ReactNode;
   isChatActionPending: boolean;
   generationPrompt: string;
   placeholder: string;
@@ -496,6 +505,7 @@ function ConversationPanel({
             <ChatMessage key={message.id} message={message} currentWorkingRevisionId={currentWorkingRevisionId} onViewRevision={onViewRevision} onOpenExport={onOpenExport} />
           ))}
           {isChatActionPending && !pendingMessage ? <ProgressMessage stage={typeof activeWorkflow?.stage === "string" ? activeWorkflow.stage : null} /> : null}
+          {validatedWorkflow}
         </div>
         {newMessages ? <button className="new-messages-button" type="button" onClick={jumpToLatest}>New messages</button> : null}
       </div>
@@ -555,7 +565,7 @@ function ViewerPanel({ viewer, hasModel, selectedRevision, currentRevision, sele
   );
 }
 
-function InspectorPanel({ project, currentRevision, selectedRevision, revisions, activeRequirements, designPlan, outputs, selectedOutputId, onSelectRevision, onOpenExport, onDownloadOutput, snapshotPacket, revisionComparison, snapshotApiBase, technicalDetails }: { project: ChatWorkspaceProject | null; currentRevision: ChatWorkspaceRevision | null; selectedRevision: ChatWorkspaceRevision | null; revisions: ChatWorkspaceRevision[]; activeRequirements: Array<Record<string, unknown>>; designPlan: { plan?: Record<string, unknown> } | null; outputs: ChatWorkspaceOutput[]; selectedOutputId: string | null; onSelectRevision: (revision: ChatWorkspaceRevision) => void; onOpenExport: () => void; onDownloadOutput: (output: ChatWorkspaceOutput, format: "stl" | "step") => void; snapshotPacket: SnapshotPacket | null; revisionComparison: RevisionComparison | null; snapshotApiBase: string; technicalDetails: ReactNode }) {
+function InspectorPanel({ project, currentRevision, selectedRevision, revisions, activeRequirements, designPlan, outputs, selectedOutputId, onSelectRevision, onOpenExport, onDownloadOutput, snapshotPacket, revisionComparison, snapshotApiBase, technicalDetails, validatedOutputs }: { project: ChatWorkspaceProject | null; currentRevision: ChatWorkspaceRevision | null; selectedRevision: ChatWorkspaceRevision | null; revisions: ChatWorkspaceRevision[]; activeRequirements: Array<Record<string, unknown>>; designPlan: { plan?: Record<string, unknown> } | null; outputs: ChatWorkspaceOutput[]; selectedOutputId: string | null; onSelectRevision: (revision: ChatWorkspaceRevision) => void; onOpenExport: () => void; onDownloadOutput: (output: ChatWorkspaceOutput, format: "stl" | "step") => void; snapshotPacket: SnapshotPacket | null; revisionComparison: RevisionComparison | null; snapshotApiBase: string; technicalDetails: ReactNode; validatedOutputs: ReactNode }) {
   return (
     <div className="inspector-scroll">
       <section className="inspector-section current-version-section"><SectionTitle title="Current working version" />{currentRevision ? <><strong>Version {currentRevision.revision_number}</strong><p>{formatDate(currentRevision.created_at)} · {currentRevision.expected_output_count ?? outputs.length} printable part{(currentRevision.expected_output_count ?? outputs.length) === 1 ? "" : "s"}</p><span className="readiness-pill">{currentRevision.review_state === "ready_with_warnings" ? "Ready with warnings" : "Ready"}</span></> : <p>No working version yet.</p>}{selectedRevision && currentRevision && selectedRevision.id !== currentRevision.id ? <p className="inspector-note">Viewing Version {selectedRevision.revision_number}</p> : null}</section>
@@ -565,6 +575,7 @@ function InspectorPanel({ project, currentRevision, selectedRevision, revisions,
       <SnapshotViewsSection packet={snapshotPacket} apiBase={snapshotApiBase} />
       <ComparisonSection comparison={revisionComparison} apiBase={snapshotApiBase} />
       <PrintablePartsSection revision={selectedRevision ?? currentRevision} outputs={outputs} selectedOutputId={selectedOutputId} onOpenExport={onOpenExport} onDownloadOutput={onDownloadOutput} />
+      {validatedOutputs}
       <section className="inspector-section"><SectionTitle title="Version history" /><VersionHistory revisions={revisions} currentWorkingRevisionId={project?.active_revision_id ?? null} onSelectRevision={onSelectRevision} /></section>
       <section className="inspector-section technical-section"><details><summary>Technical details</summary><div className="technical-details-content">{technicalDetails}</div></details></section>
     </div>
