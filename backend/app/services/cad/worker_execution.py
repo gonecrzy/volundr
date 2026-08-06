@@ -1,5 +1,7 @@
 import json
+import os
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +13,9 @@ from app.services.cad.jobs import (
     load_job_manifest,
     result_payload,
 )
+
+
+_WORKER_CLAIM_FILENAME = ".worker-claim.json"
 
 
 async def execute_job_directory(
@@ -63,7 +68,9 @@ async def execute_job_directory(
     failure_class = None
     success = bool(compile_result.success and not output_failure)
     if not success:
-        failure_class = "timeout" if compile_result.timed_out else "execution_failed"
+        failure_class = _worker_failure_class(compile_result, diagnostics)
+        if failure_class == "worker_environment_failure":
+            diagnostics["worker_failure_class"] = failure_class
     result = result_payload(
         job_id=job.job_id,
         success=success,
@@ -89,8 +96,80 @@ async def process_next_job(jobs_root: Path) -> dict[str, Any] | None:
             or (job_dir / "result.json").exists()
         ):
             continue
-        return await execute_job_directory(job_dir)
+        claim_token = _try_claim_job(job_dir)
+        if claim_token is None:
+            continue
+        try:
+            return await execute_job_directory(job_dir)
+        finally:
+            _release_job_claim(job_dir, claim_token)
     return None
+
+
+def _worker_failure_class(compile_result: Any, diagnostics: dict[str, Any]) -> str:
+    if compile_result.timed_out:
+        return "timeout"
+    if diagnostics.get("worker_setup_failure"):
+        return "worker_environment_failure"
+    return "execution_failed"
+
+
+def _try_claim_job(job_dir: Path) -> str | None:
+    claim_path = job_dir / _WORKER_CLAIM_FILENAME
+    for _ in range(2):
+        token = uuid.uuid4().hex
+        payload = {
+            "pid": os.getpid(),
+            "started_at": time.time(),
+            "token": token,
+        }
+        try:
+            descriptor = os.open(
+                claim_path,
+                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                0o600,
+            )
+        except FileExistsError:
+            if not _claim_is_stale(claim_path):
+                return None
+            try:
+                claim_path.unlink()
+            except FileNotFoundError:
+                continue
+            continue
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, sort_keys=True)
+        return token
+    return None
+
+
+def _claim_is_stale(claim_path: Path) -> bool:
+    try:
+        payload = json.loads(claim_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return True
+    pid = payload.get("pid") if isinstance(payload, dict) else None
+    if not isinstance(pid, int) or pid <= 0:
+        return True
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return True
+    except PermissionError:
+        return False
+    except OSError:
+        return True
+    return False
+
+
+def _release_job_claim(job_dir: Path, token: str) -> None:
+    claim_path = job_dir / _WORKER_CLAIM_FILENAME
+    try:
+        payload = json.loads(claim_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if isinstance(payload, dict) and payload.get("token") == token:
+        claim_path.unlink(missing_ok=True)
 
 
 def _persist_result(job_dir: Path, result: dict[str, Any]) -> None:

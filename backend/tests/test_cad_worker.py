@@ -17,6 +17,7 @@ from app.services.cad.cadquery_runner import (
     _CADQUERY_RUNNER_SOURCE,
 )
 from app.services.cad.worker_client import FilesystemCadWorkerClient, FilesystemCadWorkerRunner
+from app.services.cad import worker_execution
 from app.services.cad.worker_execution import execute_job_directory, process_next_job
 from app.workers.cad_worker import worker_health_path
 from app.services.cad.jobs import (
@@ -196,6 +197,55 @@ async def test_worker_ignores_non_queue_workspace_directories(tmp_path: Path) ->
 
 
 @pytest.mark.asyncio
+async def test_process_next_job_claims_a_job_once_under_concurrent_workers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    queue = FilesystemCadJobQueue(tmp_path)
+    job_dir = queue.submit_cadquery_source(
+        source=VALID_CADQUERY_SOURCE,
+        job_id="concurrent-job",
+        timeout_seconds=5,
+    )
+    started = asyncio.Event()
+    release = asyncio.Event()
+    calls = 0
+
+    async def fake_execute(job_path: Path) -> dict:
+        nonlocal calls
+        calls += 1
+        started.set()
+        await release.wait()
+        result = {
+            "schema_version": "cad-execution-result-v1",
+            "job_id": job_path.name,
+            "success": True,
+            "failure_class": None,
+            "duration_seconds": 0.01,
+            "outputs": [],
+            "diagnostics": {},
+            "worker_version": "test",
+        }
+        if not (job_path / "result.json").exists():
+            complete_job_atomic(job_path, result)
+        return result
+
+    monkeypatch.setattr(worker_execution, "execute_job_directory", fake_execute)
+    first = asyncio.create_task(worker_execution.process_next_job(tmp_path))
+    await started.wait()
+    second = asyncio.create_task(worker_execution.process_next_job(tmp_path))
+    await asyncio.sleep(0)
+    release.set()
+
+    first_result, second_result = await asyncio.gather(first, second)
+
+    assert calls == 1
+    assert first_result is not None
+    assert second_result is None
+    assert job_dir.joinpath("result.json").exists()
+
+
+@pytest.mark.asyncio
 async def test_api_client_reads_structured_worker_failure(tmp_path: Path) -> None:
     client = FilesystemCadWorkerClient(tmp_path)
     job_dir = client.submit_cadquery_execution(
@@ -211,6 +261,25 @@ async def test_api_client_reads_structured_worker_failure(tmp_path: Path) -> Non
     assert result["success"] is False
     assert result["failure_class"] == "execution_failed"
     assert "CadQuery contract violation" in result["diagnostics"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_worker_setup_failure_is_not_classified_as_stl_export_failure(
+    tmp_path: Path,
+) -> None:
+    queue = FilesystemCadJobQueue(tmp_path)
+    job_dir = queue.submit_cadquery_source(
+        source=VALID_CADQUERY_SOURCE,
+        job_id="worker-setup-failure",
+        timeout_seconds=5,
+    )
+
+    result = await execute_job_directory(job_dir, runner=WorkerSetupFailureRunner())
+
+    assert result["success"] is False
+    assert result["failure_class"] == "worker_environment_failure"
+    assert result["failure_class"] != "stl_export_failure"
+    assert result["diagnostics"]["worker_failure_class"] == "worker_environment_failure"
 
 
 @pytest.mark.asyncio
@@ -287,6 +356,20 @@ async def test_cadquery_runner_rejects_probe_build_model_sources(tmp_path: Path)
     assert result.error_message is not None
     assert "CadQuery contract violation" in result.error_message
     assert "build(params)" in result.error_message
+
+
+def test_cadquery_runner_does_not_delete_a_colliding_workspace(tmp_path: Path) -> None:
+    runner = CadQueryCliRunner(workspace_root=tmp_path)
+    original = runner._job_dir("same/job")
+    original.mkdir(parents=True)
+    marker = original / "preserve-me"
+    marker.write_text("first worker", encoding="utf-8")
+
+    replacement = runner._job_dir("same-job")
+
+    assert replacement != original
+    assert marker.read_text(encoding="utf-8") == "first worker"
+    assert replacement.parent == tmp_path
 
 
 @pytest.mark.asyncio
@@ -911,6 +994,40 @@ async def _wait_briefly() -> None:
     import asyncio
 
     await asyncio.sleep(0.2)
+
+
+class WorkerSetupFailureRunner:
+    async def compile(
+        self,
+        source: str,
+        job_id: str,
+        *,
+        source_contract_version: str = "cadquery-v1",
+        parameter_values: dict | None = None,
+        requested_outputs: list[dict] | None = None,
+    ) -> CadQueryCompileResult:
+        return CadQueryCompileResult(
+            job_id=job_id,
+            success=False,
+            timed_out=False,
+            exit_code=1,
+            source_path=None,
+            stl_path=None,
+            step_path=None,
+            stdout_path=None,
+            stderr_path=None,
+            metadata_path=None,
+            source_hash="0" * 64,
+            output_size_bytes=0,
+            metadata=None,
+            error_message="FileNotFoundError: output directory could not be initialized",
+            command_args=["python", "_runner.py"],
+            outputs=[],
+            execution_diagnostics={
+                "worker_setup_failure": True,
+                "worker_phase": "child_initialization",
+            },
+        )
 
 
 class MultiOutputCadQueryRunner:

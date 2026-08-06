@@ -95,6 +95,7 @@ def test_repair_envelope_matches_snapshot(level: str) -> None:
         ("execution", {"exception_type": "TypeError"}, "python_type_error"),
         ("execution", {"exception_type": "SelectorError"}, "cadquery_selector_error"),
         ("execution", {"timed_out": True}, "worker_timeout"),
+        ("execution", {"worker_failure_class": "worker_environment_failure"}, "worker_environment_failure"),
         ("topology", {"empty": True}, "empty_shape"),
         ("topology", {"valid": False, "detected_solid_count": 2}, "solid_count_mismatch"),
         ("semantic", {"failed": ["pocket"]}, "semantic_requirement_failed"),

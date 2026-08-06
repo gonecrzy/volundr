@@ -3,10 +3,10 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import signal
 import sys
 import time
+import uuid
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -331,7 +331,7 @@ class CadQueryCliRunner:
             safe_id = "job"
         path = self.workspace_root / safe_id
         if path.exists():
-            shutil.rmtree(path)
+            path = self.workspace_root / f"{safe_id}-{uuid.uuid4().hex}"
         return path
 
     def _failure(
@@ -408,22 +408,18 @@ class CadQueryCliRunner:
             execution_timing=execution_timing if isinstance(execution_timing, dict) else None,
             execution_diagnostics=execution_diagnostics
             if execution_diagnostics is not None
-            else (
-                self._execution_diagnostics_from_payload(
-                    job_dir=source_path.parent,
-                    execution_payload=payload,
-                    diagnostic_state_path=source_path.parent / "diagnostic-state.json",
-                    stdout_path=stdout_path,
-                    stderr_path=stderr_path,
-                    timed_out=timed_out,
-                    timeout_seconds=self.timeout_seconds,
-                    process_pid=None,
-                    exit_code=exit_code,
-                    started_at=None,
-                    timeout_deadline=None,
-                )
-                if isinstance(payload, dict)
-                else None
+            else self._execution_diagnostics_from_payload(
+                job_dir=source_path.parent,
+                execution_payload=payload,
+                diagnostic_state_path=source_path.parent / "diagnostic-state.json",
+                stdout_path=stdout_path,
+                stderr_path=stderr_path,
+                timed_out=timed_out,
+                timeout_seconds=self.timeout_seconds,
+                process_pid=None,
+                exit_code=exit_code,
+                started_at=None,
+                timeout_deadline=None,
             ),
         )
 
@@ -520,6 +516,9 @@ class CadQueryCliRunner:
             "process_rss_kb": state.get("process_rss_kb"),
             "source_hash": source_hash or state.get("source_hash"),
         }
+        if execution_payload is None and not state:
+            diagnostics["worker_setup_failure"] = True
+            diagnostics["worker_phase"] = "child_initialization"
         return {key: value for key, value in diagnostics.items() if value is not None}
 
     def _read_json(self, path: Path) -> dict | None:
