@@ -4,8 +4,18 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
 const enabled = process.env.VOLUNDR_REPEATABILITY_WAVE === "true";
-const evidenceRoot = path.resolve("..", "data", "debug-sessions", "executable-cadquery", "repeatability-wave-01");
-const manifestPath = path.join(evidenceRoot, "corpus-manifest.json");
+const evidenceRoot = process.env.VOLUNDR_REPEATABILITY_EVIDENCE_ROOT
+  ? path.resolve(process.env.VOLUNDR_REPEATABILITY_EVIDENCE_ROOT)
+  : path.resolve("..", "data", "debug-sessions", "executable-cadquery", "repeatability-wave-01");
+const manifestPath = process.env.VOLUNDR_REPEATABILITY_MANIFEST_PATH
+  ? path.resolve(process.env.VOLUNDR_REPEATABILITY_MANIFEST_PATH)
+  : path.join(evidenceRoot, "corpus-manifest.json");
+const selectedProjectIds = new Set(
+  (process.env.VOLUNDR_REPEATABILITY_PROJECT_IDS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean),
+);
 
 type CorpusProject = {
   project_id: string;
@@ -149,11 +159,15 @@ test("qualifies the frozen corpus sequentially until the objective stop rule", a
   test.setTimeout(3_600_000);
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")) as { projects: CorpusProject[] };
   expect(manifest.projects).toHaveLength(6);
+  const projects = selectedProjectIds.size > 0
+    ? manifest.projects.filter((project) => selectedProjectIds.has(project.project_id))
+    : manifest.projects;
+  expect(projects.length).toBeGreaterThan(0);
   const failureSignatures = new Map<string, number>();
   const projectResults: Array<Record<string, any>> = [];
   let stopReason: string | null = null;
 
-  for (const project of manifest.projects) {
+  for (const project of projects) {
     if (stopReason) {
       await recordNotRun(project, stopReason);
       continue;
