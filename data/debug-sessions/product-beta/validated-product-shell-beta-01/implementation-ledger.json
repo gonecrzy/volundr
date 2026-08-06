@@ -8,7 +8,8 @@
     "controlled_live_harness": "f4b79011e15992faea020094bd68e62dfa410192",
     "credential_loader_precedence": "a3bfde5e84c4e13cd3b047bf52b271850fdafea3",
     "credential_loader_tests": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8",
-    "evidence_update": "be7e06110050b9e8792144723e7d976ed3136a92"
+    "evidence_update": "be7e06110050b9e8792144723e7d976ed3136a92",
+    "provider_linkage_evidence": "c89d6584df3f74d91b8dd70b8a8cb10aeaef18de"
   },
   "layers": {
     "chat_workspace_integration": true,
