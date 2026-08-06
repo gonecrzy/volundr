@@ -1,0 +1,130 @@
+{
+  "schema_version": "product-qualification-offline-scope-matrix-v1",
+  "stage": "stage_1_offline_scope_matrix",
+  "executed_at": "2026-08-06T00:00:00Z",
+  "provider_calls": 0,
+  "live_creation_workflows": 0,
+  "all_pass": true,
+  "cases": [
+    {
+      "case": "A1_unique_feature_capacity",
+      "scope": "feature",
+      "expected": {"blocking": false, "status": "geometry_verification_target"},
+      "observed": {
+        "blocking": false,
+        "status": "geometry_verification_target",
+        "plan_feature_id": "storage_slots_0",
+        "plan_feature_ids": [],
+        "component_ids": [],
+        "output_ids": [],
+        "scope": null,
+        "validation_target_type": null
+      },
+      "pass": true
+    },
+    {
+      "case": "A2_ambiguous_feature_capacity",
+      "scope": "feature",
+      "expected": {"blocking": true, "status": "trace_ambiguous"},
+      "observed": {
+        "blocking": true,
+        "status": "trace_ambiguous",
+        "plan_feature_id": null,
+        "plan_feature_ids": [],
+        "component_ids": [],
+        "output_ids": [],
+        "scope": null,
+        "validation_target_type": null
+      },
+      "pass": true
+    },
+    {
+      "case": "B_component_scope_preserves_component_obligation",
+      "scope": "component",
+      "expected": {"blocking": false, "status": "source_component_output_trace", "scope": null, "plan_feature_id": null},
+      "observed": {
+        "blocking": false,
+        "status": "source_component_output_trace",
+        "plan_feature_id": null,
+        "plan_feature_ids": [],
+        "component_ids": ["mounting_plate_comp"],
+        "output_ids": ["mounting_plate_output"],
+        "scope": null,
+        "validation_target_type": null
+      },
+      "pass": true
+    },
+    {
+      "case": "C_relationship_scope_missing_participant",
+      "scope": "relationship",
+      "expected": {"blocking": true, "status": "component_trace_missing", "scope": "relationship", "relationship_id": "base_lid_overlap"},
+      "observed": {
+        "blocking": true,
+        "status": "component_trace_missing",
+        "plan_feature_id": null,
+        "plan_feature_ids": [],
+        "component_ids": ["base", "lid"],
+        "output_ids": ["base_output", "lid_output"],
+        "scope": "relationship",
+        "relationship_id": "base_lid_overlap",
+        "relation_type": "overlaps",
+        "validation_target_type": null
+      },
+      "pass": true
+    },
+    {
+      "case": "D_cross_feature_one_component_one_output",
+      "scope": "cross_feature_layout",
+      "expected": {"blocking": false, "status": "source_cross_feature_layout_trace", "scope": "cross_feature_layout", "validation_target_type": "layout_constraint"},
+      "observed": {
+        "blocking": false,
+        "status": "source_cross_feature_layout_trace",
+        "plan_feature_id": null,
+        "plan_feature_ids": ["mounting_holes_feature_id", "recessed_slot_feature_id"],
+        "component_ids": ["mounting_plate_comp"],
+        "output_ids": ["mounting_plate_output"],
+        "scope": "cross_feature_layout",
+        "validation_target_type": "layout_constraint"
+      },
+      "pass": true
+    },
+    {
+      "case": "E_cross_feature_multiple_components_one_assembled_output",
+      "scope": "cross_feature_layout",
+      "expected": {"blocking": false, "status": "source_cross_feature_layout_trace", "output_ids": ["assembled_output"]},
+      "observed": {
+        "blocking": false,
+        "status": "source_cross_feature_layout_trace",
+        "plan_feature_id": null,
+        "plan_feature_ids": ["feature_base", "feature_lid"],
+        "component_ids": ["base", "lid"],
+        "output_ids": ["assembled_output"],
+        "scope": "cross_feature_layout",
+        "validation_target_type": "layout_constraint"
+      },
+      "pass": true
+    },
+    {
+      "case": "F_cross_feature_multiple_components_multiple_outputs",
+      "scope": "cross_feature_layout",
+      "expected": {"blocking": false, "status": "source_cross_feature_layout_trace", "output_ids": ["base_output", "lid_output"]},
+      "observed": {
+        "blocking": false,
+        "status": "source_cross_feature_layout_trace",
+        "plan_feature_id": null,
+        "plan_feature_ids": ["feature_base", "feature_lid"],
+        "component_ids": ["base", "lid"],
+        "output_ids": ["base_output", "lid_output"],
+        "scope": "cross_feature_layout",
+        "validation_target_type": "layout_constraint"
+      },
+      "pass": true
+    }
+  ],
+  "verification": {
+    "focused_regression_command": "PYTHONPATH=.. .venv/bin/python -m pytest -q tests/test_requirement_semantics_alignment.py tests/test_design_artifact_consistency.py tests/test_requirement_trace.py",
+    "focused_regression_result": "62 passed",
+    "matrix_runner": "Direct calls to build_requirement_trace_manifest with deterministic fixtures; no provider or workflow services invoked",
+    "credential_observation": "No provider credentials were read or sent"
+  }
+}

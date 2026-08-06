@@ -1,0 +1,206 @@
+{
+  "schema_version": "product-qualification-stage-0-trace-confirmation-v2",
+  "started_at": "2026-08-06T09:07:42.609Z",
+  "completed_at": "2026-08-06T09:08:01.214Z",
+  "provider_calls": 4,
+  "creation_workflows_run": 1,
+  "reruns": 0,
+  "fixture": {
+    "scenario": "unchanged recovered asymmetric mounting plate fixture",
+    "historical_requirement_id": "asymmetrical_feature_placement",
+    "historical_feature_ids": [
+      "mounting_holes_feature_id",
+      "recessed_slot_feature_id"
+    ],
+    "historical_output_id": "mounting_plate_output",
+    "prompt_sha256": "4fb138164a082e48c302cd4aebad5a810ea7dab9d01369c0f9aab88a822852e7"
+  },
+  "identifiers": {
+    "project_id": "db84f269-5112-4f31-b372-35ce75d9313d",
+    "workflow_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+    "revision_id": "5e5ec4f0-9812-4d02-8f80-da9203922cf7"
+  },
+  "outcome": {
+    "state": "failed",
+    "stop_reason": "stage_0_stop_after_first_terminal_workflow"
+  },
+  "first_incorrect_boundary": "provider_geometry_contract_failure",
+  "primary_blocker": "geometry_body_failure",
+  "independent_findings": [
+    {
+      "boundary": "provider_geometry_contract_failure",
+      "attempt_number": 3,
+      "failure_class": "geometry_body_failure",
+      "owner": "provider_geometry",
+      "status": "blocking"
+    },
+    {
+      "boundary": "workflow_aggregation_failure",
+      "attempt_number": 4,
+      "failure_class": "design_artifact_inconsistent",
+      "owner": "application",
+      "status": "downstream_consequence"
+    }
+  ],
+  "successful_boundaries": [
+    "user_request",
+    "requirements_extraction",
+    "plan_creation",
+    "trace_normalization"
+  ],
+  "unreached_boundaries": [
+    "source_assembly",
+    "worker_submission",
+    "worker_output",
+    "topology_verification",
+    "semantic_verification",
+    "candidate_eligibility",
+    "acceptance",
+    "artifact_generation",
+    "package_generation",
+    "frontend_presentation"
+  ],
+  "boundary_trace": [
+    {
+      "boundary": "user_request",
+      "input_sha256": "4fb138164a082e48c302cd4aebad5a810ea7dab9d01369c0f9aab88a822852e7",
+      "output_sha256": "8a0123e4c5e43038b7ef6f654e075ba9cc53d2574fa7349f83bbb01a48176849",
+      "durable_record_id": "db84f269-5112-4f31-b372-35ce75d9313d",
+      "status": "succeeded",
+      "blocking_findings": [],
+      "non_blocking_findings": [],
+      "owner": "frontend/application",
+      "provider_supplied": false,
+      "continued": true
+    },
+    {
+      "boundary": "requirements_extraction",
+      "input_sha256": "4fb138164a082e48c302cd4aebad5a810ea7dab9d01369c0f9aab88a822852e7",
+      "output_sha256": "ce1a89a5cd6f3422fd03910d26eda225838887b6c2b354acc1a63f1039ef7575",
+      "durable_record_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+      "status": "observed",
+      "blocking_findings": [],
+      "non_blocking_findings": [],
+      "owner": "provider/application",
+      "provider_supplied": true,
+      "continued": true
+    },
+    {
+      "boundary": "plan_creation",
+      "input_sha256": "ce1a89a5cd6f3422fd03910d26eda225838887b6c2b354acc1a63f1039ef7575",
+      "output_sha256": "62f0b31259d6aba718b704d77eae846961f5242f795f9b581d69167bb7efa6fc",
+      "durable_record_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+      "status": "observed",
+      "blocking_findings": [],
+      "non_blocking_findings": ["plan.layout_semantics_missing"],
+      "owner": "provider/application",
+      "provider_supplied": true,
+      "continued": true
+    },
+    {
+      "boundary": "trace_normalization",
+      "input_sha256": "7d6e4f8e7c321ec2330bc312a3de12484f1e7b44b671877a304943dc44cb2bb4",
+      "output_sha256": "14127ceb7f6620ecaf00a8e0df9f07da3a5799d3ab64a80a5553666c0143bf34",
+      "durable_record_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+      "status": "observed",
+      "blocking_findings": [],
+      "non_blocking_findings": [],
+      "owner": "application",
+      "provider_supplied": false,
+      "continued": true
+    },
+    {
+      "boundary": "source_generation",
+      "input_sha256": "62f0b31259d6aba718b704d77eae846961f5242f795f9b581d69167bb7efa6fc",
+      "output_sha256": "cee60630fb9f265c2648dc1b8cd94c096ab6c0af4fcf81dec043ff073e25cfa0",
+      "durable_record_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+      "status": "failed",
+      "blocking_findings": ["provider_geometry_contract_failure"],
+      "non_blocking_findings": [],
+      "owner": "provider_geometry",
+      "provider_supplied": true,
+      "continued": false
+    },
+    {
+      "boundary": "worker_and_verification",
+      "input_sha256": "cee60630fb9f265c2648dc1b8cd94c096ab6c0af4fcf81dec043ff073e25cfa0",
+      "output_sha256": "8bc2cbf299a2cd071ae946109b14c05e4be064420bad728cc937c5cbd9a88767",
+      "durable_record_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+      "status": "not_reached",
+      "blocking_findings": [],
+      "non_blocking_findings": [],
+      "owner": "worker/application",
+      "provider_supplied": false,
+      "continued": false,
+      "stop_reason": "stage_0_stop_after_first_terminal_workflow"
+    },
+    {
+      "boundary": "candidate_eligibility",
+      "input_sha256": "8bc2cbf299a2cd071ae946109b14c05e4be064420bad728cc937c5cbd9a88767",
+      "output_sha256": "57a7fc94db72bef1cd1b73a003b5fe3d74d6163c44113cfe1d5d628276d0f209",
+      "durable_record_id": "43767b15-ec54-4787-b8d8-91f1d822a134",
+      "status": "failed",
+      "blocking_findings": ["provider_geometry_contract_failure"],
+      "non_blocking_findings": [],
+      "owner": "application",
+      "provider_supplied": false,
+      "continued": false,
+      "stop_reason": "stage_0_stop_after_first_terminal_workflow"
+    }
+  ],
+  "trace_confirmation": {
+    "requirements_retained": [
+      "asymmetrical_feature_placement",
+      "three_mounting_holes",
+      "recessed_irregular_slot_arrangement",
+      "single_printable_output"
+    ],
+    "plan_feature_participants": [
+      {
+        "feature_id": "mounting_holes_feature",
+        "requirement_ids": ["three_mounting_holes", "asymmetrical_feature_placement"],
+        "component_id": "mounting_plate_body"
+      },
+      {
+        "feature_id": "recessed_slot_arrangement_feature",
+        "requirement_ids": ["recessed_irregular_slot_arrangement", "asymmetrical_feature_placement"],
+        "component_id": "mounting_plate_body"
+      }
+    ],
+    "cross_feature_relationship": {
+      "type": "host",
+      "host_component_id": "mounting_plate_body",
+      "feature_ids": ["mounting_holes_feature", "recessed_slot_arrangement_feature"]
+    },
+    "printable_outputs": [
+      {"output_id": "mounting_plate_output", "component_ids": ["mounting_plate_body"], "quantity": 1}
+    ],
+    "feature_layouts": [
+      {"feature_id": "mounting_holes_feature", "layout_mode": "proposed_positions", "required_count": 3},
+      {"feature_id": "recessed_slot_arrangement_feature", "layout_mode": "proposed_positions", "required_count": 1}
+    ],
+    "validation_targets": [
+      "plate_width",
+      "plate_depth",
+      "plate_thickness",
+      "three_mounting_holes",
+      "single_printable_output"
+    ],
+    "layout_constraint_present": false,
+    "geometry_output_count": 0,
+    "verification_status": "failed"
+  },
+  "provider_attempts": [
+    {"attempt_number": 1, "status": "succeeded", "failure_class": "none", "provider": "gemini_api", "model": "gemini-3.5-flash-lite"},
+    {"attempt_number": 2, "status": "succeeded", "failure_class": "none", "provider": "gemini_api", "model": "gemini-3.5-flash-lite"},
+    {"attempt_number": 3, "status": "failed", "failure_class": "geometry_body_failure", "provider": "gemini_api", "model": "gemini-3.5-flash-lite"},
+    {"attempt_number": 4, "status": "failed", "failure_class": "design_artifact_inconsistent", "provider": "gemini_api", "model": "gemini-3.5-flash-lite"}
+  ],
+  "browser_quality": {
+    "console_errors": [],
+    "failed_requests": [],
+    "http_errors": [],
+    "page_errors": []
+  },
+  "credential_observation": "Backend-only controlled provider credentials; no credentials stored in this artifact."
+}

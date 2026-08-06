@@ -205,6 +205,11 @@ def build_requirement_trace_manifest(
             plan_components=plan_components,
             plan_features=normalized_features,
             feature_layouts=feature_layouts,
+            plan_relationships=[
+                relationship
+                for relationship in design_plan_payload.get("relationships", []) or []
+                if isinstance(relationship, dict)
+            ],
             plan_outputs=plan_outputs,
             patterns=patterns,
             validation_targets=validation_targets,
@@ -294,6 +299,7 @@ def _classify_item(
     plan_components: dict[str, dict[str, Any]],
     plan_features: list[dict[str, Any]],
     feature_layouts: list[dict[str, Any]],
+    plan_relationships: list[dict[str, Any]],
     plan_outputs: dict[str, dict[str, Any]],
     patterns: list[dict[str, Any]],
     validation_targets: list[dict[str, Any]],
@@ -337,6 +343,12 @@ def _classify_item(
         item,
         plan_features,
         feature_layouts,
+    )
+    relationship = _resolve_relationship(item, plan_relationships)
+    relationship_scope = (
+        relationship is not None
+        or str(item.get("scope") or item.get("requirement_scope") or "").lower() == "relationship"
+        or str(item.get("type") or "").lower() == "assembly_relationship"
     )
 
     if source_trace_required:
@@ -408,18 +420,9 @@ def _classify_item(
             return obligation, findings
 
         component_ids = list(cross_feature_match.get("component_ids", []))
-        output_ids = list(output_ids)
+        output_ids = list(dict.fromkeys(output_ids))
         if not output_ids:
-            output_ids = [
-                output_id
-                for component_id in component_ids
-                if (output_id := _output_for_component(
-                    component_id,
-                    plan_outputs,
-                    source_output_ids,
-                    source_output_components,
-                )) is not None
-            ]
+            output_ids = _planned_output_ids_for_components(component_ids, plan_outputs)
         obligation["component_ids"] = component_ids
         obligation["output_ids"] = output_ids
         obligation["owning_component_id"] = component_ids[0] if len(component_ids) == 1 else None
@@ -444,6 +447,28 @@ def _classify_item(
         missing_outputs = [
             output_id for output_id in output_ids if output_id not in source_output_ids
         ]
+        unrelated_outputs = [
+            output_id
+            for output_id in output_ids
+            if not set(plan_outputs.get(output_id, {}).get("component_ids", [])) & set(component_ids)
+        ]
+        uncovered_plan_components = [
+            component_id
+            for component_id in component_ids
+            if not any(
+                component_id in plan_outputs.get(output_id, {}).get("component_ids", [])
+                for output_id in output_ids
+            )
+        ]
+        uncovered_source_components = [
+            component_id
+            for component_id in component_ids
+            if not any(
+                component_id in source_output_components.get(output_id, [])
+                for output_id in output_ids
+                if output_id in source_output_ids
+            )
+        ]
         missing_feature_trace = [
             feature_id
             for feature_id in participant_ids
@@ -463,7 +488,7 @@ def _classify_item(
                     blocking=True,
                 )
             )
-        elif missing_outputs or len(output_ids) != len(component_ids):
+        elif missing_outputs or unrelated_outputs or uncovered_plan_components or uncovered_source_components:
             obligation["blocking"] = True
             obligation["status"] = "output_trace_missing"
             findings.append(
@@ -626,16 +651,35 @@ def _classify_item(
 
     if component_ids:
         missing_components = [component_id for component_id in component_ids if component_id not in source_component_ids]
-        output_ids = [
-            output_id
-            for component_id in component_ids
-            if (output_id := _output_for_component(
-                component_id,
-                plan_outputs,
-                source_output_ids,
-                source_output_components,
-            )) is not None
-        ]
+        if relationship_scope:
+            output_ids = list(dict.fromkeys(output_ids or _planned_output_ids_for_components(component_ids, plan_outputs)))
+            obligation["scope"] = "relationship"
+            relationship_id = item.get("relationship_id") or item.get("relation_id")
+            if not relationship_id and relationship:
+                relationship_id = (
+                    relationship.get("id")
+                    or relationship.get("relationship_id")
+                    or relationship.get("relation_id")
+                )
+            obligation["relationship_id"] = str(relationship_id or requirement_id)
+            obligation["relation_type"] = str(
+                item.get("relation_type")
+                or item.get("relationship_type")
+                or (relationship or {}).get("relation_type")
+                or (relationship or {}).get("relationship_type")
+                or ""
+            ) or None
+        else:
+            output_ids = [
+                output_id
+                for component_id in component_ids
+                if (output_id := _output_for_component(
+                    component_id,
+                    plan_outputs,
+                    source_output_ids,
+                    source_output_components,
+                )) is not None
+            ]
         obligation["output_ids"] = output_ids
         if missing_components:
             obligation["blocking"] = True
@@ -650,6 +694,34 @@ def _classify_item(
                     blocking=True,
                 )
             )
+        elif relationship_scope:
+            source_uncovered_components = [
+                component_id
+                for component_id in component_ids
+                if not any(
+                    component_id in source_output_components.get(output_id, [])
+                    for output_id in output_ids
+                    if output_id in source_output_ids
+                )
+            ]
+            if (
+                not output_ids
+                or any(output_id not in source_output_ids for output_id in output_ids)
+                or source_uncovered_components
+            ):
+                obligation["blocking"] = True
+                obligation["status"] = "output_trace_missing"
+                findings.append(
+                    _trace_finding(
+                        "design_artifact.output_trace_missing",
+                        f"Required relationship `{requirement_id}` has no complete printable output trace.",
+                        item=item,
+                        obligation=obligation,
+                        blocking=True,
+                    )
+                )
+            else:
+                obligation["status"] = "source_component_output_trace"
         elif len(output_ids) != len(component_ids):
             obligation["blocking"] = True
             obligation["status"] = "output_trace_missing"
@@ -953,6 +1025,10 @@ def _trace_items(
                 "component_ids",
                 "target_component_id",
                 "target_component_ids",
+                "relationship_id",
+                "relation_id",
+                "relation_type",
+                "relationship_type",
                 "output_id",
                 "output_ids",
                 "target_output_id",
@@ -1005,6 +1081,10 @@ def _trace_items(
                 "component_ids": entry.get("component_ids"),
                 "target_component_id": entry.get("target_component_id"),
                 "target_component_ids": entry.get("target_component_ids"),
+                "relationship_id": entry.get("relationship_id"),
+                "relation_id": entry.get("relation_id"),
+                "relation_type": entry.get("relation_type"),
+                "relationship_type": entry.get("relationship_type"),
                 "output_id": entry.get("output_id"),
                 "output_ids": entry.get("output_ids"),
                 "target_output_id": entry.get("target_output_id"),
@@ -1135,7 +1215,10 @@ def _resolve_cross_feature_layout(
 ) -> dict[str, Any]:
     requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
     scope = str(item.get("scope") or item.get("requirement_scope") or "").lower()
-    explicit_ids_present = "feature_ids" in item or "target_feature_ids" in item
+    explicit_ids_present = any(
+        item.get(key) is not None
+        for key in ("feature_ids", "target_feature_ids")
+    )
     explicit_ids = item.get("feature_ids") or item.get("target_feature_ids")
     if explicit_ids is None:
         explicit_ids = []
@@ -1146,6 +1229,14 @@ def _resolve_cross_feature_layout(
         for value in explicit_ids
         if value
     ]
+    duplicate_ids = sorted({feature_id for feature_id in explicit_ids if explicit_ids.count(feature_id) > 1})
+    if duplicate_ids:
+        return {
+            "recognized": True,
+            "status": "incompatible",
+            "feature_ids": explicit_ids,
+            "rejected": duplicate_ids,
+        }
     feature_by_id = {
         canonical_requirement_id(str(feature.get("id"))): feature
         for feature in features
@@ -1724,6 +1815,52 @@ def _output_for_component(
             continue
         matches.append(output_id)
     return matches[0] if len(matches) == 1 else None
+
+
+def _planned_output_ids_for_components(
+    component_ids: list[str],
+    plan_outputs: dict[str, dict[str, Any]],
+) -> list[str]:
+    target_components = set(component_ids)
+    return [
+        output_id
+        for output_id, output in plan_outputs.items()
+        if target_components & set(output.get("component_ids", []))
+    ]
+
+
+def _resolve_relationship(
+    item: dict[str, Any],
+    relationships: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    requirement_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
+    explicit_id = item.get("relationship_id") or item.get("relation_id")
+    candidates: list[dict[str, Any]] = []
+    for relationship in relationships:
+        relationship_id = (
+            relationship.get("id")
+            or relationship.get("relationship_id")
+            or relationship.get("relation_id")
+        )
+        relationship_ids = relationship.get("requirement_ids") or relationship.get("relationship_ids") or []
+        if isinstance(relationship_ids, str):
+            relationship_ids = [relationship_ids]
+        normalized_relationship_ids = {
+            canonical_requirement_id(str(value))
+            for value in relationship_ids
+            if value
+        }
+        if explicit_id:
+            if relationship_id and str(relationship_id) == str(explicit_id):
+                candidates.append(relationship)
+        elif (
+            (relationship_id and canonical_requirement_id(str(relationship_id)) == requirement_id)
+            or requirement_id in normalized_relationship_ids
+        ):
+            candidates.append(relationship)
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
 
 
 def _component_output_conflicts(

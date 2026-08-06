@@ -90,6 +90,73 @@ def _trace(specification: dict, plan: dict) -> dict:
     )
 
 
+def _cross_feature_case(
+    *,
+    component_ids: list[str],
+    output_specs: list[dict],
+    source_output_ids: set[str] | None = None,
+    source_output_components: dict[str, list[str]] | None = None,
+    explicit_output_ids: list[str] | None = None,
+) -> dict:
+    feature_ids = [f"feature_{component_id}" for component_id in component_ids]
+    specification = {
+        "functional_requirements": [
+            {
+                "id": "feature_layout",
+                "type": "orientation",
+                "scope": "cross_feature_layout",
+                "feature_ids": feature_ids,
+                "component_ids": component_ids,
+                **({"output_ids": explicit_output_ids} if explicit_output_ids is not None else {}),
+                "target": "the participating features",
+                "value": "asymmetric",
+                "source": "user",
+                "explicit": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [{"id": component_id, "role": "printable_part"} for component_id in component_ids],
+        "features": [
+            {
+                "id": feature_id,
+                "component_id": component_id,
+                "type": "feature",
+                "requirement_ids": ["feature_layout"],
+            }
+            for feature_id, component_id in zip(feature_ids, component_ids)
+        ],
+        "printable_outputs": output_specs,
+        "feature_layouts": [
+            {
+                "id": feature_id,
+                "feature_id": feature_id,
+                "layout_mode": "fixed_positions",
+                "required_count": 1,
+                "requirement_ids": ["feature_layout"],
+            }
+            for feature_id in feature_ids
+        ],
+        "validation_targets": [],
+    }
+    source_output_ids = source_output_ids or {str(item["id"]) for item in output_specs}
+    source_output_components = source_output_components or {
+        str(item["id"]): list(item.get("component_ids", []))
+        for item in output_specs
+    }
+    return build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids=set(component_ids),
+        source_component_symbols={component_id: f"build_{component_id}" for component_id in component_ids},
+        source_feature_components={feature_id: component_id for feature_id, component_id in zip(feature_ids, component_ids)},
+        source_feature_symbols={feature_id: f"apply_{feature_id}" for feature_id in feature_ids},
+        source_output_ids=source_output_ids,
+        source_output_components=source_output_components,
+        source_parameter_ids=set(),
+    )
+
+
 def test_up_to_capacity_preserves_operator_and_object_semantics() -> None:
     item = build_explicit_requirement_inventory(
         "Create a holder that can hold up to 5 3600 size tackle trays."
@@ -512,6 +579,143 @@ def test_relationship_requirement_keeps_all_named_participants() -> None:
     assert obligation["output_ids"] == ["base_output", "lid_output"]
     assert obligation["status"] == "source_component_output_trace"
     assert obligation["blocking"] is False
+
+
+def test_relationship_scope_preserves_relation_identity_and_blocks_missing_participant() -> None:
+    specification = {
+        "functional_requirements": [
+            {
+                "id": "base_lid_overlap",
+                "type": "assembly_relationship",
+                "scope": "relationship",
+                "relationship_id": "base_lid_overlap",
+                "relation_type": "overlaps",
+                "component_ids": ["base", "lid"],
+                "source": "user",
+                "explicit": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [
+            {"id": "base", "role": "printable_part"},
+            {"id": "lid", "role": "printable_part"},
+        ],
+        "features": [],
+        "printable_outputs": [
+            {"id": "base_output", "component_ids": ["base"]},
+            {"id": "lid_output", "component_ids": ["lid"]},
+        ],
+        "relationships": [
+            {"id": "base_lid_overlap", "relation_type": "overlaps", "component_ids": ["base", "lid"]}
+        ],
+        "validation_targets": [],
+    }
+    result = build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids={"base"},
+        source_component_symbols={"base": "build_base"},
+        source_feature_components={},
+        source_feature_symbols={},
+        source_output_ids={"base_output"},
+        source_output_components={"base_output": ["base"]},
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["scope"] == "relationship"
+    assert obligation["relationship_id"] == "base_lid_overlap"
+    assert obligation["relation_type"] == "overlaps"
+    assert obligation["component_ids"] == ["base", "lid"]
+    assert obligation["output_ids"] == ["base_output", "lid_output"]
+    assert obligation["blocking"] is True
+    assert obligation["status"] == "component_trace_missing"
+
+
+def test_cross_feature_layout_allows_one_assembled_output_for_multiple_components() -> None:
+    result = _cross_feature_case(
+        component_ids=["base", "lid"],
+        output_specs=[{"id": "assembled_output", "component_ids": ["base", "lid"]}],
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["component_ids"] == ["base", "lid"]
+    assert obligation["output_ids"] == ["assembled_output"]
+    assert obligation["status"] == "source_cross_feature_layout_trace"
+    assert obligation["blocking"] is False
+
+
+def test_cross_feature_layout_requires_complete_explicit_output_coverage_without_unrelated_outputs() -> None:
+    result = _cross_feature_case(
+        component_ids=["base", "lid"],
+        output_specs=[
+            {"id": "base_output", "component_ids": ["base"]},
+            {"id": "lid_output", "component_ids": ["lid"]},
+            {"id": "unrelated_output", "component_ids": ["base"]},
+        ],
+        source_output_ids={"base_output", "unrelated_output"},
+        source_output_components={
+            "base_output": ["base"],
+            "unrelated_output": ["base"],
+        },
+        explicit_output_ids=["base_output", "lid_output"],
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["output_ids"] == ["base_output", "lid_output"]
+    assert obligation["blocking"] is True
+    assert obligation["status"] == "output_trace_missing"
+
+
+def test_cross_feature_layout_rejects_duplicate_participant_ids() -> None:
+    specification = {
+        "functional_requirements": [
+            {
+                "id": "feature_layout",
+                "type": "orientation",
+                "scope": "cross_feature_layout",
+                "feature_ids": ["feature_base", "feature_base"],
+                "component_ids": ["base"],
+                "target": "the participating features",
+                "value": "asymmetric",
+                "source": "user",
+                "explicit": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [{"id": "base", "role": "printable_part"}],
+        "features": [
+            {"id": "feature_base", "component_id": "base", "type": "feature", "requirement_ids": ["feature_layout"]}
+        ],
+        "printable_outputs": [{"id": "base_output", "component_ids": ["base"]}],
+        "feature_layouts": [
+            {
+                "id": "feature_base",
+                "feature_id": "feature_base",
+                "layout_mode": "fixed_positions",
+                "required_count": 1,
+                "requirement_ids": ["feature_layout"],
+            }
+        ],
+        "validation_targets": [],
+    }
+    result = build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids={"base"},
+        source_component_symbols={"base": "build_base"},
+        source_feature_components={"feature_base": "base"},
+        source_feature_symbols={"feature_base": "apply_feature_base"},
+        source_output_ids={"base_output"},
+        source_output_components={"base_output": ["base"]},
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["blocking"] is True
+    assert obligation["status"] == "cross_feature_target_incompatible"
 
 
 def test_cross_feature_layout_rejects_empty_participant_set() -> None:
