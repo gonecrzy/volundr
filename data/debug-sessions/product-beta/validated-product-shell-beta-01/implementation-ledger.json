@@ -33,5 +33,5 @@
   "cad_backend_untouched": true,
   "authentication_model_untouched": true,
   "database_foundation_untouched": true,
-  "follow_up": "The offline product shell and clean local CI-equivalent pass. The single authorized live creation stopped at provider-owned design-artifact consistency before worker submission; targeted provider follow-up is required before internal beta readiness."
+  "follow_up": "The offline product shell and clean local CI-equivalent pass. The single authorized live creation stopped at an unresolved design-artifact consistency boundary before worker submission; ownership remains unresolved between provider omission of an explicit trace target and application inability to represent a component-level or cross-feature layout requirement. Targeted follow-up is required before internal beta readiness."
 }

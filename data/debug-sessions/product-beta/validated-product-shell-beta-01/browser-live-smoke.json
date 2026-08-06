@@ -1,7 +1,7 @@
 {
   "schema_version": "validated-browser-live-smoke-v1",
   "status": "stopped_at_first_failure",
-  "reason": "The clean local CI-equivalent passed, then the single authorized live browser creation reached a provider-owned design-artifact consistency failure before worker submission. No rerun was made.",
+  "reason": "The clean local CI-equivalent passed, then the single authorized live browser creation reached an unresolved design-artifact consistency boundary before worker submission. Ownership remains unresolved between provider omission of an explicit trace target and application inability to represent a component-level or cross-feature layout requirement. No rerun was made.",
   "credential_loader_change": "run-live-e2e.sh now loads GEMINI_API_KEY_2 and GEMINI_API_KEY from the repository root .env into a backend-only 0600 env file.",
   "provider_calls": 4,
   "credential_values_recorded": false

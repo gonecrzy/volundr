@@ -66,8 +66,25 @@ if [[ \"\${LIVE_TEST_MODE:-}\" == early-exit ]]; then exit 24; fi
 exit 0
 `,
   );
+  await writeFile(
+    join(stubs, "cp"),
+    `#!/usr/bin/env bash
+set -euo pipefail
+/bin/cp "$@"
+if [[ "\${LIVE_TEST_MODE:-}" == pre-playwright-failure || "\${LIVE_TEST_MODE:-}" == pre-playwright-signal ]]; then
+  printf 'pre_playwright_staging_file=%s\\n' "$1" >>"$LIVE_TEST_RECORD"
+  printf 'pre_playwright_env_file=%s\\n' "$2" >>"$LIVE_TEST_RECORD"
+fi
+if [[ "\${LIVE_TEST_MODE:-}" == pre-playwright-failure ]]; then exit 31; fi
+if [[ "\${LIVE_TEST_MODE:-}" == pre-playwright-signal ]]; then
+  kill -TERM "$PPID"
+  exit 143
+fi
+`,
+  );
   await chmod(join(workerBin, "python"), 0o755);
   await chmod(join(stubs, "npx"), 0o755);
+  await chmod(join(stubs, "cp"), 0o755);
 
   return { root, record, ready, stubs, tempDirectory };
 }
@@ -192,6 +209,37 @@ test("removes the credential staging file on early credential validation exit", 
     await rm(fixture.root, { recursive: true, force: true });
   }
 });
+
+for (const [mode, expectedCode, description] of [
+  ["pre-playwright-failure", 31, "failure"],
+  ["pre-playwright-signal", null, "signal interruption"],
+]) {
+  test(`cleans populated credential files after ${description} before Playwright starts`, async () => {
+    const fixture = await makeFixture();
+    try {
+      const result = await collectProcess(spawnWrapper(fixture, mode));
+      if (mode === "pre-playwright-signal") {
+        assert.equal(result.code, expectedCode, result.output);
+        assert.equal(result.signal, "SIGTERM", result.output);
+      } else {
+        assert.equal(result.code, expectedCode, result.output);
+        assert.equal(result.signal, null, result.output);
+      }
+      assert.doesNotMatch(result.output, /root-(secondary|primary)-test-value/);
+
+      const record = await readFile(fixture.record, "utf8");
+      const stagingFile = record.match(/^pre_playwright_staging_file=(.+)$/m)?.[1];
+      const environmentFile = record.match(/^pre_playwright_env_file=(.+)$/m)?.[1];
+      assert.ok(stagingFile, record);
+      assert.ok(environmentFile, record);
+      await assert.rejects(readFile(stagingFile), { code: "ENOENT" });
+      await assert.rejects(readFile(environmentFile), { code: "ENOENT" });
+      assert.doesNotMatch(record, /browser_(secondary|primary)_nonempty=/);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+}
 
 test("uses the repository root env values over process credential values", async () => {
   const fixture = await makeFixture();

@@ -30,12 +30,22 @@ read_gemini_credentials() {
   printf 'export GEMINI_API_KEY=%q\n' "$process_primary"
 }
 
+gemini_credentials_file=""
+backend_env_file=""
+remove_staged_credential_file() {
+  rm -f "${gemini_credentials_file:-}"
+}
+remove_credential_files() {
+  remove_staged_credential_file
+  rm -f "${backend_env_file:-}"
+}
+
 gemini_credentials_file="$(mktemp)"
 chmod 600 "$gemini_credentials_file"
+trap remove_credential_files EXIT
 read_gemini_credentials >"$gemini_credentials_file"
 # The validated transport uses GEMINI_API_KEY_2 first and GEMINI_API_KEY as fallback.
 if ! ( . "$gemini_credentials_file"; [[ -n "${GEMINI_API_KEY_2:-}" || -n "${GEMINI_API_KEY:-}" ]] ); then
-  rm -f "$gemini_credentials_file"
   printf '%s\n' "Live Gemini E2E requires GEMINI_API_KEY_2 or GEMINI_API_KEY in the environment or repository .env." >&2
   exit 2
 fi
@@ -44,7 +54,7 @@ live_data_dir="$(mktemp -d /tmp/volundr-live-e2e.XXXXXX)"
 backend_env_file="$(mktemp /tmp/volundr-live-backend-env.XXXXXX)"
 chmod 600 "$backend_env_file"
 cp "$gemini_credentials_file" "$backend_env_file"
-rm -f "$gemini_credentials_file"
+remove_staged_credential_file
 . "$backend_env_file"
 
 gemini_key="${GEMINI_API_KEY:-}"
@@ -80,7 +90,7 @@ cleanup() {
     test_status=1
   fi
 
-  rm -f "$backend_env_file"
+  remove_credential_files
   if [[ "${VOLUNDR_KEEP_LIVE_DATA:-}" == "true" ]]; then
     printf '%s\n' "Live E2E data preserved at $live_data_dir" >&2
   else

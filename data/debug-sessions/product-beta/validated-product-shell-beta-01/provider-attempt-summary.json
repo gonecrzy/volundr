@@ -13,6 +13,10 @@
     {"stage": "compact_plan", "status": "succeeded", "attempts": 1},
     {"stage": "source_generation", "status": "failed_design_artifact_inconsistent", "attempts": 2}
   ],
+  "source_generation_attempt_roles": [
+    {"attempt": 1, "role": "initial_source_generation", "http_status": 200, "outcome": "design_artifact_inconsistent"},
+    {"attempt": 2, "role": "bounded_source_generation_repair", "http_status": 200, "outcome": "design_artifact_inconsistent"}
+  ],
   "transport_retries": 0,
   "worker_calls": 0,
   "first_incorrect_boundary": "design_artifact_inconsistent",
@@ -25,7 +29,12 @@
     ],
     "explicit_feature_link": false,
     "validation_target_count": 0,
-    "application_action": "fail_closed_on_ambiguous_requirement_trace"
+    "application_action": "fail_closed_on_ambiguous_requirement_trace",
+    "ownership": "unresolved",
+    "unresolved_ownership_boundary": {
+      "provider_omission": "The provider omitted an explicit trace target.",
+      "application_limitation": "The application cannot safely represent a component-level or cross-feature layout requirement without that target."
+    }
   },
   "rerun": false,
   "followup_attempt_evidence": "provider-attempt-summary-followup-02.json"
