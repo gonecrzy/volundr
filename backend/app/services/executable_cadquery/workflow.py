@@ -400,11 +400,13 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 provider_attempt["failure_class"] = failure_class
                 provider_attempt["normalized_error"] = normalized_error
             except Exception as exc:
+                normalized_error = safe_diagnostic(str(exc))
                 failure_class = failure_class or classify_executable_failure(
-                    failure_boundary, {"message": safe_diagnostic(str(exc))}
+                    failure_boundary, {"message": normalized_error}
                 )
                 provider_attempt["status"] = "failed"
                 provider_attempt["failure_class"] = failure_class
+                provider_attempt["normalized_error"] = normalized_error
 
             failure_class = failure_class or "source_execution_error"
             current_result_hash = current_result_hash or source_result_hash(
@@ -636,6 +638,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         messages = {
             "provider_response_contract_failure": "Gemini did not return a compatible complete-source response.",
             "response_empty_or_extraction_failure": "Gemini did not return one complete Python module.",
+            "authentication_failure": "Gemini authentication failed before source generation.",
+            "missing_provider_credentials": "Gemini credentials are not configured.",
             "python_syntax_error": "The generated source did not satisfy the executable CadQuery source contract.",
             "source_contract_violation": "The generated source did not satisfy the executable CadQuery source contract.",
             "cadquery_api_error": "The CAD worker could not execute the generated source.",

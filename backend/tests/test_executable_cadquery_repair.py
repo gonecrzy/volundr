@@ -105,6 +105,17 @@ def test_failure_taxonomy_is_normalized(boundary: str, evidence: dict, expected:
     assert classify_executable_failure(boundary, evidence) == expected
 
 
+def test_provider_authentication_failures_do_not_enter_source_repair() -> None:
+    assert classify_executable_failure(
+        "provider_response",
+        {"message": "The provider authentication check failed."},
+    ) == "authentication_failure"
+    assert classify_executable_failure(
+        "provider_response",
+        {"message": "primary Gemini credential is not configured"},
+    ) == "missing_provider_credentials"
+
+
 def test_l1_progress_accepts_later_phase_and_additional_output() -> None:
     comparison = compare_executable_progress(
         "L1",

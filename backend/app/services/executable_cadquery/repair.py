@@ -34,6 +34,10 @@ def classify_executable_failure(boundary: str, evidence: Mapping[str, Any] | Non
     failure_kind = str(facts.get("failure_kind") or "").lower()
     boundary = str(boundary or "").lower()
 
+    if facts.get("missing_provider_credentials") or "credential is not configured" in message:
+        return "missing_provider_credentials"
+    if facts.get("authentication_failure") or "authentication" in message or "unauthorized" in message:
+        return "authentication_failure"
     if boundary == "provider_response" and failure_kind == "response_empty_or_extraction_failure":
         return "response_empty_or_extraction_failure"
     if boundary == "provider_response" or facts.get("schema_error"):
