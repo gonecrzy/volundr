@@ -82,10 +82,17 @@ def test_blind_review_packet_excludes_producer_history_and_source_quality() -> N
         clarifications=[{"question": "Units?", "answer": "mm"}],
         revisions=[{"instruction": "Keep the output identity."}],
         final_output_identities=report["output_identities"],
-        package_manifest={"canonical_output_ids": report["output_identities"]},
         neutral_measurement_report=report,
         fixed_views=["front.png", "isometric.png"],
         units="mm",
+        package_manifest={
+            "schema_version": "package-v1",
+            "canonical_output_ids": ["mounting_bracket_regression"],
+            "artifacts": [{"output_id": "mounting_bracket_regression", "sha256": "hash"}],
+            "provider_and_contract_provenance": {"repair_history": ["must not be shared"]},
+            "semantic_verification": {"status": "must not be shared"},
+            "source": "must not be shared",
+        },
         producer_history={"repair_history": ["must not be shared"], "source": "must not be shared"},
     )
 
@@ -94,6 +101,24 @@ def test_blind_review_packet_excludes_producer_history_and_source_quality() -> N
     serialized = json.dumps(packet, sort_keys=True)
     assert "repair_history" not in serialized
     assert "must not be shared" not in serialized
+
+
+def test_blind_review_record_normalizes_requirement_verdicts() -> None:
+    record = build_blind_review_record(
+        review_cycle=1,
+        reviewer_result={
+            "reviewer": "blind_codex_cad_qa_v1",
+            "requirements": [
+                {"requirement_id": "body_dimensions", "verdict": "satisfied"},
+                {"requirement_id": "hole", "verdict": "violated"},
+            ],
+            "final_verdict": "FAIL",
+        },
+        candidate_policy={"state": "candidate_ready_for_review", "blockers": []},
+    )
+
+    assert [item["verdict"] for item in record["requirements"]] == ["satisfied", "violated"]
+    assert record["final_verdict"] == "FAIL"
 
 
 def test_blind_review_pass_is_vetoed_by_deterministic_volundr_failure() -> None:

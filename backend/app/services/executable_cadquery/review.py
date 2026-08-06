@@ -40,7 +40,7 @@ def build_blind_review_packet(
         "clarifications": [deepcopy(dict(item)) for item in clarifications if isinstance(item, Mapping)],
         "revisions": [deepcopy(dict(item)) for item in revisions if isinstance(item, Mapping)],
         "final_output_identities": [str(item) for item in final_output_identities],
-        "package_manifest": deepcopy(dict(package_manifest)),
+        "package_manifest": _review_safe_package_manifest(package_manifest),
         "neutral_measurement_report": deepcopy(dict(neutral_measurement_report)),
         "fixed_views": [str(item) for item in fixed_views],
         "units": str(units),
@@ -59,7 +59,7 @@ def build_blind_review_record(
     for item in reviewer_result.get("requirements", []):
         if not isinstance(item, Mapping) or not item.get("requirement_id"):
             continue
-        verdict = _verdict(item.get("verdict"))
+        verdict = _requirement_verdict(item.get("verdict"))
         discrepancies = item.get("discrepancies", [])
         if not isinstance(discrepancies, list):
             discrepancies = [str(discrepancies)]
@@ -91,9 +91,11 @@ def build_blind_review_record(
         accepted = True
     return {
         "schema_version": BLIND_REVIEW_RECORD_VERSION,
+        "reviewer": str(reviewer_result.get("reviewer") or "blind_codex_cad_qa_v1"),
         "review_cycle": int(review_cycle),
         "requirements": requirements,
         "revision_preservation": deepcopy(reviewer_result.get("revision_preservation", {})),
+        "discrepancies": deepcopy(reviewer_result.get("discrepancies", [])),
         "final_verdict": final_verdict,
         "candidate_policy_state": state,
         "deterministic_blockers": deterministic_blockers,
@@ -106,3 +108,34 @@ def _verdict(value: Any) -> str:
     verdict = str(value or "UNCERTAIN").upper()
     return verdict if verdict in REVIEW_VERDICTS else "UNCERTAIN"
 
+
+def _requirement_verdict(value: Any) -> str:
+    normalized = str(value or "uncertain").strip().lower()
+    return {
+        "pass": "satisfied",
+        "passed": "satisfied",
+        "satisfied": "satisfied",
+        "fail": "violated",
+        "failed": "violated",
+        "violated": "violated",
+        "uncertain": "uncertain",
+        "unknown": "uncertain",
+    }.get(normalized, "uncertain")
+
+
+def _review_safe_package_manifest(package_manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Project package facts without producer decisions or source history."""
+
+    source = dict(package_manifest)
+    safe: dict[str, Any] = {}
+    for key in (
+        "schema_version",
+        "canonical_output_ids",
+        "revision_id",
+        "prior_revision_relationship",
+        "artifacts",
+        "units",
+    ):
+        if key in source:
+            safe[key] = deepcopy(source[key])
+    return safe
