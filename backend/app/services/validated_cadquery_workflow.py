@@ -591,7 +591,6 @@ class ValidatedCadQueryWorkflowService:
         workflow = self._get(workflow_id, project_id=project_id)
         if workflow is None:
             raise LookupError("validated workflow not found")
-        self._observe_feature_flag(workflow)
         outputs = [
             ValidatedOutputRead(
                 output_id=output.output_id,
@@ -643,7 +642,7 @@ class ValidatedCadQueryWorkflowService:
 
     def verification(self, workflow_id: str, *, project_id: str | None = None) -> ValidatedVerificationRead:
         workflow = self._require_workflow(workflow_id, project_id=project_id)
-        state = self.read(workflow.id)
+        state = self.read(workflow.id, project_id=project_id)
         return ValidatedVerificationRead(
             workflow_id=workflow.id,
             state=workflow.state,
@@ -657,8 +656,6 @@ class ValidatedCadQueryWorkflowService:
 
     def artifacts(self, workflow_id: str, *, project_id: str | None = None) -> list[ValidatedArtifactRead]:
         workflow = self._require_workflow(workflow_id, project_id=project_id)
-        self.reconcile_artifacts(workflow)
-        self.db.commit()
         result: list[ValidatedArtifactRead] = []
         revision = self.db.get(Revision, workflow.revision_id) if workflow.revision_id else None
         if revision is not None:
