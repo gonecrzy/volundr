@@ -4,8 +4,8 @@
   "classification": "authoritative_remote_ci_unavailable",
   "equivalent_gate": "local_clean_ci_equivalent_passed",
   "checkout": {
-    "path": "/tmp/volundr-clean-final.ixwHZL",
-    "commit": "d61df539aea3f98074380eb863207588e7a129be",
+    "path": "/tmp/volundr-clean-component-fix.6m3iwc/checkout",
+    "commit": "8e3cb63829d22e5e5399690e0f842b9762aa7455",
     "worktree_clean_at_start": true,
     "repository_env_present": false,
     "tracked_runtime_databases": false,
@@ -17,7 +17,7 @@
     "dependencies": "fresh editable install from backend[test]",
     "database": "new disposable SQLite at checkout data/app.db",
     "migration_chain": {"upgrade_head": true, "downgrade_base": true, "upgrade_head_again": true, "alembic_check": true, "head": "0039_align_fresh_database_schema"},
-    "tests": {"passed": 1246, "skipped": 1, "failed": 0}
+    "tests": {"passed": 1248, "skipped": 1, "failed": 0}
   },
   "frontend": {
     "dependencies": "npm ci from package-lock.json",
@@ -31,8 +31,9 @@
     "localhost_api_port_boundary": "passed",
     "worker_credential_boundary": "passed",
     "nginx_config_test": "passed",
-    "built_asset_secret_scan": "passed"
+    "built_asset_secret_scan": "passed",
+    "credential_loader_tests": {"passed": 6, "failed": 0}
   },
   "provider_calls": 0,
-  "note": "The subsequent live-harness-only commits changed browser/live orchestration and did not alter the backend/frontend application implementation covered by this gate."
+  "note": "This fresh gate includes the component-scoped requirement trace correction at the current application commit; no repository .env, credentials, Gemini calls, browser state, or runtime database was used."
 }
