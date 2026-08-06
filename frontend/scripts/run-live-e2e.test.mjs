@@ -49,6 +49,7 @@ record=\"$LIVE_TEST_RECORD\"
 printf 'env_file=%s\\n' \"$VOLUNDR_LIVE_ENV_FILE\" >>\"$record\"
 if [[ -n \"\${GEMINI_API_KEY_2:-}\" ]]; then echo browser_secondary_nonempty=true >>\"$record\"; else echo browser_secondary_nonempty=false >>\"$record\"; fi
 if [[ -n \"\${GEMINI_API_KEY:-}\" ]]; then echo browser_primary_nonempty=true >>\"$record\"; else echo browser_primary_nonempty=false >>\"$record\"; fi
+echo browser_executable_enabled=\${VOLUNDR_LIVE_EXECUTABLE_CADQUERY_FLOW_ENABLED:-unset} >>\"$record\"
 if [[ \"\${LIVE_TEST_MODE:-}\" == inspect-root-env ]]; then
   . \"$VOLUNDR_LIVE_ENV_FILE\"
   if [[ \"\${GEMINI_API_KEY_2:-}\" == root-secondary-test-value && \"\${GEMINI_API_KEY:-}\" == root-primary-test-value ]]; then
@@ -148,6 +149,7 @@ async function assertCleanup(fixture, result, expectedCode) {
   await assert.rejects(readFile(environmentFile), { code: "ENOENT" });
   assert.match(record, /browser_secondary_nonempty=false/);
   assert.match(record, /browser_primary_nonempty=false/);
+  assert.match(record, /browser_executable_enabled=false/);
   assert.match(record, /worker_secondary_nonempty=false/);
   assert.match(record, /worker_primary_nonempty=false/);
 
