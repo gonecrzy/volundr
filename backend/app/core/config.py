@@ -75,6 +75,12 @@ class Settings(BaseSettings):
     gemini_api_thinking_level: str | None = Field(default="minimal")
     gemini_api_max_retries: int = Field(default=2)
     gemini_api_max_retry_sleep_seconds: float = Field(default=60.0)
+    codex_api_base_url: str = Field(default="")
+    codex_api_key: str | None = Field(default=None)
+    codex_model: str = Field(default="")
+    codex_api_mode: str = Field(default="responses")
+    codex_timeout_seconds: int = Field(default=120, gt=0)
+    codex_reasoning_effort: str | None = Field(default="xhigh")
     snapshots_enabled: bool = Field(default=True)
     # Advanced deployment switch. It is intentionally absent from the minimal
     # .env.example and is exposed to the browser only as a safe boolean.
@@ -93,6 +99,7 @@ class Settings(BaseSettings):
     # Product-facing validated CadQuery workflow.  The existing chat and
     # staged routes remain authoritative until this opt-in is enabled.
     validated_cadquery_flow_enabled: bool = Field(default=False)
+    validated_geometry_provider: str = Field(default="gemini_api")
     # Direct API access is an explicit local-development escape hatch. Normal
     # browser traffic must arrive through nginx's server-owned actor header.
     validated_api_direct_access_enabled: bool = Field(default=False)
@@ -111,6 +118,22 @@ class Settings(BaseSettings):
             raise ValueError(
                 "geometry_contract_mode must be auto, legacy_contract, or geometry_slots_v1"
             )
+        return normalized
+
+    @field_validator("codex_api_mode")
+    @classmethod
+    def validate_codex_api_mode(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized != "responses":
+            raise ValueError("codex_api_mode must be responses")
+        return normalized
+
+    @field_validator("validated_geometry_provider")
+    @classmethod
+    def validate_validated_geometry_provider(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"gemini_api", "codex_proxy"}:
+            raise ValueError("validated_geometry_provider must be gemini_api or codex_proxy")
         return normalized
 
     @field_validator("gemini_policy_path", mode="before")

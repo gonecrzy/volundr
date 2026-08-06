@@ -1,9 +1,11 @@
+import json
 from pathlib import Path
 
 import pytest
 
-from app.api.dependencies import build_ai_provider
+from app.api.dependencies import build_ai_provider, build_validated_ai_provider
 from app.core.config import Settings
+from app.services.ai.codex_proxy import ValidatedGeometryProviderRouter
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.ollama import OllamaProvider
@@ -136,3 +138,40 @@ def test_build_ai_provider_rejects_unknown_provider() -> None:
 
     with pytest.raises(ValueError, match="Unsupported AI provider"):
         build_ai_provider(settings)
+
+
+def test_validated_geometry_provider_defaults_to_gemini() -> None:
+    configured = Settings(
+        _env_file=None,
+        ai_provider="gemini_api",
+        gemini_api_key="gemini-secret",
+    )
+
+    provider = build_validated_ai_provider(configured)
+
+    assert type(provider).__name__ == "GeminiApiProvider"
+    assert configured.validated_geometry_provider == "gemini_api"
+
+
+def test_codex_validated_geometry_routing_keeps_gemini_upstream() -> None:
+    configured = Settings(
+        _env_file=None,
+        ai_provider="gemini_api",
+        gemini_api_key="gemini-secret",
+        gemini_api_key_2="gemini-secondary-secret",
+        validated_geometry_provider="codex_proxy",
+        codex_api_base_url="https://codex.test/backend-api/codex",
+        codex_api_key="codex-secret",
+        codex_model="gpt-5.6-luna",
+        codex_api_mode="responses",
+    )
+
+    provider = build_validated_ai_provider(configured)
+
+    assert isinstance(provider, ValidatedGeometryProviderRouter)
+    assert type(provider.primary_provider).__name__ == "GeminiApiProvider"
+    assert provider.primary_provider.primary_api_key == "gemini-secondary-secret"
+    assert provider.geometry_provider.api_key == "codex-secret"
+    assert provider.geometry_provider.model == "gpt-5.6-luna"
+    assert provider.provider_id == "codex_proxy"
+    assert "codex-secret" not in json.dumps(provider.primary_provider.provider_settings())

@@ -677,6 +677,23 @@ def test_cad_worker_container_policy_removes_provider_access() -> None:
     assert "COPY backend/volundr_cad ./volundr_cad" in dockerfile
 
 
+def test_codex_configuration_is_api_container_only() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    compose = (repo_root / "docker-compose.yml").read_text(encoding="utf-8")
+    api_block = compose.split("\n  volundr-api:", 1)[1].split("\n  volundr-cad-worker:", 1)[0]
+    web_block = compose.split("\n  volundr-web:", 1)[1].split("\n  volundr-api:", 1)[0]
+    worker_block = compose.split("\n  volundr-cad-worker:", 1)[1]
+    frontend_dockerfile = (repo_root / "frontend/Dockerfile").read_text(encoding="utf-8")
+
+    assert "VOLUNDR_CODEX_API_BASE_URL" in api_block
+    assert "VOLUNDR_CODEX_API_KEY" in api_block
+    assert "VOLUNDR_CODEX_MODEL" in api_block
+    assert "VOLUNDR_CODEX_API_MODE" in api_block
+    assert "VOLUNDR_CODEX" not in web_block
+    assert "VOLUNDR_CODEX" not in worker_block
+    assert "VOLUNDR_CODEX" not in frontend_dockerfile
+
+
 def test_backend_package_declares_cadquery_runtime_dependency() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     pyproject = tomllib.loads((repo_root / "backend/pyproject.toml").read_text(encoding="utf-8"))

@@ -24,6 +24,11 @@ def test_normal_environment_example_has_only_deployment_decisions() -> None:
         "VOLUNDR_AI_PROVIDER",
         "GEMINI_API_KEY",
         "VOLUNDR_GEMINI_MODEL",
+        "VOLUNDR_VALIDATED_GEOMETRY_PROVIDER",
+        "VOLUNDR_CODEX_API_BASE_URL",
+        "VOLUNDR_CODEX_API_KEY",
+        "VOLUNDR_CODEX_MODEL",
+        "VOLUNDR_CODEX_API_MODE",
     }
 
 

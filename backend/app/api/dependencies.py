@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import Depends, Header, HTTPException
 
 from app.core.config import Settings, settings
+from app.services.ai.codex_proxy import CodexProxyProvider, ValidatedGeometryProviderRouter
 from app.services.ai.provider import AiProvider
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
@@ -112,12 +113,35 @@ def get_ai_provider() -> AiProvider:
     return build_ai_provider(settings)
 
 
+def build_validated_ai_provider(config: Settings) -> AiProvider:
+    """Build the validated path, replacing only geometry when explicitly selected."""
+
+    primary_provider = build_ai_provider(config, validated_transport=True)
+    if config.validated_geometry_provider == "gemini_api":
+        return primary_provider
+    if not isinstance(primary_provider, GeminiApiProvider):
+        raise ValueError("codex_proxy geometry requires the Gemini API upstream provider")
+    geometry_provider = CodexProxyProvider(
+        api_key=config.codex_api_key,
+        base_url=config.codex_api_base_url,
+        model=config.codex_model,
+        api_mode=config.codex_api_mode,
+        reasoning_effort=config.codex_reasoning_effort,
+        timeout_seconds=config.codex_timeout_seconds,
+        prompt_builder=primary_provider,
+    )
+    return ValidatedGeometryProviderRouter(
+        primary_provider=primary_provider,
+        geometry_provider=geometry_provider,
+    )
+
+
 def get_validated_ai_provider(provider: AiProvider = Depends(get_ai_provider)) -> AiProvider:
     """Use the existing provider boundary with the validated transport policy."""
 
-    if not isinstance(provider, GeminiApiProvider):
+    if settings.validated_geometry_provider == "gemini_api" and not isinstance(provider, GeminiApiProvider):
         return provider
-    return build_ai_provider(settings, validated_transport=True)
+    return build_validated_ai_provider(settings)
 
 
 def get_validated_actor_id(
