@@ -34,8 +34,12 @@ from app.services.executable_cadquery.repair import (
     build_executable_cadquery_repair_envelope,
     classify_executable_failure,
     compare_executable_progress,
-    decide_executable_repair,
     source_result_hash,
+)
+from app.services.executable_cadquery.recovery import (
+    FailureObservation,
+    RecoveryDecision,
+    RecoveryRouter,
 )
 from app.services.executable_cadquery.semantic import evaluate_executable_cadquery_semantics
 from app.services.projects.service import ProjectService
@@ -47,6 +51,10 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     """Route complete Gemini source through the existing execution/persistence path."""
 
     route = "executable-cadquery-v1"
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        self._recovery_router = RecoveryRouter()
 
     async def start_design(
         self,
@@ -520,15 +528,24 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 }
             )
             decision_level = level if level != "initial" else self._next_repair_level(failure_boundary)
-            decision = decide_executable_repair(
-                repair_level=decision_level,
-                repair_ordinal=repair_ordinals.get(decision_level, 0),
-                source_hash=current_source_hash,
-                previous_source_hash=previous_source_hash,
+            recovery_observation = FailureObservation(
+                observed_stage=self._recovery_router.earliest_stage(failure_boundary, failure_class),
                 failure_class=failure_class,
-                previous_failure_class=previous_failure_class,
+                evidence={
+                    **comparison_facts,
+                    "failure_boundary": failure_boundary,
+                    "normalized_error": normalized_error,
+                    "diagnostic": diagnostic,
+                    "semantic_policy": semantic_result.get("policy_summary"),
+                },
+                attempt_ordinal=repair_ordinals.get(decision_level, 0) + 1,
                 progress=progress,
             )
+            recovery_decision = self._recovery_router.route(recovery_observation)
+            self._persist_recovery_decision(workflow, recovery_decision)
+            # The decision must be durable before any subsequent provider or
+            # subsystem action is allowed to run.
+            self.db.commit()
             previous_source = self._source_for_revision(revision_id) or previous_source
             previous_source = extracted_source or previous_source
             previous_source_hash = current_source_hash or previous_source_hash
@@ -537,17 +554,29 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             previous_normalized_error = normalized_error
             previous_failure_class = failure_class
             previous_comparison_facts = comparison_facts
-            if (
-                decision["decision"] != "repair"
-                or attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET
-            ):
+            provider_repair_actions = {
+                "gemini_contract_repair",
+                "gemini_execution_repair",
+                "gemini_topology_repair",
+                "gemini_semantic_repair",
+            }
+            can_execute_provider_repair = (
+                recovery_decision.recommended_action in provider_repair_actions
+                and recovery_decision.repair_level is not None
+                and not recovery_decision.terminal
+            )
+            if not can_execute_provider_repair or attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
+                if attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
+                    terminal_reason = recovery_decision.terminal_reason or "operation_budget_exhausted"
+                else:
+                    terminal_reason = recovery_decision.terminal_reason or "recovery_action_requires_execution_adapter"
                 self._record_executable_provenance(
                     workflow,
                     attempt_count=attempt_count,
                     history=history,
                     source_hash=previous_source_hash,
                     semantic_result=semantic_result,
-                    terminal_reason=decision.get("stop_reason") or "operation_budget_exhausted",
+                    terminal_reason=terminal_reason,
                 )
                 if workflow.revision_id is None and revision_id:
                     revision = self.db.get(Revision, revision_id)
@@ -559,8 +588,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "kind": failure_class,
                         "message": self._safe_failure_message(failure_class),
                         "first_incorrect_boundary": failure_boundary,
-                        "repair_level": decision_level,
+                        "repair_level": recovery_decision.repair_level or decision_level,
                         "repair_progress": progress.get("progress_result"),
+                        "recovery_action": recovery_decision.recommended_action,
+                        "recovery_terminal": recovery_decision.terminal,
+                        "recovery_terminal_reason": recovery_decision.terminal_reason,
                         "diagnostic": diagnostic,
                         "raw_response_hash": provider_attempt.get("raw_response_hash"),
                         "extracted_source_hash": current_source_hash,
@@ -575,7 +607,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 workflow.state_version += 1
                 self.db.commit()
                 return self.read(workflow.id)
-            level = decision_level
+            level = recovery_decision.repair_level or decision_level
             repair_ordinals[level] = repair_ordinals.get(level, 0) + 1
 
         raise ValueError("executable provider operation budget exhausted")
@@ -729,6 +761,31 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         if terminal_reason:
             provenance["terminal_reason"] = terminal_reason
         workflow.provenance_json = json.dumps(provenance, sort_keys=True, default=str)
+
+    @staticmethod
+    def _persist_recovery_decision(
+        workflow: ValidatedCadQueryWorkflow,
+        decision: RecoveryDecision,
+    ) -> None:
+        """Persist a router decision before its executor is invoked.
+
+        The router remains side-effect free.  This orchestrator method is the
+        durable boundary: callers commit the workflow transaction before
+        dispatching any provider, worker, verifier, exporter, or preview work.
+        """
+
+        record = decision.to_record()
+        provenance = _json_dict(workflow.provenance_json)
+        history = provenance.get("recovery_decisions")
+        if not isinstance(history, list):
+            history = []
+        history.append(record)
+        provenance["recovery_decisions"] = history
+        workflow.provenance_json = json.dumps(provenance, sort_keys=True, default=str)
+
+        diagnostics = _json_dict(workflow.diagnostics_json)
+        diagnostics["latest_recovery_decision"] = record
+        workflow.diagnostics_json = json.dumps(diagnostics, sort_keys=True, default=str)
 
     @staticmethod
     def _safe_failure_message(failure_class: str) -> str:

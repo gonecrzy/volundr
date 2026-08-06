@@ -14,6 +14,7 @@ from app.services.executable_cadquery.dialect import (
     cadquery_v1_source_dialect_hash,
     cadquery_v1_source_skeleton_hash,
 )
+from app.services.executable_cadquery.recovery import RecoveryRouter
 
 
 REPAIR_ENVELOPE_SCHEMA_VERSION = "executable-cadquery-repair-envelope-v1"
@@ -33,77 +34,9 @@ _IMMEDIATE_STOP_FAILURES = {
 
 
 def classify_executable_failure(boundary: str, evidence: Mapping[str, Any] | None) -> str:
-    """Normalize structured evidence into the repair taxonomy."""
+    """Compatibility wrapper around the centralized recovery classifier."""
 
-    facts = evidence if isinstance(evidence, Mapping) else {}
-    message = str(facts.get("normalized_error") or facts.get("message") or "").lower()
-    exception_type = str(facts.get("exception_type") or "").lower()
-    failure_kind = str(facts.get("failure_kind") or "").lower()
-    boundary = str(boundary or "").lower()
-
-    if facts.get("missing_provider_credentials") or "credential is not configured" in message:
-        return "missing_provider_credentials"
-    if facts.get("worker_environment_failure") or facts.get("worker_failure_class") == "worker_environment_failure":
-        return "worker_environment_failure"
-    if facts.get("authentication_failure") or "authentication" in message or "unauthorized" in message:
-        return "authentication_failure"
-    if boundary == "provider_response" and failure_kind == "response_empty_or_extraction_failure":
-        return "response_empty_or_extraction_failure"
-    if boundary == "provider_response" or facts.get("schema_error"):
-        return "provider_response_contract_failure"
-    if boundary in {"auth", "authentication"}:
-        return "authentication_failure"
-    if boundary in {"authorization", "permission"}:
-        return "authorization_failure"
-    if boundary in {"database", "database_integrity"}:
-        return "database_integrity_failure"
-    if boundary == "artifact" and facts.get("root_escape"):
-        return "artifact_root_escape"
-    if boundary == "artifact":
-        if facts.get("stl_failure"):
-            return "stl_export_failure"
-        if facts.get("step_failure"):
-            return "step_export_failure"
-        return "artifact_integrity_failure"
-    if boundary == "source_contract":
-        if failure_kind == "python_syntax_error" or "syntax" in message or "parse" in message:
-            return "python_syntax_error"
-        return "source_contract_violation"
-    if boundary == "execution":
-        if facts.get("timed_out") or "timeout" in message:
-            return "worker_timeout"
-        if exception_type == "nameerror" or "nameerror" in message:
-            return "python_name_error"
-        if exception_type == "typeerror" or "typeerror" in message:
-            return "python_type_error"
-        if "selector" in message or "selector" in exception_type:
-            return "cadquery_selector_error"
-        if "cadquery" in message or "ocp" in message:
-            return "cadquery_api_error"
-        return "source_execution_error"
-    if boundary == "topology":
-        if facts.get("empty") or facts.get("volume", 1) in {0, 0.0, None}:
-            return "empty_shape"
-        if facts.get("unsupported"):
-            return "unsupported_shape"
-        if facts.get("invalid") or facts.get("valid") is False:
-            if facts.get("expected_solid_count") != facts.get("detected_solid_count"):
-                return "solid_count_mismatch"
-            return "invalid_shape"
-        if facts.get("expected_solid_count") != facts.get("detected_solid_count"):
-            return "solid_count_mismatch"
-        return "topology_validation_failure"
-    if boundary in {"semantic", "semantic_verification", "protected_facts"}:
-        if facts.get("protected_fact_regression") or facts.get("regressed"):
-            return "protected_fact_regression"
-        if facts.get("unverifiable"):
-            return "semantic_requirement_unverifiable"
-        return "semantic_requirement_failed"
-    if facts.get("worker_environment_failure"):
-        return "worker_environment_failure"
-    if facts.get("missing_provider_credentials"):
-        return "missing_provider_credentials"
-    return "source_execution_error"
+    return RecoveryRouter.classify_failure(boundary, evidence)
 
 
 def build_executable_cadquery_repair_envelope(
