@@ -11,6 +11,7 @@ The smallest standard Gemini API deployment is:
 
 ```dotenv
 VOLUNDR_WEB_PORT=8080
+VOLUNDR_API_BIND_ADDRESS=127.0.0.1
 VOLUNDR_API_PORT=8000
 VOLUNDR_DATA_DIR=./data
 VOLUNDR_AI_PROVIDER=gemini_api
@@ -22,6 +23,13 @@ The API key is read only by `volundr-api`. It is never compiled into the
 frontend or passed to the CadQuery worker. Same-origin Compose deployment does
 not require a CORS override. `VOLUNDR_CORS_ORIGINS` remains available for a
 separate frontend origin.
+
+The API host binding defaults to loopback. Browser requests use nginx as the
+normal boundary; nginx removes client identity and authorization headers and
+sets the fixed server-owned `volundr-single-user` actor. For isolated local
+development only, set `VOLUNDR_VALIDATED_API_DIRECT_ACCESS_ENABLED=true` and
+send `X-Volundr-Direct-Access: true`; the API still uses the fixed actor and
+never trusts a caller-selected actor or bearer value.
 
 ## Precedence and compatibility
 
@@ -66,7 +74,8 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | Variable | Consumer | Current default | Classification | Supported | Example | Replacement, derivation, or deprecation |
 | --- | --- | --- | --- | --- | --- | --- |
 | `VOLUNDR_WEB_PORT` | Compose | `8080` | common deployment setting | yes | yes | Host port for nginx. |
-| `VOLUNDR_API_PORT` | Compose | `8000` | common deployment setting | yes | yes | Host port for FastAPI. |
+| `VOLUNDR_API_BIND_ADDRESS` | Compose | `127.0.0.1` | security deployment setting | yes | yes | Host bind address for FastAPI; keep loopback unless direct access is intentionally controlled. |
+| `VOLUNDR_API_PORT` | Compose | `8000` | common deployment setting | yes | yes | Host port for FastAPI on the configured bind address. |
 | `VOLUNDR_DATA_DIR` | API, worker, Compose | `/app/data` in containers; `./data` in example | common deployment setting | yes | yes | Authoritative data root; child paths derive from it. |
 | `VOLUNDR_CAD_WORKSPACE_DIR` | API, worker, live harness | `${VOLUNDR_DATA_DIR}/jobs` | advanced operational override | yes | no | Explicit override retained for split/container and live layouts; otherwise derived. |
 | `VOLUNDR_CAD_TIMEOUT_SECONDS` | API, worker | `60` | advanced operational override | yes | no | Typed CAD execution default. |
@@ -75,6 +84,7 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_MAX_SOURCE_BYTES` | API | `512000` | advanced operational override | yes | no | Typed source safety limit. |
 | `VOLUNDR_MAX_STL_BYTES` | API | `104857600` | advanced operational override | yes | no | Typed artifact safety limit. |
 | `VOLUNDR_DEVELOPER_TOOLS_ENABLED` | API and Compose | `false` | advanced developer deployment setting | yes | no | Backend-authoritative switch for live debug batches; never expose credentials or rely on frontend hiding. |
+| `VOLUNDR_VALIDATED_API_DIRECT_ACCESS_ENABLED` | API and Compose | `false` | local-development security override | yes | commented | Allows direct loopback API requests only with `X-Volundr-Direct-Access: true`; all requests still resolve to the fixed single-user actor. |
 | `VOLUNDR_AI_PROVIDER` | API | `gemini_api` | common deployment setting | yes | yes | Provider-aware startup and request validation. |
 | `GEMINI_API_KEY` | API | unset | required secret | yes | yes | Required only when live Gemini API requests are made. |
 | `VOLUNDR_GEMINI_API_KEY` | API | unset | deprecated compatibility variable | yes | no | Alias for `GEMINI_API_KEY`; migrate to the unprefixed secret. |

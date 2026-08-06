@@ -33,13 +33,13 @@ describe("validated CadQuery workflow presentation", () => {
       calls.push({ url: String(input), init });
       return new Response(JSON.stringify({ id: "workflow-1", project_id: "project-1", outputs: [] }), { status: 200 });
     };
-    const api = createValidatedWorkflowApi("/api", "actor-1", fetcher);
+    const api = createValidatedWorkflowApi("/api", fetcher);
 
     await api.startDesign("Design", "Intent", "request-1");
     await api.getWorkflow("workflow-1", "project-1");
 
     expect(calls[0].url).toBe("/api/validated-cadquery/designs");
-    expect((calls[0].init?.headers as Record<string, string>)["X-Volundr-Actor-Id"]).toBe("actor-1");
+    expect((calls[0].init?.headers as Record<string, string>)["X-Volundr-Actor-Id"]).toBeUndefined();
     expect((calls[0].init?.headers as Record<string, string>)["Idempotency-Key"]).toBe("request-1");
     expect(calls[1].url).toBe("/api/validated-cadquery/projects/project-1/designs/workflow-1");
   });

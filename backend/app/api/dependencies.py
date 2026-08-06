@@ -13,6 +13,9 @@ from app.services.gemini_consistency.interaction_capture import ImmutableInterac
 from app.services.gemini_consistency.system_boundary_methods import METHOD_IDS, process_provider_text
 
 
+VALIDATED_SINGLE_USER_ACTOR_ID = "volundr-single-user"
+
+
 def get_data_dir() -> Path:
     return settings.data_dir
 
@@ -118,27 +121,22 @@ def get_validated_ai_provider(provider: AiProvider = Depends(get_ai_provider)) -
 
 
 def get_validated_actor_id(
+    x_volundr_internal_actor: str | None = Header(default=None, alias="X-Volundr-Internal-Actor"),
     x_volundr_actor_id: str | None = Header(default=None),
     authorization: str | None = Header(default=None),
+    x_volundr_direct_access: str | None = Header(default=None, alias="X-Volundr-Direct-Access"),
 ) -> str:
-    """Consume the identity supplied by the existing authentication boundary.
+    """Return the server-owned actor for the internal nginx boundary.
 
-    The product flow does not implement a second authentication system. In a
-    deployed environment the auth layer supplies this stable actor header (or
-    a bearer token that is converted to a non-secret identity). The disabled
-    route remains discoverable for local health checks without requiring auth.
+    Client-selected identity headers and bearer strings are never converted
+    into actor IDs. The direct-access header is an explicit local-development
+    override and still resolves to the same fixed single-user actor.
     """
 
-    if x_volundr_actor_id:
-        actor = x_volundr_actor_id.strip()
-    elif authorization and authorization.lower().startswith("bearer "):
-        import hashlib
-
-        actor = "bearer:" + hashlib.sha256(authorization[7:].encode("utf-8")).hexdigest()
-    elif not settings.validated_cadquery_flow_enabled:
+    if x_volundr_internal_actor == VALIDATED_SINGLE_USER_ACTOR_ID:
+        return VALIDATED_SINGLE_USER_ACTOR_ID
+    if not settings.validated_cadquery_flow_enabled:
         return "anonymous"
-    else:
-        raise HTTPException(status_code=401, detail="authentication is required")
-    if not actor or len(actor) > 160 or any(ord(char) < 32 for char in actor):
-        raise HTTPException(status_code=401, detail="authentication is required")
-    return actor
+    if settings.validated_api_direct_access_enabled and x_volundr_direct_access == "true":
+        return VALIDATED_SINGLE_USER_ACTOR_ID
+    raise HTTPException(status_code=401, detail="authentication is required")

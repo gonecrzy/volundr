@@ -66,12 +66,10 @@ export type ValidatedWorkflowArtifact = {
 
 export function createValidatedWorkflowApi(
   apiBase: string,
-  actorId = "",
   fetcher: typeof fetch = fetch,
 ) {
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (actorId.trim()) headers["X-Volundr-Actor-Id"] = actorId.trim();
     if (init?.headers) {
       Object.entries(init.headers).forEach(([key, value]) => {
         if (typeof value === "string") headers[key] = value;

@@ -93,6 +93,9 @@ class Settings(BaseSettings):
     # Product-facing validated CadQuery workflow.  The existing chat and
     # staged routes remain authoritative until this opt-in is enabled.
     validated_cadquery_flow_enabled: bool = Field(default=False)
+    # Direct API access is an explicit local-development escape hatch. Normal
+    # browser traffic must arrive through nginx's server-owned actor header.
+    validated_api_direct_access_enabled: bool = Field(default=False)
 
     @field_validator("build_dirty", "worker_build_dirty", mode="before")
     @classmethod

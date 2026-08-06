@@ -27,7 +27,7 @@ from app.services.validated_cadquery_workflow import (
 from app.testing.e2e_fixture_server import FixtureProvider, FixtureRunner
 
 
-ACTOR_HEADERS = {"X-Volundr-Actor-Id": "staging-user-1"}
+ACTOR_HEADERS = {"X-Volundr-Internal-Actor": "volundr-single-user"}
 
 
 def _app_db(tmp_path: Path):
@@ -282,6 +282,74 @@ def test_validated_api_is_idempotent_and_reads_after_flag_disable(validated_clie
     )
     assert fetched.status_code == 200
     assert fetched.json()["provenance"].get("selected_route") is None
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {},
+        {"X-Volundr-Actor-Id": "attacker-selected-actor"},
+        {"Authorization": "Bearer arbitrary-client-token"},
+        {
+            "X-Volundr-Actor-Id": "attacker-selected-actor",
+            "Authorization": "Bearer arbitrary-client-token",
+        },
+    ],
+)
+def test_validated_api_rejects_missing_or_client_selected_authentication(
+    validated_client: TestClient,
+    headers: dict[str, str],
+) -> None:
+    response = _start(validated_client, key=f"auth-rejected-{len(headers)}", actor=headers)
+
+    assert response.status_code == 401
+
+
+def test_validated_api_internal_boundary_derives_fixed_single_user_actor(
+    validated_client: TestClient,
+) -> None:
+    started = _start(validated_client, key="auth-fixed-actor")
+    assert started.status_code == 201, started.text
+
+    spoofed = validated_client.get(
+        f"/api/validated-cadquery/workflows/{started.json()['id']}",
+        headers={"X-Volundr-Actor-Id": "another-actor"},
+    )
+    assert spoofed.status_code == 401
+
+
+def test_validated_api_rejects_non_proxy_internal_actor(validated_client: TestClient) -> None:
+    response = _start(
+        validated_client,
+        key="auth-wrong-proxy-actor",
+        actor={"X-Volundr-Internal-Actor": "another-actor"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_nginx_overwrites_identity_headers() -> None:
+    nginx = Path(__file__).parents[2].joinpath("frontend", "nginx.conf").read_text(encoding="utf-8")
+
+    assert 'proxy_set_header X-Volundr-Actor-Id "";' in nginx
+    assert 'proxy_set_header Authorization "";' in nginx
+    assert 'proxy_set_header X-Volundr-Internal-Actor "volundr-single-user";' in nginx
+    assert 'proxy_set_header X-Volundr-Internal-Actor $http_' not in nginx
+
+
+def test_auth_boundary_does_not_serialize_a_server_token_or_credentials() -> None:
+    source_root = Path(__file__).parents[2]
+    frontend_source = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in source_root.joinpath("frontend", "src").rglob("*.ts*")
+    )
+    compose = source_root.joinpath("docker-compose.yml").read_text(encoding="utf-8")
+
+    assert "GEMINI_API_KEY" not in frontend_source
+    assert "VOLUNDR_API_AUTH_TOKEN" not in frontend_source
+    worker_block = compose.split("\n  volundr-cad-worker:\n", 1)[1]
+    assert "GEMINI_API_KEY" not in worker_block
+    assert "X-Volundr-Internal-Actor" not in worker_block
 
 
 def test_validated_api_rejects_cross_actor_and_wrong_project(validated_client: TestClient) -> None:

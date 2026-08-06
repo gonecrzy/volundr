@@ -13,7 +13,6 @@ type ValidatedCadQueryWorkflowViewProps = {
   enabled: boolean;
   projectId?: string;
   workflowId?: string;
-  actorId?: string;
 };
 
 function routeIds(pathname: string): { projectId?: string; workflowId?: string } {
@@ -21,7 +20,7 @@ function routeIds(pathname: string): { projectId?: string; workflowId?: string }
   return match ? { projectId: decodeURIComponent(match[1]), workflowId: decodeURIComponent(match[2]) } : {};
 }
 
-export function ValidatedCadQueryWorkflowView({ apiBase, enabled, projectId, workflowId, actorId }: ValidatedCadQueryWorkflowViewProps) {
+export function ValidatedCadQueryWorkflowView({ apiBase, enabled, projectId, workflowId }: ValidatedCadQueryWorkflowViewProps) {
   const [name, setName] = useState("Validated design");
   const [intent, setIntent] = useState("");
   const [workflow, setWorkflow] = useState<ValidatedWorkflow | null>(null);
@@ -33,8 +32,8 @@ export function ValidatedCadQueryWorkflowView({ apiBase, enabled, projectId, wor
   const [artifacts, setArtifacts] = useState<ValidatedWorkflowArtifact[]>([]);
   const [route, setRoute] = useState(() => routeIds(window.location.pathname));
   const api = useMemo(
-    () => createValidatedWorkflowApi(apiBase, actorId ?? window.sessionStorage.getItem("volundr.actor_id") ?? ""),
-    [actorId, apiBase],
+    () => createValidatedWorkflowApi(apiBase),
+    [apiBase],
   );
 
   const clarificationQuestion = useMemo(() => {
