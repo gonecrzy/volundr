@@ -216,7 +216,7 @@ def _extract_complete_source(raw_output: str) -> str:
         source = raw_output
         first_line = next((line.strip() for line in source.splitlines() if line.strip()), "")
         starts_like_python = bool(
-            re.match(r"(?:import |from |def |class |@|[A-Za-z_]\w*\s*=)", first_line)
+            re.match(r"(?:#|import |from |def |class |@|[A-Za-z_]\w*\s*=)", first_line)
         )
         if not starts_like_python:
             raise ExecutableCadQueryResponseError(

@@ -635,6 +635,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     def _safe_failure_message(failure_class: str) -> str:
         messages = {
             "provider_response_contract_failure": "Gemini did not return a compatible complete-source response.",
+            "response_empty_or_extraction_failure": "Gemini did not return one complete Python module.",
             "python_syntax_error": "The generated source did not satisfy the executable CadQuery source contract.",
             "source_contract_violation": "The generated source did not satisfy the executable CadQuery source contract.",
             "cadquery_api_error": "The CAD worker could not execute the generated source.",
