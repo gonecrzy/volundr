@@ -42,6 +42,10 @@ from app.services.executable_cadquery.recovery import (
     RecoveryRouter,
 )
 from app.services.executable_cadquery.semantic import evaluate_executable_cadquery_semantics
+from app.services.executable_cadquery.semantic_policy import (
+    derive_candidate_policy,
+    evaluate_semantic_policy,
+)
 from app.services.projects.service import ProjectService
 from app.services.validated_cadquery_security import safe_relative_artifact_path
 from app.services.validated_cadquery_workflow import ValidatedCadQueryWorkflowService, safe_diagnostic
@@ -582,8 +586,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     revision = self.db.get(Revision, revision_id)
                     if revision is not None:
                         self.sync_outputs(workflow, revision)
+                if revision_id:
+                    self._merge_verification(workflow, semantic_result)
                 workflow.failure_boundary = failure_boundary
-                workflow.diagnostics_json = json.dumps(
+                diagnostics = _json_dict(workflow.diagnostics_json)
+                diagnostics.update(
                     {
                         "kind": failure_class,
                         "message": self._safe_failure_message(failure_class),
@@ -599,9 +606,9 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "extraction_succeeded": extraction_succeeded,
                         "syntax_valid": syntax_valid,
                         "source_contract_valid": source_contract_valid,
-                    },
-                    sort_keys=True,
+                    }
                 )
+                workflow.diagnostics_json = json.dumps(diagnostics, sort_keys=True, default=str)
                 if workflow.state not in {"candidate_ready", "revision_ready"}:
                     workflow.state = "verification_failed" if failure_boundary in {"topology", "semantic"} else "failed"
                 workflow.state_version += 1
@@ -723,6 +730,20 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     def _merge_verification(workflow: ValidatedCadQueryWorkflow, semantic: dict[str, Any]) -> None:
         verification = _json_dict(workflow.verification_json)
         verification["semantic_verification"] = semantic
+        verification["candidate_policy"] = derive_candidate_policy(
+            outputs=[
+                {
+                    "output_id": output.output_id,
+                    "required": output.required,
+                    "state": output.state,
+                    "worker_status": output.worker_status,
+                    "topology_status": output.topology_status,
+                    "artifact_available": output.artifact_available,
+                }
+                for output in workflow.outputs
+            ],
+            semantic_verification=semantic,
+        )
         workflow.verification_json = json.dumps(verification, sort_keys=True)
 
     @staticmethod
@@ -821,37 +842,9 @@ def complete_executable_semantic_coverage(
     semantic_result: Mapping[str, Any],
     design_contract: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Prevent an incomplete verifier result from becoming a passing candidate."""
+    """Apply the authoritative semantic policy to verifier evidence."""
 
-    result = deepcopy(dict(semantic_result))
-    required_ids = {
-        str(item["requirement_id"])
-        for item in design_contract.get("requirements", [])
-        if isinstance(item, Mapping) and item.get("requirement_id")
-    }
-    findings = [
-        dict(item)
-        for item in result.get("findings", [])
-        if isinstance(item, Mapping) and item.get("requirement_id")
-    ]
-    found_ids = {str(item["requirement_id"]) for item in findings}
-    missing_ids = sorted(required_ids - found_ids)
-    if not missing_ids:
-        return result
-    result["unverifiable"] = sorted(
-        {str(item) for item in result.get("unverifiable", [])} | set(missing_ids)
-    )
-    result["findings"] = findings + [
-        {
-            "requirement_id": requirement_id,
-            "status": "unverifiable",
-            "measurements": {"reason": "semantic verifier did not produce a finding"},
-        }
-        for requirement_id in missing_ids
-    ]
-    if result.get("status") == "passed":
-        result["status"] = "unverifiable"
-    return result
+    return evaluate_semantic_policy(semantic_result, design_contract)
 
 
 def _number(value: Any) -> float | None:

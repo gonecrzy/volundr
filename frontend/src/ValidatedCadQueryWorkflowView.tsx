@@ -7,6 +7,7 @@ import {
   workflowStageLabel,
   workflowSummary,
   type ValidatedWorkflowArtifact,
+  type ValidatedCandidatePolicy,
   type ValidatedWorkflow,
 } from "./validatedCadQueryWorkflow";
 import { createWorkflowPoller } from "./validatedCadQueryPolling";
@@ -86,6 +87,9 @@ export function ValidatedCadQueryWorkflowView({
   const semanticVerification = (
     workflow?.verification.semantic_verification ?? executableProvenance.semantic_verification
   ) as Record<string, unknown> | undefined;
+  const candidatePolicy = workflow?.candidate_policy ?? (
+    workflow?.verification.candidate_policy as ValidatedCandidatePolicy | undefined
+  );
   const repairHistory = Array.isArray(executableProvenance.repair_history)
     ? executableProvenance.repair_history.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
     : [];
@@ -320,7 +324,7 @@ export function ValidatedCadQueryWorkflowView({
           <div className="validated-output-grid" aria-label="Validated outputs">
             {workflow.outputs.map((output) => <article className="validated-output-card" key={output.output_id}><div><h3>{output.output_id}</h3><span>{outputStateLabel(output.state)}</span></div><p>{output.solid_count == null ? "Solid count pending" : `${output.solid_count} solid${output.solid_count === 1 ? "" : "s"}`} · topology {output.topology_status ?? "pending"}</p><div className="validated-output-artifacts">{artifacts.filter((artifact) => artifact.output_id === output.output_id && artifact.available && artifact.download_url).map((artifact) => <a key={artifact.artifact_id} href={apiDownloadUrl(apiBase, artifact.download_url!)}>Download {artifact.kind.toUpperCase()}</a>)}</div>{output.safe_diagnostic ? <p className="validated-diagnostic">{output.safe_diagnostic}</p> : null}</article>)}
           </div>
-          {workflow.state === "candidate_ready" || workflow.state === "revision_ready" ? <div className="validated-workflow-actions"><button type="button" disabled={busy} onClick={() => void acceptCandidate()}>Accept candidate</button></div> : null}
+          {candidatePolicy?.state !== "candidate_blocked" && (workflow.state === "candidate_ready" || workflow.state === "revision_ready") ? <div className="validated-workflow-actions"><button type="button" disabled={busy} onClick={() => void acceptCandidate()}>Accept candidate</button></div> : null}
           {packageArtifact?.download_url ? <a className="download" href={apiDownloadUrl(apiBase, packageArtifact.download_url)}>Download design package</a> : workflow.package_available ? <span className="validated-workflow-package">Design package is being prepared.</span> : workflow.state === "partially_completed" ? <span className="validated-workflow-package">Incomplete package unavailable until every required output passes.</span> : null}
           {workflow.revision_id && workflow.package_available ? <div className="validated-workflow-revision"><h3>Make a bounded revision</h3><label>What should change?<input value={revisionInstruction} onChange={(event) => setRevisionInstruction(event.target.value)} placeholder="Change one dimension and add a feature" /></label><label>New dimension value (optional)<input value={revisionDimension} onChange={(event) => setRevisionDimension(event.target.value)} placeholder="96 mm" /></label><button type="button" disabled={busy || !revisionInstruction.trim()} onClick={() => void startRevision()}>Start revision</button></div> : null}
           {workflow.diagnostics.message ? <p className="validated-diagnostic">{String(workflow.diagnostics.message)}</p> : null}

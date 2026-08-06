@@ -88,8 +88,9 @@ def test_incomplete_semantic_coverage_cannot_be_reported_as_passed() -> None:
         },
     )
 
-    assert result["status"] == "unverifiable"
+    assert result["status"] == "unsupported_verifier"
     assert result["unverifiable"] == ["coaxial_diameters"]
+    assert result["unsupported_verifier"] == ["coaxial_diameters"]
 
 
 @pytest.mark.asyncio
@@ -130,6 +131,8 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert payload["provenance"]["source_generation_mode"] == "complete_source"
             assert payload["provenance"]["codex_proxy_used"] is False
             assert payload["state"] == "candidate_ready", next(item for item in payload["provenance"].get("semantic_verification", {}).get("findings", []) if item.get("requirement_id") == "asymmetric_through_hole")
+            assert payload["candidate_policy"]["state"] == "candidate_ready_for_review"
+            assert payload["verification"]["candidate_policy"] == payload["candidate_policy"]
             assert provider.requests[0].executable_design_contract is not None
             assert provider.requests[0].executable_repair_envelope is None
             assert payload["outputs"]

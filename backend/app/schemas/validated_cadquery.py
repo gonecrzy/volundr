@@ -65,6 +65,7 @@ class ValidatedWorkflowRead(BaseModel):
     plan: dict[str, Any] = Field(default_factory=dict)
     provenance: dict[str, Any] = Field(default_factory=dict)
     verification: dict[str, Any] = Field(default_factory=dict)
+    candidate_policy: dict[str, Any] = Field(default_factory=dict)
     diagnostics: dict[str, Any] = Field(default_factory=dict)
     package_manifest: dict[str, Any] = Field(default_factory=dict)
     package_available: bool = False
@@ -87,6 +88,7 @@ class ValidatedVerificationRead(BaseModel):
     workflow_id: str
     state: str
     verification: dict[str, Any] = Field(default_factory=dict)
+    candidate_policy: dict[str, Any] = Field(default_factory=dict)
     outputs: list[ValidatedOutputRead] = Field(default_factory=list)
 
 

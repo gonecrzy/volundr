@@ -526,6 +526,9 @@ class ValidatedCadQueryWorkflowService:
         if workflow.revision_id is None:
             raise ValueError("workflow has no candidate revision")
         self.require_enabled()
+        candidate_policy = _json_object(workflow.verification_json).get("candidate_policy")
+        if isinstance(candidate_policy, dict) and candidate_policy.get("state") == "candidate_blocked":
+            raise ValueError("candidate is blocked by deterministic verification evidence")
         operation = self._begin_operation(
             "accept_candidate",
             idempotency_key,
@@ -616,6 +619,7 @@ class ValidatedCadQueryWorkflowService:
         package_path = self._resolve_optional(workflow.package_path)
         provenance = _json_object(workflow.provenance_json)
         provenance.pop("selected_route", None)
+        verification = _json_object(workflow.verification_json)
         return ValidatedWorkflowRead(
             id=workflow.id,
             project_id=workflow.project_id,
@@ -628,7 +632,8 @@ class ValidatedCadQueryWorkflowService:
             requirements=_json_object(workflow.requirements_json),
             plan=_json_object(workflow.plan_json),
             provenance=provenance,
-            verification=_json_object(workflow.verification_json),
+            verification=verification,
+            candidate_policy=verification.get("candidate_policy", {}),
             diagnostics=_json_object(workflow.diagnostics_json),
             package_manifest=_json_object(workflow.package_manifest_json),
             package_available=package_path is not None,
@@ -652,6 +657,7 @@ class ValidatedCadQueryWorkflowService:
             workflow_id=workflow.id,
             state=workflow.state,
             verification=state.verification,
+            candidate_policy=state.candidate_policy,
             outputs=state.outputs,
         )
 

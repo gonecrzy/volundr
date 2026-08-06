@@ -31,6 +31,14 @@ export type ValidatedWorkflowOutput = {
   safe_diagnostic?: string | null;
 };
 
+export type ValidatedCandidatePolicy = {
+  state?: "candidate_blocked" | "candidate_ready_for_review" | "candidate_fully_verified";
+  blockers?: string[];
+  review_obligations?: string[];
+  eligible_for_review?: boolean;
+  fully_verified?: boolean;
+};
+
 export type ValidatedWorkflow = {
   id: string;
   project_id: string;
@@ -41,6 +49,7 @@ export type ValidatedWorkflow = {
   requirements: Record<string, unknown>;
   plan: Record<string, unknown>;
   verification: Record<string, unknown>;
+  candidate_policy: ValidatedCandidatePolicy;
   diagnostics: Record<string, unknown>;
   package_available: boolean;
   package_manifest: Record<string, unknown>;
