@@ -11,12 +11,20 @@
     {
       "commit_message": "Follow-up staging credential and revision compatibility fixes",
       "scope": "root .env credential layering, provider parameter normalization, revision repair request compatibility"
+    },
+    {
+      "commit_message": "Fix validated output semantic verification mapping",
+      "scope": "valid-geometry classification, canonical feature requirement mapping, semantic fact replay regressions"
+    },
+    {
+      "commit_message": "Validate feature-rich and partial-output product flows",
+      "scope": "live feature-rich rerun, controlled partial-output validation, restart/package/frontend evidence"
     }
   ],
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "generated_at": "2026-08-06T03:01:58.058418Z",
   "migration_ownership": "new 0039 migration owns the model/schema boundary discovered by fresh audit",
-  "pending_cycle": "Verify clean database staging baseline evidence commit",
+  "pending_cycle": "Commit final feature-rich and partial-output validation evidence",
   "source_aligned_images_rebuilt": true,
   "status": "passed"
 }

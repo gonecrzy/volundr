@@ -1,0 +1,35 @@
+{
+  "evidence_type": "narrow_fix_results",
+  "generated_at": "2026-08-06T03:42:00Z",
+  "commit": {
+    "hash": "8060cec0c04cf70a6650ef619d1da6f764c6f5f7",
+    "message": "Fix validated output semantic verification mapping"
+  },
+  "red_green_regressions": {
+    "red_observed": [
+      "valid blocked geometry was classified as not_generated",
+      "required-complete plus optional-failure aggregated as candidate_ready",
+      "canonical feature requirement-id expansion was absent",
+      "feature-rich semantic evidence replay reported missing features"
+    ],
+    "green_verified": [
+      "valid worker geometry cannot become not_generated solely from status mapping",
+      "canonical output identity survives sync and verification",
+      "missing geometry remains not_generated",
+      "invalid geometry remains invalid_shape",
+      "semantic mismatch remains semantic_verification_failed",
+      "successful sibling remains completed",
+      "candidate, partial, verification-failed, and not-generated states remain distinct",
+      "offline replay makes zero provider calls"
+    ]
+  },
+  "focused_tests": {"passed": 37, "warnings": 1},
+  "scope_constraints_verified": {
+    "models_or_provider_settings_changed": false,
+    "migrations_or_database_reset_changed": false,
+    "cad_backend_changed": false,
+    "credential_fallback_changed": false,
+    "live_provider_evidence_in_this_commit": false
+  },
+  "result": "narrow_fix_validated"
+}

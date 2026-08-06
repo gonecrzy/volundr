@@ -1,14 +1,14 @@
 {
-  "blocker": "The feature-rich creation produced valid worker geometry but application semantic verification marked its required output as not generated; multi-output partial isolation is covered by replayed product contract rather than another provider spend.",
+  "blocker": null,
   "database_integrity": "passed",
   "database_state": "clean migration baseline with controlled smoke rows only; no historical user design data restored",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T03:01:58.058418Z",
+  "generated_at": "2026-08-06T03:44:00Z",
   "legacy_routing": "passed",
-  "next_required_fix": "Align feature-rich creation semantic verification with the valid worker output before declaring the full multi-feature baseline ready.",
-  "provider_backed_product_flow": "credentialed simple and feature-rich creation probes, accepted creation, bounded revision, artifacts, packages, and restart persistence demonstrated",
+  "next_required_fix": null,
+  "provider_backed_product_flow": "credentialed simple and exact feature-rich creation, acceptance/package generation, artifact downloads, and restart persistence demonstrated",
   "schema_drift": "passed",
   "secret_values_serialized": false,
-  "status": "clean_database_requires_narrow_fix",
+  "status": "clean_database_baseline_ready",
   "validated_routing": "passed_for_flag_and_auth_boundary"
 }

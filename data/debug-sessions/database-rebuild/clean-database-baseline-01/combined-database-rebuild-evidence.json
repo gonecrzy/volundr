@@ -1,9 +1,6 @@
 {
-  "blocked": [
-    "full feature-rich creation semantic verification",
-    "real multi-output sibling failure"
-  ],
-  "blocker": "Feature-rich creation worker geometry is valid but the application semantic verifier records the required output as not generated; this is a narrow application-owned fix, not a database or credential blocker.",
+  "blocked": [],
+  "blocker": null,
   "completed": [
     "guarded reset",
     "base-to-head migration",
@@ -16,7 +13,10 @@
     "credentialed bounded revision",
     "artifact/package integrity",
     "restart persistence",
-    "fixture partial-output replay"
+    "fixture partial-output replay",
+    "narrow semantic verification fix",
+    "live feature-rich creation rerun",
+    "controlled multi-output partial validation"
   ],
   "credential_values_serialized": false,
   "database": {
@@ -48,6 +48,12 @@
     "creation-workflow.json",
     "revision-workflow.json",
     "partial-output-workflow.json",
+    "semantic-verification-reproduction.json",
+    "semantic-verification-boundary-trace.json",
+    "semantic-verification-fix-results.json",
+    "feature-rich-creation-rerun.json",
+    "live-partial-output-validation.json",
+    "final-narrow-fix-decision.json",
     "restart-recovery.json",
     "provider-attempts.json",
     "worker-jobs.json",
@@ -63,5 +69,5 @@
     "current": "0039_align_fresh_database_schema"
   },
   "scope": "clean non-production Volundr database rebuild and controlled staging baseline",
-  "status": "clean_database_requires_narrow_fix"
+  "status": "clean_database_baseline_ready"
 }

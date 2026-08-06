@@ -1,0 +1,31 @@
+{
+  "evidence_type": "controlled_multi_output_partial_validation",
+  "generated_at": "2026-08-06T03:36:00Z",
+  "injection": {
+    "kind": "explicit_test_only_output_failure",
+    "failed_sibling": "lid",
+    "provider_response_malformed": false,
+    "live_provider_spend": false,
+    "injection_removed_after_case": true
+  },
+  "product_service_validation": {
+    "required_sibling": {"output_id": "body", "state": "ready", "artifact_preserved": true},
+    "optional_sibling": {"output_id": "lid", "state": "failed", "failure_owner": "worker", "artifact_available": false},
+    "validated_workflow_aggregation": "partially_completed",
+    "legacy_assembly_review": "ready_with_warnings",
+    "successful_sibling_hidden": false,
+    "artifact_export_contains_both_outputs": true
+  },
+  "executed_regressions": [
+    "test_sync_persists_successful_sibling_when_one_output_fails",
+    "test_optional_output_failure_keeps_assembly_reviewable_with_warnings",
+    "test_retry_failed_output_uses_same_source_hash_and_does_not_call_provider",
+    "test_export_zip_contains_project_manifest_source_and_cadquery_artifacts"
+  ],
+  "frontend_validation": {
+    "partial_state_render_test": "passed",
+    "served_workflow_deep_link": 200,
+    "browser_cli": "not_run_npx_unavailable"
+  },
+  "result": "controlled_partial_isolation_passed"
+}

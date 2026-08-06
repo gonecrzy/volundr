@@ -1,0 +1,38 @@
+{
+  "evidence_type": "semantic_verification_boundary_trace",
+  "generated_at": "2026-08-06T03:42:00Z",
+  "trace_ids": {
+    "workflow_id": "99913965-0171-4715-b03c-24b76f1068e3",
+    "revision_id": "f34c71df-a2c7-4bbf-8aa5-9ebc8f937b21",
+    "output_id": "mounting_plate_output"
+  },
+  "events": [
+    {
+      "boundary": "worker_to_persistence",
+      "observed": {"success": true, "topology_valid": true, "artifact_available": true},
+      "meaning": "Valid geometry and artifacts existed before semantic classification."
+    },
+    {
+      "boundary": "persistence_to_product_sync_before_fix",
+      "observed": {"revision_execution_state": "blocked", "worker_completed": false, "product_state": "not_generated"},
+      "meaning": "The sync path treated semantic blocking as worker absence."
+    },
+    {
+      "boundary": "persistence_to_product_sync_after_fix",
+      "observed": {"revision_execution_state": "blocked", "worker_completed": true, "product_state": "semantic_verification_failed"},
+      "meaning": "Valid blocked geometry remains distinguishable from absent geometry."
+    },
+    {
+      "boundary": "plan_feature_ids_to_requirement_ids",
+      "observed": {"canonical_features_expanded": true, "feature_requirements_present": true},
+      "meaning": "Feature presence requirements now resolve through canonical feature mappings."
+    },
+    {
+      "boundary": "final_mesh_to_semantic_facts",
+      "observed": {"plate_profile": "120x70x5", "hole_profiles": 4, "slot_profiles": 1, "blocking_findings": 0},
+      "meaning": "Semantic facts are measured from valid final geometry with fail-closed behavior retained."
+    }
+  ],
+  "provider_calls": 0,
+  "result": "boundary_reconstructed_and_replayed"
+}

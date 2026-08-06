@@ -1,0 +1,49 @@
+{
+  "evidence_type": "offline_semantic_verification_reproduction",
+  "generated_at": "2026-08-06T03:42:00Z",
+  "prior_workflow_id": "99913965-0171-4715-b03c-24b76f1068e3",
+  "prior_project_id": "f0f63a1d-b2b9-455f-be53-cbc0c9d9597c",
+  "prior_revision_id": "f34c71df-a2c7-4bbf-8aa5-9ebc8f937b21",
+  "prior_output_id": "mounting_plate_output",
+  "prior_worker_job_id": "f34c71df-a2c7-4bbf-8aa5-9ebc8f937b21",
+  "captured_worker_facts": {
+    "worker_success": true,
+    "topology_valid": true,
+    "detected_solid_count": 1,
+    "bounding_box_mm": {"size_x": 120.0, "size_y": 70.0, "size_z": 5.0},
+    "artifact_paths_present": true,
+    "source_feature_ids": ["base_plate_body", "mounting_holes", "cable_slot"]
+  },
+  "persisted_pre_fix_classification": {
+    "revision_execution_state": "blocked",
+    "generation_status": "failed",
+    "worker_status": "failed",
+    "product_state": "not_generated",
+    "semantic_blocking_findings": [
+      "requirement.req_plate_count",
+      "requirement.req_mounting_holes_count",
+      "requirement.req_cable_slot_count"
+    ],
+    "artifact_available": true
+  },
+  "offline_replay": {
+    "provider_calls": 0,
+    "geometry_valid_before_fix": true,
+    "canonical_output_identity": "mounting_plate_output",
+    "blocking_findings_after_fix": [],
+    "satisfied_requirements": [
+      "plate_width",
+      "plate_depth",
+      "plate_thickness",
+      "req_plate_count",
+      "mounting_hole_diameter",
+      "req_mounting_holes_count",
+      "req_asymmetric_pattern",
+      "cable_slot_width",
+      "cable_slot_height",
+      "req_cable_slot_count"
+    ],
+    "result": "semantic_verification_passed_offline"
+  },
+  "conclusion": "The original failure was application-owned output/status and feature-evidence association, not missing or invalid geometry."
+}

@@ -1,0 +1,29 @@
+{
+  "evidence_type": "final_narrow_fix_decision",
+  "generated_at": "2026-08-06T03:44:00Z",
+  "decision": "clean_database_baseline_ready",
+  "status": "passed",
+  "basis": [
+    "offline semantic boundary reproduced and fixed without weakening verification",
+    "exact feature-rich live provider creation completed with valid required output and passed semantic verification",
+    "required and optional multi-output partial isolation passed under explicit test-only failure injection",
+    "artifacts and package downloaded successfully",
+    "live workflow survived API/web restart",
+    "frontend route fallback and unit/state coverage passed",
+    "Alembic current, head, and check are clean",
+    "production/default validated route is disabled",
+    "both root credential variables are present in the controlled API container without serializing values"
+  ],
+  "verification_summary": {
+    "backend_tests": "1222 passed, 1 known deprecation warning",
+    "frontend_tests": "100 passed",
+    "frontend_build": "passed",
+    "focused_semantic_tests": "37 passed, 1 warning",
+    "diff_check": "passed",
+    "secret_scan": "no non-test credential values found"
+  },
+  "limitations": [
+    "Playwright browser CLI was not run because npx is unavailable; served deep-link/refresh HTTP checks and frontend route/state tests passed."
+  ],
+  "remaining_blockers": []
+}

@@ -1,0 +1,42 @@
+{
+  "evidence_type": "live_feature_rich_creation_rerun",
+  "generated_at": "2026-08-06T03:31:51Z",
+  "workflow_id": "b379ba53-34c0-4d42-a891-98b78174b4b6",
+  "project_id": "a422c943-66a3-4a36-b95c-feb7de8f5349",
+  "revision_id": "e65e02ad-85dc-4544-986b-c42a4ce2213e",
+  "generation_attempt_id": "1a8e97a8-824c-43f4-945c-c5be5e2b9707",
+  "provider": "gemini_api",
+  "provider_transport": "existing_application_provider",
+  "provider_request_count": 1,
+  "prompt_unchanged": true,
+  "credential_presence_only": {"GEMINI_API_KEY": true, "GEMINI_API_KEY_2": true},
+  "staging_flag_enabled_during_run": true,
+  "workflow": {"state": "candidate_ready", "verification_status": "passed", "package_available": true},
+  "canonical_output": {
+    "output_id": "output_mounting_plate",
+    "required": true,
+    "generation_status": "completed",
+    "worker_status": "completed",
+    "state": "completed",
+    "solid_count": 1,
+    "topology_status": "passed",
+    "semantic_verification": "passed",
+    "artifact_available": true,
+    "artifact_hashes": {
+      "stl": "44088276e7b89c448020a8c7b7e479e3093fd1a6ff3d1b87aea089d1206b5156",
+      "step": "5deae981463db7f69bf78183b3589a0351e881d1a2dabf685689a8b97795e480",
+      "brep": "745f2114e58a41558fcedb6118f329582dad0e6c787cb9a6372490a5a4a32b91"
+    }
+  },
+  "package": {"available": true, "download_http_status": 200},
+  "artifact_downloads": {"stl": 200, "step": 200, "package": 200},
+  "restart_validation": {
+    "api_health": 200,
+    "api_ready": 200,
+    "workflow_state_after_restart": "candidate_ready",
+    "package_available_after_restart": true,
+    "frontend_deep_link_http_status": 200,
+    "frontend_refresh_http_status": 200
+  },
+  "result": "live_feature_rich_creation_passed"
+}
