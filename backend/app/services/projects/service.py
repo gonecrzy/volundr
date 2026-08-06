@@ -991,56 +991,62 @@ class ProjectService:
             feature_evidence=payload.get("feature_evidence", []),
         )
 
-    def accept_candidate(self, revision_id: str) -> RevisionRead | None:
+    def accept_candidate(self, revision_id: str, *, commit: bool = True) -> RevisionRead | None:
         revision = self.db.get(Revision, revision_id)
         if revision is None:
             return None
         outcome = self._revision_output_outcome(revision.id)
-        if outcome.state in READY_OUTCOME_STATES:
-            revision.review_state = (
-                "ready" if outcome.state == "candidate_ready" else "ready_with_warnings"
-            )
-        review_ready = revision.review_state in {"ready", "ready_with_warnings"}
-        if outcome.state not in READY_OUTCOME_STATES and not review_ready:
+        self._persist_outcome_integrity_findings(revision.id, outcome)
+        if not outcome.is_candidate_eligible:
             raise ValueError("candidate state does not permit acceptance")
-        if revision.cad_backend == "cadquery" and revision.design_plan_id is not None:
-            self._require_revision_base_ready(revision, purpose="candidate acceptance")
-        if self._has_blocking_findings(revision.id):
-            raise ValueError("candidate has unresolved blocking validation findings")
         project = self.db.get(Project, revision.project_id)
         if project is None:
             return None
-        parent_run = self._workflow_run_for_revision(revision.id)
-        workflow_run = self._start_child_workflow_run(
-            project_id=project.id,
-            workflow_type="candidate_acceptance",
-            parent=parent_run,
-        )
-        now = project_utcnow()
-        revision.review_state = "accepted"
-        revision.is_accepted = True
-        revision.accepted_at = now
-        project.active_revision_id = revision.id
-        self._record_message(
-            project_id=project.id,
-            revision_id=revision.id,
-            role="system_event",
-            content=f"Accepted R{revision.revision_number}",
-        )
-        self._record_workflow_event(
-            workflow_run,
-            stage="acceptance",
-            event_type="candidate.accepted",
-            severity="summary",
-            message=f"Accepted R{revision.revision_number}.",
-            deduplication_key=f"candidate-accepted-{revision.id}",
-            revision_id=revision.id,
-        )
-        self._workflow_recorder().complete_run(workflow_run, status="completed")
-        if parent_run is not None:
-            self._workflow_recorder().complete_run(parent_run, status="completed")
-        self.db.commit()
-        self.db.refresh(revision)
+        if revision.is_accepted and project.active_revision_id == revision.id:
+            return self._revision_read(revision)
+        if revision.cad_backend == "cadquery" and revision.design_plan_id is not None:
+            self._require_revision_base_ready(revision, purpose="candidate acceptance")
+        try:
+            parent_run = self._workflow_run_for_revision(revision.id)
+            workflow_run = self._start_child_workflow_run(
+                project_id=project.id,
+                workflow_type="candidate_acceptance",
+                parent=parent_run,
+                commit=False,
+            )
+            now = project_utcnow()
+            revision.review_state = "accepted"
+            revision.is_accepted = True
+            revision.accepted_at = now
+            project.active_revision_id = revision.id
+            self._record_message(
+                project_id=project.id,
+                revision_id=revision.id,
+                role="system_event",
+                content=f"Accepted R{revision.revision_number}",
+            )
+            self._record_workflow_event(
+                workflow_run,
+                stage="acceptance",
+                event_type="candidate.accepted",
+                severity="summary",
+                message=f"Accepted R{revision.revision_number}.",
+                deduplication_key=f"candidate-accepted-{revision.id}",
+                revision_id=revision.id,
+                commit=False,
+            )
+            self._workflow_recorder().complete_run(workflow_run, status="completed", commit=False)
+            if parent_run is not None:
+                self._workflow_recorder().complete_run(parent_run, status="completed", commit=False)
+            self._accept_candidate_checkpoint("before_commit")
+            if commit:
+                self.db.commit()
+                self.db.refresh(revision)
+            else:
+                self.db.flush()
+        except Exception:
+            self.db.rollback()
+            raise
         return self._revision_read(revision)
 
     def _cadquery_runner(self) -> Any:
@@ -1104,6 +1110,7 @@ class ProjectService:
         project_id: str,
         workflow_type: str,
         parent: WorkflowRun | None = None,
+        commit: bool = True,
     ) -> WorkflowRun:
         parent_run = parent or self._latest_root_workflow_run(project_id)
         return self._workflow_recorder().start_run(
@@ -1118,6 +1125,7 @@ class ProjectService:
             else {},
             application_commit=parent_run.application_commit if parent_run is not None else self._application_commit(),
             worker_version=parent_run.worker_version if parent_run is not None else "cad-worker-v1",
+            commit=commit,
         )
 
     def _complete_workflow_lineage(self, workflow_run: WorkflowRun, *, status: str) -> None:
@@ -1157,6 +1165,7 @@ class ProjectService:
         configuration_change_id: str | None = None,
         worker_job_id: str | None = None,
         metadata: dict[str, Any] | None = None,
+        commit: bool = True,
     ):
         if workflow_run is None:
             return None
@@ -1185,7 +1194,11 @@ class ProjectService:
             configuration_change_id=configuration_change_id,
             worker_job_id=worker_job_id,
             metadata=metadata,
+            commit=commit,
         )
+
+    def _accept_candidate_checkpoint(self, _name: str) -> None:
+        """Test-injectable crash boundary before acceptance commit."""
 
     def _record_workflow_artifact(
         self,

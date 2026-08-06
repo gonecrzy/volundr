@@ -240,34 +240,49 @@ class ValidatedCadQueryWorkflowService:
         )
         if operation.workflow_id:
             return self.read(operation.workflow_id)
+        if operation.status == "completed":
+            raise ValueError("completed start operation has no linked workflow")
         project_service = self._project_service()
-        project = project_service.create_project(
-            ProjectCreate(name=payload.name, original_intent=payload.intent),
-            commit=True,
-        )
-        workflow = ValidatedCadQueryWorkflow(
-            project_id=project.id,
-            owner_id=self.owner_id,
-            state="requirements_ready",
-            route=self.route,
-            user_instruction=payload.intent,
-            provenance_json=json.dumps(
-                {
-                    "selected_route": "validated_t2_t0_t5_cadquery",
-                    "feature_flag": "VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED",
-                    "feature_flag_enabled": True,
-                    "provider_transport": "existing_application_provider",
-                    "contract_version": "validated-cadquery-product-v1",
-                },
-                sort_keys=True,
-            ),
-        )
-        self.db.add(workflow)
-        self.db.commit()
-        operation.project_id = project.id
-        operation.workflow_id = workflow.id
-        operation.status = "running"
-        self.db.commit()
+        try:
+            self._start_design_checkpoint("after_operation_creation")
+            project = self.db.get(Project, operation.project_id) if operation.project_id else None
+            if project is None:
+                project = project_service.create_project(
+                    ProjectCreate(name=payload.name, original_intent=payload.intent),
+                    commit=False,
+                )
+                self._start_design_checkpoint("after_project_flush")
+            workflow = ValidatedCadQueryWorkflow(
+                project_id=project.id,
+                owner_id=self.owner_id,
+                state="requirements_ready",
+                route=self.route,
+                user_instruction=payload.intent,
+                provenance_json=json.dumps(
+                    {
+                        "selected_route": "validated_t2_t0_t5_cadquery",
+                        "feature_flag": "VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED",
+                        "feature_flag_enabled": True,
+                        "provider_transport": "existing_application_provider",
+                        "contract_version": "validated-cadquery-product-v1",
+                    },
+                    sort_keys=True,
+                ),
+            )
+            self.db.add(workflow)
+            self.db.flush()
+            self._start_design_checkpoint("after_workflow_flush")
+            operation.project_id = project.id
+            operation.workflow_id = workflow.id
+            operation.status = "running"
+            self.db.flush()
+            self._start_design_checkpoint("after_operation_links")
+            self._start_design_checkpoint("before_commit")
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        self._start_design_checkpoint("after_commit_before_response")
         try:
             specification = await project_service.extract_requirements(
                 project.id,
@@ -280,11 +295,11 @@ class ValidatedCadQueryWorkflowService:
             workflow.state = "awaiting_clarification" if specification.clarification_required else "requirements_ready"
             self.db.commit()
             if specification.clarification_required:
-                operation.status = "completed"
+                self._complete_operation(operation)
                 self.db.commit()
                 return self.read(workflow.id)
             result = await self._continue_from_specification(workflow, specification.id)
-            operation.status = "completed"
+            self._complete_operation(operation)
             self.db.commit()
             return result
         except Exception as exc:
@@ -336,7 +351,7 @@ class ValidatedCadQueryWorkflowService:
                 result = self.read(workflow.id)
             else:
                 result = await self._continue_from_specification(workflow, specification.id)
-            operation.status = "completed"
+            self._complete_operation(operation)
             self.db.commit()
             return result
         except Exception as exc:
@@ -455,7 +470,7 @@ class ValidatedCadQueryWorkflowService:
             if plan.clarification_required:
                 child.state = "awaiting_clarification"
                 self.db.commit()
-                operation.status = "completed"
+                self._complete_operation(operation)
                 self.db.commit()
                 return self.read(child.id)
             if getattr(plan.review_state, "value", plan.review_state) == "pending_review":
@@ -485,7 +500,7 @@ class ValidatedCadQueryWorkflowService:
             )
             self._record_generation_provenance(child, revision_model)
             self.db.commit()
-            operation.status = "completed"
+            self._complete_operation(operation)
             self.db.commit()
             return self.read(child.id)
         except Exception as exc:
@@ -517,7 +532,7 @@ class ValidatedCadQueryWorkflowService:
             return self.read(workflow.id)
         if operation.status == "running":
             return self.read(workflow.id)
-        revision = self._project_service().accept_candidate(workflow.revision_id)
+        revision = self._project_service().accept_candidate(workflow.revision_id, commit=False)
         if revision is None:
             raise ValueError("candidate revision not found")
         provenance = _json_object(workflow.provenance_json)
@@ -526,7 +541,7 @@ class ValidatedCadQueryWorkflowService:
         self.db.commit()
         try:
             self._create_package(workflow, self.db.get(Revision, revision.id))
-            operation.status = "completed"
+            self._complete_operation(operation)
             self.db.commit()
         except Exception as exc:
             workflow.diagnostics_json = json.dumps(
@@ -559,7 +574,7 @@ class ValidatedCadQueryWorkflowService:
         if operation.status == "running" and not workflow.package_path:
             return self.read(workflow.id)
         self._create_package(workflow, self.db.get(Revision, workflow.revision_id))
-        operation.status = "completed"
+        self._complete_operation(operation)
         self.db.commit()
         return self.read(workflow.id)
 
@@ -933,6 +948,7 @@ class ValidatedCadQueryWorkflowService:
         project_id: str | None = None,
         workflow_id: str | None = None,
     ) -> ValidatedCadQueryOperation:
+        self._ensure_sqlite_transaction()
         key = (idempotency_key or "").strip() or "auto-" + canonical_idempotency_hash(operation_type, "", payload)
         if len(key) > 240:
             raise ValueError("idempotency key is too long")
@@ -946,6 +962,8 @@ class ValidatedCadQueryWorkflowService:
         if existing is not None:
             if existing.payload_hash != payload_hash:
                 raise ValueError("idempotency key was already used with a different request")
+            if existing.status == "completed" and existing.workflow_id is None:
+                raise ValueError("completed operation has no linked workflow")
             return existing
         operation = ValidatedCadQueryOperation(
             owner_id=self.owner_id,
@@ -956,11 +974,11 @@ class ValidatedCadQueryWorkflowService:
             workflow_id=workflow_id,
             status="started",
         )
-        self.db.add(operation)
         try:
-            self.db.flush()
+            with self.db.begin_nested():
+                self.db.add(operation)
+                self.db.flush()
         except IntegrityError:
-            self.db.rollback()
             existing = self.db.scalar(
                 select(ValidatedCadQueryOperation)
                 .where(ValidatedCadQueryOperation.owner_id == self.owner_id)
@@ -971,6 +989,32 @@ class ValidatedCadQueryWorkflowService:
                 raise ValueError("idempotency key was already used with a different request")
             return existing
         return operation
+
+    def _ensure_sqlite_transaction(self) -> None:
+        """Make savepoint-backed operation creation atomic on SQLite too.
+
+        Python's sqlite3 driver can leave a savepoint outside a physical
+        transaction when the session has only performed reads. Releasing
+        that savepoint would make the operation durable before the workflow
+        transaction begins. Start the driver transaction before the nested
+        insert so the surrounding rollback has one atomic boundary.
+        """
+        bind = self.db.get_bind()
+        if bind.dialect.name != "sqlite":
+            return
+        connection = self.db.connection()
+        raw_connection = connection.connection
+        if not raw_connection.in_transaction:
+            connection.exec_driver_sql("BEGIN")
+
+    def _start_design_checkpoint(self, _name: str) -> None:
+        """Test-injectable crash boundary; production behavior is a no-op."""
+
+    @staticmethod
+    def _complete_operation(operation: ValidatedCadQueryOperation) -> None:
+        if operation.workflow_id is None:
+            raise ValueError("operation cannot complete without a linked workflow")
+        operation.status = "completed"
 
     def _get(
         self,

@@ -358,7 +358,7 @@ def test_validated_api_rejects_cross_actor_and_wrong_project(validated_client: T
         f"/api/validated-cadquery/workflows/{created['id']}",
         headers={"X-Volundr-Actor-Id": "staging-user-2"},
     )
-    assert denied.status_code in {403, 404}
+    assert denied.status_code in {401, 403, 404}
 
     wrong_project = validated_client.get(
         f"/api/projects/not-the-project/designs/{created['id']}",

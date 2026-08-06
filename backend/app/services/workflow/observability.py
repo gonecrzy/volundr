@@ -46,6 +46,7 @@ class WorkflowRecorder:
         application_commit: str | None = None,
         worker_version: str | None = None,
         metadata: dict[str, Any] | None = None,
+        commit: bool = True,
     ) -> WorkflowRun:
         parent = self.db.get(WorkflowRun, parent_workflow_run_id) if parent_workflow_run_id else None
         inherited_root_id = root_workflow_run_id or (parent.root_workflow_run_id if parent else None)
@@ -72,19 +73,25 @@ class WorkflowRecorder:
         self.db.flush()
         if run.root_workflow_run_id is None:
             run.root_workflow_run_id = run.id
-        self.db.commit()
-        self.db.refresh(run)
+        if commit:
+            self.db.commit()
+            self.db.refresh(run)
+        else:
+            self.db.flush()
         return run
 
-    def complete_run(self, run: WorkflowRun | str, *, status: str) -> WorkflowRun:
+    def complete_run(self, run: WorkflowRun | str, *, status: str, commit: bool = True) -> WorkflowRun:
         stored = self._run(run)
         if status not in TERMINAL_WORKFLOW_STATUSES:
             raise ValueError("workflow run status is not terminal")
         stored.status = status
         stored.completed_at = utcnow()
         stored.updated_at = stored.completed_at
-        self.db.commit()
-        self.db.refresh(stored)
+        if commit:
+            self.db.commit()
+            self.db.refresh(stored)
+        else:
+            self.db.flush()
         return stored
 
     def record_event(
@@ -117,6 +124,7 @@ class WorkflowRecorder:
         configuration_change_id: str | None = None,
         worker_job_id: str | None = None,
         provider_request_id: str | None = None,
+        commit: bool = True,
     ) -> WorkflowEvent:
         stored_run = self._run(run)
         for _attempt in range(3):
@@ -177,8 +185,11 @@ class WorkflowRecorder:
             )
             self.db.add(event)
             try:
-                self.db.commit()
-                self.db.refresh(event)
+                if commit:
+                    self.db.commit()
+                    self.db.refresh(event)
+                else:
+                    self.db.flush()
                 return event
             except IntegrityError:
                 self.db.rollback()
