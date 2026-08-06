@@ -45,7 +45,7 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VITE_BUILD_SHA=${buildSha} VITE_BUILD_TIMESTAMP=${buildTimestamp} VITE_BUILD_DIRTY=${buildDirty} VITE_BUILD_RELEASE_LABEL=${buildReleaseLabel} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
+      command: `VITE_VOLUNDR_CHAT_FIRST=${process.env.VITE_VOLUNDR_CHAT_FIRST ?? "true"} VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false"} VITE_BUILD_SHA=${buildSha} VITE_BUILD_TIMESTAMP=${buildTimestamp} VITE_BUILD_DIRTY=${buildDirty} VITE_BUILD_RELEASE_LABEL=${buildReleaseLabel} VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VITE_HOST=${ports.host} VOLUNDR_VITE_PORT=${ports.webPort} npm run dev -- --host ${ports.host} --port ${ports.webPort}`,
       reuseExistingServer: false,
       url: `http://${ports.host}:${ports.webPort}`,
       timeout: 120_000,
