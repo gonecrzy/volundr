@@ -16,5 +16,16 @@
   "transport_retries": 0,
   "worker_calls": 0,
   "first_incorrect_boundary": "design_artifact_inconsistent",
+  "provider_plan_linkage": {
+    "requirement_id": "asymmetric_feature_placement",
+    "candidate_feature_count": 2,
+    "candidate_feature_ids": [
+      "mounting_holes_feature_id",
+      "recessed_slot_feature_id"
+    ],
+    "explicit_feature_link": false,
+    "validation_target_count": 0,
+    "application_action": "fail_closed_on_ambiguous_requirement_trace"
+  },
   "rerun": false
 }
