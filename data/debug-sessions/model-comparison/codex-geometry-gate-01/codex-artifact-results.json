@@ -1,0 +1,10 @@
+{
+  "schema_version": "codex-artifact-results-v1",
+  "status": "not_run",
+  "step": "not_run",
+  "stl": "not_run",
+  "brep": "not_run",
+  "package": "not_run",
+  "manifest_hashes_verified": false,
+  "reason": "No candidate reached acceptance."
+}

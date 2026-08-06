@@ -1,0 +1,17 @@
+{
+  "schema_version": "codex-config-summary-v1",
+  "source": "/root/.codex/config.toml",
+  "model": "gpt-5.6-luna",
+  "provider": "codex-lb",
+  "base_url": "http://10.1.10.204:2455/backend-api/codex",
+  "wire_api": "responses",
+  "reasoning_effort": "xhigh",
+  "requires_openai_auth": true,
+  "bearer_token": {
+    "present": true,
+    "source": "config.experimental_bearer_token",
+    "value_recorded": false
+  },
+  "request_headers": ["Authorization: Bearer <redacted>", "X-Client-Request-Id"],
+  "tools_enabled": false
+}

@@ -138,6 +138,28 @@ async def test_codex_refusal_and_incomplete_responses_fail_closed(payload, failu
 
 
 @pytest.mark.asyncio
+async def test_codex_response_does_not_duplicate_top_level_output_text() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "status": "completed",
+                "output_text": "cadquery output",
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "cadquery output"}],
+                    }
+                ],
+            },
+        )
+
+    result = await _provider(handler).generate_cadquery_model(_request())
+
+    assert result.raw_output == "cadquery output"
+
+
+@pytest.mark.asyncio
 async def test_codex_timeout_is_classified_and_does_not_retry() -> None:
     calls = 0
 

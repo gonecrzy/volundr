@@ -1,0 +1,16 @@
+{
+  "schema_version": "codex-geometry-gate-final-decision-v1",
+  "decision": "codex_proxy_transport_incompatible",
+  "decision_scope": "single frozen Project 01 Codex geometry capability gate",
+  "capability_conclusion": "not_permitted",
+  "reason": "The configured Responses-compatible proxy returned a non-JSON response to the one fixed, project-free probe.",
+  "codex_geometry_workflow_run": false,
+  "codex_revision_run": false,
+  "gemini_rerun": false,
+  "manual_geometry_repair": false,
+  "production_validated_flow_default_enabled": false,
+  "production_geometry_provider_default": "gemini_api",
+  "speculative_protocol_shim_added": false,
+  "credentials_committed": false,
+  "raw_provider_payloads_committed": false
+}

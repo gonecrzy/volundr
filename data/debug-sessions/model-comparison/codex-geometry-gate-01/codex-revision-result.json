@@ -1,0 +1,6 @@
+{
+  "schema_version": "codex-revision-result-v1",
+  "status": "not_applicable",
+  "provider_attempts": 0,
+  "reason": "The transport probe failed and no Codex creation reached acceptance."
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "codex-gemini-baseline-summary-v1",
+  "source": "data/debug-sessions/product-qualification/multi-project-boundary-wave-01/",
+  "project": "project-01",
+  "provider": "gemini_api",
+  "model": "gemini-3.5-flash-lite",
+  "canonical_output_id": "asymmetric_mounting_bracket_output",
+  "requirements_output_sha256": "99a9da54df5daad8b16b26c484a26a9caa261fc49f29bf93e69c9bd6efc449b5",
+  "plan_output_sha256": "d460761f5bb69ea295b1f7650b38e0ec3951d9dc22099392c7c61977a65cffa4",
+  "source_hash": "3ac6bb6c325c352043abf004c640ca6c53ae19584626e2f7122ec3b36f37b430",
+  "workflow_state": "verification_failed",
+  "first_incorrect_boundary": "semantic_verification_failure",
+  "topology_status": "passed",
+  "semantic_verification": "failed",
+  "candidate_reached_review": false,
+  "acceptance_run": false,
+  "artifact_package_available": false,
+  "revision_run": false
+}

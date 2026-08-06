@@ -1,0 +1,11 @@
+{
+  "schema_version": "codex-provider-attempts-v1",
+  "geometry_logical_operations": 0,
+  "geometry_provider_attempts": 0,
+  "transport_probe_attempts": 1,
+  "workflow_attempts_persisted": 0,
+  "raw_provider_payloads_recorded": false,
+  "credential_values_recorded": false,
+  "stop_reason": "codex_proxy_transport_incompatible",
+  "notes": "The probe was outside a workflow and failed before safe metadata emission; no project geometry attempt was allowed."
+}

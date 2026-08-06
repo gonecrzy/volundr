@@ -1,0 +1,42 @@
+{
+  "schema_version": "codex-frozen-fixture-manifest-v1",
+  "project": "project-01",
+  "title": "Feature-scoped mechanical part",
+  "source_commit": "5bcc547800dde48d970811200a3b8ed483acfe17",
+  "comparison_baseline_head": "799658337e9de252d2b370c71c71a996e00e74a3",
+  "prompt_sha256": "97227538c5a4d206cdd4abc3cf2f21472afe591a551255a1fe66df118d33b105",
+  "canonical_fixture_sha256": "f41818245e3b3a262a77fd62fe5f1321673acd1a9bd8ba10f3e4df2373d57cbe",
+  "prompt": "Create one printable asymmetric mounting bracket as a single required output. Make the body 110 mm wide, 72 mm deep, and 6 mm thick. Add one 5 mm diameter through-bore named pivot_bore, one recessed 30 mm by 12 mm pocket named cable_pocket, and place the bore 18 mm from the left edge and 14 mm from the front edge rather than at the center. Do not create a mating part or any additional output.",
+  "canonical_output_ids": ["asymmetric_mounting_bracket_output"],
+  "protected_requirement_ids": [
+    "body_width",
+    "body_depth",
+    "body_thickness",
+    "pivot_bore_diameter",
+    "pivot_bore_left_distance",
+    "pivot_bore_front_distance",
+    "cable_pocket_width",
+    "cable_pocket_depth_dimension",
+    "single_output_bracket",
+    "pivot_bore_presence",
+    "cable_pocket_presence",
+    "no_mating_part"
+  ],
+  "semantic_verification_obligation_ids": [
+    "target_body_width",
+    "target_body_depth",
+    "target_body_thickness",
+    "target_pivot_bore_diameter",
+    "target_pivot_bore_left",
+    "target_pivot_bore_front",
+    "target_cable_pocket_width",
+    "target_cable_pocket_depth"
+  ],
+  "authoritative_source_files": {
+    "corpus-manifest.json": "9537b507720625f7fa78932f3e89477058ce2abb870e5c9462dda3f3e0b8d854",
+    "stage-2-creation-wave.json": "8bb38b120cb726b9fafbeb6267f0b3200f65e205ada63d841d158c600a10dfe0",
+    "project-01-boundary-trace.json": "b0f42198d0f4cfaa0133c5f559bdf566446fe3ab3bb1df96dbc633a9675ac649"
+  },
+  "requirements_and_plan_regenerated": false,
+  "fixture_mutated": false
+}

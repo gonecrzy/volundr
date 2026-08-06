@@ -1,0 +1,12 @@
+{
+  "schema_version": "codex-model-comparison-v1",
+  "same_request": "not_run",
+  "same_requirements": "not_run",
+  "same_plan": "not_run",
+  "same_output_contract": true,
+  "same_worker": "not_run",
+  "same_verifier": "not_run",
+  "different_geometry_model_only": "not_determinable",
+  "capability_conclusion_allowed": false,
+  "decision": "codex_proxy_transport_incompatible"
+}

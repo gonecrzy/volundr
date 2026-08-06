@@ -1,0 +1,30 @@
+{
+  "schema_version": "codex-geometry-gate-test-summary-v1",
+  "cycle_1_commit": "1d09dfc",
+  "focused_offline_tests": {
+    "command": "PYTHONPATH=.. .venv/bin/python -m pytest -q tests/test_codex_proxy_provider.py tests/test_ai_provider_selection.py tests/test_environment_configuration.py tests/test_cad_worker.py",
+    "passed": 56,
+    "failed": 0
+  },
+  "backend_suite": {
+    "command": "PYTHONPATH=.. .venv/bin/python -m pytest -q",
+    "passed": 1269,
+    "failed": 0,
+    "warnings": 1
+  },
+  "migration_preflight": {
+    "current": "0039_align_fresh_database_schema",
+    "heads": ["0039_align_fresh_database_schema"],
+    "check": "No new upgrade operations detected."
+  },
+  "transport_probe": {
+    "attempted": 1,
+    "result": "invalid_response",
+    "provider_calls_before_probe": 0,
+    "provider_calls_after_probe": 1
+  },
+  "production_defaults": {
+    "validated_flow_enabled": false,
+    "validated_geometry_provider": "gemini_api"
+  }
+}

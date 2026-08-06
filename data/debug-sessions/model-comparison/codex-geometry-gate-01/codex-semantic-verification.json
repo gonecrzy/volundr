@@ -1,0 +1,7 @@
+{
+  "schema_version": "codex-semantic-verification-v1",
+  "status": "not_run",
+  "topology_verification": "not_run",
+  "semantic_verification": "not_run",
+  "reason": "No Codex-generated geometry was submitted to the existing worker or verifier."
+}

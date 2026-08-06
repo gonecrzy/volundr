@@ -250,7 +250,7 @@ class CodexProxyProvider:
                     text_parts.append(part["text"])
 
         top_level_text = payload.get("output_text")
-        if isinstance(top_level_text, str):
+        if not text_parts and isinstance(top_level_text, str):
             text_parts.append(top_level_text)
         text = "".join(text_parts)
         if not text.strip():

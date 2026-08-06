@@ -1,0 +1,21 @@
+{
+  "schema_version": "codex-transport-probe-v1",
+  "probe_count": 1,
+  "project_data_used": false,
+  "api_mode": "responses",
+  "request_path": "/responses",
+  "model": "gpt-5.6-luna",
+  "prompt_sha256": "29ec73eef72daef1562df5dcb008bdf3a78d32f91355b5d403abd210ee7ddce5",
+  "request_hash_recorded": false,
+  "status": "failed",
+  "status_code": null,
+  "response_sha256": null,
+  "usage": null,
+  "timing_ms": null,
+  "safe_failure_class": "invalid_response",
+  "safe_failure_message": "Codex proxy response was not valid JSON.",
+  "probe_wrapper_emitted_only_safe_metadata": false,
+  "decision": "codex_proxy_transport_incompatible",
+  "follow_up_allowed": false,
+  "notes": "The single permitted probe failed before its safe result record was emitted; no second provider request was made."
+}

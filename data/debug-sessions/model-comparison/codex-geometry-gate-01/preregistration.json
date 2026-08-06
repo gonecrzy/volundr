@@ -1,0 +1,20 @@
+{
+  "schema_version": "codex-geometry-gate-preregistration-v1",
+  "experiment": "single-model-capability-comparison",
+  "registered_at": "2026-08-06",
+  "source_commit_before_changes": "799658337e9de252d2b370c71c71a996e00e74a3",
+  "frozen_fixture": "data/debug-sessions/product-qualification/multi-project-boundary-wave-01/",
+  "project": "project-01",
+  "geometry_provider_variable": "VOLUNDR_VALIDATED_GEOMETRY_PROVIDER",
+  "default_geometry_provider": "gemini_api",
+  "experimental_geometry_provider": "codex_proxy",
+  "upstream_stages": ["requirements", "design_plan"],
+  "upstream_provider": "gemini_api",
+  "codex_geometry_logical_operations": 1,
+  "codex_geometry_max_provider_attempts": 2,
+  "bounded_contract_repair": 1,
+  "manual_geometry_repair": false,
+  "new_projects": 0,
+  "transport_probe_required_before_live_run": true,
+  "stop_on_transport_incompatibility": true
+}

@@ -1,0 +1,6 @@
+{
+  "schema_version": "codex-worker-result-v1",
+  "status": "not_run",
+  "worker_reached": false,
+  "reason": "Codex geometry workflow was not started after transport incompatibility."
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "codex-geometry-result-v1",
+  "status": "not_run",
+  "provider": "codex_proxy",
+  "project": "project-01",
+  "reason": "Required Responses transport probe failed before the frozen geometry workflow could begin.",
+  "manual_geometry_repair": false
+}
