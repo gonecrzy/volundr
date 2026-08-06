@@ -274,6 +274,141 @@ def test_equal_feature_candidates_without_unique_target_remain_ambiguous() -> No
     assert obligation["status"] == "trace_ambiguous"
 
 
+def test_component_target_allows_multiple_feature_links_on_same_component() -> None:
+    specification = {
+        "functional_requirements": [
+            {
+                "id": "asymmetric_feature_placement",
+                "type": "orientation",
+                "kind": "orientation",
+                "operator": "qualitative",
+                "target": "mounting plate",
+                "value": "asymmetric",
+                "source": "user",
+                "explicit": True,
+                "protected": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [
+            {"id": "mounting_plate_comp", "label": "Mounting Plate", "role": "printable_part"}
+        ],
+        "features": [
+            {
+                "id": "mounting_holes_feature_id",
+                "component_id": "mounting_plate_comp",
+                "type": "feature",
+                "requirement_ids": ["asymmetric_feature_placement"],
+            },
+            {
+                "id": "recessed_slot_feature_id",
+                "component_id": "mounting_plate_comp",
+                "type": "feature",
+                "requirement_ids": ["asymmetric_feature_placement"],
+            },
+        ],
+        "printable_outputs": [
+            {"id": "mounting_plate_output", "component_ids": ["mounting_plate_comp"]}
+        ],
+        "validation_targets": [],
+    }
+    result = build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids={"mounting_plate_comp"},
+        source_component_symbols={"mounting_plate_comp": "build_mounting_plate"},
+        source_feature_components={
+            "mounting_holes_feature_id": "mounting_plate_comp",
+            "recessed_slot_feature_id": "mounting_plate_comp",
+        },
+        source_feature_symbols={
+            "mounting_holes_feature_id": "apply_mounting_holes",
+            "recessed_slot_feature_id": "apply_recessed_slot",
+        },
+        source_output_ids={"mounting_plate_output"},
+        source_output_components={"mounting_plate_output": ["mounting_plate_comp"]},
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["component_ids"] == ["mounting_plate_comp"]
+    assert obligation["plan_feature_id"] is None
+    assert obligation["status"] == "source_component_output_trace"
+    assert not any(
+        finding["rule_id"] == "design_artifact.requirement_trace_ambiguous"
+        and finding["is_blocking"]
+        for finding in result["findings"]
+    )
+
+
+def test_component_target_does_not_hide_cross_component_feature_ambiguity() -> None:
+    specification = {
+        "functional_requirements": [
+            {
+                "id": "component_scoped_feature",
+                "type": "orientation",
+                "kind": "orientation",
+                "operator": "qualitative",
+                "target": "holder body",
+                "value": "asymmetric",
+                "source": "user",
+                "explicit": True,
+                "protected": True,
+            }
+        ]
+    }
+    plan = {
+        "components": [
+            {"id": "holder_body", "label": "Holder Body", "role": "printable_part"},
+            {"id": "secondary_body", "label": "Secondary Body", "role": "printable_part"},
+        ],
+        "features": [
+            {
+                "id": "holder_feature",
+                "component_id": "holder_body",
+                "type": "feature",
+                "requirement_ids": ["component_scoped_feature"],
+            },
+            {
+                "id": "secondary_feature",
+                "component_id": "secondary_body",
+                "type": "feature",
+                "requirement_ids": ["component_scoped_feature"],
+            },
+        ],
+        "printable_outputs": [
+            {"id": "holder_output", "component_ids": ["holder_body"]},
+            {"id": "secondary_output", "component_ids": ["secondary_body"]},
+        ],
+        "validation_targets": [],
+    }
+    result = build_requirement_trace_manifest(
+        design_specification_payload=specification,
+        design_plan_payload=plan,
+        source_component_ids={"holder_body", "secondary_body"},
+        source_component_symbols={"holder_body": "build_holder", "secondary_body": "build_secondary"},
+        source_feature_components={
+            "holder_feature": "holder_body",
+            "secondary_feature": "secondary_body",
+        },
+        source_feature_symbols={
+            "holder_feature": "apply_holder_feature",
+            "secondary_feature": "apply_secondary_feature",
+        },
+        source_output_ids={"holder_output", "secondary_output"},
+        source_output_components={
+            "holder_output": ["holder_body"],
+            "secondary_output": ["secondary_body"],
+        },
+        source_parameter_ids=set(),
+    )
+
+    obligation = result["normalized"]["obligations"][0]
+    assert obligation["blocking"] is True
+    assert obligation["status"] == "trace_ambiguous"
+
+
 def test_multiple_compatible_capacity_features_remain_ambiguous_and_blocking() -> None:
     result = _trace(_capacity_specification(), _capacity_plan(feature_count=2))
     obligation = result["normalized"]["obligations"][0]

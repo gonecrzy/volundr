@@ -355,23 +355,39 @@ def _classify_item(
     }
 
     if feature_match.get("ambiguous"):
-        obligation["blocking"] = True
-        obligation["status"] = "trace_ambiguous"
-        findings.append(
-            _trace_finding(
-                "design_artifact.requirement_trace_ambiguous",
-                f"Requirement `{requirement_id}` matches multiple Plan features and cannot be linked safely.",
-                item=item,
-                obligation=obligation,
-                blocking=True,
-                metadata={
-                    "candidate_matches": feature_match.get("candidates", []),
-                    "rejected_matches": feature_match.get("rejected", []),
-                    "normalization_rule": "typed_semantic_feature_matching",
-                },
-            )
+        candidate_ids = {
+            canonical_requirement_id(str(candidate_id))
+            for candidate_id in feature_match.get("candidates", [])
+        }
+        candidate_components = {
+            str(feature.get("component_id"))
+            for feature in plan_features
+            if canonical_requirement_id(str(feature.get("id"))) in candidate_ids
+            and feature.get("component_id")
+        }
+        component_scoped = (
+            len(component_ids) == 1
+            and candidate_components == set(component_ids)
         )
-        return obligation, findings
+        if not component_scoped:
+            obligation["blocking"] = True
+            obligation["status"] = "trace_ambiguous"
+            findings.append(
+                _trace_finding(
+                    "design_artifact.requirement_trace_ambiguous",
+                    f"Requirement `{requirement_id}` matches multiple Plan features and cannot be linked safely.",
+                    item=item,
+                    obligation=obligation,
+                    blocking=True,
+                    metadata={
+                        "candidate_matches": feature_match.get("candidates", []),
+                        "rejected_matches": feature_match.get("rejected", []),
+                        "normalization_rule": "typed_semantic_feature_matching",
+                    },
+                )
+            )
+            return obligation, findings
+        obligation["normalization_decision"] = "component_scoped_feature_ambiguity"
     if target_match.get("ambiguous"):
         obligation["blocking"] = True
         obligation["status"] = "trace_ambiguous"
@@ -954,6 +970,10 @@ def _matching_component_ids(
         + " "
         + str(item.get("label") or "")
         + " "
+        + str(item.get("subject") or "")
+        + " "
+        + str(item.get("target") or "")
+        + " "
         + str(item.get("value") or "")
     )
     matches = []
@@ -965,6 +985,19 @@ def _matching_component_ids(
         )
         if identifiers and (identifiers & tokens):
             matches.append(component_id)
+    target_tokens = _tokens(str(item.get("target") or ""))
+    if target_tokens:
+        exact_target_matches = [
+            component_id
+            for component_id, component in components.items()
+            if target_tokens <= _tokens(
+                component_id
+                + " "
+                + str(component.get("label") or "")
+            )
+        ]
+        if len(exact_target_matches) == 1:
+            return exact_target_matches
     return sorted(set(matches)) if len(matches) > 1 else []
 
 
