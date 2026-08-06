@@ -1,76 +1,149 @@
 {
-  "schema_version": "executable-cadquery-authenticated-continuation-result-v1",
-  "decision": "executable_cadquery_repairs_show_progress_but_not_ready",
-  "continuation_authorized": true,
-  "operator_approval": "operator_approved_primary_reassignment",
-  "primary_environment_variable": "GEMINI_API_KEY",
-  "fallback_environment_variable": null,
-  "fallback_disabled": true,
-  "authentication_gate": "authentication_gate_passed",
-  "continued_creation_started": true,
-  "additional_creation_requests": 1,
-  "revision_requests": 0,
-  "provider_response_received": true,
-  "source_extraction_reached": true,
-  "source_contract_evaluated": true,
-  "source_contract_failure_count": 2,
-  "repair_levels_reached": ["initial", "L0"],
-  "provider_logical_operations": 2,
-  "provider_operations": [
-    {
-      "operation": "initial_generation",
-      "ordinal": 1,
-      "logical_operation_id": "c227685a-d9c6-4a55-88be-8abbf5a8c564",
-      "attempt_id": "5e745ea1-ed82-42f2-87a8-4e440877e0b0",
-      "credential_slot": "primary",
-      "credential_environment_variable": "GEMINI_API_KEY",
-      "http_status": 200,
-      "request_hash": "3cfd790610f26f83c4de52b3cb10b19ef8b0210398c4cf2a45c5415fbbd71385",
-      "result": "source_contract_violation"
-    },
-    {
-      "operation": "L0_source_contract_repair",
-      "ordinal": 2,
-      "logical_operation_id": "8120d2dd-e59c-44e9-bdd1-4a17e38803e9",
-      "attempt_id": "e37b077e-8d99-4a82-a079-e38d13895315",
-      "credential_slot": "primary",
-      "credential_environment_variable": "GEMINI_API_KEY",
-      "http_status": 200,
-      "request_hash": "09d2d4c023a5497abcf3cbdb8faa50284c06553725a3b2ce3c9535806796d75f",
-      "result": "source_contract_violation"
-    }
-  ],
-  "normalized_errors": [
-    "source contract violation for mounting_bracket: try[path] is not allowed in generated CadQuery source",
-    "source contract violation for mounting_bracket: unsupported top-level statement: If"
-  ],
-  "source_hashes": {
-    "initial": null,
-    "L0": null,
-    "protected_prior_response_sha256": "ccdd98e0d213052c8a95e777183fc872f85eb8ad0b3d31c1a0fe1a19ec8ea21e",
-    "protected_repair_response_sha256": "f351d3daad8dd7a233379349ef5ced226bf46d48544d3d1b075465ac56109da5"
+  "schema_version": "executable-cadquery-explicit-dialect-live-result-v1",
+  "decision": "executable_cadquery_creation_ready_revision_blocked",
+  "decision_basis": "The single frozen creation reached a visible candidate-ready state with a valid complete source, worker completion, topology pass, semantic pass, and artifacts. The live browser assertion stopped before acceptance because the unscoped Ready to review locator matched both the conversation stage and candidate review state; no revision was started.",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "source_dialect": {
+    "version": "cadquery-v1-source-dialect",
+    "policy_hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+    "canonical_skeleton_hash": "52afdde33df57643e529de6e6976af6688077289cb8aa09d3fe6e418be68b8a1"
   },
-  "worker_reached": false,
-  "topology_reached": false,
-  "semantic_verification_reached": false,
-  "artifact_results": {
-    "step": "not_reached",
-    "stl": "not_reached",
-    "source_or_brep": "protected_provider_responses_only"
+  "operator_approval": {
+    "event": "operator_approved_primary_reassignment",
+    "timestamp": "2026-08-06T18:42:34Z",
+    "previous_primary_environment_variable": "GEMINI_API_KEY_2",
+    "previous_primary_authentication_result": "HTTP 401 UNAUTHENTICATED ACCESS_TOKEN_TYPE_UNSUPPORTED",
+    "primary_environment_variable": "GEMINI_API_KEY",
+    "fallback_environment_variable": null,
+    "fallback_disabled": true
   },
-  "creation_requests": 1,
-  "repair_progress": "measurable_error_signature_change_between_initial_and_L0",
-  "source_contract_owner": "existing_cadquery_v1_validator",
-  "reason": "Gemini source was received and the bounded initial plus L0 source-contract path changed the normalized failure, but no candidate was produced.",
-  "prior_live_session": {
-    "creation_requests": 1,
+  "authentication_gate": {
+    "result": "authentication_gate_passed",
+    "probe": "GET model list",
+    "credential_environment_variable": "GEMINI_API_KEY",
     "http_status": 200,
-    "source_extraction_reached": true,
-    "source_contract_evaluated": true,
-    "repair_levels_reached": ["initial", "L0"],
-    "worker_reached": false,
-    "topology_reached": false,
-    "semantic_verification_reached": false
+    "configured_model_available": true,
+    "supports_generateContent": true,
+    "authentication_mechanism": "x-goog-api-key",
+    "authorization_bearer_header_used": false,
+    "query_string_credential_used": false
   },
-  "gemini_capability_inferred": false
+  "creation": {
+    "continued_creation_started": true,
+    "creation_requests": 1,
+    "additional_creation_requests": 1,
+    "revision_requests": 0,
+    "provider_response_received": true,
+    "prompt_version": "executable-cadquery-complete-source-v3",
+    "output_id": "mounting_bracket",
+    "source_generation_mode": "complete_source",
+    "repair_levels_reached": ["initial"],
+    "automatic_provider_operation_budget": 9,
+    "provider_logical_operation_count": 1,
+    "provider_operations": [
+      {
+        "operation": "initial_generation",
+        "ordinal": 1,
+        "logical_operation_id": "ecf73536-7250-4395-8cb6-342e450908ec",
+        "attempt_id": "5389b288-1c86-484a-a2c0-6841115a5077",
+        "credential_slot": "primary",
+        "credential_environment_variable": "GEMINI_API_KEY",
+        "http_status": 200,
+        "request_hash": "de0337da428c138db37d205b146b9c6bc3da6e111c8c017ddbea2eb10ab624c1",
+        "result": "candidate_ready"
+      }
+    ]
+  },
+  "source_validation": {
+    "source_extraction_reached": true,
+    "raw_response_sha256": "19063b2b737acd6ecf06e959f82fd1d21da22ec117ef4549cd6c04385e1e42e9",
+    "extracted_source_sha256": "2f83eb9fbaa44298188d17c843daf8248047b479649e505cc55a7f98efd9c01c",
+    "syntax_valid": true,
+    "source_contract_version": "cadquery-v1",
+    "source_contract_evaluated": true,
+    "source_contract_valid": true,
+    "diagnostic_codes": [],
+    "violation_count": 0
+  },
+  "repair_progress": {
+    "levels": ["initial"],
+    "l0_repairs": 0,
+    "measurable_progress": false,
+    "stop_reason": "source contract passed; later validation stages completed"
+  },
+  "worker": {
+    "reached": true,
+    "status": "completed",
+    "output_id": "mounting_bracket",
+    "source_sha256": "2f83eb9fbaa44298188d17c843daf8248047b479649e505cc55a7f98efd9c01c",
+    "detected_solid_count": 1,
+    "expected_solid_count": 1,
+    "disconnected_solids_allowed": false,
+    "shape_valid": true
+  },
+  "topology": {
+    "reached": true,
+    "status": "passed",
+    "output_id": "mounting_bracket",
+    "detected_solid_count": 1,
+    "expected_solid_count": 1,
+    "valid": true,
+    "bounding_box_mm": {
+      "x": 80.0,
+      "y": 50.0,
+      "z": 8.0
+    },
+    "volume_mm3": 28375.34441036379
+  },
+  "semantic_verification": {
+    "reached": true,
+    "status": "passed",
+    "failed": [],
+    "unverifiable": [],
+    "passed_requirements": [
+      "topology",
+      "body_dimensions",
+      "mounting_hole_pattern",
+      "mounting_hole_edge_offsets",
+      "asymmetric_through_hole",
+      "centered_recessed_pocket",
+      "external_fillet"
+    ]
+  },
+  "artifacts": {
+    "step": {
+      "status": "passed",
+      "sha256": "48702b25c7af57462186db45ae3d3e9a4fee2a15040d5da6e6e5dffb4fbe68b8"
+    },
+    "stl": {
+      "status": "passed",
+      "sha256": "f7709224c1ca51d73b691514fd918320faeac02fbcece20df54900e87bcb9901"
+    },
+    "brep": {
+      "status": "passed",
+      "sha256": "fb1abbb0059eebd5013cf018b8143aeccdb92eb1dc40cd3ede864cbfd83adb4f"
+    },
+    "source": {
+      "status": "preserved_in_ignored_runtime_evidence",
+      "sha256": "2f83eb9fbaa44298188d17c843daf8248047b479649e505cc55a7f98efd9c01c"
+    }
+  },
+  "presentation_and_revision": {
+    "visible_preview_reached": true,
+    "candidate_ready_reached": true,
+    "candidate_accepted": false,
+    "revision_started": false,
+    "revision_blocker": "ambiguous_ready_to_review_locator",
+    "browser_failure": "The live test used an unscoped exact Ready to review locator that matched both Conversation and Candidate review.",
+    "runtime_state_preserved": true
+  },
+  "integrity": {
+    "codex_proxy_used": false,
+    "credential_values_recorded": false,
+    "protected_runtime_response_mode": "0600",
+    "protected_runtime_source_mode": "0600",
+    "fixture_changed": false,
+    "second_creation_started": false,
+    "main_modified": false
+  }
 }
