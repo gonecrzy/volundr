@@ -1,13 +1,14 @@
 {
   "schema_version": "validated-product-shell-implementation-ledger-v1",
-  "current_head": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8",
+  "validated_code_head": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8",
   "commits": {
     "integration": "eb069820516c156b64a8a926888da84a06f68d71",
     "browser_coverage": "906af75e34e5a39615b0d97148a9c8119340a196d",
     "ci_alignment": "d61df539aea3f98074380eb863207588e7a129be",
     "controlled_live_harness": "f4b79011e15992faea020094bd68e62dfa410192",
     "credential_loader_precedence": "a3bfde5e84c4e13cd3b047bf52b271850fdafea3",
-    "credential_loader_tests": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8"
+    "credential_loader_tests": "65159c3546ec9b10e64bdb4d8945bb67cc021fb8",
+    "evidence_update": "be7e06110050b9e8792144723e7d976ed3136a92"
   },
   "layers": {
     "chat_workspace_integration": true,
