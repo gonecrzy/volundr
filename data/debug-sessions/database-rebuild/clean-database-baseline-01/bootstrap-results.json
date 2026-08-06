@@ -1,9 +1,9 @@
 {
   "application_bootstrap_calls": 0,
   "bootstrap_required": false,
-  "database_row_policy": "empty except alembic_version",
+  "database_row_policy": "empty except alembic_version before controlled smoke; no historical rows restored",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "reason": "The clean schema contains no required system rows or seeded credentials.",
   "status": "passed"
 }

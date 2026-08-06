@@ -243,6 +243,20 @@ def render_cadquery_scaffold(
         lines.append("    " + _parameter_spec_expression(parameter) + ",")
     lines.extend(["]", ""])
 
+    declared_parameter_ids = {
+        str(parameter.get("id"))
+        for parameter in parameter_entries
+        if isinstance(parameter, dict) and parameter.get("id")
+    }
+    normalized_geometry_functions = {
+        function_name: _normalize_parameter_attribute_access(function_source, declared_parameter_ids)
+        for function_name, function_source in geometry_functions.items()
+    }
+    normalized_deterministic_feature_sources = {
+        feature_id: _normalize_parameter_attribute_access(function_source, declared_parameter_ids)
+        for feature_id, function_source in deterministic_feature_sources.items()
+    }
+
     pattern_manifest = _resolved_pattern_manifest(design_plan, effect_contract)
     if pattern_manifest:
         lines.extend([
@@ -258,7 +272,7 @@ def render_cadquery_scaffold(
 
     for component_id in component_ids:
         function_name = _component_geometry_name(component_id)
-        lines.extend(_ai_block(function_name, geometry_functions[function_name]))
+        lines.extend(_ai_block(function_name, normalized_geometry_functions[function_name]))
         lines.extend(
             [
                 f'@component("{component_id}")',
@@ -275,7 +289,10 @@ def render_cadquery_scaffold(
         if component_id not in component_by_id:
             continue
         function_name = _feature_geometry_name(feature_id)
-        function_source = deterministic_feature_sources.get(feature_id, geometry_functions[function_name])
+        function_source = normalized_deterministic_feature_sources.get(
+            feature_id,
+            normalized_geometry_functions[function_name],
+        )
         lines.extend(_ai_block(function_name, function_source))
         lines.extend(
             [
@@ -425,6 +442,39 @@ def _expected_geometry_function_names(plan: dict[str, Any]) -> set[str]:
 
 def _ai_block(function_name: str, function_source: str) -> list[str]:
     return [_AI_BEGIN + function_name, *function_source.splitlines(), _AI_END + function_name, ""]
+
+
+class _DeclaredParameterAttributeAccess(ast.NodeTransformer):
+    def __init__(self, parameter_ids: set[str]) -> None:
+        self.parameter_ids = parameter_ids
+
+    def visit_Attribute(self, node: ast.Attribute) -> ast.AST:
+        node = self.generic_visit(node)
+        if (
+            isinstance(node.value, ast.Name)
+            and node.value.id == "params"
+            and node.attr in self.parameter_ids
+        ):
+            return ast.copy_location(
+                ast.Subscript(
+                    value=ast.Name(id="params", ctx=ast.Load()),
+                    slice=ast.Constant(node.attr),
+                    ctx=node.ctx,
+                ),
+                node,
+            )
+        return node
+
+
+def _normalize_parameter_attribute_access(source: str, parameter_ids: set[str]) -> str:
+    """Keep provider geometry compatible with the canonical mapping interface."""
+
+    if not parameter_ids or "params." not in source:
+        return source
+    tree = ast.parse(source)
+    normalized = _DeclaredParameterAttributeAccess(parameter_ids).visit(tree)
+    ast.fix_missing_locations(normalized)
+    return ast.unparse(normalized).strip() + "\n"
 
 
 def _skeleton(source: str) -> str:

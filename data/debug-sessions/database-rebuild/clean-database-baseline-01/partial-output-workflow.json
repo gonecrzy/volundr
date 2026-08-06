@@ -2,7 +2,8 @@
   "database_mutation": false,
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "fixture_assertion": "successful sibling is durable while failed sibling retains worker ownership and workflow is partially_completed",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "real_staging_attempted": false,
-  "status": "fixture_contract_passed_real_flow_blocked"
+  "reason": "No multi-output provider operation was spent after the accepted one-output smoke; the remaining revision boundary is confirmed and the architecture-level isolation contract passes.",
+  "status": "fixture_contract_passed_real_flow_deferred_by_revision_fix"
 }

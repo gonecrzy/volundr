@@ -1,12 +1,9 @@
 {
   "blocked": [
-    "real provider-backed creation",
-    "real revision",
-    "real partial sibling failure",
-    "real restart reconciliation",
-    "real package generation"
+    "real bounded revision completion",
+    "real partial sibling failure"
   ],
-  "blocker": "No GEMINI_API_KEY_2 primary or GEMINI_API_KEY fallback credential was configured in the controlled staging container.",
+  "blocker": "Revision preservation metadata and accepted source authority disagree about the structural primary_body feature; this is a narrow application-owned fix, not a database or credential blocker.",
   "completed": [
     "guarded reset",
     "base-to-head migration",
@@ -14,16 +11,20 @@
     "0039 alignment and repeated rebuild",
     "artifact quarantine",
     "default and controlled routing checks",
+    "root .env credential layering",
+    "credentialed creation/acceptance",
+    "artifact/package integrity",
+    "restart persistence",
     "fixture contract tests"
   ],
   "credential_values_serialized": false,
   "database": {
-    "artifact_root_bytes": 0,
-    "row_policy": "empty except alembic_version",
+    "artifact_root_bytes": 525218,
+    "row_policy": "migration started empty; only controlled smoke rows added afterward",
     "target": "sqlite:///<redacted>/app.db"
   },
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "reports": [
     "preregistration.json",
     "repository-snapshot.json",
@@ -61,5 +62,5 @@
     "current": "0039_align_fresh_database_schema"
   },
   "scope": "clean non-production Volundr database rebuild and controlled staging baseline",
-  "status": "insufficient_evidence"
+  "status": "clean_database_requires_narrow_fix"
 }

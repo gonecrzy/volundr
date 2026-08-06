@@ -1,5 +1,10 @@
 {
   "api_image_source_aligned": true,
+  "controlled_credential_source": "root .env (GEMINI_API_KEY_2 primary, GEMINI_API_KEY fallback)",
+  "controlled_credentials_present": {
+    "fallback": true,
+    "primary": true
+  },
   "controlled_staging_stack": {
     "health": 200,
     "migration_on_startup": false,
@@ -13,7 +18,7 @@
     "validated_flag": false
   },
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "services": [
     "volundr-api",
     "volundr-cad-worker",

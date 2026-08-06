@@ -7,12 +7,16 @@
     {
       "commit_message": "Align fresh database schema with application models",
       "scope": "0039 migration and fresh-database drift regression test"
+    },
+    {
+      "commit_message": "Follow-up staging credential and revision compatibility fixes",
+      "scope": "root .env credential layering, provider parameter normalization, revision repair request compatibility"
     }
   ],
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "migration_ownership": "new 0039 migration owns the model/schema boundary discovered by fresh audit",
-  "pending_cycle": "Verify clean database staging baseline",
+  "pending_cycle": "Verify clean database staging baseline evidence commit",
   "source_aligned_images_rebuilt": true,
   "status": "passed"
 }

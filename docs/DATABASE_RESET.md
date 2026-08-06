@@ -60,7 +60,19 @@ docker compose ps
 
 The default `VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=false` must remain in
 place for normal startup. Enable the validated flow only for a separately
-controlled staging smoke run.
+controlled staging smoke run. For that run, use the repository `.env` as the
+credential source and a separate ignored overlay for the feature flags. The
+later `--env-file` overrides only those flags; it must not replace `.env`:
+
+```bash
+STAGING_FLAGS=data/debug-sessions/database-rebuild/clean-database-baseline-01/staging-enable.env
+docker compose --env-file .env --env-file "$STAGING_FLAGS" build volundr-api volundr-web
+docker compose --env-file .env --env-file "$STAGING_FLAGS" up -d
+```
+
+Never copy credential values into the overlay, evidence, shell history, or
+committed files. The normal `docker compose up -d` command continues to use
+the default-disabled flags.
 
 The evidence root is
 `data/debug-sessions/database-rebuild/clean-database-baseline-01/`. It may

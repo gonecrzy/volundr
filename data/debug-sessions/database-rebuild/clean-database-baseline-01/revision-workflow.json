@@ -1,8 +1,19 @@
 {
+  "affected_app_boundary": "revision preservation envelope/source authority alignment",
+  "attempted_changes": [
+    "width 30 mm -> 36 mm",
+    "bounded top-edge chamfer request"
+  ],
+  "canonical_output_id_required": "primary_printable_output",
   "deterministic_fixture_contract": "passed in test_validated_cadquery_workflow.py",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
-  "real_staging_attempted": false,
-  "reason": "No real workflow exists because provider credentials were absent.",
-  "status": "blocked_by_creation_workflow"
+  "failure": "The accepted direct brief declares primary_body as protected, but its accepted source has no corresponding feature marker; generated revisions are therefore rejected before compile.",
+  "failure_boundary": "revision_source_compliance",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "parent_revision_id": "640bccff-997a-4a76-aa97-cd54c3dfd2ba",
+  "parent_workflow_id": "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3",
+  "provider_credentials_loaded": true,
+  "real_staging_attempted": true,
+  "status": "real_attempted_requires_narrow_fix",
+  "successful_planning_boundary": true
 }

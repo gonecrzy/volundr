@@ -1,13 +1,22 @@
 {
+  "credential_slot_counts": {
+    "fallback": 0,
+    "primary": 15
+  },
+  "credential_source": "root .env loaded by Compose before non-secret staging flag overlay",
   "credential_values_serialized": false,
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "external_provider_attempt_count": 0,
+  "external_provider_attempt_count": 15,
   "fallback_credential_env_var": "GEMINI_API_KEY",
-  "fallback_credential_present": false,
+  "fallback_credential_present": true,
   "fallback_policy_tests": "passed",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "policy": "fallback only after HTTP 429; no third attempt; request metadata redacts credential values",
   "primary_credential_env_var": "GEMINI_API_KEY_2",
-  "primary_credential_present": false,
-  "status": "blocked_by_missing_credentials"
+  "primary_credential_present": true,
+  "status": "credentialed_primary_path_passed_no_fallback_needed",
+  "status_codes": [
+    200
+  ],
+  "workflow_associated_attempt_count": 12
 }

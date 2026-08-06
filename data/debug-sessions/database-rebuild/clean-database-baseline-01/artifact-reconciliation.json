@@ -15,7 +15,11 @@
   "committed_wave_evidence_preserved": true,
   "database_backup_preserved": true,
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "post_controlled_smoke": {
+    "artifact_root_bytes": 525218,
+    "serving_root": "data/jobs"
+  },
   "quarantine_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01/artifact-quarantine-20260806T012346Z",
   "status": "passed"
 }

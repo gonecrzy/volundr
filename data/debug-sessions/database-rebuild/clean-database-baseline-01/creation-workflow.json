@@ -1,8 +1,31 @@
 {
-  "clean_database_preserved": true,
+  "accepted_revision_id": "640bccff-997a-4a76-aa97-cd54c3dfd2ba",
+  "artifact_types": [
+    "step",
+    "stl",
+    "brep",
+    "design-package"
+  ],
+  "canonical_output_ids": [
+    "primary_printable_output"
+  ],
+  "clean_database_preserved": "no historical application rows restored; only controlled smoke rows exist",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
-  "real_staging_attempted": false,
-  "reason": "Provider credentials were absent in the controlled staging container; no uncredentialed provider call was attempted.",
-  "status": "blocked_by_environment"
+  "explicit_asymmetric_dimensions": {
+    "depth_mm": 20,
+    "height_mm": 10,
+    "width_mm": 30
+  },
+  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "package_available": true,
+  "project_id": "1b408fe0-cab7-4c2a-81ab-49b9e9062e3a",
+  "provider_attempt_count": 1,
+  "real_staging_attempted": true,
+  "required_complexity_gap": "This bounded credential smoke used one rectangular solid; the requested multi-feature irregular creation case remains covered by fixture contracts pending the revision compliance fix.",
+  "required_output_count": 1,
+  "status": "accepted_candidate_and_package_passed",
+  "terminal_state": "candidate_ready",
+  "topology_and_semantic_verification": "passed",
+  "worker_job_recorded": true,
+  "workflow_id": "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3"
 }

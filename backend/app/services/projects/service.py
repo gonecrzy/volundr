@@ -7319,13 +7319,6 @@ class ProjectService:
                 schema_validation_error=str(exc),
                 active_requirements=request.active_requirements,
                 requirement_delta=request.requirement_delta,
-                request_reason=request.reason,
-                request_targeted_findings=[
-                    str(item.get("id"))
-                    for item in request.selected_findings
-                    if isinstance(item, dict) and item.get("id")
-                ],
-                request_geometric_measurements=request.geometric_measurements,
             )
             return await self._run_revision_planning(
                 project=project,

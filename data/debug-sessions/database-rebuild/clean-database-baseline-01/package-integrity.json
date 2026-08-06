@@ -1,11 +1,21 @@
 {
-  "credential_blocker": true,
+  "artifact_downloads": {
+    "brep": 200,
+    "design-package": 200,
+    "step": 200,
+    "stl": 200
+  },
+  "canonical_output_id": "primary_printable_output",
+  "credential_blocker": false,
+  "download_http_status": 200,
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "fixture_assertions": [
     "accepted package manifest schema is validated",
     "package download is an application-produced ZIP"
   ],
-  "generated_at": "2026-08-06T01:50:33.357248Z",
-  "real_package_count": 0,
-  "status": "fixture_contract_passed_real_package_not_generated"
+  "generated_at": "2026-08-06T02:35:30.281593Z",
+  "package_schema": "validated-cadquery-design-package-v1",
+  "real_package_count": 1,
+  "status": "credentialed_real_package_passed",
+  "workflow_id": "62bd12c3-e8a8-460f-8a1b-ec3e57e0cee3"
 }

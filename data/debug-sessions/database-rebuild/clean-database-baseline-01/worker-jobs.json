@@ -1,9 +1,10 @@
 {
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "failed_smoke_jobs_have_safe_diagnostics": true,
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "jobs_root": "data/jobs",
-  "jobs_root_bytes_after_reconciliation": 0,
-  "real_workflow_job_count": 0,
-  "reason": "No provider-backed creation was attempted.",
-  "status": "passed_for_clean_baseline"
+  "jobs_root_bytes_after_reconciliation": 525218,
+  "real_workflow_job_count": 3,
+  "status": "credentialed_creation_worker_jobs_recorded",
+  "successful_accepted_revision_job": "640bccff-997a-4a76-aa97-cd54c3dfd2ba"
 }

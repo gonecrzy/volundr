@@ -79,6 +79,21 @@ def test_scaffold_owns_canonical_contract_and_build_entrypoint() -> None:
     validate_cadquery_source(rendered.source)
 
 
+def test_scaffold_normalizes_declared_parameter_attribute_access() -> None:
+    geometry = dict(GEOMETRY)
+    geometry["_ai_component_holder_body"] = """
+def _ai_component_holder_body(params):
+    return cq.Workplane("XY").box(params.bottle_diameter, 20, params.floor_thickness)
+"""
+
+    rendered = render_cadquery_scaffold(PLAN, geometry)
+
+    assert "params['bottle_diameter']" in rendered.source
+    assert "params['floor_thickness']" in rendered.source
+    assert "params.bottle_diameter" not in rendered.source
+    assert "params.floor_thickness" not in rendered.source
+
+
 def test_scaffold_owns_canonical_pattern_points_and_exposes_pattern_manifest() -> None:
     plan = deepcopy(PLAN)
     plan["parameters"].extend([

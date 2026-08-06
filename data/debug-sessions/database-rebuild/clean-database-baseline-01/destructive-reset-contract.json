@@ -15,7 +15,7 @@
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
   "exact_database_confirmation_required": true,
   "explicit_destructive_flag_required": true,
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "production_case_insensitive_refusal": true,
   "status": "passed",
   "writer_and_shared_mount_checks_fail_closed": true

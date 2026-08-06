@@ -1,14 +1,14 @@
 {
-  "blocker": "Controlled staging has neither GEMINI_API_KEY_2 nor GEMINI_API_KEY configured.",
+  "blocker": "Accepted direct brief protects primary_body although the accepted source has no matching feature marker; real bounded revision is rejected before compile. Partial-output smoke remains deferred to avoid unnecessary provider calls.",
   "database_integrity": "passed",
-  "database_state": "empty clean baseline; no synthetic rows were inserted",
+  "database_state": "clean migration baseline with controlled smoke rows only; no historical user design data restored",
   "evidence_root": "data/debug-sessions/database-rebuild/clean-database-baseline-01",
-  "generated_at": "2026-08-06T01:50:33.357248Z",
+  "generated_at": "2026-08-06T02:35:30.281593Z",
   "legacy_routing": "passed",
-  "next_required_input": "A non-production provider credential pair is required to execute the real creation/revision/partial-output/package flow.",
-  "provider_backed_product_flow": "not_demonstrated",
+  "next_required_fix": "Align direct-brief structural feature metadata with the accepted source authority before rerunning the bounded revision and partial-output smoke.",
+  "provider_backed_product_flow": "credentialed creation, acceptance, artifacts, package, and restart persistence demonstrated; revision compliance boundary remains",
   "schema_drift": "passed",
   "secret_values_serialized": false,
-  "status": "insufficient_evidence",
+  "status": "clean_database_requires_narrow_fix",
   "validated_routing": "passed_for_flag_and_auth_boundary"
 }
