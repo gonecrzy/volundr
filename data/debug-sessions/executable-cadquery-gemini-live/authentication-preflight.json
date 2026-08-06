@@ -1,0 +1,17 @@
+{
+  "schema_version": "executable-cadquery-authentication-preflight-v1",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "head": "df7cf77",
+  "main": "d4d0bb5",
+  "base_url": "https://generativelanguage.googleapis.com/v1beta",
+  "api_version": "v1beta",
+  "model": "gemini-3.5-flash-lite",
+  "credential_slots": {
+    "primary": {"environment_variable": "GEMINI_API_KEY_2", "present": true},
+    "fallback": {"environment_variable": "GEMINI_API_KEY", "present": true}
+  },
+  "env_file": {"mode": "0600", "ignored": true},
+  "worker_credential_isolation": "worker receives empty Gemini credential variables",
+  "frontend_browser_playwright_credential_isolation": "credentials unset before Playwright starts",
+  "generation_fallback_policy": "fallback only after primary HTTP 429"
+}

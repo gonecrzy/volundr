@@ -1,0 +1,19 @@
+{
+  "schema_version": "executable-cadquery-transport-auth-diagnostics-v1",
+  "observed_before_fix": {
+    "validated_transport_authentication": "query parameter key",
+    "query_credential_present": true,
+    "x_goog_api_key_present": false,
+    "authorization_header_present": false
+  },
+  "narrow_fix": {
+    "validated_transport_authentication": "x-goog-api-key header",
+    "query_credential_present": false,
+    "authorization_header_present": false,
+    "endpoint_joining": "base URL plus one model path",
+    "429_fallback_policy_changed": false
+  },
+  "safe_google_error_reason_persistence": true,
+  "offline_transport_tests": "validated header/query isolation, credential validation, and structured 401 reason",
+  "additional_real_network_calls_after_two_probes": 0
+}

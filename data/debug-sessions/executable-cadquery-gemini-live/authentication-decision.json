@@ -1,0 +1,16 @@
+{
+  "schema_version": "executable-cadquery-authentication-decision-v1",
+  "classification": "primary_invalid_fallback_valid",
+  "primary_slot": "GEMINI_API_KEY_2",
+  "fallback_slot": "GEMINI_API_KEY",
+  "primary_authenticates": false,
+  "fallback_authenticates": true,
+  "configured_model_available_on_fallback": true,
+  "operator_action_required": "replace_or_update_GEMINI_API_KEY_2_in_root_env_or_explicitly_approve_revised_primary_assignment",
+  "priority_changed": false,
+  "generation_authorized": false,
+  "gemini_capability_inferred": false,
+  "final_outcome": "gemini_authentication_blocked",
+  "diagnostic_network_calls": 2,
+  "secret_values_recorded": false
+}
