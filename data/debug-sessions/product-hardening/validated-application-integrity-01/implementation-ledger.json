@@ -1,0 +1,12 @@
+{
+  "schema_version": "validated-application-integrity-ledger-v1",
+  "commits": [
+    "Harden single-user validated API authentication",
+    "Enforce atomic workflow creation and current-state acceptance",
+    "Make validated workflow reads side-effect free",
+    "Add offline application integrity CI"
+  ],
+  "migration_head_preserved": "0039_align_fresh_database_schema",
+  "provider_prompts_or_settings_changed": false,
+  "credential_values_serialized": false
+}

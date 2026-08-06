@@ -1,0 +1,11 @@
+{
+  "schema_version": "validated-application-integrity-auth-v1",
+  "actor_authority": "server-owned fixed single-user actor",
+  "accepted_boundary": "nginx internal actor header or explicit disabled-by-default local direct-access override",
+  "arbitrary_client_actor_headers": "rejected",
+  "arbitrary_bearer_values": "rejected",
+  "api_bind": "loopback by default",
+  "worker_credentials": "none",
+  "focused_tests": "passed",
+  "credential_values_serialized": false
+}

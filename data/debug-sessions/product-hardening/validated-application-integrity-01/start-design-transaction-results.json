@@ -1,0 +1,15 @@
+{
+  "schema_version": "validated-application-integrity-start-design-v1",
+  "precommit_crash_windows": [
+    "after_operation_creation",
+    "after_project_flush",
+    "after_workflow_flush",
+    "after_operation_links",
+    "before_commit"
+  ],
+  "precommit_result": "all initial operation, project, and workflow records rolled back",
+  "postcommit_retry_result": "durable workflow reused without provider invocation",
+  "same_key_concurrency_result": "one operation, one project, one workflow",
+  "orphaned_completed_operation": "rejected",
+  "provider_calls": 0
+}

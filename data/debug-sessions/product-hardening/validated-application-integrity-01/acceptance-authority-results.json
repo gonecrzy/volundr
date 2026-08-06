@@ -1,0 +1,9 @@
+{
+  "schema_version": "validated-application-integrity-acceptance-v1",
+  "authority": "one freshly derived output outcome snapshot",
+  "stale_ready_state_with_blocking_evidence": "rejected",
+  "stale_ready_state_with_incomplete_artifacts": "rejected",
+  "double_acceptance": "stable and side-effect free",
+  "acceptance_transaction": "revision, active pointer, message, workflow event, and workflow completion rollback together",
+  "provider_calls": 0
+}

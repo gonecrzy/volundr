@@ -1,0 +1,15 @@
+{
+  "schema_version": "validated-application-integrity-read-purity-v1",
+  "read_surfaces": [
+    "workflow",
+    "requirements",
+    "plan",
+    "verification",
+    "diagnostics",
+    "artifacts"
+  ],
+  "feature_flag_disabled_read": "no persisted routing, diagnostics, or state-version mutation",
+  "missing_artifact_listing": "response reports unavailable artifact without reconciliation write",
+  "repeated_read_result": "stable",
+  "provider_calls": 0
+}

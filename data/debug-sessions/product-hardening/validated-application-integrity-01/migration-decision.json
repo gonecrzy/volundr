@@ -1,0 +1,8 @@
+{
+  "schema_version": "validated-application-integrity-migration-v1",
+  "decision": "no_migration_required",
+  "reason": "existing operation identity constraint and application transaction boundaries enforce the required invariants",
+  "head": "0039_align_fresh_database_schema",
+  "alembic_check": "passed",
+  "upgrade_downgrade_upgrade": "passed"
+}

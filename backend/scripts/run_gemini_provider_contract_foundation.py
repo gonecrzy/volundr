@@ -35,6 +35,7 @@ from app.services.gemini_consistency.provider_contract import (
     semantic_signature,
     structural_signature,
 )
+from app.services.gemini_integration.transport import load_secondary_credential
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.provider import DesignPlanRequest, ModelGenerationRequest, RequirementExtractionRequest
 from app.services.workflow.redaction import RedactionService
@@ -608,7 +609,10 @@ def _safe_auth_metadata() -> dict[str, Any]:
 def _require_secondary_key() -> str:
     key = os.environ.get(SECONDARY_ENV)
     if not key:
-        raise RuntimeError("GEMINI_API_KEY_2 is absent; no provider call was attempted")
+        try:
+            key = load_secondary_credential().value
+        except RuntimeError as exc:
+            raise RuntimeError("GEMINI_API_KEY_2 is absent from the process environment and repository .env; no provider call was attempted") from exc
     return key
 
 

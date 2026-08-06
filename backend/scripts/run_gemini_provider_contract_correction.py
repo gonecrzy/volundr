@@ -34,6 +34,7 @@ from app.services.gemini_consistency.provider_contract import (
     structural_signature,
 )
 from app.services.gemini_consistency.geometry_slot_canonicalizer import GeometrySlotContractCanonicalizer
+from app.services.gemini_integration.transport import load_secondary_credential
 from app.services.gemini_consistency.provider_contract_correction import (
     corrected_content_denominator,
     evaluate_bounded_repair,
@@ -102,15 +103,10 @@ def _old_root(repo_root: Path) -> Path:
 def _reload_secondary_dotenv(repo_root: Path) -> None:
     """Reload only the secondary key for this isolated experiment process."""
     dotenv = repo_root / ".env"
-    if not dotenv.is_file():
-        raise RuntimeError(".env is absent; no provider call was attempted")
-    secondary: str | None = None
-    for line in dotenv.read_text(encoding="utf-8").splitlines():
-        if line.startswith(f"{SECONDARY_ENV}="):
-            secondary = line.split("=", 1)[1].strip().strip('"').strip("'")
-            break
-    if not secondary:
-        raise RuntimeError("GEMINI_API_KEY_2 is absent from .env; no provider call was attempted")
+    try:
+        secondary = load_secondary_credential(dotenv_path=dotenv if dotenv.is_file() else None).value
+    except RuntimeError as exc:
+        raise RuntimeError("GEMINI_API_KEY_2 is absent from the repository .env; no provider call was attempted") from exc
     for name in ("GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY_2"):
         os.environ.pop(name, None)
     os.environ[SECONDARY_ENV] = secondary

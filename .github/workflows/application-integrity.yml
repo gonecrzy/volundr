@@ -1,0 +1,87 @@
+name: application-integrity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: "."
+  VOLUNDR_AI_PROVIDER: "ollama"
+  VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED: "false"
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install backend and test dependencies
+        run: python -m pip install -e 'backend[test]'
+      - name: Run integrity-focused tests
+        run: python -m pytest backend/tests/test_validated_cadquery_hardening.py backend/tests/test_validated_cadquery_integrity.py backend/tests/test_validated_cadquery_read_purity.py -q
+      - name: Run full backend suite
+        run: python -m pytest backend/tests -q
+      - name: Verify migration chain on disposable SQLite
+        env:
+          VOLUNDR_DATA_DIR: ${{ runner.temp }}/volundr-migration
+        run: |
+          mkdir -p "$VOLUNDR_DATA_DIR"
+          (cd backend && alembic upgrade head)
+          (cd backend && alembic downgrade base)
+          (cd backend && alembic upgrade head)
+          (cd backend && alembic check)
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Run frontend unit tests
+        working-directory: frontend
+        run: npm test
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+      - name: Verify built assets contain no credentials or auth headers
+        run: |
+          if rg -n --hidden --glob '!frontend/node_modules/**' '(AIza[0-9A-Za-z_-]{20,}|GEMINI_API_KEY|Authorization|X-Volundr-Actor-Id)' frontend/dist >/dev/null; then
+            exit 1
+          fi
+
+  deployment-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose configuration and credential boundaries
+        run: |
+          compose_config="$(docker compose config)"
+          if ! printf '%s' "$compose_config" | rg -q '127\.0\.0\.1:[0-9]+:8000'; then
+            exit 1
+          fi
+          worker_config="$(printf '%s' "$compose_config" | sed -n '/volundr-cad-worker:/,/networks:/p')"
+          if printf '%s' "$worker_config" | rg -q 'GEMINI_API_KEY|VOLUNDR_GEMINI|Authorization|X-Volundr-Internal-Actor'; then
+            exit 1
+          fi
+      - name: Validate nginx configuration
+        run: docker run --rm --add-host volundr-api:127.0.0.1 -v "$PWD/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.27-alpine nginx -t
+      - name: Scan tracked sources for serialized secrets
+        run: |
+          if rg -n --hidden --glob '!.git/**' --glob '!**/.env' --glob '!**/.env.*' --glob '!**/node_modules/**' '(AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9]{20,})' . >/dev/null; then
+            exit 1
+          fi

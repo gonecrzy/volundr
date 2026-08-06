@@ -248,6 +248,11 @@ def test_only_secondary_credential_is_selected(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setenv("GEMINI_API_KEY_2", "secondary-test-value")
     assert foundation._require_secondary_key() == "secondary-test-value"
     monkeypatch.delenv("GEMINI_API_KEY_2", raising=False)
+    monkeypatch.setattr(
+        foundation,
+        "load_secondary_credential",
+        lambda: (_ for _ in ()).throw(RuntimeError("test dotenv is absent")),
+    )
     with pytest.raises(RuntimeError, match="GEMINI_API_KEY_2"):
         foundation._require_secondary_key()
 

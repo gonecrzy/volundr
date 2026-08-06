@@ -303,7 +303,7 @@ def test_enabled_start_design_uses_the_product_application_path(tmp_path) -> Non
     app.dependency_overrides[get_cad_runner] = lambda: FixtureRunner(tmp_path)
     try:
         with TestClient(app) as client:
-            client.headers.update({"X-Volundr-Actor-Id": "product-test-user"})
+            client.headers.update({"X-Volundr-Internal-Actor": "volundr-single-user"})
             response = client.post(
                 "/api/validated-cadquery/designs",
                 json={
@@ -390,7 +390,7 @@ def test_bounded_revision_reuses_accepted_workflow_authority(tmp_path) -> None:
     app.dependency_overrides[get_cad_runner] = lambda: FixtureRunner(tmp_path)
     try:
         with TestClient(app) as client:
-            client.headers.update({"X-Volundr-Actor-Id": "product-test-user"})
+            client.headers.update({"X-Volundr-Internal-Actor": "volundr-single-user"})
             created = client.post(
                 "/api/validated-cadquery/designs",
                 json={"name": "Mounting plate", "intent": "Build a simple mounting plate."},

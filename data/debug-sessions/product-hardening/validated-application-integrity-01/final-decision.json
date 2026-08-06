@@ -1,0 +1,10 @@
+{
+  "schema_version": "validated-application-integrity-final-v1",
+  "decision": "application_integrity_ready",
+  "scope": "offline validated CadQuery application-integrity hardening",
+  "migration_head": "0039_align_fresh_database_schema",
+  "provider_calls": 0,
+  "worker_calls": 0,
+  "credential_values_serialized": false,
+  "origin_push_required": true
+}

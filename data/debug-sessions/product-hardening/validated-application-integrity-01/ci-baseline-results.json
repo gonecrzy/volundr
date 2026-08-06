@@ -1,0 +1,18 @@
+{
+  "schema_version": "validated-application-integrity-ci-v1",
+  "workflow": ".github/workflows/application-integrity.yml",
+  "jobs": [
+    "backend",
+    "frontend",
+    "deployment-boundary"
+  ],
+  "offline_guarantees": [
+    "no provider calls",
+    "frontend bundle secret scan",
+    "worker credential boundary check",
+    "loopback API bind check",
+    "nginx syntax check",
+    "disposable SQLite migration cycle"
+  ],
+  "credential_values_serialized": false
+}

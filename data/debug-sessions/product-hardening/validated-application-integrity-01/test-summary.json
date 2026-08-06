@@ -1,0 +1,11 @@
+{
+  "schema_version": "validated-application-integrity-tests-v1",
+  "backend_full_suite": "1244 passed, 1 warning",
+  "frontend_unit_suite": "100 passed",
+  "frontend_build": "passed",
+  "focused_integrity_suite": "passed",
+  "compose_config": "passed",
+  "nginx_config": "passed",
+  "secret_scan": "passed",
+  "provider_calls": 0
+}

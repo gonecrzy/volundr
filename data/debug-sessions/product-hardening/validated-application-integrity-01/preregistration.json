@@ -1,0 +1,13 @@
+{
+  "schema_version": "validated-application-integrity-v1",
+  "objective": "offline application-integrity hardening for the validated CadQuery product workflow",
+  "repository": "volundr",
+  "branch": "main",
+  "baseline_head": "60878ab92703e4d9c9b7fd0ad53892d0dcdd5fe5",
+  "migration_head": "0039_align_fresh_database_schema",
+  "validated_flow_default_enabled": false,
+  "provider_calls": 0,
+  "worker_calls": 0,
+  "credential_values_serialized": false,
+  "credential_source": "repository dotenv loader; values omitted"
+}

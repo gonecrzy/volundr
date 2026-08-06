@@ -19,6 +19,7 @@ def test_normal_environment_example_has_only_deployment_decisions() -> None:
     assert _active_env_names(REPOSITORY_ROOT / ".env.example") == {
         "VOLUNDR_WEB_PORT",
         "VOLUNDR_API_PORT",
+        "VOLUNDR_API_BIND_ADDRESS",
         "VOLUNDR_DATA_DIR",
         "VOLUNDR_AI_PROVIDER",
         "GEMINI_API_KEY",
