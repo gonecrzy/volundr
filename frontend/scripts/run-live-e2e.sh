@@ -113,6 +113,7 @@ export VOLUNDR_LIVE_ENV_FILE="$backend_env_file"
 export VOLUNDR_LIVE_DATA_DIR="$live_data_dir"
 export VOLUNDR_LIVE_API_PORT="${VOLUNDR_LIVE_API_PORT:-0}"
 export VOLUNDR_LIVE_WEB_PORT="${VOLUNDR_LIVE_WEB_PORT:-0}"
+export VOLUNDR_LIVE_VALIDATED_CADQUERY_FLOW_ENABLED="${VOLUNDR_LIVE_VALIDATED_CADQUERY_FLOW_ENABLED:-false}"
 
 test_status=0
 setsid npx playwright test --config=playwright.live.config.ts "$@" &
