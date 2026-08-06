@@ -34,7 +34,7 @@ def test_fixture_server_persists_real_workflow_and_exposes_bounded_summary(tmp_p
 
 
 def test_fixture_server_exposes_the_validated_product_route_with_fixture_provider(tmp_path: Path) -> None:
-    app = create_e2e_fixture_app(tmp_path)
+    app = create_e2e_fixture_app(tmp_path, validated_enabled=True)
     with TestClient(app) as client:
         response = client.post(
             "/api/validated-cadquery/designs",
@@ -56,6 +56,25 @@ def test_fixture_server_exposes_the_validated_product_route_with_fixture_provide
             headers=ACTOR_HEADERS,
         )
         assert artifacts.status_code == 200
+
+
+def test_fixture_server_exposes_validated_partial_output_without_promoting_candidate(tmp_path: Path) -> None:
+    app = create_e2e_fixture_app(tmp_path, validated_enabled=True)
+    with TestClient(app) as client:
+        assert client.post("/api/test-fixture/scenarios/configure-validated?mode=partial_output_failure").status_code == 200
+        response = client.post(
+            "/api/validated-cadquery/designs",
+            headers={**ACTOR_HEADERS, "Idempotency-Key": "fixture-validated-partial-1"},
+            json={"name": "Fixture validated enclosure", "intent": "Create a two-part electronics enclosure."},
+        )
+
+        assert response.status_code == 201
+        workflow = response.json()
+        assert workflow["state"] == "partially_completed"
+        assert {output["output_id"] for output in workflow["outputs"]} == {"base", "lid"}
+        assert next(output for output in workflow["outputs"] if output["output_id"] == "base")["state"] == "completed"
+        assert next(output for output in workflow["outputs"] if output["output_id"] == "lid")["state"] == "worker_timeout"
+        assert workflow["package_available"] is False
 
 
 def test_fixture_server_generates_a_real_candidate_after_plan_approval(tmp_path: Path) -> None:

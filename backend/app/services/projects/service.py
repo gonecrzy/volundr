@@ -4419,6 +4419,28 @@ class ProjectService:
         answers: list[dict[str, Any]] = []
         for answer_payload in payload.answers:
             question = self.db.get(ClarificationQuestion, answer_payload.question_id)
+            if question is None:
+                question = self.db.scalar(
+                    select(ClarificationQuestion)
+                    .where(ClarificationQuestion.design_specification_id == specification.id)
+                    .where(ClarificationQuestion.requirement_id == answer_payload.question_id)
+                )
+            if question is None:
+                specification_payload = self._read_design_specification_payload(specification)
+                provider_question = next(
+                    (
+                        item
+                        for item in specification_payload.get("clarification_questions", [])
+                        if isinstance(item, dict) and item.get("id") == answer_payload.question_id
+                    ),
+                    None,
+                )
+                if provider_question is not None and provider_question.get("question"):
+                    question = self.db.scalar(
+                        select(ClarificationQuestion)
+                        .where(ClarificationQuestion.design_specification_id == specification.id)
+                        .where(ClarificationQuestion.question == provider_question["question"])
+                    )
             if question is None or question.design_specification_id != specification.id:
                 raise ValueError("clarification question not found for specification")
             answer = ClarificationAnswer(

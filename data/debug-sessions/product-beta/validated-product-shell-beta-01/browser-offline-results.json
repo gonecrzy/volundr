@@ -1,9 +1,11 @@
 {
   "schema_version": "validated-browser-offline-results-v1",
   "validated_test": "passed",
-  "validated_command": "VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=true npx playwright test --config=playwright.config.ts e2e/validated-product-shell.spec.ts",
-  "validated_flow": ["real Vite frontend", "SQLite fixture API", "deterministic fixture provider", "real CAD worker", "UUID request header", "terminal polling stop", "candidate acceptance", "package download", "bounded revision", "stable reload"],
-  "default_off_suite": {"passed": 20, "skipped": 11, "status": "passed"},
+  "validated_command": "VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=true npx playwright test --config=playwright.config.ts e2e/validated-auth-boundary.spec.ts e2e/validated-clarification.spec.ts e2e/validated-partial-output.spec.ts e2e/validated-product-shell.spec.ts",
+  "validated_suite": {"passed": 4, "failed": 0, "status": "passed"},
+  "disabled_suite": {"passed": 1, "failed": 0, "status": "passed"},
+  "default_off_suite": {"passed": 21, "skipped": 14, "status": "passed"},
+  "validated_flow": ["real Vite frontend", "SQLite fixture API", "deterministic fixture provider", "real CAD worker", "UUID request header", "terminal polling stop", "refresh during clarification", "clarification stays in conversation", "duplicate clarification idempotency", "candidate acceptance", "package download", "bounded revision", "browser back/forward stable routes", "partial output with controlled failure", "caller-selected direct identity rejected", "stable reload"],
   "browser_console_errors": 0,
   "browser_failed_requests": 0
 }

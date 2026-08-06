@@ -11,6 +11,13 @@ export type PlaywrightPorts = {
 };
 
 export function resolvePlaywrightPorts(apiEnv: string, webEnv: string): PlaywrightPorts {
+  if (process.env.VOLUNDR_PLAYWRIGHT_PORTS_RESOLVED === "true") {
+    const apiPort = Number(process.env[apiEnv]);
+    const webPort = Number(process.env[webEnv]);
+    if (Number.isInteger(apiPort) && Number.isInteger(webPort) && apiPort > 0 && webPort > 0) {
+      return { host: "127.0.0.1", apiPort, webPort };
+    }
+  }
   const scriptPath = fileURLToPath(new URL("./scripts/live-harness.mjs", import.meta.url));
   const configuredApiPort = process.env[apiEnv] ?? "0";
   const configuredWebPort = process.env[webEnv] ?? "0";

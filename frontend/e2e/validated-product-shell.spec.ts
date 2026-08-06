@@ -43,9 +43,18 @@ test("runs one validated design through review, package download, bounded revisi
   ]);
   expect((await packageDownload[0].suggestedFilename()).toLowerCase()).toMatch(/^validated-cadquery-.*\.zip$/);
 
+  const parentUrl = page.url();
   await page.getByLabel("What should change?").fill("Make the plate wider while preserving the required output.");
   await page.getByLabel("New dimension value (optional)").fill("96 mm");
   await page.getByRole("button", { name: "Start revision" }).click();
+  await expect(page.getByText("Revision ready to review", { exact: true })).toBeVisible();
+
+  const revisionUrl = page.url();
+  await page.goBack();
+  await expect(page).toHaveURL(parentUrl);
+  await expect(page.getByText("Ready to review", { exact: true })).toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL(revisionUrl);
   await expect(page.getByText("Revision ready to review", { exact: true })).toBeVisible();
 
   const stableUrl = page.url();

@@ -7,5 +7,7 @@
   "identity_contains_user_text": false,
   "pending_identity_survives_refresh": true,
   "identity_cleared_after_success": true,
+  "clarification_duplicate_events_reuse_one_key": true,
+  "definitive_4xx_clears_pending_identity": true,
   "duplicate_controls_removed": true
 }

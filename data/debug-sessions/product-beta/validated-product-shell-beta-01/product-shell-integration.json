@@ -6,6 +6,7 @@
   "stable_route": "/projects/{project_id}/designs/{workflow_id}",
   "review_actions": ["clarification", "acceptance", "package download", "bounded revision"],
   "output_area": ["conversation workflow card", "existing details/output column"],
+  "offline_browser_scenarios": ["disabled legacy", "validated create/progress/reload", "clarification conversation", "acceptance/package/refresh", "bounded revision history", "partial output", "nginx auth boundary"],
   "legacy_route_changed": false,
   "provider_contract_changed": false,
   "cad_backend_changed": false,

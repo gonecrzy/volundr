@@ -67,6 +67,21 @@ export type ValidatedWorkflowArtifact = {
 export type ValidatedRequestAction = "start_design" | "clarification" | "acceptance" | "revision" | "package";
 
 type RequestIdentityStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+type PendingRequestPayload = Record<string, unknown>;
+
+export class ValidatedWorkflowRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ValidatedWorkflowRequestError";
+    this.status = status;
+  }
+}
+
+export function isDefinitiveValidatedRequestError(reason: unknown): boolean {
+  return reason instanceof ValidatedWorkflowRequestError && reason.status >= 400 && reason.status < 500;
+}
 
 function defaultRequestIdentity(): string {
   if (typeof globalThis.crypto?.randomUUID === "function") {
@@ -90,6 +105,7 @@ export function createValidatedRequestIdentityStore(
   identityFactory: () => string = defaultRequestIdentity,
 ) {
   const keyFor = (action: ValidatedRequestAction, scope: string) => `volundr:validated-request:${action}:${scope}`;
+  const pendingKeyFor = (action: ValidatedRequestAction, scope: string) => `${keyFor(action, scope)}:pending`;
   return {
     getOrCreate(action: ValidatedRequestAction, scope: string): string {
       const storageKey = keyFor(action, scope);
@@ -101,6 +117,20 @@ export function createValidatedRequestIdentityStore(
     },
     clear(action: ValidatedRequestAction, scope: string): void {
       storage?.removeItem(keyFor(action, scope));
+      storage?.removeItem(pendingKeyFor(action, scope));
+    },
+    setPending(action: ValidatedRequestAction, scope: string, payload: PendingRequestPayload): void {
+      storage?.setItem(pendingKeyFor(action, scope), JSON.stringify(payload));
+    },
+    getPending<T extends PendingRequestPayload>(action: ValidatedRequestAction, scope: string): T | null {
+      const serialized = storage?.getItem(pendingKeyFor(action, scope));
+      if (!serialized) return null;
+      try {
+        const parsed = JSON.parse(serialized);
+        return parsed && typeof parsed === "object" ? parsed as T : null;
+      } catch {
+        return null;
+      }
     },
   };
 }
@@ -119,7 +149,10 @@ export function createValidatedWorkflowApi(
     const response = await fetcher(`${apiBase}${path}`, { ...init, headers });
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      throw new Error(typeof body.detail === "string" ? body.detail : "The design workflow could not be completed.");
+      throw new ValidatedWorkflowRequestError(
+        typeof body.detail === "string" ? body.detail : "The design workflow could not be completed.",
+        response.status,
+      );
     }
     return response.json() as Promise<T>;
   }

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   createValidatedRequestIdentityStore,
   createValidatedWorkflowApi,
+  isDefinitiveValidatedRequestError,
   outputStateLabel,
   workflowStageLabel,
   workflowSummary,
@@ -51,6 +52,7 @@ export function ValidatedCadQueryWorkflowView({
   const [artifacts, setArtifacts] = useState<ValidatedWorkflowArtifact[]>([]);
   const [route, setRoute] = useState(() => validatedRouteIds(window.location.pathname));
   const pollerRef = useRef<ReturnType<typeof createWorkflowPoller> | null>(null);
+  const recoveringStartRef = useRef(false);
   const api = useMemo(() => createValidatedWorkflowApi(apiBase), [apiBase]);
   const identities = useMemo(() => createValidatedRequestIdentityStore(), []);
   const currentProjectId = projectId ?? route.projectId;
@@ -107,11 +109,36 @@ export function ValidatedCadQueryWorkflowView({
     };
   }, [api, currentProjectId, currentWorkflowId, enabled]);
 
+  useEffect(() => {
+    if (!enabled || showStartForm || currentWorkflowId || recoveringStartRef.current) return;
+    const pending = identities.getPending<{ name?: string; intent?: string }>("start_design", "new-design");
+    if (!pending?.intent) return;
+    recoveringStartRef.current = true;
+    setBusy(true);
+    void api.startDesign(pending.name ?? "Validated design", pending.intent, identities.getOrCreate("start_design", "new-design"))
+      .then((next) => {
+        identities.clear("start_design", "new-design");
+        publishWorkflow(next);
+        publishArtifacts([]);
+        window.history.pushState({}, "", `/projects/${encodeURIComponent(next.project_id)}/designs/${encodeURIComponent(next.id)}`);
+        setRoute({ projectId: next.project_id, workflowId: next.id });
+      })
+      .catch((reason) => {
+        if (isDefinitiveValidatedRequestError(reason)) identities.clear("start_design", "new-design");
+        setError(reason instanceof Error ? reason.message : "The design could not be recovered.");
+      })
+      .finally(() => {
+        recoveringStartRef.current = false;
+        setBusy(false);
+      });
+  }, [api, currentWorkflowId, enabled, identities, showStartForm]);
+
   async function startDesign() {
     if (!intent.trim() || busy) return;
     setBusy(true);
     setError(null);
     const scope = "new-design";
+    identities.setPending("start_design", scope, { name, intent });
     try {
       const next = await api.startDesign(name, intent, identities.getOrCreate("start_design", scope));
       identities.clear("start_design", scope);
@@ -120,6 +147,7 @@ export function ValidatedCadQueryWorkflowView({
       window.history.pushState({}, "", `/projects/${encodeURIComponent(next.project_id)}/designs/${encodeURIComponent(next.id)}`);
       setRoute({ projectId: next.project_id, workflowId: next.id });
     } catch (reason) {
+      if (isDefinitiveValidatedRequestError(reason)) identities.clear("start_design", scope);
       setError(reason instanceof Error ? reason.message : "The design could not be started.");
     } finally {
       setBusy(false);
@@ -141,6 +169,10 @@ export function ValidatedCadQueryWorkflowView({
       publishArtifacts(await api.listArtifacts(next.id, currentProjectId));
       pollerRef.current?.refresh();
     } catch (reason) {
+      if (isDefinitiveValidatedRequestError(reason)) {
+        identities.clear("acceptance", workflow.id);
+        identities.clear("package", workflow.id);
+      }
       setError(reason instanceof Error ? reason.message : "The candidate could not be accepted.");
     } finally {
       setBusy(false);
@@ -164,6 +196,7 @@ export function ValidatedCadQueryWorkflowView({
       setClarification("");
       pollerRef.current?.refresh();
     } catch (reason) {
+      if (isDefinitiveValidatedRequestError(reason)) identities.clear("clarification", scope);
       setError(reason instanceof Error ? reason.message : "The clarification could not be submitted.");
     } finally {
       setBusy(false);
@@ -190,6 +223,7 @@ export function ValidatedCadQueryWorkflowView({
       setRevisionDimension("");
       pollerRef.current?.refresh();
     } catch (reason) {
+      if (isDefinitiveValidatedRequestError(reason)) identities.clear("revision", workflow.id);
       setError(reason instanceof Error ? reason.message : "The revision could not be started.");
     } finally {
       setBusy(false);
@@ -232,7 +266,7 @@ export function ValidatedCadQueryWorkflowView({
             {workflow.outputs.map((output) => <article className="validated-output-card" key={output.output_id}><div><h3>{output.output_id}</h3><span>{outputStateLabel(output.state)}</span></div><p>{output.solid_count == null ? "Solid count pending" : `${output.solid_count} solid${output.solid_count === 1 ? "" : "s"}`} · topology {output.topology_status ?? "pending"}</p><div className="validated-output-artifacts">{artifacts.filter((artifact) => artifact.output_id === output.output_id && artifact.available && artifact.download_url).map((artifact) => <a key={artifact.artifact_id} href={apiDownloadUrl(apiBase, artifact.download_url!)}>Download {artifact.kind.toUpperCase()}</a>)}</div>{output.safe_diagnostic ? <p className="validated-diagnostic">{output.safe_diagnostic}</p> : null}</article>)}
           </div>
           {workflow.state === "candidate_ready" ? <div className="validated-workflow-actions"><button type="button" disabled={busy} onClick={() => void acceptCandidate()}>Accept candidate</button></div> : null}
-          {packageArtifact?.download_url ? <a className="download" href={apiDownloadUrl(apiBase, packageArtifact.download_url)}>Download design package</a> : workflow.package_available ? <span className="validated-workflow-package">Design package is being prepared.</span> : null}
+          {packageArtifact?.download_url ? <a className="download" href={apiDownloadUrl(apiBase, packageArtifact.download_url)}>Download design package</a> : workflow.package_available ? <span className="validated-workflow-package">Design package is being prepared.</span> : workflow.state === "partially_completed" ? <span className="validated-workflow-package">Incomplete package unavailable until every required output passes.</span> : null}
           {workflow.revision_id && workflow.package_available ? <div className="validated-workflow-revision"><h3>Make a bounded revision</h3><label>What should change?<input value={revisionInstruction} onChange={(event) => setRevisionInstruction(event.target.value)} placeholder="Change one dimension and add a feature" /></label><label>New dimension value (optional)<input value={revisionDimension} onChange={(event) => setRevisionDimension(event.target.value)} placeholder="96 mm" /></label><button type="button" disabled={busy || !revisionInstruction.trim()} onClick={() => void startRevision()}>Start revision</button></div> : null}
           {workflow.diagnostics.message ? <p className="validated-diagnostic">{String(workflow.diagnostics.message)}</p> : null}
         </>

@@ -22,7 +22,17 @@ export default defineConfig({
     host,
     port,
     proxy: {
-      "/api": `http://127.0.0.1:${apiPort}`
+      "/api": {
+        target: `http://127.0.0.1:${apiPort}`,
+        configure(proxy) {
+          proxy.on("proxyReq", (proxyRequest) => {
+            proxyRequest.setHeader("X-Volundr-Internal-Actor", "volundr-single-user");
+            proxyRequest.setHeader("X-Volundr-Actor-Id", "");
+            proxyRequest.setHeader("Authorization", "");
+            proxyRequest.setHeader("X-Volundr-Direct-Access", "");
+          });
+        },
+      },
     }
   }
 });

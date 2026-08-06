@@ -1,9 +1,10 @@
 {
   "schema_version": "validated-product-shell-test-summary-v1",
-  "backend_full_suite": {"passed": 1245, "failed": 0},
+  "backend_full_suite": {"passed": 1247, "failed": 0},
   "frontend_unit_suite": {"passed": 104, "failed": 0},
   "frontend_build": "passed",
-  "fixture_backend_validated_route": {"passed": 11, "failed": 0},
+  "fixture_backend_validated_route": {"passed": 12, "failed": 0},
+  "focused_validated_workflow_tests": {"passed": 32, "failed": 0},
   "focused_redaction_and_config_tests": {"passed": 48, "failed": 0},
   "alembic_current": "0039_align_fresh_database_schema",
   "alembic_check": "passed",

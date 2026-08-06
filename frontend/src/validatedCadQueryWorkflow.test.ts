@@ -52,14 +52,29 @@ describe("validated CadQuery workflow presentation", () => {
       setItem: (key: string, value: string) => values.set(key, value),
       removeItem: (key: string) => values.delete(key),
     };
-    const store = createValidatedRequestIdentityStore(storage, () => "00000000-0000-4000-8000-000000000001");
+    const generated = [
+      "00000000-0000-4000-8000-000000000001",
+      "00000000-0000-4000-8000-000000000002",
+      "00000000-0000-4000-8000-000000000003",
+      "00000000-0000-4000-8000-000000000004",
+      "00000000-0000-4000-8000-000000000005",
+      "00000000-0000-4000-8000-000000000006",
+    ];
+    const store = createValidatedRequestIdentityStore(storage, () => generated.shift()!);
 
     const first = store.getOrCreate("start_design", "new-design");
     expect(first).toBe("00000000-0000-4000-8000-000000000001");
     expect(store.getOrCreate("start_design", "new-design")).toBe(first);
     expect([...values.keys()][0]).not.toContain("Design name from the user");
 
+    store.setPending("start_design", "new-design", { name: "Validated design", intent: "Design name from the user" });
+    expect(store.getPending<{ intent: string }>("start_design", "new-design")?.intent).toBe("Design name from the user");
+
     store.clear("start_design", "new-design");
-    expect(store.getOrCreate("start_design", "new-design")).toBe(first);
+    expect(store.getPending("start_design", "new-design")).toBeNull();
+    expect(store.getOrCreate("start_design", "new-design")).not.toBe(first);
+    expect(store.getOrCreate("revision", "workflow-1")).not.toBe(store.getOrCreate("revision", "workflow-2"));
+    const retryKey = store.getOrCreate("revision", "workflow-3");
+    expect(store.getOrCreate("revision", "workflow-3")).toBe(retryKey);
   });
 });

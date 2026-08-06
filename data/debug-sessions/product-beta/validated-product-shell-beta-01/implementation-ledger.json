@@ -9,7 +9,10 @@
     "opaque_retry_safe_request_identity": true,
     "bounded_state_aware_polling": true,
     "fixture_validated_route": true,
+    "fixture_partial_output_route": true,
     "offline_browser_coverage": true,
+    "browser_auth_boundary_coverage": true,
+    "browser_history_and_refresh_coverage": true,
     "root_env_secondary_and_fallback_loading": true,
     "production_default_disabled": true
   },
@@ -17,5 +20,6 @@
   "provider_contract_untouched": true,
   "cad_backend_untouched": true,
   "authentication_model_untouched": true,
-  "database_foundation_untouched": true
+  "database_foundation_untouched": true,
+  "follow_up": "Fixture, clarification identity mapping, browser harness, and evidence refinements are included in the follow-up verification commit after the initial evidence commit."
 }

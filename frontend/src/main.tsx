@@ -120,6 +120,7 @@ import { ValidatedCadQueryWorkflowView, ValidatedWorkflowOutputArea, validatedRo
 import {
   createValidatedRequestIdentityStore,
   createValidatedWorkflowApi,
+  isDefinitiveValidatedRequestError,
   type ValidatedWorkflowArtifact,
   type ValidatedWorkflow,
 } from "./validatedCadQueryWorkflow";
@@ -1584,6 +1585,7 @@ function App() {
     setSourceContractError(null);
     try {
       if (VALIDATED_CADQUERY_FLOW_ENABLED && !validatedFlowHasDesign) {
+        validatedRequestIdentities.setPending("start_design", "new-design", { name: "Validated design", intent: prompt });
         const next = await validatedApi.startDesign(
           "Validated design",
           prompt,
@@ -1651,6 +1653,9 @@ function App() {
         void recordFrontendWorkflowEvent(currentProject.id, "start_over_branch_created", "conversation", {});
       }
     } catch (error) {
+      if (VALIDATED_CADQUERY_FLOW_ENABLED && isDefinitiveValidatedRequestError(error)) {
+        validatedRequestIdentities.clear("start_design", "new-design");
+      }
       const detail = error instanceof Error ? error.message : "Chat workflow failed";
       setMessage(null);
       setSubmissionError(userFacingSubmissionError(error));

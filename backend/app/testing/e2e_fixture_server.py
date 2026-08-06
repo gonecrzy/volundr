@@ -1,6 +1,7 @@
 import ast
 import json
 import hashlib
+import os
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,6 @@ from app.api.dependencies import (
     get_ai_provider,
     get_cad_runner,
     get_data_dir,
-    get_validated_actor_id,
     get_validated_ai_provider,
 )
 from app.api.capabilities import router as capabilities_router
@@ -614,7 +614,9 @@ class FixtureProvider:
                 },
             ]
         if "enclosure" in request.user_instruction.lower() or "enclosure" in request.original_intent.lower():
-            payload = ENCLOSURE_SPEC | {"purpose": request.user_instruction}
+            payload = ENCLOSURE_SPEC | {
+                "purpose": f"{request.user_instruction} Separate parts with a removable lid."
+            }
         return RequirementExtractionResult(
             raw_output=json.dumps(payload), provider="fixture", provider_model="fixture-model"
         )
@@ -836,6 +838,37 @@ class FixtureRunner:
         first_metadata: Path | None = None
         for spec in output_specs:
             output_id = str(spec["output_id"])
+            if self.failure_mode == "partial_output_failure" and output_id == "lid":
+                error_message = "worker_timeout: Fixture could not finish the lid output."
+                outputs.append(
+                    CadQueryOutputResult(
+                        output_id=output_id,
+                        entrypoint=output_id,
+                        required=bool(spec.get("required", True)),
+                        success=False,
+                        stl_path=None,
+                        step_path=None,
+                        brep_path=None,
+                        metadata_path=None,
+                        topology_metadata_path=None,
+                        stl_hash=None,
+                        step_hash=None,
+                        brep_hash=None,
+                        output_size_bytes=0,
+                        metadata=None,
+                        topology_metadata=None,
+                        compile_error=error_message,
+                    )
+                )
+                output_manifest_entries.append(
+                    {
+                        "output_id": output_id,
+                        "required": bool(spec.get("required", True)),
+                        "success": False,
+                        "error": error_message,
+                    }
+                )
+                continue
             stl_path = job_dir / f"{output_id}.stl"
             step_path = job_dir / f"{output_id}.step"
             brep_path = job_dir / f"{output_id}.brep"
@@ -965,9 +998,13 @@ class FixtureRunner:
         )
 
 
-def create_e2e_fixture_app(root: Path) -> FastAPI:
+def create_e2e_fixture_app(root: Path, *, validated_enabled: bool | None = None) -> FastAPI:
     root.mkdir(parents=True, exist_ok=True)
-    settings.validated_cadquery_flow_enabled = True
+    settings.validated_cadquery_flow_enabled = (
+        validated_enabled
+        if validated_enabled is not None
+        else os.environ.get("VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED", "false").lower() == "true"
+    )
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     engine = create_engine(
@@ -1000,11 +1037,18 @@ def create_e2e_fixture_app(root: Path) -> FastAPI:
     app.dependency_overrides[get_ai_provider] = lambda: provider
     app.dependency_overrides[get_validated_ai_provider] = lambda: provider
     app.dependency_overrides[get_cad_runner] = lambda: runner
-    app.dependency_overrides[get_validated_actor_id] = lambda: "volundr-single-user"
 
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.post("/api/test-fixture/scenarios/configure-validated", status_code=200, include_in_schema=False)
+    def configure_validated_fixture(mode: str = "success") -> dict[str, str]:
+        if mode not in {"success", "partial_output_failure"}:
+            raise HTTPException(status_code=400, detail="unsupported validated fixture mode")
+        runner.failure_mode = mode
+        runner.failure_injected = False
+        return {"mode": mode}
 
     def build_summary(project_id: str, db: Session) -> dict[str, Any]:
         runs = list(

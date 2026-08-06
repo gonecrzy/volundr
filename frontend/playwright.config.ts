@@ -3,6 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 import { resolvePlaywrightPorts } from "./playwrightPorts";
 
 const ports = resolvePlaywrightPorts("VOLUNDR_E2E_PORT", "VOLUNDR_E2E_WEB_PORT");
+process.env.VOLUNDR_E2E_PORT = String(ports.apiPort);
+process.env.VOLUNDR_E2E_WEB_PORT = String(ports.webPort);
+process.env.VOLUNDR_PLAYWRIGHT_PORTS_RESOLVED = "true";
 const viewportWidth = Number(process.env.VOLUNDR_E2E_VIEWPORT_WIDTH);
 const viewportHeight = Number(process.env.VOLUNDR_E2E_VIEWPORT_HEIGHT);
 const configuredViewport =
@@ -29,7 +32,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        `VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_BUILD_GIT_SHA=${buildSha} VOLUNDR_BUILD_BRANCH=${buildBranch} VOLUNDR_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_BUILD_DIRTY=${buildDirty} VOLUNDR_WORKER_BUILD_GIT_SHA=${buildSha} VOLUNDR_WORKER_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_WORKER_BUILD_DIRTY=${buildDirty} ./scripts/run-fixture-backend.sh`,
+        `VOLUNDR_E2E_PORT=${ports.apiPort} VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED=${process.env.VITE_VOLUNDR_VALIDATED_CADQUERY_FLOW_ENABLED ?? "false"} VOLUNDR_BUILD_GIT_SHA=${buildSha} VOLUNDR_BUILD_BRANCH=${buildBranch} VOLUNDR_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_BUILD_DIRTY=${buildDirty} VOLUNDR_WORKER_BUILD_GIT_SHA=${buildSha} VOLUNDR_WORKER_BUILD_TIMESTAMP=${buildTimestamp} VOLUNDR_WORKER_BUILD_DIRTY=${buildDirty} ./scripts/run-fixture-backend.sh`,
       reuseExistingServer: false,
       url: `http://${ports.host}:${ports.apiPort}/health`,
     },
