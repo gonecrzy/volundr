@@ -182,6 +182,21 @@ def test_reviewer_pass_cannot_override_deterministic_candidate_blocker() -> None
     assert result["review_obligations"] == []
 
 
+def test_review_pass_cannot_create_fully_verified_candidate_without_package() -> None:
+    requirements = [_requirement("body_dimensions")]
+    semantic = evaluate_semantic_policy(_passing_semantics(requirements), {"requirements": requirements})
+
+    result = derive_candidate_policy(
+        outputs=[_output()],
+        semantic_verification=semantic,
+        artifacts={"package_required": True, "package_available": False},
+        independent_review={"verdict": "PASS"},
+    )
+
+    assert result["state"] == "candidate_blocked"
+    assert result["blockers"] == ["package_missing"]
+
+
 def test_explicit_review_requirement_stays_ready_for_review() -> None:
     requirement = _requirement("surface_finish", policy="review_required")
     semantic = evaluate_semantic_policy(

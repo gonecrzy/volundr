@@ -228,6 +228,8 @@ def derive_candidate_policy(
     # is authoritative.  Absence is not a blocker here because output-level
     # artifact evidence above remains mandatory.
     if isinstance(artifacts, Mapping):
+        if artifacts.get("package_required") is True and artifacts.get("package_available") is not True:
+            blockers.append("package_missing")
         if artifacts.get("integrity") is False or artifacts.get("valid") is False:
             blockers.append("artifact_integrity")
     elif artifacts is not None:

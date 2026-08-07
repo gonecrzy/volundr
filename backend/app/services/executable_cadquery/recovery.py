@@ -431,6 +431,16 @@ RECOVERY_POLICIES: dict[str, RecoveryPolicy] = {
         terminal_conditions=("preview failure repeats",),
         invalidates=(),
     ),
+    "package_generation_failure": _policy(
+        owner="package_service",
+        action="retry_stage",
+        maximum_attempts=2,
+        progress_requirement="package is regenerated from immutable valid artifacts",
+        restart_stage="package_generation",
+        evidence_inputs=("artifact_hashes", "package_manifest", "package_diagnostic"),
+        terminal_conditions=("package generation failure repeats", "artifact integrity failure"),
+        invalidates=("preview_rendering",),
+    ),
     "artifact_integrity_failure": _policy(
         owner="application",
         action="require_review",
@@ -543,6 +553,8 @@ class RecoveryRouter:
             if facts.get("step_failure"):
                 return "step_export_failure"
             return "artifact_integrity_failure"
+        if normalized_boundary in {"package", "package_generation"}:
+            return "package_generation_failure"
         if normalized_boundary == "source_contract":
             if failure_kind == "python_syntax_error" or "syntax" in message or "parse" in message:
                 return "python_syntax_error"
@@ -609,6 +621,7 @@ class RecoveryRouter:
             "stl_export_failure": "artifact_export",
             "step_export_failure": "artifact_export",
             "artifact_integrity_failure": "package_generation",
+            "package_generation_failure": "package_generation",
             "preview_render_failure": "preview_rendering",
         }
         if failure_class in class_stages:

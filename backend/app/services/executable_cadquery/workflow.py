@@ -281,6 +281,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             raise ValueError("independent review cycle must be between 1 and 3")
         review["review_cycle"] = review_cycle
         verification["independent_final_review"] = review
+        package_path = self._resolve_optional(workflow.package_path)
         verification["candidate_policy"] = derive_candidate_policy(
             outputs=[
                 {
@@ -294,6 +295,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 for output in workflow.outputs
             ],
             semantic_verification=semantic,
+            artifacts={
+                "package_required": True,
+                "package_available": package_path is not None,
+                "valid": None if package_path is None else self._package_is_safe(package_path),
+            },
             independent_review={"verdict": review.get("final_verdict")},
         )
         workflow.verification_json = json.dumps(verification, sort_keys=True, default=str)

@@ -138,6 +138,18 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert payload["outputs"]
             assert payload["outputs"][0]["output_id"] == "mounting_bracket"
             assert payload["outputs"][0]["artifact_available"] is True
+            response_evidence = next(
+                (tmp_path / "data" / "debug-sessions" / "executable-cadquery" / payload["id"]).glob(
+                    "attempt-01-provider-response.txt"
+                )
+            )
+            assert response_evidence.read_text(encoding="utf-8") == valid_mounting_bracket_source()
+            assert response_evidence.stat().st_mode & 0o777 == 0o600
+
+            accepted = client.post(f"/api/validated-cadquery/workflows/{payload['id']}/accept")
+            assert accepted.status_code == 200, accepted.text
+            accepted_payload = accepted.json()
+            assert accepted_payload["package_available"] is True
             review = client.post(
                 f"/api/validated-cadquery/workflows/{payload['id']}/independent-review",
                 json={
@@ -151,18 +163,6 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             )
             assert review.status_code == 200, review.text
             assert review.json()["candidate_policy"]["state"] == "candidate_fully_verified"
-            response_evidence = next(
-                (tmp_path / "data" / "debug-sessions" / "executable-cadquery" / payload["id"]).glob(
-                    "attempt-01-provider-response.txt"
-                )
-            )
-            assert response_evidence.read_text(encoding="utf-8") == valid_mounting_bracket_source()
-            assert response_evidence.stat().st_mode & 0o777 == 0o600
-
-            accepted = client.post(f"/api/validated-cadquery/workflows/{payload['id']}/accept")
-            assert accepted.status_code == 200, accepted.text
-            accepted_payload = accepted.json()
-            assert accepted_payload["package_available"] is True
 
             revision = client.post(
                 f"/api/validated-cadquery/workflows/{payload['id']}/revision",

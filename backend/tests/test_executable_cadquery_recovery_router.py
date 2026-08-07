@@ -100,6 +100,22 @@ def test_router_routes_artifact_export_failure_without_provider_repair() -> None
     assert decision.terminal is False
 
 
+def test_router_routes_missing_package_to_existing_package_service() -> None:
+    decision = RecoveryRouter().route(
+        FailureObservation(
+            observed_stage="package_generation",
+            failure_class="package_generation_failure",
+            evidence={"package_available": False},
+            attempt_ordinal=1,
+        )
+    )
+
+    assert decision.first_incorrect_owner == "package_service"
+    assert decision.recommended_action == "retry_stage"
+    assert decision.restart_stage == "package_generation"
+    assert decision.invalidates == ("preview_rendering",)
+
+
 def test_router_keeps_machine_verifier_coverage_defect_out_of_gemini_repair() -> None:
     decision = RecoveryRouter().route(
         FailureObservation(

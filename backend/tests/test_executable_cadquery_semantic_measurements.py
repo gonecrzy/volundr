@@ -8,7 +8,10 @@ from app.services.executable_cadquery.semantic import (
 )
 
 
-ROOT = Path("data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus")
+ROOT = (
+    Path(__file__).resolve().parents[2]
+    / "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus"
+)
 
 
 def _frozen(project: str) -> tuple[dict, dict[str, Path]]:
@@ -49,4 +52,3 @@ def test_generic_mesh_measurements_cover_multi_output_requirement_policies() -> 
         findings = {item["requirement_id"]: item for item in result["findings"]}
         assert set(findings) >= {item["requirement_id"] for item in contract["requirements"]}
         assert all(findings[item["requirement_id"]].get("measurement_available") is True for item in contract["requirements"])
-
