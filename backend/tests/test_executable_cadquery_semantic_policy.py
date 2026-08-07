@@ -83,6 +83,37 @@ def test_only_explicit_review_policy_can_create_review_obligation() -> None:
     assert result["findings"][0]["result"] == "review_required"
 
 
+def test_frozen_contract_classification_alias_creates_review_obligation() -> None:
+    requirement = _requirement("surface_finish")
+    requirement["classification"] = "review_required"
+
+    result = evaluate_semantic_policy(
+        {"status": "passed", "findings": []},
+        {"requirements": [requirement]},
+    )
+
+    assert result["status"] == "review_required"
+    assert result["review_required"] == ["surface_finish"]
+    assert result["unsupported_verifier"] == []
+    assert result["findings"][0]["policy"] == "review_required"
+
+
+def test_frozen_contract_informational_classification_is_nonblocking() -> None:
+    requirement = _requirement("design_choice")
+    requirement["classification"] = "informational"
+
+    result = evaluate_semantic_policy(
+        {"status": "passed", "findings": []},
+        {"requirements": [requirement]},
+    )
+
+    assert result["status"] == "passed"
+    assert result["review_required"] == []
+    assert result["unsupported_verifier"] == []
+    assert result["findings"][0]["policy"] == "informational"
+    assert result["findings"][0]["result"] == "informational"
+
+
 def test_machine_required_explicitly_missing_measurement_cannot_pass() -> None:
     requirement = _requirement("wall_thickness")
 

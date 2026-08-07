@@ -1,0 +1,117 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-semantic-subclusters-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "semantic_requirement_unverifiable",
+  "provider_calls": 0,
+  "historical_phase_1a_preservation": {
+    "authoritative_first_blocker_matrix_unchanged": true,
+    "historical_label": "semantic_measurement / semantic_requirement_unverifiable / application",
+    "historical_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/first-blocker-matrix.json",
+    "subcluster_analysis_is_additive": true
+  },
+  "evidence_boundary": {
+    "design_requirement": "Frozen requirement records and classifications from corpus-manifest.json.",
+    "normalized_requirement_representation": "The frozen contracts store requirement classification in classification; the semantic policy currently reads policy only and defaults missing policy to machine_required.",
+    "generated_source": "All eight reconciled records report source_extracted=true and source_contract_valid=true. Compact Phase 1A records intentionally retain no raw source or unrestricted provider response.",
+    "result_geometry": "All eight reached worker completion, valid topology, and persisted artifacts. Single-output projects have one valid solid; multi-output projects have one valid solid per persisted output.",
+    "semantic_measurement_request": "Each request is identified by requirement_id, scope, verification_policy, expected value, and tolerance from the frozen contract.",
+    "measurement_and_feature_resolution": "Resolution either dispatches to a registered generic verifier, loses a slash-separated multi-output scope, or returns no generic verifier registered.",
+    "verification_result": "The persisted result distinguishes measured failed findings from unsupported_verifier findings; no unsupported finding is treated as PASS."
+  },
+  "project_geometry_checkpoint": [
+    {"project_id":"development-03","output_ids":["sensor_housing"],"valid_topology":true,"solid_counts":[1],"artifacts":1,"evidence":"project-03-reconciled-first-pass.json; development-03-render.png"},
+    {"project_id":"development-05","output_ids":["cable_organizer"],"valid_topology":true,"solid_counts":[1],"artifacts":1,"evidence":"project-05-reconciled-first-pass.json; development-05-render.png"},
+    {"project_id":"development-06","output_ids":["battery_holder","retaining_lid"],"valid_topology":true,"solid_counts":[1,1],"artifacts":2,"evidence":"project-06-reconciled-first-pass.json; development-06-render.png"},
+    {"project_id":"development-07","output_ids":["curved_cable_guide"],"valid_topology":true,"solid_counts":[1],"artifacts":1,"evidence":"project-07-reconciled-first-pass.json; development-07-render.png"},
+    {"project_id":"development-08","output_ids":["tube_clamp_lower","tube_clamp_upper"],"valid_topology":true,"solid_counts":[1,1],"artifacts":2,"evidence":"project-08-reconciled-first-pass.json; development-08-render.png"},
+    {"project_id":"development-13","output_ids":["charging_phone_stand"],"valid_topology":true,"solid_counts":[1],"artifacts":1,"evidence":"project-13-reconciled-first-pass.json; development-13-render.png"},
+    {"project_id":"development-15","output_ids":["label_insert","wall_accessory_holder"],"valid_topology":true,"solid_counts":[1,1],"artifacts":2,"evidence":"project-15-reconciled-first-pass.json; development-15-render.png"},
+    {"project_id":"development-16","output_ids":["protective_case_base","protective_case_cover"],"valid_topology":true,"solid_counts":[1,1],"artifacts":2,"evidence":"project-16-reconciled-first-pass.json; development-16-render.png"}
+  ],
+  "subclusters": [
+    {
+      "id":"contract_policy_field_alias",
+      "count":15,
+      "projects":["development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
+      "requirements":["review_required and informational requirements in those projects"],
+      "observed_loss":"classification is present in the frozen normalized requirement but policy is absent; semantic policy defaults the requirement to machine_required, so blind_review findings become unsupported_verifier instead of review obligations or informational facts.",
+      "first_incorrect_owner":"application",
+      "confidence":"confirmed",
+      "evidence":"corpus-manifest.json; backend/app/services/executable_cadquery/semantic_policy.py::_requirement_policy; reconciled semantic findings"
+    },
+    {
+      "id":"multi_output_scope_resolution",
+      "count":11,
+      "projects":["development-06","development-08","development-15","development-16"],
+      "requirements":["battery_holder_design_choices","clamp_outputs","clamp_tube_interface","clamp_fasteners","clamp_design_choices","wall_holder_outputs","wall_holder_design_freedom","case_outputs","case_protection","case_open_close","case_design_freedom"],
+      "observed_loss":"scope values containing output_a/output_b are used as one dictionary key; persisted output meshes exist under separate output IDs, so resolution reports required output mesh unavailable before a verifier can run.",
+      "first_incorrect_owner":"application",
+      "confidence":"confirmed",
+      "evidence":"backend/app/services/executable_cadquery/semantic.py::_generic_requirement_finding; reconciled output IDs and measured topology"
+    },
+    {
+      "id":"required_output_identity_verifier_missing",
+      "count":5,
+      "projects":["development-05","development-08","development-13","development-15","development-16"],
+      "requirements":["organizer_output","clamp_outputs","phone_stand_output","wall_holder_outputs","case_outputs"],
+      "observed_loss":"the requirement explicitly asks for persisted output identity/count, but required_output_identity has no registered generic verifier and returns no generic verifier registered when a target resolves.",
+      "first_incorrect_owner":"application",
+      "confidence":"confirmed",
+      "evidence":"backend/app/services/executable_cadquery/semantic.py::_generic_requirement_finding; valid persisted output IDs/artifacts"
+    },
+    {
+      "id":"verifier_requirement_field_mismatch",
+      "count":4,
+      "projects":["development-03","development-05","development-07"],
+      "requirements":["housing_walls","housing_bosses","organizer_wall_mount","guide_mounting"],
+      "observed_loss":"registered verifiers read different expected-field names than the frozen contract. housing_walls records expected wall thickness 0.0 despite contract wall=2.5; housing_bosses records no pitch/diameter despite hole_diameter=2.5; organizer_wall_mount defaults expected count to 1 while contract uses hole_count=2; guide_mounting defaults expected count to 1 while contract uses screw_hole_count=2.",
+      "first_incorrect_owner":"application",
+      "confidence":"confirmed for verifier field loss",
+      "geometry_note":"development-05 also has a genuine measured discrepancy: four detected diameters of about 8.481 mm versus the requested 4 mm, so that requirement remains geometry-owned after verifier normalization is corrected.",
+      "evidence":"reconciled semantic measured_value fields; corpus-manifest.json; semantic.py verifier argument reads"
+    },
+    {
+      "id":"feature_profile_capability_gap",
+      "count":1,
+      "projects":["development-03"],
+      "requirements":["housing_ventilation"],
+      "observed_loss":"final_mesh_feature_profiles only supports a width plus height/depth rectangular profile; the frozen requirement asks for count, width, and length, so the verifier returns measurement_available=false without a geometry verdict.",
+      "first_incorrect_owner":"application",
+      "confidence":"confirmed",
+      "evidence":"backend/app/services/executable_cadquery/semantic.py::_verify_feature_requirement; reconciled finding with no evidence source"
+    },
+    {
+      "id":"requirement_has_no_machine_measurement_definition",
+      "count":4,
+      "projects":["development-06","development-07","development-08"],
+      "requirements":["battery_holder_output","guide_output","guide_clearance","clamp_tube_interface"],
+      "observed_loss":"machine_required requirements use blind_review, topology_and_required_output, or neutral_measurement_plus_review without a registered deterministic measurement implementation; the system correctly refuses to infer PASS.",
+      "first_incorrect_owner":"application requirement/verifier coverage",
+      "confidence":"confirmed",
+      "evidence":"corpus-manifest.json; reconciled unsupported_verifier findings"
+    },
+    {
+      "id":"geometry_owned_measured_discrepancy",
+      "count":1,
+      "projects":["development-05"],
+      "requirements":["organizer_wall_mount"],
+      "observed_loss":"after accounting for the verifier's count-field mismatch, the persisted neutral evidence still reports four approximately 8.481 mm holes against the requested two 4 mm holes.",
+      "first_incorrect_owner":"geometry",
+      "confidence":"confirmed for the diameter discrepancy",
+      "evidence":"reconciled semantic finding organizer_wall_mount"
+    }
+  ],
+  "dominant_common_gap": {
+    "hypothesis":"The smallest cross-project application fix is to normalize the authoritative contract classification field into the semantic policy before verifier results are classified.",
+    "why_first":"It is geometry-independent, affects all eight project traces, is directly falsified by the persisted contract/result mismatch, and can be covered without provider calls or CAD-source changes.",
+    "non_goals":"This does not add qualitative geometry claims, turn UNKNOWN into PASS, repair output identity, resolve multi-output scopes, or correct measured geometry discrepancies. Those remain separate subclusters."
+  },
+  "anti_overfitting_precheck": {
+    "project_id_logic":false,
+    "fixture_dimensions":false,
+    "feature_names":false,
+    "known_source":false,
+    "prompt_copying":false,
+    "synthetic_test_required":true
+  }
+}

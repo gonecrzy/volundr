@@ -1,0 +1,35 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-cluster-decision-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "semantic_requirement_unverifiable",
+  "decision": "cluster_checkpoint_complete_stop_before_next_subcluster",
+  "provider_calls": 0,
+  "repair_operations": 0,
+  "historical_phase_1a_evidence_rewritten": false,
+  "implementation": {
+    "generic_capability": "Resolve the frozen contract classification field as the semantic policy when policy is absent.",
+    "files": [
+      "backend/app/services/executable_cadquery/semantic_policy.py",
+      "backend/app/services/executable_cadquery/repair.py"
+    ],
+    "tests": [
+      "backend/tests/test_executable_cadquery_semantic_policy.py",
+      "backend/tests/test_executable_cadquery_repair.py"
+    ]
+  },
+  "evaluation": "Persisted semantic findings for all eight affected projects were replayed offline. Unsupported findings fell from 26 to 11; review and informational classifications now remain nonblocking obligations; measured failures remain failures.",
+  "gate_status": {
+    "phase_1b_overall_complete": false,
+    "development_16_of_16_eventual_pass": false,
+    "policy_freeze_eligible": false,
+    "phase_2_started": false,
+    "next_cluster_started": false
+  },
+  "stop_reason": "The selected generic hypothesis is verified, but distinct verifier, multi-output scope, and geometry-owned subclusters remain. Do not fold them into this rule or issue provider repairs from unsupported evidence.",
+  "next_authorized_step": "Review the remaining subcluster matrix and select one next generic capability, starting with output identity/multi-output scope resolution, with synthetic tests before any broader cohort replay.",
+  "evidence": {
+    "subclusters": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json",
+    "evaluation": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-policy-evaluation.json",
+    "anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-policy-anti-overfitting.json"
+  }
+}

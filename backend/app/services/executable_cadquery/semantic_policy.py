@@ -267,9 +267,20 @@ def derive_candidate_policy(
     }
 
 
-def _requirement_policy(requirement: Mapping[str, Any]) -> str:
+def resolve_requirement_policy(requirement: Mapping[str, Any]) -> str:
+    """Resolve the canonical policy from either supported contract spelling."""
+
     policy = requirement.get("policy")
-    return policy if isinstance(policy, str) and policy in REQUIREMENT_POLICIES else "machine_required"
+    if isinstance(policy, str) and policy in REQUIREMENT_POLICIES:
+        return policy
+    classification = requirement.get("classification")
+    if isinstance(classification, str) and classification in REQUIREMENT_POLICIES:
+        return classification
+    return "machine_required"
+
+
+def _requirement_policy(requirement: Mapping[str, Any]) -> str:
+    return resolve_requirement_policy(requirement)
 
 
 def _observed_status(finding: Mapping[str, Any] | None) -> str:

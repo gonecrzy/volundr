@@ -1,0 +1,46 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-semantic-policy-evaluation-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "semantic_requirement_unverifiable",
+  "hypothesis_tested": "Normalize frozen contract classification into semantic policy before applying verifier outcomes.",
+  "provider_calls": 0,
+  "worker_replays": 0,
+  "cad_source_changes": 0,
+  "evaluation_method": "Offline replay of persisted reconciled semantic findings against the frozen contract; no provider, worker, CAD, or artifact regeneration.",
+  "cohort": "affected frozen development projects only: development-03, development-05, development-06, development-07, development-08, development-13, development-15, development-16",
+  "aggregate": {
+    "projects": 8,
+    "requirements": 33,
+    "unsupported_findings_before": 26,
+    "unsupported_findings_after": 11,
+    "reclassified_out_of_unsupported": 15,
+    "review_required_after": 8,
+    "informational_after": 7,
+    "measured_failed_requirements_after": 4,
+    "provider_repairs": 0
+  },
+  "projects": [
+    {"project_id":"development-03","before_status":"failed","after_status":"failed","unsupported_before":["housing_ventilation"],"unsupported_after":["housing_ventilation"],"review_required_after":[],"informational_after":[],"measured_failed_after":["housing_walls","housing_bosses"],"next_blocker":"verifier field mapping and feature-profile coverage"},
+    {"project_id":"development-05","before_status":"failed","after_status":"failed","unsupported_before":["organizer_output","organizer_cable_function","organizer_design_choices"],"unsupported_after":["organizer_output"],"review_required_after":["organizer_cable_function"],"informational_after":["organizer_design_choices"],"measured_failed_after":["organizer_wall_mount"],"next_blocker":"required output identity coverage plus measured wall-hole geometry discrepancy"},
+    {"project_id":"development-06","before_status":"unsupported_verifier","after_status":"unsupported_verifier","unsupported_before":["battery_holder_output","battery_holder_mounting","battery_holder_design_choices"],"unsupported_after":["battery_holder_output"],"review_required_after":["battery_holder_mounting"],"informational_after":["battery_holder_design_choices"],"measured_failed_after":[],"next_blocker":"machine measurement definition for battery-cell/top-removal requirement"},
+    {"project_id":"development-07","before_status":"failed","after_status":"failed","unsupported_before":["guide_output","guide_clearance","guide_design_choices"],"unsupported_after":["guide_output","guide_clearance"],"review_required_after":[],"informational_after":["guide_design_choices"],"measured_failed_after":["guide_mounting"],"next_blocker":"generic topology/clearance coverage plus verifier field mapping"},
+    {"project_id":"development-08","before_status":"unsupported_verifier","after_status":"unsupported_verifier","unsupported_before":["clamp_outputs","clamp_tube_interface","clamp_fasteners","clamp_design_choices"],"unsupported_after":["clamp_outputs","clamp_tube_interface","clamp_fasteners"],"review_required_after":[],"informational_after":["clamp_design_choices"],"measured_failed_after":[],"next_blocker":"multi-output scope resolution and mating/interface coverage"},
+    {"project_id":"development-13","before_status":"unsupported_verifier","after_status":"unsupported_verifier","unsupported_before":["phone_stand_output","phone_stand_stability","phone_stand_visibility","phone_stand_design_freedom"],"unsupported_after":["phone_stand_output"],"review_required_after":["phone_stand_stability","phone_stand_visibility"],"informational_after":["phone_stand_design_freedom"],"measured_failed_after":[],"next_blocker":"required output identity coverage"},
+    {"project_id":"development-15","before_status":"unsupported_verifier","after_status":"unsupported_verifier","unsupported_before":["wall_holder_outputs","wall_holder_function","wall_holder_compactness","wall_holder_design_freedom"],"unsupported_after":["wall_holder_outputs"],"review_required_after":["wall_holder_function","wall_holder_compactness"],"informational_after":["wall_holder_design_freedom"],"measured_failed_after":[],"next_blocker":"multi-output scope resolution and required output identity coverage"},
+    {"project_id":"development-16","before_status":"unsupported_verifier","after_status":"unsupported_verifier","unsupported_before":["case_outputs","case_protection","case_open_close","case_design_freedom"],"unsupported_after":["case_outputs"],"review_required_after":["case_protection","case_open_close"],"informational_after":["case_design_freedom"],"measured_failed_after":[],"next_blocker":"multi-output scope resolution and required output identity coverage"}
+  ],
+  "interpretation": {
+    "capability_improved": "Contract classifications now produce their intended review and informational policy results.",
+    "not_passed_by_policy": true,
+    "unknown_not_converted_to_pass": true,
+    "measured_geometry_failures_preserved": true,
+    "remaining_subclusters_untuned": ["multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "broader_corpus_evaluation": "not_run; outside this affected-cluster checkpoint"
+  },
+  "evidence": {
+    "subclusters": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json",
+    "historical_matrix": "data/debug-sessions/executable-cadquery/recovery-development-16/first-blocker-matrix.json",
+    "frozen_manifest": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+    "reconciled_records": "data/debug-sessions/executable-cadquery/recovery-development-16/project-XX-reconciled-first-pass.json"
+  }
+}

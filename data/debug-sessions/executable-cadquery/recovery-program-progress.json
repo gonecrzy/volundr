@@ -1,7 +1,7 @@
 {
   "schema_version": "executable-cadquery-recovery-program-progress-v2",
   "methodology_version": "seed-stabilization-diverse-development-corpus-v1",
-  "current_phase": "phase_1a_frozen_first_blocker_survey",
+  "current_phase": "phase_1b_cluster_driven_recovery_development",
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
@@ -9,7 +9,7 @@
   "origin_experimental_head": "31d2f98 Reconcile Phase 1A first-blocker survey evidence",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A survey reconciled for invalidated P03-P16; authoritative matrix complete; Phase 1B not started",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic-unverifiable cluster checkpoint complete; remaining semantic subclusters queued",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -79,6 +79,11 @@
     ,"phase_1a_rate_limiter_preflight_and_reconciliation_audit_completed"
     ,"phase_1a_p03_p16_observational_reconciliation_completed_without_repairs"
     ,"phase_1a_authoritative_matrix_rebuilt_from_reconciled_records"
+    ,"phase_1b_semantic_subclusters_reconstructed_without_provider_calls"
+    ,"phase_1b_semantic_classification_alias_regression_passed"
+    ,"phase_1b_semantic_policy_replay_completed_without_provider_calls"
+    ,"full_backend_phase_1b_semantic_checkpoint_1444_passed"
+    ,"frontend_phase_1b_semantic_checkpoint_104_passed_and_build_passed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -142,14 +147,38 @@
     "historical_invalidated_project_orders": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
     "authoritative_matrix_uses_reconciled_records": true,
     "decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1a-decision.json",
-    "phase_1b_started": false
+    "phase_1b_started": true,
+    "phase_1b_entry": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-cluster-decision.json"
   },
   "development_recovery_status": {
     "phase": "phase_1b_cluster_driven_recovery_development",
-    "status": "not_started",
+    "status": "in_progress_after_semantic_cluster_checkpoint",
     "requires_first_blocker_survey_complete": true,
     "breadth_first_by_generic_failure_class": true,
     "target_eventual_independent_pass": "16/16",
+    "current_cluster": "semantic_requirement_unverifiable",
+    "current_cluster_projects": ["development-03","development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
+    "current_cluster_status": "generic_classification_normalization_verified; remaining_subclusters_not_started",
+    "current_hypothesis": "Resolve frozen contract classification as semantic policy when policy is absent, preserving explicit policy precedence and fail-closed verifier behavior.",
+    "provider_calls_current_cluster": 0,
+    "repair_operations_current_cluster": 0,
+    "unsupported_findings_before": 26,
+    "unsupported_findings_after": 11,
+    "reclassified_review_or_informational": 15,
+    "new_generic_recovery_rules_by_project_order": {
+      "development-03": 1,
+      "development-05": 0,
+      "development-06": 0,
+      "development-07": 0,
+      "development-08": 0,
+      "development-13": 0,
+      "development-15": 0,
+      "development-16": 0
+    },
+    "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
+    "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
+    "remaining_subclusters": ["multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "cluster_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-cluster-decision.json",
     "metrics": [
       "initial_independent_pass_rate",
       "eventual_independent_pass_rate",
@@ -190,8 +219,8 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 14,
-  "application_fix_count_since_previous_checkpoint": 6,
+  "application_fix_count": 16,
+  "application_fix_count_since_previous_checkpoint": 2,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
@@ -206,6 +235,7 @@
     "post_evidence_successful_provider_calls": 0,
     "phase_0_downstream_reconciliation_provider_calls": 0,
     "p3_transport_forensics_provider_calls": 0
+    ,"phase_1b_semantic_cluster_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -237,7 +267,7 @@
     "credential_freeze": "e4b2b9e",
     "backend_baseline": "1401 passed",
     "frontend_baseline": "104 passed",
-    "backend_current": "1441 passed, 1 skipped, 1 warning",
+    "backend_current": "1444 passed, 1 skipped, 1 warning",
     "frontend_current": "104 passed; production build passed",
     "offline_browser_current": "22 passed, 15 skipped",
     "migrations_current": "0040_provider_attempt_transport_facts; alembic check clean",
@@ -263,10 +293,14 @@
     "prior_l2_attempt_metrics": "backend/app/services/executable_cadquery/repair.py; compact neutral prior-L2 topology metrics included in repair envelopes and covered by backend/tests/test_executable_cadquery_repair.py",
     "p5_diagnostic_refresh": "backend/app/services/cad/cadquery_runner.py and backend/tests/test_cad_worker.py; output ID, source hash, source line/function, normalized exception, operation-before validity, chamfer/StdFail_NotDone/BRep_API evidence, CadQuery and worker versions",
     "semantic_call_authorization_current": "P2 and P4 persisted L3 envelopes are blocked before future provider construction because explicit measurement confidence is absent; verify-only checks report semantic_measurement_verifier_coverage with provider_calls=0",
-    "phase_1a_current": "16/16 authoritative first blockers; original P03-P16 observations invalidated; 14 reconciled provider calls; repair_operations=0; initial independent PASS=0/16; Phase 1B not started",
+    "phase_1a_current": "16/16 authoritative first blockers; original P03-P16 observations invalidated; 14 reconciled provider calls; repair_operations=0; initial independent PASS=0/16; Phase 1A historical evidence remains unchanged",
+    "phase_1b_semantic_subclusters": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json",
+    "phase_1b_semantic_policy_evaluation": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-policy-evaluation.json",
+    "phase_1b_semantic_policy_anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-policy-anti-overfitting.json",
+    "phase_1b_semantic_cluster_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-cluster-decision.json",
     "historical_provider_attempt_forensics": "data/debug-sessions/executable-cadquery/recovery-development-16/historical-provider-attempt-forensics.json; zero calls; no durable facts recoverable for P03-P16",
     "phase_1a_rate_limit_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/rate-limit-audit.json; concurrency=1; primary observed minimum gap=5.001410484997905s; rolling max=9; fallback unused",
     "phase_1a_reconciled_records": "data/debug-sessions/executable-cadquery/recovery-development-16/project-03..16-reconciled-first-pass.json",
-    "verification_current_checkpoint": "backend 1441 passed, 1 skipped, 1 warning; focused taxonomy/diagnostic/provider tests passed; Alembic current=head=0040 and check clean; P03-P16 reconciliation completed with 14 primary API-key operations, zero repairs, and authoritative matrix rebuilt; Phase 1B not started"
+    "verification_current_checkpoint": "backend 1444 passed, 1 skipped, 1 warning with PYTHONPATH=/root/volundr; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; Phase 1B semantic policy/repair focused suite passed 79 tests; semantic cluster provider_calls=0"
   }
 }

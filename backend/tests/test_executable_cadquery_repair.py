@@ -372,6 +372,45 @@ def test_l3_envelope_persists_precise_semantic_repair_facts_and_passed_machine_r
     ]
 
 
+def test_l3_envelope_uses_frozen_classification_for_machine_fact_selection() -> None:
+    contract = {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "outputs": [{"output_id": "part", "required": True, "expected_solid_count": 1}],
+        "requirements": [
+            {"requirement_id": "machine_dimension", "classification": "machine_required", "expected": {"width": 10.0}},
+            {"requirement_id": "review_dimension", "classification": "review_required", "expected": {"width": 20.0}},
+            {"requirement_id": "design_choice", "classification": "informational", "expected": {"style": "choice"}},
+        ],
+    }
+    semantic = {
+        "status": "failed",
+        "failed": ["machine_dimension", "review_dimension", "design_choice"],
+        "findings": [
+            {
+                "requirement_id": requirement_id,
+                "status": "failed",
+                "measurements": {"value": 1.0},
+                "expected_value": {"value": 2.0},
+                "tolerance": 0.25,
+                "verification_policy": "final_mesh_bounds",
+                "evidence_source": "final_mesh",
+            }
+            for requirement_id in ("machine_dimension", "review_dimension", "design_choice")
+        ],
+    }
+
+    envelope_inputs = {**BASE_INPUT, "design_contract": contract}
+    envelope_inputs.pop("semantic_result")
+    envelope = build_executable_cadquery_repair_envelope(
+        **envelope_inputs,
+        repair_level="L3",
+        semantic_result=semantic,
+    )
+
+    assert envelope["failed_machine_requirements"] == ["machine_dimension"]
+    assert [item["requirement_id"] for item in envelope["semantic_repair_facts"]] == ["machine_dimension"]
+
+
 def _semantic_authorization_envelope(**fact_overrides: object) -> dict:
     fact = {
         "requirement_id": "clearance",

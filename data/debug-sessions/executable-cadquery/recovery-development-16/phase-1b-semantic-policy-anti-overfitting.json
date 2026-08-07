@@ -1,0 +1,33 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-anti-overfitting-audit-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "rule_under_review": "semantic policy accepts classification as the frozen contract policy field when policy is absent",
+  "implementation_files": [
+    "backend/app/services/executable_cadquery/semantic_policy.py",
+    "backend/app/services/executable_cadquery/repair.py"
+  ],
+  "project_id_logic": false,
+  "corpus_order_logic": false,
+  "fixture_dimension_logic": false,
+  "project_feature_name_logic": false,
+  "known_final_source_logic": false,
+  "prompt_copying": false,
+  "prompt_model_settings_changed": false,
+  "cad_source_modified": false,
+  "repair_ceiling_changed": false,
+  "credentials_changed": false,
+  "provider_calls": 0,
+  "synthetic_regression_tests": [
+    "backend/tests/test_executable_cadquery_semantic_policy.py::test_frozen_contract_classification_alias_creates_review_obligation",
+    "backend/tests/test_executable_cadquery_semantic_policy.py::test_frozen_contract_informational_classification_is_nonblocking"
+  ],
+  "policy_safety_checks": {
+    "explicit_policy_precedence_preserved": true,
+    "missing_policy_still_defaults_machine_required": true,
+    "unknown_or_invalid_classification_does_not_pass": true,
+    "unsupported_verifier_not_converted_to_pass": true,
+    "measured_failed_findings_preserved": true
+  },
+  "decision": "generic_rule_accepted_for_this_cluster_checkpoint",
+  "remaining_risk": "The remaining verifier and multi-output subclusters require separate generic hypotheses and must not be folded into this alias rule."
+}

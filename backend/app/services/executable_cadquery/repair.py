@@ -16,6 +16,7 @@ from app.services.executable_cadquery.dialect import (
     cadquery_v1_source_skeleton_hash,
 )
 from app.services.executable_cadquery.recovery import RecoveryRouter
+from app.services.executable_cadquery.semantic_policy import resolve_requirement_policy
 
 
 REPAIR_ENVELOPE_SCHEMA_VERSION = "executable-cadquery-repair-envelope-v1"
@@ -179,7 +180,7 @@ def _semantic_repair_facts(
         if not isinstance(requirement, Mapping) or not requirement.get("requirement_id"):
             continue
         requirement_id = str(requirement["requirement_id"])
-        if str(requirement.get("policy") or "machine_required") != "machine_required":
+        if resolve_requirement_policy(requirement) != "machine_required":
             continue
         finding = findings.get(requirement_id, {})
         observed = str(finding.get("result") or finding.get("status") or "")
@@ -266,7 +267,10 @@ def validate_semantic_repair_authorization(
         tolerance = fact.get("tolerance")
         evidence_source = fact.get("measurement_source") or finding.get("evidence_source")
         measurement_available = finding.get("measurement_available") is True
-        policy = str(finding.get("policy") or requirement.get("policy") or "machine_required")
+        if isinstance(finding.get("policy"), str):
+            policy = resolve_requirement_policy({**requirement, "policy": finding["policy"]})
+        else:
+            policy = resolve_requirement_policy(requirement)
         confidence = fact.get("measurement_confidence")
         if confidence is None:
             confidence = finding.get("measurement_confidence")
