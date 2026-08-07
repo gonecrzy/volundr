@@ -123,16 +123,10 @@ class GeminiApiProvider(GeminiCliProvider):
         return "gemini_api"
 
     def set_validated_attempt_recorder(self, recorder: Callable[[dict[str, Any]], Any] | None) -> None:
-        previous = self._validated_attempt_recorder
-        if previous is None or recorder is None:
-            self._validated_attempt_recorder = recorder or previous
-            return
-
-        def combined(record: dict[str, Any]) -> None:
-            previous(record)
-            recorder(record)
-
-        self._validated_attempt_recorder = combined
+        # Workflow services are request-scoped while the provider is shared.
+        # Replacing the observer prevents stale service callbacks from
+        # persisting the same transport attempt into a later workflow.
+        self._validated_attempt_recorder = recorder
 
     async def list_available_models(self) -> list[dict[str, Any]]:
         """Return safe metadata for models that support generateContent."""

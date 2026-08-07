@@ -46,6 +46,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument("--only-project-order", type=int)
     return parser.parse_args()
 
 
@@ -265,7 +266,7 @@ def build_first_pass_record(
     }
 
 
-async def run_survey(manifest_path: Path, output_root: Path) -> None:
+async def run_survey(manifest_path: Path, output_root: Path, only_project_order: int | None = None) -> None:
     manifest = read_json(manifest_path)
     projects = manifest.get("projects")
     if not isinstance(projects, list) or len(projects) != 16:
@@ -277,10 +278,17 @@ async def run_survey(manifest_path: Path, output_root: Path) -> None:
     if settings.executable_cadquery_corpus_manifest_path.resolve() != manifest_path.resolve():
         raise ValueError("survey process manifest setting does not match the frozen manifest")
 
+    selected_projects = [
+        project for project in projects
+        if only_project_order is None or int(project["order"]) == only_project_order
+    ]
+    if only_project_order is not None and len(selected_projects) != 1:
+        raise ValueError(f"Phase 1A manifest has no unique project order {only_project_order}")
+
     provider = build_executable_ai_provider(settings)
     runner = FilesystemCadWorkerRunner(jobs_root=settings.cad_workspace_dir)
     output_root.mkdir(parents=True, exist_ok=True)
-    for project in sorted(projects, key=lambda item: int(item["order"])):
+    for project in sorted(selected_projects, key=lambda item: int(item["order"])):
         if not isinstance(project, Mapping):
             raise ValueError("Phase 1A manifest project must be an object")
         project_id = str(project["project_id"])
@@ -337,7 +345,7 @@ async def run_survey(manifest_path: Path, output_root: Path) -> None:
 def main() -> int:
     args = parse_args()
     try:
-        asyncio.run(run_survey(args.manifest.resolve(), args.output_root.resolve()))
+        asyncio.run(run_survey(args.manifest.resolve(), args.output_root.resolve(), args.only_project_order))
     except SurveyIntegrityError:
         raise
     return 0

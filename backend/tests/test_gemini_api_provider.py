@@ -88,6 +88,34 @@ async def test_gemini_api_emits_one_capture_for_every_provider_attempt() -> None
 
 
 @pytest.mark.asyncio
+async def test_validated_attempt_recorder_replaces_stale_workflow_observer() -> None:
+    first_workflow_records: list[dict[str, Any]] = []
+    second_workflow_records: list[dict[str, Any]] = []
+    provider = GeminiApiProvider(
+        primary_api_key="primary-secret",
+        fallback_api_key="fallback-secret",
+        validated_transport=True,
+        model="gemini-3.5-flash-lite",
+        transport=_mock_transport(
+            lambda _request: httpx.Response(
+                200,
+                json={
+                    "modelVersion": "gemini-3.5-flash-lite",
+                    "candidates": [{"content": {"parts": [{"text": "ok"}]}}],
+                },
+            )
+        ),
+    )
+
+    provider.set_validated_attempt_recorder(first_workflow_records.append)
+    provider.set_validated_attempt_recorder(second_workflow_records.append)
+    await provider._run_prompt("bounded observer test", stage="geometry")
+
+    assert first_workflow_records == []
+    assert len(second_workflow_records) == 1
+
+
+@pytest.mark.asyncio
 async def test_missing_gemini_key_fails_when_a_live_request_is_attempted() -> None:
     provider = GeminiApiProvider(api_key="")
 
