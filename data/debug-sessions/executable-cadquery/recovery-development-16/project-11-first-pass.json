@@ -1,0 +1,60 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 11,
+  "design_contract_sha256": "9aacd99475434959dd1dcc10c6d666bcf73187f31823d177b8846d0e932b93f7",
+  "duration_ms": 6165.023,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "multi_output",
+    "mating_relationship",
+    "cavity_shelling",
+    "holes_and_pockets"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-11",
+  "project_runtime_id": "7c00d5c8-40c4-4e5b-bda8-a9fe4aa2cc29",
+  "prompt_sha256": "f110cfb702e67006660b4a15a688f16079aa9ed2dfb3c4cd6e252765be3fa42d",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Support and replaceable insert",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "93cdd9e5-4461-4f58-9b75-6ee629f27c07"
+}

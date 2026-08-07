@@ -1,0 +1,12 @@
+{
+  "all_projects_have_first_pass_result": true,
+  "condition": "begin only after this matrix, clustering, metrics, and anti-overfitting audit are reviewed and committed",
+  "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
+  "decision": "phase_1a_first_blocker_survey_complete",
+  "initial_pass": "0/16",
+  "next_authorized_phase": "phase_1b_cluster_driven_recovery_development",
+  "phase_1b_started": false,
+  "provider_calls": 16,
+  "repair_operations": 0,
+  "schema_version": "executable-cadquery-phase-1a-decision-v1"
+}

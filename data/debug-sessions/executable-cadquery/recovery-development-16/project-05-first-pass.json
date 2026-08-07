@@ -1,0 +1,60 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 5,
+  "design_contract_sha256": "01d84183c9cbc79748c3e297f6a1ddd5f7dd0ec020b0b132d986fbe73f82a612",
+  "duration_ms": 3661.871,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "single_output",
+    "prismatic_geometry",
+    "holes_and_pockets",
+    "functional_design"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-05",
+  "project_runtime_id": "bfe6f4dd-8b8e-4cdd-833f-7650d1aa3169",
+  "prompt_sha256": "a20b78c51fc9786f60e25546c61a1410a53ab489d5bbca7f57075ec738154eb2",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Wall charging-cable organizer",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "33ce61e8-3d12-47c4-9cae-e393a3d48f86"
+}

@@ -1,0 +1,42 @@
+{
+  "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
+  "eventual_independent_pass": {
+    "passed": 0,
+    "status": "not_evaluated_in_phase_1a",
+    "total": 16
+  },
+  "existing_rule_recovery_rate": {
+    "status": "not_evaluated_no_repair_operations"
+  },
+  "first_blocker_matrix_complete": true,
+  "initial_independent_pass": {
+    "passed": 0,
+    "rate": 0.0,
+    "total": 16
+  },
+  "integrity_fix_count_during_survey": 1,
+  "integrity_fix_is_recovery_rule": false,
+  "new_generic_recovery_rules_by_project_order": {
+    "1": 0,
+    "10": 0,
+    "11": 0,
+    "12": 0,
+    "13": 0,
+    "14": 0,
+    "15": 0,
+    "16": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "phase_1b_started": false,
+  "projects": 16,
+  "provider_calls": 16,
+  "repair_operations": 0,
+  "schema_version": "executable-cadquery-phase-1a-initial-metrics-v1"
+}

@@ -1,0 +1,61 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 16,
+  "design_contract_sha256": "e213276447e9cb476b987e465d6774208a94423dafd9c716c783fbc3f92bd026",
+  "duration_ms": 5653.084,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "multi_output",
+    "cavity_shelling",
+    "curved_edges",
+    "mating_relationship",
+    "revision_heavy_workflow"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-16",
+  "project_runtime_id": "52aa5ce0-74c6-4e34-a07e-173926770d03",
+  "prompt_sha256": "a6a48e113ea5ca9c34f7e6cfe44fc50f2094db470a4aa204996a828aa501b13e",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "intent_heavy",
+  "state": "failed",
+  "title": "Protective electronics case",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "c2f85c0c-d10c-4875-b54d-c3c55baf3029"
+}

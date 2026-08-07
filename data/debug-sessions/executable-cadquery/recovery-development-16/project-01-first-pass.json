@@ -1,0 +1,124 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 1,
+  "design_contract_sha256": "0393ab57ce25f49895c5a93fbe142850ef35769c282cd3820de73e27a2e46b08",
+  "duration_ms": 6873.019,
+  "first_incorrect_owner": "worker",
+  "first_unresolved_blocker": "source_execution_error",
+  "geometry_families": [
+    "single_output",
+    "prismatic_geometry",
+    "holes_and_pockets",
+    "chamfer"
+  ],
+  "highest_stage_reached": "execution",
+  "initial_attempt": {
+    "diagnostic": {
+      "active_phase": "build_function",
+      "cadquery_version": "2.8.0",
+      "cadquery_worker_version": "cadquery-cli-runner-v1",
+      "command_args": [
+        "python",
+        "_volundr_cadquery_runner.py",
+        "outputs",
+        "execution-manifest.json",
+        "parameter-values.json",
+        "requested-outputs.json"
+      ],
+      "completed_output_ids": [],
+      "exit_code": 1,
+      "failure_exception_type": "ParseException",
+      "failure_message": "Expected end of text, found '>' (at char 2), (line:1, col:3)",
+      "failure_output_id": "precision_mounting_shoe",
+      "failure_phase": "build_function",
+      "failure_source_function": "_make_model",
+      "failure_source_hash": "ac59ab64e4ce8d2940f1423af08284f194a4061bb4c3407fe42931fbb003082d",
+      "failure_source_line": 87,
+      "incomplete_output_ids": [
+        "precision_mounting_shoe"
+      ],
+      "last_completed_operation": {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 10.501,
+        "name": "box"
+      },
+      "last_started_incomplete_operation": {
+        "before": null,
+        "name": "box",
+        "started_at_monotonic": 15352.882917595
+      },
+      "message": "Traceback (most recent call last):\n  File \"/tmp/volundr-phase1a.jo7xfhmd/data/jobs/dfce0b03-7d99-49d0-a4af-2922dc7628fd/work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/_volundr_cadquery_runner.py\", line 935, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/tmp/volundr-phase1a.jo7xfhmd/data/jobs/dfce0b03-7d99-49d0-a4af-2922dc7628fd/work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/_volundr_cadquery_runner.py\", line 487, in main\n    product = _build_product(module, parameter_values)\n  File \"/tmp/volundr-phase1a.jo7xfhmd/data/jobs/dfce0b03-7d99-49d0-a4af-2922dc7628fd/work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/_volundr_cadquery_runner.py\", line 555, in _build_product\n    product = module.build(params)\n  File \"/tmp/volundr-phase1a.jo7xfhmd/data/jobs/dfce0b03-7d99-49d0-a4af-2922dc7628fd/work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/model.py\", line 107, in build\n    model = _make_model(params)\n  File \"/tmp/volundr-phase1a.jo7xfhmd/data/jobs/dfce0b03-7d99-49d0-a4af-2922dc7628fd/work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/model.py\", line 87, in _make_model\n    chamfered = base.edges(\n                ~~~~~~~~~~^\n        f\"Z > {h - 0.01} and (Y > {d / 2 - 0.01} or Y < {-d / 2 + 0.01})\"\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ).chamfer(chamfer)\n    ^\n  File \"/root/volundr/backend/.venv/lib/python3.13/site-packages/cadquery/cq.py\", line 893, in edges\n    return self._selectObjects(\"Edges\", selector, tag)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/volundr/backend/.venv/lib/python3.13/site-packages/cadquery/cq.py\", line 776, in _selectObjects\n    return self.newObject(self._filter(toReturn, selector))\n                          ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/root/volundr/backend/.venv/lib/python3.13/site-packages/cadquery/cq.py\", line 783, in _filter\n    selectorObj = StringSyntaxSelector(selector)\n  File \"/root/volundr/backend/.venv/lib/python3.13/site-packages/cadquery/selectors.py\", line 881, in __init__\n    parse_result = _expression_grammar.parse_string(selectorString, parse_all=True)\n  File \"/root/volundr/backend/.venv/lib/python3.13/site-packages/pyparsing/core.py\", line 1346, in parse_string\n    raise exc.with_traceback(None)\npyparsing.exceptions.ParseException: Expected end of text, found '>'  (at char 2), (line:1, col:3)",
+      "normalized_exception": "ParseException / Expected end of text, found '>' (at char 2), (line:1, col:3)",
+      "partial_diagnostic_state_path": "work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/diagnostic-state.json",
+      "partial_stderr_path": "work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/stderr.log",
+      "partial_stdout_path": "work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/stdout.log",
+      "partial_timing_record_path": "work/dfce0b03-7d99-49d0-a4af-2922dc7628fd/diagnostic-state.json",
+      "per_output_results": {
+        "precision_mounting_shoe": {
+          "required": true,
+          "status": "not_attempted"
+        }
+      },
+      "process_rss_kb": 536844,
+      "source_hash": "ac59ab64e4ce8d2940f1423af08284f194a4061bb4c3407fe42931fbb003082d",
+      "subprocess_exit_status": 1,
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    "extracted_source_hash": "ac59ab64e4ce8d2940f1423af08284f194a4061bb4c3407fe42931fbb003082d",
+    "failure_boundary": "execution",
+    "failure_class": "source_execution_error",
+    "raw_response_hash": "41172e66a77796fd36ea56681b0263f62c338d1ae2dd9d9236cc5f66352502dc"
+  },
+  "normalized_failure_class": "source_execution_error",
+  "observed_stage": "execution",
+  "outputs": [
+    {
+      "artifact_available": false,
+      "failure_owner": "worker",
+      "generation_status": "failed",
+      "output_id": "precision_mounting_shoe",
+      "required": true,
+      "safe_diagnostic": "Execution failed; detailed traceback is not available.",
+      "state": "not_generated",
+      "topology_status": null,
+      "worker_status": "failed"
+    }
+  ],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-01",
+  "project_runtime_id": "c1e65768-f77b-4c5b-b788-3ccd18101487",
+  "prompt_sha256": "5fb9a58274dbc779d42057a28d1c9d944e096b13b69d71add64b0eb42026ba2b",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "dfce0b03-7d99-49d0-a4af-2922dc7628fd",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "highly_specified",
+  "state": "failed",
+  "title": "Precision mounting shoe",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "f79a4ebf-dc7b-48fa-b27e-49847c5fffb0"
+}

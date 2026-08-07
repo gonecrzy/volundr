@@ -1,0 +1,60 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 8,
+  "design_contract_sha256": "2c02abff90e9b662952b111dabfd09cd08c6affe1c48f2cc821b7041c29d6f1a",
+  "duration_ms": 4375.334,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "multi_output",
+    "mating_relationship",
+    "rotational_interface",
+    "holes_and_patterns"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-08",
+  "project_runtime_id": "0ea78cd2-79e9-4c85-a132-eb8998d086fc",
+  "prompt_sha256": "f2572f7173281d607e604bc496c2f1d5d0e48e2aa6ed30dd9d210bede40c8b01",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Mating tube clamp",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "39c0925a-ee08-48b8-bd73-d62bdf98e61f"
+}

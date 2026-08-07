@@ -1,0 +1,69 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 2,
+  "design_contract_sha256": "9139784e454f13a2336485d8cf27ca2aeabfcc709b602dd4eeced8f609236e8c",
+  "duration_ms": 3980.844,
+  "first_incorrect_owner": "source_contract",
+  "first_unresolved_blocker": "source_contract_violation",
+  "geometry_families": [
+    "single_output",
+    "rotational_geometry",
+    "radial_pattern",
+    "through_bore"
+  ],
+  "highest_stage_reached": "source_contract",
+  "initial_attempt": {
+    "diagnostic": {
+      "ast_path": "module.body[0]",
+      "code": "nested_import_forbidden",
+      "column": 0,
+      "enclosing_scope": "module",
+      "line": 1,
+      "message": "imports inside functions are not allowed",
+      "node_type": "Import",
+      "violation_count": 1
+    },
+    "extracted_source_hash": "f8c330e766ba3f5ce217e4ae19d03842c7b65c301e97d0512521a167ec1d4209",
+    "failure_boundary": "source_contract",
+    "failure_class": "source_contract_violation",
+    "raw_response_hash": "577201f6bffe79abd43f5c9e30372dfb5356354439224e791b5e9116da495061"
+  },
+  "normalized_failure_class": "source_contract_violation",
+  "observed_stage": "source_contract",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-02",
+  "project_runtime_id": "8d15d0a0-06ee-4deb-8822-252ed39bd1f8",
+  "prompt_sha256": "4600988ffa9053c5277a2454b942fa76bb4c72314a395a3d388fa105890a8a3b",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": true,
+  "specification_category": "highly_specified",
+  "state": "failed",
+  "title": "Stepped flanged spindle",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "58ddc0d2-be0b-4bde-a89e-af92fdefca6a"
+}

@@ -1,0 +1,60 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 3,
+  "design_contract_sha256": "a5089fc63627e6848fc5533646e6395796a5fa5fcc06da4b752a20f139a2cd2a",
+  "duration_ms": 4591.585,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "single_output",
+    "cavity_shelling",
+    "holes_and_pockets",
+    "prismatic_geometry"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-03",
+  "project_runtime_id": "a60efbaa-bb0b-48fb-b7cb-0f2003ebd121",
+  "prompt_sha256": "db133cd564369bc3f69f099a2c326666149ddd6fe673a2fadaaea76183221048",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "highly_specified",
+  "state": "failed",
+  "title": "Sensor housing shell",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "1bd24030-729f-4c28-8d43-eaeb095bc228"
+}

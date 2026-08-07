@@ -1,0 +1,60 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 4,
+  "design_contract_sha256": "e10e554650766b42cf4171e9a02a929beac72a1a7f0ee6ade327b92d75692a97",
+  "duration_ms": 9482.891,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "multi_output",
+    "angled_geometry",
+    "mating_relationship",
+    "holes_and_pockets"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-04",
+  "project_runtime_id": "662a6f54-c196-4862-a500-7ede2bc0f8e9",
+  "prompt_sha256": "990dbed38abca6d7b1f14ed9617c38a000bf451a665cc0af27bbf490e04706dc",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "highly_specified",
+  "state": "failed",
+  "title": "Dovetail rail and carriage",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "467838ac-d0e6-4c08-b64f-d9f7f8554fb8"
+}

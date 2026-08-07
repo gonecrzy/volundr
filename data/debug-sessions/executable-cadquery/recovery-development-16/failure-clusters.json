@@ -1,0 +1,61 @@
+{
+  "clusters": [
+    {
+      "cluster_id": "cadquery_api_error",
+      "count": 1,
+      "first_boundary": "execution",
+      "generic_owner": "worker_execution",
+      "mechanism": "CadQuery selector/parser rejected generated source during worker build_function",
+      "project_ids": [
+        "development-01"
+      ],
+      "recovery_development_status": "defer_until_survey_complete"
+    },
+    {
+      "cluster_id": "source_contract_violation",
+      "count": 1,
+      "first_boundary": "source_contract",
+      "generic_owner": "source_contract_validator",
+      "mechanism": "generated source violated the executable source contract before worker execution",
+      "project_ids": [
+        "development-02"
+      ],
+      "recovery_development_status": "defer_until_survey_complete"
+    },
+    {
+      "cluster_id": "provider_response_contract_failure",
+      "count": 14,
+      "first_boundary": "provider_response",
+      "generic_owner": "provider_response_contract",
+      "mechanism": "initial Gemini API operation did not yield an accepted complete-source response",
+      "project_ids": [
+        "development-03",
+        "development-04",
+        "development-05",
+        "development-06",
+        "development-07",
+        "development-08",
+        "development-09",
+        "development-10",
+        "development-11",
+        "development-12",
+        "development-13",
+        "development-14",
+        "development-15",
+        "development-16"
+      ],
+      "recovery_development_status": "defer_until_survey_complete"
+    }
+  ],
+  "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
+  "integrity_event_not_a_project_cluster": {
+    "affected_project": "development-02",
+    "cluster_id": "shared_provider_attempt_observer_accumulation",
+    "fix_commit": "e0e9be5",
+    "fixed_generically": true,
+    "mechanism": "request-scoped workflow callbacks accumulated on a shared provider and caused duplicate durable attempt inserts",
+    "project_specific_rule_added": false
+  },
+  "schema_version": "executable-cadquery-phase-1a-failure-clusters-v1",
+  "survey_status": "first_pass_observation_only"
+}

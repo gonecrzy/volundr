@@ -1,0 +1,60 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 10,
+  "design_contract_sha256": "e5016f4f62ca46f0d1b623b47777be58239a6525f4c2b5c6e5be9f442c8b9da4",
+  "duration_ms": 4129.897,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "single_output",
+    "prismatic_geometry",
+    "holes_and_patterns",
+    "functional_design"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-10",
+  "project_runtime_id": "ec8b0c0b-26d3-4809-9504-1952ef5bd729",
+  "prompt_sha256": "b36f6f0db326cbab5abb82c2457c3a9027341116aea3a2e73004ea3f2c413d3e",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Workshop pegboard accessory holder",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "58bc54c8-809a-48a1-a761-db7d4870a403"
+}

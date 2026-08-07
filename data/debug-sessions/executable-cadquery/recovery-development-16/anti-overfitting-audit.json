@@ -1,0 +1,19 @@
+{
+  "cad_strategy_changes": false,
+  "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
+  "credential_changes": false,
+  "first_pass_outcomes_frozen_before_corpus_driven_changes": true,
+  "generic_integrity_fix": {
+    "commit": "e0e9be5",
+    "geometry_independent": true,
+    "justification": "the duplicate insert reproduced from provider reuse across unrelated workflows and was covered by a provider regression test",
+    "rule": "replace request-scoped validated attempt observer on shared provider"
+  },
+  "phase_1b_not_started": true,
+  "project_specific_rules_added": false,
+  "prompt_changes": false,
+  "repair_ceiling_changes": false,
+  "repair_prompt_changes": false,
+  "schema_version": "executable-cadquery-phase-1a-anti-overfitting-audit-v1",
+  "semantic_policy_changes": false
+}

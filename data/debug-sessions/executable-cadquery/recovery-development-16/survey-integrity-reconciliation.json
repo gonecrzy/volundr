@@ -1,0 +1,65 @@
+{
+  "generic_fix": {
+    "behavior": "replace the request-scoped observer instead of composing stale observers",
+    "commit": "e0e9be5",
+    "regression_test": "test_validated_attempt_recorder_replaces_stale_workflow_observer"
+  },
+  "initial_launch": {
+    "code_checkpoint": "820b004",
+    "completed_project_orders": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "project_02_provider_operation": 0,
+    "provider_operations_completed": 15,
+    "status": "invalidated_for_reconciliation_only",
+    "valid_first_pass_records": [
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
+  },
+  "integrity_failure": {
+    "boundary": "durable_persistence",
+    "cause": "shared GeminiApiProvider retained callbacks for prior request-scoped workflow services",
+    "class": "shared_provider_attempt_observer_accumulation",
+    "symptom": "UNIQUE constraint failed on validated_cadquery_provider_attempts.attempt_id"
+  },
+  "reconciliation": {
+    "final_first_pass_records": 16,
+    "final_provider_operations": 16,
+    "historical_records_preserved": true,
+    "reconciled_project_02_provider_operations": 1,
+    "repeated_provider_operations": 0,
+    "restarted_project_orders": [
+      2
+    ]
+  },
+  "schema_version": "executable-cadquery-phase-1a-integrity-reconciliation-v1"
+}

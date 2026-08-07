@@ -1,0 +1,59 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 13,
+  "design_contract_sha256": "75609e21199141b113b29a404f8587f6f328937255bf2e0b0a877f6a93ba2d94",
+  "duration_ms": 6158.239,
+  "first_incorrect_owner": "provider",
+  "first_unresolved_blocker": "provider_response_contract_failure",
+  "geometry_families": [
+    "single_output",
+    "angled_geometry",
+    "qualitative_design_intent"
+  ],
+  "highest_stage_reached": "provider_response",
+  "initial_attempt": {
+    "diagnostic": {},
+    "extracted_source_hash": null,
+    "failure_boundary": "provider_response",
+    "failure_class": "provider_response_contract_failure",
+    "raw_response_hash": null
+  },
+  "normalized_failure_class": "provider_response_contract_failure",
+  "observed_stage": "provider_response",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-13",
+  "project_runtime_id": "a9219e4a-64d6-4372-9b9a-d68f097bf99f",
+  "prompt_sha256": "3a1ebd4d824535bf2147a5f3840a189a7530a3b899778e62afa5e88bf2cbf609",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": false,
+  "specification_category": "intent_heavy",
+  "state": "failed",
+  "title": "Stable charging phone stand",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "b4cc26a4-d768-4b36-814f-5002ae87aa5d"
+}
