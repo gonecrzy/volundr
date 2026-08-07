@@ -1,0 +1,90 @@
+{
+  "schema_version": "executable-cadquery-recovery-cycle-evidence-v1",
+  "cycle": "recovery-wave-01-closeout",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "phase2_started": false,
+  "live_development_stopped": true,
+  "additional_provider_calls_after_wave": 0,
+  "decision": "recovery_wave_existing_corpus_blocked",
+  "policy_version": "executable-cadquery-recovery-v1",
+  "application_defects": [
+    {
+      "class": "hard_coded_contract_fallback_discovery",
+      "severity": "major_application_defect",
+      "evidence": "project-01-api-key1-independent-review.json",
+      "finding": "missing persisted contract silently selected the frozen mounting-bracket fixture and produced a wrong package",
+      "narrow_fix": "563f516",
+      "status": "preserved_as_qualification_evidence"
+    }
+  ],
+  "project_matrix": {
+    "project-01": {
+      "status": "candidate_fully_verified",
+      "independent_status": "PASS via deterministic neutral B-Rep measurement",
+      "deterministic_measurement": "persisted neutral STEP imported as B-Rep: one solid; z-axis cylindrical face radius 4.000000 mm at center (-23.0,-0.5), proving diameter 8.0 mm",
+      "guided_adjudication": "PASS, explicitly not blind and not qualification authority",
+      "original_wrong_package_review": "blind FAIL preserved",
+      "package_validated": true,
+      "provider_operations": 2
+    },
+    "project-02": {
+      "status": "candidate_blocked",
+      "ownership": "solid-count/topology blocker",
+      "failure_class": "solid_count_mismatch",
+      "first_unresolved_boundary": "topology",
+      "l2_topology_repair": {"attempted": true, "attempt_count": 2, "progress": "none", "terminal_reason": "repair_ceiling_exhausted"},
+      "provider_convergence_classification": "not assigned",
+      "provider_operations": 3
+    },
+    "project-03": {
+      "status": "candidate_blocked",
+      "ownership": "STL/artifact-export blocker",
+      "failure_class": "stl_export_failure",
+      "first_unresolved_boundary": "artifact_export",
+      "l2_topology_repair": {"attempted": false, "attempt_count": 0, "progress": "not applicable", "terminal_reason": "artifact_export_failure"},
+      "provider_convergence_classification": "not assigned",
+      "provider_operations": 4
+    },
+    "project-04": {
+      "status": "candidate_blocked",
+      "ownership": "invalid-topology blocker",
+      "failure_class": "invalid_shape",
+      "first_unresolved_boundary": "topology",
+      "l2_topology_repair": {"attempted": true, "attempt_count": 2, "progress": "none", "terminal_reason": "repair_ceiling_exhausted"},
+      "provider_convergence_classification": "not assigned",
+      "provider_operations": 3
+    },
+    "project-05": {
+      "status": "candidate_blocked",
+      "ownership": "invalid-topology blocker",
+      "failure_class": "invalid_shape",
+      "first_unresolved_boundary": "topology",
+      "l2_topology_repair": {"attempted": true, "attempt_count": 2, "progress": "none", "terminal_reason": "repair_ceiling_exhausted"},
+      "provider_convergence_classification": "not assigned",
+      "provider_operations": 4
+    }
+  },
+  "contract_source": {
+    "qualification_harness": "explicit persisted corpus-manifest injection",
+    "product_contract_source": "the manifest injection is not the intended product contract source"
+  },
+  "verification": {
+    "backend": "1384 passed, 1 warning",
+    "frontend_unit": "17 files, 104 passed",
+    "frontend_build": "passed",
+    "offline_browser": "22 passed, 15 skipped by fixture gating",
+    "alembic_current": "0039_align_fresh_database_schema",
+    "alembic_heads": "0039_align_fresh_database_schema",
+    "alembic_check": "No new upgrade operations detected",
+    "compose_config": "passed",
+    "nginx_validation": "passed",
+    "secret_scan": "no tracked credential-shaped matches",
+    "git_diff_check": "passed"
+  },
+  "stop_conditions": {
+    "no_phase2": true,
+    "no_alternate_models_or_credentials": true,
+    "no_new_recovery_behavior": true,
+    "no_additional_recovery_loop": true
+  }
+}

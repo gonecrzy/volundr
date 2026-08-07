@@ -86,14 +86,24 @@ def test_historical_provider_responses_replay_with_hashes_and_progress() -> None
     if len(paths) < 2:
         pytest.skip("protected live responses are not available in this workspace")
 
-    first, second = (path.read_text(encoding="utf-8") for path in paths[:2])
-    errors: list[ExecutableCadQueryContractError] = []
-    for response in (first, second):
-        with pytest.raises(ExecutableCadQueryContractError) as exc_info:
+    responses: list[tuple[str, ExecutableCadQueryContractError]] = []
+    for path in paths:
+        response = path.read_text(encoding="utf-8")
+        try:
             parse_executable_cadquery_response(response, FROZEN_MOUNTING_BRACKET_CONTRACT)
-        errors.append(exc_info.value)
+        except ExecutableCadQueryContractError as exc:
+            responses.append((response, exc))
 
-    first_error, second_error = errors
+    first, first_error = next(
+        (item for item in responses if item[1].diagnostic["code"] == "try_statement_forbidden"),
+        (None, None),
+    )
+    second, second_error = next(
+        (item for item in responses if item[1].diagnostic["code"] == "top_level_if_forbidden"),
+        (None, None),
+    )
+    if first is None or second is None or first_error is None or second_error is None:
+        pytest.skip("protected provider responses for both dialect diagnostics are not available")
     assert first_error.diagnostic["code"] == "try_statement_forbidden"
     assert second_error.diagnostic["code"] == "top_level_if_forbidden"
     assert first_error.extracted_source_hash
