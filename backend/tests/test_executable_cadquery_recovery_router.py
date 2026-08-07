@@ -274,3 +274,19 @@ def test_workflow_persists_recovery_decision_before_execution(tmp_path) -> None:
     diagnostics = json.loads(workflow.diagnostics_json)
     assert provenance["recovery_decisions"] == [decision.to_record()]
     assert diagnostics["latest_recovery_decision"] == decision.to_record()
+
+
+def test_workflow_updates_recovery_execution_after_re_evaluation() -> None:
+    workflow = SimpleNamespace(
+        provenance_json=json.dumps({"recovery_executions": [{"action": "rerun_export"}]})
+    )
+
+    ExecutableCadQueryWorkflowService._replace_last_recovery_execution(
+        workflow,
+        {"action": "rerun_export", "reevaluation": {"status": "passed"}},
+    )
+
+    provenance = json.loads(workflow.provenance_json)
+    assert provenance["recovery_executions"] == [
+        {"action": "rerun_export", "reevaluation": {"status": "passed"}}
+    ]

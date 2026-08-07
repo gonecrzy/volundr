@@ -67,6 +67,137 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     def _provider_transport_id(self) -> str:
         return str(getattr(self.ai_provider, "provider_id", settings.ai_provider))
 
+    def accept_candidate(
+        self,
+        workflow_id: str,
+        *,
+        idempotency_key: str | None = None,
+    ):
+        """Accept through the existing service and recover package creation once.
+
+        Package creation remains owned by ``ValidatedCadQueryWorkflowService``;
+        this override only records and routes a package-service failure before
+        asking that existing service to retry it.
+        """
+
+        super().accept_candidate(workflow_id, idempotency_key=idempotency_key)
+        workflow = self._get(workflow_id)
+        if workflow is not None and self._package_generation_failed(workflow):
+            self._recover_package_generation(workflow)
+        return self.read(workflow_id)
+
+    def create_package(
+        self,
+        workflow_id: str,
+        *,
+        idempotency_key: str | None = None,
+    ):
+        """Retry package generation through the durable recovery decision."""
+
+        workflow = self._get(workflow_id)
+        if workflow is None:
+            raise LookupError("validated workflow not found")
+        if self._package_generation_failed(workflow):
+            self._recover_package_generation(workflow)
+            return self.read(workflow_id)
+        try:
+            return super().create_package(workflow_id, idempotency_key=idempotency_key)
+        except Exception as exc:
+            workflow = self._get(workflow_id)
+            if workflow is None:
+                raise
+            self._recover_package_generation(workflow, error=exc)
+            return self.read(workflow_id)
+
+    def _package_generation_failed(self, workflow: ValidatedCadQueryWorkflow) -> bool:
+        return (
+            self._resolve_optional(workflow.package_path) is None
+            and self._json(workflow.diagnostics_json).get("kind") == "package_generation"
+        )
+
+    def _recover_package_generation(
+        self,
+        workflow: ValidatedCadQueryWorkflow,
+        *,
+        error: Exception | None = None,
+    ) -> None:
+        if self._resolve_optional(workflow.package_path) is not None:
+            return
+        diagnostics = self._json(workflow.diagnostics_json)
+        prior = diagnostics.get("latest_recovery_decision")
+        prior_observation = prior.get("observation") if isinstance(prior, Mapping) else None
+        prior_failure = (
+            prior_observation.get("failure_class")
+            if isinstance(prior_observation, Mapping)
+            else None
+        )
+        prior_attempt = (
+            int(prior_observation.get("attempt_ordinal") or 0)
+            if isinstance(prior_observation, Mapping)
+            else 0
+        )
+        attempt_ordinal = prior_attempt + 1 if prior_failure == "package_generation_failure" else 1
+        observation = FailureObservation(
+            observed_stage="package_generation",
+            failure_class="package_generation_failure",
+            evidence={
+                "package_available": False,
+                "package_valid": False,
+                "package_diagnostic": safe_diagnostic(str(error)) if error else diagnostics.get("message"),
+            },
+            attempt_ordinal=attempt_ordinal,
+        )
+        decision = self._recovery_router.route(observation)
+        self._persist_recovery_decision(workflow, decision)
+        self.db.commit()
+        if decision.terminal or decision.recommended_action != "retry_stage":
+            workflow.state = "failed"
+            workflow.state_version += 1
+            self.db.commit()
+            return
+
+        execution_record = {
+            "action": decision.recommended_action,
+            "executed": False,
+            "provider_calls": 0,
+            "worker_calls": 0,
+            "diagnostic": None,
+            "package_available": False,
+        }
+        self._persist_recovery_execution(workflow, execution_record)
+        self.db.commit()
+        revision = self.db.get(Revision, workflow.revision_id) if workflow.revision_id else None
+        try:
+            self._create_package(workflow, revision)
+            execution_record["executed"] = True
+            execution_record["package_available"] = self._resolve_optional(workflow.package_path) is not None
+            self._replace_last_recovery_execution(workflow, execution_record)
+            workflow.state = "candidate_ready"
+            workflow.state_version += 1
+            self.db.commit()
+            return
+        except Exception as exc:
+            execution_record["executed"] = True
+            execution_record["diagnostic"] = safe_diagnostic(str(exc))
+            self._replace_last_recovery_execution(workflow, execution_record)
+            self.db.commit()
+
+        terminal_observation = FailureObservation(
+            observed_stage="package_generation",
+            failure_class="package_generation_failure",
+            evidence={
+                "package_available": False,
+                "package_valid": False,
+                "package_diagnostic": execution_record["diagnostic"],
+            },
+            attempt_ordinal=decision.attempt_ordinal + 1,
+        )
+        terminal_decision = self._recovery_router.route(terminal_observation)
+        self._persist_recovery_decision(workflow, terminal_decision)
+        workflow.state = "failed"
+        workflow.state_version += 1
+        self.db.commit()
+
     async def start_design(
         self,
         payload: ValidatedCadQueryStart,
@@ -667,13 +798,27 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         contract=contract,
                         project_service=self._project_service(),
                     )
-                    self._persist_recovery_execution(workflow, recovery_execution.to_record())
-                    if recovery_execution.semantic_result:
-                        semantic_result = complete_executable_semantic_coverage(
-                            recovery_execution.semantic_result,
+                    execution_record = recovery_execution.to_record()
+                    self._persist_recovery_execution(workflow, execution_record)
+                    # The existing worker/verifier operation commits its own
+                    # result. Commit the durable execution record before
+                    # asking the recovery router to inspect that result.
+                    self.db.commit()
+                    if (
+                        recovery_execution.executed
+                        and recovery_decision.recommended_action != "require_review"
+                        and revision_for_recovery is not None
+                    ):
+                        reevaluation = self._reevaluate_revision_evidence(
+                            revision_for_recovery,
                             contract,
                         )
-                        if semantic_result.get("status") == "passed" and revision_for_recovery is not None:
+                        execution_record["reevaluation"] = reevaluation["record"]
+                        self._replace_last_recovery_execution(workflow, execution_record)
+                        self.db.commit()
+                        semantic_result = reevaluation["semantic_result"]
+                        if reevaluation["status"] == "passed":
+                            self._clear_semantic_blocks(revision_for_recovery)
                             self.sync_outputs(workflow, revision_for_recovery)
                             self._merge_verification(workflow, semantic_result)
                             self._record_executable_provenance(
@@ -685,6 +830,85 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                             )
                             self.db.commit()
                             return self.read(workflow.id)
+
+                        recheck_facts = reevaluation["comparison_facts"]
+                        recheck_progress = compare_executable_progress(
+                            level if level != "initial" else "L0",
+                            previous=previous_comparison_facts,
+                            current=recheck_facts,
+                        )
+                        recheck_facts["no_violation_decrease_streak"] = recheck_progress.get(
+                            "no_violation_decrease_streak", 0
+                        )
+                        next_observation = FailureObservation(
+                            observed_stage=self._recovery_router.earliest_stage(
+                                reevaluation["failure_boundary"],
+                                reevaluation["failure_class"],
+                            ),
+                            failure_class=reevaluation["failure_class"],
+                            evidence={
+                                **recheck_facts,
+                                "failure_boundary": reevaluation["failure_boundary"],
+                                "normalized_error": reevaluation["normalized_error"],
+                                "diagnostic": reevaluation["diagnostic"],
+                                "semantic_policy": semantic_result.get("policy_summary"),
+                            },
+                            attempt_ordinal=recovery_decision.attempt_ordinal + 1,
+                            progress=recheck_progress,
+                        )
+                        next_decision = self._recovery_router.route(next_observation)
+                        self._persist_recovery_decision(workflow, next_decision)
+                        self.db.commit()
+                        next_provider_repair = (
+                            next_decision.recommended_action in provider_repair_actions
+                            and next_decision.repair_level is not None
+                            and not next_decision.terminal
+                        )
+                        history.append(
+                            {
+                                "operation_id": f"{workflow.id}:recovery-recheck:{attempt_count}",
+                                "attempt_number": attempt_count,
+                                "repair_level": next_decision.repair_level or level,
+                                "failure_boundary": reevaluation["failure_boundary"],
+                                "failure_class": reevaluation["failure_class"],
+                                "source_hash": reevaluation["source_hash"],
+                                "extracted_source_hash": reevaluation["source_hash"],
+                                "raw_response_hash": None,
+                                "extraction_succeeded": True,
+                                "syntax_valid": True,
+                                "source_contract_valid": True,
+                                "diagnostic": reevaluation["diagnostic"],
+                                "result_hash": reevaluation["result_hash"],
+                                "provider_attempt": {},
+                                "normalized_error": reevaluation["normalized_error"],
+                                "worker_result": reevaluation["worker_result"],
+                                "topology_result": reevaluation["topology_result"],
+                                "semantic_result": semantic_result,
+                                "progress": recheck_progress,
+                                "revision_id": revision_for_recovery.id,
+                                "recovery_action": recovery_decision.recommended_action,
+                            }
+                        )
+                        if next_provider_repair:
+                            previous_source = self._source_for_revision(revision_for_recovery.id)
+                            previous_source_hash = reevaluation["source_hash"]
+                            previous_result_hash = reevaluation["result_hash"]
+                            previous_normalized_error = reevaluation["normalized_error"]
+                            previous_failure_class = reevaluation["failure_class"]
+                            previous_comparison_facts = recheck_facts
+                            level = next_decision.repair_level
+                            repair_ordinals[level] = repair_ordinals.get(level, 0) + 1
+                            recovery_decision = next_decision
+                            continue
+                        recovery_decision = next_decision
+                        failure_boundary = reevaluation["failure_boundary"]
+                        failure_class = reevaluation["failure_class"]
+                        current_source_hash = reevaluation["source_hash"]
+                        current_result_hash = reevaluation["result_hash"]
+                        topology_result = reevaluation["topology_result"]
+                        diagnostic = reevaluation["diagnostic"]
+                        normalized_error = reevaluation["normalized_error"]
+                        comparison_facts = recheck_facts
                 if attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
                     terminal_reason = recovery_decision.terminal_reason or "operation_budget_exhausted"
                 elif recovery_decision.recommended_action == "require_review":
@@ -834,6 +1058,178 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         path = self._resolve_optional(revision.source_path)
         return path.read_text(encoding="utf-8") if path is not None else None
 
+    def _reevaluate_revision_evidence(
+        self,
+        revision: Revision,
+        contract: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Recompute downstream evidence after an existing-stage recovery.
+
+        This deliberately reuses the worker's persisted topology/artifact
+        records and the existing semantic verifier. It never calls Gemini or
+        chooses geometry operations; the caller routes the resulting failure
+        back through ``RecoveryRouter``.
+        """
+
+        outputs = list(revision.outputs)
+        topology_by_output = {
+            item.output_id: self._json(item.topology_metadata_json)
+            for item in outputs
+        }
+        if len(topology_by_output) == 1:
+            topology_result: dict[str, Any] = next(iter(topology_by_output.values()), {})
+        else:
+            topology_result = {
+                "valid": bool(topology_by_output)
+                and all(item.get("valid") is True for item in topology_by_output.values()),
+                "outputs": topology_by_output,
+                "output_ids": sorted(topology_by_output),
+            }
+        worker_result = {
+            "phase": "completed" if revision.status == "succeeded" else "failed",
+            "output_ids": [item.output_id for item in outputs],
+            "revision_id": revision.id,
+        }
+        stl_paths: dict[str, Path] = {}
+        for output in outputs:
+            if not output.stl_path or not output.step_path:
+                continue
+            stl_paths[output.output_id] = safe_relative_artifact_path(
+                self.data_dir,
+                output.stl_path,
+            )
+
+        semantic_result: dict[str, Any] = {}
+        failure_boundary: str
+        failure_class: str
+        diagnostic: dict[str, Any] = {}
+        normalized_error: str | None = None
+        if topology_result.get("valid") is False:
+            failure_boundary = "topology"
+            topology_evidence: Mapping[str, Any] = topology_result
+            for item in topology_by_output.values():
+                if item.get("valid") is False:
+                    topology_evidence = item
+                    break
+            failure_class = classify_executable_failure("topology", topology_evidence)
+        elif not outputs or len(stl_paths) != len(outputs):
+            failure_boundary = "artifact"
+            failure_class = classify_executable_failure("artifact", {"stl_failure": True})
+        else:
+            semantic_result = complete_executable_semantic_coverage(
+                evaluate_executable_cadquery_semantics_for_outputs(
+                    stl_paths=stl_paths,
+                    design_contract=contract,
+                ),
+                contract,
+            )
+            if semantic_result.get("status") == "passed":
+                return {
+                    "status": "passed",
+                    "failure_boundary": None,
+                    "failure_class": None,
+                    "source_hash": self._source_hash_for_revision(revision),
+                    "result_hash": source_result_hash(
+                        {
+                            "worker": worker_result,
+                            "topology": topology_result,
+                            "semantic": semantic_result,
+                        }
+                    ),
+                    "worker_result": worker_result,
+                    "topology_result": topology_result,
+                    "semantic_result": semantic_result,
+                    "diagnostic": diagnostic,
+                    "normalized_error": normalized_error,
+                    "comparison_facts": {
+                        "contract_valid": True,
+                        "extracted_source_hash": self._source_hash_for_revision(revision),
+                        "diagnostic_signature": None,
+                        "failure_signature": None,
+                        "violation_count": None,
+                        "syntax_valid": True,
+                        "phase_index": 2,
+                        "completed_output_ids": worker_result["output_ids"],
+                        "valid": topology_result.get("valid"),
+                        "detected_solid_count": topology_result.get("detected_solid_count"),
+                        "expected_solid_count": topology_result.get("expected_solid_count"),
+                        "failed_requirement_ids": [],
+                        "unverifiable_requirement_ids": semantic_result.get("unverifiable", []),
+                        "passed_requirement_ids": semantic_result.get("passed", []),
+                    },
+                    "record": {
+                        "status": "passed",
+                        "source_hash": self._source_hash_for_revision(revision),
+                        "result_hash": source_result_hash(
+                            {
+                                "worker": worker_result,
+                                "topology": topology_result,
+                                "semantic": semantic_result,
+                            }
+                        ),
+                        "failure_boundary": None,
+                        "failure_class": None,
+                    },
+                }
+            failure_boundary = "semantic"
+            failure_class = classify_executable_failure(
+                "semantic",
+                {
+                    "failed": semantic_result.get("failed"),
+                    "unverifiable": semantic_result.get("unverifiable"),
+                },
+            )
+
+        source_hash = self._source_hash_for_revision(revision)
+        result_hash = source_result_hash(
+            {
+                "worker": worker_result,
+                "topology": topology_result,
+                "semantic": semantic_result,
+            }
+        )
+        comparison_facts = {
+            "contract_valid": True,
+            "extracted_source_hash": source_hash,
+            "diagnostic_signature": None,
+            "failure_signature": normalized_error,
+            "violation_count": diagnostic.get("violation_count"),
+            "syntax_valid": True,
+            "phase_index": 2 if worker_result.get("phase") == "completed" else 0,
+            "completed_output_ids": worker_result.get("output_ids", []),
+            "valid": topology_result.get("valid"),
+            "detected_solid_count": topology_result.get("detected_solid_count"),
+            "expected_solid_count": topology_result.get("expected_solid_count"),
+            "failed_requirement_ids": semantic_result.get("failed", []),
+            "unverifiable_requirement_ids": semantic_result.get("unverifiable", []),
+            "passed_requirement_ids": semantic_result.get("passed", []),
+        }
+        return {
+            "status": "failed",
+            "failure_boundary": failure_boundary,
+            "failure_class": failure_class,
+            "source_hash": source_hash,
+            "result_hash": result_hash,
+            "worker_result": worker_result,
+            "topology_result": topology_result,
+            "semantic_result": semantic_result,
+            "diagnostic": diagnostic,
+            "normalized_error": normalized_error,
+            "comparison_facts": comparison_facts,
+            "record": {
+                "status": "failed",
+                "source_hash": source_hash,
+                "result_hash": result_hash,
+                "failure_boundary": failure_boundary,
+                "failure_class": failure_class,
+                "failed_requirement_ids": semantic_result.get("failed", []),
+            },
+        }
+
+    def _source_hash_for_revision(self, revision: Revision) -> str | None:
+        source = self._source_for_revision(revision.id)
+        return hashlib.sha256(source.encode("utf-8")).hexdigest() if source is not None else revision.source_hash
+
     @staticmethod
     def _set_semantic_block(output: Any, semantic: dict[str, Any]) -> None:
         summary = _json_dict(output.validation_summary_json)
@@ -844,6 +1240,14 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             }
         )
         output.validation_summary_json = json.dumps(summary, sort_keys=True)
+
+    @staticmethod
+    def _clear_semantic_blocks(revision: Revision) -> None:
+        for output in revision.outputs:
+            summary = _json_dict(output.validation_summary_json)
+            summary.pop("blocking_count", None)
+            summary.pop("executable_semantic", None)
+            output.validation_summary_json = json.dumps(summary, sort_keys=True)
 
     @staticmethod
     def _merge_verification(workflow: ValidatedCadQueryWorkflow, semantic: dict[str, Any]) -> None:
@@ -937,6 +1341,20 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         if not isinstance(executions, list):
             executions = []
         executions.append(record)
+        provenance["recovery_executions"] = executions
+        workflow.provenance_json = json.dumps(provenance, sort_keys=True, default=str)
+
+    @staticmethod
+    def _replace_last_recovery_execution(
+        workflow: ValidatedCadQueryWorkflow,
+        record: dict[str, Any],
+    ) -> None:
+        provenance = _json_dict(workflow.provenance_json)
+        executions = provenance.get("recovery_executions")
+        if not isinstance(executions, list) or not executions:
+            executions = [record]
+        else:
+            executions[-1] = record
         provenance["recovery_executions"] = executions
         workflow.provenance_json = json.dumps(provenance, sort_keys=True, default=str)
 

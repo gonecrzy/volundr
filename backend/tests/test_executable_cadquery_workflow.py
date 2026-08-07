@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Generator
 import json
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -91,6 +93,93 @@ def test_incomplete_semantic_coverage_cannot_be_reported_as_passed() -> None:
     assert result["status"] == "unsupported_verifier"
     assert result["unverifiable"] == ["coaxial_diameters"]
     assert result["unsupported_verifier"] == ["coaxial_diameters"]
+
+
+def test_recovery_recheck_reuses_persisted_artifacts_without_provider_work() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    source_path = repo_root / "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-05/revision/source.py"
+    stl_path = "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-05/revision/stl/mating_insert.stl"
+    step_path = "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-05/revision/step/mating_insert.step"
+    revision = SimpleNamespace(
+        id="recheck-revision",
+        status="succeeded",
+        source_path=str(source_path.relative_to(repo_root)),
+        source_hash=None,
+        outputs=[
+            SimpleNamespace(
+                output_id="mating_insert",
+                stl_path=stl_path,
+                step_path=step_path,
+                topology_metadata_json=json.dumps(
+                    {
+                        "valid": True,
+                        "detected_solid_count": 1,
+                        "expected_solid_count": 1,
+                    }
+                ),
+            )
+        ],
+    )
+
+    class FakeDb:
+        def get(self, _model, _revision_id):
+            return revision
+
+    service = ExecutableCadQueryWorkflowService(db=FakeDb(), data_dir=repo_root)
+    result = service._reevaluate_revision_evidence(
+        revision,
+        {
+            "outputs": [{"output_id": "mating_insert", "expected_solid_count": 1}],
+            "requirements": [],
+        },
+    )
+
+    assert result["status"] == "passed"
+    assert result["failure_class"] is None
+    assert result["semantic_result"]["status"] == "passed"
+    assert result["comparison_facts"]["completed_output_ids"] == ["mating_insert"]
+
+
+def test_package_failure_persists_retry_before_existing_package_service() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    workflow = SimpleNamespace(
+        package_path=None,
+        revision_id="revision-id",
+        diagnostics_json=json.dumps({"kind": "package_generation", "message": "initial failure"}),
+        provenance_json="{}",
+        state="failed",
+        state_version=0,
+    )
+
+    class FakeDb:
+        def commit(self) -> None:
+            return None
+
+        def get(self, _model, _revision_id):
+            return SimpleNamespace(id="revision-id")
+
+    service = ExecutableCadQueryWorkflowService(db=FakeDb(), data_dir=repo_root)
+
+    def existing_package_service(_workflow, _revision) -> None:
+        workflow.package_path = "backend/pyproject.toml"
+
+    service._create_package = existing_package_service
+    service._recover_package_generation(workflow)
+
+    provenance = json.loads(workflow.provenance_json)
+    assert provenance["recovery_decisions"][0]["recommended_action"] == "retry_stage"
+    assert provenance["recovery_decisions"][0]["observation"]["attempt_ordinal"] == 1
+    assert provenance["recovery_executions"] == [
+        {
+            "action": "retry_stage",
+            "diagnostic": None,
+            "executed": True,
+            "package_available": True,
+            "provider_calls": 0,
+            "worker_calls": 0,
+        }
+    ]
+    assert workflow.state == "candidate_ready"
 
 
 @pytest.mark.asyncio
