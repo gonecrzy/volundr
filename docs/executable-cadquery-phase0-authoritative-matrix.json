@@ -53,6 +53,12 @@
       "next_action": "bounded_cycle_stopped_after_one_l3_semantic_failure",
       "provider_calls_made": 1,
       "semantic_repair_gate": "L3_repair_required",
+      "future_l3_dispatch_gate": {
+        "authorized": false,
+        "blocker": "semantic_measurement_verifier_coverage",
+        "provider_calls_made": 0,
+        "reason": "authoritative envelope has requirement identity, numeric expected/measured values, tolerance, and final_mesh source, but lacks explicit measurement confidence sufficient for machine_required classification"
+      },
       "solid_counts": {
         "shaft_coupling": {
           "detected": 1,
@@ -386,6 +392,12 @@
       "next_action": "bounded_cycle_stopped_after_one_l3_semantic_failure",
       "provider_calls_made": 1,
       "semantic_repair_gate": "L3_repair_required",
+      "future_l3_dispatch_gate": {
+        "authorized": false,
+        "blocker": "semantic_measurement_verifier_coverage",
+        "provider_calls_made": 0,
+        "reason": "authoritative envelope has requirement identity, numeric expected/measured values, tolerance, and final_mesh source, but lacks explicit measurement confidence sufficient for machine_required classification"
+      },
       "solid_counts": {
         "enclosure_base": {
           "detected": 1,

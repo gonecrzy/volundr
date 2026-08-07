@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 import hashlib
+import math
 import re
 from typing import Any
 
@@ -203,6 +204,11 @@ def _semantic_repair_facts(
                     ),
                     "measurement_source": finding.get("evidence_source") or "final_mesh",
                     "status": "failed",
+                    **(
+                        {"measurement_confidence": _structured_facts(finding["measurement_confidence"])}
+                        if finding.get("measurement_confidence") is not None
+                        else {}
+                    ),
                 }
             )
     return {
@@ -210,6 +216,145 @@ def _semantic_repair_facts(
         "failed_machine_requirements": failed,
         "failed_facts": failed_facts,
     }
+
+
+def validate_semantic_repair_authorization(
+    envelope: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Authorize L3 only from complete, machine-grade numeric evidence.
+
+    A semantic label is never sufficient by itself.  The envelope must join a
+    failed machine-required contract requirement to numeric expected and
+    measured values, a numeric tolerance, an evidence source, an explicit
+    measurement-available marker, and an explicit confidence classification.
+    Missing or ambiguous confidence is intentionally a verifier-coverage
+    blocker, not a provider-repair opportunity.
+    """
+
+    contract = envelope.get("design_contract")
+    contract_requirements = {
+        str(item.get("requirement_id")): item
+        for item in contract.get("requirements", [])
+        if isinstance(item, Mapping) and item.get("requirement_id")
+    } if isinstance(contract, Mapping) else {}
+    semantic = envelope.get("semantic_result")
+    semantic_findings = {
+        str(item.get("requirement_id")): item
+        for item in semantic.get("findings", [])
+        if isinstance(item, Mapping) and item.get("requirement_id")
+    } if isinstance(semantic, Mapping) else {}
+    failed_ids = {
+        str(item)
+        for item in (semantic.get("failed", []) if isinstance(semantic, Mapping) else [])
+        if item
+    }
+    facts = envelope.get("semantic_repair_facts")
+    reasons: list[str] = []
+    authorized_facts: list[dict[str, Any]] = []
+    if not isinstance(facts, list) or not facts:
+        reasons.append("missing_authoritative_numeric_semantic_fact")
+        facts = []
+    for fact in facts:
+        if not isinstance(fact, Mapping):
+            reasons.append("semantic_fact_is_not_structured")
+            continue
+        requirement_id = str(fact.get("requirement_id") or "")
+        requirement = contract_requirements.get(requirement_id, {})
+        finding = semantic_findings.get(requirement_id, {})
+        expected = fact.get("expected_value")
+        measured = fact.get("measured_value")
+        tolerance = fact.get("tolerance")
+        evidence_source = fact.get("measurement_source") or finding.get("evidence_source")
+        measurement_available = finding.get("measurement_available") is True
+        policy = str(finding.get("policy") or requirement.get("policy") or "machine_required")
+        confidence = fact.get("measurement_confidence")
+        if confidence is None:
+            confidence = finding.get("measurement_confidence")
+        checks = {
+            "requirement_identity": bool(requirement_id and requirement_id in contract_requirements),
+            "machine_required_policy": policy == "machine_required",
+            "failed_requirement": bool(requirement_id and requirement_id in failed_ids),
+            "expected_numeric": bool(_numeric_values(expected)),
+            "measured_numeric": bool(_numeric_values(measured)),
+            "numeric_discrepancy": _has_numeric_discrepancy(expected, measured, tolerance),
+            "numeric_tolerance": _is_nonnegative_number(tolerance),
+            "measurement_evidence_source": isinstance(evidence_source, str)
+            and evidence_source.strip().lower() not in {"", "none", "unknown"},
+            "measurement_available": measurement_available,
+            "measurement_confidence_sufficient": _measurement_confidence_sufficient(confidence),
+        }
+        if not all(checks.values()):
+            reasons.extend(
+                f"{requirement_id or 'unknown_requirement'}:{name}"
+                for name, passed in checks.items()
+                if not passed
+            )
+            continue
+        authorized_facts.append(
+            {
+                "requirement_id": requirement_id,
+                "expected_value": _structured_facts(expected),
+                "measured_value": _structured_facts(measured),
+                "tolerance": tolerance,
+                "measurement_source": evidence_source,
+                "measurement_confidence": _structured_facts(confidence),
+                "policy": policy,
+                "numeric_discrepancy": True,
+            }
+        )
+    return {
+        "authorized": bool(authorized_facts) and not reasons,
+        "blocker": None if not reasons and authorized_facts else "semantic_measurement_verifier_coverage",
+        "reasons": sorted(set(reasons)),
+        "facts": authorized_facts,
+    }
+
+
+def _numeric_values(value: Any) -> list[float]:
+    if isinstance(value, bool):
+        return []
+    if isinstance(value, (int, float)) and math.isfinite(float(value)):
+        return [float(value)]
+    if isinstance(value, Mapping):
+        values: list[float] = []
+        for item in value.values():
+            values.extend(_numeric_values(item))
+        return values
+    if isinstance(value, (list, tuple)):
+        values = []
+        for item in value:
+            values.extend(_numeric_values(item))
+        return values
+    return []
+
+
+def _is_nonnegative_number(value: Any) -> bool:
+    values = _numeric_values(value)
+    return len(values) == 1 and values[0] >= 0
+
+
+def _has_numeric_discrepancy(expected: Any, measured: Any, tolerance: Any) -> bool:
+    if not _is_nonnegative_number(tolerance):
+        return False
+    expected_values = _numeric_values(expected)
+    measured_values = _numeric_values(measured)
+    return any(abs(expected_value - measured_value) > float(tolerance) for expected_value in expected_values for measured_value in measured_values)
+
+
+def _measurement_confidence_sufficient(value: Any) -> bool:
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, (int, float)) and math.isfinite(float(value)):
+        return float(value) >= 0.9
+    if isinstance(value, Mapping):
+        score = value.get("score")
+        level = value.get("level") or value.get("classification")
+        return _measurement_confidence_sufficient(score) or str(level or "").strip().lower() in {
+            "high",
+            "verified",
+            "deterministic",
+        }
+    return str(value or "").strip().lower() in {"high", "verified", "deterministic"}
 
 
 def _prior_l2_attempt_metrics(history: Any) -> list[dict[str, Any]]:

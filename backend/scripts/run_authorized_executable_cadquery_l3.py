@@ -31,6 +31,7 @@ from app.services.executable_cadquery.package_review import build_neutral_measur
 from app.services.executable_cadquery.review import build_blind_review_packet, build_blind_review_record
 from app.services.executable_cadquery.semantic import evaluate_executable_cadquery_semantics_for_outputs
 from app.services.executable_cadquery.semantic_policy import derive_candidate_policy, evaluate_semantic_policy
+from app.services.executable_cadquery.repair import validate_semantic_repair_authorization
 from app.services.geometry.snapshots import SnapshotRenderSettings, render_stl_view
 
 from scripts.reconcile_executable_cadquery_phase0 import _blind_reviewer_result
@@ -190,6 +191,7 @@ def _verify_authority(
         "checks": checks,
         "envelope_checks": envelope_checks,
         "envelope": envelope,
+        "semantic_authorization": validate_semantic_repair_authorization(envelope),
     }
 
 
@@ -564,6 +566,11 @@ async def _run(project_id: str, report: Mapping[str, Any]) -> dict[str, Any]:
         envelope_record=envelope_record,
         contract=contract,
     )
+    if not verified["semantic_authorization"]["authorized"]:
+        raise RuntimeError(
+            "semantic repair provider route blocked: "
+            + json.dumps(verified["semantic_authorization"], sort_keys=True)
+        )
     provider = build_executable_ai_provider(settings)
     if not isinstance(provider, GeminiApiProvider) or provider.validated_transport is not True:
         raise RuntimeError("L3 repair did not resolve to validated Gemini API transport")
@@ -806,6 +813,16 @@ def main() -> int:
             envelope_record=envelope_record,
             contract=contract_file["contract"],
         )
+        if not verified["semantic_authorization"]["authorized"]:
+            print(json.dumps({
+                "project_id": args.project,
+                "semantic_call_authorized": False,
+                "blocker": verified["semantic_authorization"]["blocker"],
+                "reasons": verified["semantic_authorization"]["reasons"],
+                "provider_calls_made": 0,
+                "worker_calls_made": 0,
+            }, sort_keys=True))
+            return 0
         provider = build_executable_ai_provider(settings)
         preflight = _provider_preflight(provider) if isinstance(provider, GeminiApiProvider) else {
             "provider_class": type(provider).__name__,
@@ -822,6 +839,7 @@ def main() -> int:
             "validated_transport": preflight.get("validated_transport"),
             "primary_present": preflight.get("primary_present"),
             "fallback_present": preflight.get("fallback_present"),
+            "semantic_call_authorized": verified["semantic_authorization"]["authorized"],
         }, sort_keys=True))
         return 0
     result = asyncio.run(_run(args.project, report))

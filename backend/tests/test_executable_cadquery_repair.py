@@ -10,6 +10,7 @@ from app.services.executable_cadquery.repair import (
     classify_executable_failure,
     compare_executable_progress,
     decide_executable_repair,
+    validate_semantic_repair_authorization,
 )
 from app.services.validated_cadquery_workflow import safe_diagnostic
 
@@ -369,6 +370,59 @@ def test_l3_envelope_persists_precise_semantic_repair_facts_and_passed_machine_r
             "status": "failed",
         }
     ]
+
+
+def _semantic_authorization_envelope(**fact_overrides: object) -> dict:
+    fact = {
+        "requirement_id": "clearance",
+        "expected_value": {"per_side": 0.4},
+        "measured_value": {"detected_per_side": 0.0},
+        "tolerance": 0.1,
+        "measurement_source": "final_mesh",
+        "measurement_confidence": {"level": "high", "score": 0.98},
+        "status": "failed",
+        **fact_overrides,
+    }
+    return {
+        "design_contract": {
+            "requirements": [{"requirement_id": "clearance", "policy": "machine_required"}],
+        },
+        "semantic_repair_facts": [fact],
+        "semantic_result": {
+            "failed": ["clearance"],
+            "findings": [{
+                "requirement_id": "clearance",
+                "measurement_available": True,
+                "policy": "machine_required",
+                "evidence_source": "final_mesh",
+            }],
+        },
+    }
+
+
+def test_semantic_repair_authorization_requires_complete_numeric_evidence_and_confidence() -> None:
+    authorization = validate_semantic_repair_authorization(_semantic_authorization_envelope())
+
+    assert authorization["authorized"] is True
+    assert authorization["blocker"] is None
+    assert authorization["facts"][0]["numeric_discrepancy"] is True
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"measurement_confidence": None},
+        {"measured_value": {"detected_per_side": 0.35}},
+        {"expected_value": {"relationship": "centered"}, "measured_value": {"relationship": "centered"}},
+        {"measurement_source": "unknown"},
+    ],
+)
+def test_semantic_repair_authorization_blocks_ambiguous_or_non_numeric_evidence(overrides: dict[str, object]) -> None:
+    authorization = validate_semantic_repair_authorization(_semantic_authorization_envelope(**overrides))
+
+    assert authorization["authorized"] is False
+    assert authorization["blocker"] == "semantic_measurement_verifier_coverage"
+    assert authorization["reasons"]
 
 
 def test_repair_envelope_identifies_execution_failure_and_preserved_outputs() -> None:
