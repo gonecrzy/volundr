@@ -29,6 +29,18 @@ OUTPUT_ROOT = ROOT / (
     "data/debug-sessions/executable-cadquery/recovery-wave-01/"
     "semantic-repair-envelopes"
 )
+PROVIDER_PREFLIGHT = {
+    "status": "blocked_before_request_missing_primary_credential",
+    "provider": "gemini_api",
+    "provider_class": "GeminiApiProvider",
+    "transport_class": "ValidatedGeminiTransport",
+    "auth_header": "x-goog-api-key",
+    "endpoint": "/models/{model}:generateContent",
+    "credential_slots": ["GEMINI_API_KEY", "GEMINI_API_KEY_2"],
+    "provider_calls_made": 0,
+    "worker_calls_made": 0,
+    "evidence_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair-api-transport.json",
+}
 
 
 def main() -> int:
@@ -53,6 +65,7 @@ def main() -> int:
             "schema_version": "executable-cadquery-semantic-repair-authorization-v1",
             "provider_calls_made": 0,
             "worker_calls_made": 0,
+            "provider_preflight": PROVIDER_PREFLIGHT,
             "projects": {
                 project_id: {
                     "repair_level": record["envelope"]["repair_level"],
