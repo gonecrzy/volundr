@@ -5,8 +5,8 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "3e00a0b Implement generic output identity and multi-output scope recovery",
-  "origin_experimental_head": "3e00a0b Implement generic output identity and multi-output scope recovery",
+  "experimental_head": "b3baf52 Implement canonical semantic requirement field normalization",
+  "origin_experimental_head": "b3baf52 Implement canonical semantic requirement field normalization",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic policy, output scope/identity, and verifier field-mismatch checkpoints complete; next generic cluster queued",
@@ -284,7 +284,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "3e00a0b Implement generic output identity and multi-output scope recovery",
+  "latest_substantive_commit": "b3baf52 Implement canonical semantic requirement field normalization",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
