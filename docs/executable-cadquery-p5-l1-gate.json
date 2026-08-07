@@ -1,0 +1,62 @@
+{
+  "schema_version": "executable-cadquery-p5-l1-gate-v1",
+  "project_id": "project-05",
+  "status": "preserved_at_earliest_boundary",
+  "provider_calls_made": 0,
+  "worker_calls_made": 0,
+  "topology_reached": false,
+  "first_unresolved_boundary": "build_function",
+  "authoritative_execution_evidence": "docs/executable-cadquery-offline-recovery-audit.json",
+  "authoritative_source": {
+    "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+    "persisted_source_path": null,
+    "complete_source_available_for_dispatch": false,
+    "reason": "The authoritative audit persists the source hash and structured worker diagnostic, but no complete source artifact for that exact hash is present in the current workspace. The separate frozen artifact corpus is not substituted because doing so would resurrect a different worker result and move P5 downstream."
+  },
+  "execution_diagnostic": {
+    "active_phase": "build_function",
+    "failure_source_line": 33,
+    "failure_source_function": "_make_support",
+    "failure_operation": "chamfer",
+    "failure_exception_type": "StdFail_NotDone",
+    "normalized_exception": "StdFail_NotDone / BRep_API: command not done",
+    "failure_message": "BRep_API: command not done",
+    "cadquery_version": "2.8.0",
+    "cadquery_worker_version": "cadquery-cli-runner-v1",
+    "operation_before_valid": true,
+    "topology_reached": false
+  },
+  "contract": {
+    "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-05/prompt-contract.json",
+    "prompt_sha256": "7418a4490d17777d0f4bc346d0cb60e7bb045b1f95819df35063d39c5296b0f6",
+    "contract_sha256": "b8ce37f45c4adcc149c1d49173310587404293cc90d0e82ee7ce3cd66c4a77f9",
+    "output_ids": ["support", "mating_insert"]
+  },
+  "prior_l1_history": [
+    {
+      "ordinal": 1,
+      "source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
+      "normalized_exception": "cadquery_api_error",
+      "failure_operation": "chamfer",
+      "topology_reached": false,
+      "source_changed": false
+    },
+    {
+      "ordinal": 2,
+      "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+      "normalized_exception": "cadquery_api_error",
+      "failure_operation": "chamfer",
+      "topology_reached": false,
+      "source_changed": true
+    }
+  ],
+  "dispatch_gate": {
+    "repair_level": "L1",
+    "complete_replacement_source_required": true,
+    "blocked_until": [
+      "exact authoritative complete source is persisted",
+      "same validated Gemini REST API-key transport is available"
+    ],
+    "do_not_use_frozen_artifact_corpus_as_substitute": true
+  }
+}

@@ -3,6 +3,18 @@
   "source_of_truth": "latest authoritative worker result plus fresh machine semantic measurement",
   "provider_calls_made_before_dispatch": 0,
   "worker_calls_made_before_dispatch": 0,
+  "provider_preflight": {
+    "status": "blocked_before_request_missing_primary_credential",
+    "provider": "gemini_api",
+    "provider_class": "GeminiApiProvider",
+    "transport_class": "ValidatedGeminiTransport",
+    "auth_header": "x-goog-api-key",
+    "endpoint": "/models/{model}:generateContent",
+    "credential_slots": ["GEMINI_API_KEY", "GEMINI_API_KEY_2"],
+    "provider_calls_made": 0,
+    "worker_calls_made": 0,
+    "evidence_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair-api-transport.json"
+  },
   "projects": {
     "project-02": {
       "repair_level": "L3",
@@ -15,7 +27,8 @@
       "passed_machine_requirements": ["coaxial_diameters", "through_bore", "counterbore", "bolt_circle"],
       "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
       "envelope_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/semantic-repair-envelopes/project-02-l3-semantic-repair-envelope.json",
-      "envelope_sha256": "a8d64c76f6bdcee80e4ab6d36280e846a2314e87d447861177eb304be418f78b"
+      "envelope_sha256": "a8d64c76f6bdcee80e4ab6d36280e846a2314e87d447861177eb304be418f78b",
+      "provider_preflight": "blocked_before_request_missing_primary_credential"
     },
     "project-04": {
       "repair_level": "L3",
@@ -29,7 +42,8 @@
       "valid_topology_outputs": ["enclosure_base", "enclosure_lid"],
       "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
       "envelope_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/semantic-repair-envelopes/project-04-l3-semantic-repair-envelope.json",
-      "envelope_sha256": "761dd0a2ccfccee21466ee4c0a0202e0d25b952bf09cc578c0779a287973b146"
+      "envelope_sha256": "761dd0a2ccfccee21466ee4c0a0202e0d25b952bf09cc578c0779a287973b146",
+      "provider_preflight": "blocked_before_request_missing_primary_credential"
     }
   }
 }

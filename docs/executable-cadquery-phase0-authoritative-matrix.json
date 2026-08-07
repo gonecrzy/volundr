@@ -36,6 +36,16 @@
         "semantic_policy": "failed"
       },
       "provider_calls_made": 0,
+      "provider_preflight": {
+        "status": "blocked_before_request_missing_primary_credential",
+        "provider": "gemini_api",
+        "transport": "validated_gemini_transport",
+        "auth_header": "x-goog-api-key",
+        "endpoint": "/models/{model}:generateContent",
+        "credential_slots": ["GEMINI_API_KEY", "GEMINI_API_KEY_2"],
+        "provider_calls_made": 0,
+        "worker_calls_made": 0
+      },
       "semantic_repair_gate": "L3_repair_required",
       "solid_counts": {
         "shaft_coupling": {
@@ -101,6 +111,16 @@
       "provider_calls_made": 0,
       "provider_responses": 0,
       "provider_transport_call_allowed": true,
+      "provider_preflight": {
+        "status": "blocked_before_request_missing_primary_credential",
+        "provider": "gemini_api",
+        "transport": "validated_gemini_transport",
+        "auth_header": "x-goog-api-key",
+        "endpoint": "/models/{model}:generateContent",
+        "credential_slots": ["GEMINI_API_KEY", "GEMINI_API_KEY_2"],
+        "provider_calls_made": 0,
+        "worker_calls_made": 0
+      },
       "repair_gate": "one_l2_repair_blocked_before_response",
       "solid_counts": {
         "curved_cable_guide": {
@@ -288,6 +308,16 @@
         "semantic_policy": "failed"
       },
       "provider_calls_made": 0,
+      "provider_preflight": {
+        "status": "blocked_before_request_missing_primary_credential",
+        "provider": "gemini_api",
+        "transport": "validated_gemini_transport",
+        "auth_header": "x-goog-api-key",
+        "endpoint": "/models/{model}:generateContent",
+        "credential_slots": ["GEMINI_API_KEY", "GEMINI_API_KEY_2"],
+        "provider_calls_made": 0,
+        "worker_calls_made": 0
+      },
       "semantic_repair_gate": "L3_repair_required",
       "solid_counts": {
         "enclosure_base": {
@@ -375,7 +405,17 @@
         "semantic_policy": "not_reached"
       },
       "downstream_boundary": "build_function",
-      "evidence": "preserved current earliest-boundary state; no new work in this reconciliation",
+      "evidence": "preserved current earliest-boundary state; exact L1 gate persisted without dispatch",
+      "execution_diagnostic": {
+        "active_phase": "build_function",
+        "failure_source_line": 33,
+        "failure_source_function": "_make_support",
+        "failure_operation": "chamfer",
+        "normalized_exception": "StdFail_NotDone / BRep_API: command not done",
+        "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+        "topology_reached": false
+      },
+      "l1_gate_path": "docs/executable-cadquery-p5-l1-gate.json",
       "provider_calls_made": 0,
       "status": "candidate_blocked",
       "topology": "not_reached",

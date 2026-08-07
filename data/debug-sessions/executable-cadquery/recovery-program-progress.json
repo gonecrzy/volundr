@@ -3,11 +3,11 @@
   "current_phase": "phase_0_existing_five_project_recovery",
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "e9f7dbd Reconcile authoritative Phase 0 downstream state",
-  "origin_experimental_head": "e9f7dbd reconciliation commit pushed with final metadata checkpoint to origin/experiment/gemini-executable-cadquery-v1",
+  "experimental_head": "pending current recovery checkpoint",
+  "origin_experimental_head": "f15806a final authoritative checkpoint pushed to origin/experiment/gemini-executable-cadquery-v1",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "clean_after_phase0_authoritative_downstream_reconciliation",
+  "worktree_status": "current recovery checkpoint in progress",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -54,26 +54,33 @@
     ,"p3_cli_oauth_transport_proven_distinct_from_api_key_rest_transport"
     ,"full_backend_final_1420_passed"
     ,"full_backend_final_1424_passed"
+    ,"executable_repair_routing_rest_transport_regression_passed"
+    ,"p2_p4_l3_semantic_envelopes_persisted_with_zero_provider_calls"
+    ,"p3_corrected_transport_preflight_stopped_before_request_without_credential"
+    ,"p5_earliest_boundary_l1_gate_persisted_without_downstream_advancement"
+    ,"full_backend_current_1425_passed"
   ],
   "blocked_gates": [
     {
       "gate": "phase_0_five_of_five_independent_pass",
-      "reason": "P2/P4 have valid topology but measured semantic failures and fresh blind-QA FAIL; P3 is topology-invalid and transport-blocked before model execution; P5 remains at build_function"
+      "reason": "P2/P4 have valid topology but measured semantic failures and fresh blind-QA FAIL; P3 remains topology-invalid and its corrected REST transport preflight is blocked before request by missing primary credential; P5 remains at build_function"
     }
   ],
   "project_queues": {
     "READY_QUEUE": [],
-    "APPLICATION_QUEUE": ["project-02", "project-04"],
-    "GEMINI_REPAIR_QUEUE": ["project-02:L3:axial_dimensions", "project-04:L3:mating_clearance"],
+    "APPLICATION_QUEUE": [],
+    "GEMINI_REPAIR_QUEUE": ["project-02:L3:axial_dimensions", "project-03:L2:topology", "project-04:L3:mating_clearance"],
     "REVIEW_QUEUE": [],
-    "TRANSPORT_BLOCKED_QUEUE": ["project-03"],
-    "TERMINAL_QUEUE": ["project-05"]
+    "TRANSPORT_BLOCKED_QUEUE": [],
+    "CREDENTIAL_BLOCKED_QUEUE": ["project-02", "project-03", "project-04"],
+    "EXECUTION_BOUNDARY_QUEUE": ["project-05"],
+    "TERMINAL_QUEUE": []
   },
   "application_fix_count": 13,
   "application_fix_count_since_previous_checkpoint": 4,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
-    "new_calls_in_current_checkpoint": 2,
+    "new_calls_in_current_checkpoint": 0,
     "historical_provider_calls_in_cycle": 4,
     "topology_evidence_checkpoint_provider_calls": 0,
     "post_evidence_p3_l2_attempts": 1,
@@ -98,7 +105,7 @@
     "credential_freeze": "e4b2b9e",
     "backend_baseline": "1401 passed",
     "frontend_baseline": "104 passed",
-    "backend_current": "1420 passed, 1 skipped, 1 warning",
+    "backend_current": "1425 passed, 1 skipped, 1 warning",
     "frontend_current": "104 passed; production build passed",
     "offline_browser_current": "22 passed, 15 skipped",
     "migrations_current": "0039_align_fresh_database_schema; alembic check clean",
@@ -108,19 +115,21 @@
     "credential_transport_cad_current": "63 passed",
     "execution_diagnostics_regression": "backend/tests/test_executable_cadquery_worker_integration.py::test_output_retry_persists_structured_execution_diagnostics",
     "durable_recovery_regression": "backend/tests/test_executable_cadquery_workflow.py::test_persisted_execution_recovery_executes_worker_retry_and_rechecks_router",
-    "project_03_current": "authoritative frozen worker source d66883a3 remains topology-evidence-v2 invalid 1/1; one priority L2 continuation was blocked before model execution by Gemini CLI IneligibleTierError; static forensics prove CLI/OAuth/Code Assist, not the known-working x-goog-api-key REST path; no additional call allowed",
+    "project_03_current": "authoritative frozen worker source d66883a3 remains topology-evidence-v2 invalid 1/1; historical L2 was CLI/OAuth-blocked, corrected dispatch now resolves to GeminiApiProvider/ValidatedGeminiTransport with x-goog-api-key, and the exact continuation preflight stopped before request because the primary credential slot is absent",
     "project_03_exact_recheck": "persisted corrected source 4720dfbf reached sweep TypeError offline; bounded L1 source ce16a9b0 then reached topology offline with neutral solid-count evidence; no further provider operation",
     "project_05_current": "one bounded L1 provider repair changed source; existing worker retry persisted build_function chamfer/StdFail_NotDone; terminal execution boundary persisted offline",
     "project_02_current": "authoritative frozen worker source ff0ac836ba reaches topology-evidence-v2 valid 1/1 solid; semantic measurement fails axial_dimensions; artifacts/package/render pass; fresh blind QA FAIL; L3 repair gate recorded with zero provider calls",
     "project_04_current": "authoritative frozen worker source b36be9ec reaches topology-evidence-v2 valid 1/1 solid for enclosure_base and enclosure_lid; semantic measurement fails mating_clearance; artifacts/package/render pass; fresh blind QA FAIL; L3 repair gate recorded with zero provider calls",
     "topology_evidence_v2": "backend/app/services/cad/topology_evidence.py; per-solid validity, volume, bounding box, centroid, shell/face counts, pair intersections/touches/distance/overlap, policy validity, and deterministic valid/overlapping/touching/separated/disconnected/invalid tests",
     "topology_replay_v2": "docs/executable-cadquery-topology-replay-v2.json; projects 02/03/04 resolved to persisted project/workflow/revision/source/job/result chains, hash-verified, replayed offline with provider_calls=0, and compared against the actual historical repair envelopes; stale reasons are persisted per prior replay",
-    "p3_l2_attempt": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json; one authorized post-evidence attempt; blocked before model response by Gemini CLI IneligibleTierError/unsupported individual free tier; credentials unchanged and no worker call made",
+    "p3_l2_attempt": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json; historical authorized attempt was blocked by Gemini CLI IneligibleTierError; corrected exact continuation preflight is data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair-api-transport.json and stopped before request with provider_calls=0",
     "phase_0_authoritative_matrix": "docs/executable-cadquery-phase0-authoritative-matrix.json; current P2/P4 topology-valid downstream states, P3 transport gate, and untouched P5 boundary",
     "downstream_reconciliation": "data/debug-sessions/executable-cadquery/recovery-wave-01/current-authoritative-downstream/{project-02,project-04}-downstream.json; semantic/package/render/fresh blind-QA evidence derived from authoritative persisted artifacts",
-    "p3_transport_forensics": "data/debug-sessions/executable-cadquery/recovery-wave-01/current-authoritative-downstream/project-03-transport-forensics.json; CLI subprocess/Code Assist path compared with GeminiApiProvider/ValidatedGeminiTransport x-goog-api-key REST path; same transport not proven",
+    "p3_transport_forensics": "docs/executable-cadquery-p3-transport-proof.json; historical CLI subprocess/Code Assist path is distinct from the corrected GeminiApiProvider/ValidatedGeminiTransport x-goog-api-key REST path; corrected path proven offline before provider request",
+    "p2_p4_semantic_authorizations": "docs/executable-cadquery-semantic-repair-authorizations.json; exact L3 envelopes are hash-recorded and preflight stopped before request with provider_calls=0",
+    "p5_l1_gate": "docs/executable-cadquery-p5-l1-gate.json; build_function/chamfer/StdFail_NotDone boundary preserved without substituting the separate valid frozen artifact corpus",
     "prior_l2_attempt_metrics": "backend/app/services/executable_cadquery/repair.py; compact neutral prior-L2 topology metrics included in repair envelopes and covered by backend/tests/test_executable_cadquery_repair.py",
     "p5_diagnostic_refresh": "backend/app/services/cad/cadquery_runner.py and backend/tests/test_cad_worker.py; output ID, source hash, source line/function, normalized exception, operation-before validity, chamfer/StdFail_NotDone/BRep_API evidence, CadQuery and worker versions",
-    "verification_current_checkpoint": "1424 full backend tests passed, 1 skipped, 1 warning; authoritative-state targeted tests 4 passed; P2/P4 semantic/package/render/blind-QA reconciliation passed offline with zero provider calls; P3 transport forensics persisted; JSON validation and git diff --check passed"
+    "verification_current_checkpoint": "1425 full backend tests passed, 1 skipped, 1 warning; routing/repair/diagnostic targeted tests passed; P2/P4 semantic/package/render/blind-QA reconciliation passed offline with zero provider calls; corrected P3 REST transport preflight stopped before request; P5 earliest boundary preserved; JSON validation and git diff --check passed"
   }
 }
