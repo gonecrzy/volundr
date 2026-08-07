@@ -85,7 +85,7 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_MAX_STL_BYTES` | API | `104857600` | advanced operational override | yes | no | Typed artifact safety limit. |
 | `VOLUNDR_DEVELOPER_TOOLS_ENABLED` | API and Compose | `false` | advanced developer deployment setting | yes | no | Backend-authoritative switch for live debug batches; never expose credentials or rely on frontend hiding. |
 | `VOLUNDR_VALIDATED_API_DIRECT_ACCESS_ENABLED` | API and Compose | `false` | local-development security override | yes | commented | Allows direct loopback API requests only with `X-Volundr-Direct-Access: true`; all requests still resolve to the fixed single-user actor. |
-| `VOLUNDR_AI_PROVIDER` | API | `gemini_api` | common deployment setting | yes | yes | Provider-aware startup and request validation. |
+| `VOLUNDR_AI_PROVIDER` | API | `gemini_api` | common deployment setting | yes | yes | Provider-aware startup and request validation; `gemini_cli` is an explicit experimental API-container transport for the executable-CadQuery flow. |
 | `GEMINI_API_KEY` | API | unset | required secret | yes | yes | Required only when live Gemini API requests are made. |
 | `VOLUNDR_GEMINI_API_KEY` | API | unset | deprecated compatibility variable | yes | no | Alias for `GEMINI_API_KEY`; migrate to the unprefixed secret. |
 | `VOLUNDR_GEMINI_MODEL` | API | `gemini-3.5-flash-lite` | provider-specific setting | yes | yes | General/default Gemini model; stage policy falls back to it. |

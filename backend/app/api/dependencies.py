@@ -158,6 +158,11 @@ def build_executable_ai_provider(config: Settings) -> AiProvider:
     """Build the experimental provider without the Codex geometry adapter."""
 
     configured = config.ai_provider.strip().lower()
+    if configured in {"gemini", "gemini_cli"}:
+        provider = build_ai_provider(config)
+        if not isinstance(provider, GeminiCliProvider):
+            raise ValueError("executable CadQuery flow requires Gemini CLI transport")
+        return provider
     if configured not in {"gemini_api", "google_gemini_api"}:
         raise ValueError("executable CadQuery flow requires the Gemini API provider")
     primary_env = config.gemini_primary_credential_env

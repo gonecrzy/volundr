@@ -64,6 +64,9 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         self._recovery_router = RecoveryRouter()
         self._recovery_executor = RecoveryActionExecutor(data_dir=self.data_dir)
 
+    def _provider_transport_id(self) -> str:
+        return str(getattr(self.ai_provider, "provider_id", settings.ai_provider))
+
     async def start_design(
         self,
         payload: ValidatedCadQueryStart,
@@ -98,8 +101,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "selected_route": self.route,
                         "feature_flag": "VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED",
                         "feature_flag_enabled": True,
-                        "provider_transport": "gemini_api",
-                        "provider_id": "gemini_api",
+                        "provider_transport": self._provider_transport_id(),
+                        "provider_id": self._provider_transport_id(),
                         "contract_version": "executable-cadquery-design-contract-v1",
                         "source_generation_mode": "complete_source",
                         "codex_proxy_used": False,
@@ -195,8 +198,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "selected_route": self.route,
                     "feature_flag": "VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED",
                     "feature_flag_enabled": True,
-                    "provider_transport": "gemini_api",
-                    "provider_id": "gemini_api",
+                    "provider_transport": self._provider_transport_id(),
+                    "provider_id": self._provider_transport_id(),
                     "source_generation_mode": "complete_source_revision",
                     "codex_proxy_used": False,
                     "prior_revision_id": base_revision.id,
