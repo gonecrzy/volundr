@@ -113,7 +113,7 @@
     "minimum_revision_turn_projects": 8,
     "projects_with_planned_revisions": 12,
     "corpus_manifest": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
-    "corpus_manifest_sha256": "b81bc0c377419f895be4042eddc55ee493d059733802fb34ff2fded0e1e3e04e",
+    "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
     "prompts_frozen": true,
     "feedback_turns_frozen": true,
     "first_pass_started": false,

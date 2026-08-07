@@ -1,5 +1,6 @@
 {
-  "schema_version": "executable-cadquery-development-corpus-v1",
+  "schema_version": "executable-cadquery-repeatability-corpus-v1",
+  "corpus_kind": "phase_1a_development_corpus",
   "methodology_version": "seed-stabilization-diverse-development-corpus-v1",
   "phase": "phase_1a_frozen_first_blocker_survey",
   "freeze_policy": {
@@ -58,7 +59,7 @@
       "prompt": "Create exactly one printable output named precision_mounting_shoe. Make the base 96 mm wide, 48 mm deep, and 12 mm thick. Add two 8 mm through-holes whose centers are 72 mm apart along the width and centered across the depth. Add a centered rectangular recessed pocket 50 mm wide, 24 mm deep, and 4 mm deep. Add a 2 mm chamfer to the two long upper outside edges. Preserve the stated dimensions and output identity.",
       "clarifications": [],
       "planned_revisions": [],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-01",
         "workflow_id": "development-workflow-01",
@@ -86,7 +87,7 @@
       "prompt": "Create exactly one printable rotational output named flanged_spindle. Use coaxial outside diameters of 42 mm, 32 mm, and 24 mm over axial lengths of 10 mm, 16 mm, and 14 mm. Add a 14 mm through-bore, a 22 mm counterbore recessed 5 mm from the flange end, and six 4 mm through-holes equally spaced on a 34 mm pitch circle in the flange. Preserve the common axis, the stated axial lengths, and all output identity requirements.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-02-r1", "message": "Use larger mounting holes so the flange accepts the fasteners more easily."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-02",
         "workflow_id": "development-workflow-02",
@@ -112,7 +113,7 @@
       "prompt": "Create exactly one printable output named sensor_housing. The outside envelope must be 72 mm wide, 46 mm deep, and 28 mm high. Make a 2.5 mm wall around an open-top cavity with a 3 mm bottom. Add four internal mounting bosses with 2.5 mm through-holes, each boss center 8 mm from its nearest side wall. Add one 12 mm wide by 6 mm high cable opening through the right wall and six 2 mm wide by 8 mm long ventilation slots on the front wall. Preserve the envelope, wall, boss, and opening requirements.",
       "clarifications": [],
       "planned_revisions": [],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-03",
         "workflow_id": "development-workflow-03",
@@ -139,7 +140,7 @@
       "prompt": "Create exactly two printable outputs named dovetail_rail and sliding_carriage. The rail is 100 mm long, 40 mm wide, and 10 mm high with a centered 60 mm long by 14 mm wide receiving channel that is 4 mm deep and has 10 degree sloped side faces. Add two 5 mm through-holes to the rail, centered across its width and 18 mm from the rail ends. The carriage is 48 mm long, 20 mm wide, and 8 mm high, with a matching sliding tongue, 0.35 mm side clearance, and 0.25 mm top clearance in the assembled relationship. Keep both outputs independent, aligned, and separately printable.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-04-r1", "message": "Make the sliding carriage a little easier to insert while keeping it aligned to the rail."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-04",
         "workflow_id": "development-workflow-04",
@@ -169,7 +170,7 @@
       "prompt": "Design one printable wall-mounted charging-cable organizer. It should keep several charging cables separated, provide a clear path for each cable to be inserted and removed, and mount securely to a vertical wall using two 4 mm screw holes. Keep the mounting face flat, make the organizer easy to print without support where practical, and leave ordinary proportions, spacing, edge treatment, and the number of cable channels to your design judgment. Return one output named cable_organizer.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-05-r1", "message": "Make the cable openings wider so thicker charging leads can pass through."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-05",
         "workflow_id": "development-workflow-05",
@@ -195,7 +196,7 @@
       "prompt": "Design a printable holder for four 18650 batteries that keeps the cells separated, makes them removable from the top, and can be attached to a flat workshop surface. Provide one required output named battery_holder and one optional output named retaining_lid. Include a practical mounting interface and leave the overall proportions, grip details, wall thickness, and lid fastening approach to your design judgment. Do not make the optional lid necessary for the required holder to be useful.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-06-r1", "message": "Add four internal mounting bosses so the holder can accept a small circuit board."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-06",
         "workflow_id": "development-workflow-06",
@@ -224,7 +225,7 @@
       "prompt": "Design one printable curved cable guide for routing a bundle around the corner of a workbench. It should guide a cable bundle up to 20 mm in diameter through a smooth turn, prevent the cable from escaping during ordinary use, and attach to a flat surface with two screw holes. Keep the guide one connected printable output named curved_cable_guide. You may choose the path radius, section shape, wall thickness, and mounting proportions, but preserve generous cable clearance and a practical insertion opening.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-07-r1", "message": "Move the cable exit to the right side so the guide works on the other side of the bench."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-07",
         "workflow_id": "development-workflow-07",
@@ -250,7 +251,7 @@
       "prompt": "Design exactly two printable outputs named tube_clamp_upper and tube_clamp_lower that clamp around a round tube with a nominal 25 mm outside diameter. The pair must meet without sharp interference, hold the tube securely during ordinary handling, and use two M4 fasteners on opposite sides. Keep the clamp easy to assemble and leave the split geometry, wall thickness, screw-head treatment, and overall length to your design judgment. Preserve the two output identities and their mating relationship.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-08-r1", "message": "Space the fastener bosses farther apart so the clamp is easier to tighten."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-08",
         "workflow_id": "development-workflow-08",
@@ -279,7 +280,7 @@
       "prompt": "Design one printable tablet stand for a tablet up to 10 inches diagonal. It should be stable on a desk, support the tablet in either portrait or landscape orientation, leave the screen visible, and provide a centered cable access path at the lower edge. Use a broad enough footprint and a non-slip-friendly contact strategy, but leave the exact angle, dimensions, fillets, and support shape to your design judgment. Return one output named tablet_stand.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-09-r1", "message": "Tilt it back a little more so the screen is easier to see while seated."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-09",
         "workflow_id": "development-workflow-09",
@@ -305,7 +306,7 @@
       "prompt": "Design one printable workshop accessory holder that mounts to a standard 1 inch spaced pegboard and holds a small hand tool with its handle upright. It must engage the pegboard securely, resist the tool tipping out during ordinary use, and allow the tool to be lifted out without removing the holder. You may choose the tool pocket shape, support depth, retaining lip, wall thickness, and edge treatment. Return one output named pegboard_tool_holder.",
       "clarifications": [],
       "planned_revisions": [],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-10",
         "workflow_id": "development-workflow-10",
@@ -331,7 +332,7 @@
       "prompt": "Design exactly two printable outputs named instrument_support and replaceable_insert. The support should hold a small replaceable insert in a centered pocket, keep the insert from rotating during use, and include a practical way to mount the support to a work surface. The insert should be removable by hand and should not interfere with the support when seated. Leave the interface dimensions, retention detail, wall thickness, and mounting layout to your design judgment, but preserve the two output identities and the functional mating relationship.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-11-r1", "message": "Add a small finger relief so the insert is easier to remove."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-11",
         "workflow_id": "development-workflow-11",
@@ -360,7 +361,7 @@
       "prompt": "Design a compact printable electronics enclosure with one required output named enclosure_base and one optional output named enclosure_lid. The base must provide a protected cavity for a small controller board, a clear USB cable exit, and mounting provisions for the board. The lid should be removable and should not prevent access to the cable exit. Leave the board clearance, outer proportions, wall thickness, corner treatment, vent layout, and lid retention approach to your design judgment. The required base must remain useful if the optional lid is omitted.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-12-r1", "message": "Move the cable exit to the right side and add internal mounting bosses."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-12",
         "workflow_id": "development-workflow-12",
@@ -390,7 +391,7 @@
       "prompt": "Design a simple printable desk stand for a phone that feels stable, keeps the screen easy to see, and leaves room for a charging cable. Make it pleasant to use and reasonably easy to print. You have substantial freedom over the proportions, viewing angle, support shape, and surface details. Return one printable output named charging_phone_stand.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-13-r1", "message": "The base looks too bulky; make it shallower while keeping the stand stable."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-13",
         "workflow_id": "development-workflow-13",
@@ -416,7 +417,7 @@
       "prompt": "Design a compact printable desktop organizer for a few pens, a small notepad, and charging accessories. It should be stable, make the contents easy to reach, and look intentional rather than like a plain box. Decide the number and arrangement of compartments, edge treatment, and proportions yourself. Return one printable output named desktop_organizer and avoid relying on a separate assembly.",
       "clarifications": [],
       "planned_revisions": [],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-14",
         "workflow_id": "development-workflow-14",
@@ -442,7 +443,7 @@
       "prompt": "Design a printable wall-mounted holder for a small household accessory such as keys, a remote, or a lightweight tool. It should be easy to use with one hand, keep the item from falling out, and have a clean, compact appearance. You may choose the exact storage features and whether to include an optional decorative or labeling element, but return one required output named wall_accessory_holder and keep any optional output named label_insert nonessential.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-15-r1", "message": "Add a small hook for a second item without making the holder much wider."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-15",
         "workflow_id": "development-workflow-15",
@@ -471,7 +472,7 @@
       "prompt": "Design a printable protective case for a small handheld electronics device, with one required output named protective_case_base and one optional output named protective_case_cover. The device should be protected from ordinary bumps, the controls and cable should remain accessible, and the case should be practical to open and close. Choose the device clearance, shell thickness, corner radii, closure, and overall style yourself. Keep the base useful on its own and keep the optional cover nonessential to the identity of the required output.",
       "clarifications": [],
       "planned_revisions": [{"revision_id": "development-16-r1", "message": "Round the outside corners more and add a small opening for the status light."}],
-      "design_contract": {
+      "contract": {
         "schema_version": "executable-cadquery-design-contract-v1",
         "project_id": "development-16",
         "workflow_id": "development-workflow-16",

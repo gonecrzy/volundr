@@ -7,7 +7,7 @@
   "starting_commit": "eae862055beb1526aaef5f958c75874168ccb32a",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "corpus_manifest": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
-  "corpus_manifest_sha256": "b81bc0c377419f895be4042eddc55ee493d059733802fb34ff2fded0e1e3e04e",
+  "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
   "corpus_size": 16,
   "composition": {"highly_specified": 4, "partially_specified": 8, "intent_heavy": 4},
   "projects_with_planned_revisions": 12,
