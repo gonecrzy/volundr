@@ -1,0 +1,383 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-feature-profile-evidence-acquisition-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "checkpoint": "feature_profile_evidence_acquisition_go_no_go",
+  "timestamp": "2026-08-07T23:29:15Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_checkpoint": "a565d75 Reconstruct feature-profile capability gap",
+  "holdout_boundary": {
+    "phase_2_material_inspected": false,
+    "phase_2_paths_enumerated": false,
+    "phase_2_prompts_contracts_sources_artifacts_results_manifests_inspected": false,
+    "allowed_scope_used": [
+      "16 frozen DEVELOPMENT project manifest and reconciled records",
+      "explicit P1-P5 seed/debug records",
+      "production requirement/verifier schemas",
+      "generic unit/integration tests",
+      "synthetic test-only geometry"
+    ]
+  },
+  "real_evidence_sources_examined": [
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+      "scope": "all 16 frozen development prompts and contracts",
+      "result": "found profile-like requirements in development-01, development-03, and development-04; found circular opening patterns and unrelated functional/review requirements elsewhere"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-development-16/project-01-first-pass.json",
+      "scope": "development-01 persisted first pass",
+      "result": "source/execution failure before final geometry; no usable neutral profile evidence"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-development-16/project-04-reconciled-first-pass.json",
+      "scope": "development-04 persisted reconciled first pass",
+      "result": "source-contract failure before worker; no usable neutral profile evidence"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-development-16/project-05-reconciled-first-pass.json",
+      "scope": "development-05 persisted semantic result",
+      "result": "circular mounting-opening measurement path produced a measured failure; not a rectangular profile analog"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-development-16/project-07-reconciled-first-pass.json",
+      "scope": "development-07 persisted semantic result",
+      "result": "circular mounting-opening measurement path produced a measured failure; not a rectangular profile analog"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-wave-01/current-authoritative-downstream/project-04-downstream.json",
+      "scope": "permanent seed P4 downstream semantic, package, and neutral evidence",
+      "result": "provided an independent single rectangular-opening positive control and a separate repeated circular-opening control"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/prompt-contract.json",
+      "scope": "permanent seed P4 frozen contract",
+      "result": "confirmed explicit output-local requirements for a single rectangular opening and a repeated circular hole group"
+    },
+    {
+      "source": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/qualification-result.json",
+      "scope": "permanent seed P3 historical qualification result",
+      "result": "access-slot-like requirement existed, but authoritative failure was STL export and no final neutral profile verdict was available"
+    },
+    {
+      "source": "backend/app/services/executable_cadquery/semantic.py",
+      "scope": "dispatcher, scope resolver, and current feature-profile verifier",
+      "result": "confirmed policy dispatch, output-scope separation, and single-profile width plus height/depth behavior"
+    },
+    {
+      "source": "backend/app/services/executable_cadquery/semantic_contract.py",
+      "scope": "canonical semantic normalization",
+      "result": "confirmed no policy-specific canonical field specification for final_mesh_feature_profiles"
+    },
+    {
+      "source": "backend/app/services/executable_cadquery/contract.py and backend/app/services/requirements/trace.py",
+      "scope": "design-contract and shared requirement normalization",
+      "result": "confirmed requirement objects are structurally validated and generic ledger semantics are preserved, but typed planar-profile fields are not established"
+    },
+    {
+      "source": "backend/app/services/geometry/feature_measurements.py and backend/app/services/geometry/feature_evidence.py",
+      "scope": "generic measurement primitives and sample-based feature evidence",
+      "result": "confirmed profile projection, ray probes, explicit probe counting, sample-based slot comparison, and their integration boundaries"
+    },
+    {
+      "source": "backend/app/services/executable_cadquery/package_review.py and backend/app/services/cad/topology_evidence.py",
+      "scope": "neutral package and topology measurements",
+      "result": "confirmed coarse solid/bounds/volume/hole/planar-face evidence but no repeated rectangular-profile identity"
+    },
+    {
+      "source": "backend/tests/fixtures/feature_verification and backend/tests/test_feature_measurements.py/backend/tests/test_feature_evidence.py",
+      "scope": "generic fixtures and prior characterization tests",
+      "result": "found declared slot/strap features without usable feature traces, plus sample and probe tests; no independent real rectangular-profile package evidence"
+    }
+  ],
+  "unrelated_candidate_requirements": [
+    {
+      "project": "development-01",
+      "requirement_id": "shoe_recess",
+      "user_intent": "centered rectangular recessed pocket with width, planar depth, and cut depth",
+      "origin": "user_explicit",
+      "authority": "required",
+      "classification": "machine_required",
+      "verification_policy": "final_mesh_feature_profiles",
+      "expected_fields": {"width": 50.0, "depth": 24.0, "cut_depth": 4.0, "centered": true},
+      "scope": "precision_mounting_shoe",
+      "region_face_axis": "centered is explicit; face/axis is not a canonical field",
+      "through_blind": "recess/cut depth implies blind semantics, but no explicit typed state",
+      "neutral_evidence": "none; first pass stopped at worker execution",
+      "analog_status": "rejected_superficial_analog",
+      "reason": "single blind recess, not a repeated planar opening group; its depth means cut depth/planar extent rather than the target's named long dimension, and geometry never reached final evidence"
+    },
+    {
+      "project": "development-04",
+      "requirement_id": "rail_channel",
+      "user_intent": "receiving channel with length, width, depth, and sloped side faces",
+      "origin": "user_explicit",
+      "authority": "protected",
+      "classification": "machine_required",
+      "verification_policy": "final_mesh_feature_profiles",
+      "expected_fields": {"length": 60.0, "width": 14.0, "depth": 4.0, "side_angle_degrees": 10.0},
+      "scope": "dovetail_rail",
+      "region_face_axis": "centered channel in user intent; no canonical face/axis field",
+      "through_blind": "channel depth is explicit; no typed through/blind field",
+      "neutral_evidence": "none; source-contract failure before worker",
+      "analog_status": "rejected_superficial_analog",
+      "reason": "angled receiving channel, not a rectangular repeated or individual profile with stable width/length semantics; no final geometry evidence"
+    },
+    {
+      "project": "development-05",
+      "requirement_id": "organizer_wall_mount",
+      "user_intent": "flat mounting face with two circular screw holes",
+      "origin": "user_explicit",
+      "authority": "required",
+      "classification": "machine_required",
+      "verification_policy": "final_mesh_opening_profiles",
+      "expected_fields": {"hole_count": 2, "hole_diameter": 4.0, "mounting_face": "flat", "wall_mounted": true},
+      "scope": "cable_organizer",
+      "region_face_axis": "mounting face is semantic intent, not a canonical measurement region",
+      "through_blind": "opening path measured through state, but this is circular-hole semantics",
+      "neutral_evidence": "final-mesh circular measurements existed and the finding failed",
+      "analog_status": "rejected_different_feature_type",
+      "reason": "repeated circular opening group, not planar rectangular profile semantics"
+    },
+    {
+      "project": "development-07",
+      "requirement_id": "guide_mounting",
+      "user_intent": "flat-surface mounting with two screw holes",
+      "origin": "user_explicit",
+      "authority": "required",
+      "classification": "machine_required",
+      "verification_policy": "final_mesh_opening_profiles",
+      "expected_fields": {"flat_surface_mount": true, "screw_hole_count": 2},
+      "scope": "curved_cable_guide",
+      "region_face_axis": "flat mounting surface is not a canonical feature region",
+      "through_blind": "opening path measured through state, but this is circular-hole semantics",
+      "neutral_evidence": "final-mesh circular measurements existed and the finding failed",
+      "analog_status": "rejected_different_feature_type",
+      "reason": "no rectangular profile dimensions or repeated planar feature identity"
+    },
+    {
+      "project": "seed-P3",
+      "requirement_id": "access_slot",
+      "user_intent": "single through access slot on a curved guide",
+      "origin": "user_explicit",
+      "authority": "required",
+      "classification": "machine_required",
+      "verification_policy": "final_mesh_opening_profiles",
+      "expected_fields": "slot dimensions were present in the frozen seed contract",
+      "scope": "curved_cable_guide",
+      "region_face_axis": "curved wall context, no canonical neutral region",
+      "through_blind": "through intent present",
+      "neutral_evidence": "not available for the authoritative qualification because the result stopped at STL export failure",
+      "analog_status": "rejected_insufficient_final_evidence",
+      "reason": "word-level similarity to a slot is not evidence of a reusable final-mesh profile measurement"
+    }
+  ],
+  "accepted_real_analogs": [
+    {
+      "source": "permanent seed P4",
+      "requirement_id": "lid_ventilation_opening",
+      "scope": "enclosure_lid",
+      "origin": "user_explicit in frozen seed prompt",
+      "authority": "required by seed contract",
+      "classification": "machine_required",
+      "verification_policy": "final_mesh_feature_profiles",
+      "expected": {"width": 20.0, "height": 10.0},
+      "result": "verified",
+      "neutral_evidence": "final-mesh boundary measurement detected spans [20.0,10.0]; output topology valid with one solid; packaged STL/STEP/BREP hashes matched",
+      "scope_evidence": "two output identities were present and the finding was resolved to enclosure_lid",
+      "limits": "single profile only; no count, named length, face/region, or through/blind field"
+    }
+  ],
+  "positive_controls": [
+    {
+      "control": "P4 single rectangular opening",
+      "what_it_proves": "an output-scoped single two-dimensional rectangular boundary can be measured by the existing executable path"
+    },
+    {
+      "control": "P4 repeated circular mounting holes",
+      "what_it_proves": "repeated count plus diameter is already represented and measured through a specialized opening-profile policy"
+    },
+    {
+      "control": "P03 housing_cable_opening",
+      "what_it_proves": "the same broad feature-profile policy can pass a single width plus height requirement in the development corpus",
+      "independence": "not independent of P03; retained only as a local control"
+    }
+  ],
+  "synthetic_characterization": [
+    {
+      "case": "single rectangular through opening",
+      "result": "verify_through_opening passed; measure_opening_count passed with one explicit probe; measure_opening_profiles returned four boundary bar components rather than one opening identity"
+    },
+    {
+      "case": "three repeated identical openings",
+      "result": "measure_opening_count returned count=3 only with three caller-supplied probe points; measure_opening_profiles returned 12 boundary components, not three grouped openings"
+    },
+    {
+      "case": "one repeated sample with wrong dimensions",
+      "result": "measure_slots returned satisfied=true for count=2 while reporting widths [13.0,31.0] and depths [4.0,17.0] against expected [13.0,4.0]"
+    },
+    {
+      "case": "incorrect count",
+      "result": "measure_opening_count failed when expected_count differed from the number of successful explicit probes"
+    },
+    {
+      "case": "blind rectangular region",
+      "result": "verify_through_opening returned blind_or_blocked and satisfied=false"
+    },
+    {
+      "case": "candidate on a different orientation",
+      "result": "wrong supplied axis/probe produced count=0; orientation is required and not inferred"
+    },
+    {
+      "case": "multiple candidate groups",
+      "result": "profile projection returned multiple components without a unique-group or ambiguity result"
+    },
+    {
+      "case": "similar profiles in separate output meshes",
+      "result": "each primitive accepted a mesh independently and emitted no output_id; output identity must remain with the caller/scope resolver"
+    },
+    {
+      "case": "tolerance boundary",
+      "result": "compare_dimension passed exactly at tolerance and failed just outside tolerance"
+    },
+    {
+      "case": "no qualifying profile",
+      "result": "explicit probing of a solid region returned opening_count_mismatch rather than PASS"
+    }
+  ],
+  "primitive_characterization": {
+    "measure_opening_profiles": {
+      "detects": "connected projected face components",
+      "reports": "center_x, center_y, size_x, size_y",
+      "count_deterministic": "component count is deterministic for a mesh but is not feature/opening count",
+      "axis_required": true,
+      "face_region": "not established; selected by axis-normal filtering",
+      "through_blind": "not distinguished",
+      "output_identity": "not carried",
+      "ambiguity": "not represented",
+      "false_positive_risk": "boundary bars or unrelated coplanar components can be returned as profile candidates"
+    },
+    "measure_opening_count": {
+      "detects": "through openings at explicit points and an explicit axis",
+      "reports": "count, probe results, intersection count, opening length",
+      "count_deterministic": "yes for the supplied probes",
+      "axis_required": true,
+      "face_region": "only indirectly through probe placement",
+      "through_blind": "yes at the probe",
+      "output_identity": "not carried",
+      "ambiguity": "caller must choose probes",
+      "false_positive_risk": "wrong probe location or wrong axis changes the answer"
+    },
+    "measure_slots": {
+      "detects": "only caller-supplied sample records",
+      "reports": "count, widths, depths, regions, through_count",
+      "count_deterministic": "exact count of valid samples",
+      "axis_required": false,
+      "face_region": "sample field only",
+      "through_blind": "sample field only",
+      "output_identity": "not carried",
+      "ambiguity": "not represented",
+      "false_positive_risk": "width_ok and depth_ok use any matching sample, so mixed-dimension groups can pass"
+    },
+    "verify_through_opening": {
+      "detects": "through versus blocked at one supplied point/axis",
+      "reports": "intersection count and opening length",
+      "count_deterministic": "single probe only",
+      "axis_required": true,
+      "face_region": "caller-selected point only",
+      "through_blind": "yes",
+      "output_identity": "not carried",
+      "ambiguity": "not represented",
+      "false_positive_risk": "a probe can miss or hit an unintended region"
+    }
+  },
+  "contract_capability_matrix": [
+    {"field": "feature_type", "user_intent": "often present in words", "design_contract": "absent for target and controls", "canonical": "absent", "neutral": "not inferred", "verifier": "not consumed", "status": "missing"},
+    {"field": "count", "user_intent": "explicit for target and some patterns", "design_contract": "raw expected field", "canonical": "canonical for circular opening policies, not feature-profile policy", "neutral": "not emitted for rectangular profiles", "verifier": "ignored by final_mesh_feature_profiles", "status": "partially representable"},
+    {"field": "planar_width", "user_intent": "explicit in target/control", "design_contract": "raw width field", "canonical": "not policy-normalized for feature profiles", "neutral": "boundary spans may be observed", "verifier": "consumed for single profile", "status": "partially canonical"},
+    {"field": "planar_length", "user_intent": "explicit in target; meaning is planar long dimension", "design_contract": "raw length field", "canonical": "no stable feature-profile field", "neutral": "no named profile length emitted", "verifier": "ignored", "status": "missing canonical meaning"},
+    {"field": "face_region", "user_intent": "front/top/mounting context may be in text", "design_contract": "usually absent", "canonical": "absent for target", "neutral": "aggregate planar face positions only", "verifier": "scans principal faces or caller probes", "status": "free-text or absent"},
+    {"field": "axis_orientation", "user_intent": "sometimes implied", "design_contract": "absent for target", "canonical": "absent", "neutral": "many primitives require caller axis", "verifier": "not explicit for feature profile", "status": "absent"},
+    {"field": "through_blind", "user_intent": "explicit for some openings, not target contract", "design_contract": "absent for target", "canonical": "available only in other policies/sample fields", "neutral": "ray probes can observe locally", "verifier": "not consumed by feature profile", "status": "feature-class dependent"},
+    {"field": "tolerance", "user_intent": "system/contract context", "design_contract": "canonical requirement field", "canonical": "consumed centrally", "neutral": "reported where applicable", "verifier": "consumed", "status": "available"},
+    {"field": "output_identity", "user_intent": "output names explicit", "design_contract": "canonical scope", "canonical": "central resolver", "neutral": "package output identity", "verifier": "scope resolved before local measurement", "status": "available and reusable"}
+  ],
+  "competing_abstractions": {
+    "universal_rectangular_profile_group": {
+      "decision": "rejected",
+      "reason": "conflates individual openings, blind recesses, angled channels, and repeated arrays while existing primitives do not establish identity or ambiguity"
+    },
+    "small_typed_profile_hierarchy": {
+      "decision": "future design direction only",
+      "candidate_types": ["rectangular_opening", "rectangular_recess", "repeated_rectangular_opening_group"],
+      "reason": "keeps through/blind and dimension meanings explicit, but current evidence does not justify production schema work"
+    },
+    "existing_specialized_measurements_with_better_contract_routing": {
+      "decision": "strongest current direction",
+      "reason": "P4 circular groups and single rectangular openings already use distinct paths; improve contract routing only after a more complete unrelated evidence set"
+    },
+    "no_new_shared_abstraction_now": {
+      "decision": "selected for this checkpoint",
+      "reason": "P03 is still the only real repeated rectangular-profile case with this exact semantic shape"
+    }
+  },
+  "product_path_assessment": {
+    "result": "current candidate fails the product-path test as a universal contract",
+    "required_user_visible_fields": ["feature type", "output", "count", "named dimensions", "location/region", "through/blind when relevant", "measured values", "diagnostic reason"],
+    "revision_requirements": "count, width, length, location, and through/blind revisions need stable ledger fields rather than verifier-only aliases",
+    "scope_integration": "output scope can reuse the centralized resolver, but profile identity and region cannot currently be delegated to that resolver",
+    "future_architecture": "typed requirement ledger plus neutral evidence records, with specialized verifiers and fail-closed routing"
+  },
+  "new_unrelated_defects": [
+    {
+      "subcluster": "slot_sample_dimension_aggregation_false_positive",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "measurement_aggregation_false_positive",
+      "first_incorrect_owner": "application geometry measurement primitive",
+      "evidence": "synthetic characterization: measure_slots returned satisfied=true for two through samples when only one matched expected width and depth",
+      "priority": "high before measure_slots is used as a machine-required final verifier",
+      "action": "record only; do not fix in this checkpoint"
+    }
+  ],
+  "anti_overfitting_assessment": {
+    "passed": true,
+    "real_evidence_in_application": false,
+    "p03_dimensions_or_names_in_test_code": false,
+    "p03_source_or_selector_reused": false,
+    "project_specific_production_logic_added": false,
+    "holdout_access": false,
+    "provider_calls": 0,
+    "frozen_worker_replays": 0
+  },
+  "decision": {
+    "go": false,
+    "decision": "NO-GO for production typed rectangular-profile-group recovery in this cycle",
+    "why": [
+      "only one unrelated real rectangular-opening positive control was found, and it is a single width/height profile",
+      "no unrelated real repeated rectangular profile group with count plus two planar dimensions was found",
+      "current profile projection does not identify openings or resolve ambiguity",
+      "count measurement requires project/caller-supplied probes",
+      "the contract lacks canonical feature type, face/region, axis, and through/blind semantics for the target",
+      "measure_slots has a generic mixed-dimension false-positive that must be isolated before reuse",
+      "the candidate would conflate materially different recess, opening, channel, and array semantics"
+    ],
+    "narrow_capability_supported": "Volundr already has a limited individual rectangular boundary-profile path; this does not justify a new shared repeated-profile abstraction.",
+    "implementation_hypothesis": null,
+    "implementation_status": "no production extractor, schema, normalizer, verifier, recovery, prompt, CAD, or provider changes"
+  },
+  "operations": {
+    "provider_operations": 0,
+    "frozen_project_worker_executions": 0,
+    "frozen_project_regenerations": 0,
+    "synthetic_characterization_test_cases": 8,
+    "synthetic_geometry_cases": 6,
+    "synthetic_sample_only_cases": 2
+  },
+  "tests": {
+    "added": ["backend/tests/test_feature_profile_characterization.py"],
+    "result": "8 passed",
+    "existing_focused_suite": "backend/.venv/bin/python -m pytest -q tests/test_executable_cadquery_semantic_contract.py tests/test_executable_cadquery_semantic_measurements.py tests/test_feature_measurements.py tests/test_feature_evidence.py tests/test_requirement_semantics_alignment.py tests/test_feature_profile_characterization.py",
+    "existing_focused_suite_result": "64 passed",
+    "production_files_changed": []
+  },
+  "recommended_next_step": "Do not implement the proposed profile-group recovery. First isolate and independently correct the generic slot-sample aggregation false positive under a separate Phase 1B cluster, then reassess whether unrelated evidence justifies a small typed rectangular-opening/recess model."
+}

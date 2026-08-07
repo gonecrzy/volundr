@@ -9,7 +9,7 @@
   "origin_experimental_head": "b3baf52 Implement canonical semantic requirement field normalization",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic policy, output scope/identity, and verifier field-mismatch checkpoints complete; feature-profile capability gap reconstructed only with no implementation started",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence acquisition complete with NO-GO for production recovery; separate slot-sample aggregation defect recorded",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -101,6 +101,7 @@
     ,"frontend_phase_1b_verifier_field_checkpoint_104_passed_and_build_passed"
     ,"alembic_phase_1b_verifier_field_checkpoint_clean"
     ,"phase_1b_feature_profile_capability_gap_reconstructed_without_implementation"
+    ,"phase_1b_feature_profile_evidence_acquisition_no_go_completed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -194,10 +195,10 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy","slot_sample_dimension_aggregation_false_positive"],
     "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch"],
     "completed_reconstructions": ["feature_profile_capability_gap"],
-    "current_subcluster_status": "feature_profile_capability_gap reconstructed only; no implementation started; generic recovery is not yet justified from one frozen finding",
+    "current_subcluster_status": "feature_profile evidence acquisition complete; NO-GO for production typed profile-group recovery; separate measurement false-positive queued; no production implementation started",
     "feature_profile_capability_gap": {
       "affected_findings": 1,
       "projects": ["development-03"],
@@ -214,6 +215,25 @@
       "generic_implementation_justified": false,
       "reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-capability-gap-reconstruction.json",
       "next_action": "obtain synthetic and unrelated real evidence for an explicit typed rectangular-profile-group contract before implementing a generic recovery"
+    },
+    "feature_profile_evidence_acquisition": {
+      "status": "complete_no_go",
+      "real_sources_examined": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json; explicit development records; permanent seed P4 downstream/package/contract evidence; production schemas; generic tests",
+      "holdout_material_inspected": false,
+      "accepted_real_analogs": 1,
+      "unrelated_repeated_rectangular_analogs": 0,
+      "positive_controls": ["P4 single rectangular opening", "P4 repeated circular opening group"],
+      "synthetic_characterization_tests": 8,
+      "synthetic_characterization_result": "8 passed",
+      "decision": "NO-GO for production typed rectangular-profile-group recovery in this cycle",
+      "provider_calls": 0,
+      "frozen_worker_executions": 0,
+      "synthetic_executions": 8,
+      "new_unrelated_subcluster": "slot_sample_dimension_aggregation_false_positive",
+      "new_unrelated_subcluster_owner": "application geometry measurement primitive",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-evidence-acquisition.json",
+      "characterization_tests": "backend/tests/test_feature_profile_characterization.py",
+      "next_action": "isolate the slot-sample aggregation false positive, then reassess a small typed rectangular-opening/recess model only with additional unrelated evidence"
     },
     "verifier_field_mismatch": {
       "affected_findings": 4,
@@ -292,6 +312,7 @@
     ,"phase_1b_semantic_cluster_provider_calls": 0
     ,"phase_1b_verifier_field_mismatch_provider_calls": 0
     ,"phase_1b_feature_profile_capability_gap_provider_calls": 0
+    ,"phase_1b_feature_profile_evidence_acquisition_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -368,6 +389,8 @@
     "phase_1b_verifier_field_mismatch_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-decision.json",
     "phase_1b_verifier_field_mismatch_product_path_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-product-path-audit.json",
     "phase_1b_feature_profile_capability_gap_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-capability-gap-reconstruction.json",
-    "verification_current_checkpoint": "backend 1465 passed, 1 skipped, 1 warning; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; field-contract focused suite 13 passed; feature-profile reconstruction focused suite 56 passed; provider_calls=0"
+    "phase_1b_feature_profile_evidence_acquisition": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-evidence-acquisition.json",
+    "phase_1b_feature_profile_characterization_tests": "backend/tests/test_feature_profile_characterization.py; 8 passed; combined focused semantic/geometry suite 64 passed",
+    "verification_current_checkpoint": "backend 1465 passed, 1 skipped, 1 warning; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; feature-profile evidence characterization suite 64 passed; provider_calls=0"
   }
 }
