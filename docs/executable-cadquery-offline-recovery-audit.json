@@ -1,180 +1,33 @@
 {
-  "schema_version": "executable-cadquery-offline-recovery-audit-v1",
-  "cycle": "credential-freeze-and-offline-recovery-audit",
   "branch": "experiment/gemini-executable-cadquery-v1",
   "credential_commit": "e4b2b9e",
   "credential_work_frozen": true,
-  "phase2_started": false,
+  "cycle": "credential-freeze-and-offline-recovery-audit",
+  "final_matrix": {
+    "project-01": "topology valid; semantic=passed; package=passed; render=passed; blind QA=PASS",
+    "project-02": "topology valid; semantic=failed; package=passed; render=passed; blind QA=FAIL",
+    "project-03": "topology invalid; current boundary=topology; no downstream/provider progression",
+    "project-04": "topology valid; semantic=failed; package=passed; render=passed; blind QA=FAIL",
+    "project-05": "preserved current earliest-boundary state; no new work in this reconciliation"
+  },
+  "final_matrix_historical": {
+    "project-01": "independent PASS by deterministic neutral B-Rep; guided adjudication retained as non-blind",
+    "project-02": "blocked: solid-count/topology; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
+    "project-03": "blocked: bounded L1 progressed from arc/threePointsArc execution failures through sweep TypeError to topology; latest neutral evidence is 2 solids versus expected 1; no package review; provider convergence not assigned",
+    "project-04": "blocked: lid invalid topology while base remains valid; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
+    "project-05": "blocked: build_function chamfer StdFail_NotDone / BRep_API; one bounded L1 changed source but not error; topology not reached; provider convergence not assigned"
+  },
   "gemini_calls_in_this_cycle": 4,
+  "gemini_calls_in_this_reconciliation": 0,
   "generic_fixes_applied": [
     "durable persisted recovery executes existing non-provider actions and re-evaluates evidence",
     "restart attempt ordinals ignore stale-source and terminal review records",
     "failed provider attempts persist the complete repair envelope with repair history",
     "same-source L1 progress remains recoverable when the structured error state changes"
   ],
-  "preserved_findings": {
-    "hard_coded_contract_fallback_discovery": {
-      "severity": "major_application_defect",
-      "status": "preserved",
-      "evidence": "docs/executable-cadquery-recovery-cycle-01.json"
-    },
-    "original_wrong_package_review": {
-      "status": "blind_FAIL_preserved",
-      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/project-01-independent-review.json"
-    },
-    "project_01_second_review": {
-      "status": "guided_adjudication",
-      "blind": false,
-      "independent_status": "PASS via deterministic neutral B-Rep measurement",
-      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-01/neutral-measurement-report.json"
-    },
-    "contract_manifest_injection": "qualification-harness mechanism only; not the intended product contract source"
-  },
-  "project_03_offline_recovery": {
-    "status": "blocked_at_topology_after_bounded_l1_progression",
-    "historical_application_classification": {
-      "failure_class": "stl_export_failure",
-      "observed_boundary": "artifact",
-      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-03/project-03-result.json"
-    },
-    "latest_worker_evidence": {
-      "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
-      "active_phase": "topology_analysis",
-      "failure_class": "solid_count_mismatch",
-      "failure": "required solid count 1; detected solid count 2",
-      "output_id": "curved_cable_guide",
-      "detected_solid_count": 2,
-      "expected_solid_count": 1,
-      "shell_count": 2,
-      "volume_mm3": 790.3540138875861,
-      "bounding_box_mm": {"size_x": 58.0, "size_y": 10.0, "size_z": 9.0},
-      "output_status": "invalid_shape",
-      "artifacts": []
-    },
-    "attempts": [
-      {
-        "ordinal": 1,
-        "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
-        "active_phase": "build_function",
-        "failure": "AttributeError: Workplane has no attribute arc",
-        "source_changed": false,
-        "objective_progress": false
-      },
-      {
-        "ordinal": 2,
-        "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
-        "active_phase": "build_function",
-        "failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
-        "failure_source_function": "_make_model",
-        "failure_source_line": 65,
-        "source_changed": true,
-        "error_changed": true,
-        "objective_execution_progress": true,
-        "objective_topology_progress": false,
-        "topology_reached": false
-      },
-      {
-        "ordinal": 3,
-        "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
-        "active_phase": "build_function",
-        "failure": "Workplane.sweep() got an unexpected keyword argument preserveOrientation",
-        "failure_operation": "sweep",
-        "failure_source_function": "_make_model",
-        "failure_source_line": 72,
-        "source_changed": true,
-        "error_changed": true,
-        "objective_execution_progress": true,
-        "objective_topology_progress": false,
-        "topology_reached": false
-      },
-      {
-        "ordinal": 4,
-        "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
-        "active_phase": "topology_analysis",
-        "failure": "required solid count 1; detected solid count 2",
-        "failure_class": "solid_count_mismatch",
-        "source_changed": true,
-        "error_changed": true,
-        "objective_execution_progress": true,
-        "objective_topology_progress": true,
-        "topology_reached": true
-      }
-    ],
-    "provider_operation": "two bounded L1 execution repairs; source hashes changed from the persisted threePointsArc failure to a sweep diagnostic and then to a topology result",
-    "offline_recheck": "the persisted corrected source was retried offline with zero provider calls; timeout changed to a deterministic sweep TypeError, then one bounded L1 provider repair produced source ce16 and an offline worker run reached topology",
-    "latest_durable_decision": "gemini_topology_repair; topology reached with 2 solids versus expected 1; no topology repair dispatched",
-    "frozen_geometry_evidence": {
-      "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
-      "active_phase": "topology_analysis",
-      "failure": "output shape is invalid",
-      "detected_solid_count": 1,
-      "expected_solid_count": 1,
-      "volume_mm3": 0.0000171814351049,
-      "bounding_box_mm": {"size_x": 10.0, "size_y": 10.0, "size_z": 6.0},
-      "artifacts": []
-    },
-    "boundary_result": "The historical artifact label is an application defect; worker evidence proves source/execution causality. The authoritative boundary progressed from build_function to topology only after bounded L1 repairs.",
-    "application_fix": "Persisted worker active phase, structured operation diagnostics, durable repair envelopes, and changed-error L1 routing now take precedence over inferred missing-export evidence.",
-    "execution_repair_policy": "bounded L1 only while source or error state changes; exact persisted source and contract required",
-    "artifact_regeneration": "not performed; no valid existing geometry",
-    "package_generation": "not performed",
-    "independent_review": "not run; no final package",
-    "provider_convergence": "not assigned; topology was reached but no bounded L2 topology repair was started"
-  },
-  "project_05_execution_recovery": {
-    "status": "blocked_at_build_function_after_bounded_l1",
-    "ownership": "build-function execution blocker",
-    "failure_class": "cadquery_api_error",
-    "first_unresolved_boundary": "build_function",
-    "worker_boundary_healthy": true,
-    "latest_source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
-    "latest_execution_diagnostics": {
-      "active_phase": "build_function",
-      "failure_operation": "chamfer",
-      "failure_exception_type": "StdFail_NotDone",
-      "failure_message": "BRep_API: command not done",
-      "failure_source_function": "_make_support",
-      "failure_source_line": 33,
-      "topology_reached": false
-    },
-    "attempts": [
-      {
-        "ordinal": 1,
-        "source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
-        "active_phase": "build_function",
-        "failure_operation": "chamfer",
-        "failure_exception_type": "StdFail_NotDone",
-        "normalized_failure": "cadquery_api_error",
-        "gemini_changed_implementation": false,
-        "objective_topology_progress": false,
-        "topology_reached": false
-      },
-      {
-        "ordinal": 2,
-        "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
-        "active_phase": "build_function",
-        "failure_operation": "chamfer",
-        "failure_exception_type": "StdFail_NotDone",
-        "failure_message": "BRep_API: command not done",
-        "normalized_failure": "cadquery_api_error",
-        "gemini_changed_implementation": true,
-        "objective_topology_progress": false,
-        "topology_reached": false
-      }
-    ],
-    "provider_operation": "one bounded L1 execution repair; source changed chamfer length but the failing operation and error remained",
-    "offline_diagnostics_refresh": "existing worker retry only; structured operation-level evidence persisted; no provider dispatch",
-    "durable_terminal_decision": "cadquery_api_error; same_error_state_repeated after one bounded L1 repair",
-    "provider_convergence": "not assigned",
-    "package_generation": "not performed",
-    "independent_review": "not run; no final package"
-  },
   "l2_topology_audit": {
-    "repair_level": "L2",
     "ceiling_before_and_after": 2,
     "ceiling_raise_justified": false,
-    "envelope_schema": "executable-cadquery-repair-envelope-v1",
-    "historical_full_envelope_persisted_in_compact_project_records": false,
     "current_builder_proves_fields": [
       "previous_complete_source",
       "previous_source_hash",
@@ -191,97 +44,704 @@
       "requested_delta"
     ],
     "durable_envelope_recording": "failed provider attempts now retain repair_envelope beside provider_attempt and repair_history",
+    "envelope_schema": "executable-cadquery-repair-envelope-v1",
+    "envelope_verification": {
+      "application_owner": "repair envelope builder and existing provider transport",
+      "complete_design_contract": true,
+      "complete_replacement_instruction": true,
+      "construction_strategy_prescribed": false,
+      "expected_output_policy": true,
+      "precise_topology_measurements": true,
+      "previous_complete_source": true,
+      "previous_topology_attempt_history": true
+    },
+    "historical_full_envelope_persisted_in_compact_project_records": false,
     "offline_reconstructed_prompt_verification": {
       "project-02": {
-        "complete_source_bytes": 4921,
-        "attempt_history_entries": 2,
         "all_required_fields_present": true,
+        "attempt_history_entries": 2,
+        "complete_source_bytes": 4921,
         "prompt_contains_complete_source_contract_metrics_history_and_replacement_instruction": true
       },
       "project-04": {
-        "complete_source_bytes": 5292,
-        "attempt_history_entries": 2,
         "all_required_fields_present": true,
+        "attempt_history_entries": 2,
+        "complete_source_bytes": 5292,
         "prompt_contains_complete_source_contract_metrics_history_and_replacement_instruction": true
       }
-    },
-    "prompt_changed": false,
-    "envelope_verification": {
-      "previous_complete_source": true,
-      "complete_design_contract": true,
-      "expected_output_policy": true,
-      "precise_topology_measurements": true,
-      "previous_topology_attempt_history": true,
-      "complete_replacement_instruction": true,
-      "construction_strategy_prescribed": false,
-      "application_owner": "repair envelope builder and existing provider transport"
     },
     "projects": {
       "project-02": {
-        "ownership": "solid-count/topology blocker",
+        "attempts": [
+          {
+            "normalized_failure_in_project_record": "solid_count_mismatch",
+            "objective_topology_progress": false,
+            "ordinal": 1,
+            "source_changed_from_prior_attempt": true,
+            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+            "topology": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 2.5,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 5,
+              "expected_solid_count": 1,
+              "shell_count": 5,
+              "valid": false,
+              "volume_mm3": 0.0
+            }
+          },
+          {
+            "normalized_failure_in_project_record": "solid_count_mismatch",
+            "objective_topology_progress": false,
+            "ordinal": 2,
+            "source_changed_from_prior_attempt": true,
+            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+            "topology": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 35.0,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 14,
+              "expected_solid_count": 1,
+              "shell_count": 39,
+              "valid": false,
+              "volume_mm3": -3652.1014597981
+            }
+          }
+        ],
         "failure_class": "solid_count_mismatch",
         "first_unresolved_boundary": "topology",
-        "worker_boundary_healthy": true,
-        "attempts": [
-          {
-            "ordinal": 1,
-            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
-            "normalized_failure_in_project_record": "solid_count_mismatch",
-            "topology": {"valid": false, "detected_solid_count": 5, "expected_solid_count": 1, "shell_count": 5, "volume_mm3": 0.0, "bounding_box_mm": {"size_x": 82.4621125124, "size_y": 2.5, "size_z": 82.4621125124}},
-            "source_changed_from_prior_attempt": true,
-            "objective_topology_progress": false
-          },
-          {
-            "ordinal": 2,
-            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
-            "normalized_failure_in_project_record": "solid_count_mismatch",
-            "topology": {"valid": false, "detected_solid_count": 14, "expected_solid_count": 1, "shell_count": 39, "volume_mm3": -3652.1014597981, "bounding_box_mm": {"size_x": 82.4621125124, "size_y": 35.0, "size_z": 82.4621125124}},
-            "source_changed_from_prior_attempt": true,
-            "objective_topology_progress": false
-          }
-        ],
+        "ownership": "solid-count/topology blocker",
+        "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary",
         "terminal_reason": "repair_ceiling_exhausted_without_objective_progress",
-        "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary"
+        "worker_boundary_healthy": true
       },
       "project-04": {
-        "ownership": "invalid-topology blocker",
-        "failure_class": "invalid_shape",
-        "first_unresolved_boundary": "topology",
-        "worker_boundary_healthy": true,
         "attempts": [
           {
-            "ordinal": 1,
-            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
             "normalized_failure_in_project_record": "invalid_shape",
-            "topology": {
-              "enclosure_base": {"valid": true, "detected_solid_count": 1, "expected_solid_count": 1, "volume_mm3": 36457.05115136924, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 21.9}},
-              "enclosure_lid": {"valid": false, "status": "invalid_shape", "detected_solid_count": 2, "expected_solid_count": 1, "shell_count": 2, "volume_mm3": 24067.2, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 13.6}}
-            },
+            "objective_topology_progress": false,
+            "ordinal": 1,
             "source_changed_from_prior_attempt": true,
-            "objective_topology_progress": false
+            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+            "topology": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 21.9
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 36457.05115136924
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 24067.2
+              }
+            }
           },
           {
-            "ordinal": 2,
-            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
             "normalized_failure_in_project_record": "invalid_shape",
-            "topology": {
-              "enclosure_base": {"valid": true, "detected_solid_count": 1, "expected_solid_count": 1, "volume_mm3": 30275.32548525156, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 20.4}},
-              "enclosure_lid": {"valid": false, "status": "invalid_shape", "detected_solid_count": 2, "expected_solid_count": 1, "shell_count": 2, "volume_mm3": 23767.2, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 15.6}}
-            },
+            "objective_topology_progress": false,
+            "ordinal": 2,
             "source_changed_from_prior_attempt": true,
-            "objective_topology_progress": false
+            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+            "topology": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 30275.32548525156
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 15.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 23767.2
+              }
+            }
           }
         ],
+        "failure_class": "invalid_shape",
+        "first_unresolved_boundary": "topology",
+        "ownership": "invalid-topology blocker",
+        "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary; valid_base_preserved_in_repair_envelope",
         "terminal_reason": "repair_ceiling_exhausted_without_objective_progress",
-        "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary; valid_base_preserved_in_repair_envelope"
+        "worker_boundary_healthy": true
       }
+    },
+    "prompt_changed": false,
+    "repair_level": "L2"
+  },
+  "phase2_started": false,
+  "phase_0_authoritative_state_matrix": {
+    "p5_touched": false,
+    "phase_1_started": false,
+    "projects": {
+      "project-01": {
+        "candidate_state": "candidate_fully_verified",
+        "downstream": {
+          "artifacts": "passed",
+          "blind_independent_cad_qa": "PASS",
+          "package": "passed",
+          "render": "passed",
+          "semantic_measurement": "passed",
+          "semantic_policy": "passed"
+        },
+        "downstream_boundary": "complete",
+        "evidence": "preserved prior independent PASS; no new work in this reconciliation",
+        "provider_calls_made": 0,
+        "status": "candidate_fully_verified",
+        "topology": "valid"
+      },
+      "project-02": {
+        "authoritative_identity": {
+          "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+          "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "project_id": "project-02",
+          "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+        },
+        "candidate_state": "candidate_blocked",
+        "downstream": {
+          "artifacts": "passed",
+          "blind_independent_cad_qa": "FAIL",
+          "package": "passed",
+          "render": "passed",
+          "semantic_measurement": "failed",
+          "semantic_policy": "failed"
+        },
+        "provider_calls_made": 0,
+        "semantic_repair_gate": "L3_repair_required",
+        "solid_counts": {
+          "shaft_coupling": {
+            "detected": 1,
+            "expected": 1
+          }
+        },
+        "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+        "stale_replays_rejected": [
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 1,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a != ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f)",
+              "the historical source/result artifact is superseded by revision/job 8830450d-882c-4fbd-a6ba-768579d0e9b8"
+            ],
+            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+              "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+              "project_id": "project-02",
+              "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+              "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+            }
+          },
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 2,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf != ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f)",
+              "the historical source/result artifact is superseded by revision/job 8830450d-882c-4fbd-a6ba-768579d0e9b8"
+            ],
+            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+              "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+              "project_id": "project-02",
+              "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+              "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+            }
+          }
+        ],
+        "topology": "valid",
+        "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/worker/result.json"
+      },
+      "project-03": {
+        "authoritative_identity": {
+          "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+          "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+          "project_id": "project-03",
+          "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+          "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+        },
+        "candidate_state": "candidate_blocked",
+        "downstream_boundary": "topology",
+        "provider_attempts": 1,
+        "provider_calls_made": 0,
+        "provider_responses": 0,
+        "provider_transport_call_allowed": false,
+        "repair_gate": "one_l2_repair_blocked_before_response",
+        "solid_counts": {
+          "curved_cable_guide": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "outcome": "invalid",
+            "overall_shape_valid": false,
+            "pair_count": 0,
+            "solid_count": 1,
+            "valid": false
+          }
+        },
+        "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+        "stale_replays_rejected": [
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 1,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+              "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+            ],
+            "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+              "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "project_id": "project-03",
+              "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+            }
+          },
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 2,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+              "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+            ],
+            "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+              "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "project_id": "project-03",
+              "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+            }
+          },
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 3,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+              "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+            ],
+            "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+              "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "project_id": "project-03",
+              "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+            }
+          },
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 4,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45 != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+              "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+            ],
+            "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+              "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "project_id": "project-03",
+              "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+              "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+            }
+          }
+        ],
+        "topology": "invalid",
+        "transport_forensics": {
+          "additional_p3_provider_call_allowed": false,
+          "alternate_models_probed": false,
+          "comparison": {
+            "failed_path_is_direct_generative_language_rest": false,
+            "failed_path_uses_x_goog_api_key": false,
+            "known_working_path_is_direct_generative_language_rest": true,
+            "known_working_path_uses_x_goog_api_key": true,
+            "same_api_key_transport_proven": false
+          },
+          "credentials_changed": false,
+          "failed_request": {
+            "api_key_header_used": false,
+            "auth_mode": "gemini_profile",
+            "evidence": [
+              "GeminiCliProvider.build_command constructs a gemini subprocess command.",
+              "The persisted failure is IneligibleTierError from Gemini Code Assist authentication."
+            ],
+            "provider": "gemini_cli",
+            "subprocess_boundary": true,
+            "transport": "gemini_cli_oauth_code_assist"
+          },
+          "failed_request_implementation": {
+            "auth_observation": "persisted provider_settings auth_mode=gemini_profile and IneligibleTierError from Code Assist authentication",
+            "command_builder": "GeminiCliProvider.build_command -> gemini -p <prompt> --output-format text --skip-trust --model <model> --policy <policy>",
+            "invocation_script": "backend/scripts/run_authorized_executable_cadquery_l2.py",
+            "provider_class": "app.services.ai.gemini_cli.GeminiCliProvider",
+            "source_sha256": "42ef763f68fd230486f2fc91008bf66062a5ecdf17474a015782e567b38fc592"
+          },
+          "failure": {
+            "message_class": "IneligibleTierError",
+            "type": "RuntimeError"
+          },
+          "keys_rotated": false,
+          "known_working_implementation": {
+            "auth_header": "x-goog-api-key",
+            "endpoint": "/models/{model}:generateContent",
+            "http_method": "POST",
+            "persisted_provider_transport": "gemini_api",
+            "persisted_summary_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-recovery-summary.json",
+            "provider_class": "app.services.ai.gemini_api.GeminiApiProvider",
+            "source_sha256": {
+              "gemini_api.py": "9b6ef990a9b699510655b57292cb83293e9251d9b85da9dea4f2331b2af039be",
+              "validated_transport.py": "b22554f6c9104e7301eeb78e6ff86529c27e88a702721a4e323f789e23e69e65"
+            },
+            "transport_class": "app.services.ai.validated_transport.ValidatedGeminiTransport"
+          },
+          "known_working_request": {
+            "api_key_header_used": true,
+            "auth_header": "x-goog-api-key",
+            "endpoint": "/models/{model}:generateContent",
+            "evidence": [
+              "ValidatedGeminiTransport posts directly to the Generative Language API.",
+              "The request carries the credential in x-goog-api-key."
+            ],
+            "provider": "gemini_api",
+            "subprocess_boundary": false,
+            "transport": "gemini_api_rest"
+          },
+          "next_action": "hold_p3_provider_call_until_same_api_key_transport_is_proven",
+          "provider_call_made_by_forensics": 0,
+          "request_record_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json",
+          "same_api_key_transport_proven": false,
+          "schema_version": "executable-cadquery-transport-forensics-v1"
+        },
+        "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/worker/result.json"
+      },
+      "project-04": {
+        "authoritative_identity": {
+          "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+          "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "project_id": "project-04",
+          "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+        },
+        "candidate_state": "candidate_blocked",
+        "downstream": {
+          "artifacts": "passed",
+          "blind_independent_cad_qa": "FAIL",
+          "package": "passed",
+          "render": "passed",
+          "semantic_measurement": "failed",
+          "semantic_policy": "failed"
+        },
+        "provider_calls_made": 0,
+        "semantic_repair_gate": "L3_repair_required",
+        "solid_counts": {
+          "enclosure_base": {
+            "detected": 1,
+            "expected": 1
+          },
+          "enclosure_lid": {
+            "detected": 1,
+            "expected": 1
+          }
+        },
+        "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+        "stale_replays_rejected": [
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 1,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20 != b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af)",
+              "the historical source/result artifact is superseded by revision/job 5bfd8004-9bb3-4527-a1a9-630e0a00d6af"
+            ],
+            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+              "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+              "project_id": "project-04",
+              "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+              "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+            }
+          },
+          {
+            "kind": "historical_repair_replay",
+            "ordinal": 2,
+            "reasons": [
+              "historical replay has no persisted project/workflow/revision/job identity",
+              "historical replay is not the selected latest authoritative worker result",
+              "source hash differs from authoritative frozen source (db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161 != b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af)",
+              "the historical source/result artifact is superseded by revision/job 5bfd8004-9bb3-4527-a1a9-630e0a00d6af"
+            ],
+            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+              "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+              "project_id": "project-04",
+              "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+              "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+            }
+          },
+          {
+            "job_id": "ae32804b-082c-4e73-91d0-219edb79a0b5",
+            "kind": "superseded_persisted_worker_result",
+            "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-01-result.json",
+            "reasons": [
+              "worker result job identity does not match the latest frozen revision/job",
+              "worker result source hash does not match the latest frozen source",
+              "worker result is retained only as historical evidence"
+            ],
+            "source_hashes": [
+              "82223922bbd6f10ef47e04b2d0a125fb0a1be48d94eb59eef3546d7c0c9d7900",
+              "82223922bbd6f10ef47e04b2d0a125fb0a1be48d94eb59eef3546d7c0c9d7900"
+            ],
+            "stale": true,
+            "superseded_by": {
+              "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+              "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+              "project_id": "project-04",
+              "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+              "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+            }
+          }
+        ],
+        "topology": "valid",
+        "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-02-result.json"
+      },
+      "project-05": {
+        "downstream": {
+          "artifacts": "not_reached",
+          "blind_independent_cad_qa": "not_reached",
+          "package": "not_reached",
+          "render": "not_reached",
+          "semantic_measurement": "not_reached",
+          "semantic_policy": "not_reached"
+        },
+        "downstream_boundary": "build_function",
+        "evidence": "preserved current earliest-boundary state; no new work in this reconciliation",
+        "provider_calls_made": 0,
+        "status": "candidate_blocked",
+        "topology": "not_reached",
+        "untouched": true
+      }
+    },
+    "provider_calls_made_by_reconciliation": 0,
+    "schema_version": "executable-cadquery-phase0-authoritative-matrix-v1",
+    "source_of_truth": "latest authoritative persisted worker result, topology-evidence-v2, and fresh offline downstream checks"
+  },
+  "preserved_findings": {
+    "contract_manifest_injection": "qualification-harness mechanism only; not the intended product contract source",
+    "hard_coded_contract_fallback_discovery": {
+      "evidence": "docs/executable-cadquery-recovery-cycle-01.json",
+      "severity": "major_application_defect",
+      "status": "preserved"
+    },
+    "original_wrong_package_review": {
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/project-01-independent-review.json",
+      "status": "blind_FAIL_preserved"
+    },
+    "project_01_second_review": {
+      "blind": false,
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-01/neutral-measurement-report.json",
+      "independent_status": "PASS via deterministic neutral B-Rep measurement",
+      "status": "guided_adjudication"
     }
   },
-  "final_matrix": {
-    "project-01": "independent PASS by deterministic neutral B-Rep; guided adjudication retained as non-blind",
-    "project-02": "blocked: solid-count/topology; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
-    "project-03": "blocked: bounded L1 progressed from arc/threePointsArc execution failures through sweep TypeError to topology; latest neutral evidence is 2 solids versus expected 1; no package review; provider convergence not assigned",
-    "project-04": "blocked: lid invalid topology while base remains valid; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
-    "project-05": "blocked: build_function chamfer StdFail_NotDone / BRep_API; one bounded L1 changed source but not error; topology not reached; provider convergence not assigned"
-  }
+  "project_03_offline_recovery": {
+    "application_fix": "Persisted worker active phase, structured operation diagnostics, durable repair envelopes, and changed-error L1 routing now take precedence over inferred missing-export evidence.",
+    "artifact_regeneration": "not performed; no valid existing geometry",
+    "attempts": [
+      {
+        "active_phase": "build_function",
+        "failure": "AttributeError: Workplane has no attribute arc",
+        "objective_progress": false,
+        "ordinal": 1,
+        "source_changed": false,
+        "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d"
+      },
+      {
+        "active_phase": "build_function",
+        "error_changed": true,
+        "failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
+        "failure_source_function": "_make_model",
+        "failure_source_line": 65,
+        "objective_execution_progress": true,
+        "objective_topology_progress": false,
+        "ordinal": 2,
+        "source_changed": true,
+        "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+        "topology_reached": false
+      },
+      {
+        "active_phase": "build_function",
+        "error_changed": true,
+        "failure": "Workplane.sweep() got an unexpected keyword argument preserveOrientation",
+        "failure_operation": "sweep",
+        "failure_source_function": "_make_model",
+        "failure_source_line": 72,
+        "objective_execution_progress": true,
+        "objective_topology_progress": false,
+        "ordinal": 3,
+        "source_changed": true,
+        "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+        "topology_reached": false
+      },
+      {
+        "active_phase": "topology_analysis",
+        "error_changed": true,
+        "failure": "required solid count 1; detected solid count 2",
+        "failure_class": "solid_count_mismatch",
+        "objective_execution_progress": true,
+        "objective_topology_progress": true,
+        "ordinal": 4,
+        "source_changed": true,
+        "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+        "topology_reached": true
+      }
+    ],
+    "boundary_result": "The historical artifact label is an application defect; worker evidence proves source/execution causality. The authoritative boundary progressed from build_function to topology only after bounded L1 repairs.",
+    "execution_repair_policy": "bounded L1 only while source or error state changes; exact persisted source and contract required",
+    "frozen_geometry_evidence": {
+      "active_phase": "topology_analysis",
+      "artifacts": [],
+      "bounding_box_mm": {
+        "size_x": 10.0,
+        "size_y": 10.0,
+        "size_z": 6.0
+      },
+      "detected_solid_count": 1,
+      "expected_solid_count": 1,
+      "failure": "output shape is invalid",
+      "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+      "volume_mm3": 1.71814351049e-05
+    },
+    "historical_application_classification": {
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-03/project-03-result.json",
+      "failure_class": "stl_export_failure",
+      "observed_boundary": "artifact"
+    },
+    "independent_review": "not run; no final package",
+    "latest_durable_decision": "gemini_topology_repair; topology reached with 2 solids versus expected 1; no topology repair dispatched",
+    "latest_worker_evidence": {
+      "active_phase": "topology_analysis",
+      "artifacts": [],
+      "bounding_box_mm": {
+        "size_x": 58.0,
+        "size_y": 10.0,
+        "size_z": 9.0
+      },
+      "detected_solid_count": 2,
+      "expected_solid_count": 1,
+      "failure": "required solid count 1; detected solid count 2",
+      "failure_class": "solid_count_mismatch",
+      "output_id": "curved_cable_guide",
+      "output_status": "invalid_shape",
+      "shell_count": 2,
+      "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+      "volume_mm3": 790.3540138875861
+    },
+    "offline_recheck": "the persisted corrected source was retried offline with zero provider calls; timeout changed to a deterministic sweep TypeError, then one bounded L1 provider repair produced source ce16 and an offline worker run reached topology",
+    "package_generation": "not performed",
+    "provider_convergence": "not assigned; topology was reached but no bounded L2 topology repair was started",
+    "provider_operation": "two bounded L1 execution repairs; source hashes changed from the persisted threePointsArc failure to a sweep diagnostic and then to a topology result",
+    "status": "blocked_at_topology_after_bounded_l1_progression"
+  },
+  "project_05_execution_recovery": {
+    "attempts": [
+      {
+        "active_phase": "build_function",
+        "failure_exception_type": "StdFail_NotDone",
+        "failure_operation": "chamfer",
+        "gemini_changed_implementation": false,
+        "normalized_failure": "cadquery_api_error",
+        "objective_topology_progress": false,
+        "ordinal": 1,
+        "source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
+        "topology_reached": false
+      },
+      {
+        "active_phase": "build_function",
+        "failure_exception_type": "StdFail_NotDone",
+        "failure_message": "BRep_API: command not done",
+        "failure_operation": "chamfer",
+        "gemini_changed_implementation": true,
+        "normalized_failure": "cadquery_api_error",
+        "objective_topology_progress": false,
+        "ordinal": 2,
+        "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+        "topology_reached": false
+      }
+    ],
+    "durable_terminal_decision": "cadquery_api_error; same_error_state_repeated after one bounded L1 repair",
+    "failure_class": "cadquery_api_error",
+    "first_unresolved_boundary": "build_function",
+    "independent_review": "not run; no final package",
+    "latest_execution_diagnostics": {
+      "active_phase": "build_function",
+      "failure_exception_type": "StdFail_NotDone",
+      "failure_message": "BRep_API: command not done",
+      "failure_operation": "chamfer",
+      "failure_source_function": "_make_support",
+      "failure_source_line": 33,
+      "topology_reached": false
+    },
+    "latest_source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+    "offline_diagnostics_refresh": "existing worker retry only; structured operation-level evidence persisted; no provider dispatch",
+    "ownership": "build-function execution blocker",
+    "package_generation": "not performed",
+    "provider_convergence": "not assigned",
+    "provider_operation": "one bounded L1 execution repair; source changed chamfer length but the failing operation and error remained",
+    "status": "blocked_at_build_function_after_bounded_l1",
+    "worker_boundary_healthy": true
+  },
+  "schema_version": "executable-cadquery-offline-recovery-audit-v1"
 }

@@ -1,0 +1,378 @@
+{
+  "p5_touched": false,
+  "phase_1_started": false,
+  "projects": {
+    "project-01": {
+      "candidate_state": "candidate_fully_verified",
+      "downstream": {
+        "artifacts": "passed",
+        "blind_independent_cad_qa": "PASS",
+        "package": "passed",
+        "render": "passed",
+        "semantic_measurement": "passed",
+        "semantic_policy": "passed"
+      },
+      "downstream_boundary": "complete",
+      "evidence": "preserved prior independent PASS; no new work in this reconciliation",
+      "provider_calls_made": 0,
+      "status": "candidate_fully_verified",
+      "topology": "valid"
+    },
+    "project-02": {
+      "authoritative_identity": {
+        "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+        "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+        "project_id": "project-02",
+        "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+        "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+      },
+      "candidate_state": "candidate_blocked",
+      "downstream": {
+        "artifacts": "passed",
+        "blind_independent_cad_qa": "FAIL",
+        "package": "passed",
+        "render": "passed",
+        "semantic_measurement": "failed",
+        "semantic_policy": "failed"
+      },
+      "provider_calls_made": 0,
+      "semantic_repair_gate": "L3_repair_required",
+      "solid_counts": {
+        "shaft_coupling": {
+          "detected": 1,
+          "expected": 1
+        }
+      },
+      "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+      "stale_replays_rejected": [
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 1,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a != ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f)",
+            "the historical source/result artifact is superseded by revision/job 8830450d-882c-4fbd-a6ba-768579d0e9b8"
+          ],
+          "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+            "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "project_id": "project-02",
+            "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 2,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf != ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f)",
+            "the historical source/result artifact is superseded by revision/job 8830450d-882c-4fbd-a6ba-768579d0e9b8"
+          ],
+          "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+            "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "project_id": "project-02",
+            "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+          }
+        }
+      ],
+      "topology": "valid",
+      "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/worker/result.json"
+    },
+    "project-03": {
+      "authoritative_identity": {
+        "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+        "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+        "project_id": "project-03",
+        "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+        "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+      },
+      "candidate_state": "candidate_blocked",
+      "downstream_boundary": "topology",
+      "provider_attempts": 1,
+      "provider_calls_made": 0,
+      "provider_responses": 0,
+      "provider_transport_call_allowed": false,
+      "repair_gate": "one_l2_repair_blocked_before_response",
+      "solid_counts": {
+        "curved_cable_guide": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "outcome": "invalid",
+          "overall_shape_valid": false,
+          "pair_count": 0,
+          "solid_count": 1,
+          "valid": false
+        }
+      },
+      "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+      "stale_replays_rejected": [
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 1,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 2,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 3,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 4,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45 != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        }
+      ],
+      "topology": "invalid",
+      "transport_forensics": {
+        "additional_p3_provider_call_allowed": false,
+        "alternate_models_probed": false,
+        "comparison": {
+          "failed_path_is_direct_generative_language_rest": false,
+          "failed_path_uses_x_goog_api_key": false,
+          "known_working_path_is_direct_generative_language_rest": true,
+          "known_working_path_uses_x_goog_api_key": true,
+          "same_api_key_transport_proven": false
+        },
+        "credentials_changed": false,
+        "failed_request": {
+          "api_key_header_used": false,
+          "auth_mode": "gemini_profile",
+          "evidence": [
+            "GeminiCliProvider.build_command constructs a gemini subprocess command.",
+            "The persisted failure is IneligibleTierError from Gemini Code Assist authentication."
+          ],
+          "provider": "gemini_cli",
+          "subprocess_boundary": true,
+          "transport": "gemini_cli_oauth_code_assist"
+        },
+        "failed_request_implementation": {
+          "auth_observation": "persisted provider_settings auth_mode=gemini_profile and IneligibleTierError from Code Assist authentication",
+          "command_builder": "GeminiCliProvider.build_command -> gemini -p <prompt> --output-format text --skip-trust --model <model> --policy <policy>",
+          "invocation_script": "backend/scripts/run_authorized_executable_cadquery_l2.py",
+          "provider_class": "app.services.ai.gemini_cli.GeminiCliProvider",
+          "source_sha256": "42ef763f68fd230486f2fc91008bf66062a5ecdf17474a015782e567b38fc592"
+        },
+        "failure": {
+          "message_class": "IneligibleTierError",
+          "type": "RuntimeError"
+        },
+        "keys_rotated": false,
+        "known_working_implementation": {
+          "auth_header": "x-goog-api-key",
+          "endpoint": "/models/{model}:generateContent",
+          "http_method": "POST",
+          "persisted_provider_transport": "gemini_api",
+          "persisted_summary_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-recovery-summary.json",
+          "provider_class": "app.services.ai.gemini_api.GeminiApiProvider",
+          "source_sha256": {
+            "gemini_api.py": "9b6ef990a9b699510655b57292cb83293e9251d9b85da9dea4f2331b2af039be",
+            "validated_transport.py": "b22554f6c9104e7301eeb78e6ff86529c27e88a702721a4e323f789e23e69e65"
+          },
+          "transport_class": "app.services.ai.validated_transport.ValidatedGeminiTransport"
+        },
+        "known_working_request": {
+          "api_key_header_used": true,
+          "auth_header": "x-goog-api-key",
+          "endpoint": "/models/{model}:generateContent",
+          "evidence": [
+            "ValidatedGeminiTransport posts directly to the Generative Language API.",
+            "The request carries the credential in x-goog-api-key."
+          ],
+          "provider": "gemini_api",
+          "subprocess_boundary": false,
+          "transport": "gemini_api_rest"
+        },
+        "next_action": "hold_p3_provider_call_until_same_api_key_transport_is_proven",
+        "provider_call_made_by_forensics": 0,
+        "request_record_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json",
+        "same_api_key_transport_proven": false,
+        "schema_version": "executable-cadquery-transport-forensics-v1"
+      },
+      "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/worker/result.json"
+    },
+    "project-04": {
+      "authoritative_identity": {
+        "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+        "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+        "project_id": "project-04",
+        "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+        "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+      },
+      "candidate_state": "candidate_blocked",
+      "downstream": {
+        "artifacts": "passed",
+        "blind_independent_cad_qa": "FAIL",
+        "package": "passed",
+        "render": "passed",
+        "semantic_measurement": "failed",
+        "semantic_policy": "failed"
+      },
+      "provider_calls_made": 0,
+      "semantic_repair_gate": "L3_repair_required",
+      "solid_counts": {
+        "enclosure_base": {
+          "detected": 1,
+          "expected": 1
+        },
+        "enclosure_lid": {
+          "detected": 1,
+          "expected": 1
+        }
+      },
+      "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+      "stale_replays_rejected": [
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 1,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20 != b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af)",
+            "the historical source/result artifact is superseded by revision/job 5bfd8004-9bb3-4527-a1a9-630e0a00d6af"
+          ],
+          "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+            "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "project_id": "project-04",
+            "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 2,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161 != b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af)",
+            "the historical source/result artifact is superseded by revision/job 5bfd8004-9bb3-4527-a1a9-630e0a00d6af"
+          ],
+          "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+            "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "project_id": "project-04",
+            "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+          }
+        },
+        {
+          "job_id": "ae32804b-082c-4e73-91d0-219edb79a0b5",
+          "kind": "superseded_persisted_worker_result",
+          "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-01-result.json",
+          "reasons": [
+            "worker result job identity does not match the latest frozen revision/job",
+            "worker result source hash does not match the latest frozen source",
+            "worker result is retained only as historical evidence"
+          ],
+          "source_hashes": [
+            "82223922bbd6f10ef47e04b2d0a125fb0a1be48d94eb59eef3546d7c0c9d7900",
+            "82223922bbd6f10ef47e04b2d0a125fb0a1be48d94eb59eef3546d7c0c9d7900"
+          ],
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+            "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "project_id": "project-04",
+            "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+          }
+        }
+      ],
+      "topology": "valid",
+      "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-02-result.json"
+    },
+    "project-05": {
+      "downstream": {
+        "artifacts": "not_reached",
+        "blind_independent_cad_qa": "not_reached",
+        "package": "not_reached",
+        "render": "not_reached",
+        "semantic_measurement": "not_reached",
+        "semantic_policy": "not_reached"
+      },
+      "downstream_boundary": "build_function",
+      "evidence": "preserved current earliest-boundary state; no new work in this reconciliation",
+      "provider_calls_made": 0,
+      "status": "candidate_blocked",
+      "topology": "not_reached",
+      "untouched": true
+    }
+  },
+  "provider_calls_made_by_reconciliation": 0,
+  "schema_version": "executable-cadquery-phase0-authoritative-matrix-v1",
+  "source_of_truth": "latest authoritative persisted worker result, topology-evidence-v2, and fresh offline downstream checks"
+}
