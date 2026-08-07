@@ -368,6 +368,48 @@ def test_repair_envelope_identifies_execution_failure_and_preserved_outputs() ->
     )
 
 
+def test_l2_envelope_records_standardized_prior_attempt_metrics() -> None:
+    history = [
+        {
+            "repair_level": "L2",
+            "attempt_number": 1,
+            "source_hash": "source-1",
+            "result_hash": "result-1",
+            "topology_result": {
+                "schema_version": "topology-evidence-v2",
+                "valid": False,
+                "overall_shape_valid": True,
+                "outcome": "solid_count_mismatch",
+                "expected_solid_count": 1,
+                "detected_solid_count": 2,
+                "solids": [{"solid_id": "solid-0", "volume_mm3": 10}],
+                "solid_pairs": [{"intersects": True, "overlapping_volume_mm3": 5}],
+            },
+        },
+        {
+            "repair_level": "L1",
+            "attempt_number": 2,
+            "source_hash": "source-2",
+            "topology_result": {"valid": False, "detected_solid_count": 2},
+        },
+    ]
+
+    envelope = build_executable_cadquery_repair_envelope(
+        **{**BASE_INPUT, "repair_history": history},
+        repair_level="L2",
+    )
+
+    assert envelope["prior_l2_attempt_metrics"] == [
+        {
+            "attempt_number": 1,
+            "repair_level": "L2",
+            "source_hash": "source-1",
+            "result_hash": "result-1",
+            "topology": history[0]["topology_result"],
+        }
+    ]
+
+
 def test_protected_fact_regression_is_immediate_stop() -> None:
     decision = decide_executable_repair(
         repair_level="L3",

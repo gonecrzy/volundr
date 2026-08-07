@@ -416,6 +416,12 @@ def build(params):
     assert result.outputs[0].topology_metadata["outcome"] == "solid_count_mismatch"
     assert result.outputs[0].topology_metadata["detected_solid_count"] == 2
     assert result.outputs[0].topology_metadata["expected_solid_count"] == 1
+    assert result.outputs[0].topology_metadata["schema_version"] == "topology-evidence-v2"
+    assert result.outputs[0].topology_metadata["overall_shape_valid"] is True
+    assert len(result.outputs[0].topology_metadata["solids"]) == 2
+    assert len(result.outputs[0].topology_metadata["solid_pairs"]) == 1
+    assert result.outputs[0].topology_metadata["solid_pairs"][0]["intersects"] is False
+    assert result.outputs[0].topology_metadata["solid_pairs"][0]["touches"] is False
     assert result.outputs[0].topology_metadata_path is not None
 
 
@@ -737,6 +743,12 @@ def build(params):
     assert diagnostics["failure_operation"] == "chamfer"
     assert diagnostics["failure_exception_type"] == "StdFail_NotDone"
     assert diagnostics["failure_message"] == "BRep_API: command not done"
+    assert diagnostics["normalized_exception"] == "StdFail_NotDone / BRep_API: command not done"
+    assert diagnostics["failure_output_id"] == "support"
+    assert diagnostics["failure_source_hash"] == result.source_hash
+    assert diagnostics["cadquery_version"] == "2.8.0"
+    assert diagnostics["cadquery_worker_version"] == "cadquery-cli-runner-v1"
+    assert diagnostics["failure_operation_before"]["valid"] is True
     assert diagnostics["failure_source_function"] == "build"
     assert isinstance(diagnostics["failure_source_line"], int)
     rendered = json.dumps(diagnostics, sort_keys=True)

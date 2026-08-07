@@ -1,0 +1,3762 @@
+{
+  "authoritative_state_matrix": [
+    {
+      "identity": {
+        "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+        "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+        "project_id": "project-02",
+        "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+        "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+      },
+      "post_evidence_action": null,
+      "project_id": "project-02",
+      "repair_gate": {
+        "action": "no_provider_call",
+        "authorized": false,
+        "priority": null,
+        "project_id": "project-02"
+      },
+      "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+      "stale_replay_count": 2,
+      "v2_outputs": {
+        "shaft_coupling": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "outcome": "valid",
+          "overall_shape_valid": true,
+          "pair_count": 0,
+          "solid_count": 1,
+          "valid": true
+        }
+      },
+      "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/worker/result.json"
+    },
+    {
+      "identity": {
+        "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+        "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+        "project_id": "project-03",
+        "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+        "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+      },
+      "post_evidence_action": {
+        "error_message": "Warning: Basic terminal detected (TERM=dumb). Visual rendering will be limited. For the best experience, use a terminal emulator with truecolor support.\nWarning: 256-color support not detected. Using a terminal with at least 256-color support is recommended for a better visual experience.\nError authenticating: IneligibleTierError: This client is no longer supported for Gemini Code Assist for individuals. To continue using Gemini, please migrate to the Antigravity suite of products: https://antigravity.google\n    at throwIneligibleOrProjectIdError (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309820:11)\n    at _doSetupUser (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309809:5)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {\n  ineligibleTiers: [\n    {\n      reasonCode: 'UNSUPPORTED_CLIENT',\n      reasonMessage: 'This client is no longer supported for Gemini Code Assist for individuals. To continue using Gemini, please migrate to the Antigravity suite of products: https://antigravity.google',\n      tierId: 'free-tier',\n      tierName: 'Gemini Code Assist for individuals'\n    }\n  ]\n}\n[ExtensionManager] Error loading agent from caveman: Failed to load agent from /root/.gemini/extensions/caveman/agents/cavecrew-builder.md: Validation failed: Agent Definition:\n(Local Agent) tools: Expected array, received string\n[ExtensionManager] Error loading agent from caveman: Failed to load agent from /root/.gemini/extensions/caveman/agents/cavecrew-investigator.md: Validation failed: Agent Definition:\n(Local Agent) tools: Expected array, received string\n[ExtensionManager] Error loading agent from caveman: Failed to load agent from /root/.gemini/extensions/caveman/agents/cavecrew-reviewer.md: Validation failed: Agent Definition:\n(Local Agent) tools: Expected array, received string\nAn unexpected critical error occurred:IneligibleTierError: This client is no longer supported for Gemini Code Assist for individuals. To continue using Gemini, please migrate to the Antigravity suite of products: https://antigravity.google\n    at throwIneligibleOrProjectIdError (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309820:11)\n    at _doSetupUser (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309809:5)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+        "error_type": "RuntimeError",
+        "project_id": "project-03",
+        "provider_call_attempted": true,
+        "provider_calls_before_action": 0,
+        "provider_calls_made": 1,
+        "record_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json",
+        "status": "blocked_before_response",
+        "worker_success": null
+      },
+      "project_id": "project-03",
+      "repair_gate": {
+        "action": "one_l2_repair",
+        "authorized": true,
+        "priority": 1,
+        "project_id": "project-03"
+      },
+      "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+      "stale_replay_count": 4,
+      "v2_outputs": {
+        "curved_cable_guide": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "outcome": "invalid",
+          "overall_shape_valid": false,
+          "pair_count": 0,
+          "solid_count": 1,
+          "valid": false
+        }
+      },
+      "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/worker/result.json"
+    },
+    {
+      "identity": {
+        "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+        "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+        "project_id": "project-04",
+        "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+        "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+      },
+      "post_evidence_action": null,
+      "project_id": "project-04",
+      "repair_gate": {
+        "action": "no_provider_call",
+        "authorized": false,
+        "priority": null,
+        "project_id": "project-04"
+      },
+      "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+      "stale_replay_count": 3,
+      "v2_outputs": {
+        "enclosure_base": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "outcome": "valid",
+          "overall_shape_valid": true,
+          "pair_count": 0,
+          "solid_count": 1,
+          "valid": true
+        },
+        "enclosure_lid": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "outcome": "valid",
+          "overall_shape_valid": true,
+          "pair_count": 0,
+          "solid_count": 1,
+          "valid": true
+        }
+      },
+      "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-02-result.json"
+    }
+  ],
+  "offline_only": true,
+  "p5_touched": false,
+  "phase_1_started": false,
+  "post_evidence_action": {
+    "error_message": "Warning: Basic terminal detected (TERM=dumb). Visual rendering will be limited. For the best experience, use a terminal emulator with truecolor support.\nWarning: 256-color support not detected. Using a terminal with at least 256-color support is recommended for a better visual experience.\nError authenticating: IneligibleTierError: This client is no longer supported for Gemini Code Assist for individuals. To continue using Gemini, please migrate to the Antigravity suite of products: https://antigravity.google\n    at throwIneligibleOrProjectIdError (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309820:11)\n    at _doSetupUser (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309809:5)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {\n  ineligibleTiers: [\n    {\n      reasonCode: 'UNSUPPORTED_CLIENT',\n      reasonMessage: 'This client is no longer supported for Gemini Code Assist for individuals. To continue using Gemini, please migrate to the Antigravity suite of products: https://antigravity.google',\n      tierId: 'free-tier',\n      tierName: 'Gemini Code Assist for individuals'\n    }\n  ]\n}\n[ExtensionManager] Error loading agent from caveman: Failed to load agent from /root/.gemini/extensions/caveman/agents/cavecrew-builder.md: Validation failed: Agent Definition:\n(Local Agent) tools: Expected array, received string\n[ExtensionManager] Error loading agent from caveman: Failed to load agent from /root/.gemini/extensions/caveman/agents/cavecrew-investigator.md: Validation failed: Agent Definition:\n(Local Agent) tools: Expected array, received string\n[ExtensionManager] Error loading agent from caveman: Failed to load agent from /root/.gemini/extensions/caveman/agents/cavecrew-reviewer.md: Validation failed: Agent Definition:\n(Local Agent) tools: Expected array, received string\nAn unexpected critical error occurred:IneligibleTierError: This client is no longer supported for Gemini Code Assist for individuals. To continue using Gemini, please migrate to the Antigravity suite of products: https://antigravity.google\n    at throwIneligibleOrProjectIdError (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309820:11)\n    at _doSetupUser (file:///opt/node-v20.19.4/lib/node_modules/@google/gemini-cli/bundle/chunk-7LQRUKPT.js:309809:5)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+    "error_type": "RuntimeError",
+    "project_id": "project-03",
+    "provider_call_attempted": true,
+    "provider_calls_before_action": 0,
+    "provider_calls_made": 1,
+    "record_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json",
+    "status": "blocked_before_response",
+    "worker_success": null
+  },
+  "projects": [
+    {
+      "authoritative_worker_result": {
+        "failure_class": null,
+        "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+        "output_ids": [
+          "shaft_coupling"
+        ],
+        "success": true,
+        "topology_evidence_version_before_replay": []
+      },
+      "authority": {
+        "hash_verification": {
+          "job_output_ids_match_result": true,
+          "job_source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+          "source_file_sha256": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+          "source_matches_job": true,
+          "source_matches_sha256_manifest": true,
+          "source_matches_worker_diagnostics": true,
+          "source_matches_worker_outputs": true,
+          "source_sha256_manifest": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+          "valid": true,
+          "worker_diagnostic_source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+          "worker_output_source_hashes": [
+            "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f"
+          ]
+        },
+        "identity": {
+          "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+          "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "project_id": "project-02",
+          "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+        },
+        "job_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/worker/job.json",
+        "output_manifest_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/revision/output-manifest.json",
+        "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+        "source_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/revision/source.py",
+        "source_wave_path": "data/debug-sessions/executable-cadquery/repeatability-wave-01/project-02-result.json",
+        "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/worker/result.json",
+        "worker_result_sha256": "8c925100beb53616f68c3da9b8df67dcbeb27620f42bb28e29b330e5b6904fe3"
+      },
+      "historical_repair_envelope_comparison": {
+        "genuinely_new_actionable_topology_evidence": false,
+        "historical_attempt_count": 2,
+        "historical_audit_path": "docs/executable-cadquery-offline-recovery-audit.json",
+        "historical_envelope_was_persisted": true,
+        "historical_latest_attempt": {
+          "normalized_failure_in_project_record": "solid_count_mismatch",
+          "objective_topology_progress": false,
+          "ordinal": 2,
+          "source_changed_from_prior_attempt": true,
+          "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+          "topology": {
+            "bounding_box_mm": {
+              "size_x": 82.4621125124,
+              "size_y": 35.0,
+              "size_z": 82.4621125124
+            },
+            "detected_solid_count": 14,
+            "expected_solid_count": 1,
+            "shell_count": 39,
+            "valid": false,
+            "volume_mm3": -3652.1014597981
+          }
+        },
+        "historical_repair_envelope": {
+          "attempts": [
+            {
+              "normalized_failure_in_project_record": "solid_count_mismatch",
+              "objective_topology_progress": false,
+              "ordinal": 1,
+              "source_changed_from_prior_attempt": true,
+              "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+              "topology": {
+                "bounding_box_mm": {
+                  "size_x": 82.4621125124,
+                  "size_y": 2.5,
+                  "size_z": 82.4621125124
+                },
+                "detected_solid_count": 5,
+                "expected_solid_count": 1,
+                "shell_count": 5,
+                "valid": false,
+                "volume_mm3": 0.0
+              }
+            },
+            {
+              "normalized_failure_in_project_record": "solid_count_mismatch",
+              "objective_topology_progress": false,
+              "ordinal": 2,
+              "source_changed_from_prior_attempt": true,
+              "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+              "topology": {
+                "bounding_box_mm": {
+                  "size_x": 82.4621125124,
+                  "size_y": 35.0,
+                  "size_z": 82.4621125124
+                },
+                "detected_solid_count": 14,
+                "expected_solid_count": 1,
+                "shell_count": 39,
+                "valid": false,
+                "volume_mm3": -3652.1014597981
+              }
+            }
+          ],
+          "current_builder_proves_fields": [
+            "previous_complete_source",
+            "previous_source_hash",
+            "previous_result_hash",
+            "design_contract",
+            "design_contract.outputs expected output policy",
+            "topology_result precise measurements when worker supplied them",
+            "worker_result",
+            "semantic_result",
+            "protected_facts",
+            "repair_history",
+            "prior_provider_response",
+            "prior_normalized_error",
+            "requested_delta"
+          ],
+          "envelope_persisted": false,
+          "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary",
+          "repair_level": "L2",
+          "schema_version": "executable-cadquery-repair-envelope-v1",
+          "source": "docs/executable-cadquery-offline-recovery-audit.json",
+          "terminal_reason": "repair_ceiling_exhausted_without_objective_progress"
+        },
+        "materially_richer_than_previous_gemini_envelope": true,
+        "new_standardized_fields": [
+          "disconnected_solid_policy",
+          "overall_bounding_box",
+          "overall_shape_valid",
+          "solid_pairs",
+          "solids"
+        ],
+        "per_output": {
+          "shaft_coupling": {
+            "current_fields_available": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ],
+            "historical_fields_available": [],
+            "material_diagnostic_improvement": true,
+            "material_new_fields": [
+              "disconnected_solid_policy",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "solid_pairs",
+              "solids"
+            ],
+            "materially_equivalent": false,
+            "new_standardized_fields": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ]
+          }
+        }
+      },
+      "new_repair_envelope": {
+        "canonical_output_ids": [
+          "shaft_coupling"
+        ],
+        "canonical_source_skeleton": "import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n\nPARAMETERS = (ParameterSpec(\n    id=\"example_size\",\n    label=\"Example size\",\n    type=\"float\",\n    default=1.0,\n    unit=\"mm\",\n),)\n\n\ndef _make_model():\n    return cq.Workplane(\"XY\").box(1.0, 1.0, 1.0)\n\n\ndef build(params):\n    model = _make_model()\n    return Product(\n        outputs=(PrintableOutput(\n            output_id=\"mounting_bracket\",\n            label=\"Complete output\",\n            model=model,\n            component_id=\"mounting_bracket\",\n            required=True,\n            expected_solid_count=1,\n            allow_disconnected_solids=False,\n        ),),\n        parameters=PARAMETERS,\n    )\n",
+        "canonical_source_skeleton_hash": "52afdde33df57643e529de6e6976af6688077289cb8aa09d3fe6e418be68b8a1",
+        "design_contract": {
+          "outputs": [
+            {
+              "expected_solid_count": 1,
+              "output_id": "shaft_coupling",
+              "output_type": "printable_component",
+              "required": true
+            }
+          ],
+          "project_id": "repeatability-project-02",
+          "protected_facts": [
+            {
+              "authoritative_value": {
+                "diameter": 12.0,
+                "through": true
+              },
+              "requirement_id": "through_bore"
+            },
+            {
+              "authoritative_value": {
+                "lengths": [
+                  12.0,
+                  18.0,
+                  10.0
+                ]
+              },
+              "requirement_id": "axial_dimensions"
+            }
+          ],
+          "relationships": [
+            {
+              "expected_relationship": "coaxial",
+              "participants": [
+                "shaft_coupling"
+              ],
+              "relationship_id": "all_steps_share_axis"
+            }
+          ],
+          "requirements": [
+            {
+              "expected": {
+                "coaxial": true,
+                "diameters": [
+                  36.0,
+                  28.0,
+                  20.0
+                ]
+              },
+              "requirement_id": "coaxial_diameters",
+              "scope": "shaft_coupling",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_axisymmetric_profiles"
+            },
+            {
+              "expected": {
+                "lengths": [
+                  12.0,
+                  18.0,
+                  10.0
+                ]
+              },
+              "requirement_id": "axial_dimensions",
+              "scope": "shaft_coupling",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_axial_sections"
+            },
+            {
+              "expected": {
+                "diameter": 12.0,
+                "through": true
+              },
+              "requirement_id": "through_bore",
+              "scope": "shaft_coupling",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_opening_profiles"
+            },
+            {
+              "expected": {
+                "depth": 6.0,
+                "diameter": 20.0
+              },
+              "requirement_id": "counterbore",
+              "scope": "shaft_coupling",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_recess_profile"
+            },
+            {
+              "expected": {
+                "count": 4,
+                "diameter": 5.0,
+                "pitch_circle_diameter": 30.0
+              },
+              "requirement_id": "bolt_circle",
+              "scope": "shaft_coupling",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_opening_centers"
+            }
+          ],
+          "revision_id": "repeatability-revision-02",
+          "schema_version": "executable-cadquery-design-contract-v1",
+          "units": "mm",
+          "workflow_id": "repeatability-workflow-02"
+        },
+        "execution_diagnostic": {
+          "active_phase": "metadata_generation",
+          "cadquery_version": "2.8.0",
+          "cadquery_worker_version": "cadquery-cli-runner-v1",
+          "command_args": [
+            "python",
+            "_volundr_cadquery_runner.py",
+            "outputs",
+            "execution-manifest.json",
+            "parameter-values.json",
+            "requested-outputs.json"
+          ],
+          "completed_output_ids": [
+            "shaft_coupling"
+          ],
+          "exit_code": 0,
+          "incomplete_output_ids": [],
+          "last_completed_operation": {
+            "after": null,
+            "before": null,
+            "elapsed_ms": 2.806,
+            "name": "translate"
+          },
+          "last_started_incomplete_operation": {
+            "before": null,
+            "name": "translate",
+            "started_at_monotonic": 902039.730490608
+          },
+          "message": null,
+          "partial_diagnostic_state_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/diagnostic-state.json",
+          "partial_stderr_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/stderr.log",
+          "partial_stdout_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/stdout.log",
+          "partial_timing_record_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/diagnostic-state.json",
+          "per_output_results": {
+            "shaft_coupling": {
+              "compile_error": null,
+              "required": true,
+              "started_at_monotonic": 902039.7161507,
+              "status": "completed",
+              "timing": {
+                "export_ms": 98.802
+              },
+              "updated_at_monotonic": 902039.81511445
+            }
+          },
+          "process_rss_kb": 560928,
+          "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+          "started_at_monotonic": 902036.476981693,
+          "subprocess_exit_status": 0,
+          "subprocess_pid": 2392776,
+          "timed_out": false,
+          "timeout_deadline_monotonic": 902096.476981693,
+          "timeout_seconds": 60
+        },
+        "expected_output_policy": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "shaft_coupling",
+            "required": true
+          }
+        ],
+        "failing_output_ids": [],
+        "generation_session_id": "topology-evidence-v2-project-02",
+        "logical_operation_id": "1b8ef86f-004c-4e57-9a3c-39068f443355:topology-evidence-v2",
+        "parent_operation_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+        "preserved_valid_output_ids": [
+          "shaft_coupling"
+        ],
+        "previous_complete_source": "import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n\nPARAMETERS = (\n    ParameterSpec(\n        id=\"coupling_material_density\",\n        label=\"Material density\",\n        type=\"float\",\n        default=7.85,\n        unit=\"g/cm3\",\n    ),\n)\n\n\ndef _make_model():\n    # Construct stepped shaft coupling\n    # Diameters: 36, 28, 20\n    # Lengths: 12, 18, 10\n    # Total length = 12 + 18 + 10 = 40 mm\n    \n    body = (\n        cq.Workplane(\"XY\")\n        .cylinder(12.0, 36.0 / 2.0)\n        .faces(\">Z\")\n        .workplane()\n        .cylinder(18.0, 28.0 / 2.0, combine=True)\n        .faces(\">Z\")\n        .workplane()\n        .cylinder(10.0, 20.0 / 2.0, combine=True)\n    )\n    \n    # Through bore: 12 mm diameter through the entire length (40 mm)\n    body = body.faces(\">Z\").workplane().hole(12.0, depth=40.0)\n    \n    # Counterbore: 20 mm diameter recessed 6 mm from the <Z end (diameter 36 step).\n    body = body.faces(\"<Z\").workplane().hole(20.0, depth=6.0)\n    \n    # Four 5 mm bolt-circle holes on a 30 mm pitch circle.\n    # Without using math imports inside the function, we can use exact 90-degree offsets on XY:\n    # 0, 90, 180, 270 degrees -> (r, 0), (0, r), (-r, 0), (0, -r) where r = 30.0 / 2.0 = 15.0\n    r = 30.0 / 2.0\n    points = [\n        (r, 0.0),\n        (0.0, r),\n        (-r, 0.0),\n        (0.0, -r),\n    ]\n        \n    body = (\n        body.faces(\"<Z\")\n        .workplane()\n        .pushPoints(points)\n        .hole(5.0, depth=12.0)\n    )\n    \n    return body\n\n\ndef build(params):\n    model = _make_model()\n    return Product(\n        outputs=(\n            PrintableOutput(\n                output_id=\"shaft_coupling\",\n                label=\"Shaft Coupling\",\n                model=model,\n                component_id=\"shaft_coupling\",\n                required=True,\n                expected_solid_count=1,\n                allow_disconnected_solids=False,\n            ),\n        ),\n        parameters=PARAMETERS,\n    )",
+        "previous_result_hash": "8c925100beb53616f68c3da9b8df67dcbeb27620f42bb28e29b330e5b6904fe3",
+        "previous_source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+        "prior_l2_attempt_metrics": [
+          {
+            "attempt_number": 1,
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+            "topology": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 2.5,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 5,
+              "expected_solid_count": 1,
+              "shell_count": 5,
+              "valid": false,
+              "volume_mm3": 0.0
+            }
+          },
+          {
+            "attempt_number": 2,
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+            "topology": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 35.0,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 14,
+              "expected_solid_count": 1,
+              "shell_count": 39,
+              "valid": false,
+              "volume_mm3": -3652.1014597981
+            }
+          }
+        ],
+        "prior_normalized_error": "solid_count_mismatch",
+        "prior_provider_response": null,
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "diameter": 12.0,
+              "through": true
+            },
+            "requirement_id": "through_bore"
+          },
+          {
+            "authoritative_value": {
+              "lengths": [
+                12.0,
+                18.0,
+                10.0
+              ]
+            },
+            "requirement_id": "axial_dimensions"
+          }
+        ],
+        "provider_attempt": null,
+        "repair_history": [
+          {
+            "attempt_number": 1,
+            "normalized_failure": "solid_count_mismatch",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+            "topology_result": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 2.5,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 5,
+              "expected_solid_count": 1,
+              "shell_count": 5,
+              "valid": false,
+              "volume_mm3": 0.0
+            }
+          },
+          {
+            "attempt_number": 2,
+            "normalized_failure": "solid_count_mismatch",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+            "topology_result": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 35.0,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 14,
+              "expected_solid_count": 1,
+              "shell_count": 39,
+              "valid": false,
+              "volume_mm3": -3652.1014597981
+            }
+          }
+        ],
+        "repair_level": "L2",
+        "repair_ordinal": 1,
+        "replacement_instruction": "Return one complete replacement implementation; do not return a patch, excerpt, or construction strategy.",
+        "requested_delta": "Repair the authoritative topology failure while preserving the frozen design contract.",
+        "schema_version": "executable-cadquery-repair-envelope-v1",
+        "semantic_result": null,
+        "source_dialect": {
+          "allowed_imports": {
+            "cadquery": "import cadquery as cq",
+            "volundr_cad.runtime": [
+              "CapsuleSlotFrame",
+              "ParameterSpec",
+              "ParameterValidationError",
+              "ParameterValues",
+              "PrintableOutput",
+              "Product",
+              "component",
+              "cut_capsule_slot_v1",
+              "feature",
+              "place_pattern_cutters",
+              "protected_interface",
+              "resolve_pattern_points",
+              "shared_helper"
+            ]
+          },
+          "allowed_top_level_statements": [
+            "Import",
+            "Assign",
+            "AnnAssign",
+            "FunctionDef",
+            "ClassDef",
+            "ImportFrom"
+          ],
+          "contract_version": "cadquery-v1",
+          "control_flow_inside_functions": {
+            "comprehensions": true,
+            "for": true,
+            "global": false,
+            "if": true,
+            "imports": false,
+            "local_assignments": true,
+            "nonlocal": false,
+            "returns": true,
+            "supported_function_calls": "Calls are permitted only under the cadquery-v1 call validator.",
+            "try": false,
+            "while": true,
+            "with": false
+          },
+          "forbidden_anywhere": [
+            "try/except",
+            "with and async with",
+            "imports inside functions",
+            "global and nonlocal",
+            "unsafe calls",
+            "dynamic calls",
+            "dunder attribute access",
+            "unsupported imports",
+            "direct filesystem or artifact writing",
+            "eval, exec, and dynamic imports"
+          ],
+          "forbidden_top_level_statements": [
+            "If",
+            "For",
+            "While",
+            "Try",
+            "With",
+            "AsyncWith",
+            "Expr",
+            "Return",
+            "Raise",
+            "Assert",
+            "Match"
+          ],
+          "hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+          "permitted_metadata_classes": "ClassDef with only annotated parameter fields and no decorators or dynamic bases",
+          "required_module_structure": [
+            "approved imports at module scope",
+            "module-level literal/static parameter declarations",
+            "optional helper function definitions",
+            "exactly one build(params) entry point",
+            "build(params) returns Product",
+            "Product registers at least one PrintableOutput",
+            "PrintableOutput uses the canonical output ID and expected solid count",
+            "PrintableOutput declares the disconnected-solid policy"
+          ],
+          "validator_policy_inputs": {
+            "approved_parameter_types": [
+              "bool",
+              "enum",
+              "float",
+              "int",
+              "str"
+            ],
+            "approved_runtime_imports": [
+              "CapsuleSlotFrame",
+              "ParameterSpec",
+              "ParameterValidationError",
+              "ParameterValues",
+              "PrintableOutput",
+              "Product",
+              "component",
+              "cut_capsule_slot_v1",
+              "feature",
+              "place_pattern_cutters",
+              "protected_interface",
+              "resolve_pattern_points",
+              "shared_helper"
+            ],
+            "approved_runtime_metadata_decorators": [
+              "component",
+              "feature",
+              "protected_interface",
+              "shared_helper"
+            ],
+            "approved_safe_direct_calls": [
+              "CapsuleSlotFrame",
+              "abs",
+              "bool",
+              "cut_capsule_slot_v1",
+              "float",
+              "int",
+              "len",
+              "list",
+              "max",
+              "min",
+              "place_pattern_cutters",
+              "range",
+              "resolve_pattern_points",
+              "round",
+              "str",
+              "sum",
+              "tuple"
+            ],
+            "forbidden_direct_calls": [
+              "__import__",
+              "compile",
+              "eval",
+              "exec",
+              "getattr",
+              "globals",
+              "input",
+              "locals",
+              "open",
+              "setattr",
+              "vars"
+            ],
+            "runtime_constructor_keywords": {
+              "ParameterSpec": [
+                "choices",
+                "default",
+                "editable",
+                "id",
+                "label",
+                "max_value",
+                "min_value",
+                "protected",
+                "source",
+                "source_requirement_id",
+                "type",
+                "unit"
+              ],
+              "PrintableOutput": [
+                "allow_disconnected_solids",
+                "component_id",
+                "component_ids",
+                "expected_solid_count",
+                "label",
+                "metadata",
+                "model",
+                "output_id",
+                "quantity",
+                "required"
+              ],
+              "Product": [
+                "metadata",
+                "outputs",
+                "parameters",
+                "schema_version"
+              ]
+            }
+          },
+          "version": "cadquery-v1-source-dialect"
+        },
+        "source_dialect_hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+        "topology_attempt_history": [
+          {
+            "attempt_number": 1,
+            "normalized_failure": "solid_count_mismatch",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+            "topology_result": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 2.5,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 5,
+              "expected_solid_count": 1,
+              "shell_count": 5,
+              "valid": false,
+              "volume_mm3": 0.0
+            }
+          },
+          {
+            "attempt_number": 2,
+            "normalized_failure": "solid_count_mismatch",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+            "topology_result": {
+              "bounding_box_mm": {
+                "size_x": 82.4621125124,
+                "size_y": 35.0,
+                "size_z": 82.4621125124
+              },
+              "detected_solid_count": 14,
+              "expected_solid_count": 1,
+              "shell_count": 39,
+              "valid": false,
+              "volume_mm3": -3652.1014597981
+            }
+          }
+        ],
+        "topology_result": {
+          "outputs": {
+            "shaft_coupling": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 36.0,
+                "size_y": 36.0,
+                "size_z": 26.0,
+                "x_max": 18.0,
+                "x_min": -18.0,
+                "y_max": 18.0,
+                "y_min": -18.0,
+                "z_max": 26.0,
+                "z_min": 0.0
+              },
+              "coordinate_space": "print_space",
+              "detected_solid_count": 1,
+              "disconnected_solid_policy": {
+                "allow_disconnected_solids": false
+              },
+              "expected_solid_count": 1,
+              "face_count": 18,
+              "measurement_errors": [],
+              "measurement_tolerance_mm": 1e-07,
+              "model_space_bounds": {
+                "size_x": 36.0,
+                "size_y": 36.0,
+                "size_z": 26.0,
+                "x_max": 18.0,
+                "x_min": -18.0,
+                "y_max": 18.0,
+                "y_min": -18.0,
+                "z_max": 20.0,
+                "z_min": -6.0
+              },
+              "outcome": "valid",
+              "output_id": "shaft_coupling",
+              "overall_bounding_box": {
+                "size_x": 36.0,
+                "size_y": 36.0,
+                "size_z": 26.0,
+                "x_max": 18.0,
+                "x_min": -18.0,
+                "y_max": 18.0,
+                "y_min": -18.0,
+                "z_max": 26.0,
+                "z_min": 0.0
+              },
+              "overall_shape_valid": true,
+              "placement_policy": "cadquery-output-placement-v1",
+              "print_space_bounds": {
+                "size_x": 36.0,
+                "size_y": 36.0,
+                "size_z": 26.0,
+                "x_max": 18.0,
+                "x_min": -18.0,
+                "y_max": 18.0,
+                "y_min": -18.0,
+                "z_max": 26.0,
+                "z_min": 0.0
+              },
+              "print_transform": {
+                "rotation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "translation": [
+                  0.0,
+                  0.0,
+                  6.0
+                ]
+              },
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "solid_pairs": [],
+              "solids": [
+                {
+                  "bounding_box_mm": {
+                    "size_x": 36.0,
+                    "size_y": 36.0,
+                    "size_z": 26.0,
+                    "x_max": 18.0,
+                    "x_min": -18.0,
+                    "y_max": 18.0,
+                    "y_min": -18.0,
+                    "z_max": 26.0,
+                    "z_min": 0.0
+                  },
+                  "centroid_mm": {
+                    "x": 9.981146396668883e-17,
+                    "y": -6.218324727152142e-16,
+                    "z": 10.826125330979703
+                  },
+                  "face_count": 18,
+                  "shell_count": 1,
+                  "solid_id": "solid-0",
+                  "solid_index": 0,
+                  "valid": true,
+                  "volume_mm3": 14237.697906068934
+                }
+              ],
+              "status": "measured",
+              "valid": true,
+              "volume_mm3": 14237.697906068934
+            }
+          }
+        },
+        "worker_result": {
+          "diagnostics": {
+            "active_phase": "metadata_generation",
+            "cadquery_version": "2.8.0",
+            "cadquery_worker_version": "cadquery-cli-runner-v1",
+            "command_args": [
+              "python",
+              "_volundr_cadquery_runner.py",
+              "outputs",
+              "execution-manifest.json",
+              "parameter-values.json",
+              "requested-outputs.json"
+            ],
+            "completed_output_ids": [
+              "shaft_coupling"
+            ],
+            "exit_code": 0,
+            "incomplete_output_ids": [],
+            "last_completed_operation": {
+              "after": null,
+              "before": null,
+              "elapsed_ms": 2.806,
+              "name": "translate"
+            },
+            "last_started_incomplete_operation": {
+              "before": null,
+              "name": "translate",
+              "started_at_monotonic": 902039.730490608
+            },
+            "message": null,
+            "partial_diagnostic_state_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/diagnostic-state.json",
+            "partial_stderr_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/stderr.log",
+            "partial_stdout_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/stdout.log",
+            "partial_timing_record_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/diagnostic-state.json",
+            "per_output_results": {
+              "shaft_coupling": {
+                "compile_error": null,
+                "required": true,
+                "started_at_monotonic": 902039.7161507,
+                "status": "completed",
+                "timing": {
+                  "export_ms": 98.802
+                },
+                "updated_at_monotonic": 902039.81511445
+              }
+            },
+            "process_rss_kb": 560928,
+            "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+            "started_at_monotonic": 902036.476981693,
+            "subprocess_exit_status": 0,
+            "subprocess_pid": 2392776,
+            "timed_out": false,
+            "timeout_deadline_monotonic": 902096.476981693,
+            "timeout_seconds": 60
+          },
+          "duration_seconds": 4.294326,
+          "failure_class": null,
+          "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "output_ids": [
+            "shaft_coupling"
+          ],
+          "outputs": [
+            {
+              "brep_hash": "c7b914e36b150ff5483e8a15a6a4db3e31b2d23542b00f2f1483bff4834283ca",
+              "brep_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/outputs/shaft_coupling/shaft_coupling.brep",
+              "compile_error": null,
+              "entrypoint": "shaft_coupling",
+              "metadata_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/outputs/shaft_coupling/shaft_coupling.metadata.json",
+              "output_id": "shaft_coupling",
+              "required": true,
+              "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+              "step_hash": "9cb78389eecc198620f2c517ab746b3a0d096858faeebb627c69f79422077b4f",
+              "step_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/outputs/shaft_coupling/shaft_coupling.step",
+              "stl_hash": "57345de686a6528eb49020e5650f976223885c35f081b36bdb99d7b46b6b6958",
+              "stl_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/outputs/shaft_coupling/shaft_coupling.stl",
+              "stl_size_bytes": 228084,
+              "success": true,
+              "topology_metadata": {
+                "allow_disconnected_solids": false,
+                "bounding_box_mm": {
+                  "size_x": 36.0,
+                  "size_y": 36.0,
+                  "size_z": 26.0,
+                  "x_max": 18.0,
+                  "x_min": -18.0,
+                  "y_max": 18.0,
+                  "y_min": -18.0,
+                  "z_max": 26.0,
+                  "z_min": 0.0
+                },
+                "coordinate_space": "print_space",
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "model_space_bounds": {
+                  "size_x": 36.0,
+                  "size_y": 36.0,
+                  "size_z": 26.0,
+                  "x_max": 18.0,
+                  "x_min": -18.0,
+                  "y_max": 18.0,
+                  "y_min": -18.0,
+                  "z_max": 20.0,
+                  "z_min": -6.0
+                },
+                "outcome": "valid",
+                "output_id": "shaft_coupling",
+                "placement_policy": "cadquery-output-placement-v1",
+                "print_space_bounds": {
+                  "size_x": 36.0,
+                  "size_y": 36.0,
+                  "size_z": 26.0,
+                  "x_max": 18.0,
+                  "x_min": -18.0,
+                  "y_max": 18.0,
+                  "y_min": -18.0,
+                  "z_max": 26.0,
+                  "z_min": 0.0
+                },
+                "print_transform": {
+                  "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "translation": [
+                    0.0,
+                    0.0,
+                    6.0
+                  ]
+                },
+                "shell_count": 1,
+                "valid": true,
+                "volume_mm3": 14237.697906068934
+              },
+              "topology_metadata_path": "work/8830450d-882c-4fbd-a6ba-768579d0e9b8/outputs/shaft_coupling/topology.json"
+            }
+          ],
+          "requested_output_ids": [
+            "shaft_coupling"
+          ],
+          "schema_version": "cad-execution-result-v1",
+          "success": true,
+          "worker_version": "cad-worker-v1"
+        }
+      },
+      "project_id": "project-02",
+      "repair_gate": {
+        "action": "no_provider_call",
+        "authorized": false,
+        "priority": null,
+        "project_id": "project-02"
+      },
+      "stale_replays_rejected": [
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 1,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a != ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f)",
+            "the historical source/result artifact is superseded by revision/job 8830450d-882c-4fbd-a6ba-768579d0e9b8"
+          ],
+          "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+            "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "project_id": "project-02",
+            "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 2,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf != ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f)",
+            "the historical source/result artifact is superseded by revision/job 8830450d-882c-4fbd-a6ba-768579d0e9b8"
+          ],
+          "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+            "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "project_id": "project-02",
+            "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+            "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+          }
+        }
+      ],
+      "topology_evidence_v2": {
+        "outputs": {
+          "shaft_coupling": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 36.0,
+              "size_y": 36.0,
+              "size_z": 26.0,
+              "x_max": 18.0,
+              "x_min": -18.0,
+              "y_max": 18.0,
+              "y_min": -18.0,
+              "z_max": 26.0,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 18,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 36.0,
+              "size_y": 36.0,
+              "size_z": 26.0,
+              "x_max": 18.0,
+              "x_min": -18.0,
+              "y_max": 18.0,
+              "y_min": -18.0,
+              "z_max": 20.0,
+              "z_min": -6.0
+            },
+            "outcome": "valid",
+            "output_id": "shaft_coupling",
+            "overall_bounding_box": {
+              "size_x": 36.0,
+              "size_y": 36.0,
+              "size_z": 26.0,
+              "x_max": 18.0,
+              "x_min": -18.0,
+              "y_max": 18.0,
+              "y_min": -18.0,
+              "z_max": 26.0,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 36.0,
+              "size_y": 36.0,
+              "size_z": 26.0,
+              "x_max": 18.0,
+              "x_min": -18.0,
+              "y_max": 18.0,
+              "y_min": -18.0,
+              "z_max": 26.0,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                6.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 36.0,
+                  "size_y": 36.0,
+                  "size_z": 26.0,
+                  "x_max": 18.0,
+                  "x_min": -18.0,
+                  "y_max": 18.0,
+                  "y_min": -18.0,
+                  "z_max": 26.0,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 9.981146396668883e-17,
+                  "y": -6.218324727152142e-16,
+                  "z": 10.826125330979703
+                },
+                "face_count": 18,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 14237.697906068934
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 14237.697906068934
+          }
+        },
+        "provider_calls": 0,
+        "schema_version": "topology-evidence-v2",
+        "source": "authoritative persisted worker result source/job replay",
+        "worker_replay_error": null,
+        "worker_replay_success": true
+      }
+    },
+    {
+      "authoritative_worker_result": {
+        "failure_class": "execution_failed",
+        "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+        "output_ids": [],
+        "success": false,
+        "topology_evidence_version_before_replay": []
+      },
+      "authority": {
+        "hash_verification": {
+          "job_output_ids_match_result": true,
+          "job_source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+          "source_file_sha256": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+          "source_matches_job": true,
+          "source_matches_sha256_manifest": true,
+          "source_matches_worker_diagnostics": true,
+          "source_matches_worker_outputs": true,
+          "source_sha256_manifest": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+          "valid": true,
+          "worker_diagnostic_source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+          "worker_output_source_hashes": [
+            "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a"
+          ]
+        },
+        "identity": {
+          "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+          "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+          "project_id": "project-03",
+          "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+          "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+        },
+        "job_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/worker/job.json",
+        "output_manifest_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/revision/output-manifest.json",
+        "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+        "source_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/revision/source.py",
+        "source_wave_path": "data/debug-sessions/executable-cadquery/repeatability-wave-01/project-03-result.json",
+        "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-03/worker/result.json",
+        "worker_result_sha256": "51f61db27d4ea6e33ffa4e9e6622d4bfaab893bc689b525b698ab2e742ccfa25"
+      },
+      "historical_repair_envelope_comparison": {
+        "genuinely_new_actionable_topology_evidence": true,
+        "historical_attempt_count": 4,
+        "historical_audit_path": "docs/executable-cadquery-offline-recovery-audit.json",
+        "historical_envelope_was_persisted": false,
+        "historical_latest_attempt": {
+          "active_phase": "topology_analysis",
+          "error_changed": true,
+          "failure": "required solid count 1; detected solid count 2",
+          "failure_class": "solid_count_mismatch",
+          "objective_execution_progress": true,
+          "objective_topology_progress": true,
+          "ordinal": 4,
+          "source_changed": true,
+          "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+          "topology_reached": true
+        },
+        "historical_repair_envelope": {
+          "attempts": [
+            {
+              "active_phase": "build_function",
+              "failure": "AttributeError: Workplane has no attribute arc",
+              "objective_progress": false,
+              "ordinal": 1,
+              "source_changed": false,
+              "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d"
+            },
+            {
+              "active_phase": "build_function",
+              "error_changed": true,
+              "failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
+              "failure_source_function": "_make_model",
+              "failure_source_line": 65,
+              "objective_execution_progress": true,
+              "objective_topology_progress": false,
+              "ordinal": 2,
+              "source_changed": true,
+              "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+              "topology_reached": false
+            },
+            {
+              "active_phase": "build_function",
+              "error_changed": true,
+              "failure": "Workplane.sweep() got an unexpected keyword argument preserveOrientation",
+              "failure_operation": "sweep",
+              "failure_source_function": "_make_model",
+              "failure_source_line": 72,
+              "objective_execution_progress": true,
+              "objective_topology_progress": false,
+              "ordinal": 3,
+              "source_changed": true,
+              "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+              "topology_reached": false
+            },
+            {
+              "active_phase": "topology_analysis",
+              "error_changed": true,
+              "failure": "required solid count 1; detected solid count 2",
+              "failure_class": "solid_count_mismatch",
+              "objective_execution_progress": true,
+              "objective_topology_progress": true,
+              "ordinal": 4,
+              "source_changed": true,
+              "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+              "topology_reached": true
+            }
+          ],
+          "envelope_persisted": false,
+          "latest_worker_evidence": {
+            "active_phase": "topology_analysis",
+            "artifacts": [],
+            "bounding_box_mm": {
+              "size_x": 58.0,
+              "size_y": 10.0,
+              "size_z": 9.0
+            },
+            "detected_solid_count": 2,
+            "expected_solid_count": 1,
+            "failure": "required solid count 1; detected solid count 2",
+            "failure_class": "solid_count_mismatch",
+            "output_id": "curved_cable_guide",
+            "output_status": "invalid_shape",
+            "shell_count": 2,
+            "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+            "volume_mm3": 790.3540138875861
+          },
+          "persistence_gap": "historical L1/topology envelope was recorded in the audit, not as a durable provider envelope",
+          "repair_level": "L1_to_topology_then_L2_eligible",
+          "schema_version": "historical-repair-envelope-reconstructed-v1",
+          "source": "docs/executable-cadquery-offline-recovery-audit.json"
+        },
+        "materially_richer_than_previous_gemini_envelope": true,
+        "new_standardized_fields": [
+          "disconnected_solid_policy",
+          "overall_bounding_box",
+          "overall_shape_valid",
+          "solid_pairs",
+          "solids"
+        ],
+        "per_output": {
+          "curved_cable_guide": {
+            "current_fields_available": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ],
+            "historical_fields_available": [],
+            "material_diagnostic_improvement": true,
+            "material_new_fields": [
+              "disconnected_solid_policy",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "solid_pairs",
+              "solids"
+            ],
+            "materially_equivalent": false,
+            "new_standardized_fields": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ]
+          }
+        }
+      },
+      "new_repair_envelope": {
+        "canonical_output_ids": [
+          "curved_cable_guide"
+        ],
+        "canonical_source_skeleton": "import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n\nPARAMETERS = (ParameterSpec(\n    id=\"example_size\",\n    label=\"Example size\",\n    type=\"float\",\n    default=1.0,\n    unit=\"mm\",\n),)\n\n\ndef _make_model():\n    return cq.Workplane(\"XY\").box(1.0, 1.0, 1.0)\n\n\ndef build(params):\n    model = _make_model()\n    return Product(\n        outputs=(PrintableOutput(\n            output_id=\"mounting_bracket\",\n            label=\"Complete output\",\n            model=model,\n            component_id=\"mounting_bracket\",\n            required=True,\n            expected_solid_count=1,\n            allow_disconnected_solids=False,\n        ),),\n        parameters=PARAMETERS,\n    )\n",
+        "canonical_source_skeleton_hash": "52afdde33df57643e529de6e6976af6688077289cb8aa09d3fe6e418be68b8a1",
+        "design_contract": {
+          "outputs": [
+            {
+              "expected_solid_count": 1,
+              "output_id": "curved_cable_guide",
+              "output_type": "printable_component",
+              "required": true
+            }
+          ],
+          "project_id": "repeatability-project-03",
+          "protected_facts": [
+            {
+              "authoritative_value": {
+                "height": 6.0,
+                "width": 10.0
+              },
+              "requirement_id": "sweep_cross_section"
+            },
+            {
+              "authoritative_value": {
+                "count": 1,
+                "diameter": 6.0
+              },
+              "requirement_id": "mounting_hole"
+            }
+          ],
+          "relationships": [
+            {
+              "expected_relationship": "constant_section_along_curve",
+              "participants": [
+                "curved_cable_guide"
+              ],
+              "relationship_id": "cross_section_follows_path"
+            }
+          ],
+          "requirements": [
+            {
+              "expected": {
+                "connected": true,
+                "path_angle_degrees": 90.0,
+                "path_length": 70.0,
+                "path_radius": 45.0
+              },
+              "requirement_id": "swept_curved_body",
+              "scope": "curved_cable_guide",
+              "tolerance": 0.5,
+              "verification_policy": "final_mesh_curved_bounds"
+            },
+            {
+              "expected": {
+                "height": 6.0,
+                "width": 10.0
+              },
+              "requirement_id": "sweep_cross_section",
+              "scope": "curved_cable_guide",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_section_profile"
+            },
+            {
+              "expected": {
+                "count": 1,
+                "diameter": 6.0,
+                "through": true
+              },
+              "requirement_id": "mounting_hole",
+              "scope": "curved_cable_guide",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_opening_profiles"
+            },
+            {
+              "expected": {
+                "length": 24.0,
+                "through": true,
+                "width": 8.0
+              },
+              "requirement_id": "access_slot",
+              "scope": "curved_cable_guide",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_opening_profiles"
+            }
+          ],
+          "revision_id": "repeatability-revision-03",
+          "schema_version": "executable-cadquery-design-contract-v1",
+          "units": "mm",
+          "workflow_id": "repeatability-workflow-03"
+        },
+        "execution_diagnostic": {
+          "active_phase": "topology_analysis",
+          "cadquery_version": "2.8.0",
+          "cadquery_worker_version": "cadquery-cli-runner-v1",
+          "command_args": [
+            "python",
+            "_volundr_cadquery_runner.py",
+            "outputs",
+            "execution-manifest.json",
+            "parameter-values.json",
+            "requested-outputs.json"
+          ],
+          "completed_output_ids": [],
+          "exit_code": 0,
+          "incomplete_output_ids": [
+            "curved_cable_guide"
+          ],
+          "last_completed_operation": {
+            "after": {
+              "edge_count": 12,
+              "face_count": 6,
+              "solid_count": 1
+            },
+            "before": {
+              "edge_count": 12,
+              "face_count": 6,
+              "solid_count": 1
+            },
+            "elapsed_ms": 13.32,
+            "name": "cut"
+          },
+          "last_started_incomplete_operation": {
+            "before": {
+              "edge_count": 12,
+              "face_count": 6,
+              "solid_count": 1
+            },
+            "name": "cut",
+            "started_at_monotonic": 902061.927858794
+          },
+          "message": "output shape is invalid",
+          "partial_diagnostic_state_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/diagnostic-state.json",
+          "partial_stderr_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/stderr.log",
+          "partial_stdout_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/stdout.log",
+          "partial_timing_record_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/diagnostic-state.json",
+          "per_output_results": {
+            "curved_cable_guide": {
+              "compile_error": "output shape is invalid",
+              "required": true,
+              "started_at_monotonic": 902061.942633214,
+              "status": "invalid_shape",
+              "timing": {
+                "export_ms": 6.036
+              },
+              "updated_at_monotonic": 902061.949114169
+            }
+          },
+          "process_rss_kb": 545460,
+          "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+          "subprocess_exit_status": 0,
+          "timed_out": false,
+          "timeout_seconds": 60
+        },
+        "expected_output_policy": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "curved_cable_guide",
+            "required": true
+          }
+        ],
+        "failing_output_ids": [
+          "curved_cable_guide"
+        ],
+        "generation_session_id": "topology-evidence-v2-project-03",
+        "logical_operation_id": "59614cec-7a42-47ea-bda8-8d5a14755695:topology-evidence-v2",
+        "parent_operation_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+        "preserved_valid_output_ids": [],
+        "previous_complete_source": "import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n\nPARAMETERS = (\n    ParameterSpec(\n        id=\"path_radius\",\n        label=\"Path Centerline Radius\",\n        type=\"float\",\n        default=45.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"section_width\",\n        label=\"Cross-section Width\",\n        type=\"float\",\n        default=10.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"section_height\",\n        label=\"Cross-section Height\",\n        type=\"float\",\n        default=6.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"mounting_hole_dia\",\n        label=\"Mounting Hole Diameter\",\n        type=\"float\",\n        default=6.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"slot_length\",\n        label=\"Access Slot Length\",\n        type=\"float\",\n        default=24.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"slot_width\",\n        label=\"Access Slot Width\",\n        type=\"float\",\n        default=8.0,\n        unit=\"mm\",\n    ),\n)\n\n\ndef _make_model(params):\n    r = params.get(\"path_radius\", 45.0)\n    w = params.get(\"section_width\", 10.0)\n    h = params.get(\"section_height\", 6.0)\n    hole_d = params.get(\"mounting_hole_dia\", 6.0)\n    slot_l = params.get(\"slot_length\", 24.0)\n    slot_w = params.get(\"slot_width\", 8.0)\n\n    # Create the 90-degree arc path in the XY plane.\n    # Center at origin, radius r, from angle 0 to 90 degrees.\n    # Start point: (r, 0), Midpoint: (r * 0.70710678, r * 0.70710678), End point: (0, r)\n    path = cq.Workplane(\"XY\").moveTo(r, 0).threePointArc((r * 0.70710678, r * 0.70710678), (0, r))\n\n    # To create a sweep profile whose local coordinates map nicely, we can use a solid box along the path \n    # or create a profile on a workplane located at the start of the path.\n    # At (r, 0, 0), the tangent vector is along +Y. A profile in the XZ plane or YZ plane depending on orientation.\n    # Let's use a reliable approach: create a box along the path by making a workplane at the start point.\n    # Alternatively, create a base straight box and bend it, or use cq's sweep with a custom profile wire.\n    # Let's draw the profile on a plane perpendicular to the start of the path.\n    # At (r, 0), normal to the tangent (+Y) and Z is Z. So a rect in XZ plane translated to (r, 0, 0) then swept?\n    # Actually, cq.Workplane(\"YZ\").rect(w, h).sweep(path) sweeps the YZ profile along the path starting at origin.\n    # Let's check: path starts at (r, 0, 0). If path starts at (r,0,0), profile at origin needs to be translated or \n    # path should start at origin. If path starts at (0,0,0) and arcs to (r,r), let's do:\n    \n    path_centered = cq.Workplane(\"XY\").moveTo(r, 0).threePointArc((r * 0.70710678, r * 0.70710678), (0, r))\n    \n    # Sweep a rect centered on the path. To make the cross section 10x6 with width along radial/tangent:\n    profile = cq.Workplane(\"YZ\").center(0, h / 2.0).rect(w, h)\n    body = profile.sweep(path_centered, combine=True)\n\n    # Add mounting hole at one end (e.g., near (r, 0, 0))\n    # We can drill down along Z through the bottom flange\n    hole = (\n        cq.Workplane(\"XY\")\n        .workplane(offset=-h)\n        .moveTo(r, 0)\n        .circle(hole_d / 2.0)\n        .extrude(h * 3.0)\n    )\n    body = body.cut(hole)\n\n    # Add access slot through the outer wall at the middle of the arc (r*0.7071, r*0.7071)\n    slot_cutter = (\n        cq.Workplane(\"XY\")\n        .workplane(offset=0)\n        .transformed(offset=(r * 0.70710678, r * 0.70710678, 0), rotate=(0, 0, 45))\n        .box(slot_w, slot_l, h * 3.0)\n    )\n    body = body.cut(slot_cutter)\n\n    return body\n\n\ndef build(params):\n    model = _make_model(params)\n    return Product(\n        outputs=(\n            PrintableOutput(\n                output_id=\"curved_cable_guide\",\n                label=\"Curved Cable Guide\",\n                model=model,\n                component_id=\"curved_cable_guide\",\n                required=True,\n                expected_solid_count=1,\n                allow_disconnected_solids=False,\n            ),\n        ),\n        parameters=PARAMETERS,\n    )",
+        "previous_result_hash": "51f61db27d4ea6e33ffa4e9e6622d4bfaab893bc689b525b698ab2e742ccfa25",
+        "previous_source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+        "prior_l2_attempt_metrics": [],
+        "prior_normalized_error": "required solid count 1; detected solid count 2",
+        "prior_provider_response": null,
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "height": 6.0,
+              "width": 10.0
+            },
+            "requirement_id": "sweep_cross_section"
+          },
+          {
+            "authoritative_value": {
+              "count": 1,
+              "diameter": 6.0
+            },
+            "requirement_id": "mounting_hole"
+          }
+        ],
+        "provider_attempt": null,
+        "repair_history": [
+          {
+            "attempt_number": 1,
+            "normalized_failure": "AttributeError: Workplane has no attribute arc",
+            "repair_level": "L1",
+            "result_hash": null,
+            "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
+            "topology_result": null
+          },
+          {
+            "attempt_number": 2,
+            "normalized_failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
+            "repair_level": "L1",
+            "result_hash": null,
+            "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+            "topology_result": null
+          },
+          {
+            "attempt_number": 3,
+            "normalized_failure": "Workplane.sweep() got an unexpected keyword argument preserveOrientation",
+            "repair_level": "L1",
+            "result_hash": null,
+            "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+            "topology_result": null
+          },
+          {
+            "attempt_number": 4,
+            "normalized_failure": "required solid count 1; detected solid count 2",
+            "repair_level": "L1",
+            "result_hash": null,
+            "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+            "topology_result": null
+          }
+        ],
+        "repair_level": "L2",
+        "repair_ordinal": 1,
+        "replacement_instruction": "Return one complete replacement implementation; do not return a patch, excerpt, or construction strategy.",
+        "requested_delta": "Repair the authoritative topology failure while preserving the frozen design contract.",
+        "schema_version": "executable-cadquery-repair-envelope-v1",
+        "semantic_result": null,
+        "source_dialect": {
+          "allowed_imports": {
+            "cadquery": "import cadquery as cq",
+            "volundr_cad.runtime": [
+              "CapsuleSlotFrame",
+              "ParameterSpec",
+              "ParameterValidationError",
+              "ParameterValues",
+              "PrintableOutput",
+              "Product",
+              "component",
+              "cut_capsule_slot_v1",
+              "feature",
+              "place_pattern_cutters",
+              "protected_interface",
+              "resolve_pattern_points",
+              "shared_helper"
+            ]
+          },
+          "allowed_top_level_statements": [
+            "Import",
+            "Assign",
+            "AnnAssign",
+            "FunctionDef",
+            "ClassDef",
+            "ImportFrom"
+          ],
+          "contract_version": "cadquery-v1",
+          "control_flow_inside_functions": {
+            "comprehensions": true,
+            "for": true,
+            "global": false,
+            "if": true,
+            "imports": false,
+            "local_assignments": true,
+            "nonlocal": false,
+            "returns": true,
+            "supported_function_calls": "Calls are permitted only under the cadquery-v1 call validator.",
+            "try": false,
+            "while": true,
+            "with": false
+          },
+          "forbidden_anywhere": [
+            "try/except",
+            "with and async with",
+            "imports inside functions",
+            "global and nonlocal",
+            "unsafe calls",
+            "dynamic calls",
+            "dunder attribute access",
+            "unsupported imports",
+            "direct filesystem or artifact writing",
+            "eval, exec, and dynamic imports"
+          ],
+          "forbidden_top_level_statements": [
+            "If",
+            "For",
+            "While",
+            "Try",
+            "With",
+            "AsyncWith",
+            "Expr",
+            "Return",
+            "Raise",
+            "Assert",
+            "Match"
+          ],
+          "hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+          "permitted_metadata_classes": "ClassDef with only annotated parameter fields and no decorators or dynamic bases",
+          "required_module_structure": [
+            "approved imports at module scope",
+            "module-level literal/static parameter declarations",
+            "optional helper function definitions",
+            "exactly one build(params) entry point",
+            "build(params) returns Product",
+            "Product registers at least one PrintableOutput",
+            "PrintableOutput uses the canonical output ID and expected solid count",
+            "PrintableOutput declares the disconnected-solid policy"
+          ],
+          "validator_policy_inputs": {
+            "approved_parameter_types": [
+              "bool",
+              "enum",
+              "float",
+              "int",
+              "str"
+            ],
+            "approved_runtime_imports": [
+              "CapsuleSlotFrame",
+              "ParameterSpec",
+              "ParameterValidationError",
+              "ParameterValues",
+              "PrintableOutput",
+              "Product",
+              "component",
+              "cut_capsule_slot_v1",
+              "feature",
+              "place_pattern_cutters",
+              "protected_interface",
+              "resolve_pattern_points",
+              "shared_helper"
+            ],
+            "approved_runtime_metadata_decorators": [
+              "component",
+              "feature",
+              "protected_interface",
+              "shared_helper"
+            ],
+            "approved_safe_direct_calls": [
+              "CapsuleSlotFrame",
+              "abs",
+              "bool",
+              "cut_capsule_slot_v1",
+              "float",
+              "int",
+              "len",
+              "list",
+              "max",
+              "min",
+              "place_pattern_cutters",
+              "range",
+              "resolve_pattern_points",
+              "round",
+              "str",
+              "sum",
+              "tuple"
+            ],
+            "forbidden_direct_calls": [
+              "__import__",
+              "compile",
+              "eval",
+              "exec",
+              "getattr",
+              "globals",
+              "input",
+              "locals",
+              "open",
+              "setattr",
+              "vars"
+            ],
+            "runtime_constructor_keywords": {
+              "ParameterSpec": [
+                "choices",
+                "default",
+                "editable",
+                "id",
+                "label",
+                "max_value",
+                "min_value",
+                "protected",
+                "source",
+                "source_requirement_id",
+                "type",
+                "unit"
+              ],
+              "PrintableOutput": [
+                "allow_disconnected_solids",
+                "component_id",
+                "component_ids",
+                "expected_solid_count",
+                "label",
+                "metadata",
+                "model",
+                "output_id",
+                "quantity",
+                "required"
+              ],
+              "Product": [
+                "metadata",
+                "outputs",
+                "parameters",
+                "schema_version"
+              ]
+            }
+          },
+          "version": "cadquery-v1-source-dialect"
+        },
+        "source_dialect_hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+        "topology_attempt_history": [],
+        "topology_result": {
+          "outputs": {
+            "curved_cable_guide": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 10.000000000000002,
+                "size_y": 10.000000000000004,
+                "size_z": 6.0,
+                "x_max": 5.000000000000002,
+                "x_min": -5.0,
+                "y_max": 5.000000000000002,
+                "y_min": -5.000000000000002,
+                "z_max": 6.0,
+                "z_min": 0.0
+              },
+              "detected_solid_count": 1,
+              "disconnected_solid_policy": {
+                "allow_disconnected_solids": false
+              },
+              "expected_solid_count": 1,
+              "face_count": 6,
+              "measurement_errors": [],
+              "measurement_tolerance_mm": 1e-07,
+              "outcome": "invalid",
+              "output_id": "curved_cable_guide",
+              "overall_bounding_box": {
+                "size_x": 10.000000000000002,
+                "size_y": 10.000000000000004,
+                "size_z": 6.0,
+                "x_max": 5.000000000000002,
+                "x_min": -5.0,
+                "y_max": 5.000000000000002,
+                "y_min": -5.000000000000002,
+                "z_max": 6.0,
+                "z_min": 0.0
+              },
+              "overall_shape_valid": false,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "solid_pairs": [],
+              "solids": [
+                {
+                  "bounding_box_mm": {
+                    "size_x": 10.000000000000002,
+                    "size_y": 10.000000000000004,
+                    "size_z": 6.0,
+                    "x_max": 5.000000000000002,
+                    "x_min": -5.0,
+                    "y_max": 5.000000000000002,
+                    "y_min": -5.000000000000002,
+                    "z_max": 6.0,
+                    "z_min": 0.0
+                  },
+                  "centroid_mm": {
+                    "x": 29101177.683850583,
+                    "y": 29101177.91963545,
+                    "z": 2.9999999999999996
+                  },
+                  "face_count": 6,
+                  "shell_count": 1,
+                  "solid_id": "solid-0",
+                  "solid_index": 0,
+                  "valid": false,
+                  "volume_mm3": 1.7181435108254904e-05
+                }
+              ],
+              "status": "measured",
+              "valid": false,
+              "volume_mm3": 1.7181435108254904e-05
+            }
+          }
+        },
+        "worker_result": {
+          "diagnostics": {
+            "active_phase": "topology_analysis",
+            "cadquery_version": "2.8.0",
+            "cadquery_worker_version": "cadquery-cli-runner-v1",
+            "command_args": [
+              "python",
+              "_volundr_cadquery_runner.py",
+              "outputs",
+              "execution-manifest.json",
+              "parameter-values.json",
+              "requested-outputs.json"
+            ],
+            "completed_output_ids": [],
+            "exit_code": 0,
+            "incomplete_output_ids": [
+              "curved_cable_guide"
+            ],
+            "last_completed_operation": {
+              "after": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "elapsed_ms": 13.32,
+              "name": "cut"
+            },
+            "last_started_incomplete_operation": {
+              "before": {
+                "edge_count": 12,
+                "face_count": 6,
+                "solid_count": 1
+              },
+              "name": "cut",
+              "started_at_monotonic": 902061.927858794
+            },
+            "message": "output shape is invalid",
+            "partial_diagnostic_state_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/diagnostic-state.json",
+            "partial_stderr_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/stderr.log",
+            "partial_stdout_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/stdout.log",
+            "partial_timing_record_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/diagnostic-state.json",
+            "per_output_results": {
+              "curved_cable_guide": {
+                "compile_error": "output shape is invalid",
+                "required": true,
+                "started_at_monotonic": 902061.942633214,
+                "status": "invalid_shape",
+                "timing": {
+                  "export_ms": 6.036
+                },
+                "updated_at_monotonic": 902061.949114169
+              }
+            },
+            "process_rss_kb": 545460,
+            "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+            "subprocess_exit_status": 0,
+            "timed_out": false,
+            "timeout_seconds": 60
+          },
+          "duration_seconds": 3.752388,
+          "failure_class": "execution_failed",
+          "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+          "output_ids": [],
+          "outputs": [
+            {
+              "brep_hash": null,
+              "brep_path": null,
+              "compile_error": "output shape is invalid",
+              "entrypoint": "curved_cable_guide",
+              "metadata_path": null,
+              "output_id": "curved_cable_guide",
+              "required": true,
+              "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+              "step_hash": null,
+              "step_path": null,
+              "stl_hash": null,
+              "stl_path": null,
+              "stl_size_bytes": 0,
+              "success": false,
+              "topology_metadata": {
+                "allow_disconnected_solids": false,
+                "bounding_box_mm": {
+                  "size_x": 10.000000000000002,
+                  "size_y": 10.000000000000004,
+                  "size_z": 6.0,
+                  "x_max": 5.000000000000002,
+                  "x_min": -5.0,
+                  "y_max": 5.000000000000002,
+                  "y_min": -5.000000000000002,
+                  "z_max": 6.0,
+                  "z_min": 0.0
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "outcome": "invalid",
+                "output_id": "curved_cable_guide",
+                "shell_count": 1,
+                "valid": false,
+                "volume_mm3": 1.7181435108254904e-05
+              },
+              "topology_metadata_path": "work/c84f366e-fbbe-47aa-830c-95a80bb899c0/topology.json"
+            }
+          ],
+          "requested_output_ids": [
+            "curved_cable_guide"
+          ],
+          "schema_version": "cad-execution-result-v1",
+          "success": false,
+          "worker_version": "cad-worker-v1"
+        }
+      },
+      "project_id": "project-03",
+      "repair_gate": {
+        "action": "one_l2_repair",
+        "authorized": true,
+        "priority": 1,
+        "project_id": "project-03"
+      },
+      "stale_replays_rejected": [
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 1,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 2,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 3,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 4,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45 != d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a)",
+            "the historical source/result artifact is superseded by revision/job c84f366e-fbbe-47aa-830c-95a80bb899c0"
+          ],
+          "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "41ee1a6b-75ea-41e1-b004-ea60c0289f4e",
+            "job_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "project_id": "project-03",
+            "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
+            "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
+          }
+        }
+      ],
+      "topology_evidence_v2": {
+        "outputs": {
+          "curved_cable_guide": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 10.000000000000002,
+              "size_y": 10.000000000000004,
+              "size_z": 6.0,
+              "x_max": 5.000000000000002,
+              "x_min": -5.0,
+              "y_max": 5.000000000000002,
+              "y_min": -5.000000000000002,
+              "z_max": 6.0,
+              "z_min": 0.0
+            },
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 6,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "outcome": "invalid",
+            "output_id": "curved_cable_guide",
+            "overall_bounding_box": {
+              "size_x": 10.000000000000002,
+              "size_y": 10.000000000000004,
+              "size_z": 6.0,
+              "x_max": 5.000000000000002,
+              "x_min": -5.0,
+              "y_max": 5.000000000000002,
+              "y_min": -5.000000000000002,
+              "z_max": 6.0,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": false,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 10.000000000000002,
+                  "size_y": 10.000000000000004,
+                  "size_z": 6.0,
+                  "x_max": 5.000000000000002,
+                  "x_min": -5.0,
+                  "y_max": 5.000000000000002,
+                  "y_min": -5.000000000000002,
+                  "z_max": 6.0,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 29101177.683850583,
+                  "y": 29101177.91963545,
+                  "z": 2.9999999999999996
+                },
+                "face_count": 6,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": false,
+                "volume_mm3": 1.7181435108254904e-05
+              }
+            ],
+            "status": "measured",
+            "valid": false,
+            "volume_mm3": 1.7181435108254904e-05
+          }
+        },
+        "provider_calls": 0,
+        "schema_version": "topology-evidence-v2",
+        "source": "authoritative persisted worker result source/job replay",
+        "worker_replay_error": "output shape is invalid",
+        "worker_replay_success": false
+      }
+    },
+    {
+      "authoritative_worker_result": {
+        "failure_class": null,
+        "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+        "output_ids": [
+          "enclosure_base",
+          "enclosure_lid"
+        ],
+        "success": true,
+        "topology_evidence_version_before_replay": []
+      },
+      "authority": {
+        "hash_verification": {
+          "job_output_ids_match_result": true,
+          "job_source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+          "source_file_sha256": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+          "source_matches_job": true,
+          "source_matches_sha256_manifest": true,
+          "source_matches_worker_diagnostics": true,
+          "source_matches_worker_outputs": true,
+          "source_sha256_manifest": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+          "valid": true,
+          "worker_diagnostic_source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+          "worker_output_source_hashes": [
+            "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+            "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af"
+          ]
+        },
+        "identity": {
+          "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+          "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "project_id": "project-04",
+          "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+        },
+        "job_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-02-job.json",
+        "output_manifest_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/revision/output-manifest.json",
+        "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+        "source_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/revision/source.py",
+        "source_wave_path": "data/debug-sessions/executable-cadquery/repeatability-wave-01/fix-cycle-02/project-04-result.json",
+        "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-02-result.json",
+        "worker_result_sha256": "e987ab6e58a402d27325f27f2cd703e5c5371e12843eac4a3130162eb54ca59f"
+      },
+      "historical_repair_envelope_comparison": {
+        "genuinely_new_actionable_topology_evidence": false,
+        "historical_attempt_count": 2,
+        "historical_audit_path": "docs/executable-cadquery-offline-recovery-audit.json",
+        "historical_envelope_was_persisted": true,
+        "historical_latest_attempt": {
+          "normalized_failure_in_project_record": "invalid_shape",
+          "objective_topology_progress": false,
+          "ordinal": 2,
+          "source_changed_from_prior_attempt": true,
+          "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+          "topology": {
+            "enclosure_base": {
+              "bounding_box_mm": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 20.4
+              },
+              "detected_solid_count": 1,
+              "expected_solid_count": 1,
+              "valid": true,
+              "volume_mm3": 30275.32548525156
+            },
+            "enclosure_lid": {
+              "bounding_box_mm": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 15.6
+              },
+              "detected_solid_count": 2,
+              "expected_solid_count": 1,
+              "shell_count": 2,
+              "status": "invalid_shape",
+              "valid": false,
+              "volume_mm3": 23767.2
+            }
+          }
+        },
+        "historical_repair_envelope": {
+          "attempts": [
+            {
+              "normalized_failure_in_project_record": "invalid_shape",
+              "objective_topology_progress": false,
+              "ordinal": 1,
+              "source_changed_from_prior_attempt": true,
+              "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+              "topology": {
+                "enclosure_base": {
+                  "bounding_box_mm": {
+                    "size_x": 80.0,
+                    "size_y": 60.0,
+                    "size_z": 21.9
+                  },
+                  "detected_solid_count": 1,
+                  "expected_solid_count": 1,
+                  "valid": true,
+                  "volume_mm3": 36457.05115136924
+                },
+                "enclosure_lid": {
+                  "bounding_box_mm": {
+                    "size_x": 80.0,
+                    "size_y": 60.0,
+                    "size_z": 13.6
+                  },
+                  "detected_solid_count": 2,
+                  "expected_solid_count": 1,
+                  "shell_count": 2,
+                  "status": "invalid_shape",
+                  "valid": false,
+                  "volume_mm3": 24067.2
+                }
+              }
+            },
+            {
+              "normalized_failure_in_project_record": "invalid_shape",
+              "objective_topology_progress": false,
+              "ordinal": 2,
+              "source_changed_from_prior_attempt": true,
+              "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+              "topology": {
+                "enclosure_base": {
+                  "bounding_box_mm": {
+                    "size_x": 80.0,
+                    "size_y": 60.0,
+                    "size_z": 20.4
+                  },
+                  "detected_solid_count": 1,
+                  "expected_solid_count": 1,
+                  "valid": true,
+                  "volume_mm3": 30275.32548525156
+                },
+                "enclosure_lid": {
+                  "bounding_box_mm": {
+                    "size_x": 80.0,
+                    "size_y": 60.0,
+                    "size_z": 15.6
+                  },
+                  "detected_solid_count": 2,
+                  "expected_solid_count": 1,
+                  "shell_count": 2,
+                  "status": "invalid_shape",
+                  "valid": false,
+                  "volume_mm3": 23767.2
+                }
+              }
+            }
+          ],
+          "current_builder_proves_fields": [
+            "previous_complete_source",
+            "previous_source_hash",
+            "previous_result_hash",
+            "design_contract",
+            "design_contract.outputs expected output policy",
+            "topology_result precise measurements when worker supplied them",
+            "worker_result",
+            "semantic_result",
+            "protected_facts",
+            "repair_history",
+            "prior_provider_response",
+            "prior_normalized_error",
+            "requested_delta"
+          ],
+          "envelope_persisted": false,
+          "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary; valid_base_preserved_in_repair_envelope",
+          "repair_level": "L2",
+          "schema_version": "executable-cadquery-repair-envelope-v1",
+          "source": "docs/executable-cadquery-offline-recovery-audit.json",
+          "terminal_reason": "repair_ceiling_exhausted_without_objective_progress"
+        },
+        "materially_richer_than_previous_gemini_envelope": true,
+        "new_standardized_fields": [
+          "disconnected_solid_policy",
+          "overall_bounding_box",
+          "overall_shape_valid",
+          "solid_pairs",
+          "solids"
+        ],
+        "per_output": {
+          "enclosure_base": {
+            "current_fields_available": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ],
+            "historical_fields_available": [],
+            "material_diagnostic_improvement": true,
+            "material_new_fields": [
+              "disconnected_solid_policy",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "solid_pairs",
+              "solids"
+            ],
+            "materially_equivalent": false,
+            "new_standardized_fields": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ]
+          },
+          "enclosure_lid": {
+            "current_fields_available": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ],
+            "historical_fields_available": [],
+            "material_diagnostic_improvement": true,
+            "material_new_fields": [
+              "disconnected_solid_policy",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "solid_pairs",
+              "solids"
+            ],
+            "materially_equivalent": false,
+            "new_standardized_fields": [
+              "disconnected_solid_policy",
+              "measurement_tolerance_mm",
+              "overall_bounding_box",
+              "overall_shape_valid",
+              "schema_version",
+              "solid_pairs",
+              "solids"
+            ]
+          }
+        }
+      },
+      "new_repair_envelope": {
+        "canonical_output_ids": [
+          "enclosure_base",
+          "enclosure_lid"
+        ],
+        "canonical_source_skeleton": "import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n\nPARAMETERS = (ParameterSpec(\n    id=\"example_size\",\n    label=\"Example size\",\n    type=\"float\",\n    default=1.0,\n    unit=\"mm\",\n),)\n\n\ndef _make_model():\n    return cq.Workplane(\"XY\").box(1.0, 1.0, 1.0)\n\n\ndef build(params):\n    model = _make_model()\n    return Product(\n        outputs=(PrintableOutput(\n            output_id=\"mounting_bracket\",\n            label=\"Complete output\",\n            model=model,\n            component_id=\"mounting_bracket\",\n            required=True,\n            expected_solid_count=1,\n            allow_disconnected_solids=False,\n        ),),\n        parameters=PARAMETERS,\n    )\n",
+        "canonical_source_skeleton_hash": "52afdde33df57643e529de6e6976af6688077289cb8aa09d3fe6e418be68b8a1",
+        "design_contract": {
+          "outputs": [
+            {
+              "expected_solid_count": 1,
+              "output_id": "enclosure_base",
+              "output_type": "printable_component",
+              "required": true
+            },
+            {
+              "expected_solid_count": 1,
+              "output_id": "enclosure_lid",
+              "output_type": "printable_component",
+              "required": true
+            }
+          ],
+          "project_id": "repeatability-project-04",
+          "protected_facts": [
+            {
+              "authoritative_value": {
+                "depth": 60.0,
+                "height": 34.0,
+                "width": 80.0
+              },
+              "requirement_id": "enclosure_envelope"
+            },
+            {
+              "authoritative_value": {
+                "value": 0.4
+              },
+              "requirement_id": "mating_clearance"
+            }
+          ],
+          "relationships": [
+            {
+              "expected_relationship": "lid_clears_base_by_0_4_mm",
+              "participants": [
+                "enclosure_base",
+                "enclosure_lid"
+              ],
+              "relationship_id": "base_lid_mate"
+            }
+          ],
+          "requirements": [
+            {
+              "expected": {
+                "depth": 60.0,
+                "height": 34.0,
+                "width": 80.0
+              },
+              "requirement_id": "enclosure_envelope",
+              "scope": "enclosure_base",
+              "tolerance": 0.5,
+              "verification_policy": "cross_output_envelope"
+            },
+            {
+              "expected": {
+                "value": 3.0
+              },
+              "requirement_id": "wall_thickness",
+              "scope": "enclosure_base",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_wall_profile"
+            },
+            {
+              "expected": {
+                "interference": false,
+                "value": 0.4
+              },
+              "requirement_id": "mating_clearance",
+              "scope": "enclosure_lid",
+              "tolerance": 0.1,
+              "verification_policy": "cross_output_clearance"
+            },
+            {
+              "expected": {
+                "count": 4,
+                "hole_diameter": 3.0
+              },
+              "requirement_id": "base_mounting_bosses",
+              "scope": "enclosure_base",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_opening_profiles"
+            },
+            {
+              "expected": {
+                "height": 6.0,
+                "width": 12.0
+              },
+              "requirement_id": "base_cable_exit",
+              "scope": "enclosure_base",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_feature_profiles"
+            },
+            {
+              "expected": {
+                "height": 10.0,
+                "width": 20.0
+              },
+              "requirement_id": "lid_ventilation_opening",
+              "scope": "enclosure_lid",
+              "tolerance": 0.25,
+              "verification_policy": "final_mesh_feature_profiles"
+            }
+          ],
+          "revision_id": "repeatability-revision-04",
+          "schema_version": "executable-cadquery-design-contract-v1",
+          "units": "mm",
+          "workflow_id": "repeatability-workflow-04"
+        },
+        "execution_diagnostic": {
+          "active_phase": "metadata_generation",
+          "cadquery_version": "2.8.0",
+          "cadquery_worker_version": "cadquery-cli-runner-v1",
+          "command_args": [
+            "python",
+            "_volundr_cadquery_runner.py",
+            "outputs",
+            "execution-manifest.json",
+            "parameter-values.json",
+            "requested-outputs.json"
+          ],
+          "completed_output_ids": [
+            "enclosure_base",
+            "enclosure_lid"
+          ],
+          "exit_code": 0,
+          "incomplete_output_ids": [],
+          "last_completed_operation": {
+            "after": {
+              "edge_count": 48,
+              "face_count": 20,
+              "solid_count": 1
+            },
+            "before": {
+              "edge_count": 36,
+              "face_count": 15,
+              "solid_count": 1
+            },
+            "elapsed_ms": 23.089,
+            "name": "cut"
+          },
+          "last_started_incomplete_operation": {
+            "before": {
+              "edge_count": 36,
+              "face_count": 15,
+              "solid_count": 1
+            },
+            "name": "cut",
+            "started_at_monotonic": 902483.440595339
+          },
+          "message": null,
+          "partial_diagnostic_state_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/diagnostic-state.json",
+          "partial_stderr_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/stderr.log",
+          "partial_stdout_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/stdout.log",
+          "partial_timing_record_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/diagnostic-state.json",
+          "per_output_results": {
+            "enclosure_base": {
+              "compile_error": null,
+              "required": true,
+              "started_at_monotonic": 902483.465552351,
+              "status": "completed",
+              "timing": {
+                "export_ms": 106.295
+              },
+              "updated_at_monotonic": 902483.57207812
+            },
+            "enclosure_lid": {
+              "compile_error": null,
+              "required": true,
+              "started_at_monotonic": 902483.572307784,
+              "status": "completed",
+              "timing": {
+                "export_ms": 34.055
+              },
+              "updated_at_monotonic": 902483.606528641
+            }
+          },
+          "process_rss_kb": 553488,
+          "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+          "started_at_monotonic": 902480.054331018,
+          "subprocess_exit_status": 0,
+          "subprocess_pid": 2399964,
+          "timed_out": false,
+          "timeout_deadline_monotonic": 902540.054331018,
+          "timeout_seconds": 60
+        },
+        "expected_output_policy": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "enclosure_base",
+            "required": true
+          },
+          {
+            "expected_solid_count": 1,
+            "output_id": "enclosure_lid",
+            "required": true
+          }
+        ],
+        "failing_output_ids": [],
+        "generation_session_id": "topology-evidence-v2-project-04",
+        "logical_operation_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7:topology-evidence-v2",
+        "parent_operation_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+        "preserved_valid_output_ids": [
+          "enclosure_base",
+          "enclosure_lid"
+        ],
+        "previous_complete_source": "import cadquery as cq\nfrom volundr_cad.runtime import ParameterSpec, PrintableOutput, Product\n\nPARAMETERS = (\n    ParameterSpec(\n        id=\"length\",\n        label=\"Enclosure Length (Depth)\",\n        type=\"float\",\n        default=60.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"width\",\n        label=\"Enclosure Width\",\n        type=\"float\",\n        default=80.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"height\",\n        label=\"Enclosure Total Height\",\n        type=\"float\",\n        default=34.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"wall_thickness\",\n        label=\"Wall Thickness\",\n        type=\"float\",\n        default=3.0,\n        unit=\"mm\",\n    ),\n    ParameterSpec(\n        id=\"mating_clearance\",\n        label=\"Mating Clearance\",\n        type=\"float\",\n        default=0.4,\n        unit=\"mm\",\n    ),\n)\n\n\ndef _make_base(params):\n    width = params.get(\"width\", 80.0)\n    depth = params.get(\"length\", 60.0)\n    total_height = params.get(\"height\", 34.0)\n    wall = params.get(\"wall_thickness\", 3.0)\n    clearance = params.get(\"mating_clearance\", 0.4)\n\n    base_height = total_height * 0.6\n\n    # Outer shell centered at origin (Z from 0 to base_height)\n    outer = cq.Workplane(\"XY\").box(width, depth, base_height).translate((0, 0, base_height / 2.0))\n\n    # Inner cavity (hollowed from top)\n    cav_width = width - (2.0 * wall)\n    cav_depth = depth - (2.0 * wall)\n    cav_height = base_height - wall\n    cavity = (\n        cq.Workplane(\"XY\")\n        .box(cav_width, cav_depth, cav_height)\n        .translate((0, 0, wall + cav_height / 2.0))\n    )\n\n    body = outer.cut(cavity)\n\n    # Mating step: reduce the top rim of the base by (wall - clearance) on each side\n    step_reduction = wall - clearance\n    step_w = width - (2.0 * step_reduction)\n    step_d = depth - (2.0 * step_reduction)\n    step_cut = (\n        cq.Workplane(\"XY\")\n        .box(step_w, step_d, wall + 2.0)\n        .translate((0, 0, base_height - wall + (wall + 2.0) / 2.0))\n    )\n    base_shelved = body.cut(step_cut)\n\n    # Add 4 mounting bosses inside the corners\n    boss_size = wall * 2.0\n    boss_height = base_height - wall\n    bx = (width / 2.0) - wall - (boss_size / 2.0)\n    by = (depth / 2.0) - wall - (boss_size / 2.0)\n\n    bosses = (\n        cq.Workplane(\"XY\")\n        .pushPoints([(-bx, -by), (bx, -by), (bx, by), (-bx, by)])\n        .box(boss_size, boss_size, boss_height)\n        .translate((0, 0, boss_height / 2.0))\n    )\n\n    base_with_bosses = base_shelved.union(bosses)\n\n    # Drill 3mm holes through bosses (1.5mm radius)\n    holes = (\n        cq.Workplane(\"XY\")\n        .pushPoints([(-bx, -by), (bx, -by), (bx, by), (-bx, by)])\n        .circle(1.5)\n        .extrude(base_height + 5.0)\n        .translate((0, 0, -2.5))\n    )\n    base_final = base_with_bosses.cut(holes)\n\n    # Cable exit notch on one wall (6mm high, 12mm wide)\n    cable_notch = (\n        cq.Workplane(\"XY\")\n        .box(wall * 3.0, 12.0, 6.0)\n        .translate((width / 2.0, 0, base_height / 2.0))\n    )\n    base_final = base_final.cut(cable_notch)\n\n    return base_final\n\n\ndef _make_lid(params):\n    width = params.get(\"width\", 80.0)\n    depth = params.get(\"length\", 60.0)\n    total_height = params.get(\"height\", 34.0)\n    wall = params.get(\"wall_thickness\", 3.0)\n    clearance = params.get(\"mating_clearance\", 0.4)\n\n    base_height = total_height * 0.6\n    lid_height = total_height - base_height\n\n    # Lid outer shell\n    outer = cq.Workplane(\"XY\").box(width, depth, lid_height).translate((0, 0, lid_height / 2.0))\n\n    # Inner cavity of lid, leaving wall thickness\n    cav_width = width - (2.0 * wall)\n    cav_depth = depth - (2.0 * wall)\n    cav_height = lid_height - wall\n    cavity = (\n        cq.Workplane(\"XY\")\n        .box(cav_width, cav_depth, cav_height)\n        .translate((0, 0, cav_height / 2.0))\n    )\n\n    body = outer.cut(cavity)\n\n    # Ventilation opening on top of lid: 20 mm wide by 10 mm deep\n    vent = (\n        cq.Workplane(\"XY\")\n        .box(20.0, 10.0, wall * 3.0)\n        .translate((0, 0, lid_height))\n    )\n    body = body.cut(vent)\n\n    # Mating pocket at the bottom of the lid to fit over the base's stepped rim with clearance\n    pocket_w = width - (2.0 * (wall - clearance))\n    pocket_d = depth - (2.0 * (wall - clearance))\n    pocket_cut = (\n        cq.Workplane(\"XY\")\n        .box(pocket_w, pocket_d, wall + 2.0)\n        .translate((0, 0, (wall + 2.0) / 2.0 - 1.0))\n    )\n    lid_final = body.cut(pocket_cut)\n\n    return lid_final\n\n\ndef build(params):\n    base_model = _make_base(params)\n    lid_model = _make_lid(params)\n\n    return Product(\n        outputs=(\n            PrintableOutput(\n                output_id=\"enclosure_base\",\n                label=\"Enclosure Base\",\n                model=base_model,\n                component_id=\"enclosure_base\",\n                required=True,\n                expected_solid_count=1,\n                allow_disconnected_solids=False,\n            ),\n            PrintableOutput(\n                output_id=\"enclosure_lid\",\n                label=\"Enclosure Lid\",\n                model=lid_model,\n                component_id=\"enclosure_lid\",\n                required=True,\n                expected_solid_count=1,\n                allow_disconnected_solids=False,\n            ),\n        ),\n        parameters=PARAMETERS,\n    )",
+        "previous_result_hash": "e987ab6e58a402d27325f27f2cd703e5c5371e12843eac4a3130162eb54ca59f",
+        "previous_source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+        "prior_l2_attempt_metrics": [
+          {
+            "attempt_number": 1,
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+            "topology": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 21.9
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 36457.05115136924
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 24067.2
+              }
+            }
+          },
+          {
+            "attempt_number": 2,
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+            "topology": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 30275.32548525156
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 15.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 23767.2
+              }
+            }
+          }
+        ],
+        "prior_normalized_error": "invalid_shape",
+        "prior_provider_response": null,
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "depth": 60.0,
+              "height": 34.0,
+              "width": 80.0
+            },
+            "requirement_id": "enclosure_envelope"
+          },
+          {
+            "authoritative_value": {
+              "value": 0.4
+            },
+            "requirement_id": "mating_clearance"
+          }
+        ],
+        "provider_attempt": null,
+        "repair_history": [
+          {
+            "attempt_number": 1,
+            "normalized_failure": "invalid_shape",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+            "topology_result": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 21.9
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 36457.05115136924
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 24067.2
+              }
+            }
+          },
+          {
+            "attempt_number": 2,
+            "normalized_failure": "invalid_shape",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+            "topology_result": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 30275.32548525156
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 15.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 23767.2
+              }
+            }
+          }
+        ],
+        "repair_level": "L2",
+        "repair_ordinal": 1,
+        "replacement_instruction": "Return one complete replacement implementation; do not return a patch, excerpt, or construction strategy.",
+        "requested_delta": "Repair the authoritative topology failure while preserving the frozen design contract.",
+        "schema_version": "executable-cadquery-repair-envelope-v1",
+        "semantic_result": null,
+        "source_dialect": {
+          "allowed_imports": {
+            "cadquery": "import cadquery as cq",
+            "volundr_cad.runtime": [
+              "CapsuleSlotFrame",
+              "ParameterSpec",
+              "ParameterValidationError",
+              "ParameterValues",
+              "PrintableOutput",
+              "Product",
+              "component",
+              "cut_capsule_slot_v1",
+              "feature",
+              "place_pattern_cutters",
+              "protected_interface",
+              "resolve_pattern_points",
+              "shared_helper"
+            ]
+          },
+          "allowed_top_level_statements": [
+            "Import",
+            "Assign",
+            "AnnAssign",
+            "FunctionDef",
+            "ClassDef",
+            "ImportFrom"
+          ],
+          "contract_version": "cadquery-v1",
+          "control_flow_inside_functions": {
+            "comprehensions": true,
+            "for": true,
+            "global": false,
+            "if": true,
+            "imports": false,
+            "local_assignments": true,
+            "nonlocal": false,
+            "returns": true,
+            "supported_function_calls": "Calls are permitted only under the cadquery-v1 call validator.",
+            "try": false,
+            "while": true,
+            "with": false
+          },
+          "forbidden_anywhere": [
+            "try/except",
+            "with and async with",
+            "imports inside functions",
+            "global and nonlocal",
+            "unsafe calls",
+            "dynamic calls",
+            "dunder attribute access",
+            "unsupported imports",
+            "direct filesystem or artifact writing",
+            "eval, exec, and dynamic imports"
+          ],
+          "forbidden_top_level_statements": [
+            "If",
+            "For",
+            "While",
+            "Try",
+            "With",
+            "AsyncWith",
+            "Expr",
+            "Return",
+            "Raise",
+            "Assert",
+            "Match"
+          ],
+          "hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+          "permitted_metadata_classes": "ClassDef with only annotated parameter fields and no decorators or dynamic bases",
+          "required_module_structure": [
+            "approved imports at module scope",
+            "module-level literal/static parameter declarations",
+            "optional helper function definitions",
+            "exactly one build(params) entry point",
+            "build(params) returns Product",
+            "Product registers at least one PrintableOutput",
+            "PrintableOutput uses the canonical output ID and expected solid count",
+            "PrintableOutput declares the disconnected-solid policy"
+          ],
+          "validator_policy_inputs": {
+            "approved_parameter_types": [
+              "bool",
+              "enum",
+              "float",
+              "int",
+              "str"
+            ],
+            "approved_runtime_imports": [
+              "CapsuleSlotFrame",
+              "ParameterSpec",
+              "ParameterValidationError",
+              "ParameterValues",
+              "PrintableOutput",
+              "Product",
+              "component",
+              "cut_capsule_slot_v1",
+              "feature",
+              "place_pattern_cutters",
+              "protected_interface",
+              "resolve_pattern_points",
+              "shared_helper"
+            ],
+            "approved_runtime_metadata_decorators": [
+              "component",
+              "feature",
+              "protected_interface",
+              "shared_helper"
+            ],
+            "approved_safe_direct_calls": [
+              "CapsuleSlotFrame",
+              "abs",
+              "bool",
+              "cut_capsule_slot_v1",
+              "float",
+              "int",
+              "len",
+              "list",
+              "max",
+              "min",
+              "place_pattern_cutters",
+              "range",
+              "resolve_pattern_points",
+              "round",
+              "str",
+              "sum",
+              "tuple"
+            ],
+            "forbidden_direct_calls": [
+              "__import__",
+              "compile",
+              "eval",
+              "exec",
+              "getattr",
+              "globals",
+              "input",
+              "locals",
+              "open",
+              "setattr",
+              "vars"
+            ],
+            "runtime_constructor_keywords": {
+              "ParameterSpec": [
+                "choices",
+                "default",
+                "editable",
+                "id",
+                "label",
+                "max_value",
+                "min_value",
+                "protected",
+                "source",
+                "source_requirement_id",
+                "type",
+                "unit"
+              ],
+              "PrintableOutput": [
+                "allow_disconnected_solids",
+                "component_id",
+                "component_ids",
+                "expected_solid_count",
+                "label",
+                "metadata",
+                "model",
+                "output_id",
+                "quantity",
+                "required"
+              ],
+              "Product": [
+                "metadata",
+                "outputs",
+                "parameters",
+                "schema_version"
+              ]
+            }
+          },
+          "version": "cadquery-v1-source-dialect"
+        },
+        "source_dialect_hash": "2233b4629efedfe504a1a5fafb651aca9ac7ebee5b4d530012b0f8b9eefcd9b4",
+        "topology_attempt_history": [
+          {
+            "attempt_number": 1,
+            "normalized_failure": "invalid_shape",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+            "topology_result": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 21.9
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 36457.05115136924
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 24067.2
+              }
+            }
+          },
+          {
+            "attempt_number": 2,
+            "normalized_failure": "invalid_shape",
+            "repair_level": "L2",
+            "result_hash": null,
+            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+            "topology_result": {
+              "enclosure_base": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4
+                },
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "valid": true,
+                "volume_mm3": 30275.32548525156
+              },
+              "enclosure_lid": {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 15.6
+                },
+                "detected_solid_count": 2,
+                "expected_solid_count": 1,
+                "shell_count": 2,
+                "status": "invalid_shape",
+                "valid": false,
+                "volume_mm3": 23767.2
+              }
+            }
+          }
+        ],
+        "topology_result": {
+          "outputs": {
+            "enclosure_base": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 20.4,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 20.4,
+                "z_min": 0.0
+              },
+              "coordinate_space": "print_space",
+              "detected_solid_count": 1,
+              "disconnected_solid_policy": {
+                "allow_disconnected_solids": false
+              },
+              "expected_solid_count": 1,
+              "face_count": 32,
+              "measurement_errors": [],
+              "measurement_tolerance_mm": 1e-07,
+              "model_space_bounds": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 20.4,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 20.4,
+                "z_min": 0.0
+              },
+              "outcome": "valid",
+              "output_id": "enclosure_base",
+              "overall_bounding_box": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 20.4,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 20.4,
+                "z_min": 0.0
+              },
+              "overall_shape_valid": true,
+              "placement_policy": "cadquery-output-placement-v1",
+              "print_space_bounds": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 20.4,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 20.4,
+                "z_min": 0.0
+              },
+              "print_transform": {
+                "rotation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "translation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "solid_pairs": [],
+              "solids": [
+                {
+                  "bounding_box_mm": {
+                    "size_x": 80.0,
+                    "size_y": 60.0,
+                    "size_z": 20.4,
+                    "x_max": 40.0,
+                    "x_min": -40.0,
+                    "y_max": 30.0,
+                    "y_min": -30.0,
+                    "z_max": 20.4,
+                    "z_min": 0.0
+                  },
+                  "centroid_mm": {
+                    "x": -0.2824142463268073,
+                    "y": -3.0037369957802642e-15,
+                    "z": 6.591815550917755
+                  },
+                  "face_count": 32,
+                  "shell_count": 1,
+                  "solid_id": "solid-0",
+                  "solid_index": 0,
+                  "valid": true,
+                  "volume_mm3": 29446.106590447853
+                }
+              ],
+              "status": "measured",
+              "valid": true,
+              "volume_mm3": 29446.106590447853
+            },
+            "enclosure_lid": {
+              "allow_disconnected_solids": false,
+              "bounding_box_mm": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 13.600000000000001,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 13.600000000000001,
+                "z_min": 0.0
+              },
+              "coordinate_space": "print_space",
+              "detected_solid_count": 1,
+              "disconnected_solid_policy": {
+                "allow_disconnected_solids": false
+              },
+              "expected_solid_count": 1,
+              "face_count": 20,
+              "measurement_errors": [],
+              "measurement_tolerance_mm": 1e-07,
+              "model_space_bounds": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 13.600000000000001,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 13.600000000000001,
+                "z_min": 0.0
+              },
+              "outcome": "valid",
+              "output_id": "enclosure_lid",
+              "overall_bounding_box": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 13.600000000000001,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 13.600000000000001,
+                "z_min": 0.0
+              },
+              "overall_shape_valid": true,
+              "placement_policy": "cadquery-output-placement-v1",
+              "print_space_bounds": {
+                "size_x": 80.0,
+                "size_y": 60.0,
+                "size_z": 13.600000000000001,
+                "x_max": 40.0,
+                "x_min": -40.0,
+                "y_max": 30.0,
+                "y_min": -30.0,
+                "z_max": 13.600000000000001,
+                "z_min": 0.0
+              },
+              "print_transform": {
+                "rotation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "translation": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "solid_pairs": [],
+              "solids": [
+                {
+                  "bounding_box_mm": {
+                    "size_x": 80.0,
+                    "size_y": 60.0,
+                    "size_z": 13.600000000000001,
+                    "x_max": 40.0,
+                    "x_min": -40.0,
+                    "y_max": 30.0,
+                    "y_min": -30.0,
+                    "z_max": 13.600000000000001,
+                    "z_min": 0.0
+                  },
+                  "centroid_mm": {
+                    "x": -2.6566418676138363e-15,
+                    "y": 7.537475416017405e-17,
+                    "z": 9.645006170630714
+                  },
+                  "face_count": 20,
+                  "shell_count": 1,
+                  "solid_id": "solid-0",
+                  "solid_index": 0,
+                  "valid": true,
+                  "volume_mm3": 21910.24000000001
+                }
+              ],
+              "status": "measured",
+              "valid": true,
+              "volume_mm3": 21910.24000000001
+            }
+          }
+        },
+        "worker_result": {
+          "diagnostics": {
+            "active_phase": "metadata_generation",
+            "cadquery_version": "2.8.0",
+            "cadquery_worker_version": "cadquery-cli-runner-v1",
+            "command_args": [
+              "python",
+              "_volundr_cadquery_runner.py",
+              "outputs",
+              "execution-manifest.json",
+              "parameter-values.json",
+              "requested-outputs.json"
+            ],
+            "completed_output_ids": [
+              "enclosure_base",
+              "enclosure_lid"
+            ],
+            "exit_code": 0,
+            "incomplete_output_ids": [],
+            "last_completed_operation": {
+              "after": {
+                "edge_count": 48,
+                "face_count": 20,
+                "solid_count": 1
+              },
+              "before": {
+                "edge_count": 36,
+                "face_count": 15,
+                "solid_count": 1
+              },
+              "elapsed_ms": 23.089,
+              "name": "cut"
+            },
+            "last_started_incomplete_operation": {
+              "before": {
+                "edge_count": 36,
+                "face_count": 15,
+                "solid_count": 1
+              },
+              "name": "cut",
+              "started_at_monotonic": 902483.440595339
+            },
+            "message": null,
+            "partial_diagnostic_state_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/diagnostic-state.json",
+            "partial_stderr_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/stderr.log",
+            "partial_stdout_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/stdout.log",
+            "partial_timing_record_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/diagnostic-state.json",
+            "per_output_results": {
+              "enclosure_base": {
+                "compile_error": null,
+                "required": true,
+                "started_at_monotonic": 902483.465552351,
+                "status": "completed",
+                "timing": {
+                  "export_ms": 106.295
+                },
+                "updated_at_monotonic": 902483.57207812
+              },
+              "enclosure_lid": {
+                "compile_error": null,
+                "required": true,
+                "started_at_monotonic": 902483.572307784,
+                "status": "completed",
+                "timing": {
+                  "export_ms": 34.055
+                },
+                "updated_at_monotonic": 902483.606528641
+              }
+            },
+            "process_rss_kb": 553488,
+            "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+            "started_at_monotonic": 902480.054331018,
+            "subprocess_exit_status": 0,
+            "subprocess_pid": 2399964,
+            "timed_out": false,
+            "timeout_deadline_monotonic": 902540.054331018,
+            "timeout_seconds": 60
+          },
+          "duration_seconds": 4.416821,
+          "failure_class": null,
+          "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "output_ids": [
+            "enclosure_base",
+            "enclosure_lid"
+          ],
+          "outputs": [
+            {
+              "brep_hash": "00f90d5ac0b2e14665c14f24289a3a4c08353117536f59c013a808733b74c398",
+              "brep_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_base/enclosure_base.brep",
+              "compile_error": null,
+              "entrypoint": "enclosure_base",
+              "metadata_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_base/enclosure_base.metadata.json",
+              "output_id": "enclosure_base",
+              "required": true,
+              "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+              "step_hash": "fc152646c868a1512a8a50f84a954bda32eefdc6ca3ccc6c2de4d2b13abe214f",
+              "step_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_base/enclosure_base.step",
+              "stl_hash": "f83dd52bfb6a911cfa52226907170569cde191b42125e9d2a7c965f2147db059",
+              "stl_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_base/enclosure_base.stl",
+              "stl_size_bytes": 106484,
+              "success": true,
+              "topology_metadata": {
+                "allow_disconnected_solids": false,
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 20.4,
+                  "z_min": 0.0
+                },
+                "coordinate_space": "print_space",
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "model_space_bounds": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 20.4,
+                  "z_min": 0.0
+                },
+                "outcome": "valid",
+                "output_id": "enclosure_base",
+                "placement_policy": "cadquery-output-placement-v1",
+                "print_space_bounds": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 20.4,
+                  "z_min": 0.0
+                },
+                "print_transform": {
+                  "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shell_count": 1,
+                "valid": true,
+                "volume_mm3": 29446.106590447853
+              },
+              "topology_metadata_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_base/topology.json"
+            },
+            {
+              "brep_hash": "e81c0b99a5fed31f67a17c7b7fabfa31bfd34c9f64a5c98a13cbcd340af00394",
+              "brep_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_lid/enclosure_lid.brep",
+              "compile_error": null,
+              "entrypoint": "enclosure_lid",
+              "metadata_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_lid/enclosure_lid.metadata.json",
+              "output_id": "enclosure_lid",
+              "required": true,
+              "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+              "step_hash": "bff847fac22e0499470cacde5483c4458d42567b4cf4c85783248ba293b324be",
+              "step_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_lid/enclosure_lid.step",
+              "stl_hash": "163b3277cd7c0053a4a9e2424ba0b0ace6a13d21f5470c991aafc1796372aca1",
+              "stl_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_lid/enclosure_lid.stl",
+              "stl_size_bytes": 3284,
+              "success": true,
+              "topology_metadata": {
+                "allow_disconnected_solids": false,
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.600000000000001,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 13.600000000000001,
+                  "z_min": 0.0
+                },
+                "coordinate_space": "print_space",
+                "detected_solid_count": 1,
+                "expected_solid_count": 1,
+                "model_space_bounds": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.600000000000001,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 13.600000000000001,
+                  "z_min": 0.0
+                },
+                "outcome": "valid",
+                "output_id": "enclosure_lid",
+                "placement_policy": "cadquery-output-placement-v1",
+                "print_space_bounds": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.600000000000001,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 13.600000000000001,
+                  "z_min": 0.0
+                },
+                "print_transform": {
+                  "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shell_count": 1,
+                "valid": true,
+                "volume_mm3": 21910.24000000001
+              },
+              "topology_metadata_path": "work/5bfd8004-9bb3-4527-a1a9-630e0a00d6af/outputs/enclosure_lid/topology.json"
+            }
+          ],
+          "requested_output_ids": [
+            "enclosure_base",
+            "enclosure_lid"
+          ],
+          "schema_version": "cad-execution-result-v1",
+          "success": true,
+          "worker_version": "cad-worker-v1"
+        }
+      },
+      "project_id": "project-04",
+      "repair_gate": {
+        "action": "no_provider_call",
+        "authorized": false,
+        "priority": null,
+        "project_id": "project-04"
+      },
+      "stale_replays_rejected": [
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 1,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20 != b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af)",
+            "the historical source/result artifact is superseded by revision/job 5bfd8004-9bb3-4527-a1a9-630e0a00d6af"
+          ],
+          "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+            "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "project_id": "project-04",
+            "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+          }
+        },
+        {
+          "kind": "historical_repair_replay",
+          "ordinal": 2,
+          "reasons": [
+            "historical replay has no persisted project/workflow/revision/job identity",
+            "historical replay is not the selected latest authoritative worker result",
+            "source hash differs from authoritative frozen source (db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161 != b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af)",
+            "the historical source/result artifact is superseded by revision/job 5bfd8004-9bb3-4527-a1a9-630e0a00d6af"
+          ],
+          "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+            "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "project_id": "project-04",
+            "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+          }
+        },
+        {
+          "job_id": "ae32804b-082c-4e73-91d0-219edb79a0b5",
+          "kind": "superseded_persisted_worker_result",
+          "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-01-result.json",
+          "reasons": [
+            "worker result job identity does not match the latest frozen revision/job",
+            "worker result source hash does not match the latest frozen source",
+            "worker result is retained only as historical evidence"
+          ],
+          "source_hashes": [
+            "82223922bbd6f10ef47e04b2d0a125fb0a1be48d94eb59eef3546d7c0c9d7900",
+            "82223922bbd6f10ef47e04b2d0a125fb0a1be48d94eb59eef3546d7c0c9d7900"
+          ],
+          "stale": true,
+          "superseded_by": {
+            "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+            "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "project_id": "project-04",
+            "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+            "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+          }
+        }
+      ],
+      "topology_evidence_v2": {
+        "outputs": {
+          "enclosure_base": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 20.4,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 20.4,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 32,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 20.4,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 20.4,
+              "z_min": 0.0
+            },
+            "outcome": "valid",
+            "output_id": "enclosure_base",
+            "overall_bounding_box": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 20.4,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 20.4,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 20.4,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 20.4,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 20.4,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 20.4,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": -0.2824142463268073,
+                  "y": -3.0037369957802642e-15,
+                  "z": 6.591815550917755
+                },
+                "face_count": 32,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 29446.106590447853
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 29446.106590447853
+          },
+          "enclosure_lid": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 13.600000000000001,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 13.600000000000001,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 20,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 13.600000000000001,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 13.600000000000001,
+              "z_min": 0.0
+            },
+            "outcome": "valid",
+            "output_id": "enclosure_lid",
+            "overall_bounding_box": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 13.600000000000001,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 13.600000000000001,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 80.0,
+              "size_y": 60.0,
+              "size_z": 13.600000000000001,
+              "x_max": 40.0,
+              "x_min": -40.0,
+              "y_max": 30.0,
+              "y_min": -30.0,
+              "z_max": 13.600000000000001,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 80.0,
+                  "size_y": 60.0,
+                  "size_z": 13.600000000000001,
+                  "x_max": 40.0,
+                  "x_min": -40.0,
+                  "y_max": 30.0,
+                  "y_min": -30.0,
+                  "z_max": 13.600000000000001,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": -2.6566418676138363e-15,
+                  "y": 7.537475416017405e-17,
+                  "z": 9.645006170630714
+                },
+                "face_count": 20,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 21910.24000000001
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 21910.24000000001
+          }
+        },
+        "provider_calls": 0,
+        "schema_version": "topology-evidence-v2",
+        "source": "authoritative persisted worker result source/job replay",
+        "worker_replay_error": null,
+        "worker_replay_success": true
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "schema_version": "executable-cadquery-topology-replay-v2",
+  "source_of_truth": "freeze index, source-wave result, output manifest, source, job, and persisted worker result"
+}

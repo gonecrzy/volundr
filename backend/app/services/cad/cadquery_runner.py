@@ -507,9 +507,12 @@ class CadQueryCliRunner:
             "last_completed_operation": state.get("last_completed_operation"),
             "last_started_incomplete_operation": state.get("last_started_incomplete_operation"),
             "failure_phase": state.get("failure_phase"),
+            "failure_output_id": state.get("failure_output_id"),
             "failure_operation": state.get("failure_operation"),
+            "failure_operation_before": state.get("failure_operation_before"),
             "failure_exception_type": state.get("failure_exception_type"),
             "failure_message": state.get("failure_message"),
+            "normalized_exception": state.get("normalized_exception"),
             "failure_source_function": state.get("failure_source_function"),
             "failure_source_line": state.get("failure_source_line"),
             "completed_output_ids": completed_output_ids,
@@ -521,6 +524,17 @@ class CadQueryCliRunner:
             "partial_stderr_path": self._relative_path(job_dir, stderr_path),
             "process_rss_kb": state.get("process_rss_kb"),
             "source_hash": source_hash or state.get("source_hash"),
+            "failure_source_hash": state.get("failure_source_hash"),
+            "cadquery_version": (
+                execution_payload.get("cadquery_version")
+                if isinstance(execution_payload, dict)
+                else state.get("cadquery_version")
+            ) or state.get("cadquery_version"),
+            "cadquery_worker_version": (
+                execution_payload.get("worker_version")
+                if isinstance(execution_payload, dict)
+                else state.get("cadquery_worker_version")
+            ) or state.get("cadquery_worker_version"),
         }
         if execution_payload is None and not state:
             diagnostics["worker_setup_failure"] = True
@@ -712,6 +726,7 @@ import time
 from pathlib import Path
 
 from app.services.cad.cadquery_contract import CadQueryContractError, validate_cadquery_source
+from app.services.cad.topology_evidence import collect_topology_evidence
 
 PLACEMENT_POLICY = "cadquery-output-placement-v1"
 PLACEMENT_TOLERANCE_MM = 1e-6
@@ -787,13 +802,22 @@ def _record_failure(exc):
             break
         stack_frame = stack_frame.f_back
     operation = _ACTIVE_OPERATION if isinstance(_ACTIVE_OPERATION, dict) else {}
+    normalized_message = _safe_exception_message(exc)
+    requested_output_ids = _DIAGNOSTIC_STATE.get("requested_output_ids") or []
+    failure_output_id = _DIAGNOSTIC_STATE.get("active_output_id")
+    if failure_output_id is None and len(requested_output_ids) == 1:
+        failure_output_id = requested_output_ids[0]
     _DIAGNOSTIC_STATE.update({
         "failure_phase": _DIAGNOSTIC_STATE.get("active_phase"),
+        "failure_output_id": failure_output_id,
         "failure_operation": operation.get("name"),
+        "failure_operation_before": operation.get("before"),
         "failure_exception_type": type(exc).__name__,
-        "failure_message": _safe_exception_message(exc),
+        "failure_message": normalized_message,
+        "normalized_exception": f"{type(exc).__name__} / {normalized_message}",
         "failure_source_function": source_frame.f_code.co_name if source_frame is not None else _DIAGNOSTIC_STATE.get("active_function"),
         "failure_source_line": source_frame.f_lineno if source_frame is not None else None,
+        "failure_source_hash": _DIAGNOSTIC_STATE.get("source_hash"),
     })
     _write_diagnostic_state()
 
@@ -930,9 +954,10 @@ def _shape_complexity(value):
             "face_count": len(shape.Faces()) if hasattr(shape, "Faces") else None,
             "edge_count": len(shape.Edges()) if hasattr(shape, "Edges") else None,
             "solid_count": len(shape.Solids()) if hasattr(shape, "Solids") else None,
+            "valid": bool(shape.isValid()) if hasattr(shape, "isValid") else None,
         }
     except Exception:
-        return {"face_count": None, "edge_count": None, "solid_count": None}
+        return {"face_count": None, "edge_count": None, "solid_count": None, "valid": None}
 
 
 def _shape_summary(value):
@@ -1163,6 +1188,9 @@ def main() -> int:
     cq = cadquery_module
     ParameterValues = parameter_values_cls
     Product = product_cls
+    _DIAGNOSTIC_STATE["cadquery_version"] = getattr(cq, "__version__", "unknown")
+    _DIAGNOSTIC_STATE["cadquery_worker_version"] = "cadquery-cli-runner-v1"
+    _write_diagnostic_state()
 
     if not hasattr(module, "build"):
         raise RuntimeError("generated source must define build(params)")
@@ -1473,71 +1501,54 @@ def _topology_metadata(
             expected_solid_count=expected_solid_count,
             allow_disconnected_solids=allow_disconnected_solids,
         )
-    valid = bool(shape.isValid()) if hasattr(shape, "isValid") else True
-    volume = float(shape.Volume()) if hasattr(shape, "Volume") else None
-    detected_solid_count = _solid_count(model, shape)
-    outcome = "valid"
-    if volume is not None and volume <= 0:
-        valid = False
-        outcome = "empty"
-    if detected_solid_count != expected_solid_count and not allow_disconnected_solids:
-        valid = False
-        outcome = "solid_count_mismatch"
-    if not valid and outcome == "valid":
-        outcome = "invalid"
-    return {
-        "output_id": output_id,
-        "valid": valid,
-        "outcome": outcome,
-        "volume_mm3": volume,
-        "shell_count": _shell_count(model, shape),
-        "bounding_box_mm": _bounding_box_metadata(shape),
-        "detected_solid_count": detected_solid_count,
-        "expected_solid_count": expected_solid_count,
-        "allow_disconnected_solids": allow_disconnected_solids,
-    }
+    evidence = collect_topology_evidence(
+        model,
+        expected_solid_count=expected_solid_count,
+        allow_disconnected_solids=allow_disconnected_solids,
+    )
+    evidence["output_id"] = output_id
+    return evidence
 
 
 def _unsupported_shape_topology_metadata(*, output_id, expected_solid_count, allow_disconnected_solids):
-    return {
+    evidence = collect_topology_evidence(
+        None,
+        expected_solid_count=expected_solid_count,
+        allow_disconnected_solids=allow_disconnected_solids,
+    )
+    evidence.update({
         "output_id": output_id,
-        "valid": False,
         "outcome": "unsupported_shape",
-        "volume_mm3": None,
-        "shell_count": 0,
-        "bounding_box_mm": None,
-        "detected_solid_count": 0,
-        "expected_solid_count": expected_solid_count,
-        "allow_disconnected_solids": allow_disconnected_solids,
-    }
+    })
+    return evidence
 
 
 def _execution_failed_topology_metadata(*, output_id, expected_solid_count, allow_disconnected_solids):
-    return {
+    evidence = collect_topology_evidence(
+        None,
+        expected_solid_count=expected_solid_count,
+        allow_disconnected_solids=allow_disconnected_solids,
+    )
+    evidence.update({
         "output_id": output_id,
-        "valid": False,
         "outcome": "execution_failed",
-        "volume_mm3": None,
-        "shell_count": 0,
-        "bounding_box_mm": None,
-        "detected_solid_count": 0,
-        "expected_solid_count": expected_solid_count,
-        "allow_disconnected_solids": allow_disconnected_solids,
-    }
+    })
+    return evidence
 
 
 def _empty_topology_metadata(*, output_id, expected_solid_count, allow_disconnected_solids):
-    return {
+    evidence = collect_topology_evidence(
+        None,
+        expected_solid_count=expected_solid_count,
+        allow_disconnected_solids=allow_disconnected_solids,
+    )
+    evidence.update({
         "output_id": output_id,
-        "valid": False,
         "outcome": "empty",
         "volume_mm3": 0,
         "shell_count": 0,
-        "bounding_box_mm": None,
-        "detected_solid_count": 0,
-        "expected_solid_count": expected_solid_count,
-        "allow_disconnected_solids": allow_disconnected_solids,
-    }
+    })
+    return evidence
 
 
 def _shape_for(model):

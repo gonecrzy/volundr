@@ -110,6 +110,11 @@ def build_executable_cadquery_repair_envelope(
         failing_output_ids = [str(output_id)] if topology.get("valid") is False and output_id else []
         preserved_valid_output_ids = [str(output_id)] if topology.get("valid") is True and output_id else []
     structured_history = _structured_facts(repair_history or [])
+    topology_attempt_history = [
+        item
+        for item in structured_history
+        if isinstance(item, Mapping) and item.get("topology_result") is not None
+    ]
     execution_diagnostic = _structured_facts(worker.get("execution_diagnostics") or worker.get("diagnostics") or {})
     return {
         "schema_version": REPAIR_ENVELOPE_SCHEMA_VERSION,
@@ -137,11 +142,8 @@ def build_executable_cadquery_repair_envelope(
         "execution_diagnostic": execution_diagnostic,
         "expected_output_policy": expected_output_policy,
         "topology_result": topology,
-        "topology_attempt_history": [
-            item
-            for item in structured_history
-            if isinstance(item, Mapping) and item.get("topology_result") is not None
-        ],
+        "topology_attempt_history": topology_attempt_history,
+        "prior_l2_attempt_metrics": _prior_l2_attempt_metrics(structured_history),
         "failing_output_ids": failing_output_ids,
         "preserved_valid_output_ids": preserved_valid_output_ids,
         "semantic_result": _structured_facts(semantic_result),
@@ -149,6 +151,28 @@ def build_executable_cadquery_repair_envelope(
         "repair_history": _structured_facts(repair_history or []),
         "requested_delta": requested_delta,
     }
+
+
+def _prior_l2_attempt_metrics(history: Any) -> list[dict[str, Any]]:
+    """Project prior L2 attempts into a compact, neutral metric record."""
+
+    metrics: list[dict[str, Any]] = []
+    for item in history if isinstance(history, list) else []:
+        if not isinstance(item, Mapping) or item.get("repair_level") != "L2":
+            continue
+        topology = item.get("topology_result")
+        if not isinstance(topology, Mapping):
+            continue
+        metrics.append(
+            {
+                "attempt_number": item.get("attempt_number"),
+                "repair_level": "L2",
+                "source_hash": item.get("source_hash"),
+                "result_hash": item.get("result_hash"),
+                "topology": dict(topology),
+            }
+        )
+    return metrics
 
 
 def compare_executable_progress(

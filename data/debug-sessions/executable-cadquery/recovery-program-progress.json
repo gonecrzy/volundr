@@ -7,7 +7,7 @@
   "origin_experimental_head": "verified at current pushed HEAD",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "clean_after_generic_recovery_commit",
+  "worktree_status": "dirty_uncommitted_topology_evidence_v2_changes",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -41,6 +41,16 @@
     ,"p2_p4_l2_envelopes_reconstructed_and_prompt_verified_offline"
     ,"p3_bounded_l1_progression_reached_topology"
     ,"generic_restart_safe_recovery_regressions_passed"
+    ,"topology_evidence_v2_implemented_and_deterministically_tested"
+    ,"p2_p3_p4_offline_topology_replay_v2_completed_without_provider_calls"
+    ,"p5_structured_failure_diagnostics_regression_extended"
+    ,"targeted_topology_repair_worker_suite_106_passed"
+    ,"full_backend_final_1418_passed"
+    ,"authoritative_frozen_identity_and_hash_chains_verified_for_p2_p3_p4"
+    ,"superseded_replays_rejected_with_persisted_stale_reasons"
+    ,"topology_evidence_v2_compared_against_historical_repair_envelopes"
+    ,"p3_priority_l2_attempted_once_after_zero_call_checkpoint"
+    ,"full_backend_final_1420_passed"
   ],
   "blocked_gates": [
     {
@@ -60,7 +70,10 @@
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 2,
-    "historical_provider_calls_in_cycle": 4
+    "historical_provider_calls_in_cycle": 4,
+    "topology_evidence_checkpoint_provider_calls": 0,
+    "post_evidence_p3_l2_attempts": 1,
+    "post_evidence_successful_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -79,7 +92,7 @@
     "credential_freeze": "e4b2b9e",
     "backend_baseline": "1401 passed",
     "frontend_baseline": "104 passed",
-    "backend_current": "1407 passed, 1 warning",
+    "backend_current": "1420 passed, 1 skipped, 1 warning",
     "frontend_current": "104 passed; production build passed",
     "offline_browser_current": "22 passed, 15 skipped",
     "migrations_current": "0039_align_fresh_database_schema; alembic check clean",
@@ -89,10 +102,16 @@
     "credential_transport_cad_current": "63 passed",
     "execution_diagnostics_regression": "backend/tests/test_executable_cadquery_worker_integration.py::test_output_retry_persists_structured_execution_diagnostics",
     "durable_recovery_regression": "backend/tests/test_executable_cadquery_workflow.py::test_persisted_execution_recovery_executes_worker_retry_and_rechecks_router",
-    "project_03_current": "two bounded L1 provider repairs with source/error progression; offline retry reached topology at source ce16a9b0 with 2 solids versus expected 1; no topology repair, package, or review",
+    "project_03_current": "authoritative frozen worker source d66883a3 reached topology-evidence-v2 invalid actionable evidence; one priority L2 provider attempt was made after the zero-call checkpoint and was blocked by Gemini CLI unsupported free-tier authentication; no worker response, package, or review",
     "project_03_exact_recheck": "persisted corrected source 4720dfbf reached sweep TypeError offline; bounded L1 source ce16a9b0 then reached topology offline with neutral solid-count evidence; no further provider operation",
     "project_05_current": "one bounded L1 provider repair changed source; existing worker retry persisted build_function chamfer/StdFail_NotDone; terminal execution boundary persisted offline",
-    "project_02_current": "L2 2/2; 5 solids then 14 solids versus expected 1; no objective topology progress; healthy worker; bounded provider convergence; reconstructed L2 prompt contains complete source, contract, metrics, history, and replacement instruction",
-    "project_04_current": "L2 2/2; base remains valid and lid remains invalid at 2 solids versus expected 1; no objective topology progress; healthy worker; bounded provider convergence; reconstructed L2 prompt contains complete source, contract, metrics, history, and replacement instruction"
+    "project_02_current": "authoritative frozen worker source ff0ac836ba reaches topology-evidence-v2 valid 1/1 solid; v2 is materially richer but not actionable; no additional L2 provider call",
+    "project_04_current": "authoritative frozen worker source b36be9ec reaches topology-evidence-v2 valid 1/1 solid for enclosure_base and enclosure_lid; v2 is materially richer but not actionable; no additional L2 provider call",
+    "topology_evidence_v2": "backend/app/services/cad/topology_evidence.py; per-solid validity, volume, bounding box, centroid, shell/face counts, pair intersections/touches/distance/overlap, policy validity, and deterministic valid/overlapping/touching/separated/disconnected/invalid tests",
+    "topology_replay_v2": "docs/executable-cadquery-topology-replay-v2.json; projects 02/03/04 resolved to persisted project/workflow/revision/source/job/result chains, hash-verified, replayed offline with provider_calls=0, and compared against the actual historical repair envelopes; stale reasons are persisted per prior replay",
+    "p3_l2_attempt": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json; one authorized post-evidence attempt; blocked before model response by Gemini CLI IneligibleTierError/unsupported individual free tier; credentials unchanged and no worker call made",
+    "prior_l2_attempt_metrics": "backend/app/services/executable_cadquery/repair.py; compact neutral prior-L2 topology metrics included in repair envelopes and covered by backend/tests/test_executable_cadquery_repair.py",
+    "p5_diagnostic_refresh": "backend/app/services/cad/cadquery_runner.py and backend/tests/test_cad_worker.py; output ID, source hash, source line/function, normalized exception, operation-before validity, chamfer/StdFail_NotDone/BRep_API evidence, CadQuery and worker versions",
+    "verification_current_checkpoint": "1420 full backend tests passed, 1 skipped, 1 warning; targeted replay/repair/worker suites passed; topology/replay and authorized-call Python syntax passed; JSON validation and git diff --check passed; provider attempt persisted as auth-blocked"
   }
 }
