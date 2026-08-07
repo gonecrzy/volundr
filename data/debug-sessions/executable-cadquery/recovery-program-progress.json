@@ -1,13 +1,15 @@
 {
-  "schema_version": "executable-cadquery-recovery-program-progress-v1",
-  "current_phase": "phase_0_existing_five_project_recovery",
+  "schema_version": "executable-cadquery-recovery-program-progress-v2",
+  "methodology_version": "seed-stabilization-diverse-development-corpus-v1",
+  "current_phase": "phase_0_seed_stabilization",
+  "phase_1_started": false,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "pending current recovery checkpoint",
-  "origin_experimental_head": "f15806a final authoritative checkpoint pushed to origin/experiment/gemini-executable-cadquery-v1",
+  "experimental_head": "5ea8802 semantic-call authorization checkpoint",
+  "origin_experimental_head": "5ea8802 semantic-call authorization checkpoint",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "current recovery checkpoint in progress",
+  "worktree_status": "stable bounded recovery checkpoint; methodology update committed and pushed; Phase 1A not started",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -59,11 +61,21 @@
     ,"p3_corrected_transport_preflight_stopped_before_request_without_credential"
     ,"p5_earliest_boundary_l1_gate_persisted_without_downstream_advancement"
     ,"full_backend_current_1425_passed"
+    ,"semantic_call_authorization_gate_verified_without_provider_calls"
+    ,"seed_stabilization_methodology_defined"
+    ,"full_backend_current_1431_passed"
   ],
   "blocked_gates": [
     {
+      "gate": "phase_0_seed_stabilization",
+      "reason": "seed stabilization is the active checkpoint; Phase 1A has not started and requires a frozen diverse 16-project development corpus"
+    }
+  ],
+  "superseded_gates": [
+    {
       "gate": "phase_0_five_of_five_independent_pass",
-      "reason": "P2/P4 have valid topology but measured semantic failures and fresh blind-QA FAIL; P3 remains topology-invalid and its corrected REST transport preflight is blocked before request by missing primary credential; P5 remains at build_function"
+      "status": "superseded_by_methodology",
+      "reason": "P1-P5 are permanent seed/debug regression fixtures, not the certification corpus; their historical failures remain preserved in the authoritative matrix"
     }
   ],
   "project_queues": {
@@ -75,6 +87,80 @@
     "CREDENTIAL_BLOCKED_QUEUE": ["project-02", "project-03", "project-04"],
     "EXECUTION_BOUNDARY_QUEUE": ["project-05"],
     "TERMINAL_QUEUE": []
+  },
+  "seed_corpus_status": {
+    "role": "seed_debug_corpus",
+    "project_count": 5,
+    "certification_corpus": false,
+    "permanent_regression_fixtures": true,
+    "authoritative_state_matrix": "docs/executable-cadquery-phase0-authoritative-matrix.json",
+    "historical_evidence_preserved": true,
+    "project_specific_clearance_rules_allowed": false,
+    "phase_0_gate": "seed_stabilization_properties",
+    "status": "stable_seed_checkpoint"
+  },
+  "development_survey_status": {
+    "phase": "phase_1a_frozen_first_blocker_survey",
+    "status": "not_started_until_methodology_commit_and_stable_checkpoint",
+    "corpus_size": 16,
+    "composition": {
+      "highly_specified": 4,
+      "partially_specified": 8,
+      "intent_heavy": 4
+    },
+    "minimum_revision_turn_projects": 8,
+    "prompts_frozen": false,
+    "feedback_turns_frozen": false,
+    "first_pass_started": false,
+    "first_pass_complete": false,
+    "application_changes_during_survey": "forbidden_except_integrity_defect_stop_and_restart",
+    "first_blocker_matrix": null
+  },
+  "development_recovery_status": {
+    "phase": "phase_1b_cluster_driven_recovery_development",
+    "status": "not_started",
+    "requires_first_blocker_survey_complete": true,
+    "breadth_first_by_generic_failure_class": true,
+    "target_eventual_independent_pass": "16/16",
+    "metrics": [
+      "initial_independent_pass_rate",
+      "eventual_independent_pass_rate",
+      "new_generic_recovery_rules_by_project_order",
+      "existing_rule_recovery_rate"
+    ]
+  },
+  "policy_freeze_status": {
+    "status": "not_eligible",
+    "requires_development_eventual_independent_pass": "16/16",
+    "freeze_targets": [
+      "recovery_registry",
+      "failure_taxonomy",
+      "stage_ordering",
+      "semantic_policy",
+      "design_contract_schema",
+      "source_dialect",
+      "generation_prompt",
+      "repair_prompts",
+      "repair_ceilings",
+      "progress_rules",
+      "candidate_policy",
+      "neutral_measurement_schema",
+      "blind_reviewer_prompt"
+    ]
+  },
+  "holdout_status": {
+    "phase": "phase_2_unseen_holdout_qualification",
+    "status": "not_started",
+    "corpus_size": 8,
+    "composition": {
+      "highly_specified": 2,
+      "partially_specified": 4,
+      "intent_heavy": 2
+    },
+    "minimum_revision_turn_projects": 4,
+    "prompts_exposed_to_development": false,
+    "target_eventual_independent_pass": "8/8",
+    "per_project_tuning_allowed": false
   },
   "application_fix_count": 13,
   "application_fix_count_since_previous_checkpoint": 4,
@@ -99,13 +185,15 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "e9f7dbd Reconcile authoritative Phase 0 downstream state",
+  "latest_substantive_commit": "5ea8802 Gate semantic repairs on measured evidence confidence",
   "evidence": {
+    "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
+    "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
     "compact_recovery_audit": "docs/executable-cadquery-offline-recovery-audit.json",
     "credential_freeze": "e4b2b9e",
     "backend_baseline": "1401 passed",
     "frontend_baseline": "104 passed",
-    "backend_current": "1425 passed, 1 skipped, 1 warning",
+    "backend_current": "1431 passed, 1 skipped, 1 warning",
     "frontend_current": "104 passed; production build passed",
     "offline_browser_current": "22 passed, 15 skipped",
     "migrations_current": "0039_align_fresh_database_schema; alembic check clean",
@@ -130,6 +218,7 @@
     "p5_l1_gate": "docs/executable-cadquery-p5-l1-gate.json; build_function/chamfer/StdFail_NotDone boundary preserved without substituting the separate valid frozen artifact corpus",
     "prior_l2_attempt_metrics": "backend/app/services/executable_cadquery/repair.py; compact neutral prior-L2 topology metrics included in repair envelopes and covered by backend/tests/test_executable_cadquery_repair.py",
     "p5_diagnostic_refresh": "backend/app/services/cad/cadquery_runner.py and backend/tests/test_cad_worker.py; output ID, source hash, source line/function, normalized exception, operation-before validity, chamfer/StdFail_NotDone/BRep_API evidence, CadQuery and worker versions",
-    "verification_current_checkpoint": "1425 full backend tests passed, 1 skipped, 1 warning; routing/repair/diagnostic targeted tests passed; P2/P4 semantic/package/render/blind-QA reconciliation passed offline with zero provider calls; corrected P3 REST transport preflight stopped before request; P5 earliest boundary preserved; JSON validation and git diff --check passed"
+    "semantic_call_authorization_current": "P2 and P4 persisted L3 envelopes are blocked before future provider construction because explicit measurement confidence is absent; verify-only checks report semantic_measurement_verifier_coverage with provider_calls=0",
+    "verification_current_checkpoint": "1431 full backend tests passed, 1 skipped, 1 warning; targeted recovery suite passed; P2/P4 semantic-call authorization denied before provider construction with zero calls; P1-P5 authoritative outcomes preserved; JSON validation and git diff --check passed"
   }
 }

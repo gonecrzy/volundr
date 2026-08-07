@@ -178,61 +178,102 @@ Neither key may reach frontend, browser, Playwright, worker, evidence, or logs.
 Do not revisit credential selection without a real transport/auth/rate-limit
 failure.
 
-## Phase 0 — existing five-project recovery
+## Seed / debug corpus: P1–P5
 
-Do not generate a new corpus. For each frozen project:
+P1–P5 are permanent regression fixtures and the seed/debug corpus. They are
+not the certification corpus. Preserve their authoritative identities, hashes,
+worker results, repair envelopes, stale-artifact explanations, failures, and
+review outcomes exactly. Do not regenerate them or rewrite a failure as a
+success to satisfy a phase gate.
 
-- identify the earliest unresolved blocker;
-- route it through the centralized policy;
-- reuse valid persisted stages;
-- avoid unnecessary Gemini calls;
-- produce a valid final package;
-- create neutral measurements and rendered evidence;
-- run fresh blind Codex CAD QA.
+The seed corpus exposes recovery-routing, stale-state, execution, topology,
+semantic-verification, artifact/package, revision/persistence, and
+reviewer/evidence defects. Seed projects should improve when generic
+capabilities improve, but no project-specific rule may be added to clear one.
 
-Exit is exactly `5 / 5 independent PASS`. Do not begin the development corpus
-before this condition.
+## Phase 0 — Seed Stabilization
 
-Current frozen ownership must remain:
+Phase 0 is complete when the following system properties are proven:
 
-- P1: original wrong-package blind FAIL preserved; the second review is guided
-  adjudication, not blind; independent status requires deterministic neutral
-  B-Rep proof or a fresh uncontaminated blind reviewer;
-- P2: solid-count/topology blocker;
-- P3: execution-level blocker when evidence proves `build_function` and
-  `Workplane.arc` is unavailable; never relabel it artifact-first;
-- P4: invalid-topology blocker with a valid base and failing lid preserved;
-- P5: execution-level `StdFail_NotDone`/`BRep_API` blocker until topology is
-  actually reached; do not classify provider topology convergence early.
+- the centralized recovery router is authoritative;
+- failure stages and first-owner classification are trustworthy;
+- stale evidence cannot drive repair;
+- recovery decisions are durable;
+- recovery actions return to the router after execution;
+- deterministic recovery is separate from Gemini repair;
+- source, execution, topology, semantic, and artifact failures route to
+  distinct stages;
+- credential handling is stable;
+- independent blind QA works;
+- hard deterministic failures cannot be overridden by model review;
+- full regression and product-integrity gates pass; and
+- no unidentified shared application-integrity defect prevents meaningful
+  cross-project execution.
 
-For P2/P4, record every L2 attempt’s source hash, topology metrics, normalized
-failure, complete repair envelope, whether implementation changed, and whether
-objective topology progress occurred. Provider convergence is valid only after
-the bounded L2 policy is exhausted without progress and application/worker
-boundaries are proven healthy.
-
-For P3/P5, structured execution diagnostics must identify the failing
-operation safely before any bounded L1 provider operation. L1 may continue only
-while source or error state changes. Do not change source in Volundr.
+P1–P5 do not need to reach `5 / 5 independent PASS` before Phase 1. Their
+unresolved blockers remain regression fixtures, recovery examples, and future
+validation cases. The authoritative seed matrix remains the source of truth.
 
 Qualification-harness contract-manifest injection is a harness mechanism, not
 the intended product contract source.
 
-## Phase 1 — 16-project development corpus
+## Phase 1A — Frozen First-Blocker Survey
 
-Begin only after Phase 0 is 5/5 independent PASS. Freeze prompts/contracts
-before the first call. Use four highly specified, eight partially specified,
-and four intent-heavy projects, including at least eight planned feedback or
-revision turns and both single- and multi-output projects.
+After the Phase 0 seed-stabilization properties are verified, create a diverse
+16-project DEVELOPMENT corpus. Freeze every initial user prompt before the
+first provider call. Freeze planned clarification answers and user-feedback or
+revision turns as well.
 
-Preserve every contract fact with an origin (`user_explicit`, `user_clarified`,
-`model_design_choice`, `system_default`) and authority (`required`, `protected`,
-`flexible`). Do not over-specify partially specified or intent-heavy prompts.
+For every project, run exactly this first-pass path:
 
-Generate one initial complete source for every project, then process
-breadth-first: classify blockers, cluster generic failures, fix the generic
-class, and advance affected projects. Do not optimize one project deeply while
-others remain unclassified. Exit is `16 / 16` independent PASS.
+```text
+user request
+→ clarification only when genuinely necessary
+→ design contract
+→ one initial complete-source generation
+→ deterministic pipeline
+→ stop at the first real blocker or candidate-ready
+```
+
+Run all 16 projects to first-pass state before changing application code,
+recovery rules, Gemini prompts, repair envelopes, or semantic policy based on
+individual corpus outcomes. If a security, credential, persistence, database,
+or artifact-integrity defect appears, stop the survey, fix the integrity
+defect, and restart or reconcile the survey as appropriate.
+
+The survey corpus composition is:
+
+- 4 highly specified projects;
+- 8 partially specified projects; and
+- 4 intent-heavy/minimally specified projects.
+
+At least 8 projects include frozen user feedback or revision turns. Across the
+16, include single-output and multi-output designs; rotational, prismatic,
+curved/swept, cavity/shell, holes/patterns, mating relationships, optional
+outputs, and revision-heavy workflows. Do not make the set variants of
+brackets, enclosures, or P1–P5.
+
+Do not over-specify most projects. Record each contract fact with:
+
+- origin: `user_explicit`, `user_clarified`, `model_design_choice`, or
+  `system_default`;
+- authority: `required`, `protected`, or `flexible`.
+
+Gemini may choose reasonable designs where the user leaves ordinary choices
+open. Do not invent dimensions and grade Gemini against them as hidden user
+requirements. Clarify only when ambiguity materially affects fit, mating,
+function, safety, compatibility, or output identity.
+
+At least half the corpus contains realistic frozen feedback such as widening
+openings, reducing bulk, moving an exit, adding bosses, spacing holders,
+tilting a design, or using larger mounting holes. Do not predefine hidden exact
+dimensions for feedback that does not state them.
+
+The Phase 1A result is a first-blocker matrix that distinguishes initial
+PASS/candidate-ready projects, source-contract blockers, execution blockers,
+topology blockers, semantic-measurement blockers, unsupported-verifier
+blockers, artifact blockers, and presentation/review blockers. Do not collapse
+unrelated errors into one broad category.
 
 Maintain explicit persisted queues:
 
@@ -244,21 +285,78 @@ REVIEW_QUEUE
 TERMINAL_QUEUE
 ```
 
-A project changes queue only through a persisted router decision.
+Movement is driven only by the centralized router.
 
-## Phase 2 — unseen holdout
+## Phase 1B — Cluster-Driven Recovery Development
 
-After Phase 1 reaches 16/16, freeze and hash the recovery registry, failure
-taxonomy, semantic policy, design-contract schema, source dialect, generation
-and repair prompts, repair ceilings, progress rules, candidate policy, neutral
-measurement schema, and blind reviewer prompt. Commit the freeze before
-touching holdout projects.
+After the complete 16-project first-blocker survey, cluster failures by
+generic mechanism and work breadth-first by failure class, not one project at
+a time. Representative clusters include:
 
-Use an unseen eight-project holdout: two highly specified, four partially
-specified, and two intent-heavy, with at least four revisions. Do not tune by
-individual holdout project. A generic defect pauses and invalidates the
-qualification, requiring a fresh unseen holdout set before generalization.
-Target is `8 / 8` eventual independent PASS.
+```text
+source_contract_violation
+cadquery_api_error
+build_execution_error
+invalid_shape
+solid_count_mismatch
+semantic_requirement_failed
+unsupported_verifier
+stl_export_failure
+package_generation_failure
+preview_render_failure
+revision_drift
+```
+
+For each cluster:
+
+1. reproduce the generic mechanism;
+2. determine application/provider ownership;
+3. improve routing or evidence generically;
+4. add general or synthetic regression coverage;
+5. advance every affected project;
+6. discover each project’s next blocker; and
+7. return projects to the appropriate queue.
+
+Before accepting a new recovery rule, verify that it does not depend on a
+project ID, corpus number, exact fixture dimension, project-specific feature
+name, known final source, known one-project solution, or copied successful
+prompt. A deterministic fix from one project is acceptable only when the
+mechanism is clearly geometry-independent, such as stale-state handling,
+export retry, workspace initialization, exception classification, package
+reconciliation, or preview regeneration. Every generic rule needs synthetic
+or general regression coverage; otherwise prefer evidence from at least two
+unrelated projects.
+
+Track `new_generic_recovery_rules_by_project_order` and
+`existing_rule_recovery_rate`. The desired pattern is that new generic rules
+flatten across projects 1–4, 5–8, 9–12, and 13–16, while later projects
+increasingly recover using existing rules.
+
+Development continues until all 16 final packages independently PASS. Track
+both initial PASS rate and eventual PASS rate; eventual independent PASS is
+the primary development metric.
+
+## Policy freeze
+
+Only after `16 / 16` DEVELOPMENT projects independently PASS, freeze, version,
+and hash the recovery registry, failure taxonomy, stage ordering, semantic
+policy, design-contract schema, source dialect, Gemini generation and repair
+prompts, repair ceilings, progress rules, candidate policy, neutral measurement
+schema, and blind reviewer prompt. Do not continue tuning against development
+projects after the freeze.
+
+## Phase 2 — Unseen Holdout Qualification
+
+Keep 8 holdout projects hidden and unseen during development. Do not expose
+their prompts to development or cluster-driven recovery work. Use different
+geometry/task combinations from the development set.
+
+Composition is 2 highly specified, 4 partially specified, and 2 intent-heavy
+projects; at least 4 include revision turns. Do not tune by individual holdout
+project. If a generic application defect requires policy changes, stop the
+holdout, fix the defect, invalidate that qualification, and create a new unseen
+holdout before claiming generalization. Target is `8 / 8` eventual independent
+PASS.
 
 ## Metrics and evidence
 
@@ -267,6 +365,9 @@ topology and semantic pass rates, Gemini operations to PASS, maximum repair
 depth, repair success by class, deterministic recoveries, provider repairs,
 artifact retries, blind-review cycles, clarification rates, revision success,
 user-intent preservation, design drift, package validity, and independent PASS.
+Also track `new_generic_recovery_rules_by_project_order` and
+`existing_rule_recovery_rate`; later projects should need fewer new generic
+rules and should increasingly recover with existing rules.
 
 The primary metric is eventual independent PASS, not first-shot Gemini success.
 
@@ -280,12 +381,12 @@ Use substantive commits, approximately:
 1. centralized recovery routing;
 2. unified semantic verification and candidate policy;
 3. independent CAD package review;
-4. generic fixes recovering the current five;
-5. current-five completion;
-6. freeze the development corpus;
+4. generic fixes recovering the seed/debug corpus;
+5. seed stabilization and methodology checkpoint;
+6. freeze the diverse development corpus;
 7. breadth-first generic recovery improvements;
 8. development-corpus result;
-9. freeze recovery for holdout;
+9. freeze recovery policy for holdout;
 10. holdout qualification result.
 
 Commit messages describe implementation or phase milestones, not bookkeeping.
@@ -335,9 +436,11 @@ or Volundr says candidate-ready. Completion requires every gate above.
 - [x] centralized recovery policy and durable decisions
 - [x] semantic and candidate policy unified
 - [x] independent package review and neutral measurements
-- [ ] Phase 0: 5/5 independent PASS
-- [ ] development corpus frozen before Phase 1 calls
-- [ ] Phase 1: 16/16 independent PASS
-- [ ] recovery policy freeze committed
-- [ ] Phase 2 holdout: 8/8 independent PASS
+- [ ] Phase 0: seed stabilization gate; P1–P5 remain permanent fixtures
+- [ ] Phase 1A: diverse 16-project corpus frozen before first calls
+- [ ] Phase 1A: all 16 first-blocker results persisted
+- [ ] Phase 1B: breadth-first generic recovery development complete
+- [ ] development gate: 16/16 eventual independent PASS
+- [ ] policy freeze committed and versioned
+- [ ] Phase 2 unseen holdout: 8/8 eventual independent PASS
 - [ ] final merge-review gate
