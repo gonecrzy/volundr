@@ -23,7 +23,6 @@ from app.services.executable_cadquery.contract import (
 )
 from app.services.executable_cadquery.corpus import load_repeatability_contract
 from app.services.executable_cadquery.evidence import persist_exact_provider_response
-from app.services.executable_cadquery.fixtures import FROZEN_MOUNTING_BRACKET_CONTRACT
 from app.services.executable_cadquery.dialect import (
     CADQUERY_V1_SOURCE_DIALECT_VERSION,
     cadquery_v1_source_dialect_hash,
@@ -976,7 +975,9 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 prompt=prompt,
             )
         else:
-            contract = deepcopy(FROZEN_MOUNTING_BRACKET_CONTRACT)
+            raise ValueError(
+                "executable CadQuery flow requires an explicit persisted design contract"
+            )
         contract.update(
             {
                 "project_id": project_id,

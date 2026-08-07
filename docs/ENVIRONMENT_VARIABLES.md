@@ -86,6 +86,8 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_DEVELOPER_TOOLS_ENABLED` | API and Compose | `false` | advanced developer deployment setting | yes | no | Backend-authoritative switch for live debug batches; never expose credentials or rely on frontend hiding. |
 | `VOLUNDR_VALIDATED_API_DIRECT_ACCESS_ENABLED` | API and Compose | `false` | local-development security override | yes | commented | Allows direct loopback API requests only with `X-Volundr-Direct-Access: true`; all requests still resolve to the fixed single-user actor. |
 | `VOLUNDR_AI_PROVIDER` | API | `gemini_api` | common deployment setting | yes | yes | Provider-aware startup and request validation; `gemini_cli` is an explicit experimental API-container transport for the executable-CadQuery flow. |
+| `VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED` | API and Compose | `false` | opt-in experimental workflow | yes | yes | Enables complete-source executable CadQuery only when an explicit persisted design contract is configured. |
+| `VOLUNDR_EXECUTABLE_CADQUERY_CORPUS_MANIFEST_PATH` | API and Compose | unset | executable-route contract source | yes | no | Explicit repeatability corpus manifest; executable runs refuse to substitute a project-specific fixture when this is absent. |
 | `GEMINI_API_KEY` | API | unset | required secret | yes | yes | Required only when live Gemini API requests are made. |
 | `VOLUNDR_GEMINI_API_KEY` | API | unset | deprecated compatibility variable | yes | no | Alias for `GEMINI_API_KEY`; migrate to the unprefixed secret. |
 | `VOLUNDR_GEMINI_MODEL` | API | `gemini-3.5-flash-lite` | provider-specific setting | yes | yes | General/default Gemini model; stage policy falls back to it. |

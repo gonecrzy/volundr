@@ -76,6 +76,20 @@ def test_opt_in_repeatability_manifest_selects_the_exact_prompt_contract(tmp_pat
     assert contract["project_id"] == "database-project"
 
 
+def test_executable_flow_rejects_missing_contract_instead_of_using_a_fixture(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "executable_cadquery_corpus_manifest_path", None)
+
+    service = ExecutableCadQueryWorkflowService(db=None, data_dir=tmp_path)
+
+    with pytest.raises(ValueError, match="explicit persisted design contract"):
+        service._materialize_contract(
+            "database-project",
+            "workflow-id",
+            ordinal=1,
+            prompt="An unregistered executable design request.",
+        )
+
+
 def test_incomplete_semantic_coverage_cannot_be_reported_as_passed() -> None:
     result = complete_executable_semantic_coverage(
         {
@@ -195,8 +209,26 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
 
     previous_executable = settings.executable_cadquery_flow_enabled
     previous_validated = settings.validated_cadquery_flow_enabled
+    previous_manifest = settings.executable_cadquery_corpus_manifest_path
+    manifest_path = tmp_path / "corpus-manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema_version": REPEATABILITY_CORPUS_SCHEMA_VERSION,
+                "projects": [
+                    {
+                        "project_id": "fixture-project",
+                        "prompt": "Create the frozen mounting bracket fixture.",
+                        "contract": FROZEN_MOUNTING_BRACKET_CONTRACT,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
     settings.executable_cadquery_flow_enabled = True
     settings.validated_cadquery_flow_enabled = False
+    settings.executable_cadquery_corpus_manifest_path = manifest_path
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_data_dir] = lambda: tmp_path / "data"
     app.dependency_overrides[get_workflow_ai_provider] = lambda: provider
@@ -277,4 +309,5 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
     finally:
         settings.executable_cadquery_flow_enabled = previous_executable
         settings.validated_cadquery_flow_enabled = previous_validated
+        settings.executable_cadquery_corpus_manifest_path = previous_manifest
         app.dependency_overrides.clear()
