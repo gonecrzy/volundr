@@ -208,6 +208,55 @@ def test_recovery_recheck_preserves_build_failure_as_execution_boundary(tmp_path
     assert result["failure_class"] == "cadquery_api_error"
 
 
+def test_recovery_recheck_preserves_worker_timeout_as_execution_boundary(tmp_path: Path) -> None:
+    (tmp_path / "execution-manifest.json").write_text(
+        json.dumps(
+            {
+                "diagnostics": {
+                    "timed_out": True,
+                    "timeout_seconds": 60,
+                    "active_phase": "build_function",
+                    "message": "CAD worker timed out",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    revision = SimpleNamespace(
+        id="worker-timeout-recheck",
+        status="failed",
+        source_path="source.py",
+        source_hash=None,
+        execution_manifest_path="execution-manifest.json",
+        outputs=[
+            SimpleNamespace(
+                output_id="curved_cable_guide",
+                execution_state="failed",
+                stl_path=None,
+                step_path=None,
+                compile_error="CAD worker timed out",
+                topology_metadata_json=None,
+            )
+        ],
+    )
+
+    class FakeDb:
+        def get(self, _model, revision_id):
+            return revision if revision_id == revision.id else None
+
+    service = ExecutableCadQueryWorkflowService(db=FakeDb(), data_dir=tmp_path)
+    result = service._reevaluate_revision_evidence(
+        revision,
+        {
+            "outputs": [{"output_id": "curved_cable_guide", "expected_solid_count": 1}],
+            "requirements": [],
+        },
+    )
+
+    assert result["failure_boundary"] == "execution"
+    assert result["failure_class"] == "worker_timeout"
+
+
 def test_persisted_execution_seed_preserves_source_and_worker_diagnostics(tmp_path: Path) -> None:
     diagnostics = {
         "active_phase": "build_function",

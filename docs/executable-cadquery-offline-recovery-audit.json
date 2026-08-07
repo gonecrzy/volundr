@@ -5,7 +5,7 @@
   "credential_commit": "e4b2b9e",
   "credential_work_frozen": true,
   "phase2_started": false,
-  "gemini_calls_in_this_cycle": 0,
+  "gemini_calls_in_this_cycle": 2,
   "preserved_findings": {
     "hard_coded_contract_fallback_discovery": {
       "severity": "major_application_defect",
@@ -25,19 +25,44 @@
     "contract_manifest_injection": "qualification-harness mechanism only; not the intended product contract source"
   },
   "project_03_offline_recovery": {
-    "status": "blocked_at_execution_repair_boundary",
+    "status": "blocked_at_worker_timeout_boundary_after_bounded_l1",
     "historical_application_classification": {
       "failure_class": "stl_export_failure",
       "observed_boundary": "artifact",
       "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-03/project-03-result.json"
     },
     "latest_worker_evidence": {
-      "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
-      "active_phase": "build_function",
-      "failure": "AttributeError: Workplane has no attribute arc",
+      "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+      "active_phase": "worker_timeout",
+      "failure": "CAD worker did not complete job within 90 seconds",
+      "timeout_seconds": 60,
+      "worker_result_timeout_seconds": 90,
       "output_status": "not_attempted",
       "artifacts": []
     },
+    "attempts": [
+      {
+        "ordinal": 1,
+        "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
+        "active_phase": "build_function",
+        "failure": "AttributeError: Workplane has no attribute arc",
+        "source_changed": false,
+        "objective_progress": false
+      },
+      {
+        "ordinal": 2,
+        "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
+        "active_phase": "worker_timeout",
+        "failure": "CAD worker did not complete job within 90 seconds",
+        "source_changed": true,
+        "error_changed": false,
+        "objective_progress": false,
+        "topology_reached": false
+      }
+    ],
+    "provider_operation": "one bounded L1 execution repair; generated source changed arc to threePointsArc",
+    "offline_recheck": "same repaired source retried through the existing worker once; repeated timeout; no provider dispatch",
+    "durable_terminal_decision": "worker_timeout; same_source_hash_repeated after no-progress recheck",
     "frozen_geometry_evidence": {
       "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
       "active_phase": "topology_analysis",
@@ -55,6 +80,54 @@
     "package_generation": "not performed",
     "independent_review": "not run; no final package",
     "provider_convergence": "not assigned"
+  },
+  "project_05_execution_recovery": {
+    "status": "blocked_at_build_function_after_bounded_l1",
+    "ownership": "build-function execution blocker",
+    "failure_class": "cadquery_api_error",
+    "first_unresolved_boundary": "build_function",
+    "worker_boundary_healthy": true,
+    "latest_source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+    "latest_execution_diagnostics": {
+      "active_phase": "build_function",
+      "failure_operation": "chamfer",
+      "failure_exception_type": "StdFail_NotDone",
+      "failure_message": "BRep_API: command not done",
+      "failure_source_function": "_make_support",
+      "failure_source_line": 33,
+      "topology_reached": false
+    },
+    "attempts": [
+      {
+        "ordinal": 1,
+        "source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
+        "active_phase": "build_function",
+        "failure_operation": "chamfer",
+        "failure_exception_type": "StdFail_NotDone",
+        "normalized_failure": "cadquery_api_error",
+        "gemini_changed_implementation": false,
+        "objective_topology_progress": false,
+        "topology_reached": false
+      },
+      {
+        "ordinal": 2,
+        "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+        "active_phase": "build_function",
+        "failure_operation": "chamfer",
+        "failure_exception_type": "StdFail_NotDone",
+        "failure_message": "BRep_API: command not done",
+        "normalized_failure": "cadquery_api_error",
+        "gemini_changed_implementation": true,
+        "objective_topology_progress": false,
+        "topology_reached": false
+      }
+    ],
+    "provider_operation": "one bounded L1 execution repair; source changed chamfer length but the failing operation and error remained",
+    "offline_diagnostics_refresh": "existing worker retry only; structured operation-level evidence persisted; no provider dispatch",
+    "durable_terminal_decision": "cadquery_api_error; same_error_state_repeated after one bounded L1 repair",
+    "provider_convergence": "not assigned",
+    "package_generation": "not performed",
+    "independent_review": "not run; no final package"
   },
   "l2_topology_audit": {
     "repair_level": "L2",
@@ -78,6 +151,16 @@
       "requested_delta"
     ],
     "prompt_changed": false,
+    "envelope_verification": {
+      "previous_complete_source": true,
+      "complete_design_contract": true,
+      "expected_output_policy": true,
+      "precise_topology_measurements": true,
+      "previous_topology_attempt_history": true,
+      "complete_replacement_instruction": true,
+      "construction_strategy_prescribed": false,
+      "application_owner": "repair envelope builder and existing provider transport"
+    },
     "projects": {
       "project-02": {
         "ownership": "solid-count/topology blocker",
@@ -136,53 +219,14 @@
         ],
         "terminal_reason": "repair_ceiling_exhausted_without_objective_progress",
         "provider_convergence": "bounded_L2_exhausted_without_progress_with_healthy_worker_boundary; valid_base_preserved_in_repair_envelope"
-      },
-      "project-05": {
-        "ownership": "build-function execution blocker",
-        "failure_class": "cadquery_api_error",
-        "first_unresolved_boundary": "build_function",
-        "worker_boundary_healthy": false,
-        "latest_source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
-        "latest_execution_diagnostics": {
-          "active_phase": "build_function",
-          "failure_operation": "chamfer",
-          "failure_exception_type": "StdFail_NotDone",
-          "failure_message": "BRep_API: command not done",
-          "failure_source_function": "_make_support",
-          "topology_reached": false
-        },
-        "attempts": [
-          {
-            "ordinal": 2,
-            "source_hash": "e341db213b7e762c2f6daa947fbddad827ca9d63ce19fbbb3fd37853e9397c56",
-            "normalized_failure_in_project_record": null,
-            "worker_phase": "build_function",
-            "worker_failure": "OCP.OCP.StdFail.StdFail_NotDone: BRep_API: command not done",
-            "topology_metrics": null,
-            "source_changed_from_prior_attempt": true,
-            "objective_topology_progress": false
-          },
-          {
-            "ordinal": 3,
-            "source_hash": "264453b035fa079970bfc99ab554f69e97d10652a014e7cbf3764819d499acea",
-            "normalized_failure_in_project_record": null,
-            "worker_phase": "build_function",
-            "worker_failure": "OCP.OCP.StdFail.StdFail_NotDone: BRep_API: command not done",
-            "topology_metrics": null,
-            "source_changed_from_prior_attempt": true,
-            "objective_topology_progress": false
-          }
-        ],
-        "terminal_reason": "execution_boundary_corrected_before_topology; one bounded L1 repair requires the corrected persisted execution envelope",
-        "provider_convergence": "not assigned"
       }
     }
   },
   "final_matrix": {
     "project-01": "independent PASS by deterministic neutral B-Rep; guided adjudication retained as non-blind",
     "project-02": "blocked: solid-count/topology; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
-    "project-03": "blocked: build_function AttributeError on Workplane.arc; historical artifact misclassification fixed; no topology/package review",
+    "project-03": "blocked: one bounded L1 changed arc to threePointsArc, then existing worker timed out at 90s; no topology/package review; provider convergence not assigned",
     "project-04": "blocked: lid invalid topology while base remains valid; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
-    "project-05": "blocked: build_function StdFail_NotDone in chamfer; structured failing-operation diagnostic added; topology not reached"
+    "project-05": "blocked: build_function chamfer StdFail_NotDone / BRep_API; one bounded L1 changed source but not error; topology not reached; provider convergence not assigned"
   }
 }

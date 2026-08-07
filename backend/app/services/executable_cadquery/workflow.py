@@ -411,11 +411,13 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         workflow = self._get(workflow_id)
         if workflow is None:
             raise LookupError("validated workflow not found")
-        if workflow.revision_id is None:
+        latest_revision_id = self._latest_persisted_revision_id(workflow)
+        if latest_revision_id is None:
             raise ValueError("persisted execution recovery requires a revision")
-        revision = self.db.get(Revision, workflow.revision_id)
+        revision = self.db.get(Revision, latest_revision_id)
         if revision is None:
             raise ValueError("persisted execution recovery revision not found")
+        workflow.revision_id = revision.id
         provenance = self._json(workflow.provenance_json)
         contract_payload = provenance.get("executable_design_contract")
         if not isinstance(contract_payload, Mapping):
@@ -821,6 +823,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 revision = self.db.get(Revision, revision_id)
                 if revision is None:
                     raise ValueError("complete source revision disappeared")
+                workflow.revision_id = revision.id
                 output = next(iter(revision.outputs), None)
                 worker_result = {
                     "phase": "completed" if revision.status == "succeeded" else "failed",
@@ -1203,9 +1206,10 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     terminal_reason=terminal_reason,
                     provider_budget=provider_budget,
                 )
-                if workflow.revision_id is None and revision_id:
+                if revision_id:
                     revision = self.db.get(Revision, revision_id)
                     if revision is not None:
+                        workflow.revision_id = revision.id
                         self.sync_outputs(workflow, revision)
                 if revision_id:
                     self._merge_verification(workflow, semantic_result)
@@ -1365,6 +1369,19 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             or ""
         )
         exception_type = str(diagnostics.get("failure_exception_type") or "")
+        if diagnostics.get("timed_out") is True or str(
+            diagnostics.get("failure_class") or ""
+        ).lower() in {"timeout", "worker_timeout", "cadquery_timeout"}:
+            return (
+                "execution",
+                classify_executable_failure(
+                    "execution",
+                    {
+                        "timed_out": True,
+                        "message": safe_diagnostic(message),
+                    },
+                ),
+            )
         if phase in {"build_function", "module_import", "source_execution", "execution"}:
             exception_match = re.search(
                 r"\b([A-Za-z_][A-Za-z0-9_]*(?:Error|Exception))\b",
@@ -1402,6 +1419,21 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 ),
             )
         return None
+
+    def _latest_persisted_revision_id(
+        self,
+        workflow: ValidatedCadQueryWorkflow,
+    ) -> str | None:
+        provenance = self._json(workflow.provenance_json)
+        history = provenance.get("repair_history")
+        if isinstance(history, list):
+            for item in reversed(history):
+                if not isinstance(item, Mapping) or not item.get("revision_id"):
+                    continue
+                revision_id = str(item["revision_id"])
+                if self.db.get(Revision, revision_id) is not None:
+                    return revision_id
+        return workflow.revision_id
 
     @staticmethod
     def _build_persisted_execution_seed(

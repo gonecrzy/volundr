@@ -58,7 +58,7 @@ class RecoveryActionExecutor:
                 semantic_result=semantic,
                 diagnostic=None,
             )
-        if action == "rerun_export":
+        if action in {"rerun_export", "retry_stage"}:
             if project_service is None or revision is None:
                 return RecoveryExecutionResult(
                     action=action,
@@ -104,4 +104,3 @@ class RecoveryActionExecutor:
             stl_paths=stl_paths,
             design_contract=contract,
         )
-
