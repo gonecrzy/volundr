@@ -50,7 +50,7 @@
         "source_hash": "94a95de275fb27749fb86cf1d4d54279c79aef70368bbf9074fd136c6b707d5f",
         "topology_evidence_version": "topology-evidence-v2"
       },
-      "next_action": "resolve_downstream_failure_or_review",
+      "next_action": "bounded_cycle_stopped_after_one_l3_semantic_failure",
       "provider_calls_made": 1,
       "semantic_repair_gate": "L3_repair_required",
       "solid_counts": {
@@ -383,7 +383,7 @@
         "source_hash": "60e01831ff66b7a320edd419b8274a950ce2116a9f927d5905f1efab957c28d7",
         "topology_evidence_version": "topology-evidence-v2"
       },
-      "next_action": "resolve_downstream_failure_or_review",
+      "next_action": "bounded_cycle_stopped_after_one_l3_semantic_failure",
       "provider_calls_made": 1,
       "semantic_repair_gate": "L3_repair_required",
       "solid_counts": {
