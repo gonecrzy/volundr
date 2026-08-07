@@ -413,31 +413,62 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         if not 1 <= review_cycle <= 3:
             raise ValueError("independent review cycle must be between 1 and 3")
         review["review_cycle"] = review_cycle
-        verification["independent_final_review"] = review
+        candidate_outputs = [
+            {
+                "output_id": output.output_id,
+                "required": output.required,
+                "state": output.state,
+                "worker_status": output.worker_status,
+                "topology_status": output.topology_status,
+                "artifact_available": output.artifact_available,
+            }
+            for output in workflow.outputs
+        ]
         package_path = self._resolve_optional(workflow.package_path)
-        verification["candidate_policy"] = derive_candidate_policy(
-            outputs=[
-                {
-                    "output_id": output.output_id,
-                    "required": output.required,
-                    "state": output.state,
-                    "worker_status": output.worker_status,
-                    "topology_status": output.topology_status,
-                    "artifact_available": output.artifact_available,
-                }
-                for output in workflow.outputs
-            ],
+        artifact_evidence = {
+            "package_required": True,
+            "package_available": package_path is not None,
+            "valid": None if package_path is None else self._package_is_safe(package_path),
+        }
+        pre_review_candidate = derive_candidate_policy(
+            outputs=candidate_outputs,
             semantic_verification=semantic,
-            artifacts={
-                "package_required": True,
-                "package_available": package_path is not None,
-                "valid": None if package_path is None else self._package_is_safe(package_path),
-            },
+            artifacts=artifact_evidence,
+        )
+        verification["independent_final_review"] = review
+        verification["candidate_policy"] = derive_candidate_policy(
+            outputs=candidate_outputs,
+            semantic_verification=semantic,
+            artifacts=artifact_evidence,
             independent_review={"verdict": review.get("final_verdict")},
         )
         workflow.verification_json = json.dumps(verification, sort_keys=True, default=str)
         diagnostics = self._json(workflow.diagnostics_json)
         diagnostics["latest_independent_review"] = review
+        if verdict == "FAIL" and not pre_review_candidate.get("blockers"):
+            failed_requirement_ids = [
+                str(item.get("requirement_id"))
+                for item in review.get("requirements", [])
+                if isinstance(item, Mapping)
+                and item.get("requirement_id")
+                and str(item.get("verdict") or "").casefold()
+                in {"fail", "failed", "violated"}
+            ]
+            recovery_observation = FailureObservation(
+                observed_stage="independent_final_review",
+                failure_class="semantic_requirement_failed",
+                evidence={
+                    "failed_requirement_ids": failed_requirement_ids,
+                    "measurement_available": bool(failed_requirement_ids),
+                    "review_cycle": review_cycle,
+                    "reviewer": review["reviewer"],
+                },
+                attempt_ordinal=review_cycle,
+            )
+            recovery_decision = self._recovery_router.route(recovery_observation)
+            self._persist_recovery_decision(workflow, recovery_decision)
+            diagnostics["review_recovery_decision"] = recovery_decision.to_record()
+            workflow.failure_boundary = recovery_decision.observed_stage
         workflow.diagnostics_json = json.dumps(diagnostics, sort_keys=True, default=str)
         self.db.commit()
         return self.read(workflow.id)

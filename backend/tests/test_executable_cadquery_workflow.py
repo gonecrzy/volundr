@@ -306,6 +306,31 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert revision_payload["verification"]["output_identity_preserved"] is True
             assert provider.requests[-1].executable_repair_envelope["repair_level"] == "L4"
             assert provider.requests[-1].current_source
+
+            review_fail = client.post(
+                f"/api/validated-cadquery/workflows/{payload['id']}/independent-review",
+                json={
+                    "reviewer": "blind_codex_cad_qa_v1",
+                    "review_cycle": 2,
+                    "final_verdict": "FAIL",
+                    "requirements": [
+                        {
+                            "requirement_id": "body_dimensions",
+                            "verdict": "violated",
+                            "evidence_type": "measured",
+                        }
+                    ],
+                    "revision_preservation": [],
+                    "discrepancies": ["measured body dimensions differ"],
+                },
+            )
+            assert review_fail.status_code == 200, review_fail.text
+            review_fail_payload = review_fail.json()
+            assert review_fail_payload["candidate_policy"]["state"] == "candidate_blocked"
+            recovery_decision = review_fail_payload["provenance"]["recovery_decisions"][-1]
+            assert recovery_decision["observation"]["failure_class"] == "semantic_requirement_failed"
+            assert recovery_decision["recommended_action"] == "gemini_semantic_repair"
+            assert recovery_decision["restart_stage"] == "source_contract"
     finally:
         settings.executable_cadquery_flow_enabled = previous_executable
         settings.validated_cadquery_flow_enabled = previous_validated

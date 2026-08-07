@@ -189,7 +189,7 @@ def test_semantic_repair_invalidates_all_downstream_evidence() -> None:
         )
     )
 
-    assert decision.restart_stage == "source_extraction"
+    assert decision.restart_stage == "source_contract"
     assert decision.invalidates == (
         "worker",
         "topology",
