@@ -1,4 +1,32 @@
-from scripts.run_executable_cadquery_recovery_wave import _review_failure
+from scripts.run_executable_cadquery_recovery_wave import _first_failure, _review_failure
+
+
+def test_worker_execution_failure_precedes_later_topology_in_replay() -> None:
+    failure_class, evidence, boundary = _first_failure(
+        outputs=[
+            {
+                "output_id": "support",
+                "topology_status": "invalid_shape",
+                "expected_solid_count": 1,
+                "detected_solid_count": None,
+            }
+        ],
+        semantic={"failed": [], "unverifiable": []},
+        package_available=False,
+        package_valid=False,
+        worker_result={
+            "diagnostics": {
+                "active_phase": "build_function",
+                "failure_operation": "chamfer",
+                "failure_exception_type": "StdFail_NotDone",
+                "failure_message": "BRep_API: command not done",
+            }
+        },
+    )
+
+    assert failure_class == "cadquery_api_error"
+    assert boundary == "execution"
+    assert evidence["failure_operation"] == "chamfer"
 
 
 def test_measured_blind_review_failure_reenters_semantic_recovery() -> None:

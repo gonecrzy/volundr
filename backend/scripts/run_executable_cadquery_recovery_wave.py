@@ -247,7 +247,13 @@ def _replay_project(
             },
             independent_review={"verdict": independent_review["final_verdict"]},
         )
-    failure_class, evidence, boundary = _first_failure(outputs, semantic, package_available, package_valid)
+    failure_class, evidence, boundary = _first_failure(
+        outputs,
+        semantic,
+        package_available,
+        package_valid,
+        worker_result=worker_result,
+    )
     recovery_decision: dict[str, Any] = {}
     if independent_review.get("final_verdict") == "FAIL":
         failure_class, evidence, boundary = _review_failure(independent_review)
@@ -307,7 +313,41 @@ def _first_failure(
     semantic: Mapping[str, Any],
     package_available: bool,
     package_valid: bool,
+    *,
+    worker_result: Mapping[str, Any] | None = None,
 ) -> tuple[str | None, dict[str, Any], str]:
+    worker = worker_result if isinstance(worker_result, Mapping) else {}
+    diagnostics = worker.get("execution_diagnostics") or worker.get("diagnostics") or {}
+    if isinstance(diagnostics, Mapping):
+        phase = str(
+            diagnostics.get("failure_phase")
+            or diagnostics.get("active_phase")
+            or diagnostics.get("phase")
+            or ""
+        ).lower()
+        message = str(
+            diagnostics.get("failure_message")
+            or diagnostics.get("message")
+            or worker.get("error_message")
+            or ""
+        )
+        exception_type = str(diagnostics.get("failure_exception_type") or "")
+        if phase in {"build_function", "module_import", "source_execution", "execution"} and (
+            message or exception_type or diagnostics.get("failure_operation")
+        ):
+            execution_evidence = dict(diagnostics)
+            if worker.get("error_message") and "message" not in execution_evidence:
+                execution_evidence["message"] = worker["error_message"]
+            if exception_type:
+                execution_evidence["exception_type"] = exception_type
+            if message:
+                execution_evidence["message"] = message
+            execution_evidence["worker_phase"] = phase
+            return (
+                RecoveryRouter.classify_failure("execution", execution_evidence),
+                execution_evidence,
+                "execution",
+            )
     for output in outputs:
         if output.get("topology_status") not in {"valid", "passed", "verified", "ok"}:
             return (

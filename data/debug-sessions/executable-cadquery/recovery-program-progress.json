@@ -1,0 +1,58 @@
+{
+  "schema_version": "executable-cadquery-recovery-program-progress-v1",
+  "current_phase": "phase_0_existing_five_project_recovery",
+  "phase_entry_timestamp": "2026-08-07T04:15:11Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "experimental_head": "06c37ad376f60a0a2c8a0fcf109ec5aa6b245bb0",
+  "origin_experimental_head": "06c37ad376f60a0a2c8a0fcf109ec5aa6b245bb0",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "worktree_status": "clean_at_checkpoint",
+  "completed_gates": [
+    "branch_and_main_divergence_verified",
+    "alembic_current_head_check_verified",
+    "production_feature_defaults_verified",
+    "full_backend_baseline_1401_passed",
+    "full_frontend_baseline_104_passed",
+    "frontend_production_build_passed",
+    "compose_nginx_secret_boundaries_verified",
+    "credential_work_frozen_at_e4b2b9e",
+    "phase_2_not_started"
+  ],
+  "blocked_gates": [
+    {
+      "gate": "phase_0_five_of_five_independent_pass",
+      "reason": "Projects 02-05 do not yet have independent final package PASS results"
+    }
+  ],
+  "project_queues": {
+    "READY_QUEUE": [],
+    "APPLICATION_QUEUE": [],
+    "GEMINI_REPAIR_QUEUE": ["project-03", "project-05"],
+    "REVIEW_QUEUE": [],
+    "TERMINAL_QUEUE": ["project-02", "project-04"]
+  },
+  "application_fix_count": 2,
+  "gemini_operation_counts": {
+    "provider_calls_since_previous_checkpoint": 0,
+    "new_calls_in_current_checkpoint": 0
+  },
+  "policy_versions": {
+    "recovery": "executable-cadquery-recovery-policy-v1",
+    "semantic": "executable-cadquery-semantic-policy-v1",
+    "candidate": "executable-cadquery-candidate-policy-v1",
+    "repair_envelope": "executable-cadquery-repair-envelope-v1",
+    "generation_prompt": "executable-cadquery-complete-source-v3",
+    "execution_repair_prompt": "cadquery-execution-repair-v2",
+    "neutral_measurement": "executable-cadquery-neutral-measurement-v1",
+    "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
+    "blind_review_record": "executable-cadquery-blind-review-record-v1"
+  },
+  "latest_substantive_commit": "06c37ad376f60a0a2c8a0fcf109ec5aa6b245bb0",
+  "evidence": {
+    "compact_recovery_audit": "docs/executable-cadquery-offline-recovery-audit.json",
+    "credential_freeze": "e4b2b9e",
+    "backend_baseline": "1401 passed",
+    "frontend_baseline": "104 passed"
+  }
+}
