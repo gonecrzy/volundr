@@ -1,4 +1,20 @@
 {
+  "authoritative_reconciled_project_orders": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
   "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
   "eventual_independent_pass": {
     "passed": 0,
@@ -9,12 +25,28 @@
     "status": "not_evaluated_no_repair_operations"
   },
   "first_blocker_matrix_complete": true,
+  "historical_invalidated_project_orders": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
   "initial_independent_pass": {
     "passed": 0,
     "rate": 0.0,
     "total": 16
   },
-  "integrity_fix_count_during_survey": 1,
+  "integrity_fix_count_during_survey": 2,
   "integrity_fix_is_recovery_rule": false,
   "new_generic_recovery_rules_by_project_order": {
     "1": 0,

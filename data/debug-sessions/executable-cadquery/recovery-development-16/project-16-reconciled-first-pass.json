@@ -1,0 +1,444 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 2,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 16,
+  "design_contract_sha256": "e213276447e9cb476b987e465d6774208a94423dafd9c716c783fbc3f92bd026",
+  "duration_ms": 7667.669,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "multi_output",
+    "cavity_shelling",
+    "curved_edges",
+    "mating_relationship",
+    "revision_heavy_workflow"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "4f038add-9fc6-4961-93da-04d1388395bd",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "5c3c9191df4b7b10708638fe521c058ff7282c18976176692b3e775b8b9c0a5e",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "4f038add-9fc6-4961-93da-04d1388395bd",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "b261c509-92c6-43cd-a730-445ca87391ad",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "6b80ffd7907f85b478b41371d22d2b24aa96f7bc12c970e4211e41a9a6793df5",
+        "request_hash": "8b88b906932cac1afe58456de526d99955c1c6fbff39891837e5245e3640720e",
+        "request_started_at": "2026-08-07T19:01:47.555603+00:00",
+        "response_length": 5374,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18203.058701743,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "b261c509-92c6-43cd-a730-445ca87391ad",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "6b80ffd7907f85b478b41371d22d2b24aa96f7bc12c970e4211e41a9a6793df5",
+    "request_start_timestamp": "2026-08-07T19:01:47.555603+00:00",
+    "response_length": 5374,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "protective_case_base",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    },
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "protective_case_cover",
+      "required": false,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-16-render.png"
+  },
+  "project_id": "development-16",
+  "project_runtime_id": "d5b1e95c-ad9c-461d-9722-b434abb90854",
+  "prompt_sha256": "a6a48e113ea5ca9c34f7e6cfe44fc50f2094db470a4aa204996a828aa501b13e",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "2eb016fe-054b-414b-add4-f5bc661e494a",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [],
+      "findings": [
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "optional_output": "protective_case_cover",
+            "required_output": "protective_case_base"
+          },
+          "measured_value": {
+            "output_id": "protective_case_base/protective_case_cover",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "case_outputs",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "required_output_identity"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "cable_accessible": true,
+            "controls_accessible": true,
+            "protects_from_ordinary_bumps": true
+          },
+          "measured_value": {
+            "output_id": "protective_case_base/protective_case_cover",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "case_protection",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "base_useful_alone": true,
+            "practical_to_open_and_close": true
+          },
+          "measured_value": {
+            "output_id": "protective_case_base/protective_case_cover",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "case_open_close",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "closure": "designer_choice",
+            "corner_radii": "designer_choice",
+            "device_clearance": "designer_choice",
+            "shell_thickness": "designer_choice"
+          },
+          "measured_value": {
+            "output_id": "protective_case_base/protective_case_cover",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "case_design_freedom",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "protective_case_base",
+        "protective_case_cover"
+      ],
+      "passed": [],
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 4,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "unsupported_verifier",
+      "unsupported_verifier": [
+        "case_outputs",
+        "case_protection",
+        "case_open_close",
+        "case_design_freedom"
+      ],
+      "unverifiable": [
+        "case_outputs",
+        "case_protection",
+        "case_open_close",
+        "case_design_freedom"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "intent_heavy",
+  "state": "verification_failed",
+  "title": "Protective electronics case",
+  "topology": {
+    "observed": true,
+    "result": {
+      "output_ids": [
+        "protective_case_base",
+        "protective_case_cover"
+      ],
+      "outputs": {
+        "protective_case_base": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 11,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "outcome": "valid",
+          "output_id": "protective_case_base",
+          "overall_bounding_box": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 104.8,
+                "size_y": 64.8,
+                "size_z": 9.9,
+                "x_max": 52.4,
+                "x_min": -52.4,
+                "y_max": 32.4,
+                "y_min": -32.4,
+                "z_max": 9.9,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": -3.5246243584026486E-15,
+                "y": 6.901679708487692E-16,
+                "z": 2.3767258533598676
+              },
+              "face_count": 11,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 18815.04000000001
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 18815.04000000001
+        },
+        "protective_case_cover": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 16,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "outcome": "valid",
+          "output_id": "protective_case_cover",
+          "overall_bounding_box": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 104.8,
+            "size_y": 64.8,
+            "size_z": 9.9,
+            "x_max": 52.4,
+            "x_min": -52.4,
+            "y_max": 32.4,
+            "y_min": -32.4,
+            "z_max": 9.9,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 104.8,
+                "size_y": 64.8,
+                "size_z": 9.9,
+                "x_max": 52.4,
+                "x_min": -52.4,
+                "y_max": 32.4,
+                "y_min": -32.4,
+                "z_max": 9.9,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": 0.18008633155658665,
+                "y": 8.046623353601657E-18,
+                "z": 2.364916547264283
+              },
+              "face_count": 16,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 18748.6484
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 18748.6484
+        }
+      },
+      "valid": true
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "c227aedb-4016-438d-bf11-0a597ba4248a"
+}

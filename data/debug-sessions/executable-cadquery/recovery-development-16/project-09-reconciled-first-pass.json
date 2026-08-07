@@ -1,0 +1,275 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 9,
+  "design_contract_sha256": "6cc6569840b09f6baf9286e8f69b742a3248c201b7c44fa582ab4270fef87519",
+  "duration_ms": 6616.357,
+  "first_incorrect_owner": "geometry",
+  "first_unresolved_blocker": "invalid_shape",
+  "geometry_families": [
+    "single_output",
+    "angled_geometry",
+    "holes_and_pockets",
+    "functional_design"
+  ],
+  "highest_stage_reached": "topology",
+  "initial_attempt": {
+    "attempt_id": "5d560781-f5a8-4b38-ba5e-0a66fd0c717f",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {
+      "active_phase": "topology_analysis",
+      "cadquery_version": "2.8.0",
+      "cadquery_worker_version": "cadquery-cli-runner-v1",
+      "command_args": [
+        "python",
+        "_volundr_cadquery_runner.py",
+        "outputs",
+        "execution-manifest.json",
+        "parameter-values.json",
+        "requested-outputs.json"
+      ],
+      "completed_output_ids": [],
+      "exit_code": 0,
+      "incomplete_output_ids": [
+        "tablet_stand"
+      ],
+      "last_completed_operation": {
+        "after": {
+          "edge_count": 84,
+          "face_count": 32,
+          "solid_count": 2,
+          "valid": true
+        },
+        "before": {
+          "edge_count": 60,
+          "face_count": 22,
+          "solid_count": 1,
+          "valid": true
+        },
+        "elapsed_ms": 34.371,
+        "name": "cut"
+      },
+      "last_started_incomplete_operation": {
+        "before": {
+          "edge_count": 60,
+          "face_count": 22,
+          "solid_count": 1,
+          "valid": true
+        },
+        "name": "cut",
+        "started_at_monotonic": 18162.632385931
+      },
+      "message": "output shape is invalid",
+      "partial_diagnostic_state_path": "work/a1551196-336c-47af-b4ba-7df6300305e9/diagnostic-state.json",
+      "partial_stderr_path": "work/a1551196-336c-47af-b4ba-7df6300305e9/stderr.log",
+      "partial_stdout_path": "work/a1551196-336c-47af-b4ba-7df6300305e9/stdout.log",
+      "partial_timing_record_path": "work/a1551196-336c-47af-b4ba-7df6300305e9/diagnostic-state.json",
+      "per_output_results": {
+        "tablet_stand": {
+          "compile_error": "output shape is invalid",
+          "required": true,
+          "started_at_monotonic": 18162.66817185,
+          "status": "invalid_shape",
+          "timing": {
+            "export_ms": 35.142
+          },
+          "updated_at_monotonic": 18162.703463953
+        }
+      },
+      "process_rss_kb": 543808,
+      "source_hash": "d1c7c14e3ad2df829c76613b7d1f5f862d0b137e44fd11a93cda88931e93eaed",
+      "subprocess_exit_status": 0,
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    "exception_type": null,
+    "extracted_source_hash": "d1c7c14e3ad2df829c76613b7d1f5f862d0b137e44fd11a93cda88931e93eaed",
+    "failure_boundary": "topology",
+    "failure_class": "invalid_shape",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "5d560781-f5a8-4b38-ba5e-0a66fd0c717f",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "2a8c98e5-8d44-434e-9315-7e9d60b2e514",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "b47b64dfa45e040e46e2cb3b17b5ed6597d06a45fecb01ff3e0e08cb40e30240",
+        "request_hash": "cc48c2a7af5fc8fef3837b2e4bcd1734ea986c1ac443e3b651cb5a32eeb64195",
+        "request_started_at": "2026-08-07T19:01:01.220681+00:00",
+        "response_length": 3519,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18156.7237688,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "2a8c98e5-8d44-434e-9315-7e9d60b2e514",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "b47b64dfa45e040e46e2cb3b17b5ed6597d06a45fecb01ff3e0e08cb40e30240",
+    "request_start_timestamp": "2026-08-07T19:01:01.220681+00:00",
+    "response_length": 3519,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "invalid_shape",
+  "observed_stage": "topology",
+  "outputs": [
+    {
+      "artifact_available": false,
+      "failure_owner": "verification",
+      "generation_status": "failed",
+      "output_id": "tablet_stand",
+      "required": true,
+      "safe_diagnostic": "output shape is invalid",
+      "state": "invalid_shape",
+      "topology_status": "failed",
+      "worker_status": "failed"
+    }
+  ],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-09",
+  "project_runtime_id": "ad18fb70-b0f4-48b0-9198-c71ed36c7c82",
+  "prompt_sha256": "0a73be0a3eaeb7ab880f10df2d3e5fe3507e195787ce7035850146df512997a5",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "a1551196-336c-47af-b4ba-7df6300305e9",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "verification_failed",
+  "title": "Adjustable tablet stand",
+  "topology": {
+    "observed": true,
+    "result": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 120.0,
+        "size_y": 118.26834146998496,
+        "size_z": 109.76127543315599,
+        "x_max": 60.0,
+        "x_min": -60.0,
+        "y_max": 68.26834146998496,
+        "y_min": -50.0,
+        "z_max": 109.76127543315599,
+        "z_min": 0.0
+      },
+      "detected_solid_count": 2,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 32,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1E-7,
+      "outcome": "solid_count_mismatch",
+      "output_id": "tablet_stand",
+      "overall_bounding_box": {
+        "size_x": 120.0,
+        "size_y": 118.26834146998496,
+        "size_z": 109.76127543315599,
+        "x_max": 60.0,
+        "x_min": -60.0,
+        "y_max": 68.26834146998496,
+        "y_min": -50.0,
+        "z_max": 109.76127543315599,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 2,
+      "solid_pairs": [
+        {
+          "intersects": false,
+          "measurement_errors": [],
+          "minimum_separation_mm": 9.919274643618298,
+          "overlapping_volume_mm3": 0.0,
+          "solid_id_a": "solid-0",
+          "solid_id_b": "solid-1",
+          "solid_index_a": 0,
+          "solid_index_b": 1,
+          "touches": false
+        }
+      ],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 120.0,
+            "size_y": 21.10221980946026,
+            "size_z": 18.000000000000004,
+            "x_max": 60.0,
+            "x_min": -60.0,
+            "y_max": -28.89778019053974,
+            "y_min": -50.0,
+            "z_max": 18.000000000000004,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": 9.826734183704838E-16,
+            "y": -40.57770988993123,
+            "z": 8.03527083977802
+          },
+          "face_count": 12,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 29616.99168071023
+        },
+        {
+          "bounding_box_mm": {
+            "size_x": 120.0,
+            "size_y": 87.72718635985497,
+            "size_z": 109.76127543315599,
+            "x_max": 60.0,
+            "x_min": -60.0,
+            "y_max": 68.26834146998496,
+            "y_min": -19.458844889870008,
+            "z_max": 109.76127543315599,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": -1.223605120904124E-15,
+            "y": 33.41409665806522,
+            "z": 41.46398579873868
+          },
+          "face_count": 20,
+          "shell_count": 1,
+          "solid_id": "solid-1",
+          "solid_index": 1,
+          "valid": true,
+          "volume_mm3": 332994.3781971128
+        }
+      ],
+      "status": "measured",
+      "valid": false,
+      "volume_mm3": 362611.3698778231
+    }
+  },
+  "visible_model": false,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "3f6c6677-1808-48d5-a446-4fcb90f5c65a"
+}

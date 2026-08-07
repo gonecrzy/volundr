@@ -151,6 +151,14 @@ async def test_validated_gemini_429_fallback_is_exact_and_redacted() -> None:
     assert sleeps == [30.0]
     assert records[0]["credential_slot"] == "primary"
     assert records[1]["credential_slot"] == "fallback"
+    assert records[0]["response_received"] is True
+    assert records[1]["response_received"] is True
+    assert records[0]["response_length"] > 0
+    assert len(records[0]["raw_response_hash"]) == 64
+    assert records[0]["request_started_at"].endswith("+00:00")
+    assert records[0]["rate_limit_429_classification"] == "primary_429_fallback_allowed"
+    assert records[1]["rate_limit_429_classification"] == "not_429"
+    assert records[0]["transport_retry_classification"] == "rate_limit_fallback"
     assert records[0]["logical_operation_id"] == records[1]["logical_operation_id"]
     assert records[0]["attempt_id"] != records[1]["attempt_id"]
     assert records[0]["request_hash"] == records[1]["request_hash"]
@@ -511,10 +519,21 @@ def test_provider_attempt_metadata_is_durable_and_contains_no_secret(tmp_path: P
                 "status_code": 429,
                 "failure_class": "quota_failure",
                 "retry_delay_seconds": 30,
+                "request_started_at": "2026-08-07T18:00:00+00:00",
+                "response_received": True,
+                "response_length": 128,
+                "raw_response_hash": "b" * 64,
+                "transport_retry_classification": "rate_limit_fallback",
+                "rate_limit_429_classification": "primary_429_fallback_allowed",
             }
         )
         record = db.scalar(select(ValidatedCadQueryProviderAttempt))
         assert record is not None
         assert record.status_code == 429
         assert record.credential_slot == "primary"
+        assert record.response_received is True
+        assert record.response_length == 128
+        assert record.raw_response_hash == "b" * 64
+        assert record.request_started_at is not None
+        assert record.rate_limit_429_classification == "primary_429_fallback_allowed"
         assert all("secret" not in str(getattr(record, field)) for field in record.__table__.columns.keys())

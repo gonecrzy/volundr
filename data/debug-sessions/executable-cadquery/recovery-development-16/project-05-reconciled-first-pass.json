@@ -1,0 +1,335 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 1,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 5,
+  "design_contract_sha256": "01d84183c9cbc79748c3e297f6a1ddd5f7dd0ec020b0b132d986fbe73f82a612",
+  "duration_ms": 7943.078,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "single_output",
+    "prismatic_geometry",
+    "holes_and_pockets",
+    "functional_design"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "9d0e9099-82c0-454c-b944-a4de1ad2cc0a",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "20087efdeb1188f0abad69f04d13759bc000f645586b0238a91dc222708fda9c",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "9d0e9099-82c0-454c-b944-a4de1ad2cc0a",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "c787c326-f800-4fb8-adad-bcae8f7326a1",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "f1305f6aecec9bd54d99a98783c9677f97795216b42a04b9229504524011b023",
+        "request_hash": "0e32012f3c08fb9aacc3f929f690b797a3d5f5143bb69e8cb3275cdcdd36f4a1",
+        "request_started_at": "2026-08-07T19:00:21.510602+00:00",
+        "response_length": 3814,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18117.013693212,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "c787c326-f800-4fb8-adad-bcae8f7326a1",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "f1305f6aecec9bd54d99a98783c9677f97795216b42a04b9229504524011b023",
+    "request_start_timestamp": "2026-08-07T19:00:21.510602+00:00",
+    "response_length": 3814,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "cable_organizer",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-05-render.png"
+  },
+  "project_id": "development-05",
+  "project_runtime_id": "0ff7d753-cc9a-481e-b0f1-d348a82fd1bf",
+  "prompt_sha256": "a20b78c51fc9786f60e25546c61a1410a53ab489d5bbca7f57075ec738154eb2",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "4e3fc066-ba04-4189-ae29-ae7deb3f980f",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [
+        "organizer_wall_mount"
+      ],
+      "findings": [
+        {
+          "measurements": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1
+          },
+          "requirement_id": "topology",
+          "status": "passed"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "count": 1,
+            "output_id": "cable_organizer"
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "required_output_identity"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "organizer_output",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "required_output_identity"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "hole_count": 2,
+            "hole_diameter": 4.0,
+            "mounting_face": "flat",
+            "wall_mounted": true
+          },
+          "measured_value": {
+            "detected_count": 0,
+            "detected_diameters_mm": [
+              8.481,
+              8.481,
+              8.481,
+              8.481
+            ],
+            "expected_count": 1,
+            "through": true
+          },
+          "measurement_available": true,
+          "observed_status": "failed",
+          "policy": "machine_required",
+          "requirement_id": "organizer_wall_mount",
+          "result": "failed",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_opening_profiles"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "insertable_and_removable": true,
+            "separated_channels": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "organizer_cable_function",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "channel_count": "designer_choice",
+            "edge_treatment": "designer_choice",
+            "ordinary_proportions": "designer_choice"
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "organizer_design_choices",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "cable_organizer"
+      ],
+      "passed": [
+        "topology"
+      ],
+      "policy_summary": {
+        "failed": 1,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 3,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "failed",
+      "unsupported_verifier": [
+        "organizer_output",
+        "organizer_cable_function",
+        "organizer_design_choices"
+      ],
+      "unverifiable": [
+        "organizer_output",
+        "organizer_cable_function",
+        "organizer_design_choices"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "verification_failed",
+  "title": "Wall charging-cable organizer",
+  "topology": {
+    "observed": true,
+    "result": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 120.0,
+        "size_y": 25.0,
+        "size_z": 40.0,
+        "x_max": 60.0,
+        "x_min": -60.0,
+        "y_max": 25.0,
+        "y_min": 0.0,
+        "z_max": 40.0,
+        "z_min": 0.0
+      },
+      "coordinate_space": "print_space",
+      "detected_solid_count": 1,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 38,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1E-7,
+      "model_space_bounds": {
+        "size_x": 120.0,
+        "size_y": 25.0,
+        "size_z": 40.0,
+        "x_max": 60.0,
+        "x_min": -60.0,
+        "y_max": 25.0,
+        "y_min": 0.0,
+        "z_max": 40.0,
+        "z_min": 0.0
+      },
+      "outcome": "valid",
+      "output_id": "cable_organizer",
+      "overall_bounding_box": {
+        "size_x": 120.0,
+        "size_y": 25.0,
+        "size_z": 40.0,
+        "x_max": 60.0,
+        "x_min": -60.0,
+        "y_max": 25.0,
+        "y_min": 0.0,
+        "z_max": 40.0,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "placement_policy": "cadquery-output-placement-v1",
+      "print_space_bounds": {
+        "size_x": 120.0,
+        "size_y": 25.0,
+        "size_z": 40.0,
+        "x_max": 60.0,
+        "x_min": -60.0,
+        "y_max": 25.0,
+        "y_min": 0.0,
+        "z_max": 40.0,
+        "z_min": 0.0
+      },
+      "print_transform": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 1,
+      "solid_pairs": [],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 120.0,
+            "size_y": 25.0,
+            "size_z": 40.0,
+            "x_max": 60.0,
+            "x_min": -60.0,
+            "y_max": 25.0,
+            "y_min": 0.0,
+            "z_max": 40.0,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": -1.350027905474247E-15,
+            "y": 12.39881586761956,
+            "z": 20.000000000000004
+          },
+          "face_count": 38,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 106105.52192913076
+        }
+      ],
+      "status": "measured",
+      "valid": true,
+      "volume_mm3": 106105.52192913076
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "d728a811-0d90-4a4c-9cf0-def59c2b9507"
+}

@@ -4,6 +4,27 @@
     "commit": "e0e9be5",
     "regression_test": "test_validated_attempt_recorder_replaces_stale_workflow_observer"
   },
+  "historical_provider_attempt_forensics": {
+    "evidence_file": "historical-provider-attempt-forensics.json",
+    "exact_attempt_facts_recovered": false,
+    "invalidated_project_orders": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "provider_calls_made": 0
+  },
   "initial_launch": {
     "code_checkpoint": "820b004",
     "completed_project_orders": [
@@ -50,6 +71,31 @@
     "cause": "shared GeminiApiProvider retained callbacks for prior request-scoped workflow services",
     "class": "shared_provider_attempt_observer_accumulation",
     "symptom": "UNIQUE constraint failed on validated_cadquery_provider_attempts.attempt_id"
+  },
+  "observational_reconciliation": {
+    "authoritative_matrix_uses_reconciled_records": true,
+    "current_post_integrity_fix_code": true,
+    "frozen_prompts_and_contracts": true,
+    "provider_operations": 14,
+    "rate_limit_audit": "rate-limit-audit.json",
+    "record_suffix": "reconciled-first-pass",
+    "repair_operations": 0,
+    "restarted_project_orders": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
   },
   "reconciliation": {
     "final_first_pass_records": 16,

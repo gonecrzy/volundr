@@ -1,0 +1,330 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 1,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 7,
+  "design_contract_sha256": "6568f5399d2929054f74a0bd8e88e16997540f7546015193b3ce00f7436560ef",
+  "duration_ms": 8516.342,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "single_output",
+    "curved_swept_geometry",
+    "holes_and_pockets"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "1f91720e-3d0c-449d-9aeb-9d4ce0c7e3ab",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "5278d71137521b71f95611f10f0bd9e7d0e18196026bb661f2c5c8eb9e935dc0",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "1f91720e-3d0c-449d-9aeb-9d4ce0c7e3ab",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "47965861-8106-4652-8d7d-2f5ed064927d",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "46bb77114355205e99c40d7eb03a87b618bf65e66f198a59fd8503b274e25cc9",
+        "request_hash": "33a691dfe448a4119d18cc2172dca4d804da513d033a8dec221533c260975800",
+        "request_started_at": "2026-08-07T19:00:40.683304+00:00",
+        "response_length": 4979,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18136.18639377,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "47965861-8106-4652-8d7d-2f5ed064927d",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "46bb77114355205e99c40d7eb03a87b618bf65e66f198a59fd8503b274e25cc9",
+    "request_start_timestamp": "2026-08-07T19:00:40.683304+00:00",
+    "response_length": 4979,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "curved_cable_guide",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-07-render.png"
+  },
+  "project_id": "development-07",
+  "project_runtime_id": "e2fd4fcb-8f07-434b-8cd2-b879d9743558",
+  "prompt_sha256": "abf0af0fbef9d2275d55e083705d7d0c02a7c03f7b4d7f84b998364b2866dcc1",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "bd770c94-0f3f-4fcf-820c-09fd66e88fa9",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [
+        "guide_mounting"
+      ],
+      "findings": [
+        {
+          "measurements": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1
+          },
+          "requirement_id": "topology",
+          "status": "passed"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "connected": true,
+            "count": 1
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "topology_and_required_output"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "guide_output",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "topology_and_required_output"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "clearance": "must_not_pin_bundle",
+            "maximum_bundle_diameter": 20.0
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "neutral_measurement_plus_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "guide_clearance",
+          "result": "unsupported_verifier",
+          "tolerance": 0.5,
+          "verification_policy": "neutral_measurement_plus_review"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "flat_surface_mount": true,
+            "screw_hole_count": 2
+          },
+          "measured_value": {
+            "detected_count": 2,
+            "detected_diameters_mm": [
+              4.5,
+              4.5
+            ],
+            "expected_count": 1,
+            "through": true
+          },
+          "measurement_available": true,
+          "observed_status": "failed",
+          "policy": "machine_required",
+          "requirement_id": "guide_mounting",
+          "result": "failed",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_opening_profiles"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "exit_side": "designer_choice",
+            "path_radius": "designer_choice",
+            "section_shape": "designer_choice"
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "guide_design_choices",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "curved_cable_guide"
+      ],
+      "passed": [
+        "topology"
+      ],
+      "policy_summary": {
+        "failed": 1,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 3,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "failed",
+      "unsupported_verifier": [
+        "guide_output",
+        "guide_clearance",
+        "guide_design_choices"
+      ],
+      "unverifiable": [
+        "guide_output",
+        "guide_clearance",
+        "guide_design_choices"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "verification_failed",
+  "title": "Curved cable guide",
+  "topology": {
+    "observed": true,
+    "result": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 57.00000000000001,
+        "size_y": 57.0,
+        "size_z": 31.0,
+        "x_max": 57.0,
+        "x_min": -1.047073013270987E-14,
+        "y_max": 57.0,
+        "y_min": 0.0,
+        "z_max": 31.0,
+        "z_min": 0.0
+      },
+      "coordinate_space": "print_space",
+      "detected_solid_count": 1,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 14,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1E-7,
+      "model_space_bounds": {
+        "size_x": 57.00000000000001,
+        "size_y": 57.0,
+        "size_z": 31.0,
+        "x_max": 57.0,
+        "x_min": -1.047073013270987E-14,
+        "y_max": 57.0,
+        "y_min": 0.0,
+        "z_max": 31.0,
+        "z_min": 0.0
+      },
+      "outcome": "valid",
+      "output_id": "curved_cable_guide",
+      "overall_bounding_box": {
+        "size_x": 57.00000000000001,
+        "size_y": 57.0,
+        "size_z": 31.0,
+        "x_max": 57.0,
+        "x_min": -1.047073013270987E-14,
+        "y_max": 57.0,
+        "y_min": 0.0,
+        "z_max": 31.0,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "placement_policy": "cadquery-output-placement-v1",
+      "print_space_bounds": {
+        "size_x": 57.00000000000001,
+        "size_y": 57.0,
+        "size_z": 31.0,
+        "x_max": 57.0,
+        "x_min": -1.047073013270987E-14,
+        "y_max": 57.0,
+        "y_min": 0.0,
+        "z_max": 31.0,
+        "z_min": 0.0
+      },
+      "print_transform": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 1,
+      "solid_pairs": [],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 57.00000000000001,
+            "size_y": 57.0,
+            "size_z": 31.0,
+            "x_max": 57.0,
+            "x_min": -1.047073013270987E-14,
+            "y_max": 57.0,
+            "y_min": 0.0,
+            "z_max": 31.0,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": 28.571142727725192,
+            "y": 27.044518923377666,
+            "z": 15.44237661153163
+          },
+          "face_count": 14,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 57437.07321468588
+        }
+      ],
+      "status": "measured",
+      "valid": true,
+      "volume_mm3": 57437.07321468588
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "e86ff7b7-d82a-4685-a472-cb0bc49a8fec"
+}

@@ -350,7 +350,15 @@ def diagnose_cadquery_contract_error(source: str, message: str) -> dict[str, Any
             None,
         )
     if node is None:
-        node = next((candidate for candidate in ast.walk(tree) if predicate(candidate)), None)
+        top_level_nodes = set(tree.body)
+        node = next(
+            (
+                candidate
+                for candidate in ast.walk(tree)
+                if predicate(candidate) and candidate not in top_level_nodes
+            ),
+            None,
+        )
     return _diagnostic(
         code=code,
         message=diagnostic_message,

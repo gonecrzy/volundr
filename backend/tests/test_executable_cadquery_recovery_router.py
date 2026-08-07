@@ -1,6 +1,8 @@
 import json
 from types import SimpleNamespace
 
+import pytest
+
 from app.services.executable_cadquery.recovery import (
     CANONICAL_STAGES,
     RECOVERY_ACTIONS,
@@ -243,6 +245,76 @@ def test_router_owns_failure_normalization_and_earliest_stage_mapping() -> None:
 
     assert failure_class == "stl_export_failure"
     assert RecoveryRouter.earliest_stage("artifact", failure_class) == "artifact_export"
+
+
+@pytest.mark.parametrize(
+    ("evidence", "expected"),
+    [
+        (
+            {
+                "response_received": False,
+                "exception_type": "ConnectTimeout",
+                "normalized_transport_error": "provider transport timeout",
+            },
+            "provider_transport_failure",
+        ),
+        (
+            {
+                "response_received": True,
+                "status_code": 429,
+                "rate_limit_429_classification": "http_429",
+            },
+            "provider_rate_limit",
+        ),
+        (
+            {"response_received": True, "status_code": 403},
+            "provider_authentication_failure",
+        ),
+        (
+            {"response_received": True, "response_length": 0},
+            "provider_response_empty",
+        ),
+        (
+            {
+                "response_received": True,
+                "response_length": 24,
+                "source_extraction_succeeded": False,
+            },
+            "provider_source_extraction_failure",
+        ),
+        (
+            {
+                "response_received": True,
+                "response_length": 128,
+                "source_extraction_succeeded": True,
+                "source_contract_valid": False,
+            },
+            "provider_response_contract_failure",
+        ),
+    ],
+)
+def test_provider_taxonomy_requires_response_evidence(evidence, expected) -> None:
+    assert RecoveryRouter.classify_failure("provider_response", evidence) == expected
+
+
+def test_provider_contract_failure_without_response_is_transport_failure() -> None:
+    assert RecoveryRouter.classify_failure(
+        "provider_response",
+        {"response_received": False, "exception_type": "RuntimeError"},
+    ) == "provider_transport_failure"
+
+
+def test_provider_transport_owner_is_not_geometry_or_provider_response() -> None:
+    decision = RecoveryRouter().route(
+        FailureObservation(
+            observed_stage="provider_transport",
+            failure_class="provider_transport_failure",
+            evidence={"response_received": False},
+        )
+    )
+
+    assert decision.first_incorrect_owner == "provider_transport"
+    assert decision.observed_stage == "provider_transport"
 
 
 def test_router_does_not_hide_worker_failure_as_geometry_failure() -> None:

@@ -1,0 +1,443 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 2,
+    "required_outputs": 2
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 8,
+  "design_contract_sha256": "2c02abff90e9b662952b111dabfd09cd08c6affe1c48f2cc821b7041c29d6f1a",
+  "duration_ms": 12019.808,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "multi_output",
+    "mating_relationship",
+    "rotational_interface",
+    "holes_and_patterns"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "ac3b7e12-ea20-44a1-ac3d-1f9b1afa5026",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "d9c126eb9aec5e3ec90fa879c6839e7239bc1a47249ffe6cb43588921e00a192",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "ac3b7e12-ea20-44a1-ac3d-1f9b1afa5026",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "a5b7e319-a790-4b8b-9486-5076b2b9d395",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "2358dca023479d49795096f54706e702ab9b4e876311b63db70cf44c2626ba2f",
+        "request_hash": "64fc0413d74ffa6f007d7299114c9c38b712913ed2f6ceab867c6d43b8d48457",
+        "request_started_at": "2026-08-07T19:00:49.199568+00:00",
+        "response_length": 6150,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18144.702670034,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "a5b7e319-a790-4b8b-9486-5076b2b9d395",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "2358dca023479d49795096f54706e702ab9b4e876311b63db70cf44c2626ba2f",
+    "request_start_timestamp": "2026-08-07T19:00:49.199568+00:00",
+    "response_length": 6150,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "tube_clamp_lower",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    },
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "tube_clamp_upper",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-08-render.png"
+  },
+  "project_id": "development-08",
+  "project_runtime_id": "6e0c6cfd-28bb-420b-9c49-a782cf01a099",
+  "prompt_sha256": "f2572f7173281d607e604bc496c2f1d5d0e48e2aa6ed30dd9d210bede40c8b01",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "833bbd89-0008-407c-b230-84b92fd2c341",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [],
+      "findings": [
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "count": 2,
+            "independent": true
+          },
+          "measured_value": {
+            "output_id": "tube_clamp_upper/tube_clamp_lower",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "clamp_outputs",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "required_output_identity"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "round_interface": true,
+            "secure_during_handling": true,
+            "tube_outside_diameter": 25.0
+          },
+          "measured_value": {
+            "output_id": "tube_clamp_upper/tube_clamp_lower",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "clamp_tube_interface",
+          "result": "unsupported_verifier",
+          "tolerance": 0.5,
+          "verification_policy": "neutral_measurement_plus_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "count": 2,
+            "fastener": "M4",
+            "opposite_sides": true
+          },
+          "measured_value": {
+            "output_id": "tube_clamp_upper/tube_clamp_lower",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "clamp_fasteners",
+          "result": "unsupported_verifier",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_opening_profiles"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "length": "designer_choice",
+            "split_geometry": "designer_choice",
+            "wall_thickness": "designer_choice"
+          },
+          "measured_value": {
+            "output_id": "tube_clamp_upper/tube_clamp_lower",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "clamp_design_choices",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "tube_clamp_lower",
+        "tube_clamp_upper"
+      ],
+      "passed": [],
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 4,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "unsupported_verifier",
+      "unsupported_verifier": [
+        "clamp_outputs",
+        "clamp_tube_interface",
+        "clamp_fasteners",
+        "clamp_design_choices"
+      ],
+      "unverifiable": [
+        "clamp_outputs",
+        "clamp_tube_interface",
+        "clamp_fasteners",
+        "clamp_design_choices"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "verification_failed",
+  "title": "Mating tube clamp",
+  "topology": {
+    "observed": true,
+    "result": {
+      "output_ids": [
+        "tube_clamp_lower",
+        "tube_clamp_upper"
+      ],
+      "outputs": {
+        "tube_clamp_lower": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 44,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "outcome": "valid",
+          "output_id": "tube_clamp_lower",
+          "overall_bounding_box": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 53.0,
+                "size_y": 30.0,
+                "size_z": 18.5,
+                "x_max": 26.5,
+                "x_min": -26.5,
+                "y_max": 15.000000000000002,
+                "y_min": -15.0,
+                "z_max": 18.5,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": 1.0857188779551684E-15,
+                "y": -3.0153827052466314E-16,
+                "z": 8.687193810961087
+              },
+              "face_count": 44,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 19616.97354339312
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 19616.97354339312
+        },
+        "tube_clamp_upper": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 16,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "outcome": "valid",
+          "output_id": "tube_clamp_upper",
+          "overall_bounding_box": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 53.0,
+            "size_y": 30.0,
+            "size_z": 18.5,
+            "x_max": 26.5,
+            "x_min": -26.5,
+            "y_max": 15.000000000000002,
+            "y_min": -15.0,
+            "z_max": 18.5,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 53.0,
+                "size_y": 30.0,
+                "size_z": 18.5,
+                "x_max": 26.5,
+                "x_min": -26.5,
+                "y_max": 15.000000000000002,
+                "y_min": -15.0,
+                "z_max": 18.5,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": 1.7060820940897437E-16,
+                "y": 1.1373880627264958E-17,
+                "z": 8.557447772873473
+              },
+              "face_count": 16,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 19990.861773085788
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 19990.861773085788
+        }
+      },
+      "valid": true
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "9cf9a11a-a95b-4370-8b52-87f6b92ee104"
+}

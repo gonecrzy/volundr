@@ -1,0 +1,104 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 12,
+  "design_contract_sha256": "85bc44414ae65333648c5a8ad20fa53810baf0917ee2ed15944cdb6053623b1f",
+  "duration_ms": 3883.6,
+  "first_incorrect_owner": "geometry",
+  "first_unresolved_blocker": "source_contract_violation",
+  "geometry_families": [
+    "multi_output",
+    "optional_output",
+    "cavity_shelling",
+    "curved_edges"
+  ],
+  "highest_stage_reached": "source_contract",
+  "initial_attempt": {
+    "attempt_id": "4b6f8e55-a8df-4048-8521-4d68b4d90810",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {
+      "ast_path": null,
+      "code": "source_contract_violation",
+      "column": null,
+      "enclosing_scope": "module",
+      "line": null,
+      "message": "ownership decorators require static metadata arguments",
+      "node_type": null,
+      "violation_count": 1
+    },
+    "exception_type": null,
+    "extracted_source_hash": "99667ba6a9b751118c12349baa8f823757f73fda9aa5f912cba29f86969fd373",
+    "failure_boundary": "source_contract",
+    "failure_class": "source_contract_violation",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "4b6f8e55-a8df-4048-8521-4d68b4d90810",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "04209d9e-322d-4a60-aeed-684638d06081",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "59bed259f9d570320ec9998059a7a4677b992b8be7e4014337563336c02f8504",
+        "request_hash": "b3dd0f4b43adfa4b98ac74b551b6506b7e140675c81fab651293729faaf93874",
+        "request_started_at": "2026-08-07T19:01:22.560920+00:00",
+        "response_length": 5172,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18178.064018452,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "04209d9e-322d-4a60-aeed-684638d06081",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "59bed259f9d570320ec9998059a7a4677b992b8be7e4014337563336c02f8504",
+    "request_start_timestamp": "2026-08-07T19:01:22.560920+00:00",
+    "response_length": 5172,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "source_contract_violation",
+  "observed_stage": "source_contract",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-12",
+  "project_runtime_id": "f493d3fa-4b1d-4494-acea-b6b3b066e99e",
+  "prompt_sha256": "00923fdb3e38a3bdcca899078cc8e61e30008653ec30ce02b61c0bc7dd3940c6",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Compact electronics enclosure",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "c01d0526-8db2-436a-8c9e-75041f2efb61"
+}

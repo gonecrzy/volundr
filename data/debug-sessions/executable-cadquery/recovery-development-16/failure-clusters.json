@@ -1,50 +1,92 @@
 {
   "clusters": [
     {
-      "cluster_id": "cadquery_api_error",
+      "cluster_id": "invalid_shape",
       "count": 1,
-      "first_boundary": "execution",
-      "generic_owner": "worker_execution",
-      "mechanism": "CadQuery selector/parser rejected generated source during worker build_function",
-      "project_ids": [
-        "development-01"
+      "first_boundary": [
+        "topology"
       ],
-      "recovery_development_status": "defer_until_survey_complete"
+      "generic_owner": [
+        "geometry"
+      ],
+      "mechanism": "authoritative first-pass observations grouped by normalized generic failure class",
+      "project_ids": [
+        "development-09"
+      ],
+      "recovery_development_status": "defer_until_phase_1a_reconciliation_review"
     },
     {
-      "cluster_id": "source_contract_violation",
+      "cluster_id": "python_type_error",
       "count": 1,
-      "first_boundary": "source_contract",
-      "generic_owner": "source_contract_validator",
-      "mechanism": "generated source violated the executable source contract before worker execution",
-      "project_ids": [
-        "development-02"
+      "first_boundary": [
+        "build_execution"
       ],
-      "recovery_development_status": "defer_until_survey_complete"
+      "generic_owner": [
+        "geometry"
+      ],
+      "mechanism": "authoritative first-pass observations grouped by normalized generic failure class",
+      "project_ids": [
+        "development-11"
+      ],
+      "recovery_development_status": "defer_until_phase_1a_reconciliation_review"
     },
     {
-      "cluster_id": "provider_response_contract_failure",
-      "count": 14,
-      "first_boundary": "provider_response",
-      "generic_owner": "provider_response_contract",
-      "mechanism": "initial Gemini API operation did not yield an accepted complete-source response",
+      "cluster_id": "semantic_requirement_unverifiable",
+      "count": 8,
+      "first_boundary": [
+        "semantic_measurement"
+      ],
+      "generic_owner": [
+        "application"
+      ],
+      "mechanism": "authoritative first-pass observations grouped by normalized generic failure class",
       "project_ids": [
         "development-03",
-        "development-04",
         "development-05",
         "development-06",
         "development-07",
         "development-08",
-        "development-09",
-        "development-10",
-        "development-11",
-        "development-12",
         "development-13",
-        "development-14",
         "development-15",
         "development-16"
       ],
-      "recovery_development_status": "defer_until_survey_complete"
+      "recovery_development_status": "defer_until_phase_1a_reconciliation_review"
+    },
+    {
+      "cluster_id": "source_contract_violation",
+      "count": 4,
+      "first_boundary": [
+        "source_contract"
+      ],
+      "generic_owner": [
+        "generated_source",
+        "geometry"
+      ],
+      "mechanism": "authoritative first-pass observations grouped by normalized generic failure class",
+      "project_ids": [
+        "development-02",
+        "development-04",
+        "development-12",
+        "development-14"
+      ],
+      "recovery_development_status": "defer_until_phase_1a_reconciliation_review"
+    },
+    {
+      "cluster_id": "source_execution_error",
+      "count": 2,
+      "first_boundary": [
+        "build_execution"
+      ],
+      "generic_owner": [
+        "generated_source",
+        "geometry"
+      ],
+      "mechanism": "authoritative first-pass observations grouped by normalized generic failure class",
+      "project_ids": [
+        "development-01",
+        "development-10"
+      ],
+      "recovery_development_status": "defer_until_phase_1a_reconciliation_review"
     }
   ],
   "corpus_manifest_sha256": "4b25ab72be98397db0d8f81c2293e4184f809b8a1541f674bef0a0f5771ccfab",
@@ -57,5 +99,5 @@
     "project_specific_rule_added": false
   },
   "schema_version": "executable-cadquery-phase-1a-failure-clusters-v1",
-  "survey_status": "first_pass_observation_only"
+  "survey_status": "reconciled_authoritative_observation_only"
 }

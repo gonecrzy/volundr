@@ -1,0 +1,324 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 1,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 13,
+  "design_contract_sha256": "75609e21199141b113b29a404f8587f6f328937255bf2e0b0a877f6a93ba2d94",
+  "duration_ms": 8005.144,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "single_output",
+    "angled_geometry",
+    "qualitative_design_intent"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "33c377d8-1a54-429d-a54a-e9110abad7c2",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "26c8b89d5a50294156f7958f41e63f57e287eabcff586ffe4e994b4eeccf6672",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "33c377d8-1a54-429d-a54a-e9110abad7c2",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "6eea92eb-28fc-4cde-af26-1f9e697f658b",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "643dfd9a010ae4f20af881f09c772cc45628d5abbd0011c03aa4536e5ef9adb9",
+        "request_hash": "17fe7906c6f658bcf92f3533bc260ff3802adf489adac6cec1760e0a10015c15",
+        "request_started_at": "2026-08-07T19:01:27.563198+00:00",
+        "response_length": 3635,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18183.066222872,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "6eea92eb-28fc-4cde-af26-1f9e697f658b",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "643dfd9a010ae4f20af881f09c772cc45628d5abbd0011c03aa4536e5ef9adb9",
+    "request_start_timestamp": "2026-08-07T19:01:27.563198+00:00",
+    "response_length": 3635,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "charging_phone_stand",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-13-render.png"
+  },
+  "project_id": "development-13",
+  "project_runtime_id": "4d1479e5-5e4e-4991-8a77-6b6bcee4085e",
+  "prompt_sha256": "3a1ebd4d824535bf2147a5f3840a189a7530a3b899778e62afa5e88bf2cbf609",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "2b7b3d25-2ab6-4329-a3bb-6b6b032aaa8d",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [],
+      "findings": [
+        {
+          "measurements": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1
+          },
+          "requirement_id": "topology",
+          "status": "passed"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "count": 1,
+            "output_id": "charging_phone_stand"
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "required_output_identity"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "phone_stand_output",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "required_output_identity"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "stable_on_desk": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "phone_stand_stability",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "charging_access": true,
+            "screen_easy_to_see": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "phone_stand_visibility",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "proportions": "designer_choice",
+            "surface_details": "designer_choice",
+            "viewing_angle": "designer_choice"
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "phone_stand_design_freedom",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "charging_phone_stand"
+      ],
+      "passed": [
+        "topology"
+      ],
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 4,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "unsupported_verifier",
+      "unsupported_verifier": [
+        "phone_stand_output",
+        "phone_stand_stability",
+        "phone_stand_visibility",
+        "phone_stand_design_freedom"
+      ],
+      "unverifiable": [
+        "phone_stand_output",
+        "phone_stand_stability",
+        "phone_stand_visibility",
+        "phone_stand_design_freedom"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "intent_heavy",
+  "state": "verification_failed",
+  "title": "Stable charging phone stand",
+  "topology": {
+    "observed": true,
+    "result": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 80.0,
+        "size_y": 90.0,
+        "size_z": 40.322660422687136,
+        "x_max": 40.0,
+        "x_min": -40.0,
+        "y_max": 45.0,
+        "y_min": -45.0,
+        "z_max": 40.322660422687136,
+        "z_min": 0.0
+      },
+      "coordinate_space": "print_space",
+      "detected_solid_count": 1,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 18,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1E-7,
+      "model_space_bounds": {
+        "size_x": 80.0,
+        "size_y": 90.0,
+        "size_z": 40.322660422687136,
+        "x_max": 40.0,
+        "x_min": -40.0,
+        "y_max": 45.0,
+        "y_min": -45.0,
+        "z_max": 40.322660422687136,
+        "z_min": 0.0
+      },
+      "outcome": "valid",
+      "output_id": "charging_phone_stand",
+      "overall_bounding_box": {
+        "size_x": 80.0,
+        "size_y": 90.0,
+        "size_z": 40.322660422687136,
+        "x_max": 40.0,
+        "x_min": -40.0,
+        "y_max": 45.0,
+        "y_min": -45.0,
+        "z_max": 40.322660422687136,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "placement_policy": "cadquery-output-placement-v1",
+      "print_space_bounds": {
+        "size_x": 80.0,
+        "size_y": 90.0,
+        "size_z": 40.322660422687136,
+        "x_max": 40.0,
+        "x_min": -40.0,
+        "y_max": 45.0,
+        "y_min": -45.0,
+        "z_max": 40.322660422687136,
+        "z_min": 0.0
+      },
+      "print_transform": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 1,
+      "solid_pairs": [],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 80.0,
+            "size_y": 90.0,
+            "size_z": 40.322660422687136,
+            "x_max": 40.0,
+            "x_min": -40.0,
+            "y_max": 45.0,
+            "y_min": -45.0,
+            "z_max": 40.322660422687136,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": 4.0969432395177427E-16,
+            "y": 11.439406596105199,
+            "z": 14.053801725940758
+          },
+          "face_count": 18,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 163194.72056627594
+        }
+      ],
+      "status": "measured",
+      "valid": true,
+      "volume_mm3": 163194.72056627594
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "d44f9a3c-b042-41ff-a2b2-7521f282eda2"
+}

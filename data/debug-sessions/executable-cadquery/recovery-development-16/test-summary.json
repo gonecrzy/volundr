@@ -3,22 +3,63 @@
     "failure": "duplicate durable provider attempt_id from accumulated request-scoped observers",
     "fix_regression": "backend/tests/test_gemini_api_provider.py::test_validated_attempt_recorder_replaces_stale_workflow_observer",
     "post_fix_boundary_and_routing": "65 passed",
-    "post_fix_full_backend": "1432 passed, 1 skipped, 1 warning",
+    "post_fix_full_backend": "1441 passed, 1 skipped, 1 warning",
     "restarted_scope": "development-02 only",
-    "targeted_fix_tests": "41 passed, 1 warning"
+    "targeted_fix_tests": "41 passed, 1 warning",
+    "taxonomy_observability_targeted_tests": "76 passed, 1 warning"
   },
   "preflight": {
-    "alembic": "current=head=0039_align_fresh_database_schema; check clean",
-    "backend": "1431 passed, 1 skipped, 1 warning",
+    "alembic": "current=head=0040_provider_attempt_transport_facts; check clean",
+    "backend": "1441 passed, 1 skipped, 1 warning",
     "credential_boundary": "65 targeted routing/credential tests passed",
     "frontend_build": "passed",
     "frontend_unit": "104 passed",
     "offline_browser": "22 passed, 15 skipped",
-    "provider_calls_before_freeze": 0
+    "provider_calls_before_freeze": 0,
+    "provider_calls_before_reconciliation": 0
+  },
+  "reconciliation_forensics": {
+    "historical_invalidated_project_orders": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "historical_provider_attempt_forensics": "historical-provider-attempt-forensics.json",
+    "rate_limit_audit": "rate-limit-audit.json",
+    "reconciled_project_orders": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "reconciled_provider_calls": 14,
+    "reconciled_repair_operations": 0
   },
   "schema_version": "executable-cadquery-phase-1a-test-summary-v1",
   "survey": {
     "blind_qa_executed": false,
+    "new_reconciliation_provider_calls": 14,
     "offline_browser": "22 passed, 15 skipped",
     "phase_1b_executed": false,
     "projects_completed": 16,

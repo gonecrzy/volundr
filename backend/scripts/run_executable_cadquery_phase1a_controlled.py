@@ -32,6 +32,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--only-project-order", type=int)
+    parser.add_argument("--project-orders", type=str)
+    parser.add_argument("--record-suffix", type=str, default="first-pass")
     return parser.parse_args()
 
 
@@ -103,9 +105,13 @@ def main() -> int:
             str(manifest),
             "--output-root",
             str(output_root),
+            "--record-suffix",
+            args.record_suffix,
         ]
         if args.only_project_order is not None:
             survey_args.extend(["--only-project-order", str(args.only_project_order)])
+        if args.project_orders is not None:
+            survey_args.extend(["--project-orders", args.project_orders])
         with survey_log.open("w", encoding="utf-8") as stream:
             survey = subprocess.Popen(
                 survey_args,
@@ -115,7 +121,7 @@ def main() -> int:
                 stderr=subprocess.STDOUT,
             )
         return_code = survey.wait()
-        record_count = len(list(output_root.glob("project-*-first-pass.json")))
+        record_count = len(list(output_root.glob(f"project-*-{args.record_suffix}.json")))
         print(f"survey_return_code={return_code}")
         print(f"first_pass_records={record_count}")
         if return_code != 0:

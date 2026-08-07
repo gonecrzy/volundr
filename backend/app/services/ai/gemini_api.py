@@ -24,6 +24,31 @@ from app.services.ai.validated_transport import ValidatedGeminiTransport
 from app.services.gemini_integration.transport import SharedIntegrationRateLimiter
 
 
+class GeminiProviderError(RuntimeError):
+    """Safe structured provider failure facts without response or credential values."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        failure_class: str,
+        observed_stage: str = "provider_transport",
+        response_received: bool = False,
+        response_length: int | None = None,
+        raw_response_hash: str | None = None,
+        exception_type: str | None = None,
+        normalized_transport_error: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.failure_class = failure_class
+        self.observed_stage = observed_stage
+        self.response_received = response_received
+        self.response_length = response_length
+        self.raw_response_hash = raw_response_hash
+        self.exception_type = exception_type
+        self.normalized_transport_error = normalized_transport_error
+
+
 class GeminiApiProvider(GeminiCliProvider):
     """Gemini Generative Language API transport using Volundr prompt contracts."""
 
@@ -117,6 +142,8 @@ class GeminiApiProvider(GeminiCliProvider):
         self._interaction_recorder = interaction_recorder
         self._response_processor = response_processor
         self._last_processing_metadata: dict[str, Any] = {}
+        self._last_validated_attempts: list[dict[str, Any]] = []
+        self._last_callback_persistence_exception: dict[str, str] | None = None
 
     @property
     def provider_id(self) -> str:
@@ -127,6 +154,12 @@ class GeminiApiProvider(GeminiCliProvider):
         # Replacing the observer prevents stale service callbacks from
         # persisting the same transport attempt into a later workflow.
         self._validated_attempt_recorder = recorder
+
+    @property
+    def last_validated_attempts(self) -> list[dict[str, Any]]:
+        """Return safe metadata for the latest validated transport operation."""
+
+        return [dict(item) for item in self._last_validated_attempts]
 
     async def list_available_models(self) -> list[dict[str, Any]]:
         """Return safe metadata for models that support generateContent."""
@@ -196,6 +229,8 @@ class GeminiApiProvider(GeminiCliProvider):
         self._last_provider_call_count = 0
         self._last_provider_retry_count = 0
         self._last_processing_metadata = {}
+        self._last_validated_attempts = []
+        self._last_callback_persistence_exception = None
 
         generation_config: dict[str, Any] = {
             "temperature": self.temperature,
@@ -220,8 +255,16 @@ class GeminiApiProvider(GeminiCliProvider):
 
             def record_attempt(record: dict[str, Any]) -> None:
                 records.append(record)
+                self._last_validated_attempts = [self._safe_validated_attempt(item) for item in records]
                 if self._validated_attempt_recorder is not None:
-                    self._validated_attempt_recorder(record)
+                    try:
+                        self._validated_attempt_recorder(record)
+                    except Exception as exc:
+                        self._last_callback_persistence_exception = {
+                            "exception_type": type(exc).__name__,
+                            "normalized_error": "provider-attempt callback persistence failed",
+                        }
+                        raise
                 self._record_interaction(
                     stage=stage,
                     prompt_mode=prompt_mode,
@@ -261,15 +304,42 @@ class GeminiApiProvider(GeminiCliProvider):
             self._last_provider_retry_count = max(0, len(result.attempts) - 1)
             self._last_provider_request_id = result.provider_request_id
             if result.status_code is None or result.status_code >= 400:
-                raise RuntimeError(
-                    self._validated_error_message(result.status_code, result.response_payload)
+                final_attempt = result.attempts[-1] if result.attempts else {}
+                raise GeminiProviderError(
+                    self._validated_error_message(result.status_code, result.response_payload),
+                    failure_class=self._validated_failure_class(result.status_code),
+                    response_received=bool(final_attempt.get("response_received")),
+                    response_length=final_attempt.get("response_length"),
+                    raw_response_hash=final_attempt.get("raw_response_hash"),
+                    exception_type=final_attempt.get("exception_type"),
+                    normalized_transport_error=final_attempt.get("normalized_transport_error"),
                 )
             response_payload = result.response_payload
             raw_output = self._response_text(response_payload)
             if not response_payload:
-                raise RuntimeError("Gemini API response was not valid JSON")
+                final_attempt = result.attempts[-1] if result.attempts else {}
+                raise GeminiProviderError(
+                    "Gemini API response was not valid JSON",
+                    failure_class=(
+                        "provider_response_empty"
+                        if final_attempt.get("response_length") == 0
+                        else "provider_source_extraction_failure"
+                    ),
+                    observed_stage="source_extraction",
+                    response_received=bool(final_attempt.get("response_received")),
+                    response_length=final_attempt.get("response_length"),
+                    raw_response_hash=final_attempt.get("raw_response_hash"),
+                )
             if not raw_output:
-                raise RuntimeError("Gemini API response missing response text")
+                final_attempt = result.attempts[-1] if result.attempts else {}
+                raise GeminiProviderError(
+                    "Gemini API response missing response text",
+                    failure_class="provider_source_extraction_failure",
+                    observed_stage="source_extraction",
+                    response_received=bool(final_attempt.get("response_received")),
+                    response_length=final_attempt.get("response_length"),
+                    raw_response_hash=final_attempt.get("raw_response_hash"),
+                )
             actual_model = response_payload.get("modelVersion")
             if not isinstance(actual_model, str) or not actual_model:
                 actual_model = model or self.model or ""
@@ -282,7 +352,15 @@ class GeminiApiProvider(GeminiCliProvider):
                     context=processing_context or self._processing_context(prompt_mode),
                 )
                 if not isinstance(processed_output, str) or not processed_output.strip():
-                    raise RuntimeError("provider response processor returned an empty response")
+                    final_attempt = result.attempts[-1] if result.attempts else {}
+                    raise GeminiProviderError(
+                        "provider response processor returned an empty response",
+                        failure_class="provider_source_extraction_failure",
+                        observed_stage="source_extraction",
+                        response_received=bool(final_attempt.get("response_received")),
+                        response_length=final_attempt.get("response_length"),
+                        raw_response_hash=final_attempt.get("raw_response_hash"),
+                    )
                 raw_output = processed_output
                 self._last_processing_metadata = dict(metadata or {})
             return raw_output, actual_model
@@ -444,6 +522,43 @@ class GeminiApiProvider(GeminiCliProvider):
             raw_output = processed_output
             self._last_processing_metadata = dict(metadata or {})
         return raw_output, actual_model
+
+    @staticmethod
+    def _safe_validated_attempt(record: dict[str, Any]) -> dict[str, Any]:
+        return {
+            key: record.get(key)
+            for key in (
+                "logical_operation_id",
+                "attempt_id",
+                "attempt_index",
+                "credential_slot",
+                "credential_present",
+                "request_hash",
+                "status_code",
+                "failure_class",
+                "retry_delay_seconds",
+                "started_monotonic",
+                "request_started_at",
+                "response_received",
+                "response_length",
+                "raw_response_hash",
+                "exception_type",
+                "normalized_transport_error",
+                "transport_retry_classification",
+                "rate_limit_429_classification",
+                "provider_request_id",
+            )
+        }
+
+    @staticmethod
+    def _validated_failure_class(status_code: int | None) -> str:
+        if status_code == 429:
+            return "provider_rate_limit"
+        if status_code in {401, 403}:
+            return "provider_authentication_failure"
+        if status_code in {408, 502, 503, 504, 599, None}:
+            return "provider_transport_failure"
+        return "provider_response_contract_failure"
 
     @staticmethod
     def _processing_context(prompt_mode: str) -> dict[str, Any]:

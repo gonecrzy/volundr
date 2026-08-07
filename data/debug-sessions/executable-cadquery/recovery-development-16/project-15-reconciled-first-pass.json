@@ -1,0 +1,442 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 2,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 15,
+  "design_contract_sha256": "a7a96794d48d70911cdae6ec370581a70be20ef97a67b9de8d2ee770f8ca89bd",
+  "duration_ms": 9048.389,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "single_output",
+    "optional_output",
+    "qualitative_design_intent",
+    "functional_design"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "e76d4985-4977-4db2-88db-d3ed09bee09d",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "2204fe29f443ca6ba2c1fc5e7ebe90563cf8838f04d2e340255269fde8b3995e",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "e76d4985-4977-4db2-88db-d3ed09bee09d",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "1172841b-711b-42e4-afeb-bec200aad826",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "c93dd8f4cf365bbc18ed823ebf6f9aceaa4f0bc0cc4a203bdef1be10bee74747",
+        "request_hash": "82e749aafd8c1b6e1922fe0d29947eaa2c34380925b82f770f1dea355bf19aef",
+        "request_started_at": "2026-08-07T19:01:39.453020+00:00",
+        "response_length": 4610,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18194.95609588,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "1172841b-711b-42e4-afeb-bec200aad826",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "c93dd8f4cf365bbc18ed823ebf6f9aceaa4f0bc0cc4a203bdef1be10bee74747",
+    "request_start_timestamp": "2026-08-07T19:01:39.453020+00:00",
+    "response_length": 4610,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "label_insert",
+      "required": false,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    },
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "wall_accessory_holder",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-15-render.png"
+  },
+  "project_id": "development-15",
+  "project_runtime_id": "a9d51620-70a5-4d04-b926-c86799bb93d7",
+  "prompt_sha256": "fdc5fc2a43821ad9570cc9afdcc4e4b091de7adafd6862bd4c4ebaca53093c09",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "38665c10-1fbd-4771-b8c7-7376b7c07f2d",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [],
+      "findings": [
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "optional_output": "label_insert",
+            "required_output": "wall_accessory_holder"
+          },
+          "measured_value": {
+            "output_id": "wall_accessory_holder/label_insert",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "wall_holder_outputs",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "required_output_identity"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "one_hand_use": true,
+            "retains_lightweight_item": true,
+            "wall_mounted": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "wall_holder_function",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "clean_appearance": true,
+            "compact": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "wall_holder_compactness",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "label_treatment": "designer_choice",
+            "mounting_detail": "designer_choice",
+            "storage_features": "designer_choice"
+          },
+          "measured_value": {
+            "output_id": "wall_accessory_holder/label_insert",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "wall_holder_design_freedom",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "label_insert",
+        "wall_accessory_holder"
+      ],
+      "passed": [],
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 4,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "unsupported_verifier",
+      "unsupported_verifier": [
+        "wall_holder_outputs",
+        "wall_holder_function",
+        "wall_holder_compactness",
+        "wall_holder_design_freedom"
+      ],
+      "unverifiable": [
+        "wall_holder_outputs",
+        "wall_holder_function",
+        "wall_holder_compactness",
+        "wall_holder_design_freedom"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "intent_heavy",
+  "state": "verification_failed",
+  "title": "Wall accessory holder",
+  "topology": {
+    "observed": true,
+    "result": {
+      "output_ids": [
+        "label_insert",
+        "wall_accessory_holder"
+      ],
+      "outputs": {
+        "label_insert": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 36.0,
+            "size_y": 15.0,
+            "size_z": 2.0,
+            "x_max": 18.0,
+            "x_min": -18.0,
+            "y_max": 7.5,
+            "y_min": -7.5,
+            "z_max": 2.0,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 11,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 36.0,
+            "size_y": 15.0,
+            "size_z": 2.0,
+            "x_max": 18.0,
+            "x_min": -18.0,
+            "y_max": 7.5,
+            "y_min": -7.5,
+            "z_max": 1.0,
+            "z_min": -1.0
+          },
+          "outcome": "valid",
+          "output_id": "label_insert",
+          "overall_bounding_box": {
+            "size_x": 36.0,
+            "size_y": 15.0,
+            "size_z": 2.0,
+            "x_max": 18.0,
+            "x_min": -18.0,
+            "y_max": 7.5,
+            "y_min": -7.5,
+            "z_max": 2.0,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 36.0,
+            "size_y": 15.0,
+            "size_z": 2.0,
+            "x_max": 18.0,
+            "x_min": -18.0,
+            "y_max": 7.5,
+            "y_min": -7.5,
+            "z_max": 2.0,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 36.0,
+                "size_y": 15.0,
+                "size_z": 2.0,
+                "x_max": 18.0,
+                "x_min": -18.0,
+                "y_max": 7.5,
+                "y_min": -7.5,
+                "z_max": 2.0,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": -4.0565387405920237E-20,
+                "y": -1.3408901099568572E-16,
+                "z": 0.8428571428571431
+              },
+              "face_count": 11,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 882.0
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 882.0
+        },
+        "wall_accessory_holder": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 60.0,
+            "size_y": 80.0,
+            "size_z": 34.0,
+            "x_max": 30.0,
+            "x_min": -30.0,
+            "y_max": 40.0,
+            "y_min": -40.0,
+            "z_max": 34.0,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 18,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 60.0,
+            "size_y": 80.0,
+            "size_z": 34.0,
+            "x_max": 30.0,
+            "x_min": -30.0,
+            "y_max": 40.0,
+            "y_min": -40.0,
+            "z_max": 32.0,
+            "z_min": -2.0
+          },
+          "outcome": "valid",
+          "output_id": "wall_accessory_holder",
+          "overall_bounding_box": {
+            "size_x": 60.0,
+            "size_y": 80.0,
+            "size_z": 34.0,
+            "x_max": 30.0,
+            "x_min": -30.0,
+            "y_max": 40.0,
+            "y_min": -40.0,
+            "z_max": 34.0,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 60.0,
+            "size_y": 80.0,
+            "size_z": 34.0,
+            "x_max": 30.0,
+            "x_min": -30.0,
+            "y_max": 40.0,
+            "y_min": -40.0,
+            "z_max": 34.0,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              2.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 60.0,
+                "size_y": 80.0,
+                "size_z": 34.0,
+                "x_max": 30.0,
+                "x_min": -30.0,
+                "y_max": 40.0,
+                "y_min": -40.0,
+                "z_max": 34.0,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": -1.5212438337973795E-15,
+                "y": -5.764731886058076E-16,
+                "z": 7.801717915763053
+              },
+              "face_count": 18,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 40625.46018366025
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 40625.46018366025
+        }
+      },
+      "valid": true
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "6b77c1e1-54a7-4617-859f-7dc70bc10adc"
+}

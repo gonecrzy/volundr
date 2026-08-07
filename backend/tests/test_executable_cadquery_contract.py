@@ -4,6 +4,7 @@ import pytest
 
 from app.services.executable_cadquery.contract import (
     ExecutableCadQueryContractError,
+    diagnose_cadquery_contract_error,
     parse_executable_cadquery_response,
     RESPONSE_SCHEMA_VERSION,
 )
@@ -113,6 +114,27 @@ def test_separates_python_syntax_failure() -> None:
     assert exc_info.value.extracted_source_hash
     assert exc_info.value.extracted_source == "def build(params):\n    return ("
     assert exc_info.value.diagnostic["code"] == "python_syntax_error"
+
+
+def test_nested_import_diagnostic_points_to_nested_import_not_top_level_import() -> None:
+    source = (
+        "import cadquery as cq\n"
+        "\n"
+        "def build(params):\n"
+        "    from math import sqrt\n"
+        "    return cq.Workplane('XY')\n"
+    )
+
+    diagnostic = diagnose_cadquery_contract_error(
+        source,
+        "imports are only allowed at top level",
+    )
+
+    assert diagnostic["code"] == "nested_import_forbidden"
+    assert diagnostic["line"] == 4
+    assert diagnostic["node_type"] == "ImportFrom"
+    assert diagnostic["enclosing_scope"] == "build"
+    assert diagnostic["ast_path"] == "module.body[1].body[0]"
 
 
 def test_rejects_canonical_output_identity_changes() -> None:

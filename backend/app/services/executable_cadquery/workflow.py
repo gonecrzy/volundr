@@ -66,6 +66,37 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     def _provider_transport_id(self) -> str:
         return str(getattr(self.ai_provider, "provider_id", settings.ai_provider))
 
+    def _merge_provider_transport_facts(self, provider_attempt: dict[str, Any]) -> None:
+        """Copy only safe latest transport facts into the durable workflow attempt."""
+
+        attempts = getattr(self.ai_provider, "last_validated_attempts", None)
+        if not isinstance(attempts, list):
+            return
+        safe_attempts = [dict(item) for item in attempts if isinstance(item, Mapping)]
+        if not safe_attempts:
+            return
+        provider_attempt["transport_attempts"] = safe_attempts
+        callback_exception = getattr(self.ai_provider, "_last_callback_persistence_exception", None)
+        if isinstance(callback_exception, Mapping):
+            provider_attempt["callback_persistence_exception"] = dict(callback_exception)
+        final = safe_attempts[-1]
+        for key in (
+            "logical_operation_id",
+            "attempt_id",
+            "credential_slot",
+            "request_started_at",
+            "status_code",
+            "response_received",
+            "response_length",
+            "raw_response_hash",
+            "exception_type",
+            "normalized_transport_error",
+            "transport_retry_classification",
+            "rate_limit_429_classification",
+        ):
+            if key in final:
+                provider_attempt[key] = final.get(key)
+
     def accept_candidate(
         self,
         workflow_id: str,
@@ -957,6 +988,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 if self.ai_provider is None:
                     raise ValueError("executable Gemini provider is unavailable")
                 generation = await self.ai_provider.generate_cadquery_model(request)
+                self._merge_provider_transport_facts(provider_attempt)
                 raw_output = generation.raw_output if isinstance(generation.raw_output, str) else ""
                 response_evidence_path = persist_exact_provider_response(
                     self.data_dir,
@@ -970,8 +1002,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "provider_model": generation.provider_model,
                         "status": "response_received",
                         "response_evidence_path": response_evidence_path.resolve().relative_to(self.data_dir.resolve()).as_posix(),
-                        "response_length": len(raw_output),
-                        "raw_response_hash": hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
+                        "response_length": provider_attempt.get("response_length", len(raw_output)),
+                        "raw_response_hash": provider_attempt.get("raw_response_hash")
+                        or hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
+                        "response_text_length": len(raw_output),
+                        "raw_response_text_hash": hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
                         "response_hash": hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
                     }
                 )
@@ -1099,6 +1134,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         self.db.commit()
                         return self.read(workflow.id)
             except ExecutableCadQueryContractError as exc:
+                self._merge_provider_transport_facts(provider_attempt)
                 failure_boundary = exc.boundary
                 normalized_error = safe_diagnostic(str(exc))
                 extracted_source = exc.extracted_source
@@ -1112,6 +1148,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         "failure_kind": exc.failure_kind,
                         "normalized_error": normalized_error,
                         "schema_error": normalized_error if exc.boundary == "provider_response" else None,
+                        "response_received": provider_attempt.get("response_received"),
+                        "response_length": provider_attempt.get("response_length"),
+                        "source_extraction_succeeded": extraction_succeeded,
+                        "source_contract_valid": source_contract_valid,
+                        "status_code": provider_attempt.get("status_code"),
                     },
                 )
                 provider_attempt["status"] = "contract_failure"
@@ -1126,13 +1167,25 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     }
                 )
             except Exception as exc:
+                self._merge_provider_transport_facts(provider_attempt)
                 normalized_error = safe_diagnostic(str(exc))
                 failure_class = failure_class or classify_executable_failure(
-                    failure_boundary, {"message": normalized_error}
+                    failure_boundary,
+                    {
+                        "message": normalized_error,
+                        "exception_type": type(exc).__name__,
+                        "response_received": provider_attempt.get("response_received"),
+                        "response_length": provider_attempt.get("response_length"),
+                        "status_code": provider_attempt.get("status_code"),
+                        "normalized_transport_error": provider_attempt.get("normalized_transport_error"),
+                        "provider_failure_class": getattr(exc, "failure_class", None),
+                    },
                 )
                 provider_attempt["status"] = "failed"
                 provider_attempt["failure_class"] = failure_class
                 provider_attempt["normalized_error"] = normalized_error
+                if getattr(exc, "failure_class", None):
+                    provider_attempt["provider_failure_class"] = str(exc.failure_class)
 
             failure_class = failure_class or "source_execution_error"
             current_result_hash = current_result_hash or source_result_hash(
@@ -1194,6 +1247,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "repair_level": level,
                     "failure_boundary": failure_boundary,
                     "failure_class": failure_class,
+                    "observed_stage": self._recovery_router.earliest_stage(failure_boundary, failure_class),
                     "source_hash": current_source_hash,
                     "extracted_source_hash": current_source_hash,
                     "raw_response_hash": provider_attempt.get("raw_response_hash"),
@@ -1227,6 +1281,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 progress=progress,
             )
             recovery_decision = self._recovery_router.route(recovery_observation)
+            history[-1]["observed_stage"] = recovery_decision.observed_stage
+            history[-1]["first_incorrect_owner"] = recovery_decision.first_incorrect_owner
             self._persist_recovery_decision(workflow, recovery_decision)
             # The decision must be durable before any subsequent provider or
             # subsystem action is allowed to run.
@@ -2034,6 +2090,11 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     @staticmethod
     def _safe_failure_message(failure_class: str) -> str:
         messages = {
+            "provider_transport_failure": "The Gemini API transport did not complete a provider request.",
+            "provider_rate_limit": "The Gemini API rate-limit policy was exhausted.",
+            "provider_authentication_failure": "Gemini API-key authentication failed.",
+            "provider_response_empty": "Gemini returned an empty response.",
+            "provider_source_extraction_failure": "Gemini returned a response from which complete source could not be extracted.",
             "provider_response_contract_failure": "Gemini did not return a compatible complete-source response.",
             "response_empty_or_extraction_failure": "Gemini did not return one complete Python module.",
             "authentication_failure": "Gemini authentication failed before source generation.",

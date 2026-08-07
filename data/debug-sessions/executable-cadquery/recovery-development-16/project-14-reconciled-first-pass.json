@@ -1,0 +1,103 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 14,
+  "design_contract_sha256": "e88c99ae74e2f0d1418680b1e6d0f643168a22bb00cff9a07d33f9fd3f699d68",
+  "duration_ms": 4055.869,
+  "first_incorrect_owner": "geometry",
+  "first_unresolved_blocker": "source_contract_violation",
+  "geometry_families": [
+    "single_output",
+    "cavity_shelling",
+    "qualitative_design_intent"
+  ],
+  "highest_stage_reached": "source_contract",
+  "initial_attempt": {
+    "attempt_id": "8ee65cfe-7622-404e-a451-8c0872402570",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {
+      "ast_path": "module.body[3].body[21]",
+      "code": "try_statement_forbidden",
+      "column": 4,
+      "enclosing_scope": "_make_model",
+      "line": 123,
+      "message": "try/except is not allowed",
+      "node_type": "Try",
+      "violation_count": 1
+    },
+    "exception_type": null,
+    "extracted_source_hash": "af0b7083277f3a5633188a8d0d11c8dc88501fdcf08873f24dc2cba3c16a6d70",
+    "failure_boundary": "source_contract",
+    "failure_class": "source_contract_violation",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "8ee65cfe-7622-404e-a451-8c0872402570",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "c8adccf1-f044-47b0-ac0b-37fb6702e629",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "2e9a5e227e6f44e70deafffd31e16dfd436828399dc8b3aa9fe41a66acc0c1f3",
+        "request_hash": "50c89cc865d11a88adc6b2b7c033e7e3edc44888bb83e3883c172c38deb99481",
+        "request_started_at": "2026-08-07T19:01:34.451586+00:00",
+        "response_length": 4967,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18189.954685395,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "c8adccf1-f044-47b0-ac0b-37fb6702e629",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "2e9a5e227e6f44e70deafffd31e16dfd436828399dc8b3aa9fe41a66acc0c1f3",
+    "request_start_timestamp": "2026-08-07T19:01:34.451586+00:00",
+    "response_length": 4967,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "source_contract_violation",
+  "observed_stage": "source_contract",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-14",
+  "project_runtime_id": "49eda2d6-e48a-44ca-84da-d1639afb9869",
+  "prompt_sha256": "02634775b9d22a95a634e88bd6d8ff0eef62e12dfe284a9ed78b8d06d7ba4ea5",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": true,
+  "specification_category": "intent_heavy",
+  "state": "failed",
+  "title": "Desktop organizer",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "c98c09e1-1e46-45c1-b202-ba796e02bbd0"
+}

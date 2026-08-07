@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 import json
 import hashlib
 import re
@@ -941,11 +942,48 @@ class ValidatedCadQueryWorkflowService:
             status_code=int(attempt["status_code"]) if attempt.get("status_code") is not None else None,
             failure_class=str(attempt["failure_class"]) if attempt.get("failure_class") else None,
             retry_delay_seconds=float(attempt["retry_delay_seconds"]) if attempt.get("retry_delay_seconds") is not None else None,
+            request_started_at=self._parse_provider_timestamp(attempt.get("request_started_at")),
+            response_received=(
+                bool(attempt["response_received"])
+                if attempt.get("response_received") is not None
+                else None
+            ),
+            response_length=(
+                int(attempt["response_length"])
+                if attempt.get("response_length") is not None
+                else None
+            ),
+            raw_response_hash=str(attempt["raw_response_hash"]) if attempt.get("raw_response_hash") else None,
+            exception_type=str(attempt["exception_type"]) if attempt.get("exception_type") else None,
+            normalized_transport_error=(
+                str(attempt["normalized_transport_error"])
+                if attempt.get("normalized_transport_error")
+                else None
+            ),
+            transport_retry_classification=(
+                str(attempt["transport_retry_classification"])
+                if attempt.get("transport_retry_classification")
+                else None
+            ),
+            rate_limit_429_classification=(
+                str(attempt["rate_limit_429_classification"])
+                if attempt.get("rate_limit_429_classification")
+                else None
+            ),
         )
         self.db.add(record)
         # The 429 attempt must survive the mandatory delay and any later
         # fallback failure, so persist this metadata before returning control.
         self.db.commit()
+
+    @staticmethod
+    def _parse_provider_timestamp(value: Any) -> datetime | None:
+        if not isinstance(value, str) or not value:
+            return None
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
 
     def _begin_operation(
         self,

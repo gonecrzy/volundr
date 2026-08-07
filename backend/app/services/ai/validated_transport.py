@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 import hashlib
 import json
 import re
@@ -152,10 +153,19 @@ class ValidatedGeminiTransport:
             "failure_class": None,
             "retry_delay_seconds": None,
             "started_monotonic": started,
+            "request_started_at": None,
+            "response_received": False,
+            "response_length": None,
+            "raw_response_hash": None,
+            "exception_type": None,
+            "normalized_transport_error": None,
+            "transport_retry_classification": "none",
+            "rate_limit_429_classification": "not_429",
             "response": {},
         }
         try:
             async with self.global_semaphore:
+                attempt["request_started_at"] = datetime.now(timezone.utc).isoformat()
                 response = await asyncio.wait_for(
                     client.post(
                         endpoint_path,
@@ -165,6 +175,7 @@ class ValidatedGeminiTransport:
                     timeout=self.timeout_seconds,
                 )
             status_code = response.status_code
+            response_bytes = response.content
             response_payload = redact_sensitive_payload(
                 self._safe_json(response),
                 tuple(secret for secret in (self.primary_credential, self.fallback_credential) if secret),
@@ -172,6 +183,9 @@ class ValidatedGeminiTransport:
             if not isinstance(response_payload, dict):
                 response_payload = {}
             attempt["status_code"] = status_code
+            attempt["response_received"] = True
+            attempt["response_length"] = len(response_bytes)
+            attempt["raw_response_hash"] = hashlib.sha256(response_bytes).hexdigest()
             attempt["response"] = response_payload
             attempt["failure_class"] = self._failure_class(status_code)
             attempt["provider_request_id"] = next(
@@ -182,22 +196,44 @@ class ValidatedGeminiTransport:
                 ),
                 None,
             )
-        except (TimeoutError, httpx.TimeoutException):
+        except (TimeoutError, httpx.TimeoutException) as exc:
             status_code = 599
             response_payload = {}
             attempt["status_code"] = status_code
             attempt["failure_class"] = "timeout"
-        except httpx.HTTPError:
+            attempt["exception_type"] = type(exc).__name__
+            attempt["normalized_transport_error"] = "provider request timed out"
+        except httpx.HTTPError as exc:
             status_code = 599
             response_payload = {}
             attempt["status_code"] = status_code
             attempt["failure_class"] = "transport_failure"
+            attempt["exception_type"] = type(exc).__name__
+            attempt["normalized_transport_error"] = "provider HTTP transport failed"
         attempts.append(attempt)
         return attempt
 
     def _record_attempt(self, attempt: dict[str, Any]) -> None:
+        self._annotate_retry_classification(attempt)
         if self.attempt_recorder is not None:
             self.attempt_recorder(dict(attempt))
+
+    @staticmethod
+    def _annotate_retry_classification(attempt: dict[str, Any]) -> None:
+        status_code = attempt.get("status_code")
+        if status_code == 429:
+            attempt["rate_limit_429_classification"] = (
+                "primary_429_fallback_allowed"
+                if attempt.get("credential_slot") == "primary"
+                else "fallback_429_final"
+            )
+            attempt["transport_retry_classification"] = "rate_limit_fallback"
+        elif status_code in {408, 502, 503, 504, 599}:
+            attempt["transport_retry_classification"] = "transport_retry"
+        elif isinstance(status_code, int) and status_code >= 400:
+            attempt["transport_retry_classification"] = "not_retryable"
+        else:
+            attempt["transport_retry_classification"] = "none"
 
     @staticmethod
     def _validate_credential(value: str | None, slot: str) -> str | None:

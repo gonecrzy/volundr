@@ -1,0 +1,104 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 0
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 4,
+  "design_contract_sha256": "e10e554650766b42cf4171e9a02a929beac72a1a7f0ee6ade327b92d75692a97",
+  "duration_ms": 6362.038,
+  "first_incorrect_owner": "geometry",
+  "first_unresolved_blocker": "source_contract_violation",
+  "geometry_families": [
+    "multi_output",
+    "angled_geometry",
+    "mating_relationship",
+    "holes_and_pockets"
+  ],
+  "highest_stage_reached": "source_contract",
+  "initial_attempt": {
+    "attempt_id": "7d098320-4c60-47dd-b9f6-7abce896056e",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {
+      "ast_path": "module.body[3].body[1]",
+      "code": "nested_import_forbidden",
+      "column": 4,
+      "enclosing_scope": "_make_rail",
+      "line": 45,
+      "message": "imports inside functions are not allowed",
+      "node_type": "Import",
+      "violation_count": 1
+    },
+    "exception_type": null,
+    "extracted_source_hash": "316a849e056e639f71a94f112803afca2a77bf4320975d6e3467413eef257420",
+    "failure_boundary": "source_contract",
+    "failure_class": "source_contract_violation",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "7d098320-4c60-47dd-b9f6-7abce896056e",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "647f6da3-c2cb-4062-bacc-91fbce5abfd0",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "d4009c9f39434094d579e6cbc7d5fd6c4d0829787055ab4a6586883429cd2dbe",
+        "request_hash": "5e65a347b9f981c79ebe91af04602e47671020ba2123799351549f47cd27b348",
+        "request_started_at": "2026-08-07T19:00:15.148541+00:00",
+        "response_length": 7449,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18110.651608169,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "647f6da3-c2cb-4062-bacc-91fbce5abfd0",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "d4009c9f39434094d579e6cbc7d5fd6c4d0829787055ab4a6586883429cd2dbe",
+    "request_start_timestamp": "2026-08-07T19:00:15.148541+00:00",
+    "response_length": 7449,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "source_contract_violation",
+  "observed_stage": "source_contract",
+  "outputs": [],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-04",
+  "project_runtime_id": "ac64b603-d46d-4d23-884e-beefe99cd8a8",
+  "prompt_sha256": "990dbed38abca6d7b1f14ed9617c38a000bf451a665cc0af27bbf490e04706dc",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": null,
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": false,
+  "source_extracted": true,
+  "specification_category": "highly_specified",
+  "state": "failed",
+  "title": "Dovetail rail and carriage",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": false,
+  "workflow_error": null,
+  "workflow_id": "cb68075a-c0ed-474b-9de6-6f36584c858b"
+}

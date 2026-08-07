@@ -1,0 +1,185 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 2
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 11,
+  "design_contract_sha256": "9aacd99475434959dd1dcc10c6d666bcf73187f31823d177b8846d0e932b93f7",
+  "duration_ms": 6826.236,
+  "first_incorrect_owner": "geometry",
+  "first_unresolved_blocker": "python_type_error",
+  "geometry_families": [
+    "multi_output",
+    "mating_relationship",
+    "cavity_shelling",
+    "holes_and_pockets"
+  ],
+  "highest_stage_reached": "execution",
+  "initial_attempt": {
+    "attempt_id": "4d8f34cd-ac90-42d8-a38f-72a470293f5a",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {
+      "active_phase": "build_function",
+      "cadquery_version": "2.8.0",
+      "cadquery_worker_version": "cadquery-cli-runner-v1",
+      "command_args": [
+        "python",
+        "_volundr_cadquery_runner.py",
+        "outputs",
+        "execution-manifest.json",
+        "parameter-values.json",
+        "requested-outputs.json"
+      ],
+      "completed_output_ids": [],
+      "exit_code": 1,
+      "failure_exception_type": "TypeError",
+      "failure_message": "Workplane.extrude() got an unexpected keyword argument 'combined'. Did you mean 'combine'?",
+      "failure_operation": "extrude",
+      "failure_phase": "build_function",
+      "failure_source_function": "_make_instrument_support",
+      "failure_source_hash": "ce982c28a8662578b576ac452c074243ce09fad5130bf0910d5ae59d5604a5b3",
+      "failure_source_line": 75,
+      "incomplete_output_ids": [
+        "instrument_support",
+        "replaceable_insert"
+      ],
+      "last_completed_operation": {
+        "after": null,
+        "before": null,
+        "elapsed_ms": 1.728,
+        "name": "extrude"
+      },
+      "last_started_incomplete_operation": {
+        "before": null,
+        "name": "extrude",
+        "started_at_monotonic": 18177.427073893
+      },
+      "message": "Traceback (most recent call last):\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/1564f550-45e4-4550-8edd-53b157ef7efe/work/1564f550-45e4-4550-8edd-53b157ef7efe/_volundr_cadquery_runner.py\", line 935, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/1564f550-45e4-4550-8edd-53b157ef7efe/work/1564f550-45e4-4550-8edd-53b157ef7efe/_volundr_cadquery_runner.py\", line 487, in main\n    product = _build_product(module, parameter_values)\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/1564f550-45e4-4550-8edd-53b157ef7efe/work/1564f550-45e4-4550-8edd-53b157ef7efe/_volundr_cadquery_runner.py\", line 555, in _build_product\n    product = module.build(params)\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/1564f550-45e4-4550-8edd-53b157ef7efe/work/1564f550-45e4-4550-8edd-53b157ef7efe/model.py\", line 143, in build\n    instrument_support = _make_instrument_support(\n        base_width, base_length, base_height, insert_size, insert_height, clearance\n    )\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/1564f550-45e4-4550-8edd-53b157ef7efe/work/1564f550-45e4-4550-8edd-53b157ef7efe/model.py\", line 75, in _make_instrument_support\n    .extrude(insert_height + 5.0, combined=False)\n     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/1564f550-45e4-4550-8edd-53b157ef7efe/work/1564f550-45e4-4550-8edd-53b157ef7efe/_volundr_cadquery_runner.py\", line 375, in timed\n    result = _original(self, *args, **kwargs)\nTypeError: Workplane.extrude() got an unexpected keyword argument 'combined'. Did you mean 'combine'?",
+      "normalized_exception": "TypeError / Workplane.extrude() got an unexpected keyword argument 'combined'. Did you mean 'combine'?",
+      "partial_diagnostic_state_path": "work/1564f550-45e4-4550-8edd-53b157ef7efe/diagnostic-state.json",
+      "partial_stderr_path": "work/1564f550-45e4-4550-8edd-53b157ef7efe/stderr.log",
+      "partial_stdout_path": "work/1564f550-45e4-4550-8edd-53b157ef7efe/stdout.log",
+      "partial_timing_record_path": "work/1564f550-45e4-4550-8edd-53b157ef7efe/diagnostic-state.json",
+      "per_output_results": {
+        "instrument_support": {
+          "required": true,
+          "status": "not_attempted"
+        },
+        "replaceable_insert": {
+          "required": true,
+          "status": "not_attempted"
+        }
+      },
+      "process_rss_kb": 538640,
+      "source_hash": "ce982c28a8662578b576ac452c074243ce09fad5130bf0910d5ae59d5604a5b3",
+      "subprocess_exit_status": 1,
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    "exception_type": null,
+    "extracted_source_hash": "ce982c28a8662578b576ac452c074243ce09fad5130bf0910d5ae59d5604a5b3",
+    "failure_boundary": "execution",
+    "failure_class": "python_type_error",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "4d8f34cd-ac90-42d8-a38f-72a470293f5a",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "c8b4e445-8bcd-46ff-898a-2d506a3b7a38",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "271c75251c77014d3ce6e3595fc921e66722969f4719f3121fdb40b5183efc95",
+        "request_hash": "987dd7eb70e347d06c1feb18da6e2309156367efa439eaa95841636b2761edc1",
+        "request_started_at": "2026-08-07T19:01:15.735849+00:00",
+        "response_length": 5997,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18171.238926737,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "c8b4e445-8bcd-46ff-898a-2d506a3b7a38",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "271c75251c77014d3ce6e3595fc921e66722969f4719f3121fdb40b5183efc95",
+    "request_start_timestamp": "2026-08-07T19:01:15.735849+00:00",
+    "response_length": 5997,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "python_type_error",
+  "observed_stage": "build_execution",
+  "outputs": [
+    {
+      "artifact_available": false,
+      "failure_owner": "worker",
+      "generation_status": "failed",
+      "output_id": "instrument_support",
+      "required": true,
+      "safe_diagnostic": "Execution failed; detailed traceback is not available.",
+      "state": "not_generated",
+      "topology_status": null,
+      "worker_status": "failed"
+    },
+    {
+      "artifact_available": false,
+      "failure_owner": "worker",
+      "generation_status": "failed",
+      "output_id": "replaceable_insert",
+      "required": true,
+      "safe_diagnostic": "Execution failed; detailed traceback is not available.",
+      "state": "not_generated",
+      "topology_status": null,
+      "worker_status": "failed"
+    }
+  ],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-11",
+  "project_runtime_id": "46abb630-825f-4126-8c64-e36af4ef6c45",
+  "prompt_sha256": "f110cfb702e67006660b4a15a688f16079aa9ed2dfb3c4cd6e252765be3fa42d",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "1564f550-45e4-4550-8edd-53b157ef7efe",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Support and replaceable insert",
+  "topology": {
+    "observed": true,
+    "result": {
+      "output_ids": [
+        "instrument_support",
+        "replaceable_insert"
+      ],
+      "outputs": {
+        "instrument_support": {},
+        "replaceable_insert": {}
+      },
+      "valid": false
+    }
+  },
+  "visible_model": false,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "f31cd288-0bf6-4444-82bb-0f6a204d1a4c"
+}

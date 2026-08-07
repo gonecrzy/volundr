@@ -1,0 +1,66 @@
+{
+  "corpus_runner_concurrency": 1,
+  "established_429_policy": "primary 429 -> 30 seconds -> fallback once; fallback is never selected merely because primary was absent; no third attempt",
+  "generated_at": "2026-08-07T19:01:55.210129+00:00",
+  "global_provider_semaphore_limit": 1,
+  "limiter_policy_unchanged": true,
+  "limiters": {
+    "fallback": {
+      "configured_hard_max_requests_per_window": 15,
+      "configured_minimum_gap_seconds": 5.0,
+      "configured_requests_per_minute": 12,
+      "configured_window_seconds": 60.0,
+      "observed_events": 0,
+      "observed_max_rolling_window_count": 0,
+      "observed_minimum_gap_seconds": null,
+      "request_start_timestamps": []
+    },
+    "primary": {
+      "configured_hard_max_requests_per_window": 15,
+      "configured_minimum_gap_seconds": 5.0,
+      "configured_requests_per_minute": 12,
+      "configured_window_seconds": 60.0,
+      "observed_events": 14,
+      "observed_max_rolling_window_count": 9,
+      "observed_minimum_gap_seconds": 5.001410484997905,
+      "request_start_timestamps": [
+        "2026-08-07T19:00:05.081893+00:00",
+        "2026-08-07T19:00:15.148541+00:00",
+        "2026-08-07T19:00:21.510602+00:00",
+        "2026-08-07T19:00:29.454425+00:00",
+        "2026-08-07T19:00:40.683304+00:00",
+        "2026-08-07T19:00:49.199568+00:00",
+        "2026-08-07T19:01:01.220681+00:00",
+        "2026-08-07T19:01:07.836968+00:00",
+        "2026-08-07T19:01:15.735849+00:00",
+        "2026-08-07T19:01:22.560920+00:00",
+        "2026-08-07T19:01:27.563198+00:00",
+        "2026-08-07T19:01:34.451586+00:00",
+        "2026-08-07T19:01:39.453020+00:00",
+        "2026-08-07T19:01:47.555603+00:00"
+      ]
+    }
+  },
+  "observed_records": 14,
+  "phase": "observed_after_selected_projects",
+  "phase_1a_call_start_order": [
+    "2026-08-07T19:00:05.081893+00:00",
+    "2026-08-07T19:00:15.148541+00:00",
+    "2026-08-07T19:00:21.510602+00:00",
+    "2026-08-07T19:00:29.454425+00:00",
+    "2026-08-07T19:00:40.683304+00:00",
+    "2026-08-07T19:00:49.199568+00:00",
+    "2026-08-07T19:01:01.220681+00:00",
+    "2026-08-07T19:01:07.836968+00:00",
+    "2026-08-07T19:01:15.735849+00:00",
+    "2026-08-07T19:01:22.560920+00:00",
+    "2026-08-07T19:01:27.563198+00:00",
+    "2026-08-07T19:01:34.451586+00:00",
+    "2026-08-07T19:01:39.453020+00:00",
+    "2026-08-07T19:01:47.555603+00:00"
+  ],
+  "provider_calls_made_by_audit": 0,
+  "provider_factory": "build_executable_ai_provider",
+  "schema_version": "executable-cadquery-phase-1a-rate-limit-audit-v1",
+  "shared_provider_instance_for_selected_projects": true
+}

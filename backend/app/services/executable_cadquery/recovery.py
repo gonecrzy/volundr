@@ -179,6 +179,56 @@ def _policy(
 
 
 RECOVERY_POLICIES: dict[str, RecoveryPolicy] = {
+    "provider_transport_failure": _policy(
+        owner="provider_transport",
+        action="retry_transport",
+        maximum_attempts=2,
+        progress_requirement="a provider response or explicit retryable transport result is recorded",
+        restart_stage="provider_transport",
+        evidence_inputs=("request_start_timestamp", "exception_type", "normalized_transport_error"),
+        terminal_conditions=("transport retry ceiling exhausted",),
+    ),
+    "provider_rate_limit": _policy(
+        owner="provider_transport",
+        action="retry_transport",
+        maximum_attempts=2,
+        progress_requirement="the established 429 fallback policy completes",
+        restart_stage="provider_transport",
+        evidence_inputs=("status_code", "credential_slot", "rate_limit_429_classification"),
+        terminal_conditions=("rate-limit retry ceiling exhausted",),
+    ),
+    "provider_authentication_failure": _policy(
+        owner="provider_transport",
+        action="terminal_external_blocker",
+        maximum_attempts=0,
+        progress_requirement="the existing API-key authentication boundary is restored",
+        restart_stage="provider_transport",
+        evidence_inputs=("status_code", "credential_slot", "response_received"),
+        terminal_conditions=("provider authentication failure",),
+        recoverability="terminal",
+    ),
+    "provider_response_empty": _policy(
+        owner="geometry",
+        action="gemini_contract_repair",
+        maximum_attempts=3,
+        progress_requirement="a non-empty provider response is received",
+        restart_stage="source_extraction",
+        evidence_inputs=("raw_response_hash", "response_length", "response_received"),
+        terminal_conditions=("same empty response state repeats",),
+        invalidates=("worker", "topology", "semantic_measurement", "semantic_policy", "artifacts", "package", "preview"),
+        repair_level="L0",
+    ),
+    "provider_source_extraction_failure": _policy(
+        owner="geometry",
+        action="gemini_contract_repair",
+        maximum_attempts=3,
+        progress_requirement="one complete source module is extracted from the received response",
+        restart_stage="source_extraction",
+        evidence_inputs=("raw_response_hash", "response_length", "extraction_diagnostic"),
+        terminal_conditions=("same extraction failure repeats",),
+        invalidates=("worker", "topology", "semantic_measurement", "semantic_policy", "artifacts", "package", "preview"),
+        repair_level="L0",
+    ),
     "provider_timeout": _policy(
         owner="provider_transport",
         action="retry_transport",
@@ -187,15 +237,6 @@ RECOVERY_POLICIES: dict[str, RecoveryPolicy] = {
         restart_stage="provider_transport",
         evidence_inputs=("provider_status", "retry_after_seconds"),
         terminal_conditions=("provider authentication failure", "retry ceiling exhausted"),
-    ),
-    "provider_rate_limit": _policy(
-        owner="provider_transport",
-        action="retry_transport",
-        maximum_attempts=2,
-        progress_requirement="retryable transport response",
-        restart_stage="provider_transport",
-        evidence_inputs=("provider_status", "retry_after_seconds"),
-        terminal_conditions=("retry ceiling exhausted",),
     ),
     "python_syntax_error": _policy(
         owner="geometry",
@@ -531,6 +572,41 @@ class RecoveryRouter:
 
         if facts.get("missing_provider_credentials") or "credential is not configured" in message:
             return "missing_provider_credentials"
+
+        if normalized_boundary == "provider_response":
+            response_received = facts.get("response_received")
+            status_code = facts.get("status_code", facts.get("provider_status"))
+            try:
+                status_code = int(status_code) if status_code is not None else None
+            except (TypeError, ValueError):
+                status_code = None
+            if response_received is False:
+                if status_code == 429:
+                    return "provider_rate_limit"
+                if (
+                    status_code in {401, 403}
+                    or facts.get("authentication_failure")
+                    or "authentication" in message
+                    or "unauthorized" in message
+                ):
+                    return "provider_authentication_failure"
+                return "provider_transport_failure"
+            if status_code == 429:
+                return "provider_rate_limit"
+            if status_code in {401, 403}:
+                return "provider_authentication_failure"
+            if response_received is True:
+                response_length = facts.get("response_length")
+                if response_length == 0:
+                    return "provider_response_empty"
+                if facts.get("source_extraction_succeeded") is False:
+                    return "provider_source_extraction_failure"
+                if (
+                    facts.get("source_extraction_succeeded") is True
+                    and facts.get("source_contract_valid") is False
+                ):
+                    return "provider_response_contract_failure"
+
         if facts.get("worker_environment_failure") or facts.get("worker_failure_class") == "worker_environment_failure":
             return "worker_environment_failure"
         if facts.get("authentication_failure") or "authentication" in message or "unauthorized" in message:
@@ -602,6 +678,10 @@ class RecoveryRouter:
         """Map a normalized failure to the earliest canonical stage it proves."""
 
         class_stages = {
+            "provider_transport_failure": "provider_transport",
+            "provider_authentication_failure": "provider_transport",
+            "provider_response_empty": "source_extraction",
+            "provider_source_extraction_failure": "source_extraction",
             "provider_timeout": "provider_transport",
             "provider_rate_limit": "provider_transport",
             "authentication_failure": "provider_transport",

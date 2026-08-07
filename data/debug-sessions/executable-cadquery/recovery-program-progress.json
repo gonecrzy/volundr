@@ -5,11 +5,11 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "e0e9be5 Fix shared validated provider attempt persistence",
+  "experimental_head": "working-tree-reconciliation-evidence-pending-commit",
   "origin_experimental_head": "e0e9be5 Fix shared validated provider attempt persistence",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A first-blocker survey complete after generic persistence reconciliation; Phase 1B not started",
+  "worktree_status": "Phase 1A survey reconciled for invalidated P03-P16; authoritative matrix complete; Phase 1B not started",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -72,6 +72,13 @@
     ,"full_backend_after_integrity_fix_1432_passed"
     ,"offline_browser_after_integrity_fix_22_passed_15_skipped"
     ,"compose_and_migration_checks_after_integrity_fix_passed"
+    ,"historical_p03_p16_provider_attempt_forensics_completed_without_provider_calls"
+    ,"p03_p16_original_first_passes_invalidated_for_missing_durable_attempt_facts"
+    ,"provider_failure_taxonomy_response_receipt_gate_regression_passed"
+    ,"p01_p02_first_owner_reaudited"
+    ,"phase_1a_rate_limiter_preflight_and_reconciliation_audit_completed"
+    ,"phase_1a_p03_p16_observational_reconciliation_completed_without_repairs"
+    ,"phase_1a_authoritative_matrix_rebuilt_from_reconciled_records"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -104,7 +111,7 @@
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
-    "status": "complete_after_integrity_reconciliation",
+    "status": "complete_after_survey_reconciliation",
     "corpus_size": 16,
     "composition": {
       "highly_specified": 4,
@@ -120,6 +127,7 @@
     "first_pass_started": true,
     "first_pass_complete": true,
     "provider_calls": 16,
+    "new_reconciliation_provider_calls": 14,
     "repair_operations": 0,
     "initial_independent_pass": "0/16",
     "application_changes_during_survey": "forbidden_except_integrity_defect_stop_and_restart",
@@ -128,6 +136,11 @@
     "initial_metrics": "data/debug-sessions/executable-cadquery/recovery-development-16/initial-metrics.json",
     "anti_overfitting_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/anti-overfitting-audit.json",
     "integrity_reconciliation": "data/debug-sessions/executable-cadquery/recovery-development-16/survey-integrity-reconciliation.json",
+    "historical_provider_attempt_forensics": "data/debug-sessions/executable-cadquery/recovery-development-16/historical-provider-attempt-forensics.json",
+    "rate_limit_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/rate-limit-audit.json",
+    "reconciled_record_pattern": "data/debug-sessions/executable-cadquery/recovery-development-16/project-XX-reconciled-first-pass.json",
+    "historical_invalidated_project_orders": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "authoritative_matrix_uses_reconciled_records": true,
     "decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1a-decision.json",
     "phase_1b_started": false
   },
@@ -178,13 +191,16 @@
     "per_project_tuning_allowed": false
   },
   "application_fix_count": 14,
-  "application_fix_count_since_previous_checkpoint": 5,
+  "application_fix_count_since_previous_checkpoint": 6,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
     "historical_provider_calls_in_cycle": 20,
     "phase_1a_provider_calls": 16,
     "phase_1a_repair_operations": 0,
+    "phase_1a_reconciliation_provider_calls": 14,
+    "phase_1a_reconciliation_repair_operations": 0,
+    "phase_1a_forensic_provider_calls": 0,
     "topology_evidence_checkpoint_provider_calls": 0,
     "post_evidence_p3_l2_attempts": 1,
     "post_evidence_successful_provider_calls": 0,
@@ -221,10 +237,10 @@
     "credential_freeze": "e4b2b9e",
     "backend_baseline": "1401 passed",
     "frontend_baseline": "104 passed",
-    "backend_current": "1431 passed, 1 skipped, 1 warning",
+    "backend_current": "1441 passed, 1 skipped, 1 warning",
     "frontend_current": "104 passed; production build passed",
     "offline_browser_current": "22 passed, 15 skipped",
-    "migrations_current": "0039_align_fresh_database_schema; alembic check clean",
+    "migrations_current": "0040_provider_attempt_transport_facts; alembic check clean",
     "boundary_current": "Compose/nginx boundary tests and tracked-source secret scan passed; direct docker/nginx binaries unavailable",
     "compose_yaml_current": "docker-compose.yml parsed successfully",
     "live_harness_current": "8 passed",
@@ -247,7 +263,10 @@
     "prior_l2_attempt_metrics": "backend/app/services/executable_cadquery/repair.py; compact neutral prior-L2 topology metrics included in repair envelopes and covered by backend/tests/test_executable_cadquery_repair.py",
     "p5_diagnostic_refresh": "backend/app/services/cad/cadquery_runner.py and backend/tests/test_cad_worker.py; output ID, source hash, source line/function, normalized exception, operation-before validity, chamfer/StdFail_NotDone/BRep_API evidence, CadQuery and worker versions",
     "semantic_call_authorization_current": "P2 and P4 persisted L3 envelopes are blocked before future provider construction because explicit measurement confidence is absent; verify-only checks report semantic_measurement_verifier_coverage with provider_calls=0",
-    "phase_1a_current": "16/16 frozen development projects first-pass complete; provider_calls=16; repair_operations=0; initial independent PASS=0/16; integrity reconciliation persisted; Phase 1B not started",
-    "verification_current_checkpoint": "post-integrity-fix backend 1432 passed, 1 skipped, 1 warning; frontend 104 passed/build passed; offline browser 22 passed/15 skipped; targeted boundary/routing 65 passed; Alembic current=head=0039 and check clean; Compose config passed; P1-P5 authoritative outcomes preserved; JSON validation and git diff --check passed"
+    "phase_1a_current": "16/16 authoritative first blockers; original P03-P16 observations invalidated; 14 reconciled provider calls; repair_operations=0; initial independent PASS=0/16; Phase 1B not started",
+    "historical_provider_attempt_forensics": "data/debug-sessions/executable-cadquery/recovery-development-16/historical-provider-attempt-forensics.json; zero calls; no durable facts recoverable for P03-P16",
+    "phase_1a_rate_limit_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/rate-limit-audit.json; concurrency=1; primary observed minimum gap=5.001410484997905s; rolling max=9; fallback unused",
+    "phase_1a_reconciled_records": "data/debug-sessions/executable-cadquery/recovery-development-16/project-03..16-reconciled-first-pass.json",
+    "verification_current_checkpoint": "backend 1441 passed, 1 skipped, 1 warning; focused taxonomy/diagnostic/provider tests passed; Alembic current=head=0040 and check clean; P03-P16 reconciliation completed with 14 primary API-key operations, zero repairs, and authoritative matrix rebuilt; Phase 1B not started"
   }
 }

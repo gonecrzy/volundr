@@ -1,0 +1,148 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 0,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 10,
+  "design_contract_sha256": "e5016f4f62ca46f0d1b623b47777be58239a6525f4c2b5c6e5be9f442c8b9da4",
+  "duration_ms": 7897.668,
+  "first_incorrect_owner": "geometry",
+  "first_unresolved_blocker": "source_execution_error",
+  "geometry_families": [
+    "single_output",
+    "prismatic_geometry",
+    "holes_and_patterns",
+    "functional_design"
+  ],
+  "highest_stage_reached": "execution",
+  "initial_attempt": {
+    "attempt_id": "1a1b2369-1ebd-4b7f-86ec-8296d0ab0185",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {
+      "active_phase": "build_function",
+      "cadquery_version": "2.8.0",
+      "cadquery_worker_version": "cadquery-cli-runner-v1",
+      "command_args": [
+        "python",
+        "_volundr_cadquery_runner.py",
+        "outputs",
+        "execution-manifest.json",
+        "parameter-values.json",
+        "requested-outputs.json"
+      ],
+      "completed_output_ids": [],
+      "exit_code": 1,
+      "failure_exception_type": "AttributeError",
+      "failure_message": "'ParameterValues' object has no attribute 'get_float'",
+      "failure_output_id": "pegboard_tool_holder",
+      "failure_phase": "build_function",
+      "failure_source_function": "build",
+      "failure_source_hash": "d552c5908c6c420820921ada0a0f12dd479c0c73988b5756dde389a167e6202f",
+      "failure_source_line": 123,
+      "incomplete_output_ids": [
+        "pegboard_tool_holder"
+      ],
+      "message": "Traceback (most recent call last):\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/cfb2f14e-3496-4f82-83f2-9e542ddf1702/work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/_volundr_cadquery_runner.py\", line 935, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/cfb2f14e-3496-4f82-83f2-9e542ddf1702/work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/_volundr_cadquery_runner.py\", line 487, in main\n    product = _build_product(module, parameter_values)\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/cfb2f14e-3496-4f82-83f2-9e542ddf1702/work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/_volundr_cadquery_runner.py\", line 555, in _build_product\n    product = module.build(params)\n  File \"/tmp/volundr-phase1a.ndgq1_6_/data/jobs/cfb2f14e-3496-4f82-83f2-9e542ddf1702/work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/model.py\", line 123, in build\n    w = params.get_float(\"holder_width\")\n        ^^^^^^^^^^^^^^^^\nAttributeError: 'ParameterValues' object has no attribute 'get_float'",
+      "normalized_exception": "AttributeError / 'ParameterValues' object has no attribute 'get_float'",
+      "partial_diagnostic_state_path": "work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/diagnostic-state.json",
+      "partial_stderr_path": "work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/stderr.log",
+      "partial_stdout_path": "work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/stdout.log",
+      "partial_timing_record_path": "work/cfb2f14e-3496-4f82-83f2-9e542ddf1702/diagnostic-state.json",
+      "per_output_results": {
+        "pegboard_tool_holder": {
+          "required": true,
+          "status": "not_attempted"
+        }
+      },
+      "process_rss_kb": 535156,
+      "source_hash": "d552c5908c6c420820921ada0a0f12dd479c0c73988b5756dde389a167e6202f",
+      "subprocess_exit_status": 1,
+      "timed_out": false,
+      "timeout_seconds": 60
+    },
+    "exception_type": null,
+    "extracted_source_hash": "d552c5908c6c420820921ada0a0f12dd479c0c73988b5756dde389a167e6202f",
+    "failure_boundary": "execution",
+    "failure_class": "source_execution_error",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "1a1b2369-1ebd-4b7f-86ec-8296d0ab0185",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "01b387f8-6a3b-4746-8065-4bb248f84152",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "8bfcc1a375601c43d2e3e0ae8d7b9c9b1b93e7ec44cd468919e6b12846f39541",
+        "request_hash": "1f90f20c16204c2ddc397e426dbac11291e349447048c2091988d0c3f2317803",
+        "request_started_at": "2026-08-07T19:01:07.836968+00:00",
+        "response_length": 5153,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18163.340053378,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "01b387f8-6a3b-4746-8065-4bb248f84152",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "8bfcc1a375601c43d2e3e0ae8d7b9c9b1b93e7ec44cd468919e6b12846f39541",
+    "request_start_timestamp": "2026-08-07T19:01:07.836968+00:00",
+    "response_length": 5153,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "source_execution_error",
+  "observed_stage": "build_execution",
+  "outputs": [
+    {
+      "artifact_available": false,
+      "failure_owner": "worker",
+      "generation_status": "failed",
+      "output_id": "pegboard_tool_holder",
+      "required": true,
+      "safe_diagnostic": "Execution failed; detailed traceback is not available.",
+      "state": "not_generated",
+      "topology_status": null,
+      "worker_status": "failed"
+    }
+  ],
+  "preview": {
+    "observed": false,
+    "screenshot": null
+  },
+  "project_id": "development-10",
+  "project_runtime_id": "81c5e2e9-f4e8-4b06-84c3-32a2a27f7b27",
+  "prompt_sha256": "b36f6f0db326cbab5abb82c2457c3a9027341116aea3a2e73004ea3f2c413d3e",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "cfb2f14e-3496-4f82-83f2-9e542ddf1702",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {}
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "failed",
+  "title": "Workshop pegboard accessory holder",
+  "topology": {
+    "observed": true,
+    "result": {}
+  },
+  "visible_model": false,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "2854abd0-cb18-42a5-ba97-282beaae4265"
+}

@@ -1,0 +1,440 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 2,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 6,
+  "design_contract_sha256": "e0fb12190de2e71f0df0e7205396c846e40006224b0d68dda057f241a575246f",
+  "duration_ms": 11228.015,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "multi_output",
+    "optional_output",
+    "cavity_shelling",
+    "holes_and_pockets"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "98330c3d-c1b2-42a4-8a67-5402b1557cc9",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "c4ae83880d250f9a6f68d525c3131d2640adce8778795d7f9edd26605a819bd0",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "98330c3d-c1b2-42a4-8a67-5402b1557cc9",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "9f9eb116-0ef4-442f-baf3-8a6913890a71",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "48cc398afe739750d791e6ab203b92a7bf7356089c7243055a420a6b81e7dec5",
+        "request_hash": "a816d5e84066e4e0a26ff873ed5dc686148b594d6fd460bca244df5bcf823a0c",
+        "request_started_at": "2026-08-07T19:00:29.454425+00:00",
+        "response_length": 6049,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18124.957526995,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "9f9eb116-0ef4-442f-baf3-8a6913890a71",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "48cc398afe739750d791e6ab203b92a7bf7356089c7243055a420a6b81e7dec5",
+    "request_start_timestamp": "2026-08-07T19:00:29.454425+00:00",
+    "response_length": 6049,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "battery_holder",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    },
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "retaining_lid",
+      "required": false,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-06-render.png"
+  },
+  "project_id": "development-06",
+  "project_runtime_id": "72ee2f65-0996-4a51-94a6-f3268bac8f12",
+  "prompt_sha256": "56d4a38244f64eb27b32db35de4484aad2fd13d422ca8a589033c2224f674422",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "a4974b1a-67f5-4b90-98a7-0a3c8fcf2471",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [],
+      "findings": [
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "cell_count": 4,
+            "cell_format": "18650",
+            "top_removal": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "battery_holder_output",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "attachable_to_flat_workshop_surface": true
+          },
+          "measured_value": {
+            "reason": "no generic verifier registered",
+            "verification_policy": "blind_review"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "battery_holder_mounting",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "usable_without_optional_lid": true
+          },
+          "measured_value": {
+            "artifact_present": true,
+            "output_id": "battery_holder"
+          },
+          "measurement_available": true,
+          "observed_status": "passed",
+          "policy": "machine_required",
+          "requirement_id": "battery_holder_independence",
+          "result": "verified",
+          "tolerance": 0.0,
+          "verification_policy": "required_output_artifact"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "boss_layout": "designer_choice",
+            "clearance": "designer_choice",
+            "fastening": "designer_choice"
+          },
+          "measured_value": {
+            "output_id": "battery_holder/retaining_lid",
+            "reason": "required output mesh is unavailable"
+          },
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "battery_holder_design_choices",
+          "result": "unsupported_verifier",
+          "tolerance": 0.0,
+          "verification_policy": "blind_review"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "battery_holder",
+        "retaining_lid"
+      ],
+      "passed": [
+        "battery_holder_independence"
+      ],
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 4,
+        "review_required": 0,
+        "unsupported_verifier": 3,
+        "verified": 1,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "unsupported_verifier",
+      "unsupported_verifier": [
+        "battery_holder_output",
+        "battery_holder_mounting",
+        "battery_holder_design_choices"
+      ],
+      "unverifiable": [
+        "battery_holder_output",
+        "battery_holder_mounting",
+        "battery_holder_design_choices"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "partially_specified",
+  "state": "verification_failed",
+  "title": "Modular battery holder",
+  "topology": {
+    "observed": true,
+    "result": {
+      "output_ids": [
+        "battery_holder",
+        "retaining_lid"
+      ],
+      "outputs": {
+        "battery_holder": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 72.2,
+            "size_y": 48.2,
+            "size_z": 49.650000000000006,
+            "x_max": 36.1,
+            "x_min": -36.1,
+            "y_max": 24.100000000000005,
+            "y_min": -24.1,
+            "z_max": 49.650000000000006,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 40,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 72.2,
+            "size_y": 48.2,
+            "size_z": 49.650000000000006,
+            "x_max": 36.1,
+            "x_min": -36.1,
+            "y_max": 24.100000000000005,
+            "y_min": -24.1,
+            "z_max": 49.650000000000006,
+            "z_min": 0.0
+          },
+          "outcome": "valid",
+          "output_id": "battery_holder",
+          "overall_bounding_box": {
+            "size_x": 72.2,
+            "size_y": 48.2,
+            "size_z": 49.650000000000006,
+            "x_max": 36.1,
+            "x_min": -36.1,
+            "y_max": 24.100000000000005,
+            "y_min": -24.1,
+            "z_max": 49.650000000000006,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 72.2,
+            "size_y": 48.2,
+            "size_z": 49.650000000000006,
+            "x_max": 36.1,
+            "x_min": -36.1,
+            "y_max": 24.100000000000005,
+            "y_min": -24.1,
+            "z_max": 49.650000000000006,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 72.2,
+                "size_y": 48.2,
+                "size_z": 49.650000000000006,
+                "x_max": 36.1,
+                "x_min": -36.1,
+                "y_max": 24.100000000000005,
+                "y_min": -24.1,
+                "z_max": 49.650000000000006,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": -4.185948984400775E-15,
+                "y": -2.1545325655003988E-15,
+                "z": 20.95162346656022
+              },
+              "face_count": 40,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 59098.32150466346
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 59098.32150466346
+        },
+        "retaining_lid": {
+          "allow_disconnected_solids": false,
+          "bounding_box_mm": {
+            "size_x": 48.2,
+            "size_y": 48.2,
+            "size_z": 6.5,
+            "x_max": 24.1,
+            "x_min": -24.1,
+            "y_max": 24.1,
+            "y_min": -24.1,
+            "z_max": 6.5,
+            "z_min": 0.0
+          },
+          "coordinate_space": "print_space",
+          "detected_solid_count": 1,
+          "disconnected_solid_policy": {
+            "allow_disconnected_solids": false
+          },
+          "expected_solid_count": 1,
+          "face_count": 14,
+          "measurement_errors": [],
+          "measurement_tolerance_mm": 1E-7,
+          "model_space_bounds": {
+            "size_x": 48.2,
+            "size_y": 48.2,
+            "size_z": 6.5,
+            "x_max": 24.1,
+            "x_min": -24.1,
+            "y_max": 24.1,
+            "y_min": -24.1,
+            "z_max": 4.5,
+            "z_min": -2.0
+          },
+          "outcome": "valid",
+          "output_id": "retaining_lid",
+          "overall_bounding_box": {
+            "size_x": 48.2,
+            "size_y": 48.2,
+            "size_z": 6.5,
+            "x_max": 24.1,
+            "x_min": -24.1,
+            "y_max": 24.1,
+            "y_min": -24.1,
+            "z_max": 6.5,
+            "z_min": 0.0
+          },
+          "overall_shape_valid": true,
+          "placement_policy": "cadquery-output-placement-v1",
+          "print_space_bounds": {
+            "size_x": 48.2,
+            "size_y": 48.2,
+            "size_z": 6.5,
+            "x_max": 24.1,
+            "x_min": -24.1,
+            "y_max": 24.1,
+            "y_min": -24.1,
+            "z_max": 6.5,
+            "z_min": 0.0
+          },
+          "print_transform": {
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              2.0
+            ]
+          },
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "solid_pairs": [],
+          "solids": [
+            {
+              "bounding_box_mm": {
+                "size_x": 48.2,
+                "size_y": 48.2,
+                "size_z": 6.5,
+                "x_max": 24.1,
+                "x_min": -24.1,
+                "y_max": 24.1,
+                "y_min": -24.1,
+                "z_max": 6.5,
+                "z_min": 0.0
+              },
+              "centroid_mm": {
+                "x": 2.5651121990464257E-16,
+                "y": -8.428225796866828E-16,
+                "z": 3.7379663073289744
+              },
+              "face_count": 14,
+              "shell_count": 1,
+              "solid_id": "solid-0",
+              "solid_index": 0,
+              "valid": true,
+              "volume_mm3": 12409.716258760951
+            }
+          ],
+          "status": "measured",
+          "valid": true,
+          "volume_mm3": 12409.716258760951
+        }
+      },
+      "valid": true
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "97e78b1d-b555-46f8-88c7-c8766b67c184"
+}

@@ -1,0 +1,364 @@
+{
+  "artifact": {
+    "observed": true,
+    "outputs_with_artifacts": 1,
+    "required_outputs": 1
+  },
+  "candidate_ready_reached": false,
+  "clarification_count": 0,
+  "corpus_order": 3,
+  "design_contract_sha256": "a5089fc63627e6848fc5533646e6395796a5fa5fcc06da4b752a20f139a2cd2a",
+  "duration_ms": 10219.632,
+  "first_incorrect_owner": "application",
+  "first_unresolved_blocker": "semantic_requirement_unverifiable",
+  "geometry_families": [
+    "single_output",
+    "cavity_shelling",
+    "holes_and_pockets",
+    "prismatic_geometry"
+  ],
+  "highest_stage_reached": "semantic_measurement",
+  "initial_attempt": {
+    "attempt_id": "30e11528-4a48-4065-ae64-8ff8d69171c4",
+    "callback_persistence_exception": null,
+    "credential_slot": "primary",
+    "diagnostic": {},
+    "exception_type": null,
+    "extracted_source_hash": "b1de51a1a852147bf897d81282c865523f07b5403b7f2225bf7d9821f6affda9",
+    "failure_boundary": "semantic",
+    "failure_class": "semantic_requirement_unverifiable",
+    "http_status": 200,
+    "normalized_transport_provider_error": null,
+    "provider_attempt_facts": [
+      {
+        "attempt_id": "30e11528-4a48-4065-ae64-8ff8d69171c4",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "f74b3f06-0792-49e1-90b1-5816d28436ea",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "49e0421d73d763aca509b67f34671a4d2f8e2e94812b0d25329542a8c9ca39b4",
+        "request_hash": "2df157711d7438ac078ffe438211d5a1059c47bc832bad85ec13292d7e74a04f",
+        "request_started_at": "2026-08-07T19:00:05.081893+00:00",
+        "response_length": 5087,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "started_monotonic": 18100.584978109,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_logical_operation_id": "f74b3f06-0792-49e1-90b1-5816d28436ea",
+    "rate_limit_429_classification": "not_429",
+    "raw_response_hash": "49e0421d73d763aca509b67f34671a4d2f8e2e94812b0d25329542a8c9ca39b4",
+    "request_start_timestamp": "2026-08-07T19:00:05.081893+00:00",
+    "response_length": 5087,
+    "response_received": true,
+    "transport_retry_classification": "none"
+  },
+  "normalized_failure_class": "semantic_requirement_unverifiable",
+  "observed_stage": "semantic_measurement",
+  "outputs": [
+    {
+      "artifact_available": true,
+      "failure_owner": "verification",
+      "generation_status": "completed",
+      "output_id": "sensor_housing",
+      "required": true,
+      "safe_diagnostic": "Semantic verification did not pass.",
+      "state": "semantic_verification_failed",
+      "topology_status": "passed",
+      "worker_status": "completed"
+    }
+  ],
+  "preview": {
+    "observed": true,
+    "screenshot": "development-03-render.png"
+  },
+  "project_id": "development-03",
+  "project_runtime_id": "b3793141-7899-407f-b75c-a3b5ecb8d348",
+  "prompt_sha256": "db133cd564369bc3f69f099a2c326666149ddd6fe673a2fadaaea76183221048",
+  "provider_attempt_count": 1,
+  "provider_repair_operations": 0,
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "revision_id": "048a54a1-8d22-4a12-acc9-f3e0bb17ad5b",
+  "schema_version": "executable-cadquery-phase-1a-first-pass-v1",
+  "semantic": {
+    "observed": true,
+    "result": {
+      "failed": [
+        "housing_walls",
+        "housing_bosses"
+      ],
+      "findings": [
+        {
+          "measurements": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1
+          },
+          "requirement_id": "topology",
+          "status": "passed"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "depth": 46.0,
+            "height": 28.0,
+            "width": 72.0
+          },
+          "measured_value": {
+            "detected_mm": [
+              72.0,
+              46.0,
+              28.0
+            ],
+            "expected_mm": [
+              72.0,
+              46.0,
+              28.0
+            ]
+          },
+          "measurement_available": true,
+          "observed_status": "passed",
+          "policy": "machine_required",
+          "requirement_id": "housing_envelope",
+          "result": "verified",
+          "tolerance": 0.5,
+          "verification_policy": "final_mesh_bounds"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "bottom": 3.0,
+            "open_top": true,
+            "wall": 2.5
+          },
+          "measured_value": {
+            "detected_wall_thickness_mm": 3.0,
+            "expected_wall_thickness_mm": 0.0
+          },
+          "measurement_available": true,
+          "observed_status": "failed",
+          "policy": "machine_required",
+          "requirement_id": "housing_walls",
+          "result": "failed",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_wall_profile"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "count": 4,
+            "hole_diameter": 2.5,
+            "nearest_wall_offset": 8.0
+          },
+          "measured_value": {
+            "detected_count": 0,
+            "detected_pitch_circle_diameter_mm": null,
+            "expected_count": 4,
+            "expected_pitch_circle_diameter_mm": null
+          },
+          "measurement_available": true,
+          "observed_status": "failed",
+          "policy": "machine_required",
+          "requirement_id": "housing_bosses",
+          "result": "failed",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_opening_centers"
+        },
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "height": 6.0,
+            "through_right_wall": true,
+            "width": 12.0
+          },
+          "measured_value": {
+            "boundary_measurement": {
+              "boundary_axis": "x",
+              "detected_spans_mm": [
+                12.0,
+                6.0
+              ],
+              "passed": true
+            },
+            "expected_size_mm": [
+              12.0,
+              6.0
+            ]
+          },
+          "measurement_available": true,
+          "observed_status": "passed",
+          "policy": "machine_required",
+          "requirement_id": "housing_cable_opening",
+          "result": "verified",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_feature_profiles"
+        },
+        {
+          "evidence_source": "none",
+          "expected_value": {
+            "count": 6,
+            "length": 8.0,
+            "width": 2.0
+          },
+          "measured_value": {},
+          "measurement_available": false,
+          "observed_status": "unverifiable",
+          "policy": "machine_required",
+          "requirement_id": "housing_ventilation",
+          "result": "unsupported_verifier",
+          "tolerance": 0.25,
+          "verification_policy": "final_mesh_feature_profiles"
+        }
+      ],
+      "load_errors": {},
+      "output_ids": [
+        "sensor_housing"
+      ],
+      "passed": [
+        "housing_envelope",
+        "housing_cable_opening",
+        "topology"
+      ],
+      "policy_summary": {
+        "failed": 2,
+        "informational": 0,
+        "machine_required": 5,
+        "review_required": 0,
+        "unsupported_verifier": 1,
+        "verified": 2,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": [],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "status": "failed",
+      "unsupported_verifier": [
+        "housing_ventilation"
+      ],
+      "unverifiable": [
+        "housing_ventilation"
+      ]
+    }
+  },
+  "source_contract_valid": true,
+  "source_extracted": true,
+  "specification_category": "highly_specified",
+  "state": "verification_failed",
+  "title": "Sensor housing shell",
+  "topology": {
+    "observed": true,
+    "result": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 72.0,
+        "size_y": 46.0,
+        "size_z": 28.0,
+        "x_max": 36.0,
+        "x_min": -36.0,
+        "y_max": 23.0,
+        "y_min": -23.0,
+        "z_max": 28.0,
+        "z_min": 0.0
+      },
+      "coordinate_space": "print_space",
+      "detected_solid_count": 1,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 30,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1E-7,
+      "model_space_bounds": {
+        "size_x": 72.0,
+        "size_y": 46.0,
+        "size_z": 28.0,
+        "x_max": 36.0,
+        "x_min": -36.0,
+        "y_max": 23.0,
+        "y_min": -23.0,
+        "z_max": 28.0,
+        "z_min": 0.0
+      },
+      "outcome": "valid",
+      "output_id": "sensor_housing",
+      "overall_bounding_box": {
+        "size_x": 72.0,
+        "size_y": 46.0,
+        "size_z": 28.0,
+        "x_max": 36.0,
+        "x_min": -36.0,
+        "y_max": 23.0,
+        "y_min": -23.0,
+        "z_max": 28.0,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "placement_policy": "cadquery-output-placement-v1",
+      "print_space_bounds": {
+        "size_x": 72.0,
+        "size_y": 46.0,
+        "size_z": 28.0,
+        "x_max": 36.0,
+        "x_min": -36.0,
+        "y_max": 23.0,
+        "y_min": -23.0,
+        "z_max": 28.0,
+        "z_min": 0.0
+      },
+      "print_transform": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 1,
+      "solid_pairs": [],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 72.0,
+            "size_y": 46.0,
+            "size_z": 28.0,
+            "x_max": 36.0,
+            "x_min": -36.0,
+            "y_max": 23.0,
+            "y_min": -23.0,
+            "z_max": 28.0,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": -0.22963754552571958,
+            "y": 4.1007031113422147E-16,
+            "z": 10.455903928063861
+          },
+          "face_count": 30,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 27238.577148524106
+        }
+      ],
+      "status": "measured",
+      "valid": true,
+      "volume_mm3": 27238.577148524106
+    }
+  },
+  "visible_model": true,
+  "worker_started": true,
+  "workflow_error": null,
+  "workflow_id": "0280cc28-eab4-4c50-8aa3-3eb5fe090b12"
+}

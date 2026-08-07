@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 from collections.abc import Mapping
+from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -47,6 +48,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--only-project-order", type=int)
+    parser.add_argument("--project-orders", type=str)
+    parser.add_argument("--record-suffix", type=str, default="first-pass")
     return parser.parse_args()
 
 
@@ -96,9 +99,9 @@ def first_provider_attempt(history: list[Mapping[str, Any]]) -> Mapping[str, Any
 
 def owner_for(boundary: str | None, failure_class: str | None) -> str | None:
     if boundary in {"provider_response", "source_contract"}:
-        return "provider" if boundary == "provider_response" else "source_contract"
+        return "generated_source"
     if boundary == "execution":
-        return "worker"
+        return "generated_source"
     if boundary == "topology":
         return "topology_verifier"
     if boundary == "semantic":
@@ -195,6 +198,13 @@ def build_first_pass_record(
     diagnostics = json_object(payload.get("diagnostics"))
     initial_boundary = str(initial.get("failure_boundary")) if initial and initial.get("failure_boundary") else None
     initial_failure = str(initial.get("failure_class")) if initial and initial.get("failure_class") else None
+    provider_attempt = json_object(initial.get("provider_attempt")) if initial else {}
+    transport_attempts = [
+        dict(item)
+        for item in provider_attempt.get("transport_attempts", [])
+        if isinstance(item, Mapping)
+    ]
+    final_transport_attempt = transport_attempts[-1] if transport_attempts else {}
     first_blocker = initial_failure or (None if state in {"candidate_ready", "revision_ready"} else str(diagnostics.get("kind") or "workflow_initialization_failure"))
     revision = db.get(Revision, payload.get("revision_id")) if payload.get("revision_id") else None
     render_path = output_root / f"{project['project_id']}-render.png"
@@ -247,9 +257,12 @@ def build_first_pass_record(
         "state": state,
         "highest_stage_reached": highest_stage(initial, state),
         "first_unresolved_blocker": first_blocker,
-        "observed_stage": initial_boundary or ("candidate_ready" if state in {"candidate_ready", "revision_ready"} else None),
+        "observed_stage": (initial.get("observed_stage") if initial else None)
+        or initial_boundary
+        or ("candidate_ready" if state in {"candidate_ready", "revision_ready"} else None),
         "normalized_failure_class": initial_failure,
-        "first_incorrect_owner": owner_for(initial_boundary, initial_failure),
+        "first_incorrect_owner": (initial.get("first_incorrect_owner") if initial else None)
+        or owner_for(initial_boundary, initial_failure),
         "visible_model": visible_model,
         "candidate_ready_reached": state in {"candidate_ready", "revision_ready"},
         "outputs": output_records,
@@ -259,14 +272,107 @@ def build_first_pass_record(
         "initial_attempt": {
             "failure_boundary": initial_boundary,
             "failure_class": initial_failure,
-            "raw_response_hash": initial.get("raw_response_hash") if initial else None,
+            "raw_response_hash": final_transport_attempt.get("raw_response_hash") or (initial.get("raw_response_hash") if initial else None),
             "extracted_source_hash": initial.get("extracted_source_hash") if initial else None,
             "diagnostic": initial.get("diagnostic") if initial else None,
+            "provider_attempt_facts": transport_attempts,
+            "provider_logical_operation_id": final_transport_attempt.get("logical_operation_id"),
+            "attempt_id": final_transport_attempt.get("attempt_id"),
+            "request_start_timestamp": final_transport_attempt.get("request_started_at"),
+            "credential_slot": final_transport_attempt.get("credential_slot"),
+            "http_status": final_transport_attempt.get("status_code"),
+            "response_received": final_transport_attempt.get("response_received"),
+            "response_length": final_transport_attempt.get("response_length"),
+            "exception_type": final_transport_attempt.get("exception_type"),
+            "normalized_transport_provider_error": final_transport_attempt.get("normalized_transport_error"),
+            "transport_retry_classification": final_transport_attempt.get("transport_retry_classification"),
+            "rate_limit_429_classification": final_transport_attempt.get("rate_limit_429_classification"),
+            "callback_persistence_exception": provider_attempt.get("callback_persistence_exception"),
         },
     }
 
 
-async def run_survey(manifest_path: Path, output_root: Path, only_project_order: int | None = None) -> None:
+def _parse_project_orders(value: str | None) -> set[int] | None:
+    if value is None:
+        return None
+    orders = {int(item.strip()) for item in value.split(",") if item.strip()}
+    if not orders or any(order < 1 or order > 16 for order in orders):
+        raise ValueError("project orders must be integers from 1 through 16")
+    return orders
+
+
+def _write_rate_limit_audit(
+    output_root: Path,
+    *,
+    provider: Any,
+    records: list[Mapping[str, Any]],
+    phase: str,
+) -> None:
+    limiter_records: dict[str, Any] = {}
+    for slot, limiter in (
+        ("primary", getattr(provider, "_validated_primary_limiter", None)),
+        ("fallback", getattr(provider, "_validated_fallback_limiter", None)),
+    ):
+        events = [dict(event) for event in getattr(limiter, "events", []) if isinstance(event, Mapping)]
+        monotonic_starts = [
+            float(event["started_monotonic"])
+            for event in events
+            if event.get("started_monotonic") is not None
+        ]
+        gaps = [right - left for left, right in zip(monotonic_starts, monotonic_starts[1:])]
+        rolling_max = 0
+        for start in monotonic_starts:
+            rolling_max = max(
+                rolling_max,
+                sum(1 for candidate in monotonic_starts if start - 60.0 < candidate <= start),
+            )
+        limiter_records[slot] = {
+            "configured_requests_per_minute": getattr(limiter, "requests_per_minute", None),
+            "configured_hard_max_requests_per_window": getattr(limiter, "hard_max_requests_per_window", None),
+            "configured_minimum_gap_seconds": getattr(limiter, "minimum_gap_seconds", None),
+            "configured_window_seconds": getattr(limiter, "window_seconds", None),
+            "observed_events": len(events),
+            "observed_minimum_gap_seconds": min(gaps) if gaps else None,
+            "observed_max_rolling_window_count": rolling_max,
+            "request_start_timestamps": [
+                item.get("request_start_timestamp")
+                for record in records
+                for item in record.get("initial_attempt", {}).get("provider_attempt_facts", [])
+                if item.get("credential_slot") == slot and item.get("request_started_at")
+            ],
+        }
+    write_json(
+        output_root / "rate-limit-audit.json",
+        {
+            "schema_version": "executable-cadquery-phase-1a-rate-limit-audit-v1",
+            "phase": phase,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "provider_calls_made_by_audit": 0,
+            "provider_factory": "build_executable_ai_provider",
+            "shared_provider_instance_for_selected_projects": True,
+            "corpus_runner_concurrency": 1,
+            "global_provider_semaphore_limit": 1,
+            "established_429_policy": "primary 429 -> 30 seconds -> fallback once; fallback is never selected merely because primary was absent; no third attempt",
+            "limiter_policy_unchanged": True,
+            "observed_records": len(records),
+            "limiters": limiter_records,
+            "phase_1a_call_start_order": [
+                item.get("request_started_at")
+                for record in records
+                for item in record.get("initial_attempt", {}).get("provider_attempt_facts", [])
+                if item.get("request_started_at")
+            ],
+        },
+    )
+
+
+async def run_survey(
+    manifest_path: Path,
+    output_root: Path,
+    only_project_order: int | None = None,
+    project_orders: set[int] | None = None,
+    record_suffix: str = "first-pass",
+) -> None:
     manifest = read_json(manifest_path)
     projects = manifest.get("projects")
     if not isinstance(projects, list) or len(projects) != 16:
@@ -280,14 +386,21 @@ async def run_survey(manifest_path: Path, output_root: Path, only_project_order:
 
     selected_projects = [
         project for project in projects
-        if only_project_order is None or int(project["order"]) == only_project_order
+        if (
+            (only_project_order is None or int(project["order"]) == only_project_order)
+            and (project_orders is None or int(project["order"]) in project_orders)
+        )
     ]
     if only_project_order is not None and len(selected_projects) != 1:
         raise ValueError(f"Phase 1A manifest has no unique project order {only_project_order}")
+    if not record_suffix.replace("-", "").replace("_", "").isalnum():
+        raise ValueError("record suffix must contain only letters, numbers, '-' or '_'")
 
     provider = build_executable_ai_provider(settings)
     runner = FilesystemCadWorkerRunner(jobs_root=settings.cad_workspace_dir)
     output_root.mkdir(parents=True, exist_ok=True)
+    records: list[dict[str, Any]] = []
+    _write_rate_limit_audit(output_root, provider=provider, records=records, phase="preflight_no_provider_calls")
     for project in sorted(selected_projects, key=lambda item: int(item["order"])):
         if not isinstance(project, Mapping):
             raise ValueError("Phase 1A manifest project must be an object")
@@ -327,7 +440,8 @@ async def run_survey(manifest_path: Path, output_root: Path, only_project_order:
                 db=db,
             )
             record["duration_ms"] = round((time.perf_counter() - started) * 1000, 3)
-            write_json(output_root / f"project-{int(project['order']):02d}-first-pass.json", record)
+            records.append(record)
+            write_json(output_root / f"project-{int(project['order']):02d}-{record_suffix}.json", record)
         print(
             json.dumps(
                 {
@@ -340,12 +454,21 @@ async def run_survey(manifest_path: Path, output_root: Path, only_project_order:
             ),
             flush=True,
         )
+    _write_rate_limit_audit(output_root, provider=provider, records=records, phase="observed_after_selected_projects")
 
 
 def main() -> int:
     args = parse_args()
     try:
-        asyncio.run(run_survey(args.manifest.resolve(), args.output_root.resolve(), args.only_project_order))
+        asyncio.run(
+            run_survey(
+                args.manifest.resolve(),
+                args.output_root.resolve(),
+                args.only_project_order,
+                _parse_project_orders(args.project_orders),
+                args.record_suffix,
+            )
+        )
     except SurveyIntegrityError:
         raise
     return 0
