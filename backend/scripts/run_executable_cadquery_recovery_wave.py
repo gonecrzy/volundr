@@ -34,6 +34,7 @@ from app.services.executable_cadquery.semantic_policy import (
     derive_candidate_policy,
     evaluate_semantic_policy,
 )
+from app.services.validated_cadquery_workflow import safe_diagnostic
 
 
 def main() -> int:
@@ -325,12 +326,12 @@ def _first_failure(
             or diagnostics.get("phase")
             or ""
         ).lower()
-        message = str(
+        message = safe_diagnostic(str(
             diagnostics.get("failure_message")
             or diagnostics.get("message")
             or worker.get("error_message")
             or ""
-        )
+        ))
         exception_type = str(diagnostics.get("failure_exception_type") or "")
         if phase in {"build_function", "module_import", "source_execution", "execution"} and (
             message or exception_type or diagnostics.get("failure_operation")

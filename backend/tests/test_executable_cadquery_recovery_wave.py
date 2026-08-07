@@ -19,7 +19,7 @@ def test_worker_execution_failure_precedes_later_topology_in_replay() -> None:
                 "active_phase": "build_function",
                 "failure_operation": "chamfer",
                 "failure_exception_type": "StdFail_NotDone",
-                "failure_message": "BRep_API: command not done",
+                "failure_message": "Traceback (most recent call last): /work/jobs/model.py BRep_API: command not done",
             }
         },
     )
@@ -27,6 +27,8 @@ def test_worker_execution_failure_precedes_later_topology_in_replay() -> None:
     assert failure_class == "cadquery_api_error"
     assert boundary == "execution"
     assert evidence["failure_operation"] == "chamfer"
+    assert "Traceback" not in evidence["message"]
+    assert "/work/jobs" not in evidence["message"]
 
 
 def test_measured_blind_review_failure_reenters_semantic_recovery() -> None:
