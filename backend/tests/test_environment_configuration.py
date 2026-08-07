@@ -63,3 +63,10 @@ def test_frontend_environment_example_cannot_contain_provider_secrets() -> None:
 
     assert "GEMINI_API_KEY" not in frontend_example
     assert "VOLUNDR_GEMINI" not in frontend_example
+
+
+def test_compose_forwards_executable_gemini_credential_selection() -> None:
+    compose = (REPOSITORY_ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+
+    assert "VOLUNDR_GEMINI_PRIMARY_CREDENTIAL_ENV:" in compose
+    assert "VOLUNDR_GEMINI_FALLBACK_CREDENTIAL_ENV:" in compose

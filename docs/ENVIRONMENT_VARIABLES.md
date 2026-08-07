@@ -89,6 +89,8 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `GEMINI_API_KEY` | API | unset | required secret | yes | yes | Required only when live Gemini API requests are made. |
 | `VOLUNDR_GEMINI_API_KEY` | API | unset | deprecated compatibility variable | yes | no | Alias for `GEMINI_API_KEY`; migrate to the unprefixed secret. |
 | `VOLUNDR_GEMINI_MODEL` | API | `gemini-3.5-flash-lite` | provider-specific setting | yes | yes | General/default Gemini model; stage policy falls back to it. |
+| `VOLUNDR_GEMINI_PRIMARY_CREDENTIAL_ENV` | API | `GEMINI_API_KEY_2` | executable-route credential selection | yes | no | Selects the primary credential slot for the opt-in executable-CadQuery API route. |
+| `VOLUNDR_GEMINI_FALLBACK_CREDENTIAL_ENV` | API | `GEMINI_API_KEY` | executable-route credential selection | yes | no | Selects the bounded fallback slot for the opt-in executable-CadQuery API route; empty disables fallback. |
 | `VOLUNDR_GEMINI_REQUIREMENTS_MODEL` | API | unset | deprecated compatibility variable | yes | no | Move to `[model_policy.models].requirements`. |
 | `VOLUNDR_GEMINI_DESIGN_PLAN_MODEL` | API | unset | deprecated compatibility variable | yes | no | Move to `[model_policy.models].design_plan`. |
 | `VOLUNDR_GEMINI_GEOMETRY_MODEL` | API and comparison scripts | unset | deprecated compatibility variable | yes | no | Move to `[model_policy.models].geometry`. |
