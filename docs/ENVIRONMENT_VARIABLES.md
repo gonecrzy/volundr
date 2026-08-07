@@ -16,13 +16,14 @@ VOLUNDR_API_PORT=8000
 VOLUNDR_DATA_DIR=./data
 VOLUNDR_AI_PROVIDER=gemini_api
 GEMINI_API_KEY=replace-with-a-secret
+GEMINI_API_KEY_2=replace-with-a-fallback-secret
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
-The API key is read only by `volundr-api`. It is never compiled into the
-frontend or passed to the CadQuery worker. Same-origin Compose deployment does
-not require a CORS override. `VOLUNDR_CORS_ORIGINS` remains available for a
-separate frontend origin.
+Compose maps both root values directly into API-only SecretStr settings. They
+are never compiled into the frontend or passed to the CadQuery worker.
+Same-origin Compose deployment does not require a CORS override.
+`VOLUNDR_CORS_ORIGINS` remains available for a separate frontend origin.
 
 The API host binding defaults to loopback. Browser requests use nginx as the
 normal boundary; nginx removes client identity and authorization headers and
@@ -88,11 +89,11 @@ Compose, or test tooling. `Example` means it is shown in the normal root
 | `VOLUNDR_AI_PROVIDER` | API | `gemini_api` | common deployment setting | yes | yes | Provider-aware startup and request validation; `gemini_cli` is an explicit experimental API-container transport for the executable-CadQuery flow. |
 | `VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED` | API and Compose | `false` | opt-in experimental workflow | yes | yes | Enables complete-source executable CadQuery only when an explicit persisted design contract is configured. |
 | `VOLUNDR_EXECUTABLE_CADQUERY_CORPUS_MANIFEST_PATH` | API and Compose | unset | executable-route contract source | yes | no | Explicit repeatability corpus manifest; executable runs refuse to substitute a project-specific fixture when this is absent. |
-| `GEMINI_API_KEY` | API | unset | required secret | yes | yes | Required only when live Gemini API requests are made. |
-| `VOLUNDR_GEMINI_API_KEY` | API | unset | deprecated compatibility variable | yes | no | Alias for `GEMINI_API_KEY`; migrate to the unprefixed secret. |
+| `GEMINI_API_KEY` | Compose source | unset | root secret | yes | no | Mapped directly to the API-only primary setting; never passed to the worker or browser. |
+| `GEMINI_API_KEY_2` | Compose source | unset | root secret | yes | no | Mapped directly to the API-only fallback setting; used only after a primary HTTP 429. |
+| `VOLUNDR_GEMINI_PRIMARY_API_KEY` | API | unset | required SecretStr setting | yes | no | Resolved from root `GEMINI_API_KEY`; the API transport uses it normally. |
+| `VOLUNDR_GEMINI_FALLBACK_API_KEY` | API | unset | SecretStr setting | yes | no | Resolved from root `GEMINI_API_KEY_2`; used once only after a primary HTTP 429. |
 | `VOLUNDR_GEMINI_MODEL` | API | `gemini-3.5-flash-lite` | provider-specific setting | yes | yes | General/default Gemini model; stage policy falls back to it. |
-| `VOLUNDR_GEMINI_PRIMARY_CREDENTIAL_ENV` | API | `GEMINI_API_KEY_2` | executable-route credential selection | yes | no | Selects the primary credential slot for the opt-in executable-CadQuery API route. |
-| `VOLUNDR_GEMINI_FALLBACK_CREDENTIAL_ENV` | API | `GEMINI_API_KEY` | executable-route credential selection | yes | no | Selects the bounded fallback slot for the opt-in executable-CadQuery API route; empty disables fallback. |
 | `VOLUNDR_GEMINI_REQUIREMENTS_MODEL` | API | unset | deprecated compatibility variable | yes | no | Move to `[model_policy.models].requirements`. |
 | `VOLUNDR_GEMINI_DESIGN_PLAN_MODEL` | API | unset | deprecated compatibility variable | yes | no | Move to `[model_policy.models].design_plan`. |
 | `VOLUNDR_GEMINI_GEOMETRY_MODEL` | API and comparison scripts | unset | deprecated compatibility variable | yes | no | Move to `[model_policy.models].geometry`. |
@@ -161,7 +162,8 @@ Unless explicitly overridden, the API workspace is
 and workflow bundles remain under the existing data-root convention; there are
 no normal environment variables for each child directory.
 
-The worker receives neither `GEMINI_API_KEY` nor Gemini CLI profile data. No
+The worker receives neither root Gemini keys nor API-only Gemini settings or
+Gemini CLI profile data. No
 `VITE_*` variable may contain a provider credential or backend operational
 setting.
 

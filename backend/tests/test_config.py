@@ -22,33 +22,31 @@ def test_settings_ignore_unrelated_env_file_keys(tmp_path):
     assert settings.data_dir.as_posix() == "data"
 
 
-def test_settings_load_both_gemini_credentials_from_repository_env_file(tmp_path):
+def test_settings_load_both_gemini_credentials_from_api_environment_file(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text(
-        "GEMINI_API_KEY_2=secondary-fixture-key\nGEMINI_API_KEY=primary-fixture-key\n",
+        "VOLUNDR_GEMINI_PRIMARY_API_KEY=primary-fixture-key\n"
+        "VOLUNDR_GEMINI_FALLBACK_API_KEY=secondary-fixture-key\n",
         encoding="utf-8",
     )
 
     configured = Settings(_env_file=env_file)
 
-    assert configured.gemini_api_key_2 == "secondary-fixture-key"
-    assert configured.gemini_api_key == "primary-fixture-key"
+    assert configured.gemini_primary_api_key.get_secret_value() == "primary-fixture-key"
+    assert configured.gemini_fallback_api_key.get_secret_value() == "secondary-fixture-key"
 
 
-def test_settings_support_explicit_executable_gemini_credential_slots() -> None:
+def test_settings_use_fixed_primary_and_fallback_slots() -> None:
     configured = Settings(
         _env_file=None,
-        gemini_primary_credential_env="GEMINI_API_KEY",
-        gemini_fallback_credential_env="",
+        gemini_primary_api_key="primary-fixture-key",
+        gemini_fallback_api_key="secondary-fixture-key",
     )
 
-    assert configured.gemini_primary_credential_env == "GEMINI_API_KEY"
-    assert configured.gemini_fallback_credential_env == ""
-
-
-def test_settings_reject_unsupported_executable_gemini_credential_slot() -> None:
-    with pytest.raises(ValueError, match="credential environment variable"):
-        Settings(_env_file=None, gemini_primary_credential_env="GEMINI_API_KEY_3")
+    assert configured.gemini_primary_api_key.get_secret_value() == "primary-fixture-key"
+    assert configured.gemini_fallback_api_key.get_secret_value() == "secondary-fixture-key"
+    assert not hasattr(configured, "gemini_primary_credential_env")
+    assert not hasattr(configured, "gemini_fallback_credential_env")
 
 
 def test_settings_default_to_gemini_api_with_typed_defaults() -> None:

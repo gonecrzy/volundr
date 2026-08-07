@@ -1,7 +1,7 @@
 from functools import cached_property
 from pathlib import Path
 
-from pydantic import AliasChoices, Field, field_validator, model_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -59,18 +59,10 @@ class Settings(BaseSettings):
     gemini_component_revision_model: str | None = Field(default=None)
     gemini_timeout_seconds: int = Field(default=120)
     gemini_policy_path: Path | None = Field(default=None)
-    gemini_api_key: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY"),
-    )
-    gemini_api_key_2: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("GEMINI_API_KEY_2", "VOLUNDR_GEMINI_API_KEY_2"),
-    )
-    # The experimental executable route can explicitly select one of the
-    # two known credential slots without changing ordinary provider defaults.
-    gemini_primary_credential_env: str = Field(default="GEMINI_API_KEY_2")
-    gemini_fallback_credential_env: str = Field(default="GEMINI_API_KEY")
+    # Compose maps the root .env values into these API-only settings.  Keep
+    # them secret-typed so normal settings serialization never emits values.
+    gemini_primary_api_key: SecretStr | None = Field(default=None)
+    gemini_fallback_api_key: SecretStr | None = Field(default=None)
     gemini_api_base_url: str = Field(
         default="https://generativelanguage.googleapis.com/v1beta"
     )
@@ -157,26 +149,6 @@ class Settings(BaseSettings):
             return None
         return value
 
-    @field_validator("gemini_primary_credential_env")
-    @classmethod
-    def validate_gemini_primary_credential_env(cls, value: str) -> str:
-        normalized = value.strip()
-        if normalized not in {"GEMINI_API_KEY", "GEMINI_API_KEY_2"}:
-            raise ValueError(
-                "gemini_primary_credential_env must be a supported credential environment variable"
-            )
-        return normalized
-
-    @field_validator("gemini_fallback_credential_env")
-    @classmethod
-    def validate_gemini_fallback_credential_env(cls, value: str) -> str:
-        normalized = value.strip()
-        if normalized not in {"", "GEMINI_API_KEY", "GEMINI_API_KEY_2"}:
-            raise ValueError(
-                "gemini_fallback_credential_env must be a supported credential environment variable or empty"
-            )
-        return normalized
-
     @model_validator(mode="after")
     def derive_storage_paths(self) -> "Settings":
         if self.cad_workspace_dir is None:
@@ -186,6 +158,18 @@ class Settings(BaseSettings):
     @cached_property
     def database_url(self) -> str:
         return f"sqlite:///{self.data_dir / 'app.db'}"
+
+    @property
+    def gemini_api_key(self) -> str | None:
+        """Compatibility read for legacy non-executable helper code."""
+
+        return self.gemini_primary_api_key.get_secret_value() if self.gemini_primary_api_key else None
+
+    @property
+    def gemini_api_key_2(self) -> str | None:
+        """Compatibility read for legacy helper code; never an environment selector."""
+
+        return self.gemini_fallback_api_key.get_secret_value() if self.gemini_fallback_api_key else None
 
 
 settings = Settings()

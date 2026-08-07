@@ -36,8 +36,8 @@ async function makeFixture({ withRootEnv = true } = {}) {
     `#!/usr/bin/env bash
 set -euo pipefail
 record=\"$LIVE_TEST_RECORD\"
-if [[ -n \"\${GEMINI_API_KEY_2:-}\" ]]; then echo worker_secondary_nonempty=true >>\"$record\"; else echo worker_secondary_nonempty=false >>\"$record\"; fi
-if [[ -n \"\${GEMINI_API_KEY:-}\" ]]; then echo worker_primary_nonempty=true >>\"$record\"; else echo worker_primary_nonempty=false >>\"$record\"; fi
+if [[ -n \"\${VOLUNDR_GEMINI_FALLBACK_API_KEY:-}\" ]]; then echo worker_fallback_nonempty=true >>\"$record\"; else echo worker_fallback_nonempty=false >>\"$record\"; fi
+if [[ -n \"\${VOLUNDR_GEMINI_PRIMARY_API_KEY:-}\" ]]; then echo worker_primary_nonempty=true >>\"$record\"; else echo worker_primary_nonempty=false >>\"$record\"; fi
 while :; do sleep 1; done
 `,
   );
@@ -47,12 +47,12 @@ while :; do sleep 1; done
 set -euo pipefail
 record=\"$LIVE_TEST_RECORD\"
 printf 'env_file=%s\\n' \"$VOLUNDR_LIVE_ENV_FILE\" >>\"$record\"
-if [[ -n \"\${GEMINI_API_KEY_2:-}\" ]]; then echo browser_secondary_nonempty=true >>\"$record\"; else echo browser_secondary_nonempty=false >>\"$record\"; fi
-if [[ -n \"\${GEMINI_API_KEY:-}\" ]]; then echo browser_primary_nonempty=true >>\"$record\"; else echo browser_primary_nonempty=false >>\"$record\"; fi
+if [[ -n \"\${VOLUNDR_GEMINI_FALLBACK_API_KEY:-}\" ]]; then echo browser_fallback_nonempty=true >>\"$record\"; else echo browser_fallback_nonempty=false >>\"$record\"; fi
+if [[ -n \"\${VOLUNDR_GEMINI_PRIMARY_API_KEY:-}\" ]]; then echo browser_primary_nonempty=true >>\"$record\"; else echo browser_primary_nonempty=false >>\"$record\"; fi
 echo browser_executable_enabled=\${VOLUNDR_LIVE_EXECUTABLE_CADQUERY_FLOW_ENABLED:-unset} >>\"$record\"
 if [[ \"\${LIVE_TEST_MODE:-}\" == inspect-root-env ]]; then
   . \"$VOLUNDR_LIVE_ENV_FILE\"
-  if [[ \"\${GEMINI_API_KEY_2:-}\" == root-secondary-test-value && \"\${GEMINI_API_KEY:-}\" == root-primary-test-value ]]; then
+  if [[ \"\${VOLUNDR_GEMINI_FALLBACK_API_KEY:-}\" == root-secondary-test-value && \"\${VOLUNDR_GEMINI_PRIMARY_API_KEY:-}\" == root-primary-test-value ]]; then
     echo root_env_authoritative=true >>\"$record\"
   else
     echo root_env_authoritative=false >>\"$record\"
@@ -92,7 +92,12 @@ fi
 
 function spawnWrapper(fixture, mode, { processCredentials = false } = {}) {
   const environment = { ...process.env };
-  for (const name of ["GEMINI_API_KEY_2", "GEMINI_API_KEY", "VOLUNDR_GEMINI_API_KEY_2", "VOLUNDR_GEMINI_API_KEY"]) {
+  for (const name of [
+    "GEMINI_API_KEY_2",
+    "GEMINI_API_KEY",
+    "VOLUNDR_GEMINI_PRIMARY_API_KEY",
+    "VOLUNDR_GEMINI_FALLBACK_API_KEY",
+  ]) {
     delete environment[name];
   }
   Object.assign(environment, {
@@ -147,10 +152,10 @@ async function assertCleanup(fixture, result, expectedCode) {
   const environmentFile = record.match(/^env_file=(.+)$/m)?.[1];
   assert.ok(environmentFile, record);
   await assert.rejects(readFile(environmentFile), { code: "ENOENT" });
-  assert.match(record, /browser_secondary_nonempty=false/);
+  assert.match(record, /browser_fallback_nonempty=false/);
   assert.match(record, /browser_primary_nonempty=false/);
   assert.match(record, /browser_executable_enabled=false/);
-  assert.match(record, /worker_secondary_nonempty=false/);
+  assert.match(record, /worker_fallback_nonempty=false/);
   assert.match(record, /worker_primary_nonempty=false/);
 
   const preservedData = result.output.match(/Live E2E data preserved at (.+)$/m)?.[1]?.trim();

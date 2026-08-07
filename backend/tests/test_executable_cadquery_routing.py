@@ -7,14 +7,12 @@ from app.services.ai.provider import ModelGenerationRequest
 from app.services.executable_cadquery.workflow import ExecutableCadQueryWorkflowService
 
 
-def test_executable_provider_uses_explicit_primary_and_disabled_fallback_slots() -> None:
+def test_executable_provider_uses_fixed_primary_and_fallback_settings() -> None:
     configured = Settings(
         _env_file=None,
         ai_provider="gemini_api",
-        gemini_api_key="approved-primary-secret",
-        gemini_api_key_2="invalid-secondary-secret",
-        gemini_primary_credential_env="GEMINI_API_KEY",
-        gemini_fallback_credential_env="",
+        gemini_primary_api_key="approved-primary-secret",
+        gemini_fallback_api_key="fallback-secret",
     )
 
     provider = build_executable_ai_provider(configured)
@@ -22,12 +20,12 @@ def test_executable_provider_uses_explicit_primary_and_disabled_fallback_slots()
     assert isinstance(provider, GeminiApiProvider)
     assert provider.api_key == "approved-primary-secret"
     assert provider.primary_api_key == "approved-primary-secret"
-    assert provider.fallback_api_key is None
+    assert provider.fallback_api_key == "fallback-secret"
     metadata = provider.provider_settings()
-    assert metadata["primary_credential"]["environment_variable"] == "GEMINI_API_KEY"
-    assert metadata["fallback_credential"]["environment_variable"] is None
+    assert metadata["primary_credential"]["slot"] == "primary"
+    assert metadata["fallback_credential"]["slot"] == "fallback"
     assert "approved-primary-secret" not in str(metadata)
-    assert "invalid-secondary-secret" not in str(metadata)
+    assert "fallback-secret" not in str(metadata)
 
 
 def test_executable_provider_can_explicitly_select_gemini_cli_transport() -> None:
@@ -56,8 +54,8 @@ def test_executable_provider_ignores_codex_geometry_selection() -> None:
     configured = Settings(
         _env_file=None,
         ai_provider="gemini_api",
-        gemini_api_key="fixture-key",
-        gemini_api_key_2="fixture-key-2",
+        gemini_primary_api_key="fixture-key",
+        gemini_fallback_api_key="fixture-key-2",
         validated_geometry_provider="codex_proxy",
         codex_api_key="must-not-be-used",
         codex_api_base_url="https://codex.invalid",

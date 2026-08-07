@@ -297,8 +297,6 @@ async def test_validated_gemini_records_selected_slot_without_secret_or_fallback
     provider = GeminiApiProvider(
         primary_api_key="approved-primary-secret",
         fallback_api_key=None,
-        primary_credential_env="GEMINI_API_KEY",
-        fallback_credential_env=None,
         validated_transport=True,
         transport=httpx.MockTransport(
             lambda request: requests.append(request)
@@ -313,9 +311,9 @@ async def test_validated_gemini_records_selected_slot_without_secret_or_fallback
     assert len(requests) == 1
     assert requests[0].headers["x-goog-api-key"] == "approved-primary-secret"
     assert requests[0].url.query == b""
-    assert records[0]["credential_env_var"] == "GEMINI_API_KEY"
+    assert records[0]["credential_slot"] == "primary"
     assert all("approved-primary-secret" not in str(record) for record in records)
-    assert provider.provider_settings()["fallback_credential"]["environment_variable"] is None
+    assert provider.provider_settings()["fallback_credential"]["slot"] == "fallback"
 
 
 @pytest.mark.asyncio
@@ -508,7 +506,6 @@ def test_provider_attempt_metadata_is_durable_and_contains_no_secret(tmp_path: P
                 "logical_operation_id": "logical-1",
                 "attempt_id": "attempt-1",
                 "credential_slot": "primary",
-                "credential_env_var": "GEMINI_API_KEY_2",
                 "credential_present": True,
                 "request_hash": "a" * 64,
                 "status_code": 429,
@@ -519,5 +516,5 @@ def test_provider_attempt_metadata_is_durable_and_contains_no_secret(tmp_path: P
         record = db.scalar(select(ValidatedCadQueryProviderAttempt))
         assert record is not None
         assert record.status_code == 429
-        assert record.credential_env_var == "GEMINI_API_KEY_2"
+        assert record.credential_slot == "primary"
         assert all("secret" not in str(getattr(record, field)) for field in record.__table__.columns.keys())

@@ -3,9 +3,15 @@ import { defineConfig, devices } from "@playwright/test";
 import { resolvePlaywrightPorts } from "./playwrightPorts";
 
 const liveEnabled = process.env.VOLUNDR_RUN_LIVE_E2E === "true";
-if (liveEnabled && (process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_2)) {
+const credentialNames = [
+  "GEMINI_API_KEY",
+  "GEMINI_API_KEY_2",
+  "VOLUNDR_GEMINI_PRIMARY_API_KEY",
+  "VOLUNDR_GEMINI_FALLBACK_API_KEY",
+];
+if (liveEnabled && credentialNames.some((name) => process.env[name])) {
   throw new Error(
-    "The live E2E wrapper must remove GEMINI_API_KEY before starting Playwright. Use npm run test:e2e:live.",
+    "The live E2E wrapper must remove Gemini credentials before starting Playwright. Use npm run test:e2e:live.",
   );
 }
 if (liveEnabled && !process.env.VOLUNDR_LIVE_ENV_FILE) {

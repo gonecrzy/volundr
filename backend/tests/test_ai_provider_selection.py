@@ -29,7 +29,7 @@ def test_build_ai_provider_selects_ollama() -> None:
 def test_build_ai_provider_accepts_developer_ollama_provider_and_model_override() -> None:
     configured = Settings(
         ai_provider="gemini_api",
-        gemini_api_key="secret-key",
+        gemini_primary_api_key="secret-key",
         ollama_base_url="http://ollama.remote:11434",
         ollama_model="configured-model",
     )
@@ -68,7 +68,7 @@ def test_build_ai_provider_selects_gemini_cli() -> None:
 def test_build_ai_provider_selects_gemini_api() -> None:
     settings = Settings(
         ai_provider="gemini_api",
-        gemini_api_key="secret-key",
+        gemini_primary_api_key="secret-key",
         gemini_api_base_url="https://generativelanguage.googleapis.test/v1beta",
         gemini_model="gemini-3.5-flash-lite",
     )
@@ -84,7 +84,7 @@ def test_build_ai_provider_selects_gemini_api() -> None:
 def test_build_ai_provider_can_attach_study_interaction_capture(tmp_path: Path) -> None:
     configured = Settings(
         ai_provider="gemini_api",
-        gemini_api_key="secret-key",
+        gemini_primary_api_key="secret-key",
         gemini_model="gemini-3.5-flash-lite",
     )
 
@@ -111,7 +111,7 @@ def test_minimal_gemini_api_example_builds_without_advanced_settings() -> None:
 
 
 def test_missing_gemini_key_is_deferred_until_live_request() -> None:
-    configured = Settings(_env_file=None, ai_provider="gemini_api", gemini_api_key=None)
+    configured = Settings(_env_file=None, ai_provider="gemini_api", gemini_primary_api_key=None)
 
     provider = build_ai_provider(configured)
 
@@ -125,12 +125,15 @@ def test_settings_loads_gemini_api_key_from_parent_env_file(
 ) -> None:
     backend_dir = tmp_path / "backend"
     backend_dir.mkdir()
-    (tmp_path / ".env").write_text("GEMINI_API_KEY=parent-env-key\n", encoding="utf-8")
+    (tmp_path / ".env").write_text(
+        "VOLUNDR_GEMINI_PRIMARY_API_KEY=parent-env-key\n",
+        encoding="utf-8",
+    )
     monkeypatch.chdir(backend_dir)
 
     settings = Settings()
 
-    assert settings.gemini_api_key == "parent-env-key"
+    assert settings.gemini_primary_api_key.get_secret_value() == "parent-env-key"
 
 
 def test_build_ai_provider_rejects_unknown_provider() -> None:
@@ -144,7 +147,7 @@ def test_validated_geometry_provider_defaults_to_gemini() -> None:
     configured = Settings(
         _env_file=None,
         ai_provider="gemini_api",
-        gemini_api_key="gemini-secret",
+        gemini_primary_api_key="gemini-secret",
     )
 
     provider = build_validated_ai_provider(configured)
@@ -157,8 +160,8 @@ def test_codex_validated_geometry_routing_keeps_gemini_upstream() -> None:
     configured = Settings(
         _env_file=None,
         ai_provider="gemini_api",
-        gemini_api_key="gemini-secret",
-        gemini_api_key_2="gemini-secondary-secret",
+        gemini_primary_api_key="gemini-secret",
+        gemini_fallback_api_key="gemini-secondary-secret",
         validated_geometry_provider="codex_proxy",
         codex_api_base_url="https://codex.test/backend-api/codex",
         codex_api_key="codex-secret",
@@ -170,7 +173,7 @@ def test_codex_validated_geometry_routing_keeps_gemini_upstream() -> None:
 
     assert isinstance(provider, ValidatedGeometryProviderRouter)
     assert type(provider.primary_provider).__name__ == "GeminiApiProvider"
-    assert provider.primary_provider.primary_api_key == "gemini-secondary-secret"
+    assert provider.primary_provider.primary_api_key == "gemini-secret"
     assert provider.geometry_provider.api_key == "codex-secret"
     assert provider.geometry_provider.model == "gpt-5.6-luna"
     assert provider.provider_id == "codex_proxy"

@@ -1,5 +1,4 @@
 import asyncio
-import os
 import re
 import uuid
 from typing import Any, Callable
@@ -47,8 +46,6 @@ class GeminiApiProvider(GeminiCliProvider):
         validated_transport: bool = False,
         primary_api_key: str | None = None,
         fallback_api_key: str | None = None,
-        primary_credential_env: str = "GEMINI_API_KEY_2",
-        fallback_credential_env: str | None = "GEMINI_API_KEY",
         sleep: Callable[[float], Any] = asyncio.sleep,
         primary_limiter: SharedIntegrationRateLimiter | None = None,
         fallback_limiter: SharedIntegrationRateLimiter | None = None,
@@ -67,11 +64,13 @@ class GeminiApiProvider(GeminiCliProvider):
         self.api_key = (
             api_key
             if api_key is not None
-            else settings.gemini_api_key or os.environ.get("GEMINI_API_KEY")
+            else (
+                settings.gemini_primary_api_key.get_secret_value()
+                if settings.gemini_primary_api_key
+                else None
+            )
         )
         self.validated_transport = validated_transport
-        self.primary_credential_env = primary_credential_env
-        self.fallback_credential_env = fallback_credential_env
         self.primary_api_key = (
             primary_api_key
             if validated_transport
@@ -243,7 +242,6 @@ class GeminiApiProvider(GeminiCliProvider):
                         "logical_operation_id": record.get("logical_operation_id"),
                         "attempt_id": record.get("attempt_id"),
                         "credential_slot": record.get("credential_slot"),
-                        "credential_env_var": record.get("credential_env_var"),
                         "credential_present": record.get("credential_present"),
                         "request_hash": record.get("request_hash"),
                     },
@@ -256,8 +254,6 @@ class GeminiApiProvider(GeminiCliProvider):
             result = await ValidatedGeminiTransport(
                 primary_credential=self.primary_api_key,
                 fallback_credential=self.fallback_api_key,
-                primary_credential_env=self.primary_credential_env,
-                fallback_credential_env=self.fallback_credential_env,
                 primary_limiter=self._validated_primary_limiter,
                 fallback_limiter=self._validated_fallback_limiter,
                 global_semaphore=self._validated_global_semaphore,
@@ -529,11 +525,11 @@ class GeminiApiProvider(GeminiCliProvider):
                 {
                     "validated_transport": True,
                     "primary_credential": {
-                        "environment_variable": self.primary_credential_env,
+                        "slot": "primary",
                         "credential_present": bool(self.primary_api_key),
                     },
                     "fallback_credential": {
-                        "environment_variable": self.fallback_credential_env,
+                        "slot": "fallback",
                         "credential_present": bool(self.fallback_api_key),
                     },
                 }

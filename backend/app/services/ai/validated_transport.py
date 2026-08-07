@@ -34,8 +34,6 @@ class ValidatedGeminiTransport:
         *,
         primary_credential: str | None,
         fallback_credential: str | None,
-        primary_credential_env: str = "GEMINI_API_KEY_2",
-        fallback_credential_env: str | None = "GEMINI_API_KEY",
         primary_limiter: SharedIntegrationRateLimiter | None = None,
         fallback_limiter: SharedIntegrationRateLimiter | None = None,
         global_semaphore: asyncio.Semaphore | None = None,
@@ -47,8 +45,6 @@ class ValidatedGeminiTransport:
     ) -> None:
         self.primary_credential = self._validate_credential(primary_credential, "primary")
         self.fallback_credential = self._validate_credential(fallback_credential, "fallback")
-        self.primary_credential_env = primary_credential_env
-        self.fallback_credential_env = fallback_credential_env
         self.primary_limiter = primary_limiter or SharedIntegrationRateLimiter()
         self.fallback_limiter = fallback_limiter or SharedIntegrationRateLimiter()
         self.global_semaphore = global_semaphore or asyncio.Semaphore(1)
@@ -85,7 +81,6 @@ class ValidatedGeminiTransport:
                 attempt_index=0,
                 request_hash=request_hash,
                 credential_slot="primary",
-                credential_env_var=self.primary_credential_env,
                 credential=self.primary_credential,
                 limiter=self.primary_limiter,
                 attempts=attempts,
@@ -104,7 +99,6 @@ class ValidatedGeminiTransport:
                     attempt_index=1,
                     request_hash=request_hash,
                     credential_slot="fallback",
-                    credential_env_var=self.fallback_credential_env,
                     credential=self.fallback_credential,
                     limiter=self.fallback_limiter,
                     attempts=attempts,
@@ -123,7 +117,6 @@ class ValidatedGeminiTransport:
                     attempt_index=1,
                     request_hash=request_hash,
                     credential_slot="primary",
-                    credential_env_var=self.primary_credential_env,
                     credential=self.primary_credential,
                     limiter=self.primary_limiter,
                     attempts=attempts,
@@ -143,7 +136,6 @@ class ValidatedGeminiTransport:
         attempt_index: int,
         request_hash: str,
         credential_slot: str,
-        credential_env_var: str | None,
         credential: str,
         limiter: SharedIntegrationRateLimiter,
         attempts: list[dict[str, Any]],
@@ -154,7 +146,6 @@ class ValidatedGeminiTransport:
             "attempt_id": str(uuid.uuid4()),
             "attempt_index": attempt_index,
             "credential_slot": credential_slot,
-            "credential_env_var": credential_env_var,
             "credential_present": True,
             "request_hash": request_hash,
             "status_code": None,

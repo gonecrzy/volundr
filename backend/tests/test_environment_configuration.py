@@ -23,6 +23,7 @@ def test_normal_environment_example_has_only_deployment_decisions() -> None:
         "VOLUNDR_DATA_DIR",
         "VOLUNDR_AI_PROVIDER",
         "GEMINI_API_KEY",
+        "GEMINI_API_KEY_2",
         "VOLUNDR_GEMINI_MODEL",
         "VOLUNDR_VALIDATED_GEOMETRY_PROVIDER",
         "VOLUNDR_CODEX_API_BASE_URL",
@@ -65,8 +66,12 @@ def test_frontend_environment_example_cannot_contain_provider_secrets() -> None:
     assert "VOLUNDR_GEMINI" not in frontend_example
 
 
-def test_compose_forwards_executable_gemini_credential_selection() -> None:
+def test_compose_maps_root_gemini_credentials_to_api_only_settings() -> None:
     compose = (REPOSITORY_ROOT / "docker-compose.yml").read_text(encoding="utf-8")
 
-    assert "VOLUNDR_GEMINI_PRIMARY_CREDENTIAL_ENV:" in compose
-    assert "VOLUNDR_GEMINI_FALLBACK_CREDENTIAL_ENV:" in compose
+    assert "VOLUNDR_GEMINI_PRIMARY_API_KEY: ${GEMINI_API_KEY:-}" in compose
+    assert "VOLUNDR_GEMINI_FALLBACK_API_KEY: ${GEMINI_API_KEY_2:-}" in compose
+    assert "GEMINI_API_KEY: ${GEMINI_API_KEY:-}" not in compose
+    assert "GEMINI_API_KEY_2: ${GEMINI_API_KEY_2:-}" not in compose
+    assert "PRIMARY_CREDENTIAL_ENV" not in compose
+    assert "FALLBACK_CREDENTIAL_ENV" not in compose

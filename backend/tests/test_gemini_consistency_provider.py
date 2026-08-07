@@ -60,7 +60,7 @@ def test_build_ai_provider_accepts_developer_benchmark_model_override() -> None:
     configured = Settings(
         ai_provider="gemini_api",
         gemini_model="configured-production",
-        gemini_api_key="",
+        gemini_primary_api_key="",
     )
 
     provider = build_ai_provider(configured, benchmark_model="gemini-2.5-pro")

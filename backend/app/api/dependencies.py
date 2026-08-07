@@ -41,7 +41,6 @@ def build_ai_provider(
     benchmark_processing: str | None = None,
     validated_transport: bool = False,
     validated_credentials: tuple[str | None, str | None] | None = None,
-    validated_credential_envs: tuple[str, str | None] | None = None,
 ) -> AiProvider:
     provider = (benchmark_provider or config.ai_provider).strip().lower()
     if benchmark_model and provider not in {"ollama", "local_ollama", "gemini_api", "google_gemini_api", "gemini", "gemini_cli"}:
@@ -74,24 +73,12 @@ def build_ai_provider(
                 rendered_prompt = str(payload.pop("prompt", ""))
                 capture.record_call(rendered_prompt=rendered_prompt, **payload)
 
-        selected_primary, selected_fallback = (
-            validated_credentials
-            if validated_credentials is not None
-            else (config.gemini_api_key_2, config.gemini_api_key)
-        )
-        selected_primary_env, selected_fallback_env = (
-            validated_credential_envs
-            if validated_credential_envs is not None
-            else ("GEMINI_API_KEY_2", "GEMINI_API_KEY")
+        selected_primary, selected_fallback = validated_credentials or (
+            _secret_value(config.gemini_primary_api_key),
+            _secret_value(config.gemini_fallback_api_key),
         )
         return GeminiApiProvider(
-            # An explicit empty value prevents the module-level default from
-            # leaking into a separately constructed Settings instance.
-            api_key=(
-                selected_primary
-                if validated_transport and validated_credentials is not None
-                else (config.gemini_api_key if config.gemini_api_key is not None else "")
-            ),
+            api_key=selected_primary or "",
             base_url=config.gemini_api_base_url,
             model=benchmark_model or config.gemini_model,
             timeout_seconds=config.gemini_timeout_seconds,
@@ -108,8 +95,6 @@ def build_ai_provider(
             validated_transport=validated_transport,
             primary_api_key=selected_primary,
             fallback_api_key=selected_fallback,
-            primary_credential_env=selected_primary_env,
-            fallback_credential_env=selected_fallback_env,
         )
     if provider in {"gemini", "gemini_cli"}:
         model_policy = (
@@ -165,34 +150,17 @@ def build_executable_ai_provider(config: Settings) -> AiProvider:
         return provider
     if configured not in {"gemini_api", "google_gemini_api"}:
         raise ValueError("executable CadQuery flow requires the Gemini API provider")
-    primary_env = config.gemini_primary_credential_env
-    fallback_env = config.gemini_fallback_credential_env or None
-    credential_values = (
-        _gemini_credential_for_environment(config, primary_env),
-        _gemini_credential_for_environment(config, fallback_env),
-    )
     provider = build_ai_provider(
         config,
         validated_transport=True,
-        validated_credentials=credential_values,
-        validated_credential_envs=(primary_env, fallback_env),
     )
     if not isinstance(provider, GeminiApiProvider):
         raise ValueError("executable CadQuery flow requires Gemini API transport")
     return provider
 
 
-def _gemini_credential_for_environment(
-    config: Settings,
-    environment_variable: str | None,
-) -> str | None:
-    if environment_variable is None or environment_variable == "":
-        return None
-    if environment_variable == "GEMINI_API_KEY":
-        return config.gemini_api_key
-    if environment_variable == "GEMINI_API_KEY_2":
-        return config.gemini_api_key_2
-    raise ValueError("unsupported Gemini credential environment variable")
+def _secret_value(value: object) -> str | None:
+    return value.get_secret_value() if value is not None else None
 
 
 def get_validated_ai_provider(provider: AiProvider = Depends(get_ai_provider)) -> AiProvider:

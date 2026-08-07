@@ -241,6 +241,7 @@ Use API-key based auth for the primary Gemini provider:
 ```bash
 VOLUNDR_AI_PROVIDER=gemini_api
 GEMINI_API_KEY=<your key>
+GEMINI_API_KEY_2=<fallback key>
 VOLUNDR_GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
@@ -250,7 +251,10 @@ TOML policy file. Legacy stage-model and API-tuning environment variables remain
 temporary compatibility overrides and emit deprecation warnings; see
 `docs/ENVIRONMENT_VARIABLES.md` for precedence and the policy schema.
 
-The Compose file mounts a Gemini CLI profile only into `volundr-api` for the
+Compose maps the two root `.env` keys into
+`VOLUNDR_GEMINI_PRIMARY_API_KEY` and `VOLUNDR_GEMINI_FALLBACK_API_KEY` inside
+`volundr-api`. The API transport uses the primary normally and the fallback
+only after one HTTP 429. The Compose file mounts a Gemini CLI profile only into `volundr-api` for the
 optional CLI provider path. The CAD worker must never receive Gemini CLI profile
 data, Gemini API keys, Ollama credentials, or arbitrary API environment
 variables.
@@ -267,8 +271,8 @@ instead of a complete fenced CadQuery source block.
 
 The browser smoke suite is separate from the benchmark CLI and is never part of
 the normal Playwright command. It starts a disposable SQLite API, the real CAD
-worker, and the Vite frontend, while sourcing `GEMINI_API_KEY` only inside the
-backend process:
+worker, and the Vite frontend, while sourcing the API-only credential settings
+only inside the backend process:
 
 ```bash
 VOLUNDR_RUN_LIVE_E2E=true npm --prefix frontend run test:e2e:live
@@ -290,7 +294,7 @@ PYTHONPATH=backend backend/.venv/bin/python backend/scripts/audit_repository.py
 
 The integration runner is not part of normal production routing. It requires
 the exact `gemini_flash_lite_contract_v1` profile, an explicit study ID, and
-the secondary-only `GEMINI_API_KEY_2` policy when live calls are separately
+its separately configured integration credential policy when live calls are separately
 authorized. Run `--replay`, `--counterfactual`, or `--dry-run` first; do not
 use a historical study runner as the current integration command.
 

@@ -23,7 +23,8 @@ docker compose logs -f volundr-api
 ### Minimal production-like configuration
 
 Copy the root `.env.example` and provide only the deployment ports, data root,
-provider, default model, and `GEMINI_API_KEY` for a live Gemini API deployment.
+provider, default model, and the root `GEMINI_API_KEY` plus optional
+`GEMINI_API_KEY_2` for a live Gemini API deployment.
 The API workspace is derived from `{VOLUNDR_DATA_DIR}/jobs`; Gemini CLI state
 is mounted from `{VOLUNDR_DATA_DIR}/gemini`. Advanced path overrides are not
 needed for the standard Compose layout.
@@ -49,9 +50,10 @@ SQLite database, project source, registered STEP/STL/BREP artifacts, previews,
 workflow bundles, and export packages. Back up the complete directory; do not
 back up only temporary worker paths.
 
-The API is the only service that receives `GEMINI_API_KEY`. The browser gets
-only intentionally public `VITE_*` build values, and the worker receives no
-provider credentials or network access.
+Compose maps the root keys into the API-only SecretStr settings
+`VOLUNDR_GEMINI_PRIMARY_API_KEY` and `VOLUNDR_GEMINI_FALLBACK_API_KEY`. The
+browser gets only intentionally public `VITE_*` build values, and the worker
+receives no provider credentials or network access.
 
 For production, use a secret manager for the API key, a private
 `VOLUNDR_DATA_DIR` with restricted permissions, an allowlist in
