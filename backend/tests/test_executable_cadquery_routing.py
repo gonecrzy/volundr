@@ -29,18 +29,23 @@ def test_executable_provider_uses_fixed_primary_and_fallback_settings() -> None:
     assert "fallback-secret" not in str(metadata)
 
 
-def test_executable_provider_can_explicitly_select_gemini_cli_transport() -> None:
+def test_executable_repair_dispatch_uses_api_key_rest_even_if_cli_is_configured() -> None:
     configured = Settings(
         _env_file=None,
         ai_provider="gemini_cli",
         gemini_binary="gemini",
         gemini_model="gemini-3.5-flash-lite",
+        gemini_primary_api_key="approved-primary-secret",
+        gemini_fallback_api_key="fallback-secret",
     )
 
     provider = build_executable_ai_provider(configured)
 
-    assert isinstance(provider, GeminiCliProvider)
-    assert provider.provider_id == "gemini_cli"
+    assert isinstance(provider, GeminiApiProvider)
+    assert provider.provider_id == "gemini_api"
+    assert provider.validated_transport is True
+    assert provider.primary_api_key == "approved-primary-secret"
+    assert provider.fallback_api_key == "fallback-secret"
 
 
 def test_executable_flow_is_disabled_by_default_and_gemini_remains_default() -> None:

@@ -140,18 +140,25 @@ def build_validated_ai_provider(config: Settings) -> AiProvider:
 
 
 def build_executable_ai_provider(config: Settings) -> AiProvider:
-    """Build the experimental provider without the Codex geometry adapter."""
+    """Build executable-CAD repairs on the direct validated API transport.
+
+    The executable flow may retain ``gemini_cli`` as a historical deployment
+    setting, but its repair boundary is deliberately not allowed to cross
+    the CLI/OAuth/Code Assist subprocess.  Route that setting through the
+    same Gemini REST provider and credential slots as successful generation.
+    """
 
     configured = config.ai_provider.strip().lower()
-    if configured in {"gemini", "gemini_cli"}:
-        provider = build_ai_provider(config)
-        if not isinstance(provider, GeminiCliProvider):
-            raise ValueError("executable CadQuery flow requires Gemini CLI transport")
-        return provider
-    if configured not in {"gemini_api", "google_gemini_api"}:
+    if configured not in {
+        "gemini_api",
+        "google_gemini_api",
+        "gemini",
+        "gemini_cli",
+    }:
         raise ValueError("executable CadQuery flow requires the Gemini API provider")
     provider = build_ai_provider(
         config,
+        benchmark_provider="gemini_api",
         validated_transport=True,
     )
     if not isinstance(provider, GeminiApiProvider):
