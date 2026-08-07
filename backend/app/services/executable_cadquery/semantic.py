@@ -12,6 +12,191 @@ from app.services.geometry.feature_measurements import _ray_parameters
 from app.services.geometry.invariants import _detect_axis_aligned_holes
 
 
+def resolve_executable_cadquery_output_scope(
+    requirement: Mapping[str, Any],
+    *,
+    available_output_ids: list[str] | tuple[str, ...] | set[str],
+    output_registry: Mapping[str, Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Resolve a requirement to canonical executable output identities.
+
+    Resolution is deliberately contract/runtime-only and fail-closed.  An
+    explicit identity must resolve; it is never redirected to a sole output.
+    A sole-output default is legal only when the requirement has no explicit
+    scope.  Aliases and component IDs are accepted only from the supplied
+    output registry, never from source names, geometry, or corpus context.
+    """
+
+    available = list(dict.fromkeys(str(item) for item in available_output_ids if str(item)))
+    registry = output_registry or {}
+    exact_ids = set(available)
+    normalized_candidates: dict[str, list[str]] = {}
+    for output_id in available:
+        record = registry.get(output_id)
+        if not isinstance(record, Mapping):
+            record = {}
+        identities: list[Any] = [output_id]
+        for key in ("aliases", "output_aliases", "component_ids"):
+            value = record.get(key)
+            if isinstance(value, (list, tuple, set)):
+                identities.extend(value)
+            elif isinstance(value, str):
+                identities.append(value)
+        identities.append(record.get("component_id"))
+        for identity in identities:
+            normalized = _normalize_output_identity(identity)
+            if normalized:
+                normalized_candidates.setdefault(normalized, []).append(output_id)
+
+    scope_kind = _normalized_scope_kind(requirement)
+    identity_fields = (
+        "output_id",
+        "output_ids",
+        "component_id",
+        "component_ids",
+        "scope",
+    )
+    explicit_values: list[tuple[str, list[Any]]] = []
+    for field in identity_fields:
+        if field not in requirement or requirement.get(field) in (None, "", []):
+            continue
+        value = requirement.get(field)
+        if isinstance(value, (list, tuple, set)):
+            values = list(value)
+        else:
+            values = [value]
+        if field == "scope":
+            split_values: list[Any] = []
+            for item in values:
+                if isinstance(item, str):
+                    split_values.extend(part.strip() for part in item.split("/"))
+                else:
+                    split_values.append(item)
+            values = split_values
+        explicit_values.append((field, values))
+
+    if scope_kind in {"global", "assembly"}:
+        if explicit_values:
+            return _unresolved_scope(
+                status="ambiguous",
+                reason="global_scope_conflicts_with_identity",
+                available=available,
+            )
+        if not available:
+            return _unresolved_scope(
+                status="unresolved",
+                reason="no_available_outputs",
+                available=available,
+            )
+        return {
+            "status": "resolved",
+            "scope_kind": scope_kind,
+            "output_ids": sorted(available),
+            "reason": f"explicit_{scope_kind}_scope_resolved",
+            "requested_identities": [],
+            "available_output_ids": available,
+        }
+
+    if not explicit_values:
+        if len(available) == 1:
+            return {
+                "status": "resolved",
+                "scope_kind": "output_local",
+                "output_ids": [available[0]],
+                "reason": "single_available_output_default",
+                "requested_identities": [],
+                "available_output_ids": available,
+            }
+        return _unresolved_scope(
+            status="ambiguous" if available else "unresolved",
+            reason="unscoped_multiple_outputs" if available else "no_available_outputs",
+            available=available,
+        )
+
+    resolved_by_field: list[tuple[str, list[str]]] = []
+    for field, values in explicit_values:
+        resolved: list[str] = []
+        for value in values:
+            identity = str(value).strip() if value is not None else ""
+            if not identity:
+                return _unresolved_scope(
+                    status="unresolved",
+                    reason="explicit_scope_not_found",
+                    available=available,
+                )
+            if identity in exact_ids:
+                matches = [identity]
+            else:
+                matches = list(dict.fromkeys(normalized_candidates.get(_normalize_output_identity(identity), [])))
+            if not matches:
+                return _unresolved_scope(
+                    status="unresolved",
+                    reason="explicit_scope_not_found",
+                    available=available,
+                )
+            if len(matches) > 1:
+                return _unresolved_scope(
+                    status="ambiguous",
+                    reason="explicit_scope_alias_ambiguous",
+                    available=available,
+                )
+            if matches[0] in resolved:
+                return _unresolved_scope(
+                    status="ambiguous",
+                    reason="duplicate_output_identity",
+                    available=available,
+                )
+            resolved.append(matches[0])
+        resolved_by_field.append((field, resolved))
+
+    first_resolved = resolved_by_field[0][1]
+    if any(set(resolved) != set(first_resolved) for _, resolved in resolved_by_field[1:]):
+        return _unresolved_scope(
+            status="ambiguous",
+            reason="conflicting_output_identities",
+            available=available,
+        )
+    kind = "multi_output" if len(first_resolved) > 1 else "output_local"
+    return {
+        "status": "resolved",
+        "scope_kind": kind,
+        "output_ids": first_resolved,
+        "reason": "explicit_scope_resolved",
+        "requested_identities": [
+            {"field": field, "values": [str(item) for item in values]}
+            for field, values in explicit_values
+        ],
+        "available_output_ids": available,
+    }
+
+
+def _normalize_output_identity(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip().casefold()
+
+
+def _normalized_scope_kind(requirement: Mapping[str, Any]) -> str | None:
+    for key in ("scope_kind", "scope_type"):
+        value = requirement.get(key)
+        if isinstance(value, str):
+            normalized = value.strip().casefold()
+            if normalized in {"global", "assembly"}:
+                return normalized
+    return None
+
+
+def _unresolved_scope(*, status: str, reason: str, available: list[str]) -> dict[str, Any]:
+    return {
+        "status": status,
+        "scope_kind": "unresolved",
+        "output_ids": [],
+        "reason": reason,
+        "requested_identities": [],
+        "available_output_ids": available,
+    }
+
+
 def evaluate_executable_cadquery_semantics(
     *,
     stl_path: Path,
@@ -178,16 +363,42 @@ def evaluate_executable_cadquery_semantics_for_outputs(
         except Exception as exc:  # pragma: no cover - defensive artifact boundary
             load_errors[str(output_id)] = type(exc).__name__
 
+    requirements = [
+        item
+        for item in design_contract.get("requirements", [])
+        if isinstance(item, Mapping) and item.get("requirement_id")
+    ]
     findings: list[dict[str, Any]] = []
-    if len(meshes) == 1 and not load_errors:
+    def has_explicit_scope(requirement: Mapping[str, Any]) -> bool:
+        return any(
+            requirement.get(field) not in (None, "", [])
+            for field in (
+                "scope",
+                "scope_kind",
+                "scope_type",
+                "output_id",
+                "output_ids",
+                "component_id",
+                "component_ids",
+            )
+        )
+
+    legacy_requirements = [
+        requirement for requirement in requirements if not has_explicit_scope(requirement)
+    ]
+    if len(meshes) == 1 and not load_errors and legacy_requirements:
+        legacy_contract = dict(design_contract)
+        legacy_contract["requirements"] = legacy_requirements
         output_id, path = next(iter(stl_paths.items()))
         legacy = evaluate_executable_cadquery_semantics(
             stl_path=path,
-            design_contract=design_contract,
+            design_contract=legacy_contract,
         )
-        findings.extend(dict(item) for item in legacy.get("findings", []) if isinstance(item, Mapping))
+        findings = [
+            dict(item) for item in legacy.get("findings", []) if isinstance(item, Mapping)
+        ]
     elif not meshes:
-        findings.append(
+        findings = [
             {
                 "requirement_id": "final_mesh",
                 "status": "unverifiable",
@@ -195,30 +406,104 @@ def evaluate_executable_cadquery_semantics_for_outputs(
                 "evidence_source": "final_mesh",
                 "measurements": {"load_errors": load_errors},
             }
-        )
+        ]
+    else:
+        findings = []
 
     found_ids = {str(item.get("requirement_id")) for item in findings if item.get("requirement_id")}
-    requirements = [
-        item
-        for item in design_contract.get("requirements", [])
-        if isinstance(item, Mapping) and item.get("requirement_id")
-    ]
+    output_registry = {
+        str(item["output_id"]): item
+        for item in design_contract.get("outputs", [])
+        if isinstance(item, Mapping) and item.get("output_id")
+    }
     for requirement in requirements:
         requirement_id = str(requirement["requirement_id"])
         if requirement_id in found_ids:
             continue
-        output_id = str(requirement.get("scope") or "")
-        mesh = meshes.get(output_id)
-        if mesh is None and len(meshes) == 1:
-            mesh = next(iter(meshes.values()))
-            output_id = next(iter(meshes))
+        scope_resolution = resolve_executable_cadquery_output_scope(
+            requirement,
+            available_output_ids=list(meshes),
+            output_registry=output_registry,
+        )
+        if scope_resolution["status"] != "resolved":
+            findings.append(
+                _semantic_finding(
+                    requirement_id,
+                    status="unverifiable",
+                    measurement_available=False,
+                    measurements={
+                        "scope_resolution": scope_resolution,
+                        "reason": (
+                            "output_scope_ambiguous"
+                            if scope_resolution["status"] == "ambiguous"
+                            else "required output mesh is unavailable"
+                        ),
+                    },
+                )
+            )
+            continue
+        selected_meshes = {
+            output_id: meshes[output_id]
+            for output_id in scope_resolution["output_ids"]
+            if output_id in meshes
+        }
+        policy = str(requirement.get("verification_policy") or "")
+        if policy == "required_output_identity":
+            findings.append(
+                _verify_required_output_identity(
+                    requirement,
+                    resolved_output_ids=list(selected_meshes),
+                )
+            )
+            findings[-1]["measurements"]["scope_resolution"] = scope_resolution
+            continue
+        if policy == "required_output_artifact":
+            findings.append(
+                _semantic_finding(
+                    requirement_id,
+                    status="passed",
+                    measurement_available=True,
+                    evidence_source="executable_output_registry",
+                    measurements={
+                        "resolved_output_ids": list(selected_meshes),
+                        "artifact_present": True,
+                        "scope_resolution": scope_resolution,
+                    },
+                )
+            )
+            continue
+        if len(selected_meshes) > 1 and policy in _OUTPUT_LOCAL_POLICIES:
+            findings.append(
+                _semantic_finding(
+                    requirement_id,
+                    status="unverifiable",
+                    measurement_available=False,
+                    measurements={
+                        "resolved_output_ids": list(selected_meshes),
+                        "scope_resolution": scope_resolution,
+                        "reason": "output_local_scope_requires_single_output",
+                    },
+                )
+            )
+            continue
+        measurement_meshes = selected_meshes
+        if policy.startswith("cross_output_") and len(selected_meshes) == 1 and len(meshes) > 1:
+            # A cross-output verifier has an explicit contract-level need for
+            # the other loaded outputs.  The resolved scope remains the
+            # owning/declared output, while the relation is measured against
+            # the complete authoritative runtime output registry.
+            measurement_meshes = meshes
+        mesh = next(iter(selected_meshes.values()), None)
         if mesh is None:
             findings.append(
                 _semantic_finding(
                     requirement_id,
                     status="unverifiable",
                     measurement_available=False,
-                    measurements={"output_id": output_id, "reason": "required output mesh is unavailable"},
+                    measurements={
+                        "scope_resolution": scope_resolution,
+                        "reason": "required output mesh is unavailable",
+                    },
                 )
             )
             continue
@@ -226,10 +511,11 @@ def evaluate_executable_cadquery_semantics_for_outputs(
             _generic_requirement_finding(
                 requirement,
                 mesh=mesh,
-                output_id=output_id,
-                meshes=meshes,
+                output_id=next(iter(selected_meshes)),
+                meshes=measurement_meshes,
             )
         )
+        findings[-1]["measurements"]["scope_resolution"] = scope_resolution
 
     passed = [str(item["requirement_id"]) for item in findings if item.get("status") == "passed"]
     failed = [str(item["requirement_id"]) for item in findings if item.get("status") == "failed"]
@@ -247,6 +533,76 @@ def evaluate_executable_cadquery_semantics_for_outputs(
         "output_ids": sorted(meshes),
         "load_errors": load_errors,
     }
+
+
+_OUTPUT_LOCAL_POLICIES = frozenset(
+    {
+        "final_mesh_bounds",
+        "final_mesh_opening_profiles",
+        "final_mesh_opening_centers",
+        "final_mesh_axisymmetric_profiles",
+        "final_mesh_axial_sections",
+        "final_mesh_recess_profile",
+        "final_mesh_wall_profile",
+        "final_mesh_feature_profiles",
+        "measure_when_supported",
+    }
+)
+
+
+def _verify_required_output_identity(
+    requirement: Mapping[str, Any],
+    *,
+    resolved_output_ids: list[str],
+) -> dict[str, Any]:
+    requirement_id = str(requirement["requirement_id"])
+    expected = requirement.get("expected") if isinstance(requirement.get("expected"), Mapping) else {}
+    expected_count = expected.get("count")
+    expected_single_id = expected.get("output_id")
+    expected_required_id = expected.get("required_output")
+    expected_output_ids = expected.get("output_ids")
+    if expected_count is None and expected_single_id is None and expected_required_id is None and not isinstance(expected_output_ids, list):
+        return _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            evidence_source="executable_output_registry",
+            measurements={
+                "resolved_output_ids": resolved_output_ids,
+                "reason": "required output identity expectation is incomplete",
+            },
+        )
+
+    expected_ids: list[str] = []
+    if expected_single_id is not None:
+        expected_ids.append(str(expected_single_id))
+    if expected_required_id is not None:
+        expected_ids.append(str(expected_required_id))
+    if isinstance(expected_output_ids, list):
+        expected_ids.extend(str(item) for item in expected_output_ids)
+    expected_ids = list(dict.fromkeys(expected_ids))
+    count_matches = expected_count is None or len(resolved_output_ids) == int(expected_count)
+    identities_match = all(item in resolved_output_ids for item in expected_ids)
+    independent_matches = expected.get("independent") is not True or (
+        len(resolved_output_ids) > 1 and len(set(resolved_output_ids)) == len(resolved_output_ids)
+    )
+    passed = count_matches and identities_match and independent_matches
+    return _semantic_finding(
+        requirement_id,
+        status="passed" if passed else "failed",
+        measurement_available=True,
+        evidence_source="executable_output_registry",
+        measurements={
+            "expected_count": expected_count,
+            "expected_output_ids": expected_ids,
+            "expected_independent": expected.get("independent"),
+            "resolved_output_ids": resolved_output_ids,
+            "detected_count": len(resolved_output_ids),
+            "count_matches": count_matches,
+            "identities_match": identities_match,
+            "independent_matches": independent_matches,
+        },
+    )
 
 
 def _generic_requirement_finding(
@@ -566,13 +922,14 @@ def _semantic_finding(
     *,
     status: str,
     measurement_available: bool,
+    evidence_source: str | None = None,
     measurements: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "requirement_id": requirement_id,
         "status": status,
         "measurement_available": measurement_available,
-        "evidence_source": "final_mesh" if measurement_available else "none",
+        "evidence_source": evidence_source or ("final_mesh" if measurement_available else "none"),
         "measurements": measurements,
     }
 

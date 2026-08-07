@@ -1,0 +1,39 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-output-scope-decision-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "semantic_requirement_unverifiable",
+  "subclusters_completed": ["multi_output_scope_resolution", "required_output_identity_verifier_missing"],
+  "decision": "checkpoint_complete_next_semantic_cluster_not_started",
+  "hypothesis": "A centralized contract/runtime output-scope resolver plus a generic required_output_identity verifier is the smallest reusable capability for these two overlapping subclusters.",
+  "implementation": {
+    "resolver": "backend/app/services/executable_cadquery/semantic.py::resolve_executable_cadquery_output_scope",
+    "precedence": ["explicit output/component identity", "declared normalized alias", "explicit global/assembly scope", "single-output default only when scope is absent"],
+    "fail_closed": true,
+    "identity_verifier": "required_output_identity validates explicit expected count/identity/independence from the executable output registry",
+    "cross_output_compatibility": "cross_output_* policies may consume the complete loaded runtime output registry while retaining the resolved declared owner",
+    "source_or_provider_changes": false
+  },
+  "results": {
+    "synthetic_tests": "9 passed",
+    "targeted_existing_tests": "66 passed",
+    "multi_output_scopes_resolved": 11,
+    "identity_requirements_passed_offline": 5,
+    "provider_calls": 0,
+    "worker_replays": 0,
+    "CAD_source_changes": 0,
+    "remaining_subclusters": [
+      "verifier_requirement_field_mismatch",
+      "feature_profile_capability_gap",
+      "requirement_has_no_machine_measurement_definition",
+      "geometry_owned_measured_discrepancy"
+    ]
+  },
+  "gate": {
+    "phase_1b_cluster_checkpoint": "complete_for_this_subcluster_pair",
+    "phase_1b_overall": "in_progress",
+    "development_16_of_16": false,
+    "policy_freeze": "not_eligible",
+    "phase_2": "not_started",
+    "next_cluster_authorized": false
+  }
+}

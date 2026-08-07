@@ -1,0 +1,160 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-output-scope-replay-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "targets": ["multi_output_scope_resolution", "required_output_identity_verifier_missing"],
+  "provider_calls": 0,
+  "worker_replays": 0,
+  "cad_source_regenerated": false,
+  "replay_method": {
+    "scope_resolution": "Replayed against frozen contract scopes and canonical output IDs persisted in reconciled Phase 1A records.",
+    "identity_verification": "Replayed the output identity/count predicates against persisted output registry identities; mesh loading was exercised only by synthetic tests.",
+    "historical_geometry_measurement": "not_run",
+    "historical_geometry_measurement_reason": "The compact Phase 1A evidence preserves topology/artifact facts but no frozen STL files are present in the repository snapshot.",
+    "historical_evidence_preserved": true
+  },
+  "aggregate": {
+    "multi_output_findings": 11,
+    "multi_output_scopes_resolved": 11,
+    "multi_output_scope_guesses": 0,
+    "required_output_identity_findings": 5,
+    "required_output_identity_resolved": 5,
+    "required_output_identity_passed": 5,
+    "explicit_invalid_scope_fallbacks": 0,
+    "output_local_multi_target_fail_closed": 1,
+    "remaining_underlying_verifier_gaps": 1
+  },
+  "projects": [
+    {
+      "project_id": "development-05",
+      "available_output_ids": ["cable_organizer"],
+      "findings": {
+        "organizer_output": {
+          "scope_status": "resolved",
+          "scope_kind": "output_local",
+          "resolved_output_ids": ["cable_organizer"],
+          "identity_status": "passed",
+          "identity_evidence": "count=1 and output_id=cable_organizer match the persisted canonical output registry"
+        }
+      },
+      "next_blocker": "organizer_wall_mount remains a measured geometry/verifier-field failure; no repair was started."
+    },
+    {
+      "project_id": "development-06",
+      "available_output_ids": ["battery_holder", "retaining_lid"],
+      "findings": {
+        "battery_holder_design_choices": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["battery_holder", "retaining_lid"],
+          "semantic_effect": "informational review path remains separate from machine verification"
+        }
+      },
+      "next_blocker": "battery_holder_output remains the separate machine measurement-definition gap; this cycle did not broaden into it."
+    },
+    {
+      "project_id": "development-08",
+      "available_output_ids": ["tube_clamp_lower", "tube_clamp_upper"],
+      "findings": {
+        "clamp_outputs": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+          "identity_status": "passed",
+          "identity_evidence": "count=2 and both canonical output IDs are present"
+        },
+        "clamp_tube_interface": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+          "semantic_effect": "remains unverifiable because neutral_measurement_plus_review has no registered verifier"
+        },
+        "clamp_fasteners": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+          "semantic_effect": "remains unverifiable because final_mesh_opening_profiles is output-local and no single target is specified"
+        },
+        "clamp_design_choices": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+          "semantic_effect": "informational review path remains separate from machine verification"
+        }
+      },
+      "next_blocker": "interface verifier coverage and a legally defined multi-output fastener measurement remain queued; no geometry repair was started."
+    },
+    {
+      "project_id": "development-13",
+      "available_output_ids": ["charging_phone_stand"],
+      "findings": {
+        "phone_stand_output": {
+          "scope_status": "resolved",
+          "scope_kind": "output_local",
+          "resolved_output_ids": ["charging_phone_stand"],
+          "identity_status": "passed",
+          "identity_evidence": "count=1 and output_id=charging_phone_stand match the persisted canonical output registry"
+        }
+      },
+      "next_blocker": "phone_stand_stability and phone_stand_visibility remain review obligations."
+    },
+    {
+      "project_id": "development-15",
+      "available_output_ids": ["label_insert", "wall_accessory_holder"],
+      "findings": {
+        "wall_holder_outputs": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["wall_accessory_holder", "label_insert"],
+          "identity_status": "passed",
+          "identity_evidence": "required wall_accessory_holder is present and optional label_insert is present"
+        },
+        "wall_holder_design_freedom": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["wall_accessory_holder", "label_insert"],
+          "semantic_effect": "informational review path remains separate from machine verification"
+        }
+      },
+      "next_blocker": "wall_holder_function and wall_holder_compactness remain review obligations."
+    },
+    {
+      "project_id": "development-16",
+      "available_output_ids": ["protective_case_base", "protective_case_cover"],
+      "findings": {
+        "case_outputs": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["protective_case_base", "protective_case_cover"],
+          "identity_status": "passed",
+          "identity_evidence": "required protective_case_base is present and optional protective_case_cover is present"
+        },
+        "case_protection": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["protective_case_base", "protective_case_cover"],
+          "semantic_effect": "review obligation remains separate from machine verification"
+        },
+        "case_open_close": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["protective_case_base", "protective_case_cover"],
+          "semantic_effect": "review obligation remains separate from machine verification"
+        },
+        "case_design_freedom": {
+          "scope_status": "resolved",
+          "scope_kind": "multi_output",
+          "resolved_output_ids": ["protective_case_base", "protective_case_cover"],
+          "semantic_effect": "informational review path remains separate from machine verification"
+        }
+      },
+      "next_blocker": "case_protection and case_open_close remain review obligations."
+    }
+  ],
+  "interpretation": {
+    "capability_success": "Previously unverifiable output identity requirements now have authoritative registry evidence and pass the generic identity verifier in synthetic mesh-path tests; multi-output scopes resolve without guessing.",
+    "not_claimed": "This replay does not claim the full frozen packages pass, nor does it claim geometry measurement results without frozen STL artifacts.",
+    "measured_failures_preserved": true,
+    "provider_repairs": 0,
+    "broader_corpus_evaluation": "not run"
+  }
+}

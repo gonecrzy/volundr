@@ -1,0 +1,33 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-output-scope-anti-overfitting-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "target": "output_identity_and_multi_output_scope",
+  "result": "passed",
+  "checks": {
+    "project_id_logic": false,
+    "corpus_order_logic": false,
+    "fixture_dimension_logic": false,
+    "feature_name_logic": false,
+    "known_source_logic": false,
+    "prompt_copying": false,
+    "positional_output_choice": false,
+    "geometry_similarity_choice": false,
+    "explicit_invalid_scope_falls_back_to_sole_output": false,
+    "ambiguous_alias_falls_back_to_any_output": false,
+    "multi_output_local_measurement_guesses_target": false,
+    "synthetic_general_regression_coverage": true
+  },
+  "generic_rule": "Resolve canonical output/component identities from explicit contract/runtime metadata with deterministic precedence; reject ambiguity and keep output-local measurements single-target.",
+  "synthetic_test_file": "backend/tests/test_executable_cadquery_output_scope.py",
+  "evidence_file": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-reconstruction.json",
+  "provider_calls": 0,
+  "new_generic_recovery_rules_by_project_order": {
+    "development-05": 1,
+    "development-06": 0,
+    "development-08": 0,
+    "development-13": 0,
+    "development-15": 0,
+    "development-16": 0
+  },
+  "existing_rule_recovery_rate": "not measured; no provider or worker recovery was authorized"
+}

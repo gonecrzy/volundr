@@ -5,11 +5,11 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "1577322 Develop generic semantic policy recovery for frozen contracts",
-  "origin_experimental_head": "1577322 Develop generic semantic policy recovery for frozen contracts",
+  "experimental_head": "95a743d Record Phase 1B semantic cluster checkpoint",
+  "origin_experimental_head": "95a743d Record Phase 1B semantic cluster checkpoint",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic-unverifiable cluster checkpoint complete; remaining semantic subclusters queued",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B output-scope and output-identity checkpoint complete; remaining semantic subclusters queued",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -84,6 +84,13 @@
     ,"phase_1b_semantic_policy_replay_completed_without_provider_calls"
     ,"full_backend_phase_1b_semantic_checkpoint_1444_passed"
     ,"frontend_phase_1b_semantic_checkpoint_104_passed_and_build_passed"
+    ,"phase_1b_output_scope_root_cause_reconstructed"
+    ,"phase_1b_output_scope_synthetic_tests_9_passed"
+    ,"phase_1b_output_identity_replay_completed_without_provider_calls"
+    ,"phase_1b_output_scope_anti_overfitting_passed"
+    ,"full_backend_phase_1b_output_scope_checkpoint_1453_passed"
+    ,"frontend_phase_1b_output_scope_checkpoint_104_passed_and_build_passed"
+    ,"alembic_phase_1b_output_scope_checkpoint_clean"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -158,8 +165,8 @@
     "target_eventual_independent_pass": "16/16",
     "current_cluster": "semantic_requirement_unverifiable",
     "current_cluster_projects": ["development-03","development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
-    "current_cluster_status": "generic_classification_normalization_verified; remaining_subclusters_not_started",
-    "current_hypothesis": "Resolve frozen contract classification as semantic policy when policy is absent, preserving explicit policy precedence and fail-closed verifier behavior.",
+    "current_cluster_status": "classification_normalization_and_output_scope_identity_recovery_verified; remaining_subclusters_not_started",
+    "current_hypothesis": "Resolve explicit output/component scope from contract/runtime metadata and verify required output identity/count from the authoritative executable output registry, preserving fail-closed ambiguity behavior.",
     "provider_calls_current_cluster": 0,
     "repair_operations_current_cluster": 0,
     "unsupported_findings_before": 26,
@@ -167,7 +174,7 @@
     "reclassified_review_or_informational": 15,
     "new_generic_recovery_rules_by_project_order": {
       "development-03": 1,
-      "development-05": 0,
+      "development-05": 1,
       "development-06": 0,
       "development-07": 0,
       "development-08": 0,
@@ -177,7 +184,7 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "remaining_subclusters": ["verifier_requirement_field_mismatch","feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
     "cluster_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-cluster-decision.json",
     "metrics": [
       "initial_independent_pass_rate",
@@ -219,8 +226,8 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 16,
-  "application_fix_count_since_previous_checkpoint": 2,
+  "application_fix_count": 17,
+  "application_fix_count_since_previous_checkpoint": 1,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
@@ -301,6 +308,10 @@
     "historical_provider_attempt_forensics": "data/debug-sessions/executable-cadquery/recovery-development-16/historical-provider-attempt-forensics.json; zero calls; no durable facts recoverable for P03-P16",
     "phase_1a_rate_limit_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/rate-limit-audit.json; concurrency=1; primary observed minimum gap=5.001410484997905s; rolling max=9; fallback unused",
     "phase_1a_reconciled_records": "data/debug-sessions/executable-cadquery/recovery-development-16/project-03..16-reconciled-first-pass.json",
-    "verification_current_checkpoint": "backend 1444 passed, 1 skipped, 1 warning with PYTHONPATH=/root/volundr; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; Phase 1B semantic policy/repair focused suite passed 79 tests; semantic cluster provider_calls=0"
+    "phase_1b_output_scope_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-reconstruction.json",
+    "phase_1b_output_scope_replay": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-replay.json",
+    "phase_1b_output_scope_anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-anti-overfitting.json",
+    "phase_1b_output_scope_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-decision.json",
+    "verification_current_checkpoint": "backend 1453 passed, 1 skipped, 1 warning with PYTHONPATH=/root/volundr; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; output-scope focused suite 9 passed and targeted semantic/repair suite 66 passed; provider_calls=0"
   }
 }

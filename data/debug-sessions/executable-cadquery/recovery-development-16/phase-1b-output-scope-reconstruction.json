@@ -1,0 +1,283 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-output-scope-reconstruction-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "semantic_requirement_unverifiable",
+  "target_subclusters": [
+    "multi_output_scope_resolution",
+    "required_output_identity_verifier_missing"
+  ],
+  "provider_calls": 0,
+  "worker_replays": 0,
+  "cad_source_changes": 0,
+  "evidence_boundary": {
+    "design_contract": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+    "generated_output_evidence": "Reconciled Phase 1A output/topology records and their canonical output IDs.",
+    "semantic_evidence": "Reconciled semantic findings in project-XX-reconciled-first-pass.json, interpreted with the completed classification-policy recovery.",
+    "historical_matrix_preserved": "data/debug-sessions/executable-cadquery/recovery-development-16/first-blocker-matrix.json"
+  },
+  "common_observation": {
+    "declared_scope_representation": "The frozen contract uses scope as either one canonical output ID or a slash-delimited set of canonical output IDs.",
+    "runtime_representation": "The executable result and persisted topology expose each output under its own canonical output ID.",
+    "current_resolver": "semantic.py performs a direct meshes.get(scope), then falls back to the only loaded mesh even when an explicit scope is not found.",
+    "incorrect_behavior": "A slash-delimited scope cannot resolve to separate output meshes; an invalid explicit scope can also be silently redirected to a sole mesh.",
+    "ownership": {
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application"
+    }
+  },
+  "subclusters": [
+    {
+      "id": "multi_output_scope_resolution",
+      "count": 11,
+      "projects": ["development-06", "development-08", "development-15", "development-16"],
+      "finding_ids": [
+        "battery_holder_design_choices",
+        "clamp_outputs",
+        "clamp_tube_interface",
+        "clamp_fasteners",
+        "clamp_design_choices",
+        "wall_holder_outputs",
+        "wall_holder_design_freedom",
+        "case_outputs",
+        "case_protection",
+        "case_open_close",
+        "case_design_freedom"
+      ],
+      "root_cause": "The explicit multi-output scope is treated as one dictionary key instead of being resolved against the separate canonical runtime output IDs.",
+      "first_incorrect_owner": "application",
+      "confidence": "confirmed",
+      "evidence": "Frozen scopes, reconciled output IDs, and semantic.py scope lookup agree; no source or geometry change is needed to establish the mismatch."
+    },
+    {
+      "id": "required_output_identity_verifier_missing",
+      "count": 5,
+      "projects": ["development-05", "development-08", "development-13", "development-15", "development-16"],
+      "finding_ids": [
+        "organizer_output",
+        "clamp_outputs",
+        "phone_stand_output",
+        "wall_holder_outputs",
+        "case_outputs"
+      ],
+      "root_cause": "The contract explicitly requests output identity/count evidence, but required_output_identity has no registered generic verifier.",
+      "first_incorrect_owner": "application",
+      "confidence": "confirmed",
+      "evidence": "Each affected contract has a required_output_identity policy and persisted canonical output/artifact identities; semantic.py falls through to no generic verifier registered."
+    }
+  ],
+  "affected_findings": [
+    {
+      "project_id": "development-05",
+      "requirement_id": "organizer_output",
+      "requested_scope": "cable_organizer",
+      "available_generated_output_ids": ["cable_organizer"],
+      "verification_policy": "required_output_identity",
+      "expected_identity": {"count": 1, "output_id": "cable_organizer"},
+      "current_resolver_behavior": "Direct lookup would find the single output, but the policy is unregistered.",
+      "ambiguity": false,
+      "unique_correct_target": ["cable_organizer"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application"
+    },
+    {
+      "project_id": "development-06",
+      "requirement_id": "battery_holder_design_choices",
+      "requested_scope": "battery_holder/retaining_lid",
+      "available_generated_output_ids": ["battery_holder", "retaining_lid"],
+      "verification_policy": "blind_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["battery_holder", "retaining_lid"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "Scope is deterministic, but blind review remains a separate non-machine review path and is not made machine-verifiable by this recovery."
+    },
+    {
+      "project_id": "development-08",
+      "requirement_id": "clamp_outputs",
+      "requested_scope": "tube_clamp_upper/tube_clamp_lower",
+      "available_generated_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+      "verification_policy": "required_output_identity",
+      "expected_identity": {"count": 2, "independent": true},
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected; the identity policy is also unregistered.",
+      "ambiguity": false,
+      "unique_correct_target": ["tube_clamp_upper", "tube_clamp_lower"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application"
+    },
+    {
+      "project_id": "development-08",
+      "requirement_id": "clamp_tube_interface",
+      "requested_scope": "tube_clamp_upper/tube_clamp_lower",
+      "available_generated_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+      "verification_policy": "neutral_measurement_plus_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["tube_clamp_upper", "tube_clamp_lower"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "The scope is resolvable as a pair, but this cycle does not add an interface measurement verifier."
+    },
+    {
+      "project_id": "development-08",
+      "requirement_id": "clamp_fasteners",
+      "requested_scope": "tube_clamp_upper/tube_clamp_lower",
+      "available_generated_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+      "verification_policy": "final_mesh_opening_profiles",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": true,
+      "unique_correct_target": null,
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "This is an output-local policy with a multi-output scope; selecting either output or aggregating holes would be an unsupported guess."
+    },
+    {
+      "project_id": "development-08",
+      "requirement_id": "clamp_design_choices",
+      "requested_scope": "tube_clamp_upper/tube_clamp_lower",
+      "available_generated_output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+      "verification_policy": "blind_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["tube_clamp_upper", "tube_clamp_lower"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "Scope is deterministic, but blind review remains a separate review path."
+    },
+    {
+      "project_id": "development-13",
+      "requirement_id": "phone_stand_output",
+      "requested_scope": "charging_phone_stand",
+      "available_generated_output_ids": ["charging_phone_stand"],
+      "verification_policy": "required_output_identity",
+      "expected_identity": {"count": 1, "output_id": "charging_phone_stand"},
+      "current_resolver_behavior": "Direct lookup would find the single output, but the policy is unregistered.",
+      "ambiguity": false,
+      "unique_correct_target": ["charging_phone_stand"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application"
+    },
+    {
+      "project_id": "development-15",
+      "requirement_id": "wall_holder_outputs",
+      "requested_scope": "wall_accessory_holder/label_insert",
+      "available_generated_output_ids": ["wall_accessory_holder", "label_insert"],
+      "verification_policy": "required_output_identity",
+      "expected_identity": {"required_output": "wall_accessory_holder", "optional_output": "label_insert"},
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected; the identity policy is also unregistered.",
+      "ambiguity": false,
+      "unique_correct_target": ["wall_accessory_holder", "label_insert"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application"
+    },
+    {
+      "project_id": "development-15",
+      "requirement_id": "wall_holder_design_freedom",
+      "requested_scope": "wall_accessory_holder/label_insert",
+      "available_generated_output_ids": ["wall_accessory_holder", "label_insert"],
+      "verification_policy": "blind_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["wall_accessory_holder", "label_insert"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "Scope is deterministic, but blind review remains a separate review path."
+    },
+    {
+      "project_id": "development-16",
+      "requirement_id": "case_outputs",
+      "requested_scope": "protective_case_base/protective_case_cover",
+      "available_generated_output_ids": ["protective_case_base", "protective_case_cover"],
+      "verification_policy": "required_output_identity",
+      "expected_identity": {"required_output": "protective_case_base", "optional_output": "protective_case_cover"},
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected; the identity policy is also unregistered.",
+      "ambiguity": false,
+      "unique_correct_target": ["protective_case_base", "protective_case_cover"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application"
+    },
+    {
+      "project_id": "development-16",
+      "requirement_id": "case_protection",
+      "requested_scope": "protective_case_base/protective_case_cover",
+      "available_generated_output_ids": ["protective_case_base", "protective_case_cover"],
+      "verification_policy": "blind_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["protective_case_base", "protective_case_cover"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "Scope is deterministic, but blind review remains a separate review path."
+    },
+    {
+      "project_id": "development-16",
+      "requirement_id": "case_open_close",
+      "requested_scope": "protective_case_base/protective_case_cover",
+      "available_generated_output_ids": ["protective_case_base", "protective_case_cover"],
+      "verification_policy": "blind_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["protective_case_base", "protective_case_cover"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "Scope is deterministic, but blind review remains a separate review path."
+    },
+    {
+      "project_id": "development-16",
+      "requirement_id": "case_design_freedom",
+      "requested_scope": "protective_case_base/protective_case_cover",
+      "available_generated_output_ids": ["protective_case_base", "protective_case_cover"],
+      "verification_policy": "blind_review",
+      "expected_identity": null,
+      "current_resolver_behavior": "The slash-delimited scope is looked up as one key and no mesh is selected.",
+      "ambiguity": false,
+      "unique_correct_target": ["protective_case_base", "protective_case_cover"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "interpretation": "Scope is deterministic, but blind review remains a separate review path."
+    }
+  ],
+  "scope_resolution_requirements": {
+    "precedence": [
+      "explicit output identity or component identity",
+      "explicit normalized aliases declared in contract/runtime metadata",
+      "explicit global/assembly scope",
+      "single available output only when the requirement has no explicit scope"
+    ],
+    "fail_closed": [
+      "unknown explicit identity",
+      "alias collision",
+      "multiple outputs without explicit scope",
+      "output-local measurement requested for multiple selected outputs"
+    ],
+    "forbidden_evidence": [
+      "project ID",
+      "corpus order",
+      "dimensions",
+      "source order",
+      "variable names not in the formal contract",
+      "geometry similarity"
+    ]
+  }
+}
