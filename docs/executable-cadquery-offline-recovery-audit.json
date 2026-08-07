@@ -201,6 +201,7 @@
   },
   "phase2_started": false,
   "phase_0_authoritative_state_matrix": {
+    "authorized_provider_calls_made": 1,
     "p5_touched": false,
     "phase_1_started": false,
     "projects": {
@@ -297,13 +298,45 @@
           "revision_id": "c84f366e-fbbe-47aa-830c-95a80bb899c0",
           "workflow_id": "59614cec-7a42-47ea-bda8-8d5a14755695"
         },
+        "authorized_l2_attempt": {
+          "auth_header": "x-goog-api-key",
+          "endpoint": "/models/{model}:generateContent",
+          "fallback_used": false,
+          "outputs": [
+            {
+              "compile_error": "output shape is invalid",
+              "detected_solid_count": 1,
+              "output_id": "curved_cable_guide",
+              "solid_count": null,
+              "success": false
+            }
+          ],
+          "parsed_source_hash": "bd9fba6ca111734366367138d1ed5777418de787b54443a826250891966a6531",
+          "provider": "gemini_api",
+          "provider_call_attempted": 1,
+          "provider_call_count": 1,
+          "provider_class": "GeminiApiProvider",
+          "provider_retry_count": 0,
+          "provider_settings": {
+            "auth_mode": "api_key",
+            "fallback_credential_present": true,
+            "primary_credential_present": true,
+            "validated_transport": true
+          },
+          "request_source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+          "status": "response_and_worker_recorded",
+          "validated_transport": true,
+          "worker_call_made": 1,
+          "worker_error_class": "output shape is invalid",
+          "worker_success": false
+        },
         "candidate_state": "candidate_blocked",
         "downstream_boundary": "topology",
         "provider_attempts": 1,
-        "provider_calls_made": 0,
-        "provider_responses": 0,
+        "provider_calls_made": 1,
+        "provider_responses": 1,
         "provider_transport_call_allowed": false,
-        "repair_gate": "one_l2_repair_blocked_before_response",
+        "repair_gate": "one_l2_repair_completed_worker_topology_invalid",
         "solid_counts": {
           "curved_cable_guide": {
             "detected_solid_count": 1,
@@ -398,6 +431,39 @@
         "transport_forensics": {
           "additional_p3_provider_call_allowed": false,
           "alternate_models_probed": false,
+          "authorized_api_attempt": {
+            "auth_header": "x-goog-api-key",
+            "endpoint": "/models/{model}:generateContent",
+            "fallback_used": false,
+            "outputs": [
+              {
+                "compile_error": "output shape is invalid",
+                "detected_solid_count": 1,
+                "output_id": "curved_cable_guide",
+                "solid_count": null,
+                "success": false
+              }
+            ],
+            "parsed_source_hash": "bd9fba6ca111734366367138d1ed5777418de787b54443a826250891966a6531",
+            "provider": "gemini_api",
+            "provider_call_attempted": 1,
+            "provider_call_count": 1,
+            "provider_class": "GeminiApiProvider",
+            "provider_retry_count": 0,
+            "provider_settings": {
+              "auth_mode": "api_key",
+              "fallback_credential_present": true,
+              "primary_credential_present": true,
+              "validated_transport": true
+            },
+            "request_source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+            "status": "response_and_worker_recorded",
+            "validated_transport": true,
+            "worker_call_made": 1,
+            "worker_error_class": "output shape is invalid",
+            "worker_success": false
+          },
+          "authorized_api_transport_proven": true,
           "comparison": {
             "failed_path_is_direct_generative_language_rest": false,
             "failed_path_uses_x_goog_api_key": false,
@@ -454,7 +520,7 @@
             "subprocess_boundary": false,
             "transport": "gemini_api_rest"
           },
-          "next_action": "hold_p3_provider_call_until_same_api_key_transport_is_proven",
+          "next_action": "p3_l2_completed_worker_topology_invalid",
           "provider_call_made_by_forensics": 0,
           "request_record_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json",
           "same_api_key_transport_proven": false,

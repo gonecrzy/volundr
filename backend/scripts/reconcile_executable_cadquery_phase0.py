@@ -41,6 +41,10 @@ REPORT_PATH = ROOT / "docs/executable-cadquery-topology-replay-v2.json"
 P3_ATTEMPT_PATH = ROOT / (
     "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair.json"
 )
+P3_AUTHORIZED_ATTEMPT_PATH = ROOT / (
+    "data/debug-sessions/executable-cadquery/topology-evidence-v2/"
+    "p3-l2-repair-api-transport.json"
+)
 OUTPUT_ROOT = ROOT / (
     "data/debug-sessions/executable-cadquery/recovery-wave-01/"
     "current-authoritative-downstream"
@@ -538,6 +542,11 @@ def _blind_reviewer_result(
 
 def _reconcile_p3_transport(path: Path) -> dict[str, Any]:
     failed = _read_json(path) if path.is_file() else {}
+    authorized = (
+        _read_json(P3_AUTHORIZED_ATTEMPT_PATH)
+        if P3_AUTHORIZED_ATTEMPT_PATH.is_file()
+        else {}
+    )
     api_summary_path = ROOT / "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-recovery-summary.json"
     api_summary = _read_json(api_summary_path)
     evidence = build_transport_forensics(
@@ -590,9 +599,82 @@ def _reconcile_p3_transport(path: Path) -> dict[str, Any]:
             "credentials_changed": False,
             "alternate_models_probed": False,
             "keys_rotated": False,
+            "authorized_api_attempt": _authorized_p3_attempt_summary(authorized),
         }
     )
+    authorized_summary = evidence["authorized_api_attempt"]
+    if authorized_summary["provider_call_attempted"]:
+        evidence["authorized_api_transport_proven"] = (
+            authorized_summary["provider"] == "gemini_api"
+            and authorized_summary["validated_transport"] is True
+            and authorized_summary["auth_header"] == "x-goog-api-key"
+        )
+        evidence["additional_p3_provider_call_allowed"] = False
+        evidence["next_action"] = (
+            "p3_l2_completed_worker_topology_invalid"
+            if authorized_summary["worker_success"] is False
+            else "p3_l2_completed_authoritative_reassessment_required"
+        )
+    else:
+        evidence["authorized_api_transport_proven"] = False
     return evidence
+
+
+def _authorized_p3_attempt_summary(attempt: Mapping[str, Any]) -> dict[str, Any]:
+    transport = attempt.get("provider_transport")
+    transport = transport if isinstance(transport, Mapping) else {}
+    settings = transport.get("provider_settings")
+    settings = settings if isinstance(settings, Mapping) else {}
+    worker = attempt.get("worker_result")
+    worker = worker if isinstance(worker, Mapping) else {}
+    provider_result = attempt.get("provider")
+    provider_result = provider_result if isinstance(provider_result, Mapping) else {}
+    routing = provider_result.get("routing_metadata")
+    routing = routing if isinstance(routing, Mapping) else {}
+    outputs = worker.get("outputs")
+    outputs = outputs if isinstance(outputs, list) else []
+    return {
+        "status": str(attempt.get("status") or "not_recorded"),
+        "provider": str(transport.get("provider") or "unknown"),
+        "provider_class": str(transport.get("provider_class") or "unknown"),
+        "validated_transport": transport.get("validated_transport") is True,
+        "auth_header": str(transport.get("auth_header") or ""),
+        "endpoint": str(transport.get("endpoint") or ""),
+        "provider_call_attempted": int(attempt.get("provider_call_attempted") or 0),
+        "worker_call_made": int(attempt.get("worker_call_made") or 0),
+        "provider_call_count": int(routing.get("provider_call_count") or 0),
+        "provider_retry_count": int(routing.get("provider_retry_count") or 0),
+        "fallback_used": int(routing.get("provider_retry_count") or 0) > 0,
+        "provider_settings": {
+            "auth_mode": str(settings.get("auth_mode") or "unknown"),
+            "primary_credential_present": bool(
+                (settings.get("primary_credential") or {}).get("credential_present")
+            ),
+            "fallback_credential_present": bool(
+                (settings.get("fallback_credential") or {}).get("credential_present")
+            ),
+            "validated_transport": settings.get("validated_transport") is True,
+        },
+        "request_source_hash": attempt.get("request_source_hash"),
+        "parsed_source_hash": attempt.get("parsed_source_hash"),
+        "worker_success": worker.get("success"),
+        "worker_error_class": str(worker.get("error_message") or "")[:120],
+        "outputs": [
+            {
+                "output_id": output.get("output_id"),
+                "success": output.get("success"),
+                "compile_error": output.get("compile_error"),
+                "solid_count": (output.get("topology_metadata") or {}).get(
+                    "solid_count"
+                ),
+                "detected_solid_count": (output.get("topology_metadata") or {}).get(
+                    "detected_solid_count"
+                ),
+            }
+            for output in outputs
+            if isinstance(output, Mapping)
+        ],
+    }
 
 
 def _build_phase_matrix(
@@ -605,6 +687,7 @@ def _build_phase_matrix(
         "schema_version": "executable-cadquery-phase0-authoritative-matrix-v1",
         "source_of_truth": "latest authoritative persisted worker result, topology-evidence-v2, and fresh offline downstream checks",
         "provider_calls_made_by_reconciliation": 0,
+        "authorized_provider_calls_made": 0,
         "phase_1_started": False,
         "p5_touched": False,
         "projects": {},
@@ -641,14 +724,41 @@ def _build_phase_matrix(
                 "solid_counts": p3["v2_outputs"],
                 "candidate_state": "candidate_blocked",
                 "downstream_boundary": "topology",
-                "provider_calls_made": 0,
-                "repair_gate": "one_l2_repair_blocked_before_response",
+                "provider_calls_made": int(
+                    (transport.get("authorized_api_attempt") or {}).get(
+                        "provider_call_attempted", 0
+                    )
+                ),
+                "repair_gate": (
+                    "one_l2_repair_completed_worker_topology_invalid"
+                    if (transport.get("authorized_api_attempt") or {}).get(
+                        "provider_call_attempted", 0
+                    )
+                    and (transport.get("authorized_api_attempt") or {}).get(
+                        "worker_success"
+                    ) is False
+                    else "one_l2_repair_blocked_before_response"
+                ),
                 "transport_forensics": transport,
                 "provider_transport_call_allowed": transport["additional_p3_provider_call_allowed"],
-                "provider_attempts": 1,
-                "provider_responses": 0,
+                "provider_attempts": int(
+                    (transport.get("authorized_api_attempt") or {}).get(
+                        "provider_call_attempted", 0
+                    )
+                ),
+                "provider_responses": int(
+                    (transport.get("authorized_api_attempt") or {}).get(
+                        "provider_call_attempted", 0
+                    )
+                    and (transport.get("authorized_api_attempt") or {}).get(
+                        "status"
+                    )
+                    not in {"blocked_before_request_missing_primary_credential", "not_recorded"}
+                ),
+                "authorized_l2_attempt": transport.get("authorized_api_attempt"),
                 "stale_replays_rejected": next(item for item in report["projects"] if item["project_id"] == project_id).get("stale_replays_rejected", []),
             }
+            matrix["authorized_provider_calls_made"] = matrix["projects"][project_id]["provider_calls_made"]
         else:
             matrix["projects"][project_id] = _preserved_project_state(project_id)
     return matrix
@@ -697,6 +807,27 @@ def _update_topology_report(
     downstream: Mapping[str, Mapping[str, Any]],
     transport: Mapping[str, Any],
 ) -> None:
+    authorized_attempt = transport.get("authorized_api_attempt") or {}
+    p3_project = next(
+        item for item in report.get("projects", []) if item.get("project_id") == "project-03"
+    )
+    historical_comparison = p3_project.get("historical_repair_envelope_comparison")
+    if isinstance(historical_comparison, Mapping):
+        p3_project["historical_repair_envelope_comparison"] = {
+            **historical_comparison,
+            "authorized_l2_comparison": {
+                "historical_envelope_warranted_authorized_l2": historical_comparison.get(
+                    "genuinely_new_actionable_topology_evidence", False
+                ),
+                "request_source_hash": authorized_attempt.get("request_source_hash"),
+                "repaired_source_hash": authorized_attempt.get("parsed_source_hash"),
+                "worker_success": authorized_attempt.get("worker_success"),
+                "worker_error_class": authorized_attempt.get("worker_error_class"),
+                "new_valid_topology_evidence": authorized_attempt.get("worker_success") is True,
+                "materially_new_actionable_topology_evidence": False,
+                "decision": "one_authorized_l2_consumed; no_further_p3_l2_call",
+            },
+        }
     report["phase_0_current_state_matrix"] = _build_phase_matrix(
         report=report,
         downstream=downstream,
@@ -717,7 +848,13 @@ def _update_topology_report(
         },
     }
     report["p3_transport_forensics"] = transport
+    report["authorized_p3_l2_attempt"] = transport.get("authorized_api_attempt")
     report["provider_calls"] = 0
+    report["authorized_provider_calls_made"] = int(
+        (transport.get("authorized_api_attempt") or {}).get(
+            "provider_call_attempted", 0
+        )
+    )
     report["phase_1_started"] = False
     report["p5_touched"] = False
     _write_json(report_path, report)

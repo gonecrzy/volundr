@@ -59,10 +59,25 @@ class Settings(BaseSettings):
     gemini_component_revision_model: str | None = Field(default=None)
     gemini_timeout_seconds: int = Field(default=120)
     gemini_policy_path: Path | None = Field(default=None)
-    # Compose maps the root .env values into these API-only settings.  Keep
-    # them secret-typed so normal settings serialization never emits values.
-    gemini_primary_api_key: SecretStr | None = Field(default=None)
-    gemini_fallback_api_key: SecretStr | None = Field(default=None)
+    # Compose maps the root .env values into these API-only settings.  The raw
+    # names remain accepted as a controlled-launch fallback so direct recovery
+    # actions use this same Settings/provider path when process variables were
+    # not propagated. Keep both fields secret-typed so serialization never
+    # emits values.
+    gemini_primary_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "VOLUNDR_GEMINI_PRIMARY_API_KEY",
+            "GEMINI_API_KEY",
+        ),
+    )
+    gemini_fallback_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "VOLUNDR_GEMINI_FALLBACK_API_KEY",
+            "GEMINI_API_KEY_2",
+        ),
+    )
     gemini_api_base_url: str = Field(
         default="https://generativelanguage.googleapis.com/v1beta"
     )

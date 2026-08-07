@@ -1,4 +1,7 @@
-from app.api.dependencies import build_executable_ai_provider
+import httpx
+import pytest
+
+from app.api.dependencies import build_ai_provider, build_executable_ai_provider
 from app.api.validated_cadquery import _service
 from app.core.config import Settings
 from app.services.ai.gemini_api import GeminiApiProvider
@@ -46,6 +49,61 @@ def test_executable_repair_dispatch_uses_api_key_rest_even_if_cli_is_configured(
     assert provider.validated_transport is True
     assert provider.primary_api_key == "approved-primary-secret"
     assert provider.fallback_api_key == "fallback-secret"
+
+
+@pytest.mark.asyncio
+async def test_missing_process_credentials_use_root_settings_for_normal_and_recovery_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    for name in (
+        "GEMINI_API_KEY",
+        "GEMINI_API_KEY_2",
+        "VOLUNDR_GEMINI_PRIMARY_API_KEY",
+        "VOLUNDR_GEMINI_FALLBACK_API_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    dotenv = tmp_path / ".env"
+    dotenv.write_text(
+        "GEMINI_API_KEY=primary-from-root\nGEMINI_API_KEY_2=fallback-from-root\n",
+        encoding="utf-8",
+    )
+
+    configured = Settings(_env_file=dotenv)
+    normal = build_ai_provider(configured, validated_transport=True)
+    recovery = build_executable_ai_provider(configured)
+
+    assert isinstance(normal, GeminiApiProvider)
+    assert isinstance(recovery, GeminiApiProvider)
+    assert normal.primary_api_key == recovery.primary_api_key
+    assert normal.primary_api_key is not None
+    assert normal.fallback_api_key == recovery.fallback_api_key
+    assert recovery.provider_settings()["primary_credential"]["credential_present"] is True
+    assert recovery.provider_settings()["fallback_credential"]["credential_present"] is True
+
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            200,
+            json={
+                "modelVersion": "gemini-3.5-flash-lite",
+                "candidates": [{"content": {"parts": [{"text": "ok"}]}}],
+            },
+        )
+
+    recovery._transport = httpx.MockTransport(handler)
+    await recovery.generate_cadquery_model(
+        ModelGenerationRequest(
+            project_name="Boundary test",
+            original_intent="Make a test part.",
+            user_instruction="Make a test part.",
+        )
+    )
+
+    assert len(requests) == 1
+    assert requests[0].headers["x-goog-api-key"] == "primary-from-root"
 
 
 def test_executable_flow_is_disabled_by_default_and_gemini_remains_default() -> None:
