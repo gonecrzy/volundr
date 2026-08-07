@@ -118,6 +118,11 @@ class Settings(BaseSettings):
     def normalize_empty_build_boolean(cls, value: object) -> object:
         return None if isinstance(value, str) and not value.strip() else value
 
+    @field_validator("executable_cadquery_corpus_manifest_path", mode="before")
+    @classmethod
+    def normalize_empty_corpus_manifest_path(cls, value: object) -> object:
+        return None if isinstance(value, str) and not value.strip() else value
+
     @field_validator("geometry_contract_mode")
     @classmethod
     def validate_geometry_contract_mode(cls, value: str) -> str:

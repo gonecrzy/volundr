@@ -60,6 +60,12 @@ def test_settings_default_to_gemini_api_with_typed_defaults() -> None:
     assert settings.cad_workspace_dir == settings.data_dir / "jobs"
 
 
+def test_empty_executable_corpus_manifest_path_is_unset() -> None:
+    settings = Settings(_env_file=None, executable_cadquery_corpus_manifest_path="")
+
+    assert settings.executable_cadquery_corpus_manifest_path is None
+
+
 def test_settings_support_stage_specific_gemini_models(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text(
