@@ -1,0 +1,343 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-feature-profile-capability-gap-reconstruction-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "checkpoint": "feature_profile_capability_gap_reconstruction_only",
+  "reconstruction_timestamp": "2026-08-07T23:15:27Z",
+  "authoritative_scope": {
+    "project": "development-03",
+    "requirement_id": "housing_ventilation",
+    "project_record": "data/debug-sessions/executable-cadquery/recovery-development-16/project-03-reconciled-first-pass.json",
+    "frozen_contract_source": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+    "historical_phase_1a_evidence_preserved": true,
+    "prior_subcluster_label_preserved": true,
+    "prior_subcluster_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json"
+  },
+  "affected_finding": {
+    "project_id": "development-03",
+    "title": "Sensor housing shell",
+    "workflow_id": "0280cc28-eab4-4c50-8aa3-3eb5fe090b12",
+    "revision_id": "048a54a1-8d22-4a12-acc9-f3e0bb17ad5b",
+    "output_id": "sensor_housing",
+    "output_scope": "sensor_housing",
+    "requirement_id": "housing_ventilation",
+    "observed_stage": "semantic_measurement",
+    "failure_class": "semantic_requirement_unverifiable",
+    "policy_result": "unsupported_verifier",
+    "historical_first_incorrect_owner": "application",
+    "historical_owner_status": "preserved_as_provisional_prior_evidence",
+    "current_owner_status": "immediate_application_loss_proven; complete_generic_owner_not_resolved"
+  },
+  "authoritative_contract_representation": {
+    "requirement": {
+      "requirement_id": "housing_ventilation",
+      "scope": "sensor_housing",
+      "origin": "user_explicit",
+      "authority": "required",
+      "classification": "machine_required",
+      "expected": {
+        "count": 6,
+        "width": 2.0,
+        "length": 8.0
+      },
+      "tolerance": 0.25,
+      "verification_policy": "final_mesh_feature_profiles"
+    },
+    "request_evidence": "Add ... six 2 mm wide by 8 mm long ventilation slots on the front wall.",
+    "declared_output": {
+      "output_id": "sensor_housing",
+      "required": true,
+      "output_type": "printable_component",
+      "expected_solid_count": 1
+    },
+    "origin_authority_interpretation": {
+      "count": "user_explicit exact cardinality of the repeated ventilation-slot features",
+      "width": "user_explicit short planar dimension of each slot profile",
+      "length": "user_explicit long planar dimension of each slot profile; the wording does not define this as extrusion depth or through-cut extent",
+      "front_wall": "present in the frozen natural-language request, but not represented as a canonical face, axis, side, or region field",
+      "through_state": "not an explicit normalized field; no through requirement is inferred from the word slot"
+    }
+  },
+  "normalized_requirement_trace": {
+    "normalization_function": "backend/app/services/executable_cadquery/semantic_contract.py::normalize_executable_cadquery_requirement",
+    "status": "normalized_without_policy_specific_feature_profile_fields",
+    "canonical_fields": [],
+    "normalized_expected": {
+      "count": 6,
+      "width": 2.0,
+      "length": 8.0
+    },
+    "unsupported_fields": [],
+    "missing_fields": [],
+    "conflicts": [],
+    "interpretation": "The current normalizer has no specification for final_mesh_feature_profiles, so it preserves the raw expected mapping rather than establishing named feature-profile semantics. This is not evidence that every raw field is verifier-supported."
+  },
+  "verification_trace": [
+    {
+      "stage": "design_requirement",
+      "evidence": "The frozen prompt explicitly requests six ventilation slots on the front wall, each 2 mm wide by 8 mm long."
+    },
+    {
+      "stage": "requirement_ledger_and_contract",
+      "evidence": "The persisted requirement retains output scope, count, width, length, tolerance, origin, authority, classification, and policy, but no explicit feature type, face/region, axis, or through-state."
+    },
+    {
+      "stage": "generated_result",
+      "evidence": "source_extracted=true, source_contract_valid=true, worker_started=true, worker_status=completed, artifact_available=true, topology_status=passed, detected_solid_count=1."
+    },
+    {
+      "stage": "semantic_measurement_request",
+      "evidence": "The executable semantic dispatcher selects final_mesh_feature_profiles and invokes _verify_feature_requirement for this requirement."
+    },
+    {
+      "stage": "feature_resolution_and_measurement",
+      "evidence": "_verify_feature_requirement reads width and height, falling back to depth for the second dimension. It does not read count or length. With width=2 and no height/depth, it returns measurement_available=false before boundary or ray measurement."
+    },
+    {
+      "stage": "verification_result",
+      "evidence": "The persisted finding has expected_value={count:6,length:8.0,width:2.0}, measured_value={}, evidence_source=none, measurement_available=false, observed_status=unverifiable, and result=unsupported_verifier."
+    }
+  ],
+  "current_verifier_behavior": {
+    "dispatcher": "backend/app/services/executable_cadquery/semantic.py::_generic_requirement_finding",
+    "verifier": "backend/app/services/executable_cadquery/semantic.py::_verify_feature_requirement",
+    "consumed_fields": ["width", "height", "depth"],
+    "ignored_for_this_requirement": ["count", "length"],
+    "supported_shape_claim": "one two-dimensional rectangular profile detected from boundary spans or top/side ray probes",
+    "not_supported_by_this_path": [
+      "repeated-profile cardinality",
+      "named long-dimension semantics",
+      "front-wall face or region identity",
+      "explicit slot/rectangular-opening type",
+      "through-state verification",
+      "all-candidate or ambiguity handling"
+    ],
+    "adjacent_control_evidence": {
+      "requirement_id": "housing_cable_opening",
+      "same_policy": "final_mesh_feature_profiles",
+      "result": "passed",
+      "evidence": "The same path measured a single width=12, height=6 boundary profile. This proves the narrow rectangular-dimension path exists; it does not prove count, slot identity, front-wall selection, or through-state support."
+    }
+  },
+  "persisted_geometry_and_measurement_evidence": {
+    "topology": {
+      "status": "valid",
+      "solid_count": 1,
+      "bounding_box_mm": [72.0, 46.0, 28.0],
+      "measurement_errors": []
+    },
+    "artifact_and_render": {
+      "worker_and_required_output_completed": true,
+      "artifact_available_boolean": true,
+      "render_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/development-03-render.png"
+    },
+    "profile_level_evidence": {
+      "persisted_final_mesh_or_stl_payload_in_session_directory": false,
+      "persisted_neutral_profile_measurement": false,
+      "persisted_result_contains_only_measurement_available_false_for_target": true,
+      "geometry_presence_or_absence_of_the_six_slots_proven": false
+    },
+    "replay_decision": {
+      "worker_replay_required": false,
+      "reason": "The current verifier loss is deterministically established from the frozen contract, persisted finding, and verifier source. The session directory has no persisted final-mesh/STL payload or profile measurement report needed for a deterministic geometry replay. A replay would be a new execution rather than reconstruction from authoritative persisted evidence."
+    }
+  },
+  "existing_capability_inventory": [
+    {
+      "capability": "_boundary_feature_measurement",
+      "location": "backend/app/services/executable_cadquery/semantic.py",
+      "measures": "pairwise rectangular spans among vertices on any principal boundary face",
+      "evidence_source": "current executable semantic verifier final mesh",
+      "legally_supports_target": "only a single unnamed two-dimensional profile; not repeated slots, front-wall identity, or named length semantics",
+      "integration_gap": "not count-aware, not feature-type-aware, not region-aware, and currently receives no canonical feature-profile descriptor"
+    },
+    {
+      "capability": "_rectangular_opening_probe",
+      "location": "backend/app/services/executable_cadquery/semantic.py",
+      "measures": "ray-intersection differences for a rectangular probe on top or side orientations",
+      "evidence_source": "current executable semantic verifier final mesh",
+      "legally_supports_target": "can provide limited opening presence evidence when an orientation and probe semantics are explicit",
+      "integration_gap": "does not select the front wall, count repeated profiles, compare profile length, or distinguish through/bounded features"
+    },
+    {
+      "capability": "measure_opening_profiles",
+      "location": "backend/app/services/geometry/feature_measurements.py",
+      "measures": "connected projected face components with centers and two planar bounding sizes for a chosen axis",
+      "evidence_source": "final mesh geometry",
+      "legally_supports_target": "potentially reusable for candidate planar profiles after explicit type/axis/region semantics exist",
+      "integration_gap": "not wired to the executable final_mesh_feature_profiles path for this contract; does not itself establish slot identity, through state, or target-face semantics"
+    },
+    {
+      "capability": "measure_opening_count",
+      "location": "backend/app/services/geometry/feature_measurements.py",
+      "measures": "through-opening count at caller-supplied axis and probe points",
+      "evidence_source": "ray intersections against final mesh",
+      "legally_supports_target": "count only when the contract supplies authoritative probe/axis semantics",
+      "integration_gap": "housing_ventilation has no probe points, axis, or explicit through requirement"
+    },
+    {
+      "capability": "measure_slots",
+      "location": "backend/app/services/geometry/feature_measurements.py",
+      "measures": "count, width, depth, through/open state, and optional region over supplied slot samples",
+      "evidence_source": "caller-supplied feature samples, not direct mesh extraction",
+      "legally_supports_target": "a possible reusable comparison layer if a neutral extractor supplies typed profile samples and length is explicitly mapped",
+      "integration_gap": "no mesh-to-slot-sample extractor is established for this executable contract, and the current path does not invoke it"
+    },
+    {
+      "capability": "feature_evidence slot_samples path",
+      "location": "backend/app/services/geometry/feature_evidence.py::_measure_final_geometry",
+      "measures": "delegates supplied slot_samples to measure_slots",
+      "evidence_source": "feature trace/validation target evidence plus final geometry evaluation",
+      "legally_supports_target": "possible application integration precedent, not proof for this frozen executable result",
+      "integration_gap": "the housing_ventilation contract and persisted record do not contain slot_samples or equivalent neutral profile evidence"
+    },
+    {
+      "capability": "neutral package measurements",
+      "location": "backend/app/services/executable_cadquery/package_review.py",
+      "measures": "solid count, bounds, volume, axis-aligned hole/cylinder measurements, and planar face aggregate measurements",
+      "evidence_source": "packaged STL without consulting the design contract",
+      "legally_supports_target": "topology and coarse planar context only",
+      "integration_gap": "no repeated rectangular-profile/slot measurements are emitted"
+    },
+    {
+      "capability": "topology-evidence-v2",
+      "location": "backend/app/services/cad/topology_evidence.py",
+      "measures": "shape validity, solid count, per-solid bounds/volume/centroid/shells/faces, and solid relationships",
+      "evidence_source": "authoritative worker CadQuery shape",
+      "legally_supports_target": "proves the target is not a topology-blocked result",
+      "integration_gap": "topology evidence intentionally contains no feature-profile identity or dimensions"
+    }
+  ],
+  "abstraction_analysis": {
+    "current_policy_name": "final_mesh_feature_profiles",
+    "assessment": "The name is too broad to authorize one generic verifier to infer slot, opening, recess, protrusion, or array semantics. The one finding supports a narrower typed planar-profile-group concept, not a universal feature-profile verifier.",
+    "smallest_defensible_candidate": {
+      "concept": "explicit rectangular profile group",
+      "required_contract_semantics_for_machine_verification": [
+        "output scope",
+        "feature type explicitly represented rather than inferred from a name",
+        "exact cardinality",
+        "named planar dimensions including the meaning of length",
+        "authoritative face/region/axis identity",
+        "through or blind-state requirement when functionally relevant",
+        "tolerance"
+      ],
+      "fail_closed_rules": [
+        "missing feature type, target region, axis, or required through semantics remains unverifiable",
+        "multiple candidate groups without a unique deterministic match remain unverifiable",
+        "count or any dimension mismatch is a measured failure, not an unsupported success",
+        "feature names such as vent, slot, housing, or opening do not supply missing semantics"
+      ]
+    },
+    "schema_change_status": "not implemented and not proposed as an immediate schema change in this reconstruction checkpoint"
+  },
+  "ownership_reaudit": {
+    "observed_stage": "semantic_measurement",
+    "failure_class": "semantic_requirement_unverifiable",
+    "immediate_first_loss": {
+      "owner": "application/verifier integration",
+      "confidence": "high",
+      "reason": "The current dispatch reaches a registered verifier, but that verifier ignores count and length and exits before measuring because it requires height or depth."
+    },
+    "complete_generic_capability_owner": {
+      "owner": "unresolved between contract/representation and application measurement integration",
+      "confidence": "medium",
+      "reason": "The contract has numeric count/width/length, but no explicit feature type, face/region, axis, or through semantics; no persisted profile-level geometry evidence exists to prove that a verifier could select the intended candidates."
+    },
+    "geometry_owner_rejected_for_now": "The result has valid source contract, completed worker, valid one-solid topology, and an available artifact flag, with no persisted profile measurement proving geometric contradiction."
+  },
+  "synthetic_test_plan": {
+    "implementation_status": "plan_only_no_tests_added",
+    "independence_requirements": [
+      "no development project IDs",
+      "no frozen project dimensions",
+      "no housing or ventilation terminology",
+      "no copied frozen source or selectors",
+      "synthetic meshes and synthetic canonical contracts only"
+    ],
+    "cases": [
+      {
+        "id": "single_rectangular_profile",
+        "purpose": "Verify one explicitly typed rectangular planar profile with named width and length on a declared output and region."
+      },
+      {
+        "id": "repeated_profile_count",
+        "purpose": "Verify exact count for multiple disjoint qualifying profiles and reject count mismatch."
+      },
+      {
+        "id": "profile_dimensions",
+        "purpose": "Verify width and length independently, including exact tolerance boundary, below-boundary pass, and outside-tolerance failure."
+      },
+      {
+        "id": "through_state",
+        "purpose": "Distinguish through profiles from blind recesses when the contract explicitly requires through access; missing through semantics remains unverifiable."
+      },
+      {
+        "id": "target_face_or_region",
+        "purpose": "Reject candidates on the wrong declared face/region and prove that the verifier does not choose a principal face by coincidence."
+      },
+      {
+        "id": "multiple_candidates_and_ambiguity",
+        "purpose": "Pass only with a unique legal candidate group; remain unverifiable when equivalent candidates cannot be disambiguated."
+      },
+      {
+        "id": "unsupported_or_underspecified_profile",
+        "purpose": "Remain unverifiable when feature type, dimension meaning, axis, region, or required geometry state is missing or unsupported."
+      },
+      {
+        "id": "output_local_scope",
+        "purpose": "Verify that a profile-local requirement uses only its resolved output and cannot borrow a matching profile from another output."
+      },
+      {
+        "id": "no_qualifying_feature",
+        "purpose": "Return a measured failure when the contract is complete and geometry is measurable but no qualifying profile exists; do not convert it to PASS or unsupported."
+      },
+      {
+        "id": "canonical_contract_and_diagnostics",
+        "purpose": "Persist stable named semantics and explain pass, measured failure, or unverifiable status without verifier-specific hidden fields."
+      }
+    ],
+    "required_evidence_before_implementation": "At least the synthetic matrix above plus an unrelated real development finding or persisted general measurement evidence demonstrating that the capability is not unique to development-03."
+  },
+  "product_path_assessment": {
+    "requirement_ledger": "A typed profile-group requirement can live in the authoritative ledger only if its feature type, output scope, cardinality, named dimensions, target region/axis, optional through state, origin/authority, and tolerance are persisted as contract data.",
+    "frontend_explanation": "The UI could display a requirement such as an explicitly typed repeated rectangular profile with count and dimensions, the selected output, detected count/dimensions/region, and a clear pass/fail/unverifiable reason.",
+    "revision_stability": "A stable requirement ID and named fields would let a revision refer to the same obligation (for example, change its length or count) without exposing verifier-specific aliases.",
+    "diagnostics": "The result must distinguish no qualifying profile, measured count/dimension mismatch, ambiguous target, missing contract semantics, and unsupported measurement evidence.",
+    "architecture_conclusion": "The current raw count/width/length mapping is not yet a complete user-facing semantic contract because length has no canonical named meaning and front-wall/feature identity are not persisted. A future recovery must improve the shared ledger-to-verifier contract, not add a hidden backend-only interpretation."
+  },
+  "anti_overfitting_precheck": {
+    "passed": true,
+    "checks": {
+      "project_id_logic": false,
+      "project_specific_dimensions_in_application": false,
+      "frozen_feature_name_logic": false,
+      "known_source_or_selector_reuse": false,
+      "provider_call": false,
+      "worker_replay": false,
+      "production_verifier_change": false,
+      "synthetic_general_evidence_defined": true
+    },
+    "one_project_warning": "The single frozen finding is sufficient to document an immediate application field-consumption defect, but insufficient to justify a generic feature-profile implementation or schema expansion."
+  },
+  "checkpoint_decision": {
+    "reconstruction_complete": true,
+    "generic_implementation_justified_now": false,
+    "feature_profile_recovery_status": "unresolved_capability_boundary",
+    "no_production_behavior_changed": true,
+    "no_cad_source_changed": true,
+    "no_provider_call": true,
+    "no_worker_execution": true,
+    "recommended_recovery_hypothesis": "First obtain unrelated synthetic and real evidence for an explicit typed rectangular-profile-group contract, then reuse existing final-mesh profile/ray primitives behind a centralized neutral profile extractor and fail-closed verifier. Do not implement from development-03 alone."
+  },
+  "verification": {
+    "tests_added": 0,
+    "existing_focused_tests_run": "backend/.venv/bin/python -m pytest -q tests/test_executable_cadquery_semantic_contract.py tests/test_executable_cadquery_semantic_measurements.py tests/test_feature_measurements.py tests/test_feature_evidence.py tests/test_requirement_semantics_alignment.py",
+    "existing_focused_tests_result": "56 passed",
+    "provider_calls_in_checkpoint": 0,
+    "worker_executions_in_checkpoint": 0,
+    "production_files_changed": [],
+    "persisted_evidence_files": [
+      "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-capability-gap-reconstruction.json"
+    ]
+  }
+}

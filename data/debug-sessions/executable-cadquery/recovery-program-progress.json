@@ -9,7 +9,7 @@
   "origin_experimental_head": "b3baf52 Implement canonical semantic requirement field normalization",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic policy, output scope/identity, and verifier field-mismatch checkpoints complete; next generic cluster queued",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic policy, output scope/identity, and verifier field-mismatch checkpoints complete; feature-profile capability gap reconstructed only with no implementation started",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -100,6 +100,7 @@
     ,"full_backend_phase_1b_verifier_field_checkpoint_1465_passed"
     ,"frontend_phase_1b_verifier_field_checkpoint_104_passed_and_build_passed"
     ,"alembic_phase_1b_verifier_field_checkpoint_clean"
+    ,"phase_1b_feature_profile_capability_gap_reconstructed_without_implementation"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -195,7 +196,25 @@
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
     "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
     "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch"],
-    "current_subcluster_status": "verifier_requirement_field_mismatch checkpoint complete; no next-cluster implementation started",
+    "completed_reconstructions": ["feature_profile_capability_gap"],
+    "current_subcluster_status": "feature_profile_capability_gap reconstructed only; no implementation started; generic recovery is not yet justified from one frozen finding",
+    "feature_profile_capability_gap": {
+      "affected_findings": 1,
+      "projects": ["development-03"],
+      "requirements": ["housing_ventilation"],
+      "historical_owner_label": "application",
+      "reconstruction_owner_conclusion": "immediate application verifier field-consumption loss proven; complete generic capability owner unresolved between contract representation and application measurement integration",
+      "current_verifier_loss": "final_mesh_feature_profiles consumes width plus height/depth only; count and length are not consumed, and the finding exits unverifiable before geometry measurement",
+      "existing_reusable_primitives": ["measure_opening_profiles", "measure_opening_count", "measure_slots", "feature_evidence slot_samples path"],
+      "profile_evidence_persisted": false,
+      "worker_replay_required": false,
+      "provider_calls": 0,
+      "worker_executions": 0,
+      "focused_existing_tests": "56 passed",
+      "generic_implementation_justified": false,
+      "reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-capability-gap-reconstruction.json",
+      "next_action": "obtain synthetic and unrelated real evidence for an explicit typed rectangular-profile-group contract before implementing a generic recovery"
+    },
     "verifier_field_mismatch": {
       "affected_findings": 4,
       "projects": ["development-03", "development-05", "development-07"],
@@ -255,7 +274,7 @@
     "per_project_tuning_allowed": false
   },
   "application_fix_count": 18,
-  "application_fix_count_since_previous_checkpoint": 1,
+  "application_fix_count_since_previous_checkpoint": 0,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
@@ -272,6 +291,7 @@
     "p3_transport_forensics_provider_calls": 0
     ,"phase_1b_semantic_cluster_provider_calls": 0
     ,"phase_1b_verifier_field_mismatch_provider_calls": 0
+    ,"phase_1b_feature_profile_capability_gap_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -347,6 +367,7 @@
     "phase_1b_verifier_field_mismatch_anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-anti-overfitting.json",
     "phase_1b_verifier_field_mismatch_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-decision.json",
     "phase_1b_verifier_field_mismatch_product_path_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-product-path-audit.json",
-    "verification_current_checkpoint": "backend 1465 passed, 1 skipped, 1 warning; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; field-contract focused suite 13 passed; provider_calls=0"
+    "phase_1b_feature_profile_capability_gap_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-capability-gap-reconstruction.json",
+    "verification_current_checkpoint": "backend 1465 passed, 1 skipped, 1 warning; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; field-contract focused suite 13 passed; feature-profile reconstruction focused suite 56 passed; provider_calls=0"
   }
 }
