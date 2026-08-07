@@ -1,0 +1,56 @@
+{
+  "schema_version": "executable-cadquery-phase-1a-baseline-v1",
+  "recorded_at": "2026-08-07T17:56:14Z",
+  "phase": "phase_1a_frozen_first_blocker_survey",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "experimental_head": "eae862055beb1526aaef5f958c75874168ccb32a",
+  "origin_experimental_head": "eae862055beb1526aaef5f958c75874168ccb32a",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "worktree_clean": true,
+  "alembic": {
+    "current": "0039_align_fresh_database_schema",
+    "heads": "0039_align_fresh_database_schema",
+    "check": "no_new_upgrade_operations_detected"
+  },
+  "backend": {
+    "command": "PYTHONPATH=. backend/.venv/bin/python -m pytest backend/tests -q",
+    "passed": 1431,
+    "skipped": 1,
+    "warnings": 1,
+    "status": "pass"
+  },
+  "frontend": {
+    "unit_tests": {"passed": 104, "status": "pass"},
+    "production_build": {"status": "pass"},
+    "offline_browser": {"passed": 22, "skipped": 15, "status": "pass"},
+    "built_asset_credential_markers": 0
+  },
+  "production_defaults": {
+    "compose_api_executable_cadquery_enabled": false,
+    "experimental_flow_enabled_by_default": false
+  },
+  "credential_boundary": {
+    "policy": {
+      "primary": "GEMINI_API_KEY",
+      "fallback": "GEMINI_API_KEY_2",
+      "fallback_only_after": "HTTP 429",
+      "fallback_used": false
+    },
+    "repository_root_env": {"GEMINI_API_KEY_present": true, "GEMINI_API_KEY_2_present": true},
+    "compose_api_settings": {"primary_present": true, "fallback_present": true},
+    "volundr_api_container": {"primary_present": true, "fallback_present": true},
+    "cad_worker_container": {"primary_present": false, "fallback_present": false},
+    "frontend_container": {"primary_present": false, "fallback_present": false},
+    "browser_and_evidence": {"credential_values_present": false},
+    "secret_scan_actual_key_markers": 0
+  },
+  "routing_and_first_boundary": {
+    "suite": "environment_configuration, gemini_credential_boundary, gemini_system_boundary_methods, executable_cadquery_routing, executable_cadquery_recovery_router",
+    "passed": 65,
+    "status": "pass"
+  },
+  "provider_calls": 0,
+  "repair_operations": 0,
+  "integrity_exceptions": 0,
+  "survey_ready": true
+}

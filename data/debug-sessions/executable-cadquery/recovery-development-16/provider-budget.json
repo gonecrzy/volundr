@@ -1,0 +1,13 @@
+{
+  "schema_version": "executable-cadquery-phase-1a-provider-budget-v1",
+  "phase": "phase_1a_frozen_first_blocker_survey",
+  "logical_initial_generation_operations": 16,
+  "allowed_operation": "one initial complete-source generation per project",
+  "repair_operations": {"l0": 0, "l1": 0, "l2": 0, "l3": 0},
+  "transport_retries": "only those explicitly permitted by the existing transport policy",
+  "fallback_policy": "GEMINI_API_KEY_2 only after HTTP 429; never because primary propagation is absent",
+  "calls_made_before_survey": 0,
+  "calls_made_in_survey": 0,
+  "repair_calls_made_in_survey": 0,
+  "current_status": "frozen_before_first_live_project"
+}

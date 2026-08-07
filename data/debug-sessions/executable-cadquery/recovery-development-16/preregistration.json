@@ -1,0 +1,22 @@
+{
+  "schema_version": "executable-cadquery-phase-1a-preregistration-v1",
+  "preregistered_at": "2026-08-07T17:56:14Z",
+  "phase": "phase_1a_frozen_first_blocker_survey",
+  "methodology_version": "seed-stabilization-diverse-development-corpus-v1",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "starting_commit": "eae862055beb1526aaef5f958c75874168ccb32a",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "corpus_manifest": "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+  "corpus_manifest_sha256": "b81bc0c377419f895be4042eddc55ee493d059733802fb34ff2fded0e1e3e04e",
+  "corpus_size": 16,
+  "composition": {"highly_specified": 4, "partially_specified": 8, "intent_heavy": 4},
+  "projects_with_planned_revisions": 12,
+  "prompts_and_revisions_immutable_after_commit": true,
+  "clarifications": "only genuinely necessary; no unregistered answer may be invented",
+  "first_pass_path": ["user_request", "clarification_if_necessary", "design_contract", "initial_complete_source_generation", "deterministic_pipeline", "first_blocker_or_candidate_ready"],
+  "repairs_during_survey": false,
+  "corpus_driven_source_changes_during_survey": false,
+  "independent_qa": "only for candidates that genuinely reach final package eligibility without recovery",
+  "visible_render": "capture one standardized screenshot when a first-pass project reaches a renderable model",
+  "phase_1b_started": false
+}

@@ -1,0 +1,495 @@
+{
+  "schema_version": "executable-cadquery-development-corpus-v1",
+  "methodology_version": "seed-stabilization-diverse-development-corpus-v1",
+  "phase": "phase_1a_frozen_first_blocker_survey",
+  "freeze_policy": {
+    "prompts_frozen_before_provider_call": true,
+    "clarification_answers_frozen_before_provider_call": true,
+    "planned_revisions_frozen_before_provider_call": true,
+    "revisions_executed_during_first_pass": false,
+    "corpus_changes_during_survey": "forbidden_except_integrity_defect_stop_and_restart"
+  },
+  "provider_policy": {
+    "provider_id": "gemini_api",
+    "model": "gemini-3.5-flash-lite",
+    "transport": "complete-source-v2",
+    "temperature": 0.2,
+    "thinking_level": "minimal",
+    "max_output_tokens": 8192,
+    "concurrency": 1,
+    "initial_logical_generation_operations": 16,
+    "repair_operations_permitted": false,
+    "transport_retry_policy": "existing_policy_only"
+  },
+  "authority_model": {
+    "origins": ["user_explicit", "user_clarified", "model_design_choice", "system_default"],
+    "authorities": ["required", "protected", "flexible"],
+    "clarification_rule": "clarify only when ambiguity materially affects fit, mating, function, safety, compatibility, or output identity"
+  },
+  "composition": {
+    "highly_specified": 4,
+    "partially_specified": 8,
+    "intent_heavy": 4,
+    "projects_with_planned_revisions": 12
+  },
+  "diversity_coverage": [
+    "single_output",
+    "multi_output",
+    "optional_output",
+    "prismatic_geometry",
+    "angled_geometry",
+    "rotational_geometry",
+    "radial_pattern",
+    "curved_swept_geometry",
+    "cavity_shelling",
+    "holes_and_pockets",
+    "fillets_and_chamfers",
+    "mating_relationship",
+    "qualitative_design_intent",
+    "revision_heavy_workflow"
+  ],
+  "projects": [
+    {
+      "order": 1,
+      "project_id": "development-01",
+      "title": "Precision mounting shoe",
+      "specification_category": "highly_specified",
+      "geometry_families": ["single_output", "prismatic_geometry", "holes_and_pockets", "chamfer"],
+      "prompt": "Create exactly one printable output named precision_mounting_shoe. Make the base 96 mm wide, 48 mm deep, and 12 mm thick. Add two 8 mm through-holes whose centers are 72 mm apart along the width and centered across the depth. Add a centered rectangular recessed pocket 50 mm wide, 24 mm deep, and 4 mm deep. Add a 2 mm chamfer to the two long upper outside edges. Preserve the stated dimensions and output identity.",
+      "clarifications": [],
+      "planned_revisions": [],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-01",
+        "workflow_id": "development-workflow-01",
+        "revision_id": "development-revision-01",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "precision_mounting_shoe", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "shoe_envelope", "scope": "precision_mounting_shoe", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"width": 96.0, "depth": 48.0, "height": 12.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "shoe_hole_pair", "scope": "precision_mounting_shoe", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 2, "diameter": 8.0, "through": true, "center_spacing": 72.0}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"},
+          {"requirement_id": "shoe_recess", "scope": "precision_mounting_shoe", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"width": 50.0, "depth": 24.0, "cut_depth": 4.0, "centered": true}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"},
+          {"requirement_id": "shoe_chamfer", "scope": "precision_mounting_shoe", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"size": 2.0, "edge_count": 2}, "tolerance": 0.25, "verification_policy": "measure_when_supported"}
+        ],
+        "relationships": [{"relationship_id": "holes_centered_across_depth", "participants": ["precision_mounting_shoe"], "origin": "user_explicit", "authority": "required", "expected_relationship": "hole_pair_centered_across_depth"}],
+        "protected_facts": [{"requirement_id": "shoe_envelope", "authoritative_value": {"width": 96.0, "depth": 48.0, "height": 12.0}}, {"requirement_id": "shoe_hole_pair", "authoritative_value": {"count": 2, "diameter": 8.0, "center_spacing": 72.0}}]
+      }
+    },
+    {
+      "order": 2,
+      "project_id": "development-02",
+      "title": "Stepped flanged spindle",
+      "specification_category": "highly_specified",
+      "geometry_families": ["single_output", "rotational_geometry", "radial_pattern", "through_bore"],
+      "prompt": "Create exactly one printable rotational output named flanged_spindle. Use coaxial outside diameters of 42 mm, 32 mm, and 24 mm over axial lengths of 10 mm, 16 mm, and 14 mm. Add a 14 mm through-bore, a 22 mm counterbore recessed 5 mm from the flange end, and six 4 mm through-holes equally spaced on a 34 mm pitch circle in the flange. Preserve the common axis, the stated axial lengths, and all output identity requirements.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-02-r1", "message": "Use larger mounting holes so the flange accepts the fasteners more easily."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-02",
+        "workflow_id": "development-workflow-02",
+        "revision_id": "development-revision-02",
+        "units": "mm",
+        "outputs": [{"output_id": "flanged_spindle", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "spindle_steps", "scope": "flanged_spindle", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"diameters": [42.0, 32.0, 24.0], "axial_lengths": [10.0, 16.0, 14.0], "coaxial": true}, "tolerance": 0.25, "verification_policy": "final_mesh_axisymmetric_profiles"},
+          {"requirement_id": "spindle_bore", "scope": "flanged_spindle", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"diameter": 14.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "spindle_counterbore", "scope": "flanged_spindle", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"diameter": 22.0, "depth": 5.0}, "tolerance": 0.25, "verification_policy": "final_mesh_recess_profile"},
+          {"requirement_id": "spindle_bolt_circle", "scope": "flanged_spindle", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"count": 6, "diameter": 4.0, "pitch_circle_diameter": 34.0, "equally_spaced": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"}
+        ],
+        "relationships": [{"relationship_id": "spindle_steps_share_axis", "participants": ["flanged_spindle"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "coaxial"}],
+        "protected_facts": [{"requirement_id": "spindle_steps", "authoritative_value": {"diameters": [42.0, 32.0, 24.0], "axial_lengths": [10.0, 16.0, 14.0]}}, {"requirement_id": "spindle_bolt_circle", "authoritative_value": {"count": 6, "pitch_circle_diameter": 34.0}}]
+      }
+    },
+    {
+      "order": 3,
+      "project_id": "development-03",
+      "title": "Sensor housing shell",
+      "specification_category": "highly_specified",
+      "geometry_families": ["single_output", "cavity_shelling", "holes_and_pockets", "prismatic_geometry"],
+      "prompt": "Create exactly one printable output named sensor_housing. The outside envelope must be 72 mm wide, 46 mm deep, and 28 mm high. Make a 2.5 mm wall around an open-top cavity with a 3 mm bottom. Add four internal mounting bosses with 2.5 mm through-holes, each boss center 8 mm from its nearest side wall. Add one 12 mm wide by 6 mm high cable opening through the right wall and six 2 mm wide by 8 mm long ventilation slots on the front wall. Preserve the envelope, wall, boss, and opening requirements.",
+      "clarifications": [],
+      "planned_revisions": [],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-03",
+        "workflow_id": "development-workflow-03",
+        "revision_id": "development-revision-03",
+        "units": "mm",
+        "outputs": [{"output_id": "sensor_housing", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "housing_envelope", "scope": "sensor_housing", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"width": 72.0, "depth": 46.0, "height": 28.0}, "tolerance": 0.5, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "housing_walls", "scope": "sensor_housing", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"wall": 2.5, "bottom": 3.0, "open_top": true}, "tolerance": 0.25, "verification_policy": "final_mesh_wall_profile"},
+          {"requirement_id": "housing_bosses", "scope": "sensor_housing", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"count": 4, "hole_diameter": 2.5, "nearest_wall_offset": 8.0}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"},
+          {"requirement_id": "housing_cable_opening", "scope": "sensor_housing", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"width": 12.0, "height": 6.0, "through_right_wall": true}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"},
+          {"requirement_id": "housing_ventilation", "scope": "sensor_housing", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"count": 6, "width": 2.0, "length": 8.0}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"}
+        ],
+        "relationships": [{"relationship_id": "bosses_inside_cavity", "participants": ["sensor_housing"], "origin": "user_explicit", "authority": "required", "expected_relationship": "bosses_are_integral_and_inside_shell"}],
+        "protected_facts": [{"requirement_id": "housing_envelope", "authoritative_value": {"width": 72.0, "depth": 46.0, "height": 28.0}}, {"requirement_id": "housing_walls", "authoritative_value": {"wall": 2.5, "bottom": 3.0}}]
+      }
+    },
+    {
+      "order": 4,
+      "project_id": "development-04",
+      "title": "Dovetail rail and carriage",
+      "specification_category": "highly_specified",
+      "geometry_families": ["multi_output", "angled_geometry", "mating_relationship", "holes_and_pockets"],
+      "prompt": "Create exactly two printable outputs named dovetail_rail and sliding_carriage. The rail is 100 mm long, 40 mm wide, and 10 mm high with a centered 60 mm long by 14 mm wide receiving channel that is 4 mm deep and has 10 degree sloped side faces. Add two 5 mm through-holes to the rail, centered across its width and 18 mm from the rail ends. The carriage is 48 mm long, 20 mm wide, and 8 mm high, with a matching sliding tongue, 0.35 mm side clearance, and 0.25 mm top clearance in the assembled relationship. Keep both outputs independent, aligned, and separately printable.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-04-r1", "message": "Make the sliding carriage a little easier to insert while keeping it aligned to the rail."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-04",
+        "workflow_id": "development-workflow-04",
+        "revision_id": "development-revision-04",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "dovetail_rail", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "sliding_carriage", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "rail_envelope", "scope": "dovetail_rail", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"length": 100.0, "width": 40.0, "height": 10.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "rail_channel", "scope": "dovetail_rail", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"length": 60.0, "width": 14.0, "depth": 4.0, "side_angle_degrees": 10.0}, "tolerance": 0.25, "verification_policy": "final_mesh_feature_profiles"},
+          {"requirement_id": "rail_mounting_holes", "scope": "dovetail_rail", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"count": 2, "diameter": 5.0, "end_offset": 18.0, "through": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_centers"},
+          {"requirement_id": "carriage_envelope", "scope": "sliding_carriage", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"length": 48.0, "width": 20.0, "height": 8.0}, "tolerance": 0.25, "verification_policy": "final_mesh_bounds"},
+          {"requirement_id": "rail_carriage_clearance", "scope": "dovetail_rail/sliding_carriage", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"side": 0.35, "top": 0.25, "interference": false}, "tolerance": 0.1, "verification_policy": "cross_output_clearance"}
+        ],
+        "relationships": [{"relationship_id": "carriage_slides_in_rail", "participants": ["dovetail_rail", "sliding_carriage"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "aligned_sliding_mate_with_stated_clearances"}],
+        "protected_facts": [{"requirement_id": "rail_envelope", "authoritative_value": {"length": 100.0, "width": 40.0, "height": 10.0}}, {"requirement_id": "rail_carriage_clearance", "authoritative_value": {"side": 0.35, "top": 0.25}}]
+      }
+    },
+    {
+      "order": 5,
+      "project_id": "development-05",
+      "title": "Wall charging-cable organizer",
+      "specification_category": "partially_specified",
+      "geometry_families": ["single_output", "prismatic_geometry", "holes_and_pockets", "functional_design"],
+      "prompt": "Design one printable wall-mounted charging-cable organizer. It should keep several charging cables separated, provide a clear path for each cable to be inserted and removed, and mount securely to a vertical wall using two 4 mm screw holes. Keep the mounting face flat, make the organizer easy to print without support where practical, and leave ordinary proportions, spacing, edge treatment, and the number of cable channels to your design judgment. Return one output named cable_organizer.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-05-r1", "message": "Make the cable openings wider so thicker charging leads can pass through."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-05",
+        "workflow_id": "development-workflow-05",
+        "revision_id": "development-revision-05",
+        "units": "mm",
+        "outputs": [{"output_id": "cable_organizer", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "organizer_output", "scope": "cable_organizer", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 1, "output_id": "cable_organizer"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "organizer_wall_mount", "scope": "cable_organizer", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"mounting_face": "flat", "hole_count": 2, "hole_diameter": 4.0, "wall_mounted": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "organizer_cable_function", "scope": "cable_organizer", "origin": "user_explicit", "authority": "protected", "classification": "review_required", "expected": {"separated_channels": true, "insertable_and_removable": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "organizer_design_choices", "scope": "cable_organizer", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"ordinary_proportions": "designer_choice", "channel_count": "designer_choice", "edge_treatment": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "organizer_mounting_face_supports_channels", "participants": ["cable_organizer"], "origin": "user_explicit", "authority": "required", "expected_relationship": "channels_integral_to_flat_wall_mount"}],
+        "protected_facts": [{"requirement_id": "organizer_output", "authoritative_value": {"count": 1, "output_id": "cable_organizer"}}, {"requirement_id": "organizer_wall_mount", "authoritative_value": {"hole_count": 2, "hole_diameter": 4.0}}]
+      }
+    },
+    {
+      "order": 6,
+      "project_id": "development-06",
+      "title": "Modular battery holder",
+      "specification_category": "partially_specified",
+      "geometry_families": ["multi_output", "optional_output", "cavity_shelling", "holes_and_pockets"],
+      "prompt": "Design a printable holder for four 18650 batteries that keeps the cells separated, makes them removable from the top, and can be attached to a flat workshop surface. Provide one required output named battery_holder and one optional output named retaining_lid. Include a practical mounting interface and leave the overall proportions, grip details, wall thickness, and lid fastening approach to your design judgment. Do not make the optional lid necessary for the required holder to be useful.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-06-r1", "message": "Add four internal mounting bosses so the holder can accept a small circuit board."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-06",
+        "workflow_id": "development-workflow-06",
+        "revision_id": "development-revision-06",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "battery_holder", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "retaining_lid", "required": false, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "battery_holder_output", "scope": "battery_holder", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"cell_count": 4, "cell_format": "18650", "top_removal": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "battery_holder_mounting", "scope": "battery_holder", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"attachable_to_flat_workshop_surface": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "battery_holder_independence", "scope": "battery_holder", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"usable_without_optional_lid": true}, "tolerance": 0.0, "verification_policy": "required_output_artifact"},
+          {"requirement_id": "battery_holder_design_choices", "scope": "battery_holder/retaining_lid", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"clearance": "designer_choice", "fastening": "designer_choice", "boss_layout": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "optional_lid_retains_cells", "participants": ["battery_holder", "retaining_lid"], "origin": "user_explicit", "authority": "flexible", "expected_relationship": "optional_nonessential_retention"}],
+        "protected_facts": [{"requirement_id": "battery_holder_output", "authoritative_value": {"cell_count": 4, "cell_format": "18650"}}, {"requirement_id": "battery_holder_independence", "authoritative_value": {"usable_without_optional_lid": true}}]
+      }
+    },
+    {
+      "order": 7,
+      "project_id": "development-07",
+      "title": "Curved cable guide",
+      "specification_category": "partially_specified",
+      "geometry_families": ["single_output", "curved_swept_geometry", "holes_and_pockets"],
+      "prompt": "Design one printable curved cable guide for routing a bundle around the corner of a workbench. It should guide a cable bundle up to 20 mm in diameter through a smooth turn, prevent the cable from escaping during ordinary use, and attach to a flat surface with two screw holes. Keep the guide one connected printable output named curved_cable_guide. You may choose the path radius, section shape, wall thickness, and mounting proportions, but preserve generous cable clearance and a practical insertion opening.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-07-r1", "message": "Move the cable exit to the right side so the guide works on the other side of the bench."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-07",
+        "workflow_id": "development-workflow-07",
+        "revision_id": "development-revision-07",
+        "units": "mm",
+        "outputs": [{"output_id": "curved_cable_guide", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "guide_output", "scope": "curved_cable_guide", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 1, "connected": true}, "tolerance": 0.0, "verification_policy": "topology_and_required_output"},
+          {"requirement_id": "guide_clearance", "scope": "curved_cable_guide", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"maximum_bundle_diameter": 20.0, "clearance": "must_not_pin_bundle"}, "tolerance": 0.5, "verification_policy": "neutral_measurement_plus_review"},
+          {"requirement_id": "guide_mounting", "scope": "curved_cable_guide", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"flat_surface_mount": true, "screw_hole_count": 2}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "guide_design_choices", "scope": "curved_cable_guide", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"path_radius": "designer_choice", "section_shape": "designer_choice", "exit_side": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "guide_section_follows_curve", "participants": ["curved_cable_guide"], "origin": "user_explicit", "authority": "required", "expected_relationship": "continuous_smooth_cable_path"}],
+        "protected_facts": [{"requirement_id": "guide_output", "authoritative_value": {"count": 1, "connected": true}}, {"requirement_id": "guide_clearance", "authoritative_value": {"maximum_bundle_diameter": 20.0}}]
+      }
+    },
+    {
+      "order": 8,
+      "project_id": "development-08",
+      "title": "Mating tube clamp",
+      "specification_category": "partially_specified",
+      "geometry_families": ["multi_output", "mating_relationship", "rotational_interface", "holes_and_patterns"],
+      "prompt": "Design exactly two printable outputs named tube_clamp_upper and tube_clamp_lower that clamp around a round tube with a nominal 25 mm outside diameter. The pair must meet without sharp interference, hold the tube securely during ordinary handling, and use two M4 fasteners on opposite sides. Keep the clamp easy to assemble and leave the split geometry, wall thickness, screw-head treatment, and overall length to your design judgment. Preserve the two output identities and their mating relationship.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-08-r1", "message": "Space the fastener bosses farther apart so the clamp is easier to tighten."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-08",
+        "workflow_id": "development-workflow-08",
+        "revision_id": "development-revision-08",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "tube_clamp_upper", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "tube_clamp_lower", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "clamp_outputs", "scope": "tube_clamp_upper/tube_clamp_lower", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 2, "independent": true}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "clamp_tube_interface", "scope": "tube_clamp_upper/tube_clamp_lower", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"tube_outside_diameter": 25.0, "round_interface": true, "secure_during_handling": true}, "tolerance": 0.5, "verification_policy": "neutral_measurement_plus_review"},
+          {"requirement_id": "clamp_fasteners", "scope": "tube_clamp_upper/tube_clamp_lower", "origin": "user_explicit", "authority": "required", "classification": "machine_required", "expected": {"count": 2, "fastener": "M4", "opposite_sides": true}, "tolerance": 0.25, "verification_policy": "final_mesh_opening_profiles"},
+          {"requirement_id": "clamp_design_choices", "scope": "tube_clamp_upper/tube_clamp_lower", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"split_geometry": "designer_choice", "length": "designer_choice", "wall_thickness": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "clamp_halves_mate_around_tube", "participants": ["tube_clamp_upper", "tube_clamp_lower"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "noninterfering_pair_around_25_mm_tube"}],
+        "protected_facts": [{"requirement_id": "clamp_outputs", "authoritative_value": {"count": 2}}, {"requirement_id": "clamp_tube_interface", "authoritative_value": {"tube_outside_diameter": 25.0}}]
+      }
+    },
+    {
+      "order": 9,
+      "project_id": "development-09",
+      "title": "Adjustable tablet stand",
+      "specification_category": "partially_specified",
+      "geometry_families": ["single_output", "angled_geometry", "holes_and_pockets", "functional_design"],
+      "prompt": "Design one printable tablet stand for a tablet up to 10 inches diagonal. It should be stable on a desk, support the tablet in either portrait or landscape orientation, leave the screen visible, and provide a centered cable access path at the lower edge. Use a broad enough footprint and a non-slip-friendly contact strategy, but leave the exact angle, dimensions, fillets, and support shape to your design judgment. Return one output named tablet_stand.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-09-r1", "message": "Tilt it back a little more so the screen is easier to see while seated."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-09",
+        "workflow_id": "development-workflow-09",
+        "revision_id": "development-revision-09",
+        "units": "mm",
+        "outputs": [{"output_id": "tablet_stand", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "stand_output", "scope": "tablet_stand", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 1, "output_id": "tablet_stand"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "stand_device_support", "scope": "tablet_stand", "origin": "user_explicit", "authority": "protected", "classification": "review_required", "expected": {"device_class": "tablet_up_to_10_inch_diagonal", "portrait": true, "landscape": true, "screen_visible": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "stand_cable_access", "scope": "tablet_stand", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"centered_lower_edge_access": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "stand_design_choices", "scope": "tablet_stand", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"viewing_angle": "designer_choice", "footprint": "designer_choice", "contact_strategy": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "stand_supports_device_without_covering_screen", "participants": ["tablet_stand"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "stable_open_device_support"}],
+        "protected_facts": [{"requirement_id": "stand_output", "authoritative_value": {"count": 1, "output_id": "tablet_stand"}}, {"requirement_id": "stand_device_support", "authoritative_value": {"device_class": "tablet_up_to_10_inch_diagonal"}}]
+      }
+    },
+    {
+      "order": 10,
+      "project_id": "development-10",
+      "title": "Workshop pegboard accessory holder",
+      "specification_category": "partially_specified",
+      "geometry_families": ["single_output", "prismatic_geometry", "holes_and_patterns", "functional_design"],
+      "prompt": "Design one printable workshop accessory holder that mounts to a standard 1 inch spaced pegboard and holds a small hand tool with its handle upright. It must engage the pegboard securely, resist the tool tipping out during ordinary use, and allow the tool to be lifted out without removing the holder. You may choose the tool pocket shape, support depth, retaining lip, wall thickness, and edge treatment. Return one output named pegboard_tool_holder.",
+      "clarifications": [],
+      "planned_revisions": [],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-10",
+        "workflow_id": "development-workflow-10",
+        "revision_id": "development-revision-10",
+        "units": "mm",
+        "outputs": [{"output_id": "pegboard_tool_holder", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "pegboard_holder_output", "scope": "pegboard_tool_holder", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 1, "output_id": "pegboard_tool_holder"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "pegboard_interface", "scope": "pegboard_tool_holder", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"peg_spacing": 25.4, "mounts_to_standard_pegboard": true}, "tolerance": 0.5, "verification_policy": "final_mesh_interface_measurement"},
+          {"requirement_id": "tool_retention", "scope": "pegboard_tool_holder", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"upright_handle": true, "resists_tipping": true, "lift_out_access": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "pegboard_design_choices", "scope": "pegboard_tool_holder", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"pocket_shape": "designer_choice", "support_depth": "designer_choice", "retaining_lip": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "holder_mounts_to_pegboard", "participants": ["pegboard_tool_holder"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "compatible_with_25_4_mm_peg_spacing"}],
+        "protected_facts": [{"requirement_id": "pegboard_interface", "authoritative_value": {"peg_spacing": 25.4}}, {"requirement_id": "tool_retention", "authoritative_value": {"lift_out_access": true}}]
+      }
+    },
+    {
+      "order": 11,
+      "project_id": "development-11",
+      "title": "Support and replaceable insert",
+      "specification_category": "partially_specified",
+      "geometry_families": ["multi_output", "mating_relationship", "cavity_shelling", "holes_and_pockets"],
+      "prompt": "Design exactly two printable outputs named instrument_support and replaceable_insert. The support should hold a small replaceable insert in a centered pocket, keep the insert from rotating during use, and include a practical way to mount the support to a work surface. The insert should be removable by hand and should not interfere with the support when seated. Leave the interface dimensions, retention detail, wall thickness, and mounting layout to your design judgment, but preserve the two output identities and the functional mating relationship.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-11-r1", "message": "Add a small finger relief so the insert is easier to remove."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-11",
+        "workflow_id": "development-workflow-11",
+        "revision_id": "development-revision-11",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "instrument_support", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "replaceable_insert", "required": true, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "support_insert_outputs", "scope": "instrument_support/replaceable_insert", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 2, "independent": true}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "insert_seated_mating", "scope": "instrument_support/replaceable_insert", "origin": "user_explicit", "authority": "protected", "classification": "review_required", "expected": {"centered": true, "removable_by_hand": true, "no_interference_when_seated": true, "resists_rotation": true}, "tolerance": 0.0, "verification_policy": "neutral_measurement_plus_review"},
+          {"requirement_id": "support_mounting", "scope": "instrument_support", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"mountable_to_work_surface": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "insert_design_choices", "scope": "instrument_support/replaceable_insert", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"interface_dimensions": "designer_choice", "retention_detail": "designer_choice", "finger_relief": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "insert_fits_support", "participants": ["instrument_support", "replaceable_insert"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "centered_removable_noninterfering_mate"}],
+        "protected_facts": [{"requirement_id": "support_insert_outputs", "authoritative_value": {"count": 2}}, {"requirement_id": "insert_seated_mating", "authoritative_value": {"centered": true, "removable_by_hand": true}}]
+      }
+    },
+    {
+      "order": 12,
+      "project_id": "development-12",
+      "title": "Compact electronics enclosure",
+      "specification_category": "partially_specified",
+      "geometry_families": ["multi_output", "optional_output", "cavity_shelling", "curved_edges"],
+      "prompt": "Design a compact printable electronics enclosure with one required output named enclosure_base and one optional output named enclosure_lid. The base must provide a protected cavity for a small controller board, a clear USB cable exit, and mounting provisions for the board. The lid should be removable and should not prevent access to the cable exit. Leave the board clearance, outer proportions, wall thickness, corner treatment, vent layout, and lid retention approach to your design judgment. The required base must remain useful if the optional lid is omitted.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-12-r1", "message": "Move the cable exit to the right side and add internal mounting bosses."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-12",
+        "workflow_id": "development-workflow-12",
+        "revision_id": "development-revision-12",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "enclosure_base", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "enclosure_lid", "required": false, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "electronics_outputs", "scope": "enclosure_base/enclosure_lid", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"required_output": "enclosure_base", "optional_output": "enclosure_lid"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "electronics_cavity", "scope": "enclosure_base", "origin": "user_explicit", "authority": "protected", "classification": "review_required", "expected": {"protected_cavity": true, "small_controller_board": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "electronics_cable_exit", "scope": "enclosure_base", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"clear_usb_cable_exit": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "electronics_lid_independence", "scope": "enclosure_base/enclosure_lid", "origin": "user_explicit", "authority": "protected", "classification": "review_required", "expected": {"base_useful_without_lid": true, "lid_removable": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "electronics_design_choices", "scope": "enclosure_base/enclosure_lid", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"board_clearance": "designer_choice", "corner_treatment": "designer_choice", "vent_layout": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "lid_preserves_cable_access", "participants": ["enclosure_base", "enclosure_lid"], "origin": "user_explicit", "authority": "required", "expected_relationship": "removable_lid_does_not_block_cable_exit"}],
+        "protected_facts": [{"requirement_id": "electronics_outputs", "authoritative_value": {"required_output": "enclosure_base", "optional_output": "enclosure_lid"}}, {"requirement_id": "electronics_cable_exit", "authoritative_value": {"clear_usb_cable_exit": true}}]
+      }
+    },
+    {
+      "order": 13,
+      "project_id": "development-13",
+      "title": "Stable charging phone stand",
+      "specification_category": "intent_heavy",
+      "geometry_families": ["single_output", "angled_geometry", "qualitative_design_intent"],
+      "prompt": "Design a simple printable desk stand for a phone that feels stable, keeps the screen easy to see, and leaves room for a charging cable. Make it pleasant to use and reasonably easy to print. You have substantial freedom over the proportions, viewing angle, support shape, and surface details. Return one printable output named charging_phone_stand.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-13-r1", "message": "The base looks too bulky; make it shallower while keeping the stand stable."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-13",
+        "workflow_id": "development-workflow-13",
+        "revision_id": "development-revision-13",
+        "units": "mm",
+        "outputs": [{"output_id": "charging_phone_stand", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "phone_stand_output", "scope": "charging_phone_stand", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 1, "output_id": "charging_phone_stand"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "phone_stand_stability", "scope": "charging_phone_stand", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"stable_on_desk": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "phone_stand_visibility", "scope": "charging_phone_stand", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"screen_easy_to_see": true, "charging_access": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "phone_stand_design_freedom", "scope": "charging_phone_stand", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"proportions": "designer_choice", "viewing_angle": "designer_choice", "surface_details": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "stand_supports_phone_and_cable", "participants": ["charging_phone_stand"], "origin": "user_explicit", "authority": "required", "expected_relationship": "stable_open_support_with_cable_access"}],
+        "protected_facts": [{"requirement_id": "phone_stand_output", "authoritative_value": {"count": 1, "output_id": "charging_phone_stand"}}, {"requirement_id": "phone_stand_stability", "authoritative_value": {"stable_on_desk": true}}]
+      }
+    },
+    {
+      "order": 14,
+      "project_id": "development-14",
+      "title": "Desktop organizer",
+      "specification_category": "intent_heavy",
+      "geometry_families": ["single_output", "cavity_shelling", "qualitative_design_intent"],
+      "prompt": "Design a compact printable desktop organizer for a few pens, a small notepad, and charging accessories. It should be stable, make the contents easy to reach, and look intentional rather than like a plain box. Decide the number and arrangement of compartments, edge treatment, and proportions yourself. Return one printable output named desktop_organizer and avoid relying on a separate assembly.",
+      "clarifications": [],
+      "planned_revisions": [],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-14",
+        "workflow_id": "development-workflow-14",
+        "revision_id": "development-revision-14",
+        "units": "mm",
+        "outputs": [{"output_id": "desktop_organizer", "required": true, "output_type": "printable_component", "expected_solid_count": 1}],
+        "requirements": [
+          {"requirement_id": "organizer_output", "scope": "desktop_organizer", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"count": 1, "output_id": "desktop_organizer"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "organizer_capacity", "scope": "desktop_organizer", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"holds": ["pens", "small_notepad", "charging_accessories"], "easy_to_reach": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "organizer_stability", "scope": "desktop_organizer", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"stable_on_desk": true, "single_assembly": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "organizer_aesthetic_freedom", "scope": "desktop_organizer", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"compartment_count": "designer_choice", "arrangement": "designer_choice", "edge_treatment": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "organizer_compartments_are_reachable", "participants": ["desktop_organizer"], "origin": "user_explicit", "authority": "required", "expected_relationship": "stable_reachable_compartments"}],
+        "protected_facts": [{"requirement_id": "organizer_output", "authoritative_value": {"count": 1, "output_id": "desktop_organizer"}}, {"requirement_id": "organizer_capacity", "authoritative_value": {"holds": ["pens", "small_notepad", "charging_accessories"]}}]
+      }
+    },
+    {
+      "order": 15,
+      "project_id": "development-15",
+      "title": "Wall accessory holder",
+      "specification_category": "intent_heavy",
+      "geometry_families": ["single_output", "optional_output", "qualitative_design_intent", "functional_design"],
+      "prompt": "Design a printable wall-mounted holder for a small household accessory such as keys, a remote, or a lightweight tool. It should be easy to use with one hand, keep the item from falling out, and have a clean, compact appearance. You may choose the exact storage features and whether to include an optional decorative or labeling element, but return one required output named wall_accessory_holder and keep any optional output named label_insert nonessential.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-15-r1", "message": "Add a small hook for a second item without making the holder much wider."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-15",
+        "workflow_id": "development-workflow-15",
+        "revision_id": "development-revision-15",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "wall_accessory_holder", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "label_insert", "required": false, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "wall_holder_outputs", "scope": "wall_accessory_holder/label_insert", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"required_output": "wall_accessory_holder", "optional_output": "label_insert"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "wall_holder_function", "scope": "wall_accessory_holder", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"wall_mounted": true, "one_hand_use": true, "retains_lightweight_item": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "wall_holder_compactness", "scope": "wall_accessory_holder", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"compact": true, "clean_appearance": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "wall_holder_design_freedom", "scope": "wall_accessory_holder/label_insert", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"storage_features": "designer_choice", "mounting_detail": "designer_choice", "label_treatment": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "optional_label_does_not_enable_holder", "participants": ["wall_accessory_holder", "label_insert"], "origin": "user_explicit", "authority": "protected", "expected_relationship": "optional_nonessential_label"}],
+        "protected_facts": [{"requirement_id": "wall_holder_outputs", "authoritative_value": {"required_output": "wall_accessory_holder", "optional_output": "label_insert"}}, {"requirement_id": "wall_holder_function", "authoritative_value": {"wall_mounted": true, "one_hand_use": true}}]
+      }
+    },
+    {
+      "order": 16,
+      "project_id": "development-16",
+      "title": "Protective electronics case",
+      "specification_category": "intent_heavy",
+      "geometry_families": ["multi_output", "cavity_shelling", "curved_edges", "mating_relationship", "revision_heavy_workflow"],
+      "prompt": "Design a printable protective case for a small handheld electronics device, with one required output named protective_case_base and one optional output named protective_case_cover. The device should be protected from ordinary bumps, the controls and cable should remain accessible, and the case should be practical to open and close. Choose the device clearance, shell thickness, corner radii, closure, and overall style yourself. Keep the base useful on its own and keep the optional cover nonessential to the identity of the required output.",
+      "clarifications": [],
+      "planned_revisions": [{"revision_id": "development-16-r1", "message": "Round the outside corners more and add a small opening for the status light."}],
+      "design_contract": {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "project_id": "development-16",
+        "workflow_id": "development-workflow-16",
+        "revision_id": "development-revision-16",
+        "units": "mm",
+        "outputs": [
+          {"output_id": "protective_case_base", "required": true, "output_type": "printable_component", "expected_solid_count": 1},
+          {"output_id": "protective_case_cover", "required": false, "output_type": "printable_component", "expected_solid_count": 1}
+        ],
+        "requirements": [
+          {"requirement_id": "case_outputs", "scope": "protective_case_base/protective_case_cover", "origin": "user_explicit", "authority": "protected", "classification": "machine_required", "expected": {"required_output": "protective_case_base", "optional_output": "protective_case_cover"}, "tolerance": 0.0, "verification_policy": "required_output_identity"},
+          {"requirement_id": "case_protection", "scope": "protective_case_base/protective_case_cover", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"protects_from_ordinary_bumps": true, "controls_accessible": true, "cable_accessible": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "case_open_close", "scope": "protective_case_base/protective_case_cover", "origin": "user_explicit", "authority": "required", "classification": "review_required", "expected": {"practical_to_open_and_close": true, "base_useful_alone": true}, "tolerance": 0.0, "verification_policy": "blind_review"},
+          {"requirement_id": "case_design_freedom", "scope": "protective_case_base/protective_case_cover", "origin": "model_design_choice", "authority": "flexible", "classification": "informational", "expected": {"device_clearance": "designer_choice", "shell_thickness": "designer_choice", "corner_radii": "designer_choice", "closure": "designer_choice"}, "tolerance": 0.0, "verification_policy": "blind_review"}
+        ],
+        "relationships": [{"relationship_id": "cover_protects_without_blocking_access", "participants": ["protective_case_base", "protective_case_cover"], "origin": "user_explicit", "authority": "required", "expected_relationship": "optional_removable_cover_preserves_controls_and_cable_access"}],
+        "protected_facts": [{"requirement_id": "case_outputs", "authoritative_value": {"required_output": "protective_case_base", "optional_output": "protective_case_cover"}}, {"requirement_id": "case_protection", "authoritative_value": {"protects_from_ordinary_bumps": true, "controls_accessible": true, "cable_accessible": true}}]
+      }
+    }
+  ]
+}
