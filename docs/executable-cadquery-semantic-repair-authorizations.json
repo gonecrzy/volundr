@@ -1,49 +1,119 @@
 {
-  "schema_version": "executable-cadquery-semantic-repair-authorization-v1",
-  "source_of_truth": "latest authoritative worker result plus fresh machine semantic measurement",
-  "provider_calls_made_before_dispatch": 0,
-  "worker_calls_made_before_dispatch": 0,
-  "provider_preflight": {
-    "status": "blocked_before_request_missing_primary_credential",
-    "provider": "gemini_api",
-    "provider_class": "GeminiApiProvider",
-    "transport_class": "ValidatedGeminiTransport",
-    "auth_header": "x-goog-api-key",
-    "endpoint": "/models/{model}:generateContent",
-    "credential_slots": ["GEMINI_API_KEY", "GEMINI_API_KEY_2"],
-    "provider_calls_made": 0,
-    "worker_calls_made": 0,
-    "evidence_path": "data/debug-sessions/executable-cadquery/topology-evidence-v2/p3-l2-repair-api-transport.json"
-  },
   "projects": {
     "project-02": {
-      "repair_level": "L3",
-      "requirement_id": "axial_dimensions",
-      "expected_values": {"lengths": [12.0, 18.0, 10.0]},
-      "measured_values": {"detected_section_lengths_mm": [6.0, 6.0, 9.0, 5.0]},
-      "tolerance": 0.25,
-      "measurement_method": "final_mesh_axial_sections",
-      "measurement_source": "final_mesh",
-      "passed_machine_requirements": ["coaxial_diameters", "through_bore", "counterbore", "bolt_circle"],
-      "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
       "envelope_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/semantic-repair-envelopes/project-02-l3-semantic-repair-envelope.json",
       "envelope_sha256": "a8d64c76f6bdcee80e4ab6d36280e846a2314e87d447861177eb304be418f78b",
-      "provider_preflight": "blocked_before_request_missing_primary_credential"
+      "expected_values": {
+        "lengths": [
+          12.0,
+          18.0,
+          10.0
+        ]
+      },
+      "measured_values": {
+        "detected_section_lengths_mm": [
+          6.0,
+          6.0,
+          9.0,
+          5.0
+        ]
+      },
+      "measurement_method": "final_mesh_axial_sections",
+      "measurement_source": "final_mesh",
+      "passed_machine_requirements": [
+        "coaxial_diameters",
+        "through_bore",
+        "counterbore",
+        "bolt_circle"
+      ],
+      "provider_calls_made": 1,
+      "provider_preflight": {
+        "auth_header": "x-goog-api-key",
+        "credential_slots": [
+          "GEMINI_API_KEY",
+          "GEMINI_API_KEY_2"
+        ],
+        "evidence_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/authorized-l3-results/project-02/result.json",
+        "fallback_policy": "fallback_only_after_http_429",
+        "fallback_present": true,
+        "primary_present": true,
+        "provider": "gemini_api",
+        "provider_calls_made": 1,
+        "provider_class": "GeminiApiProvider",
+        "status": "validated_before_request",
+        "transport": "gemini_api_rest",
+        "transport_class": "ValidatedGeminiTransport",
+        "worker_calls_made": 1
+      },
+      "repair_level": "L3",
+      "requirement_id": "axial_dimensions",
+      "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+      "tolerance": 0.25,
+      "worker_calls_made": 1
     },
     "project-04": {
-      "repair_level": "L3",
-      "requirement_id": "mating_clearance",
-      "expected_values": {"interference": false, "value": 0.4},
-      "measured_values": {"detected_per_side_mm": 0.0, "inner_output_id": "enclosure_base", "outer_output_id": "enclosure_lid"},
-      "tolerance": 0.1,
-      "measurement_method": "cross_output_clearance",
-      "measurement_source": "final_mesh",
-      "passed_machine_requirements": ["enclosure_envelope", "wall_thickness", "base_mounting_bosses", "base_cable_exit", "lid_ventilation_opening"],
-      "valid_topology_outputs": ["enclosure_base", "enclosure_lid"],
-      "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
       "envelope_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/semantic-repair-envelopes/project-04-l3-semantic-repair-envelope.json",
       "envelope_sha256": "761dd0a2ccfccee21466ee4c0a0202e0d25b952bf09cc578c0779a287973b146",
-      "provider_preflight": "blocked_before_request_missing_primary_credential"
+      "expected_values": {
+        "interference": false,
+        "value": 0.4
+      },
+      "measured_values": {
+        "detected_per_side_mm": 0.0,
+        "inner_output_id": "enclosure_base",
+        "outer_output_id": "enclosure_lid"
+      },
+      "measurement_method": "cross_output_clearance",
+      "measurement_source": "final_mesh",
+      "passed_machine_requirements": [
+        "enclosure_envelope",
+        "wall_thickness",
+        "base_mounting_bosses",
+        "base_cable_exit",
+        "lid_ventilation_opening"
+      ],
+      "provider_calls_made": 1,
+      "provider_preflight": {
+        "auth_header": "x-goog-api-key",
+        "credential_slots": [
+          "GEMINI_API_KEY",
+          "GEMINI_API_KEY_2"
+        ],
+        "evidence_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/authorized-l3-results/project-04/result.json",
+        "fallback_policy": "fallback_only_after_http_429",
+        "fallback_present": true,
+        "primary_present": true,
+        "provider": "gemini_api",
+        "provider_calls_made": 1,
+        "provider_class": "GeminiApiProvider",
+        "status": "validated_before_request",
+        "transport": "gemini_api_rest",
+        "transport_class": "ValidatedGeminiTransport",
+        "worker_calls_made": 1
+      },
+      "repair_level": "L3",
+      "requirement_id": "mating_clearance",
+      "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+      "tolerance": 0.1,
+      "valid_topology_outputs": [
+        "enclosure_base",
+        "enclosure_lid"
+      ],
+      "worker_calls_made": 1
     }
-  }
+  },
+  "provider_calls_made_before_dispatch": 0,
+  "provider_preflight": {
+    "auth_header": "x-goog-api-key",
+    "fallback_policy": "fallback_only_after_http_429",
+    "fallback_present": true,
+    "primary_present": true,
+    "provider_calls_made": 2,
+    "status": "validated_before_request_for_authorized_l3",
+    "transport": "gemini_api_rest",
+    "worker_calls_made": 2
+  },
+  "schema_version": "executable-cadquery-semantic-repair-authorization-v1",
+  "source_of_truth": "latest authoritative worker result plus fresh machine semantic measurement",
+  "worker_calls_made_before_dispatch": 0
 }

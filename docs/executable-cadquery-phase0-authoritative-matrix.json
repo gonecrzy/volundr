@@ -1,5 +1,6 @@
 {
-  "authorized_provider_calls_made": 1,
+  "authorized_provider_calls_made": 3,
+  "authorized_worker_calls_made": 3,
   "p5_touched": false,
   "phase_1_started": false,
   "projects": {
@@ -36,7 +37,21 @@
         "semantic_measurement": "failed",
         "semantic_policy": "failed"
       },
-      "provider_calls_made": 0,
+      "latest_authoritative_worker_result": {
+        "identity": {
+          "database_project_id": "5b123fad-54a3-440d-82eb-67be6fb492c5",
+          "job_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "project_id": "project-02",
+          "revision_id": "8830450d-882c-4fbd-a6ba-768579d0e9b8",
+          "workflow_id": "1b8ef86f-004c-4e57-9a3c-39068f443355"
+        },
+        "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/authorized-l3-results/project-02/result.json",
+        "sha256": "04d8191d90091bffc93702b19ba1154eb25b686308811227797dea2b6ef2d488",
+        "source_hash": "94a95de275fb27749fb86cf1d4d54279c79aef70368bbf9074fd136c6b707d5f",
+        "topology_evidence_version": "topology-evidence-v2"
+      },
+      "next_action": "resolve_downstream_failure_or_review",
+      "provider_calls_made": 1,
       "semantic_repair_gate": "L3_repair_required",
       "solid_counts": {
         "shaft_coupling": {
@@ -44,7 +59,7 @@
           "expected": 1
         }
       },
-      "source_hash": "ff0ac836ba248af2e564876e7a2462e7f372d052aa5b4131b0a1c177f42ecb8f",
+      "source_hash": "94a95de275fb27749fb86cf1d4d54279c79aef70368bbf9074fd136c6b707d5f",
       "stale_replays_rejected": [
         {
           "kind": "historical_repair_replay",
@@ -85,7 +100,17 @@
           }
         }
       ],
-      "topology": "valid",
+      "topology": {
+        "evidence_version": "topology-evidence-v2",
+        "solid_counts": {
+          "shaft_coupling": {
+            "detected": 1,
+            "expected": 1
+          }
+        },
+        "status": "valid"
+      },
+      "worker_calls_made": 1,
       "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-02/worker/result.json"
     },
     "project-03": {
@@ -135,6 +160,8 @@
       "provider_responses": 1,
       "provider_transport_call_allowed": false,
       "repair_gate": "one_l2_repair_completed_worker_topology_invalid",
+      "worker_calls_made": 1,
+      "next_action": "no_further_p3_provider_call",
       "solid_counts": {
         "curved_cable_guide": {
           "detected_solid_count": 1,
@@ -343,7 +370,21 @@
         "semantic_measurement": "failed",
         "semantic_policy": "failed"
       },
-      "provider_calls_made": 0,
+      "latest_authoritative_worker_result": {
+        "identity": {
+          "database_project_id": "5f253549-7f9f-4bf4-a173-6472aa78d46e",
+          "job_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "project_id": "project-04",
+          "revision_id": "5bfd8004-9bb3-4527-a1a9-630e0a00d6af",
+          "workflow_id": "e15cd5c6-2469-4584-b490-2a7d6ed5d3e7"
+        },
+        "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/authorized-l3-results/project-04/result.json",
+        "sha256": "e10dda947f261bc820babe8ba6823e88015036ef78789692ba186b26cf722738",
+        "source_hash": "60e01831ff66b7a320edd419b8274a950ce2116a9f927d5905f1efab957c28d7",
+        "topology_evidence_version": "topology-evidence-v2"
+      },
+      "next_action": "resolve_downstream_failure_or_review",
+      "provider_calls_made": 1,
       "semantic_repair_gate": "L3_repair_required",
       "solid_counts": {
         "enclosure_base": {
@@ -355,7 +396,7 @@
           "expected": 1
         }
       },
-      "source_hash": "b36be9ecd48dd5f7f00665e2c362a057925bd5ec4893f65a46f02c41713a14af",
+      "source_hash": "60e01831ff66b7a320edd419b8274a950ce2116a9f927d5905f1efab957c28d7",
       "stale_replays_rejected": [
         {
           "kind": "historical_repair_replay",
@@ -418,7 +459,21 @@
           }
         }
       ],
-      "topology": "valid",
+      "topology": {
+        "evidence_version": "topology-evidence-v2",
+        "solid_counts": {
+          "enclosure_base": {
+            "detected": 1,
+            "expected": 1
+          },
+          "enclosure_lid": {
+            "detected": 1,
+            "expected": 1
+          }
+        },
+        "status": "valid"
+      },
+      "worker_calls_made": 1,
       "worker_result_path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-04/worker/attempt-02-result.json"
     },
     "project-05": {
@@ -431,8 +486,12 @@
         "semantic_policy": "not_reached"
       },
       "downstream_boundary": "build_function",
-      "evidence": "preserved current earliest-boundary state; no new work in this reconciliation",
+      "evidence": "preserved current earliest-boundary state; exact authoritative complete source is absent; frozen artifact corpus is not substituted",
+      "authoritative_source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+      "complete_source_available_for_dispatch": false,
+      "dispatch_gate": "blocked_missing_exact_authoritative_complete_source",
       "provider_calls_made": 0,
+      "worker_calls_made": 0,
       "status": "candidate_blocked",
       "topology": "not_reached",
       "untouched": true
