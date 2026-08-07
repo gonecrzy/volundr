@@ -5,7 +5,13 @@
   "credential_commit": "e4b2b9e",
   "credential_work_frozen": true,
   "phase2_started": false,
-  "gemini_calls_in_this_cycle": 2,
+  "gemini_calls_in_this_cycle": 4,
+  "generic_fixes_applied": [
+    "durable persisted recovery executes existing non-provider actions and re-evaluates evidence",
+    "restart attempt ordinals ignore stale-source and terminal review records",
+    "failed provider attempts persist the complete repair envelope with repair history",
+    "same-source L1 progress remains recoverable when the structured error state changes"
+  ],
   "preserved_findings": {
     "hard_coded_contract_fallback_discovery": {
       "severity": "major_application_defect",
@@ -25,19 +31,24 @@
     "contract_manifest_injection": "qualification-harness mechanism only; not the intended product contract source"
   },
   "project_03_offline_recovery": {
-    "status": "blocked_at_build_function_api_boundary_after_bounded_l1",
+    "status": "blocked_at_topology_after_bounded_l1_progression",
     "historical_application_classification": {
       "failure_class": "stl_export_failure",
       "observed_boundary": "artifact",
       "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-03/project-03-result.json"
     },
     "latest_worker_evidence": {
-      "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
-      "active_phase": "build_function",
-      "failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
-      "failure_source_function": "_make_model",
-      "failure_source_line": 65,
-      "output_status": "not_attempted",
+      "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+      "active_phase": "topology_analysis",
+      "failure_class": "solid_count_mismatch",
+      "failure": "required solid count 1; detected solid count 2",
+      "output_id": "curved_cable_guide",
+      "detected_solid_count": 2,
+      "expected_solid_count": 1,
+      "shell_count": 2,
+      "volume_mm3": 790.3540138875861,
+      "bounding_box_mm": {"size_x": 58.0, "size_y": 10.0, "size_z": 9.0},
+      "output_status": "invalid_shape",
       "artifacts": []
     },
     "attempts": [
@@ -61,11 +72,37 @@
         "objective_execution_progress": true,
         "objective_topology_progress": false,
         "topology_reached": false
+      },
+      {
+        "ordinal": 3,
+        "source_hash": "4720dfbf4ec32f965d58fbe6cf01c2bf1b9e34c77d3ab5b4052041e331dfb86d",
+        "active_phase": "build_function",
+        "failure": "Workplane.sweep() got an unexpected keyword argument preserveOrientation",
+        "failure_operation": "sweep",
+        "failure_source_function": "_make_model",
+        "failure_source_line": 72,
+        "source_changed": true,
+        "error_changed": true,
+        "objective_execution_progress": true,
+        "objective_topology_progress": false,
+        "topology_reached": false
+      },
+      {
+        "ordinal": 4,
+        "source_hash": "ce16a9b0e6f09d5ed4554fa9b453952b919a0121805d352cc401e2473d344a45",
+        "active_phase": "topology_analysis",
+        "failure": "required solid count 1; detected solid count 2",
+        "failure_class": "solid_count_mismatch",
+        "source_changed": true,
+        "error_changed": true,
+        "objective_execution_progress": true,
+        "objective_topology_progress": true,
+        "topology_reached": true
       }
     ],
-    "provider_operation": "one bounded L1 execution repair; generated source changed arc to threePointsArc",
-    "offline_recheck": "an already-submitted persisted worker job was executed offline; the timeout boundary was superseded by a deterministic build_function AttributeError on threePointsArc; no provider dispatch",
-    "durable_terminal_decision": "cadquery_api_error; same_source_hash_repeated after corrected execution recheck",
+    "provider_operation": "two bounded L1 execution repairs; source hashes changed from the persisted threePointsArc failure to a sweep diagnostic and then to a topology result",
+    "offline_recheck": "the persisted corrected source was retried offline with zero provider calls; timeout changed to a deterministic sweep TypeError, then one bounded L1 provider repair produced source ce16 and an offline worker run reached topology",
+    "latest_durable_decision": "gemini_topology_repair; topology reached with 2 solids versus expected 1; no topology repair dispatched",
     "frozen_geometry_evidence": {
       "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
       "active_phase": "topology_analysis",
@@ -76,13 +113,13 @@
       "bounding_box_mm": {"size_x": 10.0, "size_y": 10.0, "size_z": 6.0},
       "artifacts": []
     },
-    "boundary_result": "The historical artifact label is an application defect for the latest run; worker evidence proves source/execution causality. The authoritative first boundary is build_function.",
-    "application_fix": "Persisted worker active phase and structured failure diagnostics now take precedence over inferred missing-export evidence.",
+    "boundary_result": "The historical artifact label is an application defect; worker evidence proves source/execution causality. The authoritative boundary progressed from build_function to topology only after bounded L1 repairs.",
+    "application_fix": "Persisted worker active phase, structured operation diagnostics, durable repair envelopes, and changed-error L1 routing now take precedence over inferred missing-export evidence.",
     "execution_repair_policy": "bounded L1 only while source or error state changes; exact persisted source and contract required",
     "artifact_regeneration": "not performed; no valid existing geometry",
     "package_generation": "not performed",
     "independent_review": "not run; no final package",
-    "provider_convergence": "not assigned"
+    "provider_convergence": "not assigned; topology was reached but no bounded L2 topology repair was started"
   },
   "project_05_execution_recovery": {
     "status": "blocked_at_build_function_after_bounded_l1",
@@ -153,6 +190,21 @@
       "prior_normalized_error",
       "requested_delta"
     ],
+    "durable_envelope_recording": "failed provider attempts now retain repair_envelope beside provider_attempt and repair_history",
+    "offline_reconstructed_prompt_verification": {
+      "project-02": {
+        "complete_source_bytes": 4921,
+        "attempt_history_entries": 2,
+        "all_required_fields_present": true,
+        "prompt_contains_complete_source_contract_metrics_history_and_replacement_instruction": true
+      },
+      "project-04": {
+        "complete_source_bytes": 5292,
+        "attempt_history_entries": 2,
+        "all_required_fields_present": true,
+        "prompt_contains_complete_source_contract_metrics_history_and_replacement_instruction": true
+      }
+    },
     "prompt_changed": false,
     "envelope_verification": {
       "previous_complete_source": true,
@@ -174,7 +226,7 @@
           {
             "ordinal": 1,
             "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
-            "normalized_failure_in_project_record": null,
+            "normalized_failure_in_project_record": "solid_count_mismatch",
             "topology": {"valid": false, "detected_solid_count": 5, "expected_solid_count": 1, "shell_count": 5, "volume_mm3": 0.0, "bounding_box_mm": {"size_x": 82.4621125124, "size_y": 2.5, "size_z": 82.4621125124}},
             "source_changed_from_prior_attempt": true,
             "objective_topology_progress": false
@@ -182,7 +234,7 @@
           {
             "ordinal": 2,
             "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
-            "normalized_failure_in_project_record": null,
+            "normalized_failure_in_project_record": "solid_count_mismatch",
             "topology": {"valid": false, "detected_solid_count": 14, "expected_solid_count": 1, "shell_count": 39, "volume_mm3": -3652.1014597981, "bounding_box_mm": {"size_x": 82.4621125124, "size_y": 35.0, "size_z": 82.4621125124}},
             "source_changed_from_prior_attempt": true,
             "objective_topology_progress": false
@@ -200,10 +252,10 @@
           {
             "ordinal": 1,
             "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
-            "normalized_failure_in_project_record": null,
+            "normalized_failure_in_project_record": "invalid_shape",
             "topology": {
               "enclosure_base": {"valid": true, "detected_solid_count": 1, "expected_solid_count": 1, "volume_mm3": 36457.05115136924, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 21.9}},
-              "enclosure_lid": {"valid": false, "status": "invalid_shape", "precise_metrics": null}
+              "enclosure_lid": {"valid": false, "status": "invalid_shape", "detected_solid_count": 2, "expected_solid_count": 1, "shell_count": 2, "volume_mm3": 24067.2, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 13.6}}
             },
             "source_changed_from_prior_attempt": true,
             "objective_topology_progress": false
@@ -211,10 +263,10 @@
           {
             "ordinal": 2,
             "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
-            "normalized_failure_in_project_record": null,
+            "normalized_failure_in_project_record": "invalid_shape",
             "topology": {
               "enclosure_base": {"valid": true, "detected_solid_count": 1, "expected_solid_count": 1, "volume_mm3": 30275.32548525156, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 20.4}},
-              "enclosure_lid": {"valid": false, "status": "invalid_shape", "precise_metrics": null}
+              "enclosure_lid": {"valid": false, "status": "invalid_shape", "detected_solid_count": 2, "expected_solid_count": 1, "shell_count": 2, "volume_mm3": 23767.2, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 15.6}}
             },
             "source_changed_from_prior_attempt": true,
             "objective_topology_progress": false
@@ -228,7 +280,7 @@
   "final_matrix": {
     "project-01": "independent PASS by deterministic neutral B-Rep; guided adjudication retained as non-blind",
     "project-02": "blocked: solid-count/topology; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
-    "project-03": "blocked: one bounded L1 changed arc to threePointsArc, then exact offline execution proved build_function AttributeError on threePointsArc; no topology/package review; provider convergence not assigned",
+    "project-03": "blocked: bounded L1 progressed from arc/threePointsArc execution failures through sweep TypeError to topology; latest neutral evidence is 2 solids versus expected 1; no package review; provider convergence not assigned",
     "project-04": "blocked: lid invalid topology while base remains valid; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
     "project-05": "blocked: build_function chamfer StdFail_NotDone / BRep_API; one bounded L1 changed source but not error; topology not reached; provider convergence not assigned"
   }

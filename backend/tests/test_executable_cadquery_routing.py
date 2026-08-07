@@ -4,6 +4,7 @@ from app.core.config import Settings
 from app.services.ai.gemini_api import GeminiApiProvider
 from app.services.ai.gemini_cli import GeminiCliProvider
 from app.services.ai.provider import ModelGenerationRequest
+from app.services.executable_cadquery.recovery import FailureObservation, RecoveryRouter
 from app.services.executable_cadquery.workflow import ExecutableCadQueryWorkflowService
 
 
@@ -162,6 +163,29 @@ def test_l2_prompt_contains_complete_prior_source_contract_and_topology_history(
     assert '"size_x": 82.46' in prompt
     assert '"source_hash": "attempt-1"' in prompt
     assert "Return one complete replacement implementation." in prompt
+
+
+def test_l1_same_source_changed_error_remains_recoverable() -> None:
+    decision = RecoveryRouter().route(
+        FailureObservation(
+            observed_stage="build_execution",
+            failure_class="python_type_error",
+            evidence={
+                "same_source_hash": True,
+                "same_error_state": False,
+                "source_hash": "same-source",
+            },
+            attempt_ordinal=1,
+            progress={
+                "measurable_progress": True,
+                "progress_reasons": ["execution_diagnostic_changed"],
+            },
+        )
+    )
+
+    assert decision.terminal is False
+    assert decision.recommended_action == "gemini_execution_repair"
+    assert decision.repair_level == "L1"
 
 
 def test_executable_flag_selects_experimental_workflow_service(monkeypatch, tmp_path) -> None:

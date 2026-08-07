@@ -370,6 +370,183 @@ async def test_persisted_execution_recovery_commits_router_decision_before_ladde
     assert operation.status == "completed"
 
 
+@pytest.mark.asyncio
+async def test_persisted_execution_recovery_executes_worker_retry_and_rechecks_router(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    manifest_path = tmp_path / "execution-manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "diagnostics": {
+                    "active_phase": "build_function",
+                    "timed_out": True,
+                    "message": "CAD worker did not complete job within 90 seconds",
+                    "source_hash": "persisted-source-hash",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    output = SimpleNamespace(
+        id="persisted-output-id",
+        output_id="mounting_bracket",
+        required=True,
+        execution_state="failed",
+        stl_path=None,
+        step_path=None,
+        compile_error="CAD worker did not complete job within 90 seconds",
+        topology_metadata_json=None,
+        validation_summary_json=json.dumps({}),
+        worker_status="failed",
+        state="not_generated",
+        topology_status=None,
+        artifact_available=False,
+    )
+    revision = SimpleNamespace(
+        id="persisted-timeout-revision",
+        status="failed",
+        source_hash="persisted-source-hash",
+        source_path="source.py",
+        execution_manifest_path="execution-manifest.json",
+        outputs=[output],
+    )
+    contract = dict(FROZEN_MOUNTING_BRACKET_CONTRACT)
+    workflow = SimpleNamespace(
+        id="persisted-timeout-workflow",
+        project_id="persisted-timeout-project",
+        revision_id=revision.id,
+        provenance_json=json.dumps(
+            {
+                "executable_design_contract": contract,
+                "recovery_decisions": [
+                    {
+                        "observation": {
+                            "attempt_ordinal": 2,
+                            "failure_class": "worker_timeout",
+                            "evidence": {"source_hash": "older-source-hash"},
+                        },
+                        "recommended_action": "require_review",
+                        "terminal": True,
+                        "terminal_reason": "repair_ceiling_exhausted",
+                    }
+                ],
+            }
+        ),
+        diagnostics_json="{}",
+        failure_boundary=None,
+        state="failed",
+        state_version=1,
+    )
+
+    class FakeDb:
+        def __init__(self) -> None:
+            self.commit_count = 0
+
+        def get(self, _model, _identifier):
+            return revision
+
+        def commit(self) -> None:
+            self.commit_count += 1
+
+    class FakeExecution:
+        action = "retry_stage"
+        executed = True
+        provider_calls = 0
+        worker_calls = 1
+        diagnostic = None
+
+        def to_record(self) -> dict[str, object]:
+            return {
+                "action": self.action,
+                "executed": self.executed,
+                "provider_calls": self.provider_calls,
+                "worker_calls": self.worker_calls,
+                "diagnostic": self.diagnostic,
+            }
+
+    db = FakeDb()
+    service = ExecutableCadQueryWorkflowService(db=db, data_dir=tmp_path)
+    operation = SimpleNamespace(
+        id="persisted-timeout-operation",
+        status="started",
+        workflow_id=workflow.id,
+    )
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(settings, "executable_cadquery_flow_enabled", True)
+    service._get = lambda _workflow_id: workflow
+    service.read = lambda _workflow_id: workflow
+    service._begin_operation = lambda *args, **kwargs: operation
+    service._project_service = lambda: "existing-project-service"
+
+    async def fake_execute(decision, **kwargs):
+        captured["decision"] = decision
+        captured["kwargs"] = kwargs
+        return FakeExecution()
+
+    service._recovery_executor.execute = fake_execute
+    service._reevaluate_revision_evidence = lambda *_args, **_kwargs: {
+        "status": "failed",
+        "failure_boundary": "execution",
+        "failure_class": "worker_timeout",
+        "source_hash": revision.source_hash,
+        "result_hash": "same-timeout-result",
+        "worker_result": {
+            "phase": "failed",
+            "output_ids": [],
+            "revision_id": revision.id,
+            "execution_diagnostics": {
+                "timed_out": True,
+                "message": "CAD worker did not complete job within 90 seconds",
+            },
+        },
+        "topology_result": {},
+        "semantic_result": {},
+        "diagnostic": {
+            "timed_out": True,
+            "message": "CAD worker did not complete job within 90 seconds",
+        },
+        "normalized_error": "CAD worker did not complete job within 90 seconds",
+        "comparison_facts": {
+            "contract_valid": True,
+            "extracted_source_hash": revision.source_hash,
+            "diagnostic_signature": "same-timeout",
+            "failure_signature": "CAD worker did not complete job within 90 seconds",
+            "phase_index": 0,
+            "completed_output_ids": [],
+            "valid": None,
+            "detected_solid_count": None,
+            "expected_solid_count": 1,
+            "failed_requirement_ids": [],
+            "unverifiable_requirement_ids": [],
+            "passed_requirement_ids": [],
+        },
+        "record": {
+            "status": "failed",
+            "source_hash": revision.source_hash,
+            "result_hash": "same-timeout-result",
+            "failure_boundary": "execution",
+            "failure_class": "worker_timeout",
+        },
+    }
+
+    result = await service.recover_persisted_execution_failure(workflow.id)
+
+    assert result is workflow
+    assert captured["decision"].recommended_action == "retry_stage"
+    assert captured["kwargs"]["project_service"] == "existing-project-service"
+    provenance = json.loads(workflow.provenance_json)
+    assert provenance["recovery_decisions"][0]["recommended_action"] == "require_review"
+    assert provenance["recovery_decisions"][1]["recommended_action"] == "retry_stage"
+    assert provenance["recovery_executions"][-1]["action"] == "retry_stage"
+    assert provenance["recovery_executions"][-1]["worker_calls"] == 1
+    assert provenance["recovery_decisions"][-1]["terminal"] is True
+    assert provenance["recovery_decisions"][-1]["terminal_reason"] == "same_source_hash_repeated"
+    assert operation.status == "completed"
+
+
 def test_recovery_recheck_preserves_topology_failure_from_worker_phase(tmp_path: Path) -> None:
     (tmp_path / "execution-manifest.json").write_text(
         json.dumps(

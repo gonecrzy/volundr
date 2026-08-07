@@ -470,18 +470,22 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             failure_class=failure_class,
             diagnostics=diagnostics,
         )
-        prior_attempt_ordinal = max(
-            (
-                int(
-                    item.get("observation", {}).get("attempt_ordinal") or 0
-                )
-                for item in provenance.get("recovery_decisions", [])
-                if isinstance(item, Mapping)
-                and isinstance(item.get("observation"), Mapping)
-                and item["observation"].get("failure_class") == failure_class
-            ),
-            default=0,
-        )
+        matching_attempts = [
+            item
+            for item in provenance.get("recovery_decisions", [])
+            if isinstance(item, Mapping)
+            and isinstance(item.get("observation"), Mapping)
+            and item["observation"].get("failure_class") == failure_class
+            and item.get("recommended_action") != "require_review"
+            and item.get("terminal") is not True
+            and (
+                not isinstance(item["observation"].get("evidence"), Mapping)
+                or not item["observation"]["evidence"].get("source_hash")
+                or item["observation"]["evidence"].get("source_hash")
+                == revision.source_hash
+            )
+        ]
+        prior_attempt_ordinal = len(matching_attempts)
         existing_decision = next(
             (
                 item
@@ -544,13 +548,185 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             "gemini_topology_repair",
             "gemini_semantic_repair",
         }
-        if decision.terminal or decision.recommended_action not in provider_actions:
+        if decision.terminal:
             execution_record["status"] = "terminal"
             execution_record["executed"] = False
             self._replace_last_recovery_execution(workflow, execution_record)
             operation.status = "failed"
             workflow.state = "failed"
             workflow.state_version += 1
+            self.db.commit()
+            return self.read(workflow.id)
+
+        if decision.recommended_action not in provider_actions:
+            # Persisted recovery can observe a worker-owned failure after a
+            # provider repair.  Route that decision through the existing
+            # worker/verifier executor before considering another provider
+            # operation; the router remains policy-only.
+            execution_record["status"] = "dispatching"
+            execution_record["executed"] = True
+            self._replace_last_recovery_execution(workflow, execution_record)
+            self.db.commit()
+            try:
+                recovery_execution = await self._recovery_executor.execute(
+                    decision,
+                    revision=revision,
+                    contract=contract,
+                    project_service=self._project_service(),
+                )
+                execution_record.update(recovery_execution.to_record())
+                execution_record["status"] = (
+                    "completed" if recovery_execution.executed else "failed"
+                )
+                self._replace_last_recovery_execution(workflow, execution_record)
+                self.db.commit()
+            except Exception as exc:
+                execution_record["status"] = "failed"
+                execution_record["diagnostic"] = safe_diagnostic(str(exc))
+                self._replace_last_recovery_execution(workflow, execution_record)
+                operation.status = "failed"
+                workflow.state = "failed"
+                workflow.state_version += 1
+                self.db.commit()
+                raise
+
+            if not recovery_execution.executed:
+                operation.status = "failed"
+                workflow.state = "failed"
+                workflow.state_version += 1
+                self.db.commit()
+                return self.read(workflow.id)
+
+            reevaluation = self._reevaluate_revision_evidence(revision, contract)
+            execution_record["reevaluation"] = reevaluation["record"]
+            self._replace_last_recovery_execution(workflow, execution_record)
+            self.db.commit()
+            if reevaluation["status"] == "passed":
+                self._clear_semantic_blocks(revision)
+                self.sync_outputs(workflow, revision)
+                self._merge_verification(workflow, reevaluation["semantic_result"])
+                provenance = self._json(workflow.provenance_json)
+                history = provenance.get("repair_history")
+                history = list(history) if isinstance(history, list) else []
+                history.append(
+                    {
+                        "operation_id": operation_id,
+                        "attempt_number": decision.attempt_ordinal,
+                        "repair_level": decision.repair_level,
+                        "failure_boundary": None,
+                        "failure_class": None,
+                        "source_hash": reevaluation["source_hash"],
+                        "result_hash": reevaluation["result_hash"],
+                        "recovery_action": decision.recommended_action,
+                        "progress": {"measurable_progress": True},
+                    }
+                )
+                self._record_executable_provenance(
+                    workflow,
+                    attempt_count=int(
+                        provenance.get("automatic_provider_operation_count") or 0
+                    ),
+                    history=history,
+                    source_hash=reevaluation["source_hash"],
+                    semantic_result=reevaluation["semantic_result"],
+                    provider_budget=int(
+                        provenance.get("automatic_provider_operation_budget")
+                        or AUTOMATIC_PROVIDER_OPERATION_BUDGET
+                    ),
+                )
+                operation.status = "completed"
+                self.db.commit()
+                return self.read(workflow.id)
+
+            recheck_facts = dict(reevaluation["comparison_facts"])
+            same_source_hash = recheck_facts.get("extracted_source_hash") == seed["source_hash"]
+            same_error_state = (
+                bool(seed.get("normalized_error"))
+                and seed.get("normalized_error") == reevaluation.get("normalized_error")
+            )
+            recheck_facts["same_source_hash"] = same_source_hash
+            recheck_facts["same_error_state"] = same_error_state
+            recheck_progress = compare_executable_progress(
+                decision.repair_level or "L1",
+                previous=comparison_facts,
+                current=recheck_facts,
+            )
+            recheck_progress["same_source_hash"] = same_source_hash
+            recheck_progress["same_error_state"] = same_error_state
+            next_observation = FailureObservation(
+                observed_stage=self._recovery_router.earliest_stage(
+                    reevaluation["failure_boundary"],
+                    reevaluation["failure_class"],
+                ),
+                failure_class=reevaluation["failure_class"],
+                evidence={
+                    **recheck_facts,
+                    "failure_boundary": reevaluation["failure_boundary"],
+                    "normalized_error": reevaluation["normalized_error"],
+                    "diagnostic": reevaluation["diagnostic"],
+                },
+                attempt_ordinal=decision.attempt_ordinal + 1,
+                progress=recheck_progress,
+            )
+            next_decision = self._recovery_router.route(next_observation)
+            self._persist_recovery_decision(workflow, next_decision)
+            provenance = self._json(workflow.provenance_json)
+            history = provenance.get("repair_history")
+            history = list(history) if isinstance(history, list) else []
+            history.append(
+                {
+                    "operation_id": f"{operation_id}:recheck",
+                    "attempt_number": decision.attempt_ordinal,
+                    "repair_level": next_decision.repair_level or decision.repair_level,
+                    "failure_boundary": reevaluation["failure_boundary"],
+                    "failure_class": reevaluation["failure_class"],
+                    "source_hash": reevaluation["source_hash"],
+                    "result_hash": reevaluation["result_hash"],
+                    "raw_response_hash": None,
+                    "provider_attempt": {},
+                    "normalized_error": reevaluation["normalized_error"],
+                    "worker_result": reevaluation["worker_result"],
+                    "topology_result": reevaluation["topology_result"],
+                    "semantic_result": reevaluation["semantic_result"],
+                    "diagnostic": reevaluation["diagnostic"],
+                    "progress": recheck_progress,
+                    "revision_id": revision.id,
+                    "recovery_action": decision.recommended_action,
+                }
+            )
+            self._record_executable_provenance(
+                workflow,
+                attempt_count=int(
+                    provenance.get("automatic_provider_operation_count") or 0
+                ),
+                history=history,
+                source_hash=reevaluation["source_hash"],
+                semantic_result=reevaluation["semantic_result"],
+                terminal_reason=next_decision.terminal_reason,
+                provider_budget=int(
+                    provenance.get("automatic_provider_operation_budget")
+                    or AUTOMATIC_PROVIDER_OPERATION_BUDGET
+                ),
+            )
+            workflow.failure_boundary = reevaluation["failure_boundary"]
+            diagnostics = self._json(workflow.diagnostics_json)
+            diagnostics.update(
+                {
+                    "kind": reevaluation["failure_class"],
+                    "message": safe_diagnostic(
+                        str(
+                            reevaluation["normalized_error"]
+                            or reevaluation["diagnostic"].get("message")
+                            or "Executable recovery did not resolve the failure."
+                        )
+                    ),
+                    "latest_recovery_decision": next_decision.to_record(),
+                }
+            )
+            workflow.diagnostics_json = json.dumps(diagnostics, sort_keys=True)
+            workflow.state = "failed"
+            workflow.state_version += 1
+            operation.status = "completed"
             self.db.commit()
             return self.read(workflow.id)
 
@@ -757,6 +933,12 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 executable_repair_envelope=envelope,
             )
             provider_attempt: dict[str, Any] = {"attempt_number": attempt_count, "level": level}
+            if envelope is not None:
+                # Keep the exact fact envelope beside the durable attempt
+                # record so a restart/audit can prove what the provider saw.
+                # It contains source, contract, and neutral measurements only;
+                # credentials are owned exclusively by the transport.
+                provider_attempt["repair_envelope"] = envelope
             failure_class: str | None = None
             failure_boundary = "provider_response"
             worker_result: dict[str, Any] = {}
@@ -1021,6 +1203,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "diagnostic": diagnostic,
                     "result_hash": current_result_hash,
                     "provider_attempt": provider_attempt,
+                    "repair_envelope": envelope,
                     "normalized_error": normalized_error,
                     "worker_result": worker_result,
                     "topology_result": topology_result,

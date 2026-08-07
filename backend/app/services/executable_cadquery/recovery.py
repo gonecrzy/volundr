@@ -655,7 +655,10 @@ class RecoveryRouter:
             int(evidence.get("consecutive_no_progress", 0) or 0),
         ) >= 2:
             terminal_reason = "two_consecutive_repairs_without_objective_progress"
-        elif evidence.get("same_source_hash") is True:
+        elif (
+            evidence.get("same_source_hash") is True
+            and evidence.get("same_error_state") is not False
+        ):
             terminal_reason = "same_source_hash_repeated"
         elif evidence.get("same_error_state") is True:
             terminal_reason = "same_error_state_repeated"
