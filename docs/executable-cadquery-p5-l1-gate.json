@@ -1,62 +1,152 @@
 {
-  "schema_version": "executable-cadquery-p5-l1-gate-v1",
-  "project_id": "project-05",
-  "status": "preserved_at_earliest_boundary",
-  "provider_calls_made": 0,
-  "worker_calls_made": 0,
-  "topology_reached": false,
-  "first_unresolved_boundary": "build_function",
   "authoritative_execution_evidence": "docs/executable-cadquery-offline-recovery-audit.json",
   "authoritative_source": {
+    "complete_source_available_for_dispatch": true,
+    "database_project_id": "ed2f7dea-5e56-46d2-b8bb-fe52adb214fe",
+    "execution_manifest_path": "data/projects/ed2f7dea-5e56-46d2-b8bb-fe52adb214fe/revisions/5a05dfad-0e04-4b67-8389-519142c5ede8/execution-manifest.json",
+    "execution_manifest_sha256": "7fdb04d62571b6522c05115aa5db403fae106dd7f59e0e72136ad0c4e1bf7c57",
+    "frozen_artifact_corpus_substituted": false,
+    "job_id": "5a05dfad-0e04-4b67-8389-519142c5ede8",
+    "parent_revision_id": "6128073b-e927-4d64-92b7-7fd922fc9f06",
+    "persisted_source_path": "data/projects/ed2f7dea-5e56-46d2-b8bb-fe52adb214fe/revisions/5a05dfad-0e04-4b67-8389-519142c5ede8/source.py",
+    "revision_id": "5a05dfad-0e04-4b67-8389-519142c5ede8",
     "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
-    "persisted_source_path": null,
-    "complete_source_available_for_dispatch": false,
-    "reason": "The authoritative audit persists the source hash and structured worker diagnostic, but no complete source artifact for that exact hash is present in the current workspace. The separate frozen artifact corpus is not substituted because doing so would resurrect a different worker result and move P5 downstream."
+    "source_is_live_persisted_revision": true,
+    "worker_result_path": "data/jobs/5a05dfad-0e04-4b67-8389-519142c5ede8/result.json",
+    "worker_result_sha256": "658a6302bbb284f445b35d78aa068e5d1ae8439d03343d1b7f6977c14ba00ffc",
+    "workflow_id": "9ab7b9bd-674e-4269-b451-6df370e07708"
+  },
+  "authority_verification": {
+    "database_project_identity": true,
+    "database_project_prompt_matches_frozen": true,
+    "diagnostic_boundary_is_build_function": true,
+    "diagnostic_exception_is_std_fail": true,
+    "diagnostic_operation_is_chamfer": true,
+    "diagnostic_topology_not_reached": true,
+    "execution_source_hash_matches": true,
+    "job_identity": true,
+    "job_output_ids_match_contract": true,
+    "revision_identity": true,
+    "revision_prompt_matches_frozen": true,
+    "source_hash_matches_job": true,
+    "source_hash_matches_revision": true,
+    "source_hash_matches_source": true,
+    "source_path_matches_revision": true,
+    "transport_proof_exists": true,
+    "worker_result_source_hash_matches": true,
+    "workflow_identity": true
+  },
+  "contract": {
+    "contract_sha256": "b8ce37f45c4adcc149c1d49173310587404293cc90d0e82ee7ce3cd66c4a77f9",
+    "output_ids": [
+      "support",
+      "mating_insert"
+    ],
+    "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-05/prompt-contract.json",
+    "prompt_sha256": "7418a4490d17777d0f4bc346d0cb60e7bb045b1f95819df35063d39c5296b0f6"
+  },
+  "dispatch_gate": {
+    "auth_header_required": "x-goog-api-key",
+    "authorized": false,
+    "complete_replacement_source_required": true,
+    "do_not_use_frozen_artifact_corpus_as_substitute": true,
+    "fallback_policy": "fallback_only_after_http_429",
+    "provider_transport_required": "gemini_api_rest",
+    "repair_level": "L1",
+    "terminal_after_one_bounded_l1": true,
+    "transport_proof_path": "docs/executable-cadquery-p3-transport-proof.json"
   },
   "execution_diagnostic": {
     "active_phase": "build_function",
-    "failure_source_line": 33,
-    "failure_source_function": "_make_support",
-    "failure_operation": "chamfer",
-    "failure_exception_type": "StdFail_NotDone",
-    "normalized_exception": "StdFail_NotDone / BRep_API: command not done",
-    "failure_message": "BRep_API: command not done",
     "cadquery_version": "2.8.0",
     "cadquery_worker_version": "cadquery-cli-runner-v1",
+    "failure_exception_type": "StdFail_NotDone",
+    "failure_message": "BRep_API: command not done",
+    "failure_operation": "chamfer",
+    "failure_source_function": "_make_support",
+    "failure_source_line": 33,
+    "normalized_exception": "StdFail_NotDone / BRep_API: command not done",
     "operation_before_valid": true,
     "topology_reached": false
   },
-  "contract": {
-    "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/frozen-corpus/project-05/prompt-contract.json",
-    "prompt_sha256": "7418a4490d17777d0f4bc346d0cb60e7bb045b1f95819df35063d39c5296b0f6",
-    "contract_sha256": "b8ce37f45c4adcc149c1d49173310587404293cc90d0e82ee7ce3cd66c4a77f9",
-    "output_ids": ["support", "mating_insert"]
+  "latest_execution_diagnostic": {
+    "active_phase": "build_function",
+    "failure_exception_type": "AttributeError",
+    "failure_message": "'Workplane' object has no attribute 'filterBy'",
+    "failure_operation": "filterBy",
+    "failure_phase": "build_function",
+    "failure_source_function": "_make_support",
+    "failure_source_line": 30,
+    "normalized_exception": "AttributeError / 'Workplane' object has no attribute 'filterBy'",
+    "topology_reached": false
   },
+  "first_unresolved_boundary": "build_function",
+  "latest_source_hash": "2e5df357941e4ec50c25ef7c08d474a9e4682a7bdf67be5630afaf96a2e1b777",
   "prior_l1_history": [
     {
-      "ordinal": 1,
-      "source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
-      "normalized_exception": "cadquery_api_error",
       "failure_operation": "chamfer",
-      "topology_reached": false,
-      "source_changed": false
+      "normalized_exception": "cadquery_api_error",
+      "ordinal": 1,
+      "source_changed": false,
+      "source_hash": "d16654e95058724a414ce004117d095fdf549e0ed9953504aaf344c287988408",
+      "topology_reached": false
     },
     {
-      "ordinal": 2,
-      "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
-      "normalized_exception": "cadquery_api_error",
       "failure_operation": "chamfer",
-      "topology_reached": false,
-      "source_changed": true
+      "normalized_exception": "cadquery_api_error",
+      "ordinal": 2,
+      "source_changed": true,
+      "source_hash": "c56da9a7e2035b596f36ef5d696236e5289afd42326e6af8a679583b42e071d4",
+      "topology_reached": false
     }
   ],
-  "dispatch_gate": {
+  "project_id": "project-05",
+  "provider_calls_made": 1,
+  "repair_envelope": {
+    "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/p5-l1-repair-envelope.json",
     "repair_level": "L1",
-    "complete_replacement_source_required": true,
-    "blocked_until": [
-      "exact authoritative complete source is persisted",
-      "same validated Gemini REST API-key transport is available"
+    "repair_ordinal": 3,
+    "sha256": "bf18b32d55e806e8a8859ef59d0572b1372b97e88e5bf1912da76c5991eeabc7"
+  },
+  "result": {
+    "decision": {
+      "decision": "stop",
+      "progress_result": "progressed",
+      "stop_reason": "repair_budget_exhausted"
+    },
+    "fallback_used": false,
+    "path": "data/debug-sessions/executable-cadquery/recovery-wave-01/authorized-l1-results/project-05/result.json",
+    "progress": {
+      "measurable_progress": true,
+      "no_violation_decrease_across_two_repairs": false,
+      "no_violation_decrease_streak": 0,
+      "progress_reasons": [
+        "prior_error_signature_removed",
+        "execution_diagnostic_changed"
+      ],
+      "progress_result": "progressed",
+      "protected_fact_regression": false,
+      "repair_level": "L1",
+      "same_diagnostic_signature": false,
+      "violation_count_decreased": false
+    },
+    "provider_calls_made": 1,
+    "sha256": "0c213172e42624332c25336005560532272fd321cc907dd251e22550dc45f683",
+    "status": "completed",
+    "worker_calls_made": 1
+  },
+  "runtime": {
+    "cadquery_version": "2.8.0",
+    "ocp_version": "7.9.3.1",
+    "version_evidence": [
+      "backend/pyproject.toml",
+      "backend/scripts/run_hybrid_geometry_ir_evaluation.py",
+      "docs/REPRESENTATIVE_WORKFLOW_WAVES.md"
     ],
-    "do_not_use_frozen_artifact_corpus_as_substitute": true
-  }
+    "worker_version": "cadquery-cli-runner-v1"
+  },
+  "schema_version": "executable-cadquery-p5-l1-gate-v1",
+  "status": "completed_one_bounded_l1",
+  "topology_reached": false,
+  "worker_calls_made": 1
 }
