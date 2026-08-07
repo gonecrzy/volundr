@@ -470,7 +470,14 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         self.data_dir,
                         revision_output.stl_path,
                     )
-                if output is None or len(stl_paths) != len(revision.outputs):
+                topology_invalid = topology_result.get("valid") is False
+                if topology_invalid:
+                    failure_boundary = "topology"
+                    topology_evidence = topology_result
+                    if len(topology_by_output) == 1:
+                        topology_evidence = next(iter(topology_by_output.values()), topology_result)
+                    failure_class = classify_executable_failure("topology", topology_evidence)
+                elif output is None or len(stl_paths) != len(revision.outputs):
                     failure_boundary = "artifact"
                     failure_class = classify_executable_failure("artifact", {"stl_failure": True})
                 else:
