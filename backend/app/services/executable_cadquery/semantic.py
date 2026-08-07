@@ -10,6 +10,9 @@ import trimesh
 
 from app.services.geometry.feature_measurements import _ray_parameters
 from app.services.geometry.invariants import _detect_axis_aligned_holes
+from app.services.executable_cadquery.semantic_contract import (
+    normalize_executable_cadquery_requirement,
+)
 
 
 def resolve_executable_cadquery_output_scope(
@@ -614,48 +617,100 @@ def _generic_requirement_finding(
 ) -> dict[str, Any]:
     requirement_id = str(requirement["requirement_id"])
     policy = str(requirement.get("verification_policy") or "")
-    expected = requirement.get("expected") if isinstance(requirement.get("expected"), Mapping) else {}
-    tolerance = _requirement_tolerance(requirement)
-    if policy == "final_mesh_bounds":
-        return _verify_bounds_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_opening_profiles":
-        return _verify_opening_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_opening_centers":
-        return _verify_opening_centers_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_axisymmetric_profiles":
-        return _verify_axisymmetric_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_axial_sections":
-        return _verify_axial_sections_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_recess_profile":
-        return _verify_recess_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_wall_profile":
-        return _verify_wall_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "final_mesh_feature_profiles":
-        return _verify_feature_requirement(requirement_id, mesh, expected, tolerance)
-    if policy == "cross_output_envelope":
-        return _verify_envelope_requirement(requirement_id, meshes, expected, tolerance)
-    if policy == "cross_output_clearance":
-        return _verify_clearance_requirement(requirement_id, meshes, expected, tolerance)
-    if policy == "cross_output_alignment":
-        return _verify_alignment_requirement(requirement_id, meshes, expected, tolerance)
-    if policy == "measure_when_supported":
-        if "size" in expected:
-            return _verify_chamfer_requirement(requirement_id, mesh, expected, tolerance)
-        if "radius" in expected:
-            return _verify_external_fillet(mesh, expected, {})
-    if policy == "required_output_artifact":
+    normalization = normalize_executable_cadquery_requirement(requirement)
+    if normalization["status"] != "normalized":
         return _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            measurements={"semantic_contract": normalization},
+        )
+    expected = normalization["expected"]
+    tolerance = _requirement_tolerance(requirement)
+    finding: dict[str, Any]
+    if policy == "final_mesh_bounds":
+        finding = _verify_bounds_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_opening_profiles":
+        finding = _verify_opening_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_opening_centers":
+        finding = _verify_opening_centers_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_axisymmetric_profiles":
+        finding = _verify_axisymmetric_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_axial_sections":
+        finding = _verify_axial_sections_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_recess_profile":
+        finding = _verify_recess_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_wall_profile":
+        finding = _verify_wall_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "final_mesh_feature_profiles":
+        finding = _verify_feature_requirement(requirement_id, mesh, expected, tolerance)
+    elif policy == "cross_output_envelope":
+        finding = _verify_envelope_requirement(requirement_id, meshes, expected, tolerance)
+    elif policy == "cross_output_clearance":
+        finding = _verify_clearance_requirement(requirement_id, meshes, expected, tolerance)
+    elif policy == "cross_output_alignment":
+        finding = _verify_alignment_requirement(requirement_id, meshes, expected, tolerance)
+    elif policy == "measure_when_supported":
+        if "size" in expected:
+            finding = _verify_chamfer_requirement(requirement_id, mesh, expected, tolerance)
+        elif "radius" in expected:
+            finding = _verify_external_fillet(mesh, expected, {})
+        else:
+            finding = _semantic_finding(
+                requirement_id,
+                status="unverifiable",
+                measurement_available=False,
+                measurements={"verification_policy": policy, "reason": "no supported expected field"},
+            )
+    elif policy == "required_output_artifact":
+        finding = _semantic_finding(
             requirement_id,
             status="passed",
             measurement_available=True,
             measurements={"output_id": output_id, "artifact_present": True},
         )
-    return _semantic_finding(
-        requirement_id,
-        status="unverifiable",
-        measurement_available=False,
-        measurements={"verification_policy": policy, "reason": "no generic verifier registered"},
-    )
+    else:
+        finding = _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            measurements={"verification_policy": policy, "reason": "no generic verifier registered"},
+        )
+    return _apply_semantic_contract_diagnostics(finding, normalization)
+
+
+def _apply_semantic_contract_diagnostics(
+    finding: dict[str, Any],
+    normalization: Mapping[str, Any],
+) -> dict[str, Any]:
+    unsupported = list(normalization.get("unsupported_fields") or [])
+    if not unsupported:
+        finding["semantic_contract"] = {
+            "version": normalization["version"],
+            "status": normalization["status"],
+            "canonical_fields": normalization.get("canonical_fields", []),
+            "shadowed_legacy_fields": normalization.get("shadowed_legacy_fields", []),
+        }
+        return finding
+    diagnostic = {
+        "version": normalization["version"],
+        "status": "unsupported_semantic_fields",
+        "unsupported_fields": unsupported,
+        "canonical_fields": normalization.get("canonical_fields", []),
+    }
+    if finding.get("status") == "passed":
+        return _semantic_finding(
+            str(finding["requirement_id"]),
+            status="unverifiable",
+            measurement_available=False,
+            evidence_source="partial_measurement",
+            measurements={
+                "partial_measurement": finding.get("measurements", {}),
+                "semantic_contract": diagnostic,
+            },
+        )
+    finding["semantic_contract"] = diagnostic
+    return finding
 
 
 def _verify_bounds_requirement(
@@ -683,13 +738,20 @@ def _verify_opening_requirement(
     tolerance: float,
 ) -> dict[str, Any]:
     holes = [hole for hole in _detect_axis_aligned_holes(mesh, "z", _tolerance_profile()) if hole.confidence >= 0.55]
-    diameter = expected.get("diameter", expected.get("hole_diameter"))
-    expected_count = int(expected.get("count") or 1)
+    diameter = expected.get("hole_diameter")
+    expected_count = int(expected["hole_count"]) if expected.get("hole_count") is not None else None
     matching = holes if diameter is None else [
         hole for hole in holes if abs(float(hole.diameter) - float(diameter)) <= tolerance
     ]
-    through = all(_probe_through(mesh, (float(hole.center[0]), float(hole.center[1]))) for hole in matching[:expected_count])
-    passed = len(matching) == expected_count and (expected.get("through") is not True or through)
+    selected = matching[:expected_count] if expected_count is not None else matching[:1]
+    through = bool(selected) and all(
+        _probe_through(mesh, (float(hole.center[0]), float(hole.center[1])))
+        for hole in selected
+    )
+    passed = (
+        (len(matching) == expected_count if expected_count is not None else bool(matching))
+        and (expected.get("through") is not True or through)
+    )
     return _semantic_finding(
         requirement_id,
         status="passed" if passed else "failed",
@@ -710,9 +772,16 @@ def _verify_opening_centers_requirement(
     tolerance: float,
 ) -> dict[str, Any]:
     holes = [hole for hole in _detect_axis_aligned_holes(mesh, "z", _tolerance_profile()) if hole.confidence >= 0.55]
-    diameter = float(expected.get("diameter") or 0)
+    diameter = float(expected["hole_diameter"]) if expected.get("hole_diameter") is not None else None
+    if diameter is None:
+        return _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            measurements={"reason": "hole diameter is required for opening-center measurement"},
+        )
     matching = [hole for hole in holes if abs(float(hole.diameter) - diameter) <= tolerance]
-    expected_count = int(expected.get("count") or 0)
+    expected_count = int(expected["hole_count"]) if expected.get("hole_count") is not None else None
     detected_pitch = None
     pitch_ok = True
     if matching:
@@ -721,7 +790,12 @@ def _verify_opening_centers_requirement(
         detected_pitch = 2.0 * float(np.mean(radii))
         if expected.get("pitch_circle_diameter") is not None:
             pitch_ok = abs(detected_pitch - float(expected["pitch_circle_diameter"])) <= tolerance
-    passed = len(matching) == expected_count and pitch_ok
+    count_matches = (
+        len(matching) == expected_count
+        if expected_count is not None
+        else bool(matching)
+    )
+    passed = count_matches and pitch_ok
     return _semantic_finding(
         requirement_id,
         status="passed" if passed else "failed",
@@ -807,7 +881,15 @@ def _verify_wall_requirement(
     intersections = sorted(float(value) for value in _ray_parameters(mesh, origin, np.asarray([0.0, 0.0, 1.0])))
     intervals = [right - left for left, right in zip(intersections, intersections[1:]) if right - left > 0.1]
     measured = min(intervals) if intervals else None
-    expected_value = float(expected.get("value") or 0)
+    expected_value = expected.get("wall_thickness")
+    if expected_value is None:
+        return _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            measurements={"reason": "wall thickness is required for wall-profile measurement"},
+        )
+    expected_value = float(expected_value)
     passed = measured is not None and abs(measured - expected_value) <= tolerance
     return _semantic_finding(
         requirement_id,

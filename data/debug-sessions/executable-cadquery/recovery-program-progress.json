@@ -9,7 +9,7 @@
   "origin_experimental_head": "3e00a0b Implement generic output identity and multi-output scope recovery",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B output-scope and output-identity checkpoint complete; remaining semantic subclusters queued",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B semantic policy, output scope/identity, and verifier field-mismatch checkpoints complete; next generic cluster queued",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -91,6 +91,15 @@
     ,"full_backend_phase_1b_output_scope_checkpoint_1453_passed"
     ,"frontend_phase_1b_output_scope_checkpoint_104_passed_and_build_passed"
     ,"alembic_phase_1b_output_scope_checkpoint_clean"
+    ,"phase_1b_verifier_field_mismatch_reconstructed"
+    ,"phase_1b_verifier_field_contract_matrix_persisted"
+    ,"phase_1b_verifier_field_synthetic_tests_red_then_green"
+    ,"phase_1b_verifier_field_offline_replay_completed_without_provider_or_worker"
+    ,"phase_1b_verifier_field_anti_overfitting_passed"
+    ,"phase_1b_verifier_field_product_path_audit_passed"
+    ,"full_backend_phase_1b_verifier_field_checkpoint_1465_passed"
+    ,"frontend_phase_1b_verifier_field_checkpoint_104_passed_and_build_passed"
+    ,"alembic_phase_1b_verifier_field_checkpoint_clean"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -165,8 +174,8 @@
     "target_eventual_independent_pass": "16/16",
     "current_cluster": "semantic_requirement_unverifiable",
     "current_cluster_projects": ["development-03","development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
-    "current_cluster_status": "classification_normalization_and_output_scope_identity_recovery_verified; remaining_subclusters_not_started",
-    "current_hypothesis": "Resolve explicit output/component scope from contract/runtime metadata and verify required output identity/count from the authoritative executable output registry, preserving fail-closed ambiguity behavior.",
+    "current_cluster_status": "classification_normalization, output scope/identity, and verifier field normalization recovered generically; remaining subclusters queued",
+    "current_hypothesis": "Normalize policy-specific legacy semantic fields into canonical verifier inputs once, preserve unsupported qualifiers and original contracts, remove implicit defaults, and fail closed on missing or conflicting information.",
     "provider_calls_current_cluster": 0,
     "repair_operations_current_cluster": 0,
     "unsupported_findings_before": 26,
@@ -184,7 +193,26 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["verifier_requirement_field_mismatch","feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch"],
+    "current_subcluster_status": "verifier_requirement_field_mismatch checkpoint complete; no next-cluster implementation started",
+    "verifier_field_mismatch": {
+      "affected_findings": 4,
+      "projects": ["development-03", "development-05", "development-07"],
+      "root_cause": "canonical contract fields were not consumed by the generic verifiers and absent fields received implicit defaults",
+      "recovery": "central policy-scoped canonical semantic requirement normalization with fail-closed conflict/missing handling",
+      "offline_field_loss_corrected": 4,
+      "measured_failures_preserved": 3,
+      "correctly_unverifiable_after_default_removal": 1,
+      "provider_calls": 0,
+      "worker_executions": 0,
+      "reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-reconstruction.json",
+      "field_contract_matrix": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-contract-matrix.json",
+      "replay": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-replay.json",
+      "anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-anti-overfitting.json",
+      "decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-decision.json",
+      "product_path_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-product-path-audit.json"
+    },
     "cluster_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-cluster-decision.json",
     "metrics": [
       "initial_independent_pass_rate",
@@ -226,7 +254,7 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 17,
+  "application_fix_count": 18,
   "application_fix_count_since_previous_checkpoint": 1,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
@@ -243,6 +271,7 @@
     "phase_0_downstream_reconciliation_provider_calls": 0,
     "p3_transport_forensics_provider_calls": 0
     ,"phase_1b_semantic_cluster_provider_calls": 0
+    ,"phase_1b_verifier_field_mismatch_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -312,6 +341,12 @@
     "phase_1b_output_scope_replay": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-replay.json",
     "phase_1b_output_scope_anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-anti-overfitting.json",
     "phase_1b_output_scope_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-decision.json",
-    "verification_current_checkpoint": "backend 1453 passed, 1 skipped, 1 warning with PYTHONPATH=/root/volundr; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; output-scope focused suite 9 passed and targeted semantic/repair suite 66 passed; provider_calls=0"
+    "phase_1b_verifier_field_mismatch_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-reconstruction.json",
+    "phase_1b_verifier_field_contract_matrix": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-contract-matrix.json",
+    "phase_1b_verifier_field_mismatch_replay": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-replay.json",
+    "phase_1b_verifier_field_mismatch_anti_overfitting": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-anti-overfitting.json",
+    "phase_1b_verifier_field_mismatch_decision": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-decision.json",
+    "phase_1b_verifier_field_mismatch_product_path_audit": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-product-path-audit.json",
+    "verification_current_checkpoint": "backend 1465 passed, 1 skipped, 1 warning; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; field-contract focused suite 13 passed; provider_calls=0"
   }
 }

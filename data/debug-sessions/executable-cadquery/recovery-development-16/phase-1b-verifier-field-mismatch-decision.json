@@ -1,0 +1,34 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-verifier-field-mismatch-decision-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "verifier_requirement_field_mismatch",
+  "decision": "checkpoint_complete",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "root_cause": "The frozen semantic contract uses canonical fields such as wall, hole_count, and hole_diameter while generic verifiers consume obsolete or generic names, default absent values, and cannot distinguish unsupported semantic qualifiers.",
+  "recovery_hypothesis": "Normalize supported contract representations once into canonical verifier fields, preserve the original contract, expose provenance and unsupported qualifiers, and fail closed on missing or conflicting canonical data.",
+  "implementation": {
+    "module": "backend/app/services/executable_cadquery/semantic_contract.py",
+    "integration": "backend/app/services/executable_cadquery/semantic.py",
+    "canonical_fields": ["wall_thickness", "hole_count", "hole_diameter", "pitch_circle_diameter", "through"],
+    "legacy_aliases": ["wall", "value", "count", "diameter"],
+    "unsupported_semantics_preserved": ["bottom", "open_top", "nearest_wall_offset", "mounting_face", "wall_mounted", "flat_surface_mount", "screw_hole_count"],
+    "implicit_defaults_removed": ["wall thickness 0", "opening count 1", "opening-center diameter 0", "opening-center count 0"]
+  },
+  "offline_evaluation": "phase-1b-verifier-field-mismatch-replay.json",
+  "anti_overfitting": "phase-1b-verifier-field-mismatch-anti-overfitting.json",
+  "product_path_audit": "phase-1b-verifier-field-mismatch-product-path-audit.json",
+  "newly_exposed_blockers": [
+    "feature verifiers for bottom/open-top, nearest-wall offset, mounting-face, wall-mounted, flat-surface, and screw-hole qualifications",
+    "development-05 geometry-owned diameter discrepancy remains a measured failure",
+    "the existing mounting-bracket workflow fixture is now correctly blocked when unsupported center/position fields cannot be proven; its prior candidate-ready result depended on implicit verifier defaults"
+  ],
+  "gate_status": {
+    "phase_1b_cluster_checkpoint": "complete",
+    "phase_1b_overall": "in_progress",
+    "development_16_of_16": "not_opened",
+    "policy_freeze": "not_eligible",
+    "phase_2": "not_started",
+    "next_cluster": "feature_profile_capability_gap"
+  }
+}

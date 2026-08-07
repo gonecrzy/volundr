@@ -1,0 +1,119 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-verifier-field-mismatch-reconstruction-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "verifier_requirement_field_mismatch",
+  "provider_calls": 0,
+  "worker_replays": 0,
+  "historical_evidence_preserved": true,
+  "historical_matrix": "data/debug-sessions/executable-cadquery/recovery-development-16/first-blocker-matrix.json",
+  "trace_boundary": [
+    "user/design requirement",
+    "normalized requirement",
+    "requirement ledger and semantic contract",
+    "verifier dispatch",
+    "verifier-consumed fields",
+    "persisted measurement result"
+  ],
+  "findings": [
+    {
+      "project": "development-03",
+      "requirement_id": "housing_walls",
+      "kind": "wall_thickness",
+      "declared_scope": "sensor_housing",
+      "contract_expected": {"wall": 2.5, "bottom": 3.0, "open_top": true},
+      "normalized_expected_before_recovery": {"wall": 2.5, "bottom": 3.0, "open_top": true},
+      "verifier_policy": "final_mesh_wall_profile",
+      "verifier_consumed_fields": ["value"],
+      "missing_or_mismatched_fields": ["wall -> value"],
+      "equivalent_information_elsewhere": "wall is the canonical wall-thickness value in this contract; bottom and open_top are distinct qualitative requirements and are not aliases",
+      "persisted_result": {
+        "status": "failed",
+        "measurement_available": true,
+        "expected_wall_thickness_mm": 0.0,
+        "detected_wall_thickness_mm": 3.0
+      },
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application/verifier_compatibility",
+      "user_visible_meaning": "The wall-thickness verifier did not consume the contract's wall value; the persisted geometry evidence still indicates a measured 3.0 mm wall and the distinct bottom/open-top obligations remain outside this verifier."
+    },
+    {
+      "project": "development-03",
+      "requirement_id": "housing_bosses",
+      "kind": "opening_centers",
+      "declared_scope": "sensor_housing",
+      "contract_expected": {"count": 4, "hole_diameter": 2.5, "nearest_wall_offset": 8.0},
+      "normalized_expected_before_recovery": {"count": 4, "hole_diameter": 2.5, "nearest_wall_offset": 8.0},
+      "verifier_policy": "final_mesh_opening_centers",
+      "verifier_consumed_fields": ["diameter", "count", "pitch_circle_diameter"],
+      "missing_or_mismatched_fields": ["hole_diameter -> diameter", "nearest_wall_offset has no consumed field", "count is consumed but is not the missing diameter alias"],
+      "equivalent_information_elsewhere": "hole_diameter is the requested diameter; nearest_wall_offset is a separate placement constraint, not a pitch-circle diameter alias",
+      "persisted_result": {
+        "status": "failed",
+        "measurement_available": true,
+        "expected_count": 4,
+        "detected_count": 0,
+        "expected_pitch_circle_diameter_mm": null,
+        "detected_pitch_circle_diameter_mm": null
+      },
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application/verifier_compatibility",
+      "user_visible_meaning": "The diameter field was not mapped into the opening-center verifier, and the nearest-wall placement obligation has no registered evidence path; no hole placement PASS may be inferred."
+    },
+    {
+      "project": "development-05",
+      "requirement_id": "organizer_wall_mount",
+      "kind": "wall_mount_openings",
+      "declared_scope": "cable_organizer",
+      "contract_expected": {"mounting_face": "flat", "hole_count": 2, "hole_diameter": 4.0, "wall_mounted": true},
+      "normalized_expected_before_recovery": {"mounting_face": "flat", "hole_count": 2, "hole_diameter": 4.0, "wall_mounted": true},
+      "verifier_policy": "final_mesh_opening_profiles",
+      "verifier_consumed_fields": ["diameter", "count", "through"],
+      "missing_or_mismatched_fields": ["hole_count -> count", "hole_diameter -> diameter", "mounting_face and wall_mounted have no consumed fields"],
+      "equivalent_information_elsewhere": "hole_count and hole_diameter are canonical opening fields; flat mounting and wall-mounted intent are semantic qualifiers, not generic opening aliases",
+      "persisted_result": {
+        "status": "failed",
+        "measurement_available": true,
+        "expected_count": 1,
+        "detected_count": 0,
+        "detected_diameters_mm": [8.481, 8.481, 8.481, 8.481]
+      },
+      "geometry_ownership_note": "The persisted neutral evidence also records a genuine diameter discrepancy (detected approximately 8.481 mm versus requested 4.0 mm); canonical normalization must preserve failure rather than turn it into PASS.",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application/verifier_compatibility for field loss; geometry for the measured diameter discrepancy",
+      "user_visible_meaning": "The verifier under-read the requested opening count and diameter, while the available measurement still indicates the generated openings do not meet the requested diameter."
+    },
+    {
+      "project": "development-07",
+      "requirement_id": "guide_mounting",
+      "kind": "screw_mounting",
+      "declared_scope": "curved_cable_guide",
+      "contract_expected": {"flat_surface_mount": true, "screw_hole_count": 2},
+      "normalized_expected_before_recovery": {"flat_surface_mount": true, "screw_hole_count": 2},
+      "verifier_policy": "final_mesh_opening_profiles",
+      "verifier_consumed_fields": ["diameter", "count", "through"],
+      "missing_or_mismatched_fields": ["screw_hole_count is a narrower semantic field than generic hole_count", "flat_surface_mount has no consumed field"],
+      "equivalent_information_elsewhere": "The numeric screw-hole count is related to, but not interchangeable with, an unqualified opening count; flat-surface mounting requires a separate feature verifier",
+      "persisted_result": {
+        "status": "failed",
+        "measurement_available": true,
+        "expected_count": 1,
+        "detected_count": 2,
+        "detected_diameters_mm": [4.5, 4.5]
+      },
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application/verifier_compatibility",
+      "user_visible_meaning": "Generic opening evidence cannot by itself prove screw-hole identity or a flat mounting face; correcting the count field must not silently satisfy those additional obligations."
+    }
+  ],
+  "ownership_conclusion": {
+    "shared_gap": "The semantic contract carries canonical field names while registered generic verifiers consume obsolete or generic names and default missing values.",
+    "first_incorrect_owner": "application/verifier_compatibility",
+    "separate_coverage_gaps": ["nearest_wall_offset", "mounting_face", "wall_mounted", "flat_surface_mount", "screw_hole_count qualification"],
+    "geometry_owned_evidence_preserved": ["development-05/organizer_wall_mount diameter discrepancy"],
+    "confidence": "confirmed from persisted contract fields, verifier reads, and reconciled measurements"
+  }
+}

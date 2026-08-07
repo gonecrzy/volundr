@@ -1,0 +1,29 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-verifier-field-mismatch-anti-overfitting-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "verifier_requirement_field_mismatch",
+  "result": "passed",
+  "checks": {
+    "project_id_logic": false,
+    "project_number_logic": false,
+    "frozen_dimensions_in_application": false,
+    "feature_name_special_cases": false,
+    "known_final_source": false,
+    "prompt_copied_into_application": false,
+    "geometry_similarity_or_positional_matching": false,
+    "verifier_specific_alias_sprawl": false,
+    "semantic_differences_collapsed_into_aliases": false,
+    "missing_or_conflicting_data_fails_closed": true,
+    "measured_failures_remain_failures": true,
+    "synthetic_project_independent_tests": true,
+    "existing_output_scope_resolver_reused": true,
+    "provider_calls": 0,
+    "worker_executions": 0
+  },
+  "general_rule": "Only policy-defined canonical fields and explicitly documented legacy aliases are normalized; all other fields remain unsupported diagnostics.",
+  "evidence": [
+    "phase-1b-verifier-field-contract-matrix.json",
+    "backend/tests/test_executable_cadquery_semantic_contract.py",
+    "backend/app/services/executable_cadquery/semantic_contract.py"
+  ]
+}

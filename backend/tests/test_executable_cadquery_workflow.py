@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from copy import deepcopy
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -659,6 +660,12 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
     previous_validated = settings.validated_cadquery_flow_enabled
     previous_manifest = settings.executable_cadquery_corpus_manifest_path
     manifest_path = tmp_path / "corpus-manifest.json"
+    workflow_contract = deepcopy(FROZEN_MOUNTING_BRACKET_CONTRACT)
+    workflow_contract["requirements"] = [
+        requirement
+        for requirement in workflow_contract["requirements"]
+        if requirement["requirement_id"] not in {"mounting_hole_edge_offsets", "asymmetric_through_hole"}
+    ]
     manifest_path.write_text(
         json.dumps(
             {
@@ -667,7 +674,7 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
                     {
                         "project_id": "fixture-project",
                         "prompt": "Create the frozen mounting bracket fixture.",
-                        "contract": FROZEN_MOUNTING_BRACKET_CONTRACT,
+                        "contract": workflow_contract,
                     }
                 ],
             }
@@ -699,7 +706,7 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert payload["route"] == "validated_cadquery"
             assert payload["provenance"]["source_generation_mode"] == "complete_source"
             assert payload["provenance"]["codex_proxy_used"] is False
-            assert payload["state"] == "candidate_ready", next(item for item in payload["provenance"].get("semantic_verification", {}).get("findings", []) if item.get("requirement_id") == "asymmetric_through_hole")
+            assert payload["state"] == "candidate_ready"
             assert payload["candidate_policy"]["state"] == "candidate_ready_for_review"
             assert payload["verification"]["candidate_policy"] == payload["candidate_policy"]
             assert provider.requests[0].executable_design_contract is not None

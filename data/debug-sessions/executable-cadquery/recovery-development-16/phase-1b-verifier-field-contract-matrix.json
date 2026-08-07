@@ -1,0 +1,63 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-verifier-field-contract-matrix-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "verifier_requirement_field_mismatch",
+  "provider_calls": 0,
+  "canonicalization_boundary": "contract representation -> canonical semantic requirement -> verifier",
+  "matrix": [
+    {
+      "semantic": "wall thickness",
+      "policies": ["final_mesh_wall_profile"],
+      "canonical_contract_field": "wall_thickness",
+      "canonical_verifier_input": "wall_thickness",
+      "supported_legacy_forms": ["wall", "value"],
+      "currently_consumed": ["value"],
+      "unsupported_related_fields": ["bottom", "open_top"],
+      "conflict_rule": "canonical wall_thickness wins; conflicting legacy aliases fail closed when canonical is absent",
+      "semantic_difference_preserved": true
+    },
+    {
+      "semantic": "generic through opening profile",
+      "policies": ["final_mesh_opening_profiles"],
+      "canonical_contract_field": "hole_count, hole_diameter, through",
+      "canonical_verifier_input": "hole_count, hole_diameter, through",
+      "supported_legacy_forms": ["count -> hole_count", "diameter -> hole_diameter"],
+      "currently_consumed": ["count", "diameter", "through"],
+      "unsupported_related_fields": ["mounting_face", "wall_mounted", "flat_surface_mount", "screw_hole_count qualifier"],
+      "conflict_rule": "canonical field wins; conflicting legacy aliases fail closed when canonical is absent",
+      "semantic_difference_preserved": true
+    },
+    {
+      "semantic": "opening centers and pattern",
+      "policies": ["final_mesh_opening_centers"],
+      "canonical_contract_field": "hole_count, hole_diameter, pitch_circle_diameter",
+      "canonical_verifier_input": "hole_count, hole_diameter, pitch_circle_diameter",
+      "supported_legacy_forms": ["count -> hole_count", "diameter -> hole_diameter"],
+      "currently_consumed": ["count", "diameter", "pitch_circle_diameter"],
+      "unsupported_related_fields": ["nearest_wall_offset"],
+      "conflict_rule": "canonical field wins; conflicting legacy aliases fail closed when canonical is absent",
+      "semantic_difference_preserved": true
+    }
+  ],
+  "non_aliases": [
+    {"field": "screw_hole_count", "reason": "a screw-hole qualification is narrower than an unqualified opening count"},
+    {"field": "nearest_wall_offset", "reason": "a placement offset is not a pitch-circle diameter"},
+    {"field": "mounting_face", "reason": "face orientation/identity is not a hole diameter or count"},
+    {"field": "wall_mounted", "reason": "mounting relationship is not generic opening evidence"},
+    {"field": "flat_surface_mount", "reason": "surface qualification requires its own geometric evidence"},
+    {"field": "bottom", "reason": "bottom thickness is not wall thickness"},
+    {"field": "open_top", "reason": "topology/feature state is not wall thickness"}
+  ],
+  "ownership": {
+    "normalization": "application semantic-contract compatibility boundary",
+    "verifier_dispatch": "correct policy dispatch exists for the affected generic policies",
+    "individual_verifier": "currently consumes obsolete/generic field names and defaults absent values; it must consume canonical normalized input",
+    "generated_requirement": "not the first incorrect owner; frozen contract fields are explicit and semantically distinct"
+  },
+  "design_constraints": [
+    "No project IDs, dimensions, source names, or geometry similarity are used.",
+    "Unknown, missing, ambiguous, or conflicting semantic fields remain unverifiable.",
+    "Persisted original contracts remain unchanged; canonical input is a derived, provenance-bearing view.",
+    "Output scope is resolved by the existing centralized resolver before output-local measurement."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-verifier-field-mismatch-product-path-audit-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "verifier_requirement_field_mismatch",
+  "result": "passes_architecture_sanity_check",
+  "canonical_requirement_boundary": "The original persisted contract remains authoritative; semantic_contract.py creates a deterministic versioned derived verifier view.",
+  "checks": {
+    "authoritative_requirement_ledger": "Requirement ID, original expected fields, scope, classification, authority, tolerance, and provenance remain available to the ledger; canonical fields are additive diagnostics.",
+    "revision_persistence": "The derived view is deterministic from the persisted requirement and normalization version, so revisions can retain stable requirement identity and recompute without rewriting history.",
+    "frontend_display": "The semantic-policy result preserves semantic_contract diagnostics, allowing a frontend to show canonical meaning, unsupported qualifiers, and fail-closed status without knowing verifier aliases.",
+    "user_revision_reference": "Revision instructions can refer to the stable requirement ID and user-facing semantic meaning; they do not need to name wall/value or count/diameter implementation aliases.",
+    "diagnostic_explanation": "Pass, measured failure, and unverifiable outcomes remain distinguishable; normalization diagnostics explain missing, conflicting, shadowed, and unsupported fields.",
+    "application_contract_stability": "Canonical fields are policy-scoped and versioned; semantically different fields are not collapsed, and original contract fields are not silently replaced.",
+    "frontend_changes_required": false
+  },
+  "evidence": [
+    "backend/app/services/executable_cadquery/semantic_contract.py",
+    "backend/app/services/executable_cadquery/semantic_policy.py",
+    "backend/tests/test_executable_cadquery_semantic_contract.py",
+    "phase-1b-verifier-field-contract-matrix.json"
+  ]
+}

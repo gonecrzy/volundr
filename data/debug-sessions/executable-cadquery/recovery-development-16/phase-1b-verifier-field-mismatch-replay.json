@@ -1,0 +1,70 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-verifier-field-mismatch-replay-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "cluster": "verifier_requirement_field_mismatch",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "replay_mode": "persisted_contract_and_measurement_projection_only",
+  "geometry_claim_boundary": "No CAD source or worker artifact was regenerated. New results reuse only persisted neutral measurements; unsupported geometric qualifiers remain unverifiable.",
+  "findings": [
+    {
+      "project": "development-03",
+      "requirement_id": "housing_walls",
+      "old_result": {"status": "failed", "measurement_available": true, "expected_wall_thickness_mm": 0.0, "detected_wall_thickness_mm": 3.0},
+      "canonical_expected": {"wall": 2.5, "bottom": 3.0, "open_top": true, "wall_thickness": 2.5},
+      "normalized_fields": {"wall_thickness": 2.5},
+      "unsupported_fields": ["bottom", "open_top"],
+      "new_result": {"status": "failed", "measurement_available": true, "expected_wall_thickness_mm": 2.5, "detected_wall_thickness_mm": 3.0},
+      "outcome": "measured_failure_preserved",
+      "next_blocker": "bottom thickness and open-top topology require separate general verifiers"
+    },
+    {
+      "project": "development-03",
+      "requirement_id": "housing_bosses",
+      "old_result": {"status": "failed", "measurement_available": true, "expected_count": 4, "expected_pitch_circle_diameter_mm": null, "detected_count": 0, "detected_pitch_circle_diameter_mm": null},
+      "canonical_expected": {"count": 4, "hole_diameter": 2.5, "nearest_wall_offset": 8.0, "hole_count": 4},
+      "normalized_fields": {"hole_count": 4, "hole_diameter": 2.5},
+      "unsupported_fields": ["nearest_wall_offset"],
+      "new_result": {"status": "failed", "measurement_available": true, "expected_count": 4, "detected_count": 0, "expected_pitch_circle_diameter_mm": null, "detected_pitch_circle_diameter_mm": null},
+      "outcome": "field_loss_recovered_but_measured_failure_preserved",
+      "next_blocker": "nearest-wall placement evidence remains unsupported; no pitch-circle value is inferred from nearest_wall_offset"
+    },
+    {
+      "project": "development-05",
+      "requirement_id": "organizer_wall_mount",
+      "old_result": {"status": "failed", "measurement_available": true, "expected_count": 1, "detected_count": 0, "detected_diameters_mm": [8.481, 8.481, 8.481, 8.481]},
+      "canonical_expected": {"mounting_face": "flat", "hole_count": 2, "hole_diameter": 4.0, "wall_mounted": true},
+      "normalized_fields": {"hole_count": 2, "hole_diameter": 4.0},
+      "unsupported_fields": ["mounting_face", "wall_mounted"],
+      "new_result": {"status": "failed", "measurement_available": true, "expected_count": 2, "detected_count": 0, "detected_diameters_mm": [8.481, 8.481, 8.481, 8.481]},
+      "outcome": "field_loss_recovered_but_geometry_discrepancy_preserved",
+      "next_blocker": "geometry-owned diameter discrepancy remains (approximately 8.481 mm detected versus 4.0 mm requested), plus mounting qualifiers lack verifiers"
+    },
+    {
+      "project": "development-07",
+      "requirement_id": "guide_mounting",
+      "old_result": {"status": "failed", "measurement_available": true, "expected_count": 1, "detected_count": 2, "detected_diameters_mm": [4.5, 4.5]},
+      "canonical_expected": {"flat_surface_mount": true, "screw_hole_count": 2},
+      "normalized_fields": {},
+      "unsupported_fields": ["flat_surface_mount", "screw_hole_count"],
+      "new_result": {"status": "unverifiable", "measurement_available": false},
+      "outcome": "implicit_generic_count_removed_and_fail_closed",
+      "next_blocker": "a general verifier is needed for screw-hole qualification and flat mounting-face evidence"
+    }
+  ],
+  "cohort_impact": {
+    "affected_findings": 4,
+    "field_loss_corrected": 4,
+    "measured_failures_preserved": 3,
+    "correctly_unverifiable_after_removing_implicit_default": 1,
+    "fake_passes": 0,
+    "geometry_replays": 0,
+    "worker_replays": 0,
+    "provider_calls": 0
+  },
+  "unrelated_requirements": {
+    "regression_suite": "focused semantic, policy, scope, and repair suites passed",
+    "changed": false,
+    "basis": "canonicalization is policy-scoped to the three affected generic verifier families; output scope resolver remains the same resolver and all prior output-scope tests pass"
+  }
+}

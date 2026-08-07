@@ -92,8 +92,7 @@ def evaluate_semantic_policy(
         elif result == "unsupported_verifier":
             unsupported.append(requirement_id)
 
-        evaluated.append(
-            {
+        evaluated_finding = {
                 "requirement_id": requirement_id,
                 "policy": policy,
                 "verification_policy": requirement.get("verification_policy"),
@@ -105,7 +104,9 @@ def evaluate_semantic_policy(
                 "evidence_source": _evidence_source(finding, measurement_available),
                 "observed_status": observed_status,
             }
-        )
+        if isinstance(finding, Mapping) and "semantic_contract" in finding:
+            evaluated_finding["semantic_contract"] = deepcopy(finding["semantic_contract"])
+        evaluated.append(evaluated_finding)
 
     # Preserve topology and other non-contract evidence for diagnostics, but
     # never let it hide a contract requirement or change a missing verifier
