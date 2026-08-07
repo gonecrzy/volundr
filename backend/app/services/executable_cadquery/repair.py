@@ -116,6 +116,7 @@ def build_executable_cadquery_repair_envelope(
         if isinstance(item, Mapping) and item.get("topology_result") is not None
     ]
     execution_diagnostic = _structured_facts(worker.get("execution_diagnostics") or worker.get("diagnostics") or {})
+    semantic_repair_facts = _semantic_repair_facts(semantic_result, contract)
     return {
         "schema_version": REPAIR_ENVELOPE_SCHEMA_VERSION,
         "repair_level": repair_level,
@@ -147,9 +148,67 @@ def build_executable_cadquery_repair_envelope(
         "failing_output_ids": failing_output_ids,
         "preserved_valid_output_ids": preserved_valid_output_ids,
         "semantic_result": _structured_facts(semantic_result),
+        "passed_machine_requirements": semantic_repair_facts["passed_machine_requirements"],
+        "failed_machine_requirements": semantic_repair_facts["failed_machine_requirements"],
+        "semantic_repair_facts": semantic_repair_facts["failed_facts"],
         "protected_facts": _structured_facts(protected_facts or []),
         "repair_history": _structured_facts(repair_history or []),
         "requested_delta": requested_delta,
+    }
+
+
+def _semantic_repair_facts(
+    semantic_result: Mapping[str, Any] | None,
+    contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Project machine-required semantic facts into a repair-safe envelope."""
+
+    semantic = semantic_result if isinstance(semantic_result, Mapping) else {}
+    findings = {
+        str(item.get("requirement_id")): item
+        for item in semantic.get("findings", [])
+        if isinstance(item, Mapping) and item.get("requirement_id")
+    }
+    passed_claims = {str(item) for item in semantic.get("passed", []) if item}
+    failed_claims = {str(item) for item in semantic.get("failed", []) if item}
+    passed: list[str] = []
+    failed: list[str] = []
+    failed_facts: list[dict[str, Any]] = []
+    for requirement in contract.get("requirements", []):
+        if not isinstance(requirement, Mapping) or not requirement.get("requirement_id"):
+            continue
+        requirement_id = str(requirement["requirement_id"])
+        if str(requirement.get("policy") or "machine_required") != "machine_required":
+            continue
+        finding = findings.get(requirement_id, {})
+        observed = str(finding.get("result") or finding.get("status") or "")
+        is_passed = observed in {"passed", "verified"} or requirement_id in passed_claims
+        is_failed = observed in {"failed", "violated"} or requirement_id in failed_claims
+        if is_passed:
+            passed.append(requirement_id)
+        if is_failed:
+            failed.append(requirement_id)
+            failed_facts.append(
+                {
+                    "requirement_id": requirement_id,
+                    "expected_value": _structured_facts(
+                        finding.get("expected_value", requirement.get("expected"))
+                    ),
+                    "measured_value": _structured_facts(
+                        finding.get("measured_value", finding.get("measurements"))
+                    ),
+                    "tolerance": finding.get("tolerance", requirement.get("tolerance")),
+                    "measurement_method": finding.get(
+                        "verification_policy", requirement.get("verification_policy")
+                    ),
+                    "measurement_source": finding.get("evidence_source") or "final_mesh",
+                    "status": "failed",
+                }
+            )
+    return {
+        "passed_machine_requirements": passed,
+        "failed_machine_requirements": failed,
+        "failed_facts": failed_facts,
     }
 
 

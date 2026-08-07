@@ -1,0 +1,41 @@
+{
+  "schema_version": "executable-cadquery-p3-transport-proof-v1",
+  "project_id": "project-03",
+  "status": "proven_offline_before_provider_call",
+  "proof_commit": "a7df12bf16620ac702d4418d093a1eeedd2e795f",
+  "failed_historical_path": {
+    "provider_class": "app.services.ai.gemini_cli.GeminiCliProvider",
+    "invocation": "backend/scripts/run_authorized_executable_cadquery_l2.py",
+    "transport": "Gemini CLI subprocess",
+    "auth_mode": "OAuth / Gemini Code Assist profile",
+    "failure": "IneligibleTierError",
+    "api_key_rest": false,
+    "provider_response_received": false
+  },
+  "corrected_path": {
+    "factory": "app.api.dependencies.build_executable_ai_provider",
+    "accepted_configured_values": ["gemini_api", "google_gemini_api", "gemini", "gemini_cli"],
+    "provider_class": "app.services.ai.gemini_api.GeminiApiProvider",
+    "transport_class": "app.services.ai.validated_transport.ValidatedGeminiTransport",
+    "http_method": "POST",
+    "endpoint": "/models/{model}:generateContent",
+    "auth_header": "x-goog-api-key",
+    "primary_credential_slot": "GEMINI_API_KEY",
+    "fallback_credential_slot": "GEMINI_API_KEY_2",
+    "subprocess_profile_auth": false
+  },
+  "implementation_hashes": {
+    "backend/app/api/dependencies.py": "510859f1aa70118444a351a6afb22b4719ce33c5240d7805835e9c11dbb1eb57",
+    "backend/app/services/ai/gemini_api.py": "9b6ef990a9b699510655b57292cb83293e9251d9b85da9dea4f2331b2af039be",
+    "backend/app/services/ai/validated_transport.py": "b22554f6c9104e7301eeb78e6ff86529c27e88a702721a4e323f789e23e69e65",
+    "backend/app/services/ai/gemini_cli.py": "42ef763f68fd230486f2fc91008bf66062a5ecdf17474a015782e567b38fc592"
+  },
+  "regression_test": "backend/tests/test_executable_cadquery_routing.py::test_executable_repair_dispatch_uses_api_key_rest_even_if_cli_is_configured",
+  "offline_test_result": "2 passed",
+  "same_api_key_transport_proven": true,
+  "one_exact_p3_l2_continuation_allowed": true,
+  "provider_calls_made_by_proof": 0,
+  "credentials_changed": false,
+  "alternate_models_probed": false,
+  "keys_rotated": false
+}

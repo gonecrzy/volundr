@@ -100,7 +100,7 @@
       "provider_attempts": 1,
       "provider_calls_made": 0,
       "provider_responses": 0,
-      "provider_transport_call_allowed": false,
+      "provider_transport_call_allowed": true,
       "repair_gate": "one_l2_repair_blocked_before_response",
       "solid_counts": {
         "curved_cable_guide": {
@@ -193,6 +193,16 @@
         }
       ],
       "topology": "invalid",
+      "transport_fix": {
+        "status": "proven_offline_before_provider_call",
+        "proof_path": "docs/executable-cadquery-p3-transport-proof.json",
+        "proof_commit": "a7df12bf16620ac702d4418d093a1eeedd2e795f",
+        "provider": "gemini_api",
+        "transport": "validated_gemini_transport",
+        "auth_header": "x-goog-api-key",
+        "regression_test": "backend/tests/test_executable_cadquery_routing.py::test_executable_repair_dispatch_uses_api_key_rest_even_if_cli_is_configured",
+        "provider_calls_made": 0
+      },
       "transport_forensics": {
         "additional_p3_provider_call_allowed": false,
         "alternate_models_probed": false,

@@ -313,6 +313,64 @@ def test_l2_envelope_preserves_source_contract_output_policy_and_topology_measur
     assert envelope["topology_result"] == topology
 
 
+def test_l3_envelope_persists_precise_semantic_repair_facts_and_passed_machine_requirements() -> None:
+    contract = {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "outputs": [{"output_id": "part", "required": True, "expected_solid_count": 1}],
+        "requirements": [
+            {"requirement_id": "passed_dimension", "expected": {"width": 10.0}},
+            {"requirement_id": "failed_dimension", "expected": {"height": 20.0}},
+        ],
+    }
+    semantic = {
+        "status": "failed",
+        "passed": ["passed_dimension"],
+        "failed": ["failed_dimension"],
+        "findings": [
+            {
+                "requirement_id": "passed_dimension",
+                "status": "passed",
+                "measurements": {"width_mm": 10.0},
+                "expected_value": {"width": 10.0},
+                "tolerance": 0.25,
+                "verification_policy": "final_mesh_bounds",
+                "evidence_source": "final_mesh",
+            },
+            {
+                "requirement_id": "failed_dimension",
+                "status": "failed",
+                "measurements": {"height_mm": 19.0},
+                "expected_value": {"height": 20.0},
+                "tolerance": 0.25,
+                "verification_policy": "final_mesh_bounds",
+                "evidence_source": "final_mesh",
+            },
+        ],
+    }
+
+    envelope_inputs = {**BASE_INPUT, "design_contract": contract}
+    envelope_inputs.pop("semantic_result")
+    envelope = build_executable_cadquery_repair_envelope(
+        **envelope_inputs,
+        repair_level="L3",
+        semantic_result=semantic,
+    )
+
+    assert envelope["passed_machine_requirements"] == ["passed_dimension"]
+    assert envelope["failed_machine_requirements"] == ["failed_dimension"]
+    assert envelope["semantic_repair_facts"] == [
+        {
+            "requirement_id": "failed_dimension",
+            "expected_value": {"height": 20.0},
+            "measured_value": {"height_mm": 19.0},
+            "tolerance": 0.25,
+            "measurement_method": "final_mesh_bounds",
+            "measurement_source": "final_mesh",
+            "status": "failed",
+        }
+    ]
+
+
 def test_repair_envelope_identifies_execution_failure_and_preserved_outputs() -> None:
     contract = {
         "schema_version": "executable-cadquery-design-contract-v1",
